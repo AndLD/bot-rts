@@ -1,11 +1,33 @@
 import { Express, NextFunction, Request, Response, Router } from 'express'
 // import { boardsRouter } from '../routers/boards'
 import { ErrorHandler, handleError } from '../middlewares/ErrorHandler'
+import { Entity } from '../utils/constants'
+import { isAuthorized } from '../middlewares/users'
+import { setReqEntity } from '../middlewares/decorators'
+import authPublicRouter from '../routers/public/auth'
+import authPrivateRouter from '../routers/private/auth'
+import { statisticsPrivateRouter } from '../routers/private/statistics'
+import { usersPrivateRouter } from '../routers/private/users'
+import usersPublicRouter from '../routers/public/users'
 
 export function setupRouters(app: Express) {
     const apiRouter = Router()
     app.use('/api', apiRouter)
-    // apiRouter.use('/boards', boardsRouter)
+
+    // Unauthorized router
+    const publicRouter = Router()
+    apiRouter.use('/public', publicRouter)
+
+    publicRouter.use('/auth', authPublicRouter)
+    publicRouter.use('/users', setReqEntity(Entity.USERS), usersPublicRouter)
+
+    // Authorized router
+    const privateRouter = Router()
+    apiRouter.use('/private', isAuthorized, privateRouter)
+
+    privateRouter.use('/auth', authPrivateRouter)
+    privateRouter.use('/users', usersPrivateRouter)
+    privateRouter.use('/statistics', statisticsPrivateRouter)
 
     app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) =>
         handleError(err, res)

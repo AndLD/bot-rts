@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'Clacon2';
+    src:
+        url('../assets/clacon2.ttf') format('truetype'),
+        url('../assets/clacon2.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: 'Clacon2', Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+}

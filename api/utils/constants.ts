@@ -9,6 +9,7 @@ export enum Entity {
     USERS = 'users',
     MAP = 'map', // General game map points + user map points
     BOTS = 'bots',
+    MODULES = 'modules',
     FILES = 'files'
 }
 

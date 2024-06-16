@@ -9,6 +9,7 @@ import authPrivateRouter from '../routers/private/auth'
 import { statisticsPrivateRouter } from '../routers/private/statistics'
 import { usersPrivateRouter } from '../routers/private/users'
 import usersPublicRouter from '../routers/public/users'
+import { botsPrivateRouter } from '../routers/private/bots'
 
 export function setupRouters(app: Express) {
     const apiRouter = Router()
@@ -28,6 +29,7 @@ export function setupRouters(app: Express) {
     privateRouter.use('/auth', authPrivateRouter)
     privateRouter.use('/users', usersPrivateRouter)
     privateRouter.use('/statistics', statisticsPrivateRouter)
+    privateRouter.use('/bots', botsPrivateRouter)
 
     app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) =>
         handleError(err, res)

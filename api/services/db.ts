@@ -5,11 +5,13 @@ import { IBot } from '../utils/interfaces/bots'
 import { IMapPoint } from '../utils/interfaces/map'
 import { IUser } from '../utils/interfaces/users'
 import { IFile } from '../utils/interfaces/files'
+import { IModuleProps, ModuleProps } from '../utils/interfaces/modules'
 
 let mongoClient: MongoClient
 export let db: Db
 export let usersCollection: Collection<IUser>
 export let botsCollection: Collection<IBot>
+export let modulesCollection: Collection<ModuleProps>
 export let mapCollection: Collection<IMapPoint>
 export let filesCollection: Collection<IFile>
 
@@ -21,6 +23,7 @@ async function init() {
     db = mongoClient.db(process.env.MONGO_DB_NAME || 'bot-rts')
     usersCollection = db.collection<IUser>(Entity.USERS)
     botsCollection = db.collection<IBot>(Entity.BOTS)
+    modulesCollection = db.collection<IModuleProps>(Entity.MODULES)
     mapCollection = db.collection<IMapPoint>(Entity.MAP)
     filesCollection = db.collection<IFile>(Entity.FILES)
 

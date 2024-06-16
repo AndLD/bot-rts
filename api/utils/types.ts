@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { ObjectId } from 'mongodb'
+import { IUserState } from './interfaces/users'
 
 export type ID = string | ObjectId
 
@@ -9,9 +10,7 @@ export type Error = {
 }
 
 export interface AuthorizedRequest extends Request {
-    user?: {
-        _id: string
-    }
+    user?: IUserState
     middlewarePayload?: {
         [key: string]: any
     }

@@ -3,11 +3,15 @@ import { AuthorizedRequest } from '../../utils/types'
 import { botsService } from '../../services/bots'
 
 async function postUserBase(req: AuthorizedRequest, res: Response, next: NextFunction) {
-    const user = req.user!
+    try {
+        const user = req.user!
 
-    const result = await botsService.deployUserBase(user)
+        const result = await botsService.deployUserBase(user)
 
-    return res.json(result)
+        return res.json(result)
+    } catch (error) {
+        next(error)
+    }
 }
 
 export const botsPrivateControllers = {

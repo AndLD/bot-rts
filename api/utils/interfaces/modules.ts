@@ -76,13 +76,14 @@ export interface IWeaponModuleProps extends IModuleProps {
     damage: number
     cooldown: number // in ms
     caliber: number
-    // minDistance?: number
     distance: number
     accuracy: number
     batchSize?: number
     batchCooldown?: number // in ms
     isArtillery?: boolean // if true, shoot along a hinged trajectory instead of straight
+    // minDistance?: number
     // splash?: number
+    // speed: number
 }
 export interface IWeaponModule extends IWeaponModuleProps {
     shoot(x: number, y: number, z?: number): Promise<Error | null>

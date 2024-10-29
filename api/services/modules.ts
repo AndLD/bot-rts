@@ -4,7 +4,7 @@ import { ID } from '../utils/types'
 import { modulesCollection } from './db'
 
 async function attachModulesToBot(botId: ID, modulesProps: IModuleProps[]): Promise<ModuleProps[]> {
-    const modules = modulesProps.map((moduleProps) => ({ ...moduleProps, botId }))
+    const modules = modulesProps.map((moduleProps) => ({ ...moduleProps, botId: botId.toString() }))
     const result = await modulesCollection.insertMany(modules)
 
     if (result.insertedCount !== modules.length) {

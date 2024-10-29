@@ -37,7 +37,7 @@ async function postUser(req: any, res: Response) {
 
     const tokens = createJwt(userState)
 
-    res.cookie('refresh_token', tokens.refreshToken, { httpOnly: true })
+    res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
 
     if (!createdUser.active) {
         emailService.sendEmailVerification(

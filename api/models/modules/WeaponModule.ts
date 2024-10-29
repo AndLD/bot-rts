@@ -11,6 +11,7 @@ export default class WeaponModule extends Module implements IWeaponModule {
     accuracy!: number
     batchSize?: number
     batchCooldown?: number // in ms
+    isArtillery?: boolean
 
     constructor(props: IWeaponModuleProps) {
         super(props)

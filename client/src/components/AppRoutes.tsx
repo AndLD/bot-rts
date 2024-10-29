@@ -11,54 +11,54 @@ import { useToken } from '../hooks/auth'
 import { inactiveRoutes } from '../routes/inactive.tsx'
 
 export default function AppRoutes() {
-    const token = useToken()
+  const token = useToken()
 
-    const [routes, setRoutes] = useState<RouteObject[]>([])
-    const [redirectRoute, setRedirectRoute] = useState<string | null>(null)
+  const [routes, setRoutes] = useState<RouteObject[]>([])
+  const [redirectRoute, setRedirectRoute] = useState<string | null>(null)
 
-    useEffect(() => {
-        const user: IUserState | null = parseUser(token)
+  useEffect(() => {
+    const user: IUserState | null = parseUser(token)
 
-        if (user && !user.active) {
-            setRoutes(inactiveRoutes)
-            setRedirectRoute('/forbidden')
-            return
-        }
+    if (user && !user.active) {
+      setRoutes(inactiveRoutes)
+      setRedirectRoute('/forbidden')
+      return
+    }
 
-        if (user) {
-            if (user.status === 'owner' || user.status === 'admin') {
-                setRoutes(privateRoutes)
-                setRedirectRoute('/admin')
-            } else if (user.status === 'user' || user.status === 'unlimited') {
-                setRoutes(privateRoutes)
+    if (user) {
+      if (user.status === 'owner' || user.status === 'admin') {
+        setRoutes(privateRoutes)
+        setRedirectRoute('/admin')
+      } else if (user.status === 'user' || user.status === 'unlimited') {
+        setRoutes(privateRoutes)
 
-                setRedirectRoute('/game')
-            } else {
-                // setRoutes([{ path: '/forbidden', element: <Forbidden /> }])
-                // setRedirectRoute('/forbidden')
-            }
-        } else {
-            setRoutes(publicRoutes)
-            setRedirectRoute('/auth')
-        }
-    }, [token])
+        setRedirectRoute('/game')
+      } else {
+        // setRoutes([{ path: '/forbidden', element: <Forbidden /> }])
+        // setRedirectRoute('/forbidden')
+      }
+    } else {
+      setRoutes(publicRoutes)
+      setRedirectRoute('/auth')
+    }
+  }, [token])
 
-    const routing = useRoutes(
-        redirectRoute
-            ? [
-                  ...routes,
-                  {
-                      path: '*',
-                      element: <Navigate replace to={redirectRoute} />
-                  }
-              ]
-            : routes
-    )
+  const routing = useRoutes(
+    redirectRoute
+      ? [
+          ...routes,
+          {
+            path: '*',
+            element: <Navigate replace to={redirectRoute} />
+          }
+        ]
+      : routes
+  )
 
-    return (
-        // <clustersContext.Provider value={useClustersContextValue()}>
-        //     <layoutContext.Provider value={useLayoutContext()}>{routing}</layoutContext.Provider>
-        // </clustersContext.Provider>
-        <>{routing}</>
-    )
+  return (
+    // <clustersContext.Provider value={useClustersContextValue()}>
+    //     <layoutContext.Provider value={useLayoutContext()}>{routing}</layoutContext.Provider>
+    // </clustersContext.Provider>
+    <>{routing}</>
+  )
 }

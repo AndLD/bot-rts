@@ -6,14 +6,14 @@ import { Entity } from '../../utils/constants'
 import { usersPublicValidationSchemas } from '../../validation/public/users'
 
 export default Router()
-    // Signup
-    .post(
-        '/',
-        validate(usersPublicValidationSchemas.postUser.bodySchema),
-        validationMiddlewares.isEntityAlreadyExists(Entity.USERS, (req: Request) => ({
-            email: req.body.email
-        })),
-        usersPublicControllers.postUser
-    )
-    // Email Verification
-    .get('/verify', usersPublicControllers.getVerifyEmail)
+  // Signup
+  .post(
+    '/',
+    validate(usersPublicValidationSchemas.postUser.bodySchema),
+    validationMiddlewares.isEntityAlreadyExists(Entity.USERS, (req: Request) => ({
+      email: req.body.email
+    })),
+    usersPublicControllers.postUser
+  )
+  // Email Verification
+  .get('/verify', usersPublicControllers.getVerifyEmail)

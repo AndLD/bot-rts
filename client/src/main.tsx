@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { setupStore } from './store/index.ts'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-    <Provider store={setupStore()}>
-        <App />
-    </Provider>
+  <Provider store={setupStore()}>
+    <App />
+  </Provider>
 )

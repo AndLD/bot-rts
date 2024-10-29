@@ -18,34 +18,34 @@ export let filesCollection: Collection<IFile>
 const logger = getLogger('services/db')
 
 async function init() {
-    mongoClient = new MongoClient(process.env.MONGO_DB_URI || 'mongodb://localhost:27017')
-    await mongoClient.connect()
-    db = mongoClient.db(process.env.MONGO_DB_NAME || 'bot-rts')
-    usersCollection = db.collection<IUser>(Entity.USERS)
-    botsCollection = db.collection<IBot>(Entity.BOTS)
-    modulesCollection = db.collection<IModuleProps>(Entity.MODULES)
-    mapCollection = db.collection<IMapPoint>(Entity.MAP)
-    filesCollection = db.collection<IFile>(Entity.FILES)
+  mongoClient = new MongoClient(process.env.MONGO_DB_URI || 'mongodb://localhost:27017')
+  await mongoClient.connect()
+  db = mongoClient.db(process.env.MONGO_DB_NAME || 'bot-rts')
+  usersCollection = db.collection<IUser>(Entity.USERS)
+  botsCollection = db.collection<IBot>(Entity.BOTS)
+  modulesCollection = db.collection<IModuleProps>(Entity.MODULES)
+  mapCollection = db.collection<IMapPoint>(Entity.MAP)
+  filesCollection = db.collection<IFile>(Entity.FILES)
 
-    logger.info('MongoDB successfully connected')
+  logger.info('MongoDB successfully connected')
 }
 
 async function close() {
-    await mongoClient.close()
+  await mongoClient.close()
 }
 
 async function withTransaction(fn: WithTransactionCallback<void>) {
-    const session = mongoClient.startSession()
+  const session = mongoClient.startSession()
 
-    const result = await session.withTransaction(fn)
+  const result = await session.withTransaction(fn)
 
-    session.endSession()
+  session.endSession()
 
-    return result
+  return result
 }
 
 export const dbService = {
-    init,
-    close,
-    withTransaction
+  init,
+  close,
+  withTransaction
 }

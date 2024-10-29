@@ -12,26 +12,24 @@ import usersPublicRouter from '../routers/public/users'
 import { botsPrivateRouter } from '../routers/private/bots'
 
 export function setupRouters(app: Express) {
-    const apiRouter = Router()
-    app.use('/api', apiRouter)
+  const apiRouter = Router()
+  app.use('/api', apiRouter)
 
-    // Unauthorized router
-    const publicRouter = Router()
-    apiRouter.use('/public', publicRouter)
+  // Unauthorized router
+  const publicRouter = Router()
+  apiRouter.use('/public', publicRouter)
 
-    publicRouter.use('/auth', authPublicRouter)
-    publicRouter.use('/users', setReqEntity(Entity.USERS), usersPublicRouter)
+  publicRouter.use('/auth', authPublicRouter)
+  publicRouter.use('/users', setReqEntity(Entity.USERS), usersPublicRouter)
 
-    // Authorized router
-    const privateRouter = Router()
-    apiRouter.use('/private', isAuthorized, privateRouter)
+  // Authorized router
+  const privateRouter = Router()
+  apiRouter.use('/private', isAuthorized, privateRouter)
 
-    privateRouter.use('/auth', authPrivateRouter)
-    privateRouter.use('/users', usersPrivateRouter)
-    privateRouter.use('/statistics', statisticsPrivateRouter)
-    privateRouter.use('/bots', botsPrivateRouter)
+  privateRouter.use('/auth', authPrivateRouter)
+  privateRouter.use('/users', usersPrivateRouter)
+  privateRouter.use('/statistics', statisticsPrivateRouter)
+  privateRouter.use('/bots', botsPrivateRouter)
 
-    app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) =>
-        handleError(err, res)
-    )
+  app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) => handleError(err, res))
 }

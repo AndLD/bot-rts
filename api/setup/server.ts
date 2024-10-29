@@ -4,11 +4,11 @@ import { setupRouters } from './routers'
 import { setupSocketServer } from './socket-connection'
 
 export function setupServer() {
-    const app = setupApp()
-    setupRouters(app)
+  const app = setupApp()
+  setupRouters(app)
 
-    const server = httpServer.createServer(app)
-    setupSocketServer(server)
+  const server = httpServer.createServer(app)
+  setupSocketServer(server)
 
-    return server
+  return server
 }

@@ -8,35 +8,35 @@ import { Utils } from '../../utils/utils'
 import path from 'path'
 
 async function getStatistics(_: any, res: Response) {
-    const usersByStatus = await usersService.countUsersByState(res)
-    if (!usersByStatus) {
-        return
-    }
+  const usersByStatus = await usersService.countUsersByState(res)
+  if (!usersByStatus) {
+    return
+  }
 
-    // Get total count of documents for each collection
-    const totals: any = {}
-    for (const entity of Object.keys(Entity)) {
-        const collection = entity.toLowerCase()
+  // Get total count of documents for each collection
+  const totals: any = {}
+  for (const entity of Object.keys(Entity)) {
+    const collection = entity.toLowerCase()
 
-        const key = `${collection}Total`
+    const key = `${collection}Total`
 
-        totals[key] = await db.collection(collection).countDocuments()
-    }
+    totals[key] = await db.collection(collection).countDocuments()
+  }
 
-    const filesSizeTotal = Utils.getDirectorySizeSync(
-        path.join(__dirname, isProduction ? '../../../public' : '../../public')
-    )
+  const filesSizeTotal = Utils.getDirectorySizeSync(
+    path.join(__dirname, isProduction ? '../../../public' : '../../public')
+  )
 
-    const result = {
-        usersByStatus,
-        ...totals,
-        startTimestamp,
-        filesSizeTotal
-    }
+  const result = {
+    usersByStatus,
+    ...totals,
+    startTimestamp,
+    filesSizeTotal
+  }
 
-    apiUtils.sendResult(res, result)
+  apiUtils.sendResult(res, result)
 }
 
 export const privateStatisticsControllers = {
-    getStatistics: tryCatch(getStatistics)
+  getStatistics: tryCatch(getStatistics)
 }

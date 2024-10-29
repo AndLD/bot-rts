@@ -6,5 +6,5 @@ const logger = getLogger('index')
 startApp()
 
 process.on('uncaughtException', function (err) {
-    logger.error(`UNCAUGHT EXCEPTION: ${err}`)
+  logger.error(`UNCAUGHT EXCEPTION: ${err}`)
 })

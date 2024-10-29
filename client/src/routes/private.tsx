@@ -6,24 +6,24 @@ import { RouteObject } from 'react-router-dom'
 import Game from '../pages/Game'
 
 const privateRoutes: RouteObject[] = [
-    // {
-    //     path: '/admin',
-    //     element: <AdminLayout />,
-    //     children: [
-    //         {
-    //             path: '/admin',
-    //             element: <Dashboard />
-    //         },
-    //         {
-    //             path: '/admin/users',
-    //             element: <Users />
-    //         }
-    //     ]
-    // },
-    {
-        path: '/game',
-        element: <Game />
-    }
+  // {
+  //     path: '/admin',
+  //     element: <AdminLayout />,
+  //     children: [
+  //         {
+  //             path: '/admin',
+  //             element: <Dashboard />
+  //         },
+  //         {
+  //             path: '/admin/users',
+  //             element: <Users />
+  //         }
+  //     ]
+  // },
+  {
+    path: '/game',
+    element: <Game />
+  }
 ]
 
 export default privateRoutes

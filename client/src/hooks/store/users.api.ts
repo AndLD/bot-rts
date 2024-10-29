@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import {
-    // useFetchUsersQuery,
-    useFetchVerifyEmailQuery
-    // usePutUserMutation
+  // useFetchUsersQuery,
+  useFetchVerifyEmailQuery
+  // usePutUserMutation
 } from '../../store/users.api'
 // import { IFetchUsersResponse, IUserInfo, UserStatus } from '../../utils/interfaces/user'
 import { errorNotification } from '../../utils/notifications'
@@ -64,20 +64,20 @@ import { errorNotification } from '../../utils/notifications'
 // }
 
 export function useVerifyEmail(emailVerificationToken: string | null, callback: () => void) {
-    const fetchVerifyEmailQuery = useFetchVerifyEmailQuery({
-        emailVerificationToken
-    })
+  const fetchVerifyEmailQuery = useFetchVerifyEmailQuery({
+    emailVerificationToken
+  })
 
-    useEffect(() => {
-        if (fetchVerifyEmailQuery.isSuccess) {
-            callback()
-        }
-    }, [fetchVerifyEmailQuery.isSuccess])
+  useEffect(() => {
+    if (fetchVerifyEmailQuery.isSuccess) {
+      callback()
+    }
+  }, [fetchVerifyEmailQuery.isSuccess])
 
-    useEffect(() => {
-        if (fetchVerifyEmailQuery.isError) {
-            errorNotification('Помилка підтвердження Email')
-            callback()
-        }
-    }, [fetchVerifyEmailQuery.isError])
+  useEffect(() => {
+    if (fetchVerifyEmailQuery.isError) {
+      errorNotification('Помилка підтвердження Email')
+      callback()
+    }
+  }, [fetchVerifyEmailQuery.isError])
 }

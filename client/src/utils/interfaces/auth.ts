@@ -1,12 +1,12 @@
 export interface IAuthPostBody {
-    email: string
-    password: string
+  email: string
+  password: string
 }
 
 export interface IAuthPostResponse {
-    result: string
+  result: string
 }
 
 export interface IRefreshPostResponse {
-    result: string
+  result: string
 }

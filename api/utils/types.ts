@@ -5,15 +5,15 @@ import { IUserState } from './interfaces/users'
 export type ID = string | ObjectId
 
 export type Error = {
-    msg: string
-    code: number
+  msg: string
+  code: number
 }
 
 export interface AuthorizedRequest extends Request {
-    user?: IUserState
-    middlewarePayload?: {
-        [key: string]: any
-    }
+  user?: IUserState
+  middlewarePayload?: {
+    [key: string]: any
+  }
 }
 
 export type Controller = (req: Request, res: Response, next?: NextFunction) => any

@@ -3,78 +3,78 @@ import { ObjectId } from 'mongodb'
 export type Subscription = 'free' | 'monthly' | 'yearly'
 
 export interface IUser {
-    _id: ObjectId
-    name: string
-    email: string
-    password: string
-    status: UserStatus
-    active: boolean
-    subscription: Subscription
-    createdAt: number
-    updatedAt?: number
-    keywords: string[]
-    user: string
+  _id: ObjectId
+  name: string
+  email: string
+  password: string
+  status: UserStatus
+  active: boolean
+  subscription: Subscription
+  createdAt: number
+  updatedAt?: number
+  keywords: string[]
+  user: string
 }
 
 export interface IUserState {
-    _id: string
-    name: string
-    email: string
-    status: UserStatus
-    active: boolean
-    subscription: Subscription
-    createdAt: number
-    updatedAt?: number
+  _id: string
+  name: string
+  email: string
+  status: UserStatus
+  active: boolean
+  subscription: Subscription
+  createdAt: number
+  updatedAt?: number
 }
 
 export interface IUserInfo {
-    _id: string
-    name: string
-    email: string
-    status: UserStatus
-    active: boolean
-    subscription: Subscription
-    createdAt: number
-    updatedAt?: number
-    keywords?: string[]
-    user?: string
+  _id: string
+  name: string
+  email: string
+  status: UserStatus
+  active: boolean
+  subscription: Subscription
+  createdAt: number
+  updatedAt?: number
+  keywords?: string[]
+  user?: string
 }
 
 export interface IUserPost {
-    name: string
-    email: string
-    password: string
-    subscription: Subscription
-    status: UserStatus
-    active: boolean
-    createdAt: number
-    keywords: string[]
+  name: string
+  email: string
+  password: string
+  subscription: Subscription
+  status: UserStatus
+  active: boolean
+  createdAt: number
+  keywords: string[]
 }
 
 export interface IUserPostBody {
-    name: string
-    email: string
-    password: string
+  name: string
+  email: string
+  password: string
 }
 
 export type UserStatus = 'admin' | 'owner' | 'user' | 'unlimited' | 'banned'
 
 export interface IFetchAuthorizedUserResponse {
-    result: IUserInfo | null
+  result: IUserInfo | null
 }
 
 export interface IFetchUsersResponse {
-    result: IUserInfo[]
+  result: IUserInfo[]
 }
 
 export interface IUserPostResponse {
-    result: string
+  result: string
 }
 
 export interface IUserPutBody {
-    status: UserStatus
+  status: UserStatus
 }
 
 export interface IUserPutResponse {
-    result: IUserInfo
+  result: IUserInfo
 }

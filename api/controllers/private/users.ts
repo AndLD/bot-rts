@@ -5,51 +5,51 @@ import { AuthorizedRequest } from '../../utils/types'
 import { usersService } from '../../services/users'
 
 async function get(req: AuthorizedRequest, res: Response, next: NextFunction) {
-    try {
-        const clientFilter = req.query.filters ? JSON.parse(req.query.filters as string) : {}
-        const pagination = {
-            page: req.query.page ? parseInt(req.query.page as string) : 1,
-            results: req.query.results ? parseInt(req.query.results as string) : 10
-        }
-        const skip = (pagination.page - 1) * pagination.results
-        const limit = pagination.results
-
-        const users = await usersService.getUsersWithTotalNodesPerCluster(clientFilter, skip, limit)
-
-        const total = await usersCollection.countDocuments(clientFilter)
-
-        res.json({
-            result: users.map(({ password, ...rest }) => rest),
-            meta: { pagination: { ...pagination, total } }
-        })
-    } catch (err) {
-        next(err)
+  try {
+    const clientFilter = req.query.filters ? JSON.parse(req.query.filters as string) : {}
+    const pagination = {
+      page: req.query.page ? parseInt(req.query.page as string) : 1,
+      results: req.query.results ? parseInt(req.query.results as string) : 10
     }
+    const skip = (pagination.page - 1) * pagination.results
+    const limit = pagination.results
+
+    const users = await usersService.getUsersWithTotalNodesPerCluster(clientFilter, skip, limit)
+
+    const total = await usersCollection.countDocuments(clientFilter)
+
+    res.json({
+      result: users.map(({ password, ...rest }) => rest),
+      meta: { pagination: { ...pagination, total } }
+    })
+  } catch (err) {
+    next(err)
+  }
 }
 
 async function put(req: Request, res: Response, next: NextFunction) {
-    try {
-        const id = req.params.id
-        const data = req.body
+  try {
+    const id = req.params.id
+    const data = req.body
 
-        const updateResult = await usersCollection.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { ...data, updatedAt: new Date().getTime() } }
-        )
+    const updateResult = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { ...data, updatedAt: new Date().getTime() } }
+    )
 
-        if (updateResult.modifiedCount === 0) {
-            return next(new Error('User was not updated'))
-        }
-
-        const result = await usersCollection.findOne({ _id: new ObjectId(id) })
-
-        res.json({ result })
-    } catch (err) {
-        next(err)
+    if (updateResult.modifiedCount === 0) {
+      return next(new Error('User was not updated'))
     }
+
+    const result = await usersCollection.findOne({ _id: new ObjectId(id) })
+
+    res.json({ result })
+  } catch (err) {
+    next(err)
+  }
 }
 
 export const usersPrivateControllers = {
-    get,
-    put
+  get,
+  put
 }

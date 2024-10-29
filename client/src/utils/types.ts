@@ -1,8 +1,8 @@
 export type ID = string
 
 export type Error = {
-    msg: string
-    code: number
+  msg: string
+  code: number
 }
 
 export type Item = any

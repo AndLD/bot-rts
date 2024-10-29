@@ -12,24 +12,24 @@ let server: httpServer.Server | null = null
 const port = process.env.PORT || 8080
 
 export async function startApp() {
-    const logger = getLogger('setup/index')
+  const logger = getLogger('setup/index')
 
-    logger.info(`${packageJson.name} ${packageJson.version}. Starting app...`)
+  logger.info(`${packageJson.name} ${packageJson.version}. Starting app...`)
 
-    server = setupServer()
+  server = setupServer()
 
-    await dbService.init()
-    emailService.init()
+  await dbService.init()
+  emailService.init()
 
-    server.listen(port, () => {
-        logger.info(`Server has been started on ${port}, env=${environment}`)
-    })
+  server.listen(port, () => {
+    logger.info(`Server has been started on ${port}, env=${environment}`)
+  })
 }
 
 export async function stopApp() {
-    if (server) {
-        server.close()
-    }
+  if (server) {
+    server.close()
+  }
 
-    await dbService.close()
+  await dbService.close()
 }

@@ -6,6 +6,8 @@ import { ErrorHandler } from '../../middlewares/ErrorHandler'
 
 export default class Module extends EventEmitter implements IModule {
   _id!: ID
+  botId?: string
+  userId?: string
   type!: ModuleType
   name!: string
   weight!: number

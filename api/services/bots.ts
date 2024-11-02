@@ -1,10 +1,10 @@
 import { ObjectId } from 'mongodb'
-import { IBot, IPostBot } from '../utils/interfaces/bots'
+import { BOT_TYPE, IBot, IPostBot } from '../utils/interfaces/bots'
 import { IUserState } from '../utils/interfaces/users'
-import { botsCollection } from './db'
+import { botsCollection, modulesCollection } from './db'
 import { ErrorHandler } from '../middlewares/ErrorHandler'
 import { ID } from '../utils/types'
-import { IMapPoint, IPostMapPoint, Location } from '../utils/interfaces/map'
+import { IMapPoint, IPostMapPoint, Location, MapPointType } from '../utils/interfaces/map'
 import { mapService } from './map'
 import { Utils } from '../utils/utils'
 import { modulesService } from './modules'
@@ -45,7 +45,8 @@ async function deployUserBase(
   const base: IPostBot = {
     _id: new ObjectId(),
     label: `${user.name} base`,
-    userId: user._id.toString()
+    userId: user._id.toString(),
+    type: BOT_TYPE.BASE
   }
 
   const bots = await getBotsByUserId(user._id)
@@ -54,10 +55,14 @@ async function deployUserBase(
     throw new ErrorHandler(403, 'User base already exists')
   }
 
+  const spawnMaxDistance = 10
+
   const mapPoint: IPostMapPoint = {
-    location: location ? location : ({ x: Utils.getRandomInt(0, 1000), y: Utils.getRandomInt(0, 1000) } as Location),
+    location: location
+      ? location
+      : ({ x: Utils.getRandomInt(0, spawnMaxDistance), y: Utils.getRandomInt(0, spawnMaxDistance) } as Location),
     contentId: base._id!.toString(),
-    type: 'base',
+    type: MapPointType.BASE,
     userId: user._id.toString()
   }
 
@@ -74,9 +79,25 @@ async function deployUserBase(
   return { bot: addBotResult, modules: attachModulesToBotResult, mapPoint: upsertMapPointResult }
 }
 
+async function getUserIdByBotId(botId: string) {
+  const bot = await botsService.getBotById(botId)
+  return bot?.userId
+}
+
+async function getUserBots(userId: string, filter?: { type?: BOT_TYPE }) {
+  let _filter = { userId }
+  if (filter) {
+    _filter = { ..._filter, ...filter }
+  }
+
+  return await botsCollection.find(_filter).toArray()
+}
+
 export const botsService = {
   deployUserBase,
   addBot,
   getBotById,
-  getBotsByUserId
+  getBotsByUserId,
+  getUserIdByBotId,
+  getUserBots
 }

@@ -1,6 +1,9 @@
 import { Server } from 'socket.io'
 import httpServer from 'http'
 import { getLogger } from '../utils/logger'
+import { isSocketAuthorized } from '../middlewares/users'
+import { botsService } from '../services/bots'
+import { BOT_TYPE } from '../utils/interfaces/bots'
 // import { jobsService } from '../services/jobs'
 
 const logger = getLogger('setup/socket-connection')
@@ -15,8 +18,7 @@ export function setupSocketServer(server: httpServer.Server) {
     cors: corsOptions
   })
 
-  // TODO: Fix auth middleware
-  // io.use(isSocketAuthorized as any)
+  io.use(isSocketAuthorized)
 
   io.on('connection', async (socket) => {
     const socketId = socket.id
@@ -31,6 +33,18 @@ export function setupSocketServer(server: httpServer.Server) {
 
     // jobsService.jobsEventEmitter.on('update', updateJobHandler)
     // jobsService.jobsEventEmitter.on('remove', removeJobHandler)
+
+    socket.on('get-user-bases', async (callback) => {
+      const userId = socket.user!._id
+      const bots = await botsService.getUserBots(userId, { type: BOT_TYPE.BASE })
+      callback(bots)
+    })
+
+    socket.on('get-user-bots', async (callback) => {
+      const userId = socket.user!._id
+      const bots = await botsService.getUserBots(userId)
+      callback(bots)
+    })
 
     socket.conn.on('close', () => {
       logger.info(`Socket client disconnected [${socketId}]`)

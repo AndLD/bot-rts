@@ -6,8 +6,18 @@ import { apiUtils } from '../utils/api'
 import { Entity, errors } from '../utils/constants'
 import { db } from '../services/db'
 import { ObjectId } from 'mongodb'
+import { Socket } from 'socket.io'
+import { ExtendedError } from 'socket.io/dist/namespace'
+import { IUserState } from '../utils/interfaces/users'
+import axios from 'axios'
 
 const logger = getLogger('middlewares/auth')
+
+declare module 'socket.io' {
+  interface Socket {
+    user?: IUserState
+  }
+}
 
 export async function isAuthorized(req: any, res: Response, next: NextFunction) {
   if (!req.headers.authorization) {
@@ -28,6 +38,33 @@ export async function isAuthorized(req: any, res: Response, next: NextFunction) 
   }
 
   next()
+}
+
+export async function isSocketAuthorized(socket: Socket, next: (err?: ExtendedError) => void) {
+  const accessToken = socket.handshake.auth?.token || socket.handshake.query?.token
+
+  if (!accessToken) {
+    socket.disconnect()
+    return next(new Error('Authentication error: No access token'))
+  }
+
+  try {
+    const decodeValue: any = jwt.verify(accessToken, accessJwtSecret)
+
+    // TODO: Validate decodeValue ?
+
+    socket.user = decodeValue.user
+    return next()
+  } catch (err) {
+    if ((err as Error).name === 'TokenExpiredError') {
+      socket.emit('unauthorized')
+      return next()
+    }
+
+    logger.error(err)
+    socket.disconnect()
+    return next(new Error('Authentication error'))
+  }
 }
 
 export async function isAuthorizedNotRequired(req: any, _: Response, next: NextFunction) {

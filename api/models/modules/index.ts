@@ -31,7 +31,7 @@ const scannerClass1: IScannerModuleProps = {
   idleCost: 0.05,
   operationCost: 1,
   weight: 30,
-  distance: 5,
+  distance: 1,
   delay: 250
 }
 

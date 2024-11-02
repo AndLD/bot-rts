@@ -46,7 +46,7 @@ async function postLogin(req: any, res: Response) {
 
   const tokens = createJwt(userState)
 
-  res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   res.json({
     result: tokens.accessToken
   })
@@ -90,7 +90,7 @@ async function getRefresh(req: any, res: Response) {
 
   const tokens = createJwt(userState)
 
-  res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   apiUtils.sendResult(res, tokens.accessToken)
 }
 

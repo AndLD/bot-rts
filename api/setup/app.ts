@@ -2,6 +2,7 @@ import express from 'express'
 import cors, { CorsOptions } from 'cors'
 import helmet from 'helmet'
 import { loggerMiddleware } from '../middlewares/logger'
+import cookieParser from 'cookie-parser'
 
 export function setupApp() {
   const app = express()
@@ -21,6 +22,7 @@ export function setupApp() {
     credentials: true
   }
   app.use(cors(corsOptions))
+  app.use(cookieParser())
   app.use(loggerMiddleware)
 
   return app

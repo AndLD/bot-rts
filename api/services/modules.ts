@@ -14,4 +14,8 @@ async function attachModulesToBot(botId: ID, modulesProps: IModuleProps[]): Prom
   return modules
 }
 
-export const modulesService = { attachModulesToBot }
+async function getBotModules(botId: string) {
+  return await modulesCollection.find({ botId }).toArray()
+}
+
+export const modulesService = { attachModulesToBot, getBotModules }

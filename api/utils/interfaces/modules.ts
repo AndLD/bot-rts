@@ -4,7 +4,6 @@ import { IMapPoint } from './map'
 
 export type ModuleType =
   | 'engine'
-  | 'movement'
   | 'weapon'
   | 'mining'
   | 'manipulator'

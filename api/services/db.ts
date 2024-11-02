@@ -44,8 +44,13 @@ async function withTransaction(fn: WithTransactionCallback<void>) {
   return result
 }
 
+async function deleteAll(collection: Entity) {
+  await db.collection(collection).deleteMany({})
+}
+
 export const dbService = {
   init,
   close,
-  withTransaction
+  withTransaction,
+  deleteAll
 }

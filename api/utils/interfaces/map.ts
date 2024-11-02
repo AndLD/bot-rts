@@ -1,6 +1,11 @@
 import { ID } from '../types'
 
-export type MapPointType = 'resource' | 'bot' | 'item' | 'base'
+export enum MapPointType {
+  RESOURCE = 'resource',
+  BOT = 'bot',
+  ITEM = 'item',
+  BASE = 'base'
+}
 
 export type Location = { x: number; y: number; z?: number }
 
@@ -14,6 +19,14 @@ export interface IMapPoint {
 }
 
 export interface IPostMapPoint {
+  location: Location
+  userId?: ID
+  contentId: ID | null
+  type: MapPointType | null
+}
+
+export interface IUpsertMapPoint {
+  _id?: ID
   location: Location
   userId?: ID
   contentId: ID | null

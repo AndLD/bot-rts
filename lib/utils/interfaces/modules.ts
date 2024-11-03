@@ -1,10 +1,9 @@
-import { Error, ID, Item, Material } from '../types'
+import { Error, ID, Item } from '../types'
 import { IFile } from './files'
 import { IMapPoint } from './map'
 
 export type ModuleType =
   | 'engine'
-  | 'movement'
   | 'weapon'
   | 'mining'
   | 'manipulator'
@@ -32,7 +31,7 @@ export enum EngineType {
 export interface IModuleProps {
   _id?: ID
   botId?: ID
-  type?: ModuleType
+  type: ModuleType
   name: string
   condition: number // HP
   maxCondition: number
@@ -174,7 +173,7 @@ export interface IStorageModule extends IStorageModuleProps {
 }
 
 export interface IArmorModuleProps extends IModuleProps {
-  material: Material
+  material: string
 }
 export interface IArmorModule extends IArmorModuleProps {}
 

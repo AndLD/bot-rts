@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { IUserState } from './interfaces/users'
+import { IUserState } from '@lib/utils/interfaces/users'
 
 export const accessJwtSecret: string = process.env.JWT_ACCESS_SECRET || 'super_secret1'
 const accessJwtExpiresIn: string = process.env.JWT_ACCESS_EXPIRES_IN || '10m'

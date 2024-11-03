@@ -2,6 +2,7 @@ import fs from 'fs'
 import Jimp from 'jimp'
 import path from 'path'
 import { isProduction } from './constants'
+import { IMapPoint } from '@lib/utils/interfaces/map'
 
 export const Utils = {
   attachPayloadWordToKeysForObject(obj: any) {
@@ -130,5 +131,31 @@ export const Utils = {
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min + 1)) + min
+  },
+  /** Convert array of points to object with "x:y" keys */
+  convertMapPointsArrayToObject(points: IMapPoint[]) {
+    return points.reduce<{ [locationKey: string]: IMapPoint }>((acc, curr) => {
+      return { ...acc, [`${curr.location.x}:${curr.location.y}`]: curr }
+    }, {})
+  },
+  convertTimeStringToMilliseconds(timeString: string) {
+    // Extract the number and the unit from the input string
+    const match = timeString.match(/(\d+)([smhd])/)
+
+    if (!match) {
+      return 0
+    }
+
+    const timeMultipliers = {
+      s: 1000, // seconds to milliseconds
+      m: 60 * 1000, // minutes to milliseconds
+      h: 60 * 60 * 1000, // hours to milliseconds
+      d: 24 * 60 * 60 * 1000 // days to milliseconds
+    }
+
+    const value = parseInt(match[1]) // the numeric part
+    const unit = match[2] as 's' | 'm' | 'h' | 'd'
+
+    return value * timeMultipliers[unit]
   }
 }

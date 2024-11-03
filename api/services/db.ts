@@ -1,11 +1,11 @@
 import { MongoClient, Db, WithTransactionCallback, Collection } from 'mongodb'
 import { getLogger } from '../utils/logger'
 import { Entity } from '../utils/constants'
-import { IBot } from '../utils/interfaces/bots'
-import { IMapPoint } from '../utils/interfaces/map'
-import { IUser } from '../utils/interfaces/users'
-import { IFile } from '../utils/interfaces/files'
-import { IModuleProps, ModuleProps } from '../utils/interfaces/modules'
+import { IBot } from '@lib/utils/interfaces/bots'
+import { IMapPoint } from '@lib/utils/interfaces/map'
+import { IUser } from '@lib/utils/interfaces/users'
+import { IFile } from '@lib/utils/interfaces/files'
+import { IModuleProps, ModuleProps } from '@lib/utils/interfaces/modules'
 
 let mongoClient: MongoClient
 export let db: Db
@@ -44,8 +44,13 @@ async function withTransaction(fn: WithTransactionCallback<void>) {
   return result
 }
 
+async function deleteAll(collection: Entity) {
+  await db.collection(collection).deleteMany({})
+}
+
 export const dbService = {
   init,
   close,
-  withTransaction
+  withTransaction,
+  deleteAll
 }

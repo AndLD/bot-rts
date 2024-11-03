@@ -2,9 +2,11 @@ import { appSlice } from '../../store/app.reducer'
 import { errorNotification } from '../../utils/notifications'
 import { useAppDispatch } from '.'
 import { useLogoutMutation, useRefreshTokenMutation } from '../../store/auth.api'
+import { useSocket } from '../auth'
 
 export function useLogout() {
   const dispatch = useAppDispatch()
+  const socket = useSocket()
 
   const [logout] = useLogoutMutation()
 
@@ -16,6 +18,9 @@ export function useLogout() {
 
       callback && callback()
       dispatch(appSlice.actions.setToken(null))
+      if (socket) {
+        socket.disconnect()
+      }
     })
   }
 }

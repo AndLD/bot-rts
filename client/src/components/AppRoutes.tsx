@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import privateRoutes from '../routes/private'
 import publicRoutes from '../routes/public'
 // import Forbidden from '../pages/Forbidden'
-import { IUserState } from '../utils/interfaces/users.ts'
+import { IUserState } from '@lib/utils/interfaces/users.ts'
 import { parseUser } from '../utils/jwt'
 import { useToken } from '../hooks/auth'
 // import { layoutContext } from '../context'
@@ -17,6 +17,8 @@ export default function AppRoutes() {
   const [redirectRoute, setRedirectRoute] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log(token)
+
     const user: IUserState | null = parseUser(token)
 
     if (user && !user.active) {
@@ -28,7 +30,7 @@ export default function AppRoutes() {
     if (user) {
       if (user.status === 'owner' || user.status === 'admin') {
         setRoutes(privateRoutes)
-        setRedirectRoute('/admin')
+        setRedirectRoute('/game')
       } else if (user.status === 'user' || user.status === 'unlimited') {
         setRoutes(privateRoutes)
 

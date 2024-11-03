@@ -3,12 +3,12 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { usersCollection } from '../../services/db'
 import { tryCatch } from '../../utils/decorators'
-import { IAuthPostBody } from '../../utils/interfaces/auth'
+import { IAuthPostBody } from '@lib/utils/interfaces/auth'
 import { errors } from '../../utils/constants'
-import { IUserState } from '../../utils/interfaces/users'
+import { IUser, IUserState } from '@lib/utils/interfaces/users'
 import { createJwt, refreshJwtSecret } from '../../utils/jwt'
 import { apiUtils } from '../../utils/api'
-import { Document, ObjectId, WithId } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 interface IRefreshJwtPayload extends jwt.JwtPayload {
   user: {
@@ -19,7 +19,7 @@ interface IRefreshJwtPayload extends jwt.JwtPayload {
 async function postLogin(req: any, res: Response) {
   const body: IAuthPostBody = req.body
 
-  const user: WithId<Document> | null = await usersCollection.findOne({ email: body.email })
+  const user: IUser | null = await usersCollection.findOne({ email: body.email })
 
   if (!user) {
     return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)
@@ -46,7 +46,7 @@ async function postLogin(req: any, res: Response) {
 
   const tokens = createJwt(userState)
 
-  res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   res.json({
     result: tokens.accessToken
   })
@@ -90,7 +90,7 @@ async function getRefresh(req: any, res: Response) {
 
   const tokens = createJwt(userState)
 
-  res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   apiUtils.sendResult(res, tokens.accessToken)
 }
 

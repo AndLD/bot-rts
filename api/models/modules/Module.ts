@@ -1,11 +1,13 @@
 import { ObjectId } from 'mongodb'
-import { IModule, IModuleProps, ModuleType } from '../../utils/interfaces/modules'
-import { ID } from '../../utils/types'
+import { IModule, IModuleProps, ModuleType } from '@lib/utils/interfaces/modules'
+import { ID } from '@lib/utils/types'
 import { EventEmitter } from 'events'
 import { ErrorHandler } from '../../middlewares/ErrorHandler'
 
 export default class Module extends EventEmitter implements IModule {
   _id!: ID
+  botId?: string
+  userId?: string
   type!: ModuleType
   name!: string
   weight!: number

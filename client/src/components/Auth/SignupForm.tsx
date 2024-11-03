@@ -1,7 +1,7 @@
 import { Button, Form, Input } from 'antd'
 import { useAppDispatch } from '../../hooks/store'
 import { appSlice } from '../../store/app.reducer'
-import { IUserPostBody } from '../../utils/interfaces/users'
+import { IUserPostBody } from '@lib/utils/interfaces/users'
 import { errorNotification } from '../../utils/notifications'
 import { validationRules } from '../../utils/validation'
 import { useNavigate } from 'react-router-dom'

@@ -4,10 +4,10 @@ import {
   useFetchVerifyEmailQuery
   // usePutUserMutation
 } from '../../store/users.api'
-// import { IFetchUsersResponse, IUserInfo, UserStatus } from '../../utils/interfaces/user'
+// import { IFetchUsersResponse, IUserInfo, UserStatus } from '@lib/utils/interfaces/user'
 import { errorNotification } from '../../utils/notifications'
 // import { useToken } from '../auth'
-// import { IPagination } from '../../utils/interfaces/common.ts'
+// import { IPagination } from '@lib/utils/interfaces/common.ts'
 // import { usersContext } from '../../context.ts'
 
 // export function useFetchUsers(

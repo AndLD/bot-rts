@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { IAuthPostBody, IAuthPostResponse, IRefreshPostResponse } from '../utils/interfaces/auth'
+import { IAuthPostBody, IAuthPostResponse, IRefreshPostResponse } from '@lib/utils/interfaces/auth'
 import { baseQueryWithRefresh } from '../utils/store'
 
 export const authApi = createApi({

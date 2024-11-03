@@ -1,7 +1,7 @@
 import { Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { tryCatch } from '../../utils/decorators'
-import { IUserState, IUserPostBody } from '../../utils/interfaces/users'
+import { IUserState, IUserPostBody } from '@lib/utils/interfaces/users'
 import { createEmailVerificationJwt, createJwt, emailVerificationJwtSecret } from '../../utils/jwt'
 import { usersService } from '../../services/users'
 import { emailService } from '../../services/email'
@@ -37,7 +37,7 @@ async function postUser(req: any, res: Response) {
 
   const tokens = createJwt(userState)
 
-  res.cookie('refreshToken', tokens.refreshToken, { httpOnly: true })
+  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
 
   if (!createdUser.active) {
     emailService.sendEmailVerification(createdUser.email, createEmailVerificationJwt(createdUser._id.toString()))

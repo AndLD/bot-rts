@@ -6,10 +6,11 @@ import {
   IGeneratorModuleProps,
   IScannerModuleProps,
   IStorageModuleProps
-} from '../../utils/interfaces/modules'
-import { Item } from '../../utils/types'
+} from '@lib/utils/interfaces/modules'
+import { Item } from '@lib/utils/types'
 
 const gunClass1: IWeaponModuleProps = {
+  type: 'weapon',
   name: 'gun-class1',
   condition: 100,
   maxCondition: 100,
@@ -31,7 +32,7 @@ const scannerClass1: IScannerModuleProps = {
   idleCost: 0.05,
   operationCost: 1,
   weight: 30,
-  distance: 5,
+  distance: 1,
   delay: 250
 }
 

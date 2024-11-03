@@ -2,7 +2,7 @@ import fs from 'fs'
 import Jimp from 'jimp'
 import path from 'path'
 import { isProduction } from './constants'
-import { IMapPoint } from './interfaces/map'
+import { IMapPoint } from '@lib/utils/interfaces/map'
 
 export const Utils = {
   attachPayloadWordToKeysForObject(obj: any) {

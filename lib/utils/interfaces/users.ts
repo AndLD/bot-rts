@@ -1,9 +1,9 @@
-import { ObjectId } from 'mongodb'
+import { ID } from '../types'
 
 export type Subscription = 'free' | 'monthly' | 'yearly'
 
 export interface IUser {
-  _id: ObjectId
+  _id: ID
   name: string
   email: string
   password: string
@@ -25,6 +25,13 @@ export interface IUserState {
   subscription: Subscription
   createdAt: number
   updatedAt?: number
+}
+
+export interface IUserShortInfo {
+  _id: string
+  name: string
+  email: string
+  createdAt: number
 }
 
 export interface IUserInfo {
@@ -65,6 +72,13 @@ export interface IFetchAuthorizedUserResponse {
 
 export interface IFetchUsersResponse {
   result: IUserInfo[]
+  meta: {
+    pagination: {
+      page: number
+      results: number
+      total: number
+    }
+  }
 }
 
 export interface IUserPostResponse {

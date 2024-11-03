@@ -5,7 +5,7 @@ import {
   IUserPostResponse,
   IUserPutBody,
   IUserPutResponse
-} from '../utils/interfaces/users'
+} from '@lib/utils/interfaces/users'
 import { baseQueryWithRefresh } from '../utils/store'
 import { API_URL } from '../utils/constants'
 

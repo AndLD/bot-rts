@@ -1,5 +1,5 @@
-import { IWeaponModule, IWeaponModuleProps, ModuleType } from '../../utils/interfaces/modules'
-import { Error } from '../../utils/types'
+import { IWeaponModule, IWeaponModuleProps, ModuleType } from '@lib/utils/interfaces/modules'
+import { Error } from '@lib/utils/types'
 import Module from './Module'
 
 export default class WeaponModule extends Module implements IWeaponModule {

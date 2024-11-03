@@ -2,7 +2,7 @@ import { Button, Form, Input } from 'antd'
 import { useAppDispatch } from '../../hooks/store'
 import { useLoginMutation } from '../../store/auth.api'
 import { appSlice } from '../../store/app.reducer'
-import { IAuthPostBody } from '../../utils/interfaces/auth'
+import { IAuthPostBody } from '@lib/utils/interfaces/auth'
 import { errorNotification } from '../../utils/notifications'
 import { validationRules } from '../../utils/validation'
 

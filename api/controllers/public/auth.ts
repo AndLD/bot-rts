@@ -3,12 +3,12 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { usersCollection } from '../../services/db'
 import { tryCatch } from '../../utils/decorators'
-import { IAuthPostBody } from '../../utils/interfaces/auth'
+import { IAuthPostBody } from '@lib/utils/interfaces/auth'
 import { errors } from '../../utils/constants'
-import { IUserState } from '../../utils/interfaces/users'
+import { IUser, IUserState } from '@lib/utils/interfaces/users'
 import { createJwt, refreshJwtSecret } from '../../utils/jwt'
 import { apiUtils } from '../../utils/api'
-import { Document, ObjectId, WithId } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 interface IRefreshJwtPayload extends jwt.JwtPayload {
   user: {
@@ -19,7 +19,7 @@ interface IRefreshJwtPayload extends jwt.JwtPayload {
 async function postLogin(req: any, res: Response) {
   const body: IAuthPostBody = req.body
 
-  const user: WithId<Document> | null = await usersCollection.findOne({ email: body.email })
+  const user: IUser | null = await usersCollection.findOne({ email: body.email })
 
   if (!user) {
     return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)

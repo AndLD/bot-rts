@@ -8,8 +8,7 @@ import { db } from '../services/db'
 import { ObjectId } from 'mongodb'
 import { Socket } from 'socket.io'
 import { ExtendedError } from 'socket.io/dist/namespace'
-import { IUserState } from '../utils/interfaces/users'
-import axios from 'axios'
+import { IUserState } from '@lib/utils/interfaces/users'
 
 const logger = getLogger('middlewares/auth')
 

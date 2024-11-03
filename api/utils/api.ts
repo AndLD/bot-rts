@@ -1,6 +1,6 @@
 import { Response } from 'express'
-import { Error } from './types'
 import { Utils } from './utils'
+import { Error } from '@lib/utils/types'
 
 function sendError(res: Response, error: Error) {
   res.status(error.code || 500).json({

@@ -3,8 +3,8 @@ import httpServer from 'http'
 import { getLogger } from '../utils/logger'
 import { isSocketAuthorized } from '../middlewares/users'
 import { botsService } from '../services/bots'
-import { BOT_TYPE } from '../utils/interfaces/bots'
-// import { jobsService } from '../services/jobs'
+import { BOT_TYPE } from '../../lib/utils/interfaces/bots'
+import { modulesService } from 'services/modules'
 
 const logger = getLogger('setup/socket-connection')
 
@@ -44,6 +44,23 @@ export function setupSocketServer(server: httpServer.Server) {
       const userId = socket.user!._id
       const bots = await botsService.getUserBots(userId)
       callback(bots)
+    })
+
+    socket.on('get-bot-modules', async (botId: string, callback) => {
+      const userId = socket.user!._id
+      const bot = await botsService.getBotById(botId)
+
+      if (!bot) {
+        callback(null, new Error('Bot not found 404'))
+        return
+      }
+      if (bot.userId !== userId) {
+        callback(null, new Error('Not allowed 403'))
+        return
+      }
+
+      const modules = await modulesService.getBotModules(botId)
+      callback(modules)
     })
 
     socket.conn.on('close', () => {

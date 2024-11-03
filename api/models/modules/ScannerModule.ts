@@ -1,6 +1,6 @@
 import { botsService } from '../../services/bots'
 import { mapService } from '../../services/map'
-import { IScannerModule, IScannerModuleProps, ModuleType } from '../../utils/interfaces/modules'
+import { IScannerModule, IScannerModuleProps, ModuleType } from '@lib/utils/interfaces/modules'
 import Module from './Module'
 
 export default class ScannerModule extends Module implements IScannerModule {

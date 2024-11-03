@@ -1,6 +1,6 @@
 import { ErrorHandler } from '../middlewares/ErrorHandler'
-import { IModule, IModuleProps, ModuleProps } from '../utils/interfaces/modules'
-import { ID } from '../utils/types'
+import { IModuleProps, ModuleProps } from '@lib/utils/interfaces/modules'
+import { ID } from '@lib/utils/types'
 import { modulesCollection } from './db'
 
 async function attachModulesToBot(botId: ID, modulesProps: IModuleProps[]): Promise<ModuleProps[]> {

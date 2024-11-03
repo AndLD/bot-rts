@@ -1,8 +1,8 @@
 import { Filter, ObjectId } from 'mongodb'
-import { IMapPoint, IPostMapPoint, IUpsertMapPoint, Location, MapPointType } from '../utils/interfaces/map'
+import { IMapPoint, IPostMapPoint, IUpsertMapPoint, Location, MapPointType } from '../../lib/utils/interfaces/map'
 import { mapCollection } from './db'
 import { ErrorHandler } from '../middlewares/ErrorHandler'
-import { ID } from '../utils/types'
+import { ID } from '@lib/utils/types'
 import { Utils } from '../utils/utils'
 
 async function _addMapPoints(mapPoints: IMapPoint[]) {

@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppSelector } from '../../../hooks/store'
-import { IDriveModuleProps } from '../../../utils/interfaces/modules'
+import { IDriveModuleProps, IModuleProps } from '@lib/utils/interfaces/modules'
 import '../../../styles/Terminal.scss'
 import { useLogout } from '../../../hooks/store/auth.api'
-import { IBot } from '../../../utils/interfaces/bots'
+import { IBot } from '@lib/utils/interfaces/bots'
+import { ID } from '@lib/utils/types'
+import beautify from 'json-beautify'
 
 const defaultPrefix = '/>'
 const shellModePrefix = '>>>'
 
 export default function Terminal() {
-  const [currentBotId, setCurrentBotId] = useState<string | null>(null)
+  const [currentBotId, setCurrentBotId] = useState<ID | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [commands, setCommands] = useState<string[]>([])
   const [command, setCommand] = useState('')
@@ -85,7 +87,7 @@ export default function Terminal() {
           // list files list
         } else {
           // show drives list
-          reply(drives.map((drive) => drive.name).join('\n'))
+          reply(drives.map((drive) => drive.name).join('</br>'))
         }
       } else if (command === 'shell') {
         setIsShellMode(true)
@@ -98,9 +100,26 @@ export default function Terminal() {
           const result = bots
             .map(
               (bot) =>
-                `${bot._id === currentBotId ? '(current)' : '-'} id="${bot._id}" ${bot.label && `label="${bot.label}"`} type="${bot.type}`
+                `${bot._id === currentBotId ? '(current)' : '-'} id="${bot._id}" ${bot.label && `label="${bot.label}"`} type="${bot.type}"`
             )
-            .join('\n')
+            .join('</br>')
+
+          updateCommands([...commands, formattedCommand, result])
+        })
+      } else if (command === 'modules') {
+        socket?.emit('get-bot-modules', currentBotId, (modules: IModuleProps[], err: Error) => {
+          let result = ''
+          if (err) {
+            result = `Error: ${err.message}`
+          } else if (modules) {
+            console.log(modules)
+
+            result = modules
+              .map((module) => `- id="${module._id}" type="${module.type}" name="${module.name}"`)
+              .join('</br>')
+          } else {
+            result = 'null'
+          }
 
           updateCommands([...commands, formattedCommand, result])
         })
@@ -181,7 +200,8 @@ export default function Terminal() {
               : 'Failed to connect'}
         </div>
 
-        {currentBotId && commands.map((command, i) => <div key={'command' + i}>{command}</div>)}
+        {currentBotId &&
+          commands.map((command, i) => <div key={'command' + i} dangerouslySetInnerHTML={{ __html: command }}></div>)}
       </div>
       {currentBotId && (
         <div style={{ display: 'flex', gap: 15 }}>

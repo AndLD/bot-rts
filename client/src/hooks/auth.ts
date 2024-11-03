@@ -65,7 +65,7 @@ export function useSocketServer() {
 
     socket.on('unauthorized', async () => {
       console.log(
-        `[debug] Access token expired${lastEvent.current && ` for event ${lastEvent.current.event}`}, refreshing token...`
+        `[debug] Access token expired${lastEvent.current ? ` for event ${lastEvent.current.event}` : ''}, refreshing token...`
       )
 
       if (isRefreshLocked.current) {

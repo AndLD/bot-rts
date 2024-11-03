@@ -3,7 +3,7 @@ import { AuthorizedRequest } from '../../utils/types'
 import { botsService } from '../../services/bots'
 import { modulesService } from '../../services/modules'
 import ScannerModule from '../../models/modules/ScannerModule'
-import { IScannerModuleProps } from '../../utils/interfaces/modules'
+import { IScannerModuleProps } from '@lib/utils/interfaces/modules'
 
 async function postUserBase(req: AuthorizedRequest, res: Response, next: NextFunction) {
   try {

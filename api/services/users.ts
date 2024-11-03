@@ -2,11 +2,12 @@ import bcrypt from 'bcrypt'
 import { Response } from 'express'
 import { apiUtils } from '../utils/api'
 import { Entity, errors, rootUser as rootUserConfig } from '../utils/constants'
-import { IUser, IUserPost, IUserPostBody, UserStatus } from '../utils/interfaces/users'
+import { IUser, IUserPost, IUserPostBody, UserStatus } from '@lib/utils/interfaces/users'
 import { getKeywords } from '../utils/keywords'
 import { getLogger } from '../utils/logger'
 import { db, usersCollection } from './db'
-import { Document, ObjectId, WithId } from 'mongodb'
+import { ObjectId } from 'mongodb'
+import { ID } from '@lib/utils/types'
 
 const logger = getLogger('services/users')
 
@@ -14,7 +15,7 @@ const entity = Entity.USERS
 
 async function countUsersByState(res: Response) {
   const raws: {
-    _id: ObjectId
+    _id: ID
     status?: UserStatus
   }[] = await usersCollection.find({}, { projection: { status: 1 } }).toArray()
 
@@ -34,7 +35,7 @@ async function countUsersByState(res: Response) {
 }
 
 async function getRootUser() {
-  const rootUser: WithId<Document> | null = await usersCollection.findOne({
+  const rootUser: IUser | null = await usersCollection.findOne({
     email: rootUserConfig.email
   })
 

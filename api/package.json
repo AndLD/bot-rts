@@ -5,9 +5,8 @@
   "main": "ts-built/index.js",
   "scripts": {
     "prod": "node ts-built/index",
-    "dev": "nodemon index.ts",
-    "build": "tsc",
-    "test": "jest"
+    "dev": "NODE_PATH=./ nodemon index.ts",
+    "build": "tsc"
   },
   "author": "<Andrii Larionov, andrey.larionov.me@gmail.com>",
   "license": "ISC",

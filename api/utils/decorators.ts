@@ -1,4 +1,4 @@
-import { Controller } from './types'
+import { Controller } from '../utils/types'
 import { getLogger } from './logger'
 
 const logger = getLogger('utils/decorators')

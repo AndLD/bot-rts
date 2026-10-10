@@ -26,4 +26,7 @@
 | **Result** | The `{ ok, data }` / `{ ok: false, code, msg }` object returned by every script API call (§10.3). |
 | **Game event** | A typed fact emitted by the engine each tick (moved, shot, mined, …) that feeds animations, achievements and notifications (§24.1). |
 | **Spawn seed** | A shareable code that lets several players deploy their bases near each other (§22.3). |
+| **Credits** | The in-game currency, held in a per-player wallet (§26.1). |
+| **Market terminal** | The single-class module that gives remote access to the market (§26.2). |
+| **Inbox** | A player's holding area for market purchases and accepted transfers (§26.7, §27.3). |
 | **Achievement** | A recognition badge unlocked by in-game progress; no gameplay rewards (§23). |

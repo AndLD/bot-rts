@@ -401,3 +401,6 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   notifications consume them outside the tick path (design §24).
 - **Admin endpoints** (`/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
+- **Money and goods:** credits and traded items move only through engine commands that write double-entry **ledger**
+  entries (design §26.1); nothing updates a wallet, escrow or inbox directly, and a reconciliation test must prove that the
+  money supply and item counts are conserved.

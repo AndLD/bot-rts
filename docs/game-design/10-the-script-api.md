@@ -66,6 +66,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `repair(bot, moduleId)` | repair | `repair(...): Promise<Result>` | Restore condition of a module on an adjacent bot (§8.4.2). |
 | `disassemble(bot, moduleId)` | repair | `disassemble(...): Promise<Result<Scrap>>` | Strip a module into scrap (§8.4.2). |
 | `craft(module, count?)`, `assemble(label, moduleIds)`, `research(module)`, `learn(itemId)` | factory | `Promise<Result<…>>` | Factory operations, available to scripts on a bot with a factory module (the base). Same rules as the terminal commands and the Factory GUI. |
+| `market.getWallet()`, `market.getOrderBook(resource)`, `market.placeOrder(...)`, `market.cancelOrder(id)`, `market.listAuctions(filter)`, `market.createAuction(...)`, `market.bid(id, amount)`, `market.buyNow(id)`, `market.claimInbox(...)` | marketTerminal | `Promise<Result<…>>` | The remote market (§26); each call costs ops and energy. |
 | `connect(botId)` | wireless adapter | `connect(botId): Promise<Result<Connection>>` | Open a link to another bot. |
 | `sendMessage(botId, msg)` | wireless adapter | `sendMessage(botId, msg): Promise<Result>` | Send a message to another bot/base. |
 | `execute(file)` | processor | `execute(file): Promise<Result<{ executionId: string }>>` | Run a stored script (spawns a parallel execution). |
@@ -85,7 +86,7 @@ Every API call returns a **result object**; expected failures are **values**, ne
 ```
 
 - **Error codes** are a closed, typed set in `lib` (initial set): `BLOCKED`, `EMPTY`, `GONE`, `NO_ENERGY`, `NO_MODULE`,
-  `BROKEN_MODULE`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
+  `BROKEN_MODULE`, `NO_FUNDS`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED`, `INBOX_FULL`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
 - **Only misuse throws**: invalid arguments, calling an API the bot has no module for at the language level, or sandbox
   violations. A throw ends the execution (`killed`, with the error in its log).
 - Scripts branch with `if (!r.ok)`; no `try/catch` is needed for routine events such as a blocked cell.

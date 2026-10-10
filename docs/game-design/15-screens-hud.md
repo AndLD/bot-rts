@@ -35,7 +35,7 @@
   calls**, including the processor: each manual action costs ops from the bot's `opsPerTick` budget (§12.2.1), so a bot
   with a broken or missing processor cannot be controlled by hand either (the wireless adapter is still required for
   remote control). There is one rule set and no separate manual budget, so fast clicking cannot beat the hardware limits.
-- **Categories:** ✅ the micromanagement UI is split into **seven categories** by module role:
+- **Categories:** ✅ the micromanagement UI is split into **eight categories** by module role:
 
   | Category | Actions |
   | --- | --- |
@@ -46,6 +46,7 @@
   | **Fabrication** | craft, assemble, research, learn |
   | **Maintenance** | repair, disassemble, enable/disable modules |
   | **Communication** | connect, ping, sendMessage, adopt |
+  | **Trade** | market orders, auctions, bids, buy-now, claiming the inbox (needs a market terminal, §26.2) |
 
   **Observation** (viewing the map, scanning, inspecting cells and bots) is always on and is not a category. All
   categories are on by default.

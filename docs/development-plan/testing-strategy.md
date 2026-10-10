@@ -35,6 +35,7 @@ The rules live in [`AGENTS.md` §6](../../AGENTS.md); this page shows how they p
 | **7** Presentation | Lighthouse CI gate for the landing page (7.3); missing-translation check (7.8); e2e for landing, language, achievements and notifications (7.9) |
 | **8** Hardening | Load and soak tests (8.6); API contract tests proving the official client and API-key clients behave identically (8.10); MCP tests against a seeded backend (8.11); e2e of API keys and two-player interaction (8.13); final coverage sweep (8.8) |
 | **9** Admin console | Authorization matrix tests, every admin endpoint × every role, plus audit completeness (9.14); e2e of the admin flows (9.13) |
+| **10** Market and chat | Money and goods conservation property tests, matching determinism (10.13); e2e of exchange, auctions, inbox, chat and transfers (10.14) |
 
 ## End-to-end coverage matrix
 
@@ -70,3 +71,6 @@ about 15 minutes it is sharded and run in parallel.
 | Notification coalescing, translated terminal responses | 7.9 |
 | Read-only API key, MCP smoke test, corpse base and stale bots seen by other players | 8.13 |
 | Admin console: role-based access, two-factor sign-in, dashboard, ban, inspector, supervision actions, maintenance mode, balance edit, announcements | 9.13 |
+| Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
+| Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
+| Admin moderation of listings, wallets and chat messages | 10.14 |

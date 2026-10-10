@@ -226,7 +226,9 @@ The database is an implementation detail that must stay replaceable (clean archi
 - Scope: all source code is counted, including the engine, sandbox and React components. Only entry/bootstrap files
   (`index.ts`, `main.tsx`), config files, type-only files and generated code are excluded, and every exclusion is listed
   with its reason in a single coverage config file.
-- The gate is enforced in CI. A PR that drops below 97 % is blocked.
+- The gate is enforced in CI. A PR that drops below 97 % is blocked. Until the full per-package gate is switched on
+  (tasks 2.2 and 2.8), CI reports coverage and **blocks PRs whose changed files are below 97 %** (check added in task 0.5,
+  blocking from Phase 1). The per-phase test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
 - Exclusions are only allowed via targeted `/* istanbul ignore next */` with a comment explaining why, and must be
   justified in the PR.
 
@@ -327,8 +329,12 @@ A feature is done only when **all** of these hold:
 - If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files.
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
   push directly to `main` or `develop`.
-- **Ask the user before creating a pull request and before merging a pull request.** Approval for one does not carry over
-  to the other.
+- **Phase work (standing approval):** while working through the tasks of a development-plan phase, create each task's
+  pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI exists:
+  once lint, typecheck and tests pass locally). Do not pause between tasks; stop with a summary when the phase's exit
+  criteria are met, when blocked, or when a decision is needed.
+- **Ask the user before creating or merging any other pull request:** documentation or chore PRs that are not phase tasks,
+  anything targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one PR does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
 
@@ -336,6 +342,8 @@ A feature is done only when **all** of these hold:
 
 Sessions can end at any time, so the repository, not the chat, carries the state of the work.
 
+- **Pacing:** a phase is worked straight through in the plan's execution order; the pause points are the end of the phase,
+  a blocker, and a decision that only the user can make.
 - **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
   statuses, implementation log) and its work log (`docs/development-plan/logs/phase-N-log.md`), then check `git status`,
   `git branch -a` and the open pull requests, and continue from the latest "next step".
@@ -371,7 +379,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - Don't introduce new `any`-typed public signatures.
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't create or merge a PR without asking the user first (§7.5).
+- Don't create or merge a PR outside the standing phase approval without asking the user first (§7.5).
 
 ---
 

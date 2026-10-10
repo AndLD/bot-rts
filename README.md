@@ -11,8 +11,8 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 > crafting/factory, the canvas map and automated tests are **not implemented yet**. The client build currently fails on
 > broken imports and unused variables (fixed in Phase 0, task 0.1).
 >
-> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–8,
-> 525 story points) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
+> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–8, with story
+> points per task) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
 > agents are in [`AGENTS.md`](./AGENTS.md).
 
 ---

@@ -1,0 +1,221 @@
+# Code Quality Review
+
+> **Historical document.** This review describes the codebase *before* the planning decisions in
+> [`GAME-DESIGN.md`](./GAME-DESIGN.md) and [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md). Some of its recommendations were
+> superseded: the target stack is now NestJS with clean architecture, Jest for both packages (no Vitest) and Next.js for
+> the client (see [`AGENTS.md`](../AGENTS.md) §2–3).
+
+A point-in-time assessment of the `bot-rts` codebase (≈ 4,200 lines of TypeScript across `api/`, `client/src/`,
+and `lib/`), evaluated against the project's own targets: **SOLID**, **high scalability**, **high testability**,
+**high maintainability**, **low coupling**, **Git Flow**, and **≥ 97 % test coverage**.
+
+> The project is an early prototype with a working vertical slice (auth → base deployment → map → scanner →
+> socket transport → terminal UI). This review is intentionally blunt: the foundations are directionally correct,
+> but they do **not** yet satisfy the stated quality bar and need a deliberate refactoring/test investment before
+> feature velocity should resume (see [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md)).
+
+---
+
+## 1. Scorecard
+
+Scale: `1` (poor) → `5` (excellent). "Target" is the desired end state, not the current value.
+
+| Dimension              | Current | Target | Notes                                                                 |
+| ---------------------- | ------- | ------ | --------------------------------------------------------------------- |
+| SOLID coverage         | 2 / 5   | 5 / 5  | SRP/DIP violated by services touching `res` and controllers touching DB |
+| Automated test coverage | **0 %** | ≥ 97 % | Zero `*.test.ts`/`*.spec.ts` files; no `test` script, no Cypress       |
+| Scalability            | 2 / 5   | 4 / 5  | Single Socket.IO instance, no indexes, O(n²) map loops, no caching     |
+| Coupling               | 2 / 5   | 4 / 5  | Global `db` singletons, `lib` leaks `ObjectId`, services import HTTP layer |
+| Testability            | 2 / 5   | 5 / 5  | Module-level mutable state, hidden I/O, `res` in services, env read at import |
+| Maintainability        | 2 / 5   | 4 / 5  | Dead code, mixed UI languages, 3 unmanaged package.json, no docs (until now) |
+| Git Flow               | 2 / 5   | 5 / 5  | Feature branches only; no `develop`, releases, tags, CI gates          |
+
+---
+
+## 2. Automated test coverage
+
+**Current: 0 %.** Concrete evidence:
+
+- `api/jest.config.ts` exists and `jest`, `ts-jest`, `supertest`, `@types/jest`, `@types/supertest` are installed —
+  but there is **no `test` script** in any `package.json`.
+- The only file under `api/tests/` is `db-helpers.ts` (a helper), not a test.
+- A full-tree search for `*.test.*` / `*.spec.*` returns **zero** files.
+- `client/` has **no** test runner configured (`vitest`/`jest`), no `@testing-library`, no Cypress.
+
+**Gaps by layer:**
+
+| Layer      | State                                                                              |
+| ---------- | ---------------------------------------------------------------------------------- |
+| Unit       | None — `Utils`, `keywords`, `jwt`, `decorators`, `Module`, validation all untested |
+| Integration| None — no repository/service/route tests against a DB                              |
+| E2E        | None — no Cypress, no user-journey specs                                            |
+| Coverage   | No report, no thresholds, no CI gate                                                |
+
+**Required tooling to reach the target (from [`AGENTS.md`](../AGENTS.md)):**
+
+- `mongodb-memory-server` (integration tests against an in-memory MongoDB).
+- Cypress + `@testing-library/react` (component/e2e).
+- `vitest` or Jest for the client.
+- Coverage thresholds ≥ 97 % in Jest config and in CI.
+
+---
+
+## 3. SOLID assessment
+
+### 3.1 Single Responsibility Principle — **weak**
+
+- `services/users.ts` mixes persistence, hashing, keyword generation, cron cleanup, and **HTTP response handling**
+  (`addUser(body, res)`, `activateUser(userId, res)`, `getUserByEmail(email, res)` all call `apiUtils.sendError`).
+- `services/users.ts` still contains **leftover `clusters`/`nodes` aggregation pipelines** (`getUsersWithTotalClustersAndNodes`,
+  `getUsersWithTotalNodesPerCluster`) copied from another project — unrelated dead code in a "users" service.
+- `services/map.ts` mixes point upserting, procedural generation, fog-of-war reconciliation, and response shaping,
+  plus debug `console.log` and commented-out blocks.
+- `client/src/components/Game/Terminal/Terminal.tsx` (228 lines) holds the entire command interpreter, socket calls,
+  drive selection, shell mode, and rendering in one component with several unused/placeholder branches.
+
+### 3.2 Open/Closed Principle — **partially met**
+
+- The `Module` base class + `ScannerModule`/`WeaponModule` subclasses are a **good** polymorphic start and should
+  remain the model for all module types.
+- But module behavior is still scattered: `models/modules/index.ts` only defines static *props* for the initial kit
+  (gun/scanner/factory/armor/battery/generator/storage) while the corresponding classes/behaviors don't exist yet.
+
+### 3.3 Liskov Substitution — **acceptable so far**
+
+- `ScannerModule extends Module implements IScannerModule` honors the contract. `WeaponModule` does too, but its
+  `shoot()`/`reload()` are **stubs** that always return `null` (and it imports `Error` from `@lib/utils/types`,
+  shadowing the global `Error`).
+- `Module`'s `Object.assign(this, props)` performs no runtime validation of required props beyond `type`, so a
+  malformed module can silently produce a broken object.
+
+### 3.4 Interface Segregation — **good in `lib`, weak in practice**
+
+- `lib/utils/interfaces/modules.ts` defines narrow per-module interfaces (`IScannerModuleProps`, `IWeaponModuleProps`, …)
+  — a solid foundation.
+- However, several consumers use `any` or overly broad `ModuleProps` unions, and `IModuleProps` mixes persistence
+  fields (`_id`, `botId`) with domain fields, so persistence and domain concerns are not separated.
+
+### 3.5 Dependency Inversion — **poor (the biggest issue)**
+
+- `services/db.ts` exposes **module-level mutable globals** (`db`, `usersCollection`, `botsCollection`, …) that every
+  service and controller imports directly. This prevents injection, makes tests brittle, and couples everything to the
+  Mongo driver.
+- Controllers import and use `usersCollection`/`db.collection()` directly (`controllers/public/auth.ts`,
+  `controllers/private/users.ts`), bypassing the service layer.
+- Services import the HTTP layer (`express`'s `Response`, `apiUtils.sendError`).
+- `services/email.ts` keeps a module-level `transporter`, `utils/jwt.ts` reads env at import time, and
+  `utils/constants.ts` reads env at import time — all hidden dependencies that are hard to replace in tests.
+
+---
+
+## 4. Coupling assessment
+
+| Coupling problem                                            | Location(s)                                                                          | Impact                                                          |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Global DB singletons                                        | `api/services/db.ts` (exported `db` + collections)                                   | Everything depends on concrete Mongo state                      |
+| Controllers → DB directly                                   | `controllers/public/auth.ts`, `controllers/private/users.ts`                          | Bypasses service layer; inconsistent                           |
+| Services → Express `Response`                               | `services/users.ts` (`addUser`, `activateUser`, `getUserByEmail`)                    | Service layer cannot be tested without HTTP                    |
+| `lib` leaks `mongodb.ObjectId`                              | `lib/utils/types.ts` (`ID = string \| ObjectId`)                                    | Shared types import `mongodb`; leaks DB type into client        |
+| Fragile non-relative import                                 | `api/setup/socket-connection.ts` imports `modulesService` from `'services/modules'` | Relies on `NODE_PATH`; breaks without the dev script env        |
+| Broken client imports                                       | `client/src/utils/jwt.ts` (`./interfaces/users`), `client/src/utils/store.ts` (`./interfaces/auth`) | Client build (`tsc`) fails — the interfaces dir does not exist |
+| Socket stored in Redux                                      | `client/src/store/app.reducer.ts` (`socket` in state, `serializableCheck: false`)    | Non-serializable state, hides real-time transport in the store  |
+| Hardcoded backend URL                                       | `client/src/hooks/auth.ts` (`http://localhost:8080/api/public/auth/refresh`)         | Breaks non-local deployments                                    |
+
+---
+
+## 5. Scalability assessment
+
+- **No Mongo indexes** are created for hot paths: `bots.userId`, `map.location.x/y`, `map.contentId`,
+  `map.userId`, `modules.botId`. Every scan/map read is a collection scan.
+- `services/map.ts` `getMap()` performs a **nested O(n²) cell loop** with per-cell object lookups and, on write,
+  `_generateMapByLocations`/`_upsertMapPoints` issue bulk writes without idempotency guarantees or indexes; the
+  `convertMapPointsArrayToObject` reducer spreads the accumulator each iteration (O(n²)).
+- **Single Socket.IO instance** with in-process connection state; no Redis adapter/sticky sessions, so the app cannot
+  be scaled horizontally as-is.
+- **No rate limiting** on login/signup (brute-force exposure), no request timeout budget, no pagination on bots/map.
+- `getMap` has a `console.log` per call and several commented `[debug]` blocks — noisy at scale.
+- The **script-execution scheduler** required by the product notes (fair across players, per-tick function budgets,
+  per-processor parallelism limits, race-condition prevention) is **not designed or implemented yet** — this is the
+  single biggest scalability/architecture risk for the actual game.
+
+---
+
+## 6. Testability assessment
+
+- **Global mutable state** (`db` singletons, `emailService` transporter, env-at-import) makes isolation hard.
+- **Services with `res`** cannot be unit-tested without mocking Express.
+- **RNG and time are direct** (`Math.random()` in map generation, `Date.now()` for `createdAt`), so map/state tests
+  would be non-deterministic until they are injected.
+- `tryCatch` in `utils/decorators.ts` **swallows** errors and always returns `500`, discarding typed error info and
+  making failure assertions hard.
+- No test doubles/fixtures exist (`tests/db-helpers.ts` is the only, incomplete, helper).
+
+---
+
+## 7. Maintainability assessment
+
+- **Dead code** is pervasive: commented-out blocks in `socket-connection.ts`, `routes/private.tsx`,
+  `routes/inactive.tsx`, `hooks/store/users.api.ts`, `AppRoutes.tsx`, `services/map.ts`, `services/users.ts`,
+  `utils/utils.ts`, and unused imports/`todo` comments.
+- **Three independent `package.json`** (root, `api`, `client`, plus `lib`) with no workspace tooling, no shared
+  `lint`/`typecheck`/`test` scripts at the root; `lib/package.json` has no scripts and a deprecated `@types/mongodb`.
+- **Mixed UI languages** (English + Ukrainian) in user-facing strings and errors.
+- **Config drift / security bug:** env files define `JWT_ACCESS_TOKEN_SECRET` etc., but code reads `JWT_ACCESS_SECRET`
+  etc. → hardcoded fallback secrets are always used in practice. No `.env.example`.
+- **Type safety is inconsistent:** `strict` is on but controllers use `req: any` liberally; `IUser` declares a `user:
+  string` field that is never set; `countUsersByState` indexes an object with an unchecked `UserStatus` cast.
+- **`client/src/utils/jwt.ts` and `client/src/utils/store.ts` import non-existent `./interfaces/*` modules** — the
+  client does not currently compile cleanly, which blocks all client testing.
+- No `README`/docs existed prior to this review; onboarding relied on reading source + `notes.txt`.
+
+---
+
+## 8. Prioritized findings
+
+Legend: 🔴 Critical · 🟠 High · 🟡 Medium · 🔵 Low
+
+### 🔴 Critical
+
+1. **Zero automated tests** and no test runner/CI gate — the 97 % coverage target is entirely unmet.
+2. **Client does not compile** (`client/src/utils/jwt.ts`, `client/src/utils/store.ts` broken imports) — blocks build
+   and all future client testing.
+3. **JWT secret/config mismatch** (env keys vs code keys) → hardcoded fallback secrets in effect; security risk.
+4. **No script-execution engine / fair scheduler / sandbox** — the core product differentiator is missing and has no
+   architectural answer yet (the central question in `notes.txt`).
+
+### 🟠 High
+
+5. Global `db`/collection singletons and controllers bypassing services → coupling + testability.
+6. Services depend on Express `res`/`apiUtils` → SRP/DIP violations and untestable services.
+7. No Mongo indexes + O(n²) map loops + single Socket.IO instance → scalability ceiling.
+8. No `develop` branch, releases, tags, or CI (Git Flow is partial).
+
+### 🟡 Medium
+
+9. Dead code / commented-out blocks across many files.
+10. `lib` imports `mongodb` types (`ObjectId`) leaking into the client.
+11. `tryCatch` swallows errors (always 500); inconsistent error-handling strategy.
+12. Mixed UI languages and inconsistent validation (regex duplicated in `api/validation` and `client/utils/validation.ts`).
+13. `Module`/`WeaponModule` stubs and incomplete module set.
+
+### 🔵 Low
+
+14. Hardcoded `smtp.gmail.com` and `localhost:8080` literals.
+15. `getFileNames`/`getDirectorySizeSync`/image helpers in `Utils` unrelated to the current product (likely copied).
+16. Non-relative `services/modules` import relying on `NODE_PATH`.
+17. `jest.config.ts` uses the deprecated ts-jest `globals` form.
+
+---
+
+## 9. Verdict
+
+The codebase demonstrates a **coherent early prototype**: sensible folder split (`api`/`client`/`lib`), a reasonable
+auth flow, and a genuinely useful polymorphic module foundation. It is **not yet** SOLID, testable, or maintainable to
+the stated bar, and it currently has **no tests, a broken client build, and a live JWT-secret misconfiguration**.
+
+Recommended sequencing (detailed in [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md)):
+
+1. **Stabilize** (fix build, env, add `.env.example`, root scripts, CI).
+2. **Refactor** the hot path (DI/repositories, de-`res` the services, remove dead code, split `Terminal`).
+3. **Establish test infrastructure** (Jest + `mongodb-memory-server` + Cypress + coverage gate) and backfill tests.
+4. **Then** build the core game features (scheduler, sandbox, modules, map canvas, crafting) — each with tests.

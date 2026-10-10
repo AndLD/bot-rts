@@ -1,0 +1,19 @@
+[← Development plan index](../DEVELOPMENT-PLAN.md)
+
+# Risk register
+
+| Risk                                                          | Likelihood | Impact | Mitigation                                                        |
+| ------------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------- |
+| Script engine is unsafe / exploitable                         | High       | High   | QuickJS (WASM) sandbox behind a `ScriptRuntime` interface, strict API allowlist, memory/stack limits, interrupt-handler deadlines, escape tests |
+| Scheduler unfairness or starvation under load                 | High       | High   | Design RFC first; round-robin queue; load tests; tune budgets     |
+| Race conditions on shared map cells/resources                 | High       | High   | Single-writer engine: collect-then-apply with deterministic order, no concurrent world writers (API requests go through engine commands) |
+| Refactor breaks working vertical slice                        | Medium     | Medium | Behavior-preserving PRs; integration tests before/after           |
+| Coverage gate blocks delivery (97 % is aggressive)            | Medium     | Medium | Automated coverage in CI; targeted `istanbul ignore` only with justification |
+| `mongodb-memory-server` / Cypress CI flakiness                | Medium     | Medium | Pin versions, isolated DB per suite, retry policy in CI           |
+| Single maintainer/agent context loss across phases            | Medium     | Low    | Docs (`AGENTS.md`, this plan) + Conventional Commits + small PRs  |
+| Engine thread becomes the capacity ceiling (one process owns the world) | Medium | High | Per-bot limits, tick-overrun guard, metrics from day one, benchmark spike in task 5.1, pool-ready script-runtime boundary |
+| Next.js migration: React 19 / Ant Design / CodeMirror compatibility | Medium | Medium | Compatibility spike first in task 1.18; pin versions; migrate while the client is small |
+| NestJS + clean-architecture migration breaks the working slice | Medium | Medium | Phase 0 safety-net tests, strangler approach (legacy routers hosted in Nest), small PRs |
+| Third-party clients / AI players abuse the public API | Medium | Medium | Same game rules and budgets for every client, scoped and revocable API keys, per-key rate limits, hashed key storage |
+| UI scope (Phases 6–7: map, animations, landing, achievements, notifications, i18n) overruns | Medium | Medium | Phase 6 / 7 split, animations and ambient scene are cosmetic and can ship last, tasks sized individually |
+| Frontend on Vercel, API/engine elsewhere (cookies, CORS, WebSockets) | Low | Medium | Shared registrable domain, cookie-domain and CORS test in task 8.12, Socket.IO direct to the API domain |

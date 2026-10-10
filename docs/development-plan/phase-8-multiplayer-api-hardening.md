@@ -1,0 +1,21 @@
+[← Development plan index](../DEVELOPMENT-PLAN.md)
+
+# Phase 8 — Multiplayer, public API & production hardening (64 SP)
+
+| # | Task                                                                                                        | SP |
+| --- | ---------------------------------------------------------------------------------------------------------- | -- |
+| 8.1 | Scale the **API tier** horizontally: Socket.IO Redis adapter, sticky sessions, stateless sockets (the engine stays a single authoritative instance; map addressed in chunks to keep region sharding possible later) | 8 |
+| 8.2 | Rate limiting (login/signup), request timeouts, input size limits, helmet/CORS review | 5 |
+| 8.3 | Observability: structured logs, request IDs, metrics (tick latency, scheduler fairness, queue depth), health checks | 5 |
+| 8.4 | Data lifecycle: cleanup inactive users/bots, terminal session retention (30 days / 5,000 lines per bot via TTL index; security events 90 days); offline-player executions continue, so account-inactivity policy must account for running scripts | 3 |
+| 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 |
+| 8.6 | Load/soak testing (many players × bots) and tuning the scheduler budget | 5 |
+| 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, MongoDB) alongside the PM2 setup | 6 |
+| 8.8 | Final coverage & quality sweep to ≥ 97 % across the full repo | 5 |
+| 8.9 | API keys: per-player keys (shown once, stored hashed), scopes that only narrow the player's rights, per-key rate limit, revocation, profile UI; Nest API-key guard and scope decorators for HTTP and WebSocket | 8 |
+| 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 |
+| 8.11 | MCP server (`mcp/` workspace package): tools for observation, manual control per category, files, scripts, fabrication; calls only `/api/v1` with an API key; stdio + streamable HTTP transports; tests against a seeded test backend | 8 |
+| 8.12 | Frontend deployment on Vercel with the API/engine on a long-running host: shared registrable domain, cookie domain and CORS, Socket.IO direct to the API domain, environment configuration and preview deployments | 3 |
+
+**Exit criteria:** the game runs under realistic multi-player load, scales horizontally, is observable, and is
+released via full Git Flow.

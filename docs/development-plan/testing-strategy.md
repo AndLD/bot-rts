@@ -59,3 +59,12 @@ about 15 minutes it is sharded and run in parallel.
 | Landing page, language switch, auth page scene | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |
 | API key lifecycle; two-player interaction (contest, fog privacy, attack, adopt) | 8.13 |
+| Account management: forgot / reset password, change password, change email, delete account | 2.7 |
+| Signup validation, expired or reused verification link, login lockout, banned user mid-session | 2.7 |
+| Spawn seeds: same code spawns nearby, full seed, expired seed | 3.13 |
+| Weight / speed / capacity, assembly rejections, broken-module effects, disassembly permissions | 4.7 |
+| Script arguments, imports, TypeScript, limits, queued executions and ops budget, sandbox denial, offline play | 5.11 |
+| Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 |
+| Deposit depletion and contest, combat details, items and blueprint items | 6.12 |
+| Notification coalescing, translated terminal responses | 7.9 |
+| Read-only API key, MCP smoke test, corpse base and stale bots seen by other players | 8.13 |

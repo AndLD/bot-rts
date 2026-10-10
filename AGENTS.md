@@ -134,7 +134,8 @@ provider later) without touching game code.
   (`{ provider, subject, email, emailVerified }`). It is used by the HTTP guard, the WebSocket guard and the MCP/API
   layers. Nothing outside the identity adapters reads provider-specific tokens or claims.
 - **`CredentialAuthService` (application port, only for providers whose credentials we manage):** register, login,
-  refresh, logout, verify email, resend verification. The custom adapter implements it and exposes the `/api/v1/auth/*`
+  refresh, logout, verify email, resend verification, request/perform password reset, change password, change email,
+  delete account. The custom adapter implements it and exposes the `/api/v1/auth/*`
   endpoints. A hosted provider such as Clerk does these steps in the browser, so its adapter does not implement this
   port and those endpoints are not mounted.
 - **Own user model:** the domain `User` (internal `userId`, name, roles, `active`/ban state) is separate from login

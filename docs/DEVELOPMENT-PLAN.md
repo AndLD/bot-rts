@@ -19,22 +19,22 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
 | Phase | Theme                                | Story points | Status |
 | ----- | ------------------------------------ | ------------ | ------ |
-| 0     | Stabilize & CI foundation            | 18           | ⬜ Not started |
-| 1     | Architecture refactor & NestJS migration | 93       | ⬜ Not started |
+| 0     | Stabilize & CI foundation            | 19           | ⬜ Not started |
+| 1     | Architecture refactor & NestJS migration | 94       | ⬜ Not started |
 | 2     | Test infrastructure & coverage backfill | 39        | ⬜ Not started |
-| 3     | Core gameplay foundations            | 70           | ⬜ Not started |
-| 4     | Module system & crafting             | 61           | ⬜ Not started |
-| 5     | Script runtime, scheduler & sandbox  | 81           | ⬜ Not started |
+| 3     | Core gameplay foundations            | 74           | ⬜ Not started |
+| 4     | Module system & crafting             | 62           | ⬜ Not started |
+| 5     | Script runtime, scheduler & sandbox  | 82           | ⬜ Not started |
 | 6     | Core game GUI & map animations       | 72           | ⬜ Not started |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 40 | ⬜ Not started |
 | 8     | Multiplayer, public API & hardening  | 64           | ⬜ Not started |
-|        | **Total**                            | **538**      | |
+|        | **Total**                            | **546**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–8 (538 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–8 (546 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -42,7 +42,9 @@ GUI → multiplayer, public API and hardening), and each phase still ships green
 
 ## Resuming work in a new session
 
-Start the session with: *"Continue Phase N"*. The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
+Start a phase with *"Start Phase N"* and continue an interrupted one with *"Continue Phase N"*. The agent works through
+the phase's tasks in the documented order **without pausing between tasks** and stops with a summary only when the phase's
+exit criteria are met (or when it is blocked or needs a decision). The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
 the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
 "next step".
 
@@ -51,15 +53,16 @@ the phase file and its work log, checks `git status`, the branch list and open p
 ## Contents
 
 - [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (18 SP)](./development-plan/phase-0-stabilize-ci.md)
-- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (93 SP)](./development-plan/phase-1-architecture-refactor.md)
+- [Phase 0 — Stabilize & CI foundation (19 SP)](./development-plan/phase-0-stabilize-ci.md)
+- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (94 SP)](./development-plan/phase-1-architecture-refactor.md)
 - [Phase 2 — Test infrastructure & coverage backfill (39 SP)](./development-plan/phase-2-test-infrastructure.md)
-- [Phase 3 — Core gameplay foundations (70 SP)](./development-plan/phase-3-core-gameplay.md)
-- [Phase 4 — Module system & crafting (61 SP)](./development-plan/phase-4-modules-crafting.md)
-- [Phase 5 — Script runtime, scheduler & sandbox (81 SP)](./development-plan/phase-5-script-runtime.md)
+- [Phase 3 — Core gameplay foundations (74 SP)](./development-plan/phase-3-core-gameplay.md)
+- [Phase 4 — Module system & crafting (62 SP)](./development-plan/phase-4-modules-crafting.md)
+- [Phase 5 — Script runtime, scheduler & sandbox (82 SP)](./development-plan/phase-5-script-runtime.md)
 - [Phase 6 — Core game GUI & map animations (72 SP)](./development-plan/phase-6-gui.md)
 - [Phase 7 — Presentation & engagement (40 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (64 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
+- [Testing strategy](./development-plan/testing-strategy.md)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
 - Work logs: [phase 0](./development-plan/logs/phase-0-log.md), [phase 1](./development-plan/logs/phase-1-log.md), [phase 2](./development-plan/logs/phase-2-log.md), [phase 3](./development-plan/logs/phase-3-log.md), [phase 4](./development-plan/logs/phase-4-log.md), [phase 5](./development-plan/logs/phase-5-log.md), [phase 6](./development-plan/logs/phase-6-log.md), [phase 7](./development-plan/logs/phase-7-log.md), [phase 8](./development-plan/logs/phase-8-log.md)

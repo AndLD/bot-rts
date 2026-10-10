@@ -81,6 +81,11 @@ Rules:
 - Cells in the live area show their true current state; their age is below one `delay`. When a cell leaves the live area (the
   scanner is switched off, runs out of energy or breaks, or its bot moves away), it becomes a normal snapshot stamped with the
   last moment it was live.
+- **Energy during live scanning:** the scanner drains its `idleCost` every tick in either mode, and while live it pays
+  the refresh cost (above) from the bot's battery in the tick's apply phase, in the deterministic order (§12.4). Live
+  scanning never uses script ops; `view()` costs 1 op and no energy. ✅ **If the battery cannot pay for a refresh, the scanner
+  switches itself off** and returns to one-time mode (the area becomes ordinary snapshots, `view()` then fails with
+  `NOT_LIVE`); it must be enabled again, and the owner gets a `LiveScanStopped` event (§24.1).
 - Events inside the live area are delivered to the player and animated (§24.1), including those caused by other players.
 - **How it stays cheap (engine design, §12.2.2):** the engine already knows every cell that changes each tick, so live
   vision is a **subscription**, not polling. An index of live areas by map chunk lets the engine hand each changed cell to

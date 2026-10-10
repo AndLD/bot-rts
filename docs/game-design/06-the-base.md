@@ -16,8 +16,8 @@ Deploying a base attaches the initial module kit (`initialUserBaseModules`). ✅
 | `factory-class1` | factory | operationCost 40 | Craft modules and assemble bots |
 | `armor-class1` | armor | material iron, weight 45 | Survive attacks |
 | `battery-class1` | battery | 12 V, capacity 3000, value 3000 | Energy buffer |
-| `generator-class1` | generator | +300 energy/op, delay 250 ms | Refill the battery |
-| `storage-class1` | storage | capacity 200, holds items | Store mined resources |
+| `generator-class1` | generator | 12 energy per cycle for 0.02 oil, delay 250 ms (placeholders) | Refill the battery, burning oil from storage |
+| `storage-class1` | storage | capacity 200, holds items; starts with 50 oil | Store mined resources and generator fuel |
 | `processor-class1` | processor | 2 ops/tick, 1 parallel execution (§12.2.1) | Run the base's scripts |
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |

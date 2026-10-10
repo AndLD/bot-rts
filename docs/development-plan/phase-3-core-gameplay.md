@@ -2,7 +2,7 @@
 
 # Phase 3 — Core gameplay foundations (70 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Establish the game-domain backbone the product notes describe (bases, bots, resources, map, storage).
 
@@ -25,3 +25,12 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 
 **Exit criteria:** a user can deploy a base, open its terminal, manage files, and every command persists session logs
 to the database — all covered by tests.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

@@ -264,7 +264,8 @@ A feature is done only when **all** of these hold:
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
 - [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
-      criteria are met, in the summary table and in the phase file).
+      criteria are met, in the summary table and in the phase file), and the branch and PR of the task are added to the
+      phase's implementation log.
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
       file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
 - [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
@@ -288,6 +289,8 @@ A feature is done only when **all** of these hold:
 | `release/<x.y.z>`     | Release stabilization (fixes only, no new features)                  | `develop`     | `main` **and** `develop` |
 | `hotfix/<x.y.z>`      | Urgent production fix                                                | `main`        | `main` **and** `develop` |
 
+- A branch may cover one task or a few closely related ones; name it after the first task and list all of them in the
+  phase's implementation log.
 - **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`,
   `feature/1.18-nextjs-migration`. Use the plan task that the branch implements.
 - A release is finished by merging `release/<x.y.z>` (or `hotfix/<x.y.z>`) into `main`, tagging `main` with `vX.Y.Z`, and

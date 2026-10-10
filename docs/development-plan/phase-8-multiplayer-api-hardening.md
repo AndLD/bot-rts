@@ -2,7 +2,7 @@
 
 # Phase 8 — Multiplayer, public API & production hardening (64 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 | # | Task                                                                                                        | SP |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- |
@@ -21,3 +21,12 @@
 
 **Exit criteria:** the game runs under realistic multi-player load, has a horizontally scalable API tier, is observable, and is
 released via full Git Flow.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

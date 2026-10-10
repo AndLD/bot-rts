@@ -2,7 +2,7 @@
 
 # Phase 2 — Test infrastructure & coverage backfill (39 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Stand up the mandated tooling and bring the *existing* code to the coverage gate before building more features.
 
@@ -19,3 +19,12 @@ Stand up the mandated tooling and bring the *existing* code to the coverage gate
 
 **Exit criteria:** coverage ≥ 97 % per package on all existing code; unit + integration + e2e all run in CI and locally;
 `npm test` is a first-class command.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

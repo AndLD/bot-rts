@@ -2,7 +2,7 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian (40 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), and the Russian translation.
@@ -21,3 +21,12 @@ achievements and realtime notification systems built on the game event bus (task
 **Exit criteria:** the landing and authentication pages ship with the animated ambient scene; achievements unlock from
 real game events, including while the player is offline; notifications arrive in realtime and are kept for offline
 players; the whole UI is available in English and Russian with a missing-key check in CI — all covered by tests.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

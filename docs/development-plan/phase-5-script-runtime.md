@@ -2,7 +2,7 @@
 
 # Phase 5 — Script runtime, scheduler & sandbox (81 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 The heart of the game. The execution model and the sandbox are specified in design §10, §12 and §13; this must be
 implemented and measured carefully.
@@ -26,3 +26,12 @@ implemented and measured carefully.
 **Exit criteria:** a script like the gold-scan example in `notes.txt` runs deterministically across many bots/players,
 is fairly scheduled, cannot reach server internals, and cannot corrupt shared map state — with unit/integration/load
 tests.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

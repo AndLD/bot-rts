@@ -2,7 +2,7 @@
 
 # Phase 6 — Core game GUI & map animations (72 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Surface the game state in the browser.
 
@@ -24,3 +24,12 @@ Surface the game state in the browser.
 
 **Exit criteria:** the notes' "Monitor / map GUI + physical storage GUI + factory GUI" are functional, the control panel
 and tutorial work, and map actions are animated from game events — all tested.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

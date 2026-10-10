@@ -5,7 +5,8 @@ It is sequenced so that **stabilization and testing infrastructure come before n
 of the current base would compound the existing coupling and zero-test debt.
 
 **Phase status legend:** ⬜ Not started · 🟡 In progress · ✅ Done. A phase's status is kept in the summary table below and
-in the phase file, and is updated in the pull request that starts or finishes it (AGENTS.md §6.5).
+in the phase file, and is updated in the pull request that starts or finishes it. Each phase file also has an
+**implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
 
 **Story points (SP):** Fibonacci scale, `1 SP ≈ 0.5 developer-day` (or one focused agent session). Estimates assume a
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**

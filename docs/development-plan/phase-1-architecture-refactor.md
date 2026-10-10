@@ -2,7 +2,7 @@
 
 # Phase 1 — Architecture refactor, clean architecture & NestJS migration (93 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Mostly behavior-preserving refactors that make the code testable and layered, the move from Express to **NestJS** with a
 clean-architecture layout (AGENTS.md §3), and the client's move from Vite to **Next.js** (tasks 1.18 and 1.18a, done while the client is small). Each refactor is its own small PR, verified by the repository integration tests (1.1a) and, from task 1.9 on, by the safety-net tests.
@@ -38,3 +38,12 @@ The legacy Express routers keep running inside Nest until each feature module is
 **Exit criteria:** the backend runs on NestJS with no legacy Express routers; layering matches `AGENTS.md` and the
 import-boundary check passes; use cases have no Express/Prisma imports; controllers no longer touch the DB; `lib` is
 persistence-free; the backend runs on PostgreSQL + Prisma; the safety-net tests (1.9) still pass; client build still green.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

@@ -2,7 +2,7 @@
 
 # Phase 0 — Stabilize & CI foundation (18 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe to start before this.**
 
@@ -20,3 +20,12 @@ Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe
 
 **Exit criteria:** client and api build cleanly; env/config drift removed; CI runs and blocks non-green PRs;
 `develop` exists; a local PostgreSQL runs in Docker.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

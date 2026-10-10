@@ -2,7 +2,7 @@
 
 # Phase 4 — Module system & crafting (61 SP)
 
-**Status:** ⬜ Not started
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log))
 
 Flesh out the module ecosystem and the crafting/factory loop.
 
@@ -21,3 +21,12 @@ Flesh out the module ecosystem and the crafting/factory loop.
 
 **Exit criteria:** modules are behavior-complete behind interfaces; a player can craft modules and assemble a bot,
 with full test coverage.
+
+## Implementation log
+
+Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
+AGENTS.md §7.1).
+
+| Branch | Tasks | PR | Status |
+| --- | --- | --- | --- |
+| _none yet_ | | | |

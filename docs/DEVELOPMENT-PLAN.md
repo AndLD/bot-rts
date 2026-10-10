@@ -12,8 +12,8 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
 | Phase | Theme                                | Story points |
 | ----- | ------------------------------------ | ------------ |
-| 0     | Stabilize, CI & safety-net tests     | 23           |
-| 1     | Architecture refactor & NestJS migration | 86       |
+| 0     | Stabilize & CI foundation            | 18           |
+| 1     | Architecture refactor & NestJS migration | 91       |
 | 2     | Test infrastructure & coverage backfill | 39        |
 | 3     | Core gameplay foundations            | 72           |
 | 4     | Module system & crafting             | 59           |
@@ -36,8 +36,8 @@ GUI → multiplayer, public API and hardening), and each phase still ships green
 ## Contents
 
 - [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (23 SP)](./development-plan/phase-0-stabilize-ci.md)
-- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (86 SP)](./development-plan/phase-1-architecture-refactor.md)
+- [Phase 0 — Stabilize & CI foundation (18 SP)](./development-plan/phase-0-stabilize-ci.md)
+- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (91 SP)](./development-plan/phase-1-architecture-refactor.md)
 - [Phase 2 — Test infrastructure & coverage backfill (39 SP)](./development-plan/phase-2-test-infrastructure.md)
 - [Phase 3 — Core gameplay foundations (72 SP)](./development-plan/phase-3-core-gameplay.md)
 - [Phase 4 — Module system & crafting (59 SP)](./development-plan/phase-4-modules-crafting.md)

@@ -1,16 +1,18 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 1 — Architecture refactor, clean architecture & NestJS migration (86 SP)
+# Phase 1 — Architecture refactor, clean architecture & NestJS migration (91 SP)
 
 Behavior-preserving refactors that make the code testable and layered, the move from Express to **NestJS** with a
 clean-architecture layout (AGENTS.md §3), and the client's move from Vite to **Next.js** (tasks 1.18 and 1.18a, done while the client is small). Each refactor is its own small PR, verified by the Phase 0 safety-net tests.
 The legacy Express routers keep running inside Nest until each feature module is migrated (strangler approach).
 
+**Execution order:** the persistence move comes first, so no work is spent on MongoDB-specific code: 1.0 → 1.1 → 1.1a → 1.2 → 1.3 → 1.4 → 1.5–1.8 → **1.9 (safety-net tests)** → 1.10 (NestJS foundation) → 1.11 / 1.11a → 1.12 → 1.14–1.16 → 1.18 / 1.18a → 1.17 → 1.13.
+
 | # | Task                                                                                                     | SP |
 | --- | ------------------------------------------------------------------------------------------------------- | -- |
 | 1.0 | Upgrade TypeScript to 5.x and Node to 20 LTS across packages; fix resulting type errors | 2 |
 | 1.1 | Introduce the **ports** in `application` as interfaces + DI tokens: `UserRepository`, `BotRepository`, `ModuleRepository`, `MapRepository`, `FileRepository`, the `UnitOfWork` and `WorldStateStore` ports, and the domain entities they exchange (persistence-agnostic, AGENTS.md §3.4) | 5 |
-| 1.1a | **PostgreSQL + Prisma adapters** (AGENTS.md §3.4): Prisma schema (users, identities, bases/bots, modules, drives/files, map points, per-user known points, terminal sessions, executions) with committed migrations, `Prisma*Repository` classes mapping rows to domain entities, seed script, per-worker Docker test database harness, Phase 0 safety-net tests switched to it; the prototype's MongoDB data is discarded | 13 |
+| 1.1a | **PostgreSQL + Prisma adapters** (AGENTS.md §3.4): Prisma schema (users, identities, bases/bots, modules, drives/files, map points, per-user known points, terminal sessions, executions) with committed migrations, `Prisma*Repository` classes mapping rows to domain entities, seed script, per-worker Docker test database harness, the prototype's MongoDB data is discarded and no MongoDB-specific tests or code are written | 13 |
 | 1.2 | Replace global `services/db.ts` singletons with a Nest `PrismaModule` that provides the `PrismaClient` (infrastructure only) through a DI token, configured from `DATABASE_URL` | 5 |
 | 1.3 | Remove `req`/`res` from services: refactor `usersService` (`addUser`, `activateUser`, `getUserByEmail`, `countUsersByState`) to return domain values / throw `AppError`; controllers handle HTTP | 5 |
 | 1.4 | Move all direct `usersCollection`/`db.collection()` access out of controllers into repositories/use cases, then remove the `mongodb` dependency | 3 |
@@ -18,6 +20,7 @@ The legacy Express routers keep running inside Nest until each feature module is
 | 1.6 | Delete dead code & leftovers: `clusters/nodes` aggregations, commented blocks, `console.log`, unrelated `Utils` image helpers | 3 |
 | 1.7 | Decouple `lib` from persistence types: `ID` becomes `string` (UUID), remove `@types/mongodb` | 3 |
 | 1.8 | Split `client/src/components/Game/Terminal/Terminal.tsx` into a command interpreter (pure) + hooks + UI | 3 |
+| 1.9 | **Safety-net tests** on the PostgreSQL-backed app, before the NestJS migration: coarse HTTP-level tests (via `supertest`, real Docker database) of the golden flows — signup, login/refresh/logout, email verification, deploy base, scan, socket events `get-user-bases` / `get-user-bots` / `get-bot-modules` | 5 |
 | 1.10 | **NestJS foundation**: bootstrap the Nest app on the Express adapter and mount the legacy Express routers inside it; typed config module with env validation; logger provider; health endpoint; import-boundary check in CI (`dependency-cruiser` or ESLint rule) enforcing the layer rules | 5 |
 | 1.11 | Identity ports and the custom adapter (AGENTS.md §3.3): `IdentityVerifier`, `CredentialAuthService`, lazy `UserProvisioner`, `AUTH_PROVIDER` selection, JWT/role guards for HTTP and WebSocket, DTO validation, `FakeIdentityVerifier` and adapter contract tests; auth and users as Nest modules | 5 |
 | 1.11a | Users / identities data model: domain `User` split from login credentials, with `users`, `identities` and custom-credentials tables in the Prisma schema (no data migration, the prototype data is discarded), removal of the matching legacy routers | 3 |
@@ -32,4 +35,4 @@ The legacy Express routers keep running inside Nest until each feature module is
 
 **Exit criteria:** the backend runs on NestJS with no legacy Express routers; layering matches `AGENTS.md` and the
 import-boundary check passes; use cases have no Express/Prisma imports; controllers no longer touch the DB; `lib` is
-persistence-free; the backend runs on PostgreSQL + Prisma; the Phase 0 safety-net tests still pass; client build still green.
+persistence-free; the backend runs on PostgreSQL + Prisma; the safety-net tests (1.9) still pass; client build still green.

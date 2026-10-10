@@ -13,7 +13,7 @@
 | Single maintainer/agent context loss across phases            | Medium     | Low    | Docs (`AGENTS.md`, this plan) + Conventional Commits + small PRs  |
 | Engine thread becomes the capacity ceiling (one process owns the world) | Medium | High | Per-bot limits, tick-overrun guard, metrics from day one, benchmark spike in task 5.1, pool-ready script-runtime boundary |
 | Next.js migration: React 19 / Ant Design / CodeMirror compatibility | Medium | Medium | Compatibility spike first in task 1.18; pin versions; migrate while the client is small |
-| NestJS + clean-architecture migration breaks the working slice | Medium | Medium | Phase 0 safety-net tests, strangler approach (legacy routers hosted in Nest), small PRs |
+| NestJS + clean-architecture migration breaks the working slice | Medium | Medium | Safety-net tests (task 1.9) before the migration, strangler approach (legacy routers hosted in Nest), small PRs |
 | Third-party clients / AI players abuse the public API | Medium | Medium | Same game rules and budgets for every client, scoped and revocable API keys, per-key rate limits, hashed key storage |
 | UI scope (Phases 6–7: map, animations, landing, achievements, notifications, i18n) overruns | Medium | Medium | Phase 6 / 7 split, animations and ambient scene are cosmetic and can ship last, tasks sized individually |
 | Frontend on Vercel, API/engine elsewhere (cookies, CORS, WebSockets) | Low | Medium | Shared registrable domain, cookie-domain and CORS test in task 8.12, Socket.IO direct to the API domain |

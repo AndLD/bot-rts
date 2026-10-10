@@ -50,9 +50,7 @@ Non-negotiables (a PR that violates these is rejected):
   same image and version as production.
 - **Integration DB:** a **real PostgreSQL in Docker** — never a shared or production database in tests. Each Jest worker
   uses its own database/schema created by `prisma migrate deploy`.
-  **No in-memory or embedded database** (PGlite, pg-mem, SQLite, `mongodb-memory-server`) is used in tests, with one
-  temporary exception: the Phase 0 safety-net tests exercise today's MongoDB code with `mongodb-memory-server` until task
-  1.1a switches them to PostgreSQL.
+  **No in-memory or embedded database** (PGlite, pg-mem, SQLite, `mongodb-memory-server`) is used in tests.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 

@@ -99,7 +99,7 @@ infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) imple
 | Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5; today Vite 5, **moving to Next.js (App Router)** in Phase 1, which will also host the landing page |
 | Code editor  | CodeMirror 6 (`@uiw/react-codemirror`), `prettier-standalone`                |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest + `ts-jest` (installed, **not configured to run**); planned: PostgreSQL in Docker for integration tests, Cypress (the Phase 0 safety-net tests use `mongodb-memory-server` temporarily) |
+| Testing      | Jest + `ts-jest` (installed, **not configured to run**); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
 | Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
@@ -147,7 +147,7 @@ bot-rts/
 ### Prerequisites
 
 - Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
-- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL in Docker in Phase 0/1 — Docker will then be required)
+- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL in Docker at the start of Phase 1 — Docker will then be required)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
@@ -241,8 +241,7 @@ pm2 start ecosystem.config.json
 ## Testing
 
 - **Unit / integration:** Jest (`api/jest.config.ts`) is installed but there are **no test files** and no `test` script.
-  Integration tests will run against a real PostgreSQL in Docker (the Phase 0 safety-net tests use `mongodb-memory-server`
-  for the current MongoDB code and are switched over in Phase 1).
+  Integration tests will run against a real PostgreSQL in Docker; no in-memory database is used.
 - **E2E:** Cypress (not installed yet).
 - **Coverage gate:** ≥ 97 % (see `AGENTS.md`).
 

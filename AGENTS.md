@@ -263,6 +263,10 @@ A feature is done only when **all** of these hold:
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
+- [ ] The task is marked ✅ in its phase file and the work log has an entry for it (§7.6).
+- [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
+      criteria are met, in the summary table and in the phase file), and the branch and PR of the task are added to the
+      phase's implementation log.
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
       file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
 - [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
@@ -286,6 +290,8 @@ A feature is done only when **all** of these hold:
 | `release/<x.y.z>`     | Release stabilization (fixes only, no new features)                  | `develop`     | `main` **and** `develop` |
 | `hotfix/<x.y.z>`      | Urgent production fix                                                | `main`        | `main` **and** `develop` |
 
+- A branch may cover one task or a few closely related ones; name it after the first task and list all of them in the
+  phase's implementation log.
 - **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`,
   `feature/1.18-nextjs-migration`. Use the plan task that the branch implements.
 - A release is finished by merging `release/<x.y.z>` (or `hotfix/<x.y.z>`) into `main`, tagging `main` with `vX.Y.Z`, and
@@ -326,6 +332,22 @@ A feature is done only when **all** of these hold:
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
 
+### 7.6 Session protocol (resuming and pausing a phase)
+
+Sessions can end at any time, so the repository, not the chat, carries the state of the work.
+
+- **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
+  statuses, implementation log) and its work log (`docs/development-plan/logs/phase-N-log.md`), then check `git status`,
+  `git branch -a` and the open pull requests, and continue from the latest "next step".
+- **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds.
+  Commit often and push the task branch, so unfinished work is in git and not only in a working tree.
+- **When a session ends or pauses, and when a task finishes:** append an entry to the phase's work log (template inside
+  the file): tasks, branch and its state, decisions and deviations from the plan, problems and findings, the exact next
+  step, and the commands that verify the current state. Commit and push it on the task branch, in the same pull request
+  as the work.
+- Decisions that change the design or the plan go into the matching file in `docs/` in the same pull request, not only
+  into the log.
+
 ---
 
 ## 8. Do's & Don'ts quick reference
@@ -359,7 +381,8 @@ A feature is done only when **all** of these hold:
   [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
   terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
-  (design §14.2).
+  (design §14.2). Until the engine exists (Phase 5), world-mutating use cases run in the API process behind the same
+  command-handler interface the engine will implement.
 - **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
   (design §12.4).
 - **Tunable balance:** gameplay numbers (costs, ranges, tick rate, limits) live in config, not in code.

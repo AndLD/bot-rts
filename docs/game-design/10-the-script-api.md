@@ -53,7 +53,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 
 | Function | Provided by | Signature | Description |
 | --- | --- | --- | --- |
-| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown. |
+| `scan(radius?)` | scanner | `scan(radius?: number): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown; works with or without continuous mode, and `radius` (up to the module maximum) lets a script scan a smaller or the full area. |
 | `view(since?)` | scanner (continuous mode) | `view(since?: number): Promise<Result<{ cells: MapCell[]; tick: number }>>` | Read the live view; with `since`, only the cells that changed after that tick. Costs 1 op; fails with `NOT_LIVE` if the scanner is not enabled. |
 | `move(n)` | engine + chassis | `move(cells: number): Promise<Result>` | Move forward `n` cells; fails with `BLOCKED` if the next cell is occupied. |
 | `turn(dir)` | engine + chassis | `turn(direction): Promise<Result>` | Rotate the bot. |
@@ -75,7 +75,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `sleep(ms)` | processor (always on) | `sleep(ms): Promise<void>` | Yield for `ms` of game time. |
 
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
-`enable()`/`disable()` (battery, generator, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
+`enable()`/`disable()` (battery, generator, scanner; the scanner's `enable({ radius? })` starts continuous mode), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
 
 ## 10.3 Return values & error handling ✅
 

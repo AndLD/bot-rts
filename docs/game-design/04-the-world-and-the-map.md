@@ -67,12 +67,18 @@ Rules:
 
 ## 4.4 Live vision: continuous scanning ✅
 
+- **Both ways of scanning are always available and independent.** A scanner can do a **one-time scan** (`scan()`, §7.2) and run **continuous mode** at the same time; neither blocks the other.
 - A scanner can be switched on with `enable()` (and off with `disable()`). While **enabled** it keeps every cell inside its
   radius **live**: the player's knowledge of those cells follows the real world, refreshed in batches every scanner `delay`.
   The union of a player's enabled scanners is their **live area**.
 - Continuous scanning costs **energy only**: each refresh drains the module's `operationCost` scaled by the scanned area
   (`operationCost × (2R+1)² / 9`, tunable), so a large radius is expensive. It uses **no script ops**. Scripts read the
   live view with `view()` (1 op), which returns the cells and, with `since`, only what changed since a tick (§10.2).
+- **Combining them.** Both accept an optional radius up to the module's maximum (`scan(radius?)`, `enable({ radius? })`),
+  and energy scales with the area (`operationCost × (2r+1)² / 9`, per scan or per refresh). A typical pattern is a small,
+  cheap live area around the bot plus an occasional wide one-time scan: the wide scan returns a snapshot of cells outside
+  the live area, which then age normally. A one-time scan inside the live area simply returns the current state (it costs the
+  normal ops, energy and cooldown). Continuous refreshes do not use the scan cooldown.
 - Cells in the live area show their true current state; their age is below one `delay`. When a cell leaves the live area (the
   scanner is switched off, runs out of energy or breaks, or its bot moves away), it becomes a normal snapshot stamped with the
   last moment it was live.

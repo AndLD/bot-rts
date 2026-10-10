@@ -1,0 +1,84 @@
+15 June 2024
+```
+#project
+bot-rts
+
+1. Deploy user's base (non-movement highly armored factory bot with a simple gun to defend itself with a simple scanner to track nearest locations).
+- After user signup and confirm Email, show red button "Deploy your base to start".
+- On button click, show monitor  (canvas) with a simple map (each map point is coloured square: bots, items, resources, bases, empty point, unknown black point, fog of war).
+
+2. Bot (or User Base) Interface
+- Terminal, BotOS 1.0 "<bot.label>" (commands: ls/dir, edit, rm, clear, shell, connect, <filename>, reboot, help)
+> On "ls"/"dir" show files list.
+> On "edit <filename>" show draggable code editor. If new file, validate filename to make available only *.js, *.json, *.txt.
+> On "rm <filename>" delete file.
+> On "clear" clear terminal.
+> On "shell" changes Terminal mode: starts to wait for code line, which will be performed with "bot" object in the same scope.
+> On "connect <botId>" opens new draggable bot Terminal if bot has enabled wirelessAdapter module otherwise shows error. When connection break for any reason, show "Connection interrupted" message in the center of terminal.
+> On "<filename> <arg 1> <arg 2> ... <arg N>" runs the code file. File should export "main" function, which takes "bot" object as first argument, and next N args as custom args passed in terminal.
+> On "help" display commands list.
+
+EACH TERMINAL CONNECTION SESSION (WITH ALL LOGS) SHOULD BE STORED TO MONGO.
+
+- Map GUI (canvas).
+- Physical storage GUI.
+- Factory GUI -> Craft table -> Assemble.
+```
+
+21 January 2026
+```
+Я бы хотел сделать игру-стратегию, где управление юнитами было бы программируемо, и все юниты были бы ботами, собираемыми из произвольной комбинации предопределённых модулей, например:
+- сканер (модуль для обновления информации о состоянии окружающих бота клеток карты в определённом радиусе)
+- пушка
+- двигатель
+- колёса/гусеницы
+- бур
+- аккумулятор
+- хранилище (ящик - может использоваться для хранения боекомплекта, складирования добываемых ресурсов или других подобных действий по типу взять/положить в отношении каких-либо предметов)
+- память
+- процессор (модуль, позволяющий управлять содержимым модуля Память, а также запускать лежащие в памяти скрипты)
+- блок удалённого контроля (это типа радиоприемник для обмена сигналами + ОС в одном лице)
+
+Каждый модуль даёт возможность игроку использовать в скриптах одну или несколько функций, например shoot(), aim(), move(), turn(), dig(), pick(), drop(), scan(), connect(), execute(), log(), getLocation(), sendMessage()
+
+Стратегия предполагается RTS (не пошаговая) и multiplayer.
+
+При добавлении игрока в игру, в относительно пустом от игроков районе карты создаётся база, в которой можно при наличии соответствующих чертежей крафтить из ресурсов модули, а из модулей - ботов.
+
+При создании бота, его id (id активированного модуля "блок удалённого контроля") регистрируется в базе. Игрок видит своих ботов просто списком. В самой базе есть терминальное окно, в котором возможна команда "connect <id>" бота. Написав её, игрок попадаёт в терминальное окно бота (его блока удалённого контроля) и там интерфейс команд большей частью похожий на unix: "cd", "ls", "mkdir", "cat", "edit", "run", "shell", "top", "kill", "ping". Команда run запускает файл скрипта по определённому пути, Команда shell открывает входит терминал в режим выполнения непосредственно кода. Команда top показывает список запущенных в данный момент скриптов, и команда kill позволяет останавливать какой-то из активных запусков скриптов.
+
+При сканировании карты, если данные клетки ранее уже были сканированы хотя бы раз, информация о текущем содержании клеток карты берется из БД игры. Для клеток, координаты которых в общей базе игры ещё не зафиксированы, игра генерирует, распределяя те или иные ресурсы/предметы на карте с определённой долей вероятности
+
+То есть, как выглядит геймплей:
+- Игрок заходит в базу, крафтит модули сканер, бур, гусеницы, двигатель, память, процессор, блок удалённого контроля, аккумулятор и соединяет их в бота. Бот спавнится рядом с базой.
+- Через терминал базы игрок заходит в терминал бота, добавляет там js скрипт "abc.js", например, такого содержания, и запускает командой "run abc TERMINAL_ID" ():
+"async function main(baseId) {
+const lastLocation = null
+while (true) {
+const scanResults = await scan()
+if (scanResults.find(mapItem => mapItem.type == "RESOURCE.GOLD")) {
+const message = Gold found in location [${mapItem.location.x}, ${mapItem.location.y}]
+sendMessage(baseId, message)
+break
+}
+await move(1)
+const currentLocation = await getLocation()
+if (lastLocation && currentLocation.x === lastLocation.x && currentLocation.y === lastLocation.y) {
+const message = I stuck in location [${mapItem.location.x}, ${mapItem.location.y}]
+sendMessage(baseId, message)
+break
+}
+lastLocation = currentLocation
+await sleep(1000)
+}
+}"
+- Скрипт работает примерно так: бот делает сканирование. Например, имеющийся модуль сканера имеет радиус 10 клеток. Значит, scanResults - это одномерный массив с информацией о клетках карты. Если в этом массиве обнаруживается золото, на блок удаленного контроля базы отправляется сообщение и выполнение цикла останавливается. Если нет, происходит передвижение вперёд на одну клетку. Далее идёт проверка позиции: если текущая точка бота не изменилась после предыдущего передвижение - это значит, что бот не может передвинуться вперед (например, следующая клетка чем-то занята), и тогда на базу отправляется сообщение и цикл останавливается. Если нет, происходит замирание на 1 секунду и выполняется следующая итерация цикла.
+
+==================
+
+Вопрос следующий:
+
+Как мне запускать код на сервере так, чтобы очередь выполнения была честной по отношению ко всем игрокам (что б не было такого, что сначала выполнятся все скрипты на всех ботах одного игрока, а чтобы за единицу времени выполнялись скрипты у всех игроков, чтобы игра была Real Time по отношению ко всем игрокам), и при этом чтобы можно было ограничивать время выполнения скриптов (чтобы скажем, скорость выполнения скриптов зависела от эффективности модуля Процессор; допустим эта скорость измеряется в количестве запускаемых функций за тик, и количестве выполняемых функций за тик параллельно). 
+Также нужно предотвратить возможность повлиять напрямую на сервер через этот код, но предопределённые функции должны иметь возможность делать запросы в БД игры.
+Также нужно предотвратить race condition, так как, скажем, скрипты многих ботов многих игроков могут посылать команды, косвенно влияющие на состояние одних и тех же клеток на карте
+```

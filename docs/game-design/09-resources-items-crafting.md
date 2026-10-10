@@ -1,0 +1,78 @@
+[← Game design index](../GAME-DESIGN.md)
+
+# 9. Resources, items & crafting
+
+## 9.1 Resources
+
+- **Resources** are naturally occurring cells (`MapPointType.RESOURCE`). Gold is the canonical example
+  (`RESOURCE.GOLD`); iron is referenced by the armor module's `material`.
+- ✅ **Deposits are finite and do not regenerate.** Each resource cell holds a fixed amount (set at generation); mining
+  decrements it atomically and the cell becomes empty when it reaches zero. Amount ranges per resource are part of the
+  resource balance config described below.
+- **Items** are discrete objects (`MapPointType.ITEM`) that can be picked up, carried, dropped, stored in storage
+  modules, or loaded as ammunition.
+- ✅ **Resource set:** **gold**, **iron**, **oil/fuel**, **crystal**, **stone**, **wood**. Each has its own spawn
+  weight, deposit amount range, mining hardness and crafting uses. The values live in a data-driven balance config
+  (not hardcoded), so they can be tuned without code changes. Initial defaults (relative weight among resource cells):
+
+  | Resource | Rarity | Initial spawn weight |
+  | --- | --- | --- |
+  | iron | common | 30 |
+  | stone | common | 25 |
+  | wood | common | 20 |
+  | oil | uncommon | 12 |
+  | crystal | uncommon | 9 |
+  | gold | rare | 4 |
+
+  The overall chance that a newly generated cell is a resource cell stays a single configurable value (currently 20 %).
+
+## 9.2 Extraction
+
+| Action | Module | Description |
+| --- | --- | --- |
+| `dig()` / `mine()` | drill (`mining`) | Extract `materialPerOperation` resources from the cell into cargo |
+| `pick()` / `take()` | manipulator | Pick up an item |
+| `drop()` | manipulator | Drop a carried item onto the current/adjacent cell |
+
+## 9.3 Crafting
+
+Crafting happens at the **factory** and requires:
+1. a **blueprint** for the target module,
+2. the **resources** the recipe demands,
+3. sufficient **energy/time** for the factory operation.
+
+Craft flow: `Factory GUI → Craft table → Assemble` (from the notes). ✅ Recipes are **data-driven**: they live in a
+recipes config file (not in game logic), so costs and craft times can be tuned without code changes. The table below
+is the set of **initial defaults — balance TBD**, to be tuned after playtesting once energy, mining and processor rules
+are settled:
+
+| Module | Blueprint | Resources | Craft time |
+| --- | --- | --- | --- |
+| Scanner class 1 | ✅ base set | e.g. 20 iron, 5 crystal | 10 s |
+| Weapon class 1 | default | 50 iron | 20 s |
+| Engine class 1 | default | 30 iron, 10 oil | 15 s |
+| Wheels/Tracks class 1 | default | 25 iron | 10 s |
+| Drill class 1 | default | 40 iron, 10 crystal | 20 s |
+| Battery class 1 | default | 20 iron, 15 crystal | 15 s |
+| Storage class 1 | default | 30 iron | 10 s |
+| Memory class 1 | default | 10 crystal | 10 s |
+| Processor class 1 | default | 25 crystal, 10 gold | 25 s |
+| Remote-control block | default | 15 crystal, 20 gold | 20 s |
+
+- ✅ Blueprints are acquired from **three sources** (mixed model):
+  1. **Base set** — class-1 blueprints are known from the start.
+  2. **Research** — the factory can research higher classes by spending resources and time.
+  3. **Found / looted** — blueprints exist as rare **items** in the world and can also drop as **loot** from destroyed
+     bots and bases (corpse bases included), which makes PvP raiding rewarding.
+
+  ✅ **Details** (all numbers tunable config):
+  - **Research:** at the factory, costs **5× the target recipe's resources** and **10× its craft time**; the result is
+    permanently known by the player.
+  - **World blueprints:** blueprint **items** spawn on about **1 %** of newly generated empty cells, with a random module
+    type and class.
+  - **Loot:** disassembling a module (§8.4.2) has a **10 %** chance to also yield a blueprint item for that module's
+    class (reverse engineering). Corpse bases drop none.
+  - **Learning:** a blueprint item is **consumed** when used (`learn`) and the knowledge is then permanent. Until used it
+    is an ordinary item: it can be carried, stored, dropped and traded between players.
+  🔴
+- Crafting, assembly and research are exposed to the Factory GUI, to terminal commands (`craft`, `assemble`, `research`) and to scripts (`craft()`, `assemble()`, `research()`). 🔴

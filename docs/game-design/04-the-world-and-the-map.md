@@ -51,6 +51,15 @@ Rules:
   the player's cached copy, the cache is updated. ✅
 - ✅ Map knowledge is **private per player**. There are no teams or alliances in the initial release; players may only
   cooperate by exchanging messages (`sendMessage`). Alliances / shared fog are a possible future extension.
+- ✅ **Knowledge is a snapshot.** Every known cell stores the contents it had when it was last seen and a **`seenAt`
+  timestamp** (the game tick). Nothing refreshes it between scans: there is no passive sight and no continuous scanning.
+  A cell's **age** is the current tick minus `seenAt` (shown in seconds through `tickIntervalMs`).
+- ✅ **What refreshes a cell:** a `scan()` that covers it, and the direct result of an action of the player's own bot on it
+  (the cell it moved into, dug, shot at or dropped an item on), stamped with the current tick. Nothing else.
+- ✅ **Stale data is expected, not an error.** Other bots, dropped items and deposits can change after `seenAt`. Actions are
+  always checked against the **real** world, so acting on a stale cell returns an ordinary error value (`BLOCKED`,
+  `EMPTY`, `GONE`); a script that cares about freshness re-scans and compares `seenAt`. Scanning every tick is not
+  possible by design: each scan costs ops and energy and waits for the scanner's cooldown (§7.2).
 - Rendering a map view is therefore a *merge* of: real points in the viewport + the player's knowledge + black unknown
   cells (fog of war).
 
@@ -79,7 +88,7 @@ Rules:
 | Bot | **chassis-based sprite** (wheels, tracks, immobile) plus **overlay icons** for key modules (weapon, drill, scanner, antenna), see below |
 | Base | base sprite; **corpse base** has its own broken variant (§6.3) |
 | Stale bot (§6.3) | the bot sprite in a greyed variant |
-| Cell currently out of scanner range but previously seen | the same sprite, dimmed |
+| Known cell (a snapshot) | the same sprite, **dimmed by age** since `seenAt` (full strength for the first moments, fading to a minimum for old data); a tooltip shows "seen N s ago"; a remembered bot or item is drawn as a last-seen ghost |
 
 - **Bot sprite:** the base picture is chosen from the bot's chassis (wheels, tracks, or the immobile base body). Small
   **overlay icons** for its key modules are layered on top, and a **broken or damaged module** shows as a cracked

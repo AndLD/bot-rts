@@ -70,7 +70,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 | Dig / mine | drill shake with dust particles; the deposit sprite shrinks; a small pop when depleted |
 | Repair | sparks and a welding beam toward the target module; a green flicker when finished |
 | Disassemble | scrap pieces pop out of the target |
-| Scan | expanding radar pulse over the scan radius |
+| Scan | expanding radar pulse over the scan radius, after which the revealed cells appear at full strength and start fading with age (§4.3) |
 | Craft / assemble | build-up effect at the base, then the new bot "boots" in on its spawn cell |
 | Module broken | smoke, then flames if it stays broken; a cracked overlay (§4.3) |
 | Link / connect | dotted line between the two bots, pulse on connect; flicker on "Connection interrupted" |

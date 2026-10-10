@@ -53,7 +53,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 
 | Function | Provided by | Signature | Description |
 | --- | --- | --- | --- |
-| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells. |
+| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown. |
 | `move(n)` | engine + chassis | `move(cells: number): Promise<Result>` | Move forward `n` cells; fails with `BLOCKED` if the next cell is occupied. |
 | `turn(dir)` | engine + chassis | `turn(direction): Promise<Result>` | Rotate the bot. |
 | `aim(x, y)` | weapon | `aim(x, y): Promise<Result>` | Point the weapon at a target. |

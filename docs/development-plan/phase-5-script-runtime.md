@@ -21,7 +21,7 @@ implemented and measured carefully.
 | 5.7 | Security & load tests: sandbox escape attempts, infinite loops, heavy allocations, many-bot fairness | 3 | ⬜ |
 | 5.8 | Script languages and imports per design §10.1.1: TypeScript transpile behind a `Transpiler` interface, engine-side module loader with limits and cache, editor typings for the `bot` API via a `.d.ts` in `lib` | 10 | ⬜ |
 | 5.9 | Bot security per design §11.2.2: `passwd`, foreign `connect` authentication, brute-force cost and lockout, failed-attempt logs, and `adopt` (not for bases) | 5 | ⬜ |
-| 5.10 | Game event bus per design §24.1: typed engine events after each tick's commands, fog-of-war visibility filter, delivery to animations, achievements and notifications outside the tick path | 5 | ⬜ |
+| 5.10 | Game event bus per design §24.1: typed engine events after each tick's commands, audience filter (a player receives only events about their own entities and the direct results of their own actions, design §24.1), delivery to animations, achievements and notifications outside the tick path | 5 | ⬜ |
 | 5.11 | E2E (Cypress) for the script lifecycle: write a script with `edit`, `run` it, watch its log, `top` and `kill`, shell mode, a failing script, engine restart relaunching a running script with the "rebooted" note; also script arguments, `<file>` shorthand, imports across files, a TypeScript script, import cycle and size limits, queued executions and the ops budget, sandbox denial (`process`, `require`, network), and offline play (log out, scripts keep running, log in and see results) | 8 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.

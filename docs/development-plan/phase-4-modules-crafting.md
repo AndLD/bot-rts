@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 4 — Module system & crafting (67 SP)
+# Phase 4 — Module system & crafting (68 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-4-log](./work-logs/phase-4-log.md)
 
@@ -9,7 +9,7 @@ Flesh out the module ecosystem and the crafting/factory loop.
 | # | Task                                                                                                | SP | Status |
 | --- | -------------------------------------------------------------------------------------------------- | -- | --- |
 | 4.1 | Module behavior classes behind `IModule*` interfaces with `Promise<Result<T>>` signatures (the `Result` / `ErrorCode` types live in `lib`, design §10.3; the callback-style interfaces are replaced): `EngineModule`, `MiningModule` (drill), `MovementModule` (wheels/tracks), `DriveModule` (memory/disk), `BatteryModule`, `StorageModule`, `GeneratorModule`, `ProcessorModule`, `WirelessAdapterModule`, `GpsModule`, `FactoryModule`, `ArmorModule` | 15 | ⬜ |
-| 4.2 | `WeaponModule.shoot`/`aim`/`reload` per the combat model (design §12.6) and `ScannerModule` polish (range, delay, energy cost) | 5 | ⬜ |
+| 4.2 | `WeaponModule.shoot`/`aim`/`reload` per the combat model (design §12.6) and `ScannerModule` polish (range, delay, energy cost); scans are snapshots stamped with `seenAt`, with cooldown, ops and energy costs, and action results refresh the touched cell (design §4.2) | 6 | ⬜ |
 | 4.3 | Energy accounting per design §12.5 (idle and operation drain, battery clamp, generator refill, out-of-energy state; running executions suspend on it once the runtime exists, 5.4) | 5 | ⬜ |
 | 4.4 | Blueprint + crafting model per design §9.3: data-driven recipes config validated at startup, per-player known blueprints, blueprints as lootable items | 5 | ⬜ |
 | 4.5 | Bot assembly per design §8.2 (required-module validation) and the movement rule of §8.5 | 5 | ⬜ |

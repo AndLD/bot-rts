@@ -263,6 +263,7 @@ A feature is done only when **all** of these hold:
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
+- [ ] The task is marked ✅ in its phase file and the work log has an entry for it (§7.6).
 - [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
       criteria are met, in the summary table and in the phase file), and the branch and PR of the task are added to the
       phase's implementation log.
@@ -330,6 +331,22 @@ A feature is done only when **all** of these hold:
   to the other.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
+
+### 7.6 Session protocol (resuming and pausing a phase)
+
+Sessions can end at any time, so the repository, not the chat, carries the state of the work.
+
+- **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
+  statuses, implementation log) and its work log (`docs/development-plan/logs/phase-N-log.md`), then check `git status`,
+  `git branch -a` and the open pull requests, and continue from the latest "next step".
+- **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds.
+  Commit often and push the task branch, so unfinished work is in git and not only in a working tree.
+- **When a session ends or pauses, and when a task finishes:** append an entry to the phase's work log (template inside
+  the file): tasks, branch and its state, decisions and deviations from the plan, problems and findings, the exact next
+  step, and the commands that verify the current state. Commit and push it on the task branch, in the same pull request
+  as the work.
+- Decisions that change the design or the plan go into the matching file in `docs/` in the same pull request, not only
+  into the log.
 
 ---
 

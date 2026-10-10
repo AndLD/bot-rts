@@ -11,7 +11,9 @@ refactor the touched area to comply rather than perpetuating the anti-pattern.
 The project is developed to align with:
 
 - **SOLID** — single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
-- **High scalability** — horizontal-friendly services, indexed data access, no in-process mutable globals as state of record.
+- **High scalability** — a stateless, horizontally scalable API tier and indexed data access. The one exception is by design: the
+  **engine** is the single authoritative in-memory owner of world state (persisted to MongoDB by write-behind) and is
+  reached only through a port (see `docs/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
 - **High testability** — dependency injection, pure domain logic, no hidden I/O.
 - **High maintainability** — small cohesive modules, no dead code, self-documenting names, up-to-date docs.
 - **Low coupling** — layers talk through interfaces, not concrete singletons or HTTP objects.
@@ -39,14 +41,17 @@ Non-negotiables (a PR that violates these is rejected):
   **presentation only**: no business logic and no database access in Next route handlers; NestJS stays the single
   backend. The frontend is intended to be hosted on Vercel and the API/engine on a long-running server (Socket.IO and the
   engine thread cannot run on Vercel).
-- **Unit / integration tests:** **Jest** (with `ts-jest`) for **both** `api` and `client` (the client is configured with
-  `next/jest` with `jsdom`, a mapper for the `@lib` alias and style files, and `NEXT_PUBLIC_*` env; Vitest is not used).
+- **Unit / integration tests:** **Jest** for **both** packages: `ts-jest` for `api`; `next/jest` with `jsdom`, a mapper for the
+  `@lib` alias and style files, and `NEXT_PUBLIC_*` env for `client`. Vitest is not used.
+- **Script sandbox:** player scripts run in **QuickJS compiled to WASM** behind a `ScriptRuntime` interface, in the engine
+  (never Node's `vm`, which is not a security boundary).
+- **Monorepo:** npm workspaces for `api`, `client` and `lib` (plus the `mcp/` MCP-server package when it is added).
 - **Integration DB:** **`mongodb-memory-server`** — never a shared/real DB in tests.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
-If a tool is not yet installed, that is part of Phase 0 (see [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md)) — install it, don't hand-roll an
-alternative.
+If a tool is not yet installed, the [development plan](./docs/DEVELOPMENT-PLAN.md) schedules it (Jest and
+`mongodb-memory-server` in Phase 0, Cypress in Phase 2, and so on) — install it, don't hand-roll an alternative.
 
 ---
 
@@ -65,6 +70,7 @@ api
    domain           — entities, value objects, domain services and rules (Module, Bot, MapPoint, …); pure TypeScript
    infrastructure   — adapters implementing the ports: Mongo repositories, JWT, email sender, engine bridge, config
 engine             — the game engine (tick loop, scheduler, QuickJS runtime), framework-free, reached through a port
+mcp                — MCP server package: a thin client of /api/v1 using an API key (no direct DB or engine access)
 lib
    shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO mongodb types)
 ```
@@ -108,14 +114,12 @@ infrastructure → application (implements its ports) → domain
 | infrastructure | business rules (it only adapts: persistence, tokens, email, messaging)                      |
 | `lib`          | importing `mongodb` types, runtime dependencies, I/O, Node- or browser-specific APIs       |
 
-**Specifically, the current anti-patterns to eliminate when touching a file:**
+**Legacy anti-patterns in the current Express code (eliminated by Phase 1; fix them whenever you touch a file):**
 
 - `usersService.addUser(body, res)` — a service must **never** receive an Express `Response`. Split into a pure
   `addUser(body, status, active)` returning the user, and let the controller handle HTTP responses.
 - Services calling `apiUtils.sendError(res, …)` — return domain errors / throw typed exceptions instead.
 - Controllers reaching into `usersCollection` / `db.collection(...)` — move all data access to repositories.
-
----
 
 ### 3.3 Identity provider abstraction
 
@@ -143,6 +147,8 @@ provider later) without touching game code.
   implementation. Components use hooks only, never the provider SDK directly.
 - **Tests:** a `FakeIdentityVerifier` for Jest, and a shared contract test suite that every adapter must pass.
 
+---
+
 ## 4. SOLID checklist (apply per file)
 
 - **S — Single responsibility:** one class/function = one reason to change. If a function both validates, transforms,
@@ -163,7 +169,9 @@ provider later) without touching game code.
 
 - Files: PascalCase for React components/domain classes (`Terminal.tsx`, `ScannerModule.ts`), camelCase for
   modules/utilities (`jwt.ts`, `app.reducer.ts`).
-- Exported service objects: `*Service` (`botsService`, `usersService`).
+- Injectable classes are PascalCase with a role suffix: `*Controller`, `*Service` (use cases), `*Repository` (port),
+  `Mongo*Repository` (adapter). No module-level service objects (`botsService`-style singletons). File names inside Nest
+  modules follow `<name>.<role>.ts` (for example `users.controller.ts`).
 - Domain classes: `Module`, `ScannerModule`, `Bot`, `MapPoint`.
 - Test files co-located or in `__tests__/`: `foo.test.ts` / `foo.spec.ts`.
 - Boolean flags/params: `is…` / `has…` / `can…`. Avoid positional booleans (`addUser(body, true)` → use options).
@@ -174,7 +182,8 @@ provider later) without touching game code.
 - TypeScript `strict: true`; no `any` unless documented with a `// TODO(type)` and a reason.
 - Errors: typed error classes extending a base `AppError(statusCode, code, message)`; don't throw raw `Error` with
   human-facing messages, don't string-match error messages.
-- Logging: `getLogger('module')` from `api/utils/logger`. No `console.log`.
+- Logging: inject the logger provider (log4js-backed, set up in Phase 1 task 1.10) — no `console.log`. (Until then the
+  legacy `getLogger('module')` from `api/utils/logger` is used.)
 
 ### 5.3 Shared code
 
@@ -207,9 +216,9 @@ provider later) without touching game code.
 
 ### 6.3 Integration tests (Jest + `mongodb-memory-server`)
 
-- Repositories, services, and full controller→router→DB slices.
+- Repositories, use cases, and full controller→use case→repository slices (Nest testing module + `supertest`).
 - Each suite boots its own in-memory Mongo instance; isolate per test (unique DB name or clean collections).
-- Auth middleware + real JWT signing in tests where relevant.
+- Auth guards + real JWT signing in tests where relevant (or the `FakeIdentityVerifier`, §3.3).
 
 ### 6.4 E2E tests (Cypress)
 
@@ -230,7 +239,10 @@ A feature is done only when **all** of these hold:
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
-- [ ] README/docs updated if the change alters public behavior or env vars.
+- [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
+      file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
+- [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
+      Russian).
 - [ ] Feature branch (named per §7.1), descriptive PR, reviewed, merged by the strategy in §7.2; the branch is kept (§7.3).
 
 ---
@@ -242,7 +254,7 @@ A feature is done only when **all** of these hold:
 | Branch                | Purpose                                                              | Branched from | Merges into          |
 | --------------------- | -------------------------------------------------------------------- | ------------- | -------------------- |
 | `main`                | Always releasable; every release is tagged `vX.Y.Z`                  | —             | —                    |
-| `develop`             | Integration branch (created in Phase 0, task 0.6)                    | `main`        | —                    |
+| `develop`             | Integration branch; all work starts here                             | `main`        | —                    |
 | `feature/<id>-<slug>` | New work                                                             | `develop`     | `develop`            |
 | `bugfix/<id>-<slug>`  | Non-release fixes                                                    | `develop`     | `develop`            |
 | `docs/<slug>`         | Documentation-only changes                                           | `develop`     | `develop`            |
@@ -267,7 +279,8 @@ A feature is done only when **all** of these hold:
 - **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks.
+- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks (branch
+  protection and CI are set up in Phase 0, tasks 0.5–0.6; until then these rules are followed by convention).
 
 ### 7.4 Commit & PR rules
 
@@ -275,7 +288,8 @@ A feature is done only when **all** of these hold:
   optional scope in parentheses (`feat(engine): …`, `fix(auth): …`). Breaking changes use `!` after the type
   (`feat(api)!: …`) and a `BREAKING CHANGE:` footer. Mention the plan task id in the body (for example `Plan: 3.12`).
 - One logical change per commit; PRs should be small and single-purpose.
-- No direct commits to `main` or `develop`; merge via PR with at least one review.
+- No direct commits to `main` or `develop`; merge via PR with at least one review (while the project is solo, the owner's
+  approval to merge counts as the review).
 - CI must be green (lint, typecheck, unit/integration, e2e, coverage gate) before merge.
 
 ### 7.5 Rules for agents
@@ -294,8 +308,8 @@ A feature is done only when **all** of these hold:
 
 ### ✅ Do
 
-- Inject dependencies; use interfaces from `lib`.
-- Keep controllers thin and services DB-only.
+- Inject dependencies (including the clock and RNG); use interfaces from `lib`.
+- Keep controllers thin; use cases depend on repository ports and never touch the database directly.
 - Add `mongodb-memory-server` integration tests with every repository/service.
 - Add a Cypress spec with every user-visible flow.
 - Add/update `.env.example` for new env vars.
@@ -312,3 +326,20 @@ A feature is done only when **all** of these hold:
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
 - Don't create or merge a PR without asking the user first (§7.5).
+
+---
+
+## 9. Project-specific rules (details in `docs/`)
+
+- **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
+  [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
+- **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
+  terminal, manual GUI control and API requests alike. Never write world collections from the API tier directly
+  (design §14.2).
+- **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
+  (design §12.4).
+- **Tunable balance:** gameplay numbers (costs, ranges, tick rate, limits) live in config, not in code.
+- **Script API results:** every script API call returns `Result<T>`; expected failures are values, not exceptions
+  (design §10.3).
+- **Game events:** the engine emits typed events after applying a tick's commands; animations, achievements and
+  notifications consume them outside the tick path (design §24).

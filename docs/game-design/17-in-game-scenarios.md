@@ -65,27 +65,8 @@ program around.
 
 ## Scenario D — "The haul" (mining loop)
 
-Bob has a bot with drill + manipulator + storage:
-
-```js
-async function main(bot, baseId) {
-  while (true) {
-    const scan = await bot.scan()
-    const deposit = scan.ok && scan.data.find((c) => c.type === 'RESOURCE.IRON' && c.amount > 0)
-
-    if (deposit) {
-      const dug = await bot.dig()
-      if (dug.ok) {
-        const stored = await bot.store('iron')
-        if (stored.ok) bot.log('stored iron')
-      }
-    } else {
-      await bot.move(1)
-    }
-    await bot.sleep(500)
-  }
-}
-```
+Bob has a bot with drill + manipulator + storage. His script (see [Miner + hauler loop](./18-example-scripts.md#182-miner--hauler-loop))
+scans for iron, digs it, stores it, and otherwise moves on, checking each result's `ok` flag.
 
 Design intent: extraction + logistics is where the economy loop becomes visible, and where storage capacity, energy,
 and travel time force trade-offs.

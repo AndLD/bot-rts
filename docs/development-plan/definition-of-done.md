@@ -1,7 +1,7 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Definition of Done (repeated for emphasis)
+# Definition of Done
 
-A task/feature is complete when: code is behind interfaces with no new `any` at public boundaries; unit + integration
-(+ e2e for UI) tests pass; coverage ≥ 97 % per package; lint + typecheck pass; no dead code/`console.log`; docs and
-`.env.example` are updated; and the work is merged via a Git Flow PR with green CI.
+The definition of done for every task is maintained in one place: [`AGENTS.md` §6.5](../../AGENTS.md). A task in this plan is
+complete only when all of its checklist items hold (tests, ≥ 97 % coverage per package, lint and typecheck, no dead code,
+docs updated, merged through a Git Flow PR with green CI).

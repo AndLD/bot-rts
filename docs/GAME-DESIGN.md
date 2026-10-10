@@ -49,3 +49,4 @@ throughout the docs match the file numbers.
 22. [Public API & integrations](./game-design/22-public-api-integrations.md)
 23. [Achievements](./game-design/23-achievements.md)
 24. [Game events and realtime notifications](./game-design/24-notifications-and-events.md)
+25. [Admin console](./game-design/25-admin-console.md)

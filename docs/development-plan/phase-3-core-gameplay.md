@@ -2,7 +2,7 @@
 
 # Phase 3 — Core gameplay foundations (76 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-3-log](./logs/phase-3-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-3-log](./work-logs/phase-3-log.md)
 
 Establish the game-domain backbone the product notes describe (bases, bots, resources, map, storage).
 

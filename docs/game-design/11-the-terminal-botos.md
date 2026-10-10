@@ -3,7 +3,7 @@
 # 11. The terminal (BotOS)
 
 Each bot — including the base — runs **BotOS**, a Unix-like command environment. The player interacts through a
-terminal window; **every connection session, with all its logs, is stored in MongoDB**. 🟡
+terminal window; **every connection session, with all its logs, is stored in the database**. 🟡
 
 ## 11.1 Command reference
 
@@ -53,7 +53,7 @@ The unified command set:
    - if so → a new draggable bot terminal opens; 🟡
    - otherwise → an error value is shown. 🟡
 3. If the link drops **for any reason**, the terminal displays **"Connection interrupted"** centered in the window. 🔴
-4. The whole session — commands, outputs, script logs, and errors — is **persisted to MongoDB**. 🟡
+4. The whole session — commands, outputs, script logs, and errors — is **persisted to the database**. 🟡
 
 ## 11.2.1 Communication range ✅
 
@@ -84,8 +84,8 @@ The unified command set:
 
 ## 11.2.3 Session log retention ✅
 
-- Session logs are kept for **30 days**, capped at **5,000 lines per bot** (oldest dropped first); a MongoDB TTL index
-  performs the cleanup.
+- Session logs are kept for **30 days**, capped at **5,000 lines per bot** (oldest dropped first); a scheduled cleanup job
+  (or time-partitioned tables) enforces the limits.
 - **Security events** (failed password attempts, lockouts, `adopt`, `reboot`) are kept for **90 days**.
 - All three values are tunable config.
 
@@ -99,7 +99,7 @@ The unified command set:
 
 ## 11.4 Storage: memory modules as drives ✅
 
-- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) are stored as documents in MongoDB; the in-game editor is a view over them.
+- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) are stored as records in the database; the in-game editor is a view over them.
 - **Each memory module is a separate drive** with its own byte **quota**. `cd <drive>` selects a drive; `ls`, `cat`,
   `edit`, `rm` and `mkdir` act on the selected drive.
 - Writing past a drive's quota fails with an error value; reading/writing takes the module's `readDelay` / `writeDelay`.

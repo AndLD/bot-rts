@@ -55,5 +55,5 @@ code is the **disk**, not the chassis.)
 ## 7.3 Module instances & classes
 
 Modules are instances of `Module` subclasses (`ScannerModule`, `WeaponModule`, …). ✅ (base + scanner + weapon stub)
-The base class validates that a `type` is present and assigns props. Modules are persisted in the `modules`
-collection and linked to a bot by `botId`. ✅
+The base class validates that a `type` is present and assigns props. Modules are persisted in the database
+(a `modules` table) and linked to a bot by `botId`. ✅

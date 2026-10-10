@@ -72,7 +72,7 @@ A processor module defines two numbers:
 
 - **API thread** — the NestJS app (HTTP + Socket.IO) only; never runs game logic or scripts.
 - **Engine thread** — runs the tick loop, owns the world state, runs all QuickJS contexts, applies commands, and is the
-  only writer to MongoDB (batched write-behind, not one query per command).
+  only writer to the database (batched write-behind, not one query per command).
 
 Scripts never touch the world directly: an API call such as `move()` spends ops and **queues a command**, and the engine
 applies all commands for the tick in the deterministic order (§12.4); results resolve the script's pending promises at
@@ -85,7 +85,7 @@ changing game logic.
 **Scaling:** ✅ there is **one authoritative engine process** for the whole world. The API tier scales horizontally;
 the engine scales vertically. The map is addressed in **chunks** so that sharding the world by region across several
 engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
-until it restarts and reloads the world from MongoDB.
+until it restarts and reloads the world from the database.
 
 **Capacity guard-rails** (rough estimates to be validated by a benchmark spike, not promises): an engine thread should
 handle a few hundred up to about 1,000 *actively running* bots at 10 ticks/s; idle bots are almost free. Per-bot limits
@@ -108,7 +108,7 @@ metrics.
 
 ## 12.3.1 Engine restart and crash recovery ✅
 
-- **Execution records are durable.** Starting, finishing or killing an execution is written to MongoDB immediately
+- **Execution records are durable.** Starting, finishing or killing an execution is written to the database immediately
   (file, args, bot, state), so the engine always knows what was running.
 - **World state is flushed every second** (every 10 ticks) in a batched bulk write. A crash loses at most about one
   second of game time; the world reloads from the last flush.

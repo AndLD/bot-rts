@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 0 — Stabilize & CI foundation (20 SP)
+# Phase 0 — Stabilize & CI foundation (23 SP)
 
 Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe to start before this.**
 
@@ -12,7 +12,8 @@ Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe
 | 0.4 | Add `api` ESLint + a shared Prettier check; wire `npm run lint`/`typecheck` into both packages | 2 |
 | 0.5 | Set up CI (GitHub Actions): install → lint → typecheck → unit/integration → e2e → coverage gate | 3 |
 | 0.6 | Create `develop` branch; define protected branches (`main`, `develop`), PR + Conventional Commits enforcement; turn off automatic deletion of merged branches (branches are kept for history) | 1 |
-| 0.7 | **Safety-net tests** before any refactor: add Jest, `mongodb-memory-server` and `supertest` to `api`; coarse characterization tests of today's behavior (signup, login/refresh/logout, email verification, deploy base, scan, socket events `get-user-bases`/`get-user-bots`/`get-bot-modules`) | 6 |
+| 0.7 | **Safety-net tests** before any refactor: add Jest, `mongodb-memory-server` (temporary: it tests the current MongoDB code and is replaced by Docker PostgreSQL in task 1.1a) and `supertest` to `api`; coarse characterization tests, run through HTTP so the same tests can later run unchanged on PostgreSQL, of today's behavior (signup, login/refresh/logout, email verification, deploy base, scan, socket events `get-user-bases`/`get-user-bots`/`get-bot-modules`) | 6 |
+| 0.8 | **Local PostgreSQL in Docker**: `docker-compose.yml` with a pinned PostgreSQL image, named volume and healthcheck; `db:up` / `db:down` / `db:reset` scripts; `DATABASE_URL` in `.env.example`; README setup section | 3 |
 
 **Exit criteria:** client and api build cleanly; env/config drift removed; CI runs and blocks non-green PRs;
 `develop` exists; the safety-net tests pass and pin down current behavior so refactors can be verified.

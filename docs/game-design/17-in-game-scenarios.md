@@ -90,7 +90,7 @@ and travel time force trade-offs.
 4. He writes a script with `edit miner.js`, then `run miner.js`.
 5. His network drops: the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
    running on the server**.
-6. On reconnect, the session (with all logs so far) is still there — it was persisted to MongoDB.
+6. On reconnect, the session (with all logs so far) is still there — it was persisted to the database.
 
 ## Scenario G — "Debugging in the field"
 

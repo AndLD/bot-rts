@@ -2,7 +2,7 @@
 
 > **Historical document.** This review describes the codebase *before* the planning decisions in
 > [`GAME-DESIGN.md`](./GAME-DESIGN.md) and [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md). Some of its recommendations were
-> superseded: the target stack is now NestJS with clean architecture, Jest for both packages (no Vitest) and Next.js for
+> superseded: the target stack is now NestJS with clean architecture, Jest for both packages (no Vitest), PostgreSQL + Prisma instead of MongoDB, and Next.js for
 > the client (see [`AGENTS.md`](../AGENTS.md) §2–3).
 
 A point-in-time assessment of the `bot-rts` codebase (≈ 4,200 lines of TypeScript across `api/`, `client/src/`,

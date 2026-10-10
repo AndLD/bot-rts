@@ -12,7 +12,7 @@ The project is developed to align with:
 
 - **SOLID** — single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
 - **High scalability** — a stateless, horizontally scalable API tier and indexed data access. The one exception is by design: the
-  **engine** is the single authoritative in-memory owner of world state (persisted to MongoDB by write-behind) and is
+  **engine** is the single authoritative in-memory owner of world state (persisted to PostgreSQL by write-behind) and is
   reached only through a port (see `docs/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
 - **High testability** — dependency injection, pure domain logic, no hidden I/O.
 - **High maintainability** — small cohesive modules, no dead code, self-documenting names, up-to-date docs.
@@ -33,7 +33,7 @@ Non-negotiables (a PR that violates these is rejected):
 ## 2. Tech stack & test tooling (do not substitute)
 
 - **Language:** TypeScript 5.x. `api` is CommonJS + `strict: true`; `client` (Next.js) is ESM + `strict: true`. Node 20 LTS.
-- **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and the MongoDB driver (no ORM).
+- **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and **PostgreSQL** accessed through **Prisma**, with the ORM confined to the infrastructure layer (§3.4).
   Nest's DI container is the composition root; OpenAPI comes from `@nestjs/swagger`.
 - **Frontend:** **Next.js** (App Router) with React, Redux Toolkit + RTK Query, Ant Design 5, CodeMirror 6, and `next-intl`
   for English/Russian. One Next.js app contains both the public marketing pages (statically rendered for SEO) and the
@@ -46,12 +46,15 @@ Non-negotiables (a PR that violates these is rejected):
 - **Script sandbox:** player scripts run in **QuickJS compiled to WASM** behind a `ScriptRuntime` interface, in the engine
   (never Node's `vm`, which is not a security boundary).
 - **Monorepo:** npm workspaces for `api`, `client` and `lib` (plus the `mcp/` MCP-server package when it is added).
-- **Integration DB:** **`mongodb-memory-server`** — never a shared/real DB in tests.
+- **Database:** PostgreSQL with a pinned version; locally and in CI it runs in **Docker** (`docker-compose.yml`), with the
+  same image and version as production.
+- **Integration DB:** a **real PostgreSQL in Docker** — never a shared or production database in tests. Each Jest worker
+  uses its own database/schema created by `prisma migrate deploy`.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
 If a tool is not yet installed, the [development plan](./docs/DEVELOPMENT-PLAN.md) schedules it (Jest and
-`mongodb-memory-server` in Phase 0, Cypress in Phase 2, and so on) — install it, don't hand-roll an alternative.
+the Docker PostgreSQL setup in Phase 0, Cypress in Phase 2, and so on) — install it, don't hand-roll an alternative.
 
 ---
 
@@ -68,11 +71,11 @@ api
                       HTTP/WS transport concerns ONLY (parse input, call a use case, map the result/error)
    application      — use cases (services) and PORTS: repository/gateway interfaces + their DI tokens
    domain           — entities, value objects, domain services and rules (Module, Bot, MapPoint, …); pure TypeScript
-   infrastructure   — adapters implementing the ports: Mongo repositories, JWT, email sender, engine bridge, config
+   infrastructure   — adapters implementing the ports: Prisma/PostgreSQL repositories, JWT, email sender, engine bridge, config
 engine             — the game engine (tick loop, scheduler, QuickJS runtime), framework-free, reached through a port
 mcp                — MCP server package: a thin client of /api/v1 using an API key (no direct DB or engine access)
 lib
-   shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO mongodb types)
+   shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO persistence types)
 ```
 
 Each feature is a **Nest module** (`auth`, `users`, `bots`, `map`, `modules`, `files`, `terminal`, …) that contains its
@@ -93,11 +96,11 @@ presentation → application → domain
 infrastructure → application (implements its ports) → domain
 ```
 
-- `domain` imports nothing from the other layers or from NestJS/Express/MongoDB.
+- `domain` imports nothing from the other layers or from NestJS/Express/Prisma.
 - `application` depends on `domain` and on **ports** (TypeScript interfaces) that it owns. It may use Nest's `@Injectable()`
   / `@Inject()` for dependency injection only; it never imports HTTP types (`Request`, `Response`, `Socket`), Express
-  or MongoDB.
-- `infrastructure` implements the ports (for example `MongoUserRepository implements UserRepository`) and is bound to
+  or Prisma.
+- `infrastructure` implements the ports (for example `PrismaUserRepository implements UserRepository`) and is bound to
   the port's **DI token** in the feature module's providers. Swapping an implementation (or a test fake) is a one-line
   provider change.
 - `presentation` calls use cases through their interfaces and never touches repositories or the database.
@@ -109,10 +112,10 @@ infrastructure → application (implements its ports) → domain
 | Layer          | Forbidden                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------- |
 | presentation   | business logic, direct DB/repository access, status-code decisions inside use cases        |
-| application    | `req`/`res`/`Socket`, HTTP status knowledge, `mongodb` types, importing `infrastructure`     |
-| domain         | any framework import (Nest, Express, mongodb), I/O, importing other layers                  |
+| application    | `req`/`res`/`Socket`, HTTP status knowledge, `@prisma/client` types, importing `infrastructure`     |
+| domain         | any framework import (Nest, Express, Prisma), I/O, importing other layers                  |
 | infrastructure | business rules (it only adapts: persistence, tokens, email, messaging)                      |
-| `lib`          | importing `mongodb` types, runtime dependencies, I/O, Node- or browser-specific APIs       |
+| `lib`          | importing persistence types, runtime dependencies, I/O, Node- or browser-specific APIs       |
 
 **Legacy anti-patterns in the current Express code (eliminated by Phase 1; fix them whenever you touch a file):**
 
@@ -135,7 +138,7 @@ provider later) without touching game code.
   port and those endpoints are not mounted.
 - **Own user model:** the domain `User` (internal `userId`, name, roles, `active`/ban state) is separate from login
   credentials. Provider links live in an `identities` mapping `(provider, subject) → userId`. Custom-auth secrets
-  (password hash, verification tokens) live only in the custom adapter's own collection. Roles and bans are always
+  (password hash, verification tokens) live only in the custom adapter's own table. Roles and bans are always
   checked against our database, never taken from the token.
 - **Provisioning:** on the first verified identity, a `UserProvisioner` creates the `User` and the identity link (lazy
   creation); webhooks, if a provider has them, are only a backup.
@@ -146,6 +149,25 @@ provider later) without touching game code.
   `localAuthClient` implementation over the `/api/v1/auth/*` endpoints; a hosted provider would add its own
   implementation. Components use hooks only, never the provider SDK directly.
 - **Tests:** a `FakeIdentityVerifier` for Jest, and a shared contract test suite that every adapter must pass.
+
+### 3.4 Persistence isolation (PostgreSQL + Prisma)
+
+The database is an implementation detail that must stay replaceable (clean architecture / DDD):
+
+- **Prisma stays in `infrastructure`.** The Prisma schema, migrations, `PrismaClient` and the generated types live only in
+  the persistence part of the infrastructure layer. They are never imported by `domain`, `application`, `presentation`,
+  `engine` or `lib`; the import-boundary check (§3.1) enforces it.
+- **Repositories map, ports are persistence-agnostic.** A repository takes and returns **domain entities**; the mapping
+  between Prisma rows and entities happens inside the adapter. Port methods express domain intent (`findByEmail`,
+  `listBotsOfBase`), not SQL or Prisma query shapes.
+- **Ids are domain-owned strings (UUIDs).** No database-generated ids or Prisma types leak into entities or DTOs.
+- **Transactions through a port.** Use cases that need atomicity use a `UnitOfWork` port implemented with Prisma's
+  `$transaction`.
+- **The engine persists through a `WorldStateStore` port** (batched upserts, one database transaction per flush). The
+  adapter may use `createMany` or raw SQL for performance; that stays inside the adapter.
+- **Migrations are code:** `prisma migrate` files are committed, applied migrations are never edited, and destructive
+  changes follow an expand/contract plan.
+- Replacing the database must mean rewriting the infrastructure adapters only.
 
 ---
 
@@ -170,7 +192,7 @@ provider later) without touching game code.
 - Files: PascalCase for React components/domain classes (`Terminal.tsx`, `ScannerModule.ts`), camelCase for
   modules/utilities (`jwt.ts`, `app.reducer.ts`).
 - Injectable classes are PascalCase with a role suffix: `*Controller`, `*Service` (use cases), `*Repository` (port),
-  `Mongo*Repository` (adapter). No module-level service objects (`botsService`-style singletons). File names inside Nest
+  `Prisma*Repository` (adapter). No module-level service objects (`botsService`-style singletons). File names inside Nest
   modules follow `<name>.<role>.ts` (for example `users.controller.ts`).
 - Domain classes: `Module`, `ScannerModule`, `Bot`, `MapPoint`.
 - Test files co-located or in `__tests__/`: `foo.test.ts` / `foo.spec.ts`.
@@ -190,8 +212,7 @@ provider later) without touching game code.
 - `lib/` holds shared **types, interfaces, constants and small pure functions** (for example validation patterns and the
   `ErrorCode` set). It has **no runtime dependencies**, no I/O, and no Node- or browser-specific APIs, so both `api` and
   `client` can import it.
-- `lib` must not import `mongodb`. Replace `ID = string | ObjectId` with `string` at the API boundary and map at the
-  repository edge.
+- `lib` must not import persistence libraries. Ids are plain strings (UUIDs) everywhere above the repositories.
 
 ---
 
@@ -214,10 +235,11 @@ provider later) without touching game code.
 - Use injected fakes/mocks (`jest.fn`) — never real I/O.
 - Test edge cases: empty inputs, boundary values, error paths.
 
-### 6.3 Integration tests (Jest + `mongodb-memory-server`)
+### 6.3 Integration tests (Jest + PostgreSQL in Docker)
 
 - Repositories, use cases, and full controller→use case→repository slices (Nest testing module + `supertest`).
-- Each suite boots its own in-memory Mongo instance; isolate per test (unique DB name or clean collections).
+- Each Jest worker uses its own database/schema on the Docker PostgreSQL; isolate per test (transaction rollback or
+  truncate).
 - Auth guards + real JWT signing in tests where relevant (or the `FakeIdentityVerifier`, §3.3).
 
 ### 6.4 E2E tests (Cypress)
@@ -234,7 +256,7 @@ A feature is done only when **all** of these hold:
 
 - [ ] Business logic implemented behind interfaces; no `any` at public boundaries.
 - [ ] Unit tests cover the new code's happy path + error paths.
-- [ ] Integration tests exercise the new data access/use cases against in-memory Mongo.
+- [ ] Integration tests exercise the new data access/use cases against PostgreSQL (Docker).
 - [ ] E2E test added for any new user-visible flow.
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
@@ -310,7 +332,7 @@ A feature is done only when **all** of these hold:
 
 - Inject dependencies (including the clock and RNG); use interfaces from `lib`.
 - Keep controllers thin; use cases depend on repository ports and never touch the database directly.
-- Add `mongodb-memory-server` integration tests with every repository/service.
+- Add integration tests against PostgreSQL (Docker) with every repository.
 - Add a Cypress spec with every user-visible flow.
 - Add/update `.env.example` for new env vars.
 - Run formatter, linter, typecheck, and tests before pushing.
@@ -318,7 +340,7 @@ A feature is done only when **all** of these hold:
 ### ❌ Don't
 
 - Don't pass `req`/`res`/`Socket` into services or models.
-- Don't read `db`/collections directly outside repositories.
+- Don't use Prisma (`PrismaClient`, generated types) outside the infrastructure layer.
 - Don't use module-level mutable singletons as test state.
 - Don't commit secrets, `.env`, `node_modules`, or build output.
 - Don't leave `console.log`, commented-out code, or dead aggregation pipelines.
@@ -334,7 +356,7 @@ A feature is done only when **all** of these hold:
 - **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
   [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
-  terminal, manual GUI control and API requests alike. Never write world collections from the API tier directly
+  terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
   (design §14.2).
 - **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
   (design §12.4).

@@ -15,10 +15,18 @@ template, and the components they refer to were never added. What exists:
   deletes every document of the named collections, with no confirmation and no environment guard.
 - **Client:** admin routes (`AdminLayout`, `Dashboard`, `Users`, `Settings`) are commented out in `routes/private.tsx` and the
   components do not exist; `ADMIN_URL` (the Socket.IO CORS origin) is a remnant of a former separate admin app.
-- **Security findings (to be fixed in Phase 0, task 0.8):** `GET /api/private/users` and `PUT /api/private/users/:id` are
-  behind the *login* check only — **any logged-in player can list all users and edit any user, including setting `status` to
-  `admin`**; the list endpoint passes a client-supplied JSON filter straight into a database query; the debug endpoint can wipe
-  data in production.
+- **Security findings (fixed by task 0.8, with 1.9, 1.11 and 8.2):**
+  - `GET /api/private/users` and `PUT /api/private/users/:id` are behind the *login* check only, so **any logged-in player
+    can list all users and edit any user, including setting their `status` to `admin`** (the next token refresh then carries
+    the new role) or `active` to `true`.
+  - The list endpoint passes a client-supplied JSON filter straight into a database query.
+  - The debug endpoint can wipe whole collections in production.
+  - The admin check trusts the role inside the token; banned and unverified users are not rejected anywhere on the server
+    (`isActive` and `hasUserStatus` exist but are never used), and login and refresh do not check them either.
+  - The Socket.IO handshake accepts an expired token and the event handlers then fail on the missing user; event payloads
+    such as `botId` are not validated, so malformed input throws inside async handlers.
+  - JWT payloads are not validated, refresh tokens cannot be revoked (logout only clears the cookie), and there is no rate
+    limiting on login, signup or refresh.
 
 ## 25.2 Access model ✅
 

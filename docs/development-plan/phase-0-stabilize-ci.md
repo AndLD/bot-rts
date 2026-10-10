@@ -6,8 +6,8 @@ Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe
 
 | # | Task                                                                                          | SP |
 | --- | -------------------------------------------------------------------------------------------- | -- |
-| 0.1 | Fix broken client imports (`client/src/utils/jwt.ts` → `@lib/utils/interfaces/users`, `client/src/utils/store.ts` → `@lib/utils/interfaces/auth`); make `npm run build --prefix client` green | 2 |
-| 0.2 | Align JWT env keys with code (or vice versa), add `api/.env.example`, document all env vars in README; make SMTP configurable (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, user/pass) behind an `EmailSender` interface, Gmail only as a dev default | 3 |
+| 0.1 | Fix broken client imports (`client/src/utils/jwt.ts` → `@lib/utils/interfaces/users`, `client/src/utils/store.ts` → `@lib/utils/interfaces/auth`); fix the remaining `tsc` errors (unused `beautify`, `setDrives`, `replyAsync` in `Terminal.tsx`, unused `FileEditor` import in `Game.tsx`); make `npm run build --prefix client` green | 2 |
+| 0.2 | Align JWT env keys with code (or vice versa), unify `JWT_REFRESH_EXPIRES_IN` / `REFRESH_JWT_EXPIRES_IN`, document `ADMIN_URL`, add `api/.env.example`, document all env vars in README; make SMTP configurable (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, user/pass) behind an `EmailSender` interface, Gmail only as a dev default | 3 |
 | 0.3 | Add root scripts (`lint`, `typecheck`, `test`, `build`) by adopting **npm workspaces** for `api`/`client`/`lib` (single root install and lockfile, `lib` as a workspace package) | 3 |
 | 0.4 | Add `api` ESLint + a shared Prettier check; wire `npm run lint`/`typecheck` into both packages | 2 |
 | 0.5 | Set up CI (GitHub Actions): install → lint → typecheck → unit/integration → e2e → coverage gate | 3 |

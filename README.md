@@ -262,7 +262,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 ## Documentation
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
-  screens, in-game scenarios, and the implementation status matrix.
+  screens, in-game scenarios, and examples.
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
 - [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–8).

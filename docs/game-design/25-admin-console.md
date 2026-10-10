@@ -75,7 +75,7 @@ endpoint for external tools. The dashboard shows status (green / yellow / red) a
 | --- | --- |
 | **Engine** | Tick duration p50 / p95 / p99 (yellow: p95 > 80 % of the tick interval); tick overruns per minute (red: > 1 %); world-flush duration and lag (red: > 5 s); ticks skipped; engine memory; restarts and crash-loop kills |
 | **Scripts** | Running, queued and suspended executions; ops used vs budget; scripts killed by the wall-clock slice; QuickJS contexts and memory; scheduler fairness (spread of wait times between players) |
-| **World** | Online players, active bots, bots per player, events per second, commands applied per tick, conflict rate (`BLOCKED`, `EMPTY`) |
+| **World** | Online players, active bots, bots per player, live scan areas and watchers, live-view diffs per second, map-chunk cache hit rate, events per second, commands applied per tick, conflict rate (`BLOCKED`, `EMPTY`) |
 | **API and sockets** | Request rate, latency p50 / p95 / p99, 4xx / 5xx rate (yellow: 5xx > 1 %), Socket.IO connections and reconnects, rate-limit hits |
 | **Database** | Query latency, connection-pool use, slow queries, table sizes and growth, flush transaction time |
 | **Market** | Trade volume, order-book depth, auctions active / settled, fees collected, money supply and the ledger invariant (should be 0 drift), chat messages per minute |

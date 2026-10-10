@@ -11,10 +11,10 @@
 - Events are plain data, emitted after the commands of a tick are applied (§14.2), and are never used to change the
   simulation. They feed three consumers: **map animations** (§15.2), **achievements** (§23) and **notifications**
   (§24.2).
-- **Visibility (fog of war):** there is no live vision (map knowledge is a snapshot, §4.2). A player receives an event only
-  if it concerns **their own** bots, bases, modules, items, orders or wallet, or is the **direct result of their own
-  action** (for example the hit their bot's shot causes on an enemy). Players never learn about what happens elsewhere
-  except through a later scan.
+- **Visibility (fog of war):** a player receives an event if it (a) concerns **their own** bots, bases, modules, items, orders
+  or wallet, (b) is the **direct result of their own action** (for example the hit their bot's shot causes on an enemy), or
+  (c) happens inside their **live area** (continuous scanning, §4.4), whoever caused it. Everything else is learned only
+  through a later scan.
 
 ## 24.2 Notifications ✅
 

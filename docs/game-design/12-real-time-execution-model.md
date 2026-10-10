@@ -87,6 +87,9 @@ the engine scales vertically. The map is addressed in **chunks** so that shardin
 engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
 until it restarts and reloads the world from the database.
 
+**Live vision and map cache:** continuous scanning (design §4.4) is implemented as a subscription index of live areas by
+chunk with batched diffs, and the world map lives in chunks with an LRU cache over the database.
+
 **Capacity guard-rails** (rough estimates to be validated by a benchmark spike, not promises): an engine thread should
 handle a few hundred up to about 1,000 *actively running* bots at 10 ticks/s; idle bots are almost free. Per-bot limits
 (`opsPerTick`, wall-clock slice, QuickJS memory limit) cap the cost of any single bot, a tick that overruns its time

@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 6 — Core game GUI & map animations (91 SP)
+# Phase 6 — Core game GUI & map animations (93 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
 
@@ -10,7 +10,7 @@ Surface the game state in the browser.
 
 | # | Task                                                                                                       | SP | Status |
 | --- | --------------------------------------------------------------------------------------------------------- | -- | --- |
-| 6.1 | Canvas 2D map renderer with sprites per design §4.3: sprite atlas + JSON index loader, chassis-based bot sprites with module overlays and ownership tint, variants (corpse, stale, damaged), dimming, level of detail and colour fallback, fog of war, pan/zoom; framework-free so the ambient scene can reuse it; free tileset with its licence recorded; known cells fade with age since `seenAt` with a "seen N s ago" tooltip and last-seen ghosts for bots and items | 14 | ⬜ |
+| 6.1 | Canvas 2D map renderer with sprites per design §4.3: sprite atlas + JSON index loader, chassis-based bot sprites with module overlays and ownership tint, variants (corpse, stale, damaged), dimming, level of detail and colour fallback, fog of war, pan/zoom; framework-free so the ambient scene can reuse it; free tileset with its licence recorded; known cells fade with age since `seenAt` with a "seen N s ago" tooltip and last-seen ghosts for bots and items; cells in the live area are drawn at full strength with a live outline | 14 | ⬜ |
 | 6.2 | Map state streaming over sockets (incremental updates, fog-of-war per user) | 5 | ⬜ |
 | 6.3 | Physical storage GUI (items list, take/drop) | 5 | ⬜ |
 | 6.4 | Factory GUI → craft table → assemble (blueprint picker, resource cost, assemble button) | 8 | ⬜ |
@@ -21,7 +21,7 @@ Surface the game state in the browser.
 | 6.9 | Skippable tutorial per design §16.1: overlay checklist with steps completed by real game events, progress in the user profile; Cypress spec | 5 | ⬜ |
 | 6.10 | Window manager: layered, draggable, focus-managed windows for terminals, editor and panels (multiple bot terminals at once), position persistence; used by 6.5 and 6.7 | 5 | ⬜ |
 | 6.11 | Map animation system per design §15.2, driven by the game event bus, with effect cap, level of detail and reduced-motion setting | 8 | ⬜ |
-| 6.12 | E2E (Cypress) for the core gameplay journeys: assemble a miner, script a mining loop, resources arrive in storage; two bots fight until a module breaks; a bot runs out of energy and stops; a corpse base is restored by a repair bot; also deposit depletion and contest (`EMPTY`), combat details (ammo, armor, cooldown, artillery splash, friendly fire), items and blueprint items; also a script acting on a stale scan (the target moved or the deposit is gone) and handling `BLOCKED` / `EMPTY` / `GONE` by re-scanning | 11 | ⬜ |
+| 6.12 | E2E (Cypress) for the core gameplay journeys: assemble a miner, script a mining loop, resources arrive in storage; two bots fight until a module breaks; a bot runs out of energy and stops; a corpse base is restored by a repair bot; also deposit depletion and contest (`EMPTY`), combat details (ammo, armor, cooldown, artillery splash, friendly fire), items and blueprint items; also a script acting on a stale scan (the target moved or the deposit is gone) and handling `BLOCKED` / `EMPTY` / `GONE` by re-scanning; also continuous scanning: a scanner in continuous mode reveals an approaching bot, its movement animates, and switching the scanner off turns the area into ageing snapshots | 13 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 

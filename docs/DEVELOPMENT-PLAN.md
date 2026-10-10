@@ -19,7 +19,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
 | Phase | Theme                                | Story points | Status |
 | ----- | ------------------------------------ | ------------ | ------ |
-| 0     | Stabilize & CI foundation            | 19           | ⬜ Not started |
+| 0     | Stabilize & CI foundation            | 21           | ⬜ Not started |
 | 1     | Architecture refactor & NestJS migration | 97       | ⬜ Not started |
 | 2     | Test infrastructure & coverage backfill | 43        | ⬜ Not started |
 | 3     | Core gameplay foundations            | 76           | ⬜ Not started |
@@ -28,13 +28,14 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 6     | Core game GUI & map animations       | 90           | ⬜ Not started |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 47 | ⬜ Not started |
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
-|        | **Total**                            | **600**      | |
+| 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
+|        | **Total**                            | **700**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–8 (600 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–9 (700 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -53,7 +54,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 ## Contents
 
 - [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (19 SP)](./development-plan/phase-0-stabilize-ci.md)
+- [Phase 0 — Stabilize & CI foundation (21 SP)](./development-plan/phase-0-stabilize-ci.md)
 - [Phase 1 — Architecture refactor, clean architecture & NestJS migration (97 SP)](./development-plan/phase-1-architecture-refactor.md)
 - [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./development-plan/phase-2-test-infrastructure.md)
 - [Phase 3 — Core gameplay foundations (76 SP)](./development-plan/phase-3-core-gameplay.md)
@@ -62,7 +63,8 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 6 — Core game GUI & map animations (90 SP)](./development-plan/phase-6-gui.md)
 - [Phase 7 — Presentation & engagement (47 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
+- [Phase 9 — Admin console (98 SP)](./development-plan/phase-9-admin-console.md)
 - [Testing strategy](./development-plan/testing-strategy.md)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
-- Work logs: [phase 0](./development-plan/logs/phase-0-log.md), [phase 1](./development-plan/logs/phase-1-log.md), [phase 2](./development-plan/logs/phase-2-log.md), [phase 3](./development-plan/logs/phase-3-log.md), [phase 4](./development-plan/logs/phase-4-log.md), [phase 5](./development-plan/logs/phase-5-log.md), [phase 6](./development-plan/logs/phase-6-log.md), [phase 7](./development-plan/logs/phase-7-log.md), [phase 8](./development-plan/logs/phase-8-log.md)
+- Work logs: [phase 0](./development-plan/logs/phase-0-log.md), [phase 1](./development-plan/logs/phase-1-log.md), [phase 2](./development-plan/logs/phase-2-log.md), [phase 3](./development-plan/logs/phase-3-log.md), [phase 4](./development-plan/logs/phase-4-log.md), [phase 5](./development-plan/logs/phase-5-log.md), [phase 6](./development-plan/logs/phase-6-log.md), [phase 7](./development-plan/logs/phase-7-log.md), [phase 8](./development-plan/logs/phase-8-log.md), [phase 9](./development-plan/logs/phase-9-log.md)

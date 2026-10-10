@@ -399,3 +399,5 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   (design §10.3).
 - **Game events:** the engine emits typed events after applying a tick's commands; animations, achievements and
   notifications consume them outside the tick path (design §24).
+- **Admin endpoints** (`/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
+  every call is written to the audit log, and they are never available to API keys.

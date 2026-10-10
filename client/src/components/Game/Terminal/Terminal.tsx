@@ -193,7 +193,7 @@ export default function Terminal() {
         <div style={{ marginBottom: 10 }}>
           {currentBotId
             ? isShellMode
-              ? `Code shell v0.0.1, bot id = ${currentBotId}`
+              ? `Bot shell v0.0.1, bot id = ${currentBotId}`
               : '# Welcome to BotOS Alpha 0.1.0 #'
             : isLoading
               ? 'Loading...'

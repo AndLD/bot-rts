@@ -12,8 +12,8 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
 | Phase | Theme                                | Story points |
 | ----- | ------------------------------------ | ------------ |
-| 0     | Stabilize, CI & safety-net tests     | 20           |
-| 1     | Architecture refactor & NestJS migration | 76       |
+| 0     | Stabilize & CI foundation            | 18           |
+| 1     | Architecture refactor & NestJS migration | 91       |
 | 2     | Test infrastructure & coverage backfill | 39        |
 | 3     | Core gameplay foundations            | 72           |
 | 4     | Module system & crafting             | 59           |
@@ -21,13 +21,13 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 6     | Core game GUI & map animations       | 72           |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 40 |
 | 8     | Multiplayer, public API & hardening  | 64           |
-|        | **Total**                            | **525**      |
+|        | **Total**                            | **538**      |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–8 (525 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–8 (538 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -36,8 +36,8 @@ GUI → multiplayer, public API and hardening), and each phase still ships green
 ## Contents
 
 - [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (20 SP)](./development-plan/phase-0-stabilize-ci.md)
-- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (76 SP)](./development-plan/phase-1-architecture-refactor.md)
+- [Phase 0 — Stabilize & CI foundation (18 SP)](./development-plan/phase-0-stabilize-ci.md)
+- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (91 SP)](./development-plan/phase-1-architecture-refactor.md)
 - [Phase 2 — Test infrastructure & coverage backfill (39 SP)](./development-plan/phase-2-test-infrastructure.md)
 - [Phase 3 — Core gameplay foundations (72 SP)](./development-plan/phase-3-core-gameplay.md)
 - [Phase 4 — Module system & crafting (59 SP)](./development-plan/phase-4-modules-crafting.md)

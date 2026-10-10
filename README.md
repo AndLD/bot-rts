@@ -70,13 +70,14 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
          shared TS interfaces                          └─────────────┘
 ```
 
-(Planned: the client moves to Next.js and the API to NestJS, see below.)
+(Planned: the client moves to Next.js, the API to NestJS, and MongoDB is replaced by PostgreSQL with Prisma behind
+repository ports; the local database runs in Docker. See the development plan.)
 
 **Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
 
 ```
 presentation (controllers, gateways, DTOs) → application (use cases + ports) → domain
-infrastructure (Mongo repositories, JWT, email, engine bridge) implements the application ports
+infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) implements the application ports
 ```
 
 (The current code is still the older Express layout: routers → middlewares → controllers → services → MongoDB.)
@@ -98,8 +99,8 @@ infrastructure (Mongo repositories, JWT, email, engine bridge) implements the ap
 | Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5; today Vite 5, **moving to Next.js (App Router)** in Phase 1, which will also host the landing page |
 | Code editor  | CodeMirror 6 (`@uiw/react-codemirror`), `prettier-standalone`                |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest + `ts-jest` (installed, **not configured to run**), planned `mongodb-memory-server` + Cypress |
-| Target stack | NestJS (clean architecture), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
+| Testing      | Jest + `ts-jest` (installed, **not configured to run**); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
+| Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
 
@@ -146,7 +147,7 @@ bot-rts/
 ### Prerequisites
 
 - Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
-- MongoDB running locally, or a MongoDB URI
+- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL in Docker at the start of Phase 1 — Docker will then be required)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
@@ -212,6 +213,9 @@ pm2 start ecosystem.config.json
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
 | `VITE_API_URL`                        | client       | Backend base URL (Vite env)                          | `http://localhost:8080` |
 
+> **Planned:** `DATABASE_URL` (PostgreSQL) replaces `MONGO_DB_URI` / `MONGO_DB_NAME` when the persistence layer is switched
+> (Phase 1, task 1.1a).
+
 > **Known inconsistency:** the refresh token lifetime has two names, `JWT_REFRESH_EXPIRES_IN` (token) and
 > `REFRESH_JWT_EXPIRES_IN` (cookie), with different defaults (`24h` vs `30d`). Phase 0 task 0.2 aligns them.
 
@@ -237,7 +241,7 @@ pm2 start ecosystem.config.json
 ## Testing
 
 - **Unit / integration:** Jest (`api/jest.config.ts`) is installed but there are **no test files** and no `test` script.
-  The plan is to use `mongodb-memory-server` for integration tests against a real (in-memory) MongoDB.
+  Integration tests will run against a real PostgreSQL in Docker; no in-memory database is used.
 - **E2E:** Cypress (not installed yet).
 - **Coverage gate:** ≥ 97 % (see `AGENTS.md`).
 

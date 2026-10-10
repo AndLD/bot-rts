@@ -34,7 +34,7 @@
 
 ## 4.2 Two layers: real points and user points
 
-The map is stored in two logical layers in one collection:
+The map is stored in two logical layers:
 
 | Layer | Stored with | Who sees it | Purpose |
 | --- | --- | --- | --- |

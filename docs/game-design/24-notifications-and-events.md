@@ -18,7 +18,7 @@
 ## 24.2 Notifications ✅
 
 - **Realtime:** notifications are pushed over the player's Socket.IO connection as they happen.
-- **Persistent:** every notification is also stored (30-day TTL, tunable), so the player sees what happened while
+- **Persistent:** every notification is also stored (30-day retention, tunable), so the player sees what happened while
   offline. The client shows a **notification center** with an unread count and mark-as-read.
 - **Categories** (each can be switched on/off in the profile settings, §15): *Attacks* (your bots or base are hit),
   *Damage and energy* (module broken, battery low), *Scripts* (finished, crashed, restarted after a reboot, §12.3.1),

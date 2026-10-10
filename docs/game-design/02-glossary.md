@@ -17,7 +17,7 @@
 | **Fog of war** | The per-player record of what that player knows about the map. Unexplored cells are black. |
 | **Real map point** | The authoritative, shared map cell stored without a `userId`. |
 | **User map point** | A per-player cached copy of a real point, used for fog of war. |
-| **Terminal session** | One connection session between a player and a bot terminal, including all logs. Persisted to MongoDB. |
+| **Terminal session** | One connection session between a player and a bot terminal, including all logs. Persisted to the database. |
 | **BotOS** | The bot's operating system; provides the terminal and script runtime. |
 | **Corpse base** | A base whose owner has lost control (no working wireless adapter). It stays on the map and can be repaired (§6.3). |
 | **Stale bot** | A bot whose base is a corpse base; it has no active owner, keeps running, and can be adopted by anyone with access (§6.3, §11.2.2). |

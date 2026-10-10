@@ -2,6 +2,8 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian (40 SP)
 
+**Status:** ⬜ Not started
+
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), and the Russian translation.
 

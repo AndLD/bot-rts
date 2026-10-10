@@ -263,6 +263,8 @@ A feature is done only when **all** of these hold:
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
+- [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
+      criteria are met, in the summary table and in the phase file).
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
       file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
 - [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
@@ -359,7 +361,8 @@ A feature is done only when **all** of these hold:
   [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
   terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
-  (design §14.2).
+  (design §14.2). Until the engine exists (Phase 5), world-mutating use cases run in the API process behind the same
+  command-handler interface the engine will implement.
 - **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
   (design §12.4).
 - **Tunable balance:** gameplay numbers (costs, ranges, tick rate, limits) live in config, not in code.

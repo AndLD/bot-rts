@@ -7,7 +7,7 @@
 | Script engine is unsafe / exploitable                         | High       | High   | QuickJS (WASM) sandbox behind a `ScriptRuntime` interface, strict API allowlist, memory/stack limits, interrupt-handler deadlines, escape tests |
 | Scheduler unfairness or starvation under load                 | High       | High   | Design RFC first; round-robin queue; load tests; tune budgets     |
 | Race conditions on shared map cells/resources                 | High       | High   | Single-writer engine: collect-then-apply with deterministic order, no concurrent world writers (API requests go through engine commands) |
-| Refactor breaks working vertical slice                        | Medium     | Medium | Behavior-preserving PRs; integration tests before/after           |
+| Refactor breaks working vertical slice                        | Medium     | Medium | Small behavior-preserving PRs; repository integration tests (1.1a) and safety-net tests (1.9)           |
 | Coverage gate blocks delivery (97 % is aggressive)            | Medium     | Medium | Automated coverage in CI; targeted `istanbul ignore` only with justification |
 | Docker PostgreSQL / Cypress CI flakiness                      | Medium     | Medium | Pin image and versions, isolated database per Jest worker, retry policy in CI |
 | Single maintainer/agent context loss across phases            | Medium     | Low    | Docs (`AGENTS.md`, this plan) + Conventional Commits + small PRs  |

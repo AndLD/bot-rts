@@ -2,7 +2,11 @@
 
 # Phase 6 — Core game GUI & map animations (72 SP)
 
+**Status:** ⬜ Not started
+
 Surface the game state in the browser.
+
+**Execution order:** 6.1 → 6.2 → 6.10 (window manager) → 6.3, 6.4, 6.5, 6.7, 6.8 → 6.9 → 6.11 → 6.6.
 
 | # | Task                                                                                                       | SP |
 | --- | --------------------------------------------------------------------------------------------------------- | -- |

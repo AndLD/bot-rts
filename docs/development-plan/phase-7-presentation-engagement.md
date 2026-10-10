@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian (40 SP)
+# Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian (45 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./logs/phase-7-log.md)
 
@@ -17,6 +17,7 @@ achievements and realtime notification systems built on the game event bus (task
 | 7.6 | Notifications backend per design §24.2: rules from game events, per-category preferences, coalescing and caps, 30-day persistent store, Socket.IO push, `/api/v1` list / mark-read endpoints, login summary | 8 | ⬜ |
 | 7.7 | Notifications UI: toasts, notification center with unread count and mark-as-read, category preferences in the settings | 5 | ⬜ |
 | 7.8 | Russian translation of all UI strings (landing, auth, game screens, tutorial, achievements, notifications, API error codes) and the missing-key CI check on every PR | 3 | ⬜ |
+| 7.9 | E2E (Cypress): landing page calls to action → sign-up, language switch (`/` and `/ru/`), auth page with the ambient scene and the reduced-motion fallback, achievement unlock toast and page (including one earned offline), realtime notifications, notification center, offline summary at login, notification preferences | 5 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 

@@ -10,7 +10,7 @@ The rules live in [`AGENTS.md` §6](../../AGENTS.md); this page shows how they p
 | --- | --- | --- | --- |
 | **Unit** | Jest, mocks and small fakes of the ports | Pure functions, domain rules, use cases, the engine, scheduler, combat and energy rules (clock and RNG are injected, so results are deterministic) | none, ever |
 | **Integration** | Jest + `supertest`, Nest testing module | Prisma repositories, use cases with real data, HTTP and socket slices | real PostgreSQL in Docker, one database per Jest worker |
-| **End-to-end** | Cypress against a seeded backend | Critical user journeys only | real PostgreSQL in Docker |
+| **End-to-end** | Cypress against a seeded backend | **Every core user and game flow** (see the matrix below) | real PostgreSQL in Docker |
 | **Quality gates in CI** | Lighthouse CI, import-boundary check, migration check, OpenAPI drift check, missing-translation check | Landing-page SEO/performance, layering rules, migrations apply to an empty database, committed OpenAPI spec equals the generated one, translation keys complete | — |
 
 ## Coverage
@@ -27,10 +27,35 @@ The rules live in [`AGENTS.md` §6](../../AGENTS.md); this page shows how they p
 | --- | --- |
 | **0** Stabilize | API Jest setup + `supertest` (0.3); CI with a PostgreSQL service container, coverage reporting and the changed-files check (0.5); Docker PostgreSQL (0.7) |
 | **1** Refactor and migration | Integration tests of every Prisma repository and a migration check in CI (1.1a); safety-net HTTP tests of the golden flows (1.9); auth adapter contract tests with a fake token verifier (1.11); import-boundary check (1.10) |
-| **2** Backfill | Client Jest + Cypress setup (2.1), thresholds (2.2), unit tests (2.3), use-case integration tests (2.4), controller slices (2.5), client tests (2.6), e2e journeys (2.7), full gate in CI and pre-push (2.8) |
+| **2** Backfill | Client Jest + Cypress setup (2.1), thresholds (2.2), unit tests (2.3), use-case integration tests (2.4), controller slices (2.5), client tests (2.6), account-flow e2e (2.7), full gate in CI and pre-push (2.8) |
 | **3** Gameplay foundations | Per-task unit and integration tests; OpenAPI drift check (3.12); Cypress flows for deploy base, terminal filesystem commands and corpse-base redeploy (3.13) |
-| **4** Modules and crafting | Per-task tests with seeded RNG for combat, energy and weight rules; e2e for crafting, assembly, research and repair/disassembly (4.7) |
-| **5** Runtime | Determinism tests (5.5): same seed and commands give an identical tick result, independent of arrival order; sandbox escape, infinite-loop, memory and many-bot fairness tests (5.7); benchmark spike (5.1) |
-| **6** GUI | e2e for all new GUIs (6.6); tutorial spec (6.9) |
-| **7** Presentation | Lighthouse CI gate for the landing page (7.3); missing-translation check (7.8); achievements and notification rules unit-tested against the event bus |
-| **8** Hardening | Load and soak tests (8.6); API contract tests proving the official client and API-key clients behave identically (8.10); MCP tests against a seeded backend (8.11); final coverage sweep (8.8) |
+| **4** Modules and crafting | Per-task tests with seeded RNG for combat, energy and weight rules; e2e for crafting, assembly, research, repair/disassembly and energy (4.7) |
+| **5** Runtime | Determinism tests (5.5): same seed and commands give an identical tick result, independent of arrival order; sandbox escape, infinite-loop, memory and many-bot fairness tests (5.7); benchmark spike (5.1); e2e of the script lifecycle (5.11) |
+| **6** GUI | e2e for every Phase 6 screen (6.6); tutorial spec (6.9); core gameplay journeys (6.12) |
+| **7** Presentation | Lighthouse CI gate for the landing page (7.3); missing-translation check (7.8); e2e for landing, language, achievements and notifications (7.9) |
+| **8** Hardening | Load and soak tests (8.6); API contract tests proving the official client and API-key clients behave identically (8.10); MCP tests against a seeded backend (8.11); e2e of API keys and two-player interaction (8.13); final coverage sweep (8.8) |
+
+## End-to-end coverage matrix
+
+Every core user and game flow has a Cypress spec. A pull request that adds or changes a user-visible flow adds or
+updates its spec and this matrix. The full suite runs in CI on every PR into `develop` (from Phase 2); if it grows past
+about 15 minutes it is sharded and run in parallel.
+
+| Flow | Spec owned by |
+| --- | --- |
+| Sign up → verify email → inactive page → verified | 2.7 |
+| Login, logout, token refresh; banned and forbidden users | 2.7 |
+| Deploy a base (password, spawn seed); redeploy after a corpse base | 3.13 |
+| Terminal: `list`, `modules` | 2.7 |
+| Terminal: filesystem (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`) | 3.13 |
+| Craft, assemble, research, `learn`; repair, disassemble; restore a corpse base; battery exhaustion | 4.7 |
+| Script lifecycle: edit, run, log, `top`, `kill`, shell mode, failing script, restart relaunch | 5.11 |
+| Map: fog of war, pan/zoom, cell inspection, opening a bot; animation smoke test | 6.6 |
+| Storage GUI; factory GUI; windows | 6.6 |
+| `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a stale bot | 6.6 |
+| Manual control panel and the global / personal category switches | 6.6 |
+| Tutorial: complete, skip, reopen | 6.9 |
+| Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 |
+| Landing page, language switch, auth page scene | 7.9 |
+| Achievements (including offline), notifications, notification center, offline summary | 7.9 |
+| API key lifecycle; two-player interaction (contest, fog privacy, attack, adopt) | 8.13 |

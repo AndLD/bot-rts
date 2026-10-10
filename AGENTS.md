@@ -346,7 +346,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Pacing:** a phase is worked straight through in the plan's execution order; the pause points are the end of the phase,
   a blocker, and a decision that only the user can make.
 - **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
-  statuses, implementation log) and its work log (`docs/development-plan/logs/phase-N-log.md`), then check `git status`,
+  statuses, implementation log) and its work log (`docs/development-plan/work-logs/phase-N-log.md`), then check `git status`,
   `git branch -a` and the open pull requests, and continue from the latest "next step".
 - **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds.
   Commit often and push the task branch, so unfinished work is in git and not only in a working tree.

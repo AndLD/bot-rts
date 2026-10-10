@@ -2,7 +2,7 @@
 
 # Phase 8 — Multiplayer, public API & production hardening (71 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-8-log](./logs/phase-8-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
 
 | # | Task                                                                                                        | SP | Status |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- | --- |

@@ -9,7 +9,7 @@ in the phase file, and is updated in the pull request that starts or finishes it
 **implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
 
 **Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
-append-only **work log** in `development-plan/logs/` so a phase can be resumed in a new session.
+append-only **work log** in `development-plan/work-logs/` so a phase can be resumed in a new session.
 
 **Story points (SP):** Fibonacci scale, `1 SP ≈ 0.5 developer-day` (or one focused agent session). Estimates assume a
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**
@@ -67,4 +67,4 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Testing strategy](./development-plan/testing-strategy.md)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
-- Work logs: [phase 0](./development-plan/logs/phase-0-log.md), [phase 1](./development-plan/logs/phase-1-log.md), [phase 2](./development-plan/logs/phase-2-log.md), [phase 3](./development-plan/logs/phase-3-log.md), [phase 4](./development-plan/logs/phase-4-log.md), [phase 5](./development-plan/logs/phase-5-log.md), [phase 6](./development-plan/logs/phase-6-log.md), [phase 7](./development-plan/logs/phase-7-log.md), [phase 8](./development-plan/logs/phase-8-log.md), [phase 9](./development-plan/logs/phase-9-log.md)
+- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md)

@@ -2,7 +2,7 @@
 
 # Phase 4 — Module system & crafting (67 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-4-log](./logs/phase-4-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-4-log](./work-logs/phase-4-log.md)
 
 Flesh out the module ecosystem and the crafting/factory loop.
 

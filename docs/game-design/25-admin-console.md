@@ -4,7 +4,9 @@
 
 ## 25.1 Starting point (review of the current code)
 
-There is **no admin UI today**. What exists:
+There is **no admin UI today**, and there never was one: no branch and no commit of the repository contains an admin
+page. The commented-out admin routes were copied in with the authorization work (commit `a9e31af`) from another project's
+template, and the components they refer to were never added. What exists:
 
 - **Roles:** `admin`, `owner`, `user`, `unlimited`, `banned` (`UserStatus`). `admin` and `owner` are treated the same; a root
   admin is created from `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD`.

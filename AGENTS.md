@@ -70,6 +70,7 @@ api
    domain           — entities, value objects, domain services and rules (Module, Bot, MapPoint, …); pure TypeScript
    infrastructure   — adapters implementing the ports: Mongo repositories, JWT, email sender, engine bridge, config
 engine             — the game engine (tick loop, scheduler, QuickJS runtime), framework-free, reached through a port
+mcp                — MCP server package: a thin client of /api/v1 using an API key (no direct DB or engine access)
 lib
    shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO mongodb types)
 ```

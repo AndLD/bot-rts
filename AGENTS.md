@@ -50,6 +50,9 @@ Non-negotiables (a PR that violates these is rejected):
   same image and version as production.
 - **Integration DB:** a **real PostgreSQL in Docker** — never a shared or production database in tests. Each Jest worker
   uses its own database/schema created by `prisma migrate deploy`.
+  **No in-memory or embedded database** (PGlite, pg-mem, SQLite, `mongodb-memory-server`) is used in tests, with one
+  temporary exception: the Phase 0 safety-net tests exercise today's MongoDB code with `mongodb-memory-server` until task
+  1.1a switches them to PostgreSQL.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
@@ -232,7 +235,8 @@ The database is an implementation detail that must stay replaceable (clean archi
 ### 6.2 Unit tests (Jest)
 
 - Pure functions, domain models, utilities, middleware factories, validation.
-- Use injected fakes/mocks (`jest.fn`) — never real I/O.
+- Use injected fakes/mocks (`jest.fn`, or small hand-written fakes of a port) — never real I/O and never a database,
+  in-memory or otherwise. Anything that needs a database is an integration test (§6.3).
 - Test edge cases: empty inputs, boundary values, error paths.
 
 ### 6.3 Integration tests (Jest + PostgreSQL in Docker)

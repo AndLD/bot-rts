@@ -53,7 +53,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 
 | Function | Provided by | Signature | Description |
 | --- | --- | --- | --- |
-| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown. |
+| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown; fails with `BUSY` while the scanner is in live mode. |
 | `view(since?)` | scanner (continuous mode) | `view(since?: number): Promise<Result<{ cells: MapCell[]; tick: number }>>` | Read the live view; with `since`, only the cells that changed after that tick. Costs 1 op; fails with `NOT_LIVE` if the scanner is not enabled. |
 | `move(n)` | engine + chassis | `move(cells: number): Promise<Result>` | Move forward `n` cells; fails with `BLOCKED` if the next cell is occupied. |
 | `turn(dir)` | engine + chassis | `turn(direction): Promise<Result>` | Rotate the bot. |
@@ -87,7 +87,7 @@ Every API call returns a **result object**; expected failures are **values**, ne
 ```
 
 - **Error codes** are a closed, typed set in `lib` (initial set): `BLOCKED`, `EMPTY`, `GONE`, `NO_ENERGY`, `NO_MODULE`,
-  `BROKEN_MODULE`, `NO_FUNDS`, `NOT_LIVE`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED`, `INBOX_FULL`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
+  `BROKEN_MODULE`, `NO_FUNDS`, `NOT_LIVE`, `BUSY`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED`, `INBOX_FULL`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
 - **Only misuse throws**: invalid arguments, calling an API the bot has no module for at the language level, or sandbox
   violations. A throw ends the execution (`killed`, with the error in its log).
 - Scripts branch with `if (!r.ok)`; no `try/catch` is needed for routine events such as a blocked cell.

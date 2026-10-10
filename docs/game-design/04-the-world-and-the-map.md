@@ -67,7 +67,12 @@ Rules:
 
 ## 4.4 Live vision: continuous scanning ✅
 
-- A scanner can be switched on with `enable()` (and off with `disable()`). While **enabled** it keeps every cell inside its
+- **A scanner works in one of two modes, and both stay in the game.** In **one-time mode** (the default) it does a
+  snapshot `scan()` (§7.2). In **live mode** it keeps an area live. A scanner is in exactly one mode at a time: **while it is
+  live, `scan()` fails with `BUSY`**; switch it back with `disable()` to scan again, and `view()` fails with `NOT_LIVE`
+  while it is in one-time mode. A bot with several scanner modules can run each in a different mode (for example one
+  live and one for occasional scans).
+- `enable()` switches a scanner to live mode (and `disable()` back to one-time mode). While **enabled** it keeps every cell inside its
   radius **live**: the player's knowledge of those cells follows the real world, refreshed in batches every scanner `delay`.
   The union of a player's enabled scanners is their **live area**.
 - Continuous scanning costs **energy only**: each refresh drains the module's `operationCost` scaled by the scanned area

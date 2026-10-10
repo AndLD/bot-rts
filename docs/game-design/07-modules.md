@@ -32,7 +32,7 @@ mention `memory` and `circute`.
 
 | Module | Type key | Status | Grants | Notes |
 | --- | --- | --- | --- | --- |
-| **Scanner** | `scanner` | ✅ | `scan()` | Radius in cells, `delay` (cooldown) between scans (ms). Each scan costs ops and energy and returns a **snapshot** stamped with `seenAt` (§4.2); it can also run in **continuous mode** (`enable()` / `disable()`), keeping its radius live for energy only (§4.4). |
+| **Scanner** | `scanner` | ✅ | `scan()` | Radius in cells, `delay` (cooldown) between scans (ms). Each scan costs ops and energy and returns a **snapshot** stamped with `seenAt` (§4.2); it can also run in **live (continuous) mode** (`enable()` / `disable()`), keeping its radius live for energy only (§4.4). The two modes are mutually exclusive per module: `scan()` is refused with `BUSY` while the scanner is live. |
 | **Weapon** | `weapon` | 🟡 | `shoot()`, `aim()`, `reload()` | `damage`, `caliber`, `distance`, `accuracy`, `cooldown`, optional `batchSize`/`batchCooldown`, `isArtillery`. `shoot`/`reload` are stubs today. |
 | **Engine** | `engine` | 🔴 | `move()`, `turn()` | `engineType` (fuel/steam/electric), `speed`. |
 | **Wheels / Tracks** | `movement`* | 🔴 | movement support | `loadCapacity`; chosen chassis affects speed and terrain. |

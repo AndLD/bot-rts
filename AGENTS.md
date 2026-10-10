@@ -134,7 +134,8 @@ provider later) without touching game code.
   (`{ provider, subject, email, emailVerified }`). It is used by the HTTP guard, the WebSocket guard and the MCP/API
   layers. Nothing outside the identity adapters reads provider-specific tokens or claims.
 - **`CredentialAuthService` (application port, only for providers whose credentials we manage):** register, login,
-  refresh, logout, verify email, resend verification. The custom adapter implements it and exposes the `/api/v1/auth/*`
+  refresh, logout, verify email, resend verification, request/perform password reset, change password, change email,
+  delete account. The custom adapter implements it and exposes the `/api/v1/auth/*`
   endpoints. A hosted provider such as Clerk does these steps in the browser, so its adapter does not implement this
   port and those endpoints are not mounted.
 - **Own user model:** the domain `User` (internal `userId`, name, roles, `active`/ban state) is separate from login
@@ -248,11 +249,11 @@ The database is an implementation detail that must stay replaceable (clean archi
 
 ### 6.4 E2E tests (Cypress)
 
-- Critical user journeys only:
-  1. Sign-up → email verification → deploy base → see terminal.
-  2. Login → open terminal → run `list` / `modules`.
-  3. (future) connect to a bot, edit a script, `run` it, observe output.
-- Use a seeded test backend with deterministic data; never depend on the production DB.
+- **Every core user and game flow has a Cypress spec.** The list of flows and the plan task that owns each spec is the
+  end-to-end coverage matrix in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+  A PR that adds or changes a user-visible flow adds or updates its spec and the matrix.
+- Use a seeded test backend with deterministic data (seeded RNG and injected clock); never depend on a production DB.
+- The full suite runs in CI on every PR into `develop`; shard it when it grows slow.
 
 ### 6.5 Definition of Done (DoD)
 

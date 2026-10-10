@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 8 — Multiplayer, public API & production hardening (64 SP)
+# Phase 8 — Multiplayer, public API & production hardening (71 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-8-log](./logs/phase-8-log.md)
 
@@ -18,6 +18,7 @@
 | 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 | ⬜ |
 | 8.11 | MCP server (`mcp/` workspace package): tools for observation, manual control per category, files, scripts, fabrication; calls only `/api/v1` with an API key; stdio + streamable HTTP transports; tests against a seeded test backend | 8 | ⬜ |
 | 8.12 | Frontend deployment on Vercel with the API/engine on a long-running host: shared registrable domain, cookie domain and CORS, Socket.IO direct to the API domain, environment configuration and preview deployments | 3 | ⬜ |
+| 8.13 | E2E (Cypress + a second API-driven player): API key create / use / revoke in the profile; two players — contested cell (`BLOCKED`), private fog of war, an attack visible to the defender, adopting a stale bot; also a read-only API key that cannot act, an MCP smoke test (scan, move), and a corpse base visible to others with stale bots | 7 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 

@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 1 — Architecture refactor, clean architecture & NestJS migration (94 SP)
+# Phase 1 — Architecture refactor, clean architecture & NestJS migration (97 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-1-log](./logs/phase-1-log.md)
 
@@ -24,10 +24,10 @@ The legacy Express routers keep running inside Nest until each feature module is
 | 1.8 | Split `client/src/components/Game/Terminal/Terminal.tsx` into a command interpreter (pure) + hooks + UI | 3 | ⬜ |
 | 1.9 | **Safety-net tests** on the PostgreSQL-backed app, before the NestJS migration: coarse HTTP-level tests (via `supertest`, real Docker database) of the golden flows — signup, login/refresh/logout, email verification, deploy base, scan, socket events `get-user-bases` / `get-user-bots` / `get-bot-modules` | 5 | ⬜ |
 | 1.10 | **NestJS foundation**: bootstrap the Nest app on the Express adapter and mount the legacy Express routers inside it; global exception filter mapping `AppError`; `/api/v1` URI versioning for all Nest controllers; typed config module with env validation; logger provider; the `PrismaModule` wrapping the `PrismaClient` from 1.2; health endpoint; import-boundary check in CI (`dependency-cruiser` or ESLint rule) enforcing the layer rules | 6 | ⬜ |
-| 1.11 | Identity ports and the custom adapter (AGENTS.md §3.3): `IdentityVerifier`, `CredentialAuthService`, lazy `UserProvisioner`, `AUTH_PROVIDER` selection, JWT/role guards for HTTP and WebSocket, DTO validation, `FakeIdentityVerifier` and adapter contract tests; auth and users as Nest modules | 5 | ⬜ |
+| 1.11 | Identity ports and the custom adapter (AGENTS.md §3.3): `IdentityVerifier`, `CredentialAuthService`, lazy `UserProvisioner`, `AUTH_PROVIDER` selection, JWT/role guards for HTTP and WebSocket, DTO validation, `FakeIdentityVerifier` and adapter contract tests; auth and users as Nest modules; includes the account-management operations of design §5.1 (password reset, change password, change email, delete account) | 7 | ⬜ |
 | 1.11a | Users / identities data model: domain `User` split from login credentials, with `users`, `identities` and custom-credentials tables in the Prisma schema (no data migration, the prototype data is discarded), removal of the matching legacy routers | 3 | ⬜ |
 | 1.12 | Migrate **bots, map, modules, files** features and the **Socket.IO gateway** (`get-user-bases`, `get-user-bots`, `get-bot-modules`, socket auth) to Nest modules/gateways; everything lives under `/api/v1` and the web client uses it; remove the legacy Express routers and setup | 7 | ⬜ |
-| 1.13 | Client `AuthClient` interface with a `localAuthClient` over the `/api/v1/auth/*` endpoints and auth hooks; auth forms and RTK Query slices use only the hooks | 3 | ⬜ |
+| 1.13 | Client `AuthClient` interface with a `localAuthClient` over the `/api/v1/auth/*` endpoints and auth hooks; auth forms and RTK Query slices use only the hooks; plus the matching account-management forms | 4 | ⬜ |
 | 1.14 | Client structure cleanup: remove the duplicated `src/store` / `src/hooks/store` folders and dead files, reorganise into feature folders (`auth`, `terminal`, `map`, …), API base URL from env instead of the hardcoded `localhost:8080` | 3 | ⬜ |
 | 1.15 | Move the socket out of Redux state into a typed `SocketProvider`/service (event types shared from `lib`), drop the `serializableCheck` workaround | 3 | ⬜ |
 | 1.16 | Move validation rules shared by api and client (name/password patterns) into `lib` as one source of truth; remove duplicated regexes | 2 | ⬜ |

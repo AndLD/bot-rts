@@ -8,9 +8,9 @@ Each scenario is a short narrative walkthrough of a mechanic, in the order a pla
 
 1. Alice signs up and confirms her email link.
 2. The game shows a red **"Deploy your base to start"** button.
-3. She clicks it. The server places `Alice base` at a random empty-ish cell within 10 cells of the origin, attaches
-   the seven starting modules, and writes the base's map point.
-4. The monitor opens, showing mostly black cells (fog of war) and her blue base square.
+3. She clicks it. The server places `Alice base` on a free cell chosen by the spawn rule (§4.1), attaches the starting
+   module kit, credits her wallet with the starter grant (§26.1), and writes the base's map point.
+4. The monitor opens, showing mostly black cells (fog of war) and her base sprite tinted blue.
 5. **Design intent:** onboarding must end with the player looking at a world they want to explore.
 
 ## Scenario B — "First light" (scanning)

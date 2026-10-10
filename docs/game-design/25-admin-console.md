@@ -54,6 +54,7 @@ template, and the components they refer to were never added. What exists:
 | **Supervision** | Quarantined players, paused executions, maintenance state | Quarantine a player (suspend all their executions), pause / resume the world, global script kill-switch, support actions (grant or remove resources, restore a module, compensate) — each with a reason and audited |
 | **Security** | Failed password attempts and lockouts, suspicious scripts (top ops consumers, wall-clock kills, sandbox violations), API-key usage and rate-limit hits, login anomalies and same-IP accounts | Ban, quarantine, revoke an API key |
 | **Economy and balance** | Resource totals in the world and in storage, depletion rates, crafting and blueprint statistics | Edit the balance configuration (recipes, spawn weights, limits) with validation, a diff and rollback; set the global feature and category switches (§15.1) |
+| **Market and chat** | Wallets and the ledger, the money supply, order books, auctions, trade volume, price anomalies, chat reports | Cancel a listing, freeze a wallet, refund, mute a player, delete messages |
 | **Operations** | Engine status and uptime, restarts, job status (retention cleanup), backup status | Broadcast announcements and schedule maintenance banners (via notifications, §24), restart the script runtime |
 | **Logs and audit** | Structured log search by request / user / bot, slow-tick traces, audit log | Filter and export |
 | **Analytics** | DAU / MAU, retention, onboarding funnel (sign-up → verified → base deployed → first script → first resource → tutorial completed), achievement rates | Export CSV |
@@ -77,6 +78,7 @@ endpoint for external tools. The dashboard shows status (green / yellow / red) a
 | **World** | Online players, active bots, bots per player, events per second, commands applied per tick, conflict rate (`BLOCKED`, `EMPTY`) |
 | **API and sockets** | Request rate, latency p50 / p95 / p99, 4xx / 5xx rate (yellow: 5xx > 1 %), Socket.IO connections and reconnects, rate-limit hits |
 | **Database** | Query latency, connection-pool use, slow queries, table sizes and growth, flush transaction time |
+| **Market** | Trade volume, order-book depth, auctions active / settled, fees collected, money supply and the ledger invariant (should be 0 drift), chat messages per minute |
 | **Jobs and notifications** | Retention and cleanup jobs (last run, duration, failures), notification queue depth and delivery lag, email send failures |
 | **Infrastructure** | CPU and memory of each process, disk usage, backup age |
 

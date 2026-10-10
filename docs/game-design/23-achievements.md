@@ -34,5 +34,8 @@
 | Connected | Open a relay chain of N hops |
 | Veteran | Keep a bot running for N days |
 | Graduate | Complete the tutorial |
+| First deal | Make a first sale or purchase on the market |
+| Merchant | Complete N market sales or purchases (tiers); win an auction; sell an edition out |
+| Generous | Send a first transfer that the recipient accepts |
 
 Achievements are also readable through the public API (§22.1, scope `read`).

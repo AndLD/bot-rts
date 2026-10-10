@@ -58,6 +58,7 @@ are settled:
 | Memory class 1 | default | 10 crystal | 10 s |
 | Processor class 1 | default | 25 crystal, 10 gold | 25 s |
 | Remote-control block | default | 15 crystal, 20 gold | 20 s |
+| Market terminal | default | 40 iron, 20 crystal, 15 gold | 20 s |
 
 - ✅ Blueprints are acquired from **three sources** (mixed model):
   1. **Base set** — class-1 blueprints are known from the start.

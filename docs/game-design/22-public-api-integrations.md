@@ -12,7 +12,7 @@
   authentication methods**: the user's login session (JWT) for the official client, and API keys for third-party
   clients and the MCP server. All new endpoints are created under `/api/v1` from the start, never retrofitted.
 - **API keys:** a player creates keys in their profile. A key is shown **once** and stored **hashed**. Each key has
-  **scopes** (for example read, one scope per control category from §15.1, files, scripts) that can only **narrow** the
+  **scopes** (for example read, one scope per control category from §15.1, files, scripts, `chat`, `trade`) that can only **narrow** the
   player's own rights, plus its own rate limit, and can be **revoked** at any time.
 - A key acts **as that player** and obeys exactly the same game rules: processor budget, energy, cooldowns, category
   switches (§15.1), and the single-writer engine (§14.2). An API client never gets an advantage over the official one.

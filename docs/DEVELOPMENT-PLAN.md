@@ -29,13 +29,14 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 47 | ⬜ Not started |
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
 | 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
-|        | **Total**                            | **706**      | |
+| 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
+|        | **Total**                            | **816**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–9 (706 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–10 (816 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -73,7 +74,8 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 7 — Presentation & engagement (47 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (98 SP)](./development-plan/phase-9-admin-console.md)
+- [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
 - [Testing strategy](./development-plan/testing-strategy.md)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
-- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md)
+- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md)

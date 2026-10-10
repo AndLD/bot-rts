@@ -50,3 +50,5 @@ throughout the docs match the file numbers.
 23. [Achievements](./game-design/23-achievements.md)
 24. [Game events and realtime notifications](./game-design/24-notifications-and-events.md)
 25. [Admin console](./game-design/25-admin-console.md)
+26. [Market and currency](./game-design/26-market-and-currency.md)
+27. [Chat and transfers](./game-design/27-chat-and-transfers.md)

@@ -68,6 +68,16 @@ The unified command set:
   generator (burning oil, §12.5); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
 - The market terminal (§26.2), chat and transfers (§27) do not use the radio network.
 
+**Signal strength (the indicator).** Every connected bot shows a live **signal strength** from 0 to 4 bars, like a phone:
+- For one link the **margin** is `1 − distance / min(range A, range B)`. Bars: 4 at a margin of 0.75 or more, 3 from 0.5,
+  2 from 0.25, 1 above 0, and 0 (no signal) when out of range. The thresholds are tunable.
+- A bot's signal is that of the **weakest link on its path to the base**, so one stretched hop weakens everything behind it.
+  The indicator also gives the number of **hops**.
+- It is **informational only**: it has no effect on speed or reliability, but it warns before the link breaks. Optionally the
+  player gets a `LinkWeak` notification when a bot drops to 1 bar.
+- It updates live: the engine recomputes it whenever a bot or relay moves, and clients receive only the changes of the bar
+  level. Scripts read it with `getLinkStatus()` (§10.2).
+
 **When a bot loses the link** (it moves out of range, a relay breaks, loses power or fuel, or an adapter is disabled):
 - **Control stops:** manual control and the terminal are refused with `NO_SIGNAL`; the open terminal shows
   **"Connection interrupted"**.
@@ -85,7 +95,7 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 - the buffered scans are applied to the player's map **with their original `seenAt` times**, so they age correctly;
 - the missed events arrive as one **summary**, and the player gets a `LinkRestored` notification.
 
-**Display.** Disconnected bots are hatched (above); an optional overlay draws the links, so a broken relay is easy to find.
+**Display.** Connected bots show their signal bars (map, bot list, terminal header and control panel, with a tooltip giving the bars, hops and the weakest link); disconnected bots are hatched (above); an optional overlay draws the links, so a weak or broken relay is easy to find.
 
 ## 11.2.2 Bot security and takeover ✅
 

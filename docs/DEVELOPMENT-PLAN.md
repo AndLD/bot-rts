@@ -24,19 +24,19 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 2     | Test infrastructure & coverage backfill | 43        | ⬜ Not started |
 | 3     | Core gameplay foundations            | 76           | ⬜ Not started |
 | 4     | Module system & crafting             | 70           | ⬜ Not started |
-| 5     | Script runtime, scheduler & sandbox  | 103           | ⬜ Not started |
-| 6     | Core game GUI & map animations       | 95           | ⬜ Not started |
+| 5     | Script runtime, scheduler & sandbox  | 104           | ⬜ Not started |
+| 6     | Core game GUI & map animations       | 96           | ⬜ Not started |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 47 | ⬜ Not started |
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
 | 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
-|        | **Total**                            | **837**      | |
+|        | **Total**                            | **839**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–10 (837 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–10 (839 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -69,8 +69,8 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./development-plan/phase-2-test-infrastructure.md)
 - [Phase 3 — Core gameplay foundations (76 SP)](./development-plan/phase-3-core-gameplay.md)
 - [Phase 4 — Module system & crafting (70 SP)](./development-plan/phase-4-modules-crafting.md)
-- [Phase 5 — Script runtime, scheduler & sandbox (103 SP)](./development-plan/phase-5-script-runtime.md)
-- [Phase 6 — Core game GUI & map animations (95 SP)](./development-plan/phase-6-gui.md)
+- [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./development-plan/phase-5-script-runtime.md)
+- [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
 - [Phase 7 — Presentation & engagement (47 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (98 SP)](./development-plan/phase-9-admin-console.md)

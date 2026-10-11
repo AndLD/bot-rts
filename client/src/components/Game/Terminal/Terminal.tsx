@@ -4,7 +4,7 @@ import { IDriveModuleProps, IModuleProps } from '@lib/utils/interfaces/modules'
 import '../../../styles/Terminal.scss'
 import { useLogout } from '../../../hooks/store/auth.api'
 import { IBot } from '@lib/utils/interfaces/bots'
-import { ID } from '@lib/utils/types'
+import { Error as ApiError, ID } from '@lib/utils/types'
 
 const defaultPrefix = '/>'
 const shellModePrefix = '>>>'
@@ -84,8 +84,6 @@ export default function Terminal() {
         logout()
       } else if (command === 'list') {
         socket?.emit('get-user-bots', (bots: IBot[]) => {
-          console.log(bots)
-
           const result = bots
             .map(
               (bot) =>
@@ -96,13 +94,11 @@ export default function Terminal() {
           updateCommands([...commands, formattedCommand, result])
         })
       } else if (command === 'modules') {
-        socket?.emit('get-bot-modules', currentBotId, (modules: IModuleProps[], err: Error) => {
+        socket?.emit('get-bot-modules', currentBotId, (modules: IModuleProps[], err?: ApiError) => {
           let result = ''
           if (err) {
-            result = `Error: ${err.message}`
+            result = `Error: ${err.msg}`
           } else if (modules) {
-            console.log(modules)
-
             result = modules
               .map((module) => `- id="${module._id}" type="${module.type}" name="${module.name}"`)
               .join('</br>')
@@ -147,10 +143,7 @@ export default function Terminal() {
       return
     }
 
-    console.log('DEBUG 2')
-
     socket.emit('get-user-bases', (bases: IBot[]) => {
-      console.log(bases)
       setIsLoading(false)
 
       if (bases.length) {

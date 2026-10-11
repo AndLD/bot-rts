@@ -28,3 +28,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** audit tasks 2.3–2.5 against the API (add the missing controller error/permission paths), then 2.8 (CI and pre-push hook), then Cypress (2.1 rest and 2.7).
 - **Verify with:** `npm run typecheck && npm run lint && npm run test:coverage -w client`
 
+
+### 2026-10-11 — task 2.8: coverage gate in CI and a pre-push hook
+- **Tasks:** 2.8
+- **Branch:** `feature/2.8-coverage-ci-and-pre-push` — done
+- **Decisions:** the `api` Jest config now carries the same 97 % thresholds as the client, so `npm run test:coverage` (already the CI step) fails below the gate in either package. CI reports both packages in the job summary and runs the changed-files check on `api` and `client`. `.githooks/pre-push` (installed by the root `prepare` script through `core.hooksPath`) starts the database, typechecks and runs `test:coverage`; it is skipped for pushes that change only Markdown, and `git push --no-verify` bypasses it once.
+- **Next step:** audit tasks 2.3–2.5 against the API, then Cypress (2.1 rest, 2.7).
+- **Verify with:** `npm run test:coverage` (both packages must pass their thresholds)

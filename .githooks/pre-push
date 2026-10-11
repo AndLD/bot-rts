@@ -1,0 +1,18 @@
+#!/bin/sh
+# Enforces the coverage gate (AGENTS.md §6.1) before code leaves the machine. Skip once with `git push --no-verify`.
+# Pushes that change only Markdown need no code checks.
+set -e
+
+cd "$(git rev-parse --show-toplevel)"
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac # deleting a branch
+  case "$remote_sha" in *[!0]*) range="$remote_sha..$local_sha" ;; *) range="origin/develop..$local_sha" ;; esac
+  files=$(git diff --name-only "$range" 2>/dev/null || echo unknown.ts)
+  if ! echo "$files" | grep -qv '\.md$'; then exit 0; fi
+done
+
+echo "pre-push: typecheck, then tests with the 97 % coverage gate (needs Docker for PostgreSQL)"
+npm run db:up
+npm run typecheck
+npm run test:coverage

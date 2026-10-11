@@ -120,6 +120,7 @@
     "WRONG_PASSWORD": "The current password is wrong",
     "BASE_ALREADY_EXISTS": "You already have a base",
     "NO_FREE_LOCATION": "There is no free place for the base",
+    "TERMINAL_SESSION_CLOSED": "The terminal session is closed",
     "TOO_MANY_REQUESTS": "Too many requests, try again later",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
     "INTERNAL_ERROR": "Something went wrong on our side"

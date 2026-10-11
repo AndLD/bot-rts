@@ -1,5 +1,6 @@
 import { DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { DEFAULT_WORLD_CONFIG } from '../map/domain/world-config'
+import { DEFAULT_TERMINAL_RETENTION } from '../terminal/domain/terminal-retention'
 import { ConfigError, loadConfig } from './app-config'
 
 const base = { DATABASE_URL: 'postgresql://botrts:botrts@localhost:5432/botrts' }
@@ -15,6 +16,7 @@ describe('loadConfig', () => {
       corsOrigins: ['http://localhost:5173'],
       worldSeed: undefined,
       world: DEFAULT_WORLD_CONFIG,
+      terminal: DEFAULT_TERMINAL_RETENTION,
       smtp: undefined,
       emailOutboxDir: undefined,
       auth: {
@@ -47,6 +49,9 @@ describe('loadConfig', () => {
       JWT_REFRESH_EXPIRES_IN: '7d',
       RATE_LIMIT_WINDOW_MS: '60000',
       RATE_LIMIT_AUTH_MAX: '5',
+      TERMINAL_LOG_RETENTION_DAYS: '7',
+      TERMINAL_LOG_MAX_LINES: '100',
+      TERMINAL_SECURITY_RETENTION_DAYS: 'junk',
       TRUST_PROXY: 'true'
     })
 
@@ -58,6 +63,7 @@ describe('loadConfig', () => {
       corsOrigins: ['https://a.example', 'https://b.example'],
       worldSeed: 42,
       world: { resourceChance: 0.5 },
+      terminal: { logDays: 7, maxLinesPerBot: 100, securityDays: 90 },
       smtp: { host: 'smtp.example.com', user: 'u' },
       emailOutboxDir: '/tmp/outbox',
       auth: { accessSecret: 's3cret', accessTtlSeconds: 300, policy: { sessionTtlMs: 7 * 24 * 3600 * 1000 } },

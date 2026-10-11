@@ -14,7 +14,7 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 | 3.2 | Map domain service refactor: extract map generation/reconciliation into a `MapService` with injected RNG/clock; add `MapPoint`/`Location` value objects; the map is addressed in chunks (tunable size) in the domain model and the repository, keeping region sharding possible later (design §12.2.2) | 8 | ✅ |
 | 3.3 | Indexes and constraints in the Prisma schema (e.g. `bots.baseId`, map `(x, y)` unique for real points, per-user known points `(userId, x, y)`, `modules.botId`) and query helpers; map storage is sparse and unbounded (negative coordinates supported) | 3 | ✅ |
 | 3.4 | Bot model + `BotRepository`/`BotService` (create from modules, list a base's bots) on the ownership model of design §8.1 (the schema and `lib` types already carry `baseId` / `userId` since 1.1a) | 5 | ✅ |
-| 3.5 | Terminal **session persistence**: store every connection session + logs to the database (per `notes.txt`), with a `TerminalSession` model/repository | 5 | ⬜ |
+| 3.5 | Terminal **session persistence**: store every connection session + logs to the database (per `notes.txt`), with a `TerminalSession` model/repository | 5 | ✅ |
 | 3.6 | Bot filesystem: `File`/`Drive` model and file CRUD with drive quotas and name validation, per design §11.4 | 8 | ⬜ |
 | 3.7 | Base terminal commands end-to-end: server command parser + socket events for the filesystem and info commands of design §11.1 (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`). `run` / `shell` / `top` / `kill` arrive with the runtime (5.6), `connect` with 6.5, `craft` / `assemble` / `research` / `learn` with 4.6, `passwd` / `adopt` with 5.9 | 13 | ⬜ |
 | 3.8 | "Deploy your base" UI button + base-deployment confirmation flow, including setting the mandatory base access password | 5 | ⬜ |
@@ -40,3 +40,4 @@ AGENTS.md §7.1).
 | `feature/3.2-map-service-chunks` | 3.2 | #49 | merged |
 | `feature/3.3-indexes-constraints` | 3.3 | #50 | merged |
 | `feature/3.4-bot-service` | 3.4 | #51 | merged |
+| `feature/3.5-terminal-sessions` | 3.5 | #52 | merged |

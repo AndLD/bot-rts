@@ -5,6 +5,9 @@ import { File } from '../../src/files/domain/file.entity'
 import { FileRepository } from '../../src/files/application/file.repository'
 import { MapRepository } from '../../src/map/application/map.repository'
 import { KnownPoint, Location, LocationRange, MapPoint } from '../../src/map/domain/map-point.entity'
+import { TerminalSessionRepository } from '../../src/terminal/application/terminal-session.repository'
+import { TerminalLogEntry, TerminalSession } from '../../src/terminal/domain/terminal-session'
+import { TERMINAL_LOG_KIND } from '../../../lib/utils/interfaces/terminal'
 import { Module } from '../../src/modules/domain/module.entity'
 import { ModuleRepository } from '../../src/modules/application/module.repository'
 import { Repositories, UnitOfWork } from '../../src/persistence/application/unit-of-work'
@@ -395,6 +398,44 @@ export class InMemoryMapRepository implements MapRepository {
 
   async findKnownPoint(userId: string, location: Location) {
     return this.known.get(`${userId}:${keyOf(location)}`) ?? null
+  }
+}
+
+export class InMemoryTerminalSessionRepository implements TerminalSessionRepository {
+  readonly sessions = new Map<string, TerminalSession>()
+  logs: TerminalLogEntry[] = []
+
+  async add(session: TerminalSession) {
+    this.sessions.set(session.id, session)
+  }
+
+  async findById(id: string) {
+    return this.sessions.get(id) ?? null
+  }
+
+  async close(id: string, endedAt: Date) {
+    const session = this.sessions.get(id)
+    if (session) {
+      this.sessions.set(id, { ...session, endedAt })
+    }
+  }
+
+  async appendLog(entry: TerminalLogEntry) {
+    this.logs.push(entry)
+  }
+
+  async listLogsOfBot(botId: string, limit: number) {
+    return this.logs.filter((entry) => entry.botId === botId).slice(-limit)
+  }
+
+  async deleteLogsOlderThan(kinds: readonly TERMINAL_LOG_KIND[], before: Date) {
+    this.logs = this.logs.filter((entry) => !kinds.includes(entry.kind) || entry.at >= before)
+  }
+
+  async deleteOldestOrdinaryLogs(botId: string, keep: number) {
+    const ordinary = this.logs.filter((entry) => entry.botId === botId && entry.kind !== TERMINAL_LOG_KIND.SECURITY)
+    const dropped = new Set(ordinary.slice(0, Math.max(0, ordinary.length - keep)))
+    this.logs = this.logs.filter((entry) => !dropped.has(entry))
   }
 }
 

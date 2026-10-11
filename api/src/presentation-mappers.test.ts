@@ -1,6 +1,8 @@
 import { BOT_TYPE } from '../../lib/utils/interfaces/bots'
 import { MapPointType } from '../../lib/utils/interfaces/map'
 import { RESOURCE } from '../../lib/utils/interfaces/resources'
+import { TERMINAL_LOG_KIND } from '../../lib/utils/interfaces/terminal'
+import { toLogEntryDto, toSessionDto } from './terminal/presentation/terminal.mapper'
 import { toBotDto } from './bots/presentation/bot.mapper'
 import { toMapPointDto } from './map/presentation/map-point.mapper'
 import { toModuleDto } from './modules/presentation/module.mapper'
@@ -67,5 +69,22 @@ describe('presentation mappers', () => {
       amount: 12
     })
     expect(toMapPointDto({ ...real, location: { x: 1, y: 2, z: 3 } }).location).toEqual({ x: 1, y: 2, z: 3 })
+  })
+
+  it('maps terminal sessions and lines to timestamps', () => {
+    const session = { id: 's1', botId: 'b1', userId: 'u1', startedAt: new Date(1000), endedAt: null }
+
+    expect(toSessionDto(session)).toEqual({ _id: 's1', botId: 'b1', startedAt: 1000 })
+    expect(toSessionDto({ ...session, endedAt: new Date(2000) }).endedAt).toBe(2000)
+    expect(
+      toLogEntryDto({
+        id: 'l1',
+        sessionId: 's1',
+        botId: 'b1',
+        at: new Date(1500),
+        kind: TERMINAL_LOG_KIND.INPUT,
+        text: 'ls'
+      })
+    ).toEqual({ _id: 'l1', sessionId: 's1', botId: 'b1', at: 1500, kind: 'input', text: 'ls' })
   })
 })

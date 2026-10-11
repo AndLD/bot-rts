@@ -45,6 +45,7 @@ import { AuthController, REFRESH_COOKIE_OPTIONS } from './presentation/auth.cont
 import { AuthGuard } from './presentation/auth.guard'
 import { createRefreshCookieOptions } from './presentation/refresh-cookie'
 import { RolesGuard } from './presentation/roles.guard'
+import { SocketAuthGateway } from './presentation/socket-auth.gateway'
 
 // The adapter that verifies tokens is chosen by AUTH_PROVIDER. Only the custom (`local`) provider exists today; a hosted
 // provider would add its own IdentityVerifier here and would not provide CREDENTIAL_AUTH.
@@ -156,7 +157,8 @@ import { RolesGuard } from './presentation/roles.guard'
     },
     // Deny by default: every route needs a signed-in player unless it is @Public(); roles are checked after that
     { provide: APP_GUARD, useClass: AuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard }
+    { provide: APP_GUARD, useClass: RolesGuard },
+    SocketAuthGateway
   ],
   exports: [AuthService]
 })

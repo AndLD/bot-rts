@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client'
 import { TEMPLATE_DATABASE, urlForDatabase } from './database-url'
 
 const TABLES = [
+  'terminal_logs',
+  'terminal_sessions',
   'known_points',
   'map_points',
   'files',

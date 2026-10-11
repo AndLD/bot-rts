@@ -1,5 +1,6 @@
 import { IBot } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
+import { ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
 
 // The error half of an acknowledgement
 export interface SocketError {
@@ -15,6 +16,11 @@ export interface ClientToServerEvents {
   'get-user-bases': (ack: SocketAck<IBot[]>) => void
   'get-user-bots': (ack: SocketAck<IBot[]>) => void
   'get-bot-modules': (botId: string, ack: SocketAck<ModuleProps[]>) => void
+  // Opens a stored terminal session on one of the player's bots; it ends with 'close-terminal' or the disconnect
+  'open-terminal': (botId: string, ack: SocketAck<ITerminalSession>) => void
+  'close-terminal': (sessionId: string, ack: SocketAck<ITerminalSession>) => void
+  // The newest stored lines of a bot's terminal sessions, oldest first
+  'get-terminal-history': (botId: string, limit: number, ack: SocketAck<ITerminalLogEntry[]>) => void
 }
 
 // The server sends nothing unprompted yet; game events arrive with the engine (Phase 5)

@@ -116,8 +116,7 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 
 ## 11.2.3 Session log retention ✅
 
-- Session logs are kept for **30 days**, capped at **5,000 lines per bot** (oldest dropped first); a scheduled cleanup job
-  (or time-partitioned tables) enforces the limits.
+- Session logs are kept for **30 days**, capped at **5,000 lines per bot** (oldest dropped first). The cap is enforced when a line is recorded and age expiry when a session opens (no scheduler needed); a scheduled job may take over at scale.
 - **Security events** (failed password attempts, lockouts, `adopt`, `reboot`) are kept for **90 days**.
 - All three values are tunable config.
 

@@ -48,7 +48,7 @@ mention `memory` and `circute`.
 | **Factory** | `factory` | 🟡 | crafting | Present on the base and in the kit. |
 | **GPS** | `gps` | 🔴 | `getLocation()` | Absolute position readout. |
 | **Market terminal** | `marketTerminal` | 🔴 | `market.*` | ✅ Single class, no upgrades; remote access to the market from anywhere (§26.2). |
-| **Repair ("fixing") module** | `repair` | 🔴 | `repair(target)`, `disassemble(target)` | ✅ Used on a module of a bot on an **adjacent cell**; see §8.4.2. Required to restore a corpse base. |
+| **Repair ("fixing") module** | `repair` | ✅ | `repair(target)`, `disassemble(target)` | ✅ Used on a module of a bot on an **adjacent cell**; see §8.4.2. Required to restore a corpse base. |
 
 \* The codebase models the chassis as `IMovementModuleProps`; the notes call this "колёса/гусеницы". (`drive` in the
 code is the **disk**, not the chassis.)

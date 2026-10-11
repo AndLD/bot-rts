@@ -58,6 +58,9 @@ The terminal already exposes a `list` command backed by a socket event. ✅
   - other modules lose their own function (a broken weapon cannot shoot, a broken engine cannot move, …).
 - **Repair:** a broken or damaged module can be repaired by **another bot's repair ("fixing") module** as long as its
   `condition` is not below a **repair threshold** (tunable). Below the threshold it can no longer be repaired.
+  ✅ *Clarification:* a **broken** module (condition 0) is always repairable (otherwise a corpse base could never get its
+  wireless adapter back, §6.3); the threshold protects the range in between: a module with some condition left but below
+  the threshold is too far gone and can only be disassembled.
 - **Disassembly:** a module can be **disassembled** (by another bot's repair module, §8.4.2) into scrap metal /
   resources, if it is broken or belongs to the actor's own user. A disassembled module **disappears from the database**.
 - **Bot without modules:** if all of a bot's modules are disassembled, the bot record is **kept** in the database, but
@@ -67,6 +70,9 @@ The terminal already exposes a `list` command backed by a socket event. ✅
   disassembly (mechanics: §8.4.2).
 
 ## 8.4.2 Repair module: repair and disassembly ✅
+
+*Implemented (`RepairModule`, `MaintenanceService`, `POST /api/v1/bots/:botId/maintenance/repair | disassemble`, terminal `repair` / `disassemble`).* One operation per call with a cooldown (`delay`); a repair costs a share (`repairCostFactor`, default 50 % for a complete repair) of the module's recipe resources from the repairer's storage plus the repair module's energy; disassembly yields a random 30–50 % of the recipe resources into the repairer's storage and is refused (`NO_SPACE`) when they do not fit. The one-living-base rule limits *deploying* a base; restoring a corpse base is allowed even if the owner has deployed another one.
+
 
 One **repair ("fixing") module** provides both `repair(...)` and `disassemble(...)`. Both act on a module of a bot on an
 **adjacent cell** (a bot cannot work on itself) and cost energy and time (ticks).

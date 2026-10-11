@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../tests/integration/test-database'
@@ -592,6 +593,60 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       .expect(201)
     expect(learned.body).toMatchObject({ module: 'gun-class2', source: 'item' })
     await api().post(`${factory}/learn`).set(bearer(accessToken)).send({ itemId: blueprint.id }).expect(404)
+  })
+
+  it('repairs and disassembles a module of a bot on an adjacent cell over HTTP', async () => {
+    const alice = await signUp('alice@example.com')
+    const bob = await signUp('bob@example.com', 'Bob')
+    const deploy = async (token: string) =>
+      (await api().post('/api/v1/bots/base').set(bearer(token)).send({ password: 'secret1' }).expect(201)).body
+    const [aliceBase, bobBase] = [await deploy(alice.accessToken), await deploy(bob.accessToken)]
+    const aliceId: string = aliceBase.bot._id
+    const bobId: string = bobBase.bot._id
+
+    // Bob's base next to Alice's, a repair module and iron for Alice
+    const at = await database.client.mapPoint.findFirstOrThrow({ where: { contentId: aliceId } })
+    await database.client.mapPoint.updateMany({ where: { contentId: bobId }, data: { x: at.x + 1, y: at.y, z: at.z } })
+    const repair = await database.client.module.create({
+      data: {
+        id: randomUUID(),
+        botId: aliceId,
+        type: 'repair',
+        name: 'repair-class1',
+        condition: 100,
+        maxCondition: 100,
+        weight: 25,
+        operationCost: 5,
+        idleCost: 0,
+        props: { repairPerOp: 25, delay: 1000 }
+      }
+    })
+    const storage = await database.client.module.findFirstOrThrow({ where: { botId: aliceId, type: 'storage' } })
+    await database.client.module.update({
+      where: { id: storage.id },
+      data: { props: { capacity: 500, items: [{ resource: 'iron', amount: 100 }] } }
+    })
+    const gun = await database.client.module.findFirstOrThrow({ where: { botId: bobId, type: 'weapon' } })
+    await database.client.module.update({ where: { id: gun.id }, data: { condition: 50 } })
+
+    const maintenance = `/api/v1/bots/${aliceId}/maintenance`
+    const order = { targetBotId: bobId, moduleId: gun.id }
+    await api().post(`${maintenance}/repair`).send(order).expect(401)
+    await api().post(`${maintenance}/repair`).set(bearer(bob.accessToken)).send(order).expect(403)
+    await api().post(`${maintenance}/repair`).set(bearer(alice.accessToken)).send({ targetBotId: 'x' }).expect(400)
+    await api().post('/api/v1/bots/nope/maintenance/repair').set(bearer(alice.accessToken)).send(order).expect(400)
+
+    const repaired = await api().post(`${maintenance}/repair`).set(bearer(alice.accessToken)).send(order).expect(200)
+    expect(repaired.body).toMatchObject({ _id: gun.id, condition: 75 })
+    const again = await api().post(`${maintenance}/repair`).set(bearer(alice.accessToken)).send(order).expect(409)
+    expect(again.body.code).toBe('COOLDOWN')
+
+    // Bob's gun is broken: anybody may take it apart
+    await database.client.module.update({ where: { id: gun.id }, data: { condition: 0 } })
+    await database.client.module.update({ where: { id: repair.id }, data: { props: { repairPerOp: 25, delay: 1000 } } })
+    const scrap = await api().post(`${maintenance}/disassemble`).set(bearer(alice.accessToken)).send(order).expect(200)
+    expect(scrap.body).toEqual([{ resource: 'iron', amount: expect.any(Number) }])
+    expect(await database.client.module.count({ where: { id: gun.id } })).toBe(0)
   })
 
   describe('Socket.IO', () => {

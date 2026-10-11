@@ -38,12 +38,15 @@ export class BaseLifecycle {
     return base !== null && !(await this.isCorpse(base, repositories))
   }
 
-  // Shows the corpse bases of the player on the real map as such
-  async markCorpses(userId: string, repositories: Reads & { map: MapRepository }): Promise<void> {
-    for (const base of await this.lostBases(userId, repositories)) {
+  // Shows the bases of the player on the real map as what they are now: a corpse base where control is lost, a base
+  // again where it was regained
+  async syncMapState(userId: string, repositories: Reads & { map: MapRepository }): Promise<void> {
+    const lost = await this.lostBases(userId, repositories)
+    for (const base of await repositories.bots.listOfUser(userId, { type: BOT_TYPE.BASE })) {
       const point = await repositories.map.findPointByContentId(base.id)
-      if (point && point.type !== MapPointType.CORPSE_BASE) {
-        await repositories.map.upsertPoint({ ...point, type: MapPointType.CORPSE_BASE })
+      const type = lost.some((corpse) => corpse.id === base.id) ? MapPointType.CORPSE_BASE : MapPointType.BASE
+      if (point && point.type !== type) {
+        await repositories.map.upsertPoint({ ...point, type })
       }
     }
   }

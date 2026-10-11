@@ -1565,6 +1565,119 @@
         ]
       }
     },
+    "/api/v1/bots/{botId}/maintenance/repair": {
+      "post": {
+        "operationId": "maintenanceRepair",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The module after the repair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "maintenance"
+        ]
+      }
+    },
+    "/api/v1/bots/{botId}/maintenance/disassemble": {
+      "post": {
+        "operationId": "maintenanceDisassemble",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The scrap",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeResourceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "maintenance"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -2270,7 +2383,8 @@
               "scanner",
               "generator",
               "factory",
-              "gps"
+              "gps",
+              "repair"
             ]
           },
           "name": {
@@ -2618,6 +2732,25 @@
           "bot",
           "modules",
           "mapPoint"
+        ]
+      },
+      "MaintenanceDto": {
+        "type": "object",
+        "properties": {
+          "targetBotId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The bot on an adjacent cell whose module is worked on"
+          },
+          "moduleId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The module to repair or take apart"
+          }
+        },
+        "required": [
+          "targetBotId",
+          "moduleId"
         ]
       },
       "HealthResponse": {

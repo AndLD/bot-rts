@@ -72,6 +72,17 @@ export function validateRecipes(
       problems.push('the blueprint chances must be between 0 and 1')
     }
   }
+  for (const share of [balance.repairThreshold, balance.scrapMinShare, balance.scrapMaxShare]) {
+    if (!(share >= 0 && share <= 1)) {
+      problems.push('the repair threshold and the scrap shares must be between 0 and 1')
+    }
+  }
+  if (balance.scrapMinShare > balance.scrapMaxShare) {
+    problems.push('scrapMinShare must not exceed scrapMaxShare')
+  }
+  if (!(balance.repairCostFactor >= 0)) {
+    problems.push('repairCostFactor must not be negative')
+  }
   return problems
 }
 

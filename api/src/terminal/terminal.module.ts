@@ -6,6 +6,7 @@ import { FilesService } from '../files/application/files.service'
 import { BotsModule } from '../bots/bots.module'
 import { AssemblyService } from '../bots/application/assembly.service'
 import { BotsService } from '../bots/application/bots.service'
+import { MaintenanceService } from '../bots/application/maintenance.service'
 import { FactoryService } from '../bots/application/factory.service'
 import { CraftingModule } from '../crafting/crafting.module'
 import { RecipeService } from '../crafting/application/recipe.service'
@@ -43,7 +44,15 @@ import { TerminalGateway } from './presentation/terminal.gateway'
     },
     {
       provide: TerminalShell,
-      inject: [BotsService, FilesService, TerminalService, FactoryService, AssemblyService, RecipeService],
+      inject: [
+        BotsService,
+        FilesService,
+        TerminalService,
+        FactoryService,
+        AssemblyService,
+        RecipeService,
+        MaintenanceService
+      ],
       useFactory: createTerminalShell
     }
   ],

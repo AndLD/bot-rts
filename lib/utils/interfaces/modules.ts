@@ -21,6 +21,7 @@ export type ModuleType =
   | 'generator'
   | 'factory'
   | 'gps'
+  | 'repair'
 
 // Every module type, for code that must cover them all
 export const MODULE_TYPES: readonly ModuleType[] = [
@@ -38,7 +39,8 @@ export const MODULE_TYPES: readonly ModuleType[] = [
   'scanner',
   'generator',
   'factory',
-  'gps'
+  'gps',
+  'repair'
 ]
 
 export enum EngineType {
@@ -201,6 +203,17 @@ export interface IGpsModule extends IGpsModuleProps {
   getLocation(): Promise<Result<Location>>
 }
 
+// The repair ("fixing") module: works on a module of a bot on an adjacent cell (design §8.4.2)
+export interface IRepairModuleProps extends IModuleProps {
+  // Condition restored by one repair operation
+  repairPerOp: number
+  delay: number // between operations in ms
+}
+export interface IRepairModule extends IRepairModuleProps {
+  repair(botId: ID, moduleId: ID): Promise<Result>
+  disassemble(botId: ID, moduleId: ID): Promise<Result<IResourceStack[]>>
+}
+
 export type Module =
   | IEngineModule
   | IMovementModule
@@ -217,6 +230,7 @@ export type Module =
   | IGeneratorModule
   | IFactoryModule
   | IGpsModule
+  | IRepairModule
 
 export type ModuleProps =
   | IEngineModuleProps
@@ -234,3 +248,4 @@ export type ModuleProps =
   | IGeneratorModuleProps
   | IFactoryModuleProps
   | IGpsModuleProps
+  | IRepairModuleProps

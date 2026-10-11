@@ -17,6 +17,7 @@ import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
+import { RNG, Rng } from '../shared/application/rng'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BaseLifecycle } from './application/base-lifecycle'
@@ -25,8 +26,10 @@ import { RecipeBook } from '../crafting/domain/recipe-book'
 import { EnergyModel } from '../modules/domain/energy-model'
 import { AssemblyService } from './application/assembly.service'
 import { FactoryService } from './application/factory.service'
+import { MaintenanceService } from './application/maintenance.service'
 import { ScanService } from './application/scan.service'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
+import { MaintenanceController } from './presentation/maintenance.controller'
 import { FactoryController } from './presentation/factory.controller'
 import { FactoryGateway } from './presentation/factory.gateway'
 import { BotsController } from './presentation/bots.controller'
@@ -34,7 +37,7 @@ import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
   imports: [AuthModule, MapModule, ModulesModule, SpawnModule, CraftingModule],
-  controllers: [BotsController, FactoryController],
+  controllers: [BotsController, FactoryController, MaintenanceController],
   providers: [
     BotsGateway,
     FactoryGateway,
@@ -88,6 +91,20 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new FactoryService(unitOfWork, bots, recipes, ids, clock, registry, energy, moduleFactory)
     },
     {
+      provide: MaintenanceService,
+      inject: [UNIT_OF_WORK, BotsService, RecipeBook, ModuleRegistry, EnergyModel, CLOCK, RNG, BaseLifecycle],
+      useFactory: (
+        unitOfWork: UnitOfWork,
+        bots: BotsService,
+        recipes: RecipeBook,
+        registry: ModuleRegistry,
+        energy: EnergyModel,
+        clock: Clock,
+        rng: Rng,
+        lifecycle: BaseLifecycle
+      ) => new MaintenanceService(unitOfWork, bots, recipes, registry, energy, clock, rng, lifecycle)
+    },
+    {
       provide: AssemblyService,
       inject: [BotsService, MODULE_REPOSITORY, ITEM_REPOSITORY, ModuleFactory, ModuleRegistry, FactoryService],
       useFactory: (
@@ -113,6 +130,6 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new ScanService(bots, modules, map, mapService, registry, clock, energy)
     }
   ],
-  exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService, FactoryService]
+  exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService, FactoryService, MaintenanceService]
 })
 export class BotsModule {}

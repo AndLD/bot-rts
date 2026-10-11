@@ -62,6 +62,19 @@ describe('validateRecipes', () => {
   })
 })
 
+describe('validateRecipes (repair numbers)', () => {
+  it('reports a repair threshold or scrap share outside 0..1, inverted scrap shares and a negative repair cost', () => {
+    const wrong = (change: Partial<typeof DEFAULT_CRAFTING_BALANCE>) =>
+      problemsOf(DEFAULT_RECIPES, { ...DEFAULT_CRAFTING_BALANCE, ...change })
+
+    expect(wrong({ repairThreshold: 2 })).toContain('the repair threshold and the scrap shares must be between 0 and 1')
+    expect(wrong({ scrapMaxShare: -1 })).toContain('the repair threshold and the scrap shares must be between 0 and 1')
+    expect(wrong({ scrapMinShare: 0.9, scrapMaxShare: 0.2 })).toContain('scrapMinShare must not exceed scrapMaxShare')
+    expect(wrong({ repairCostFactor: -1 })).toContain('repairCostFactor must not be negative')
+    expect(wrong({})).toEqual([])
+  })
+})
+
 describe('RecipeBook', () => {
   it('finds a recipe by module, and refuses an unknown one', () => {
     expect(book.get('gun-class1')).toMatchObject({ resources: [{ resource: 'iron', amount: 50 }], craftTimeMs: 20_000 })
@@ -71,7 +84,7 @@ describe('RecipeBook', () => {
   })
 
   it('knows class 1 from the start and what was learned on top', () => {
-    expect(book.baseSet()).toHaveLength(15)
+    expect(book.baseSet()).toHaveLength(16)
     expect(book.baseSet()).toContain('scanner-class1')
     expect(book.baseSet()).not.toContain('scanner-class2')
     expect(book.known([])).not.toContain('scanner-class2')

@@ -152,3 +152,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Not done:** browser checks of the account page, email change and account deletion; unit tests for the client code (client Jest arrives in task 2.1, tests listed in 2.6) and the API's `createEmailSender` branches are covered by unit tests.
 - **Next step:** Phase 1 exit criteria review, then mark the phase ✅ and start Phase 2 when asked.
 - **Verify with:** `npm run lint && npm run typecheck && npm run i18n:check && npm run build && npm test`
+
+### 2026-10-11 — Phase 1 complete
+- All tasks are done and merged; the exit criteria hold (NestJS backend without Express routers, import-boundary check green, PostgreSQL + Prisma, safety-net tests green, client builds on Next.js).
+- **Next step:** Phase 2 when requested.

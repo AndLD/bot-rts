@@ -56,4 +56,4 @@ AGENTS.md §7.1).
 | `feature/1.11-identity-and-sessions` | 1.11, 1.11a, 1.16 | [#36](https://github.com/AndLD/bot-rts/pull/36) | ✅ |
 | `feature/1.12-bots-gateway-nest` | 1.12 | [#37](https://github.com/AndLD/bot-rts/pull/37) | ✅ |
 | `feature/1.14-client-structure` | 1.14, 1.15 | [#38](https://github.com/AndLD/bot-rts/pull/38) | ✅ |
-| `feature/1.18-nextjs-migration` | 1.18, 1.18a | PR_N | ✅ |
+| `feature/1.18-nextjs-migration` | 1.18, 1.18a | [#39](https://github.com/AndLD/bot-rts/pull/39) | ✅ |

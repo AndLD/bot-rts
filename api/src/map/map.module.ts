@@ -9,7 +9,8 @@ import { RNG, Rng } from '../shared/application/rng'
 import { MAP_REPOSITORY } from './application/map.repository'
 import { MapService } from './application/map.service'
 import { PrismaMapRepository } from './infrastructure/prisma-map.repository'
-import { WORLD_CONFIG } from './domain/world-config'
+import { MapGenerator } from './domain/map-generator'
+import { WORLD_CONFIG, WorldConfig } from './domain/world-config'
 
 @Module({
   providers: [
@@ -20,10 +21,20 @@ import { WORLD_CONFIG } from './domain/world-config'
     },
     { provide: WORLD_CONFIG, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.world },
     {
+      provide: MapGenerator,
+      inject: [RNG, WORLD_CONFIG],
+      useFactory: (rng: Rng, world: WorldConfig) => new MapGenerator(rng, world)
+    },
+    {
       provide: MapService,
-      inject: [UNIT_OF_WORK, ID_GENERATOR, RNG, CLOCK, WORLD_CONFIG],
-      useFactory: (unitOfWork: UnitOfWork, ids: IdGenerator, rng: Rng, clock: Clock, world: AppConfig['world']) =>
-        new MapService(unitOfWork, ids, rng, clock, world)
+      inject: [UNIT_OF_WORK, ID_GENERATOR, MapGenerator, CLOCK, WORLD_CONFIG],
+      useFactory: (
+        unitOfWork: UnitOfWork,
+        ids: IdGenerator,
+        generator: MapGenerator,
+        clock: Clock,
+        world: WorldConfig
+      ) => new MapService(unitOfWork, ids, generator, clock, world.chunkSize)
     }
   ],
   exports: [MAP_REPOSITORY, WORLD_CONFIG, MapService]

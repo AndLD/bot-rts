@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
+import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import { buildKnownPoint, buildPoint, buildUser } from '../../../tests/integration/builders'
 import { createTestDatabase, TestDatabase } from '../../../tests/integration/test-database'
 import { PrismaUserRepository } from '../../users/infrastructure/prisma-user.repository'
@@ -22,6 +23,23 @@ beforeEach(async () => {
   userId = user.id
 })
 afterAll(() => database.drop())
+
+describe('PrismaMapRepository: deposits', () => {
+  it('stores what a resource cell holds, on the real layer and in the snapshot of a player', async () => {
+    const deposit = buildPoint(1, 1, { type: MapPointType.RESOURCE, resource: { resource: RESOURCE.OIL, amount: 77 } })
+    await map.addPoints([deposit])
+    await map.upsertKnownPoints([{ ...deposit, id: randomUUID(), userId, seenAt: 5 }])
+
+    expect(await map.findPointsInRange(range)).toEqual([deposit])
+    expect((await map.findKnownPoint(userId, deposit.location))?.resource).toEqual({
+      resource: RESOURCE.OIL,
+      amount: 77
+    })
+
+    const depleted = await map.upsertPoint({ ...deposit, type: null, resource: null })
+    expect(depleted.resource).toBeNull()
+  })
+})
 
 describe('PrismaMapRepository: real layer', () => {
   it('stores points and finds those inside a range, ordered by location', async () => {

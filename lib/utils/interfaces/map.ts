@@ -1,4 +1,5 @@
 import { ID } from '../types'
+import { IResourceStack } from './resources'
 
 export enum MapPointType {
   RESOURCE = 'resource',
@@ -16,6 +17,8 @@ export interface IMapPoint {
   userId?: ID
   contentId: ID | null
   type: MapPointType | null
+  // What a resource cell holds and how much of it is left
+  resource?: IResourceStack
   // Game tick at which a player's snapshot of the cell was taken (known cells only)
   seenAt?: number
 }

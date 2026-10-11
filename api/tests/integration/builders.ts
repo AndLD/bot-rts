@@ -49,7 +49,7 @@ export function buildFile(driveId: string, overrides: Partial<File> = {}): File 
 }
 
 export function buildPoint(x: number, y: number, overrides: Partial<MapPoint> = {}): MapPoint {
-  return { id: randomUUID(), location: { x, y, z: 0 }, type: null, contentId: null, ...overrides }
+  return { id: randomUUID(), location: { x, y, z: 0 }, type: null, contentId: null, resource: null, ...overrides }
 }
 
 export function buildKnownPoint(userId: string, x: number, y: number, overrides: Partial<KnownPoint> = {}): KnownPoint {

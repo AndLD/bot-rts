@@ -13,7 +13,7 @@ function loadConstants(env: Record<string, string | undefined>): Constants {
 
   let loaded: Constants | undefined
   jest.isolateModules(() => {
-    loaded = jest.requireActual('./constants')
+    loaded = jest.requireActual<Constants>('./constants')
   })
   process.env = saved
 

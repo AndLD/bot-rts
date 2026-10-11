@@ -50,4 +50,4 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/1.0-typescript-node-baseline` | 1.0 | [#31](https://github.com/AndLD/bot-rts/pull/31) | ✅ |
 | `feature/1.1-ports-and-prisma-adapters` | 1.1, 1.1a | [#32](https://github.com/AndLD/bot-rts/pull/32) | ✅ |
-| `feature/1.7-switch-to-postgres` | 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.9 | PR_N | ✅ |
+| `feature/1.7-switch-to-postgres` | 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.9 | [#33](https://github.com/AndLD/bot-rts/pull/33) | ✅ |

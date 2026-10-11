@@ -2,7 +2,7 @@ import { createApp } from './app.factory'
 import { loadConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
 
-export async function bootstrap(env: Record<string, string | undefined> = process.env) {
+export async function bootstrap(env: Record<string, string | undefined>) {
   const config = loadConfig(env)
   const app = await createApp(config)
 

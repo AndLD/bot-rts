@@ -4,7 +4,7 @@ import { getLogger } from './utils/logger'
 
 const logger = getLogger('index')
 
-bootstrap().catch((error) => {
+bootstrap(process.env).catch((error) => {
   logger.error(`Failed to start: ${error}`)
   process.exit(1)
 })

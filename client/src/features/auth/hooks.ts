@@ -1,13 +1,13 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { ErrorCode } from '@lib/utils/error-codes'
 import { IUserInfo } from '@lib/utils/interfaces/users'
 import { skipToken } from '@reduxjs/toolkit/query'
 import { useTranslations } from 'next-intl'
 import { errorNotification } from '../../shared/notifications'
-import { refreshOnce } from '../../shared/store/refresh'
 import { setToken } from '../../shared/store/session.slice'
 import { useAppDispatch, useToken } from '../../shared/store/hooks'
-import { useGetMeQuery, useLogoutMutation, useRefreshTokenMutation, useVerifyEmailMutation } from './auth.api'
+import { useGetMeQuery } from './auth.api'
+import { useAuth } from './auth-client-context'
 
 export type CurrentUser =
   { state: 'anonymous' | 'loading' | 'unverified' | 'blocked' } | { state: 'active'; user: IUserInfo }
@@ -47,57 +47,41 @@ export function useCurrentUser(): CurrentUser {
   return { state: isLoading ? 'loading' : 'anonymous' }
 }
 
-// Signs the player out on the server and locally
+// Signs the player out on the server and locally, then calls `afterLogout`
 export function useLogout() {
-  const t = useTranslations('auth')
-  const dispatch = useAppDispatch()
-  const [logout] = useLogoutMutation()
+  const auth = useAuth()
 
   return useCallback(
     async (afterLogout?: () => void) => {
-      const result = await logout()
-
-      if ('error' in result) {
-        errorNotification(t('signOutFailed'))
-      }
-
-      dispatch(setToken(null))
+      await auth.signOut()
       afterLogout?.()
     },
-    [dispatch, logout, t]
+    [auth]
   )
 }
 
 // Exchanges the refresh cookie for a new access token; resolves to the token, or null when the session is over
 export function useRefreshSession() {
-  const dispatch = useAppDispatch()
-  const [refresh] = useRefreshTokenMutation()
+  const auth = useAuth()
 
-  return useCallback(async () => {
-    const token = await refreshOnce(async () => {
-      const result = await refresh()
-
-      return result.data?.accessToken ?? null
-    })
-
-    dispatch(setToken(token))
-
-    return token
-  }, [dispatch, refresh])
+  return useCallback(() => auth.refresh(), [auth])
 }
 
 // Confirms the email with the token of the emailed link and then calls `onDone`, whatever the outcome
 export function useVerifyEmail(token: string | null, onDone: () => void) {
   const t = useTranslations('auth')
-  const [verifyEmail] = useVerifyEmailMutation()
+  const auth = useAuth()
+  // A link works once, so it must be sent once even when React runs the effect twice in development
+  const verifiedToken = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!token) {
+    if (!token || verifiedToken.current === token) {
       return
     }
+    verifiedToken.current = token
 
-    verifyEmail({ token }).then((result) => {
-      if ('error' in result) {
+    auth.verifyEmail(token).then((result) => {
+      if (!result.ok) {
         errorNotification(t('verificationFailed'))
       }
       onDone()

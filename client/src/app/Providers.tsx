@@ -4,6 +4,7 @@ import '@ant-design/v5-patch-for-react-19'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { Provider } from 'react-redux'
 import { usePathname, useRouter } from 'next/navigation'
+import { AuthClientProvider } from '../features/auth/AuthClientProvider'
 import { useCurrentUser } from '../features/auth/hooks'
 import { AppStore, setupStore } from '../shared/store'
 import { resolveRedirect } from './access'
@@ -39,7 +40,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <Provider store={store.current}>
-      <RouteGuard>{children}</RouteGuard>
+      <AuthClientProvider store={store.current}>
+        <RouteGuard>{children}</RouteGuard>
+      </AuthClientProvider>
     </Provider>
   )
 }

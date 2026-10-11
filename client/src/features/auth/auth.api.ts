@@ -26,15 +26,32 @@ export const authApi = createApi({
     }),
     verifyEmail: builder.mutation<void, { token: string }>({
       query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/verify', body, responseHandler: 'text' })
+    }),
+    resendVerification: builder.mutation<void, { email: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/resend', body, responseHandler: 'text' })
+    }),
+    requestPasswordReset: builder.mutation<void, { email: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/forgot', body, responseHandler: 'text' })
+    }),
+    resetPassword: builder.mutation<void, { token: string; password: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/reset', body, responseHandler: 'text' })
+    }),
+    changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/change', body, responseHandler: 'text' })
+    }),
+    requestEmailChange: builder.mutation<void, { password: string; newEmail: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/change', body, responseHandler: 'text' })
+    }),
+    confirmEmailChange: builder.mutation<void, { token: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/change/confirm', body, responseHandler: 'text' })
+    }),
+    requestAccountDeletion: builder.mutation<void, { password: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/account/delete', body, responseHandler: 'text' })
+    }),
+    confirmAccountDeletion: builder.mutation<void, { token: string }>({
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/account/delete/confirm', body, responseHandler: 'text' })
     })
   })
 })
 
-export const {
-  useGetMeQuery,
-  useRegisterMutation,
-  useLoginMutation,
-  useRefreshTokenMutation,
-  useLogoutMutation,
-  useVerifyEmailMutation
-} = authApi
+export const { useGetMeQuery } = authApi

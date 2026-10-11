@@ -12,7 +12,8 @@
       "title": "Login",
       "submit": "Log in",
       "failed": "Login error",
-      "toSignup": "Don't have an account? Sign up"
+      "toSignup": "Don't have an account? Sign up",
+      "forgot": "Forgot your password?"
     },
     "signup": {
       "title": "Sign Up",
@@ -23,7 +24,10 @@
     "fields": {
       "name": "Name",
       "email": "Email",
-      "password": "Password"
+      "password": "Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "newEmail": "New email"
     },
     "validation": {
       "nameRequired": "Please enter your first and last name!",
@@ -34,13 +38,62 @@
       "passwordInvalid": "The password must have 6-20 characters, a digit, an uppercase and a lowercase Latin letter and a special character: {characters}"
     },
     "forbidden": {
-      "message": "Check your email. We have sent a verification letter"
+      "message": "Check your email. We have sent a verification letter",
+      "resend": "Send the letter again",
+      "resent": "If this address is registered and not confirmed yet, we have sent a new letter."
     },
     "blocked": {
       "message": "Your account is blocked"
     },
-    "signOutFailed": "Could not sign out",
-    "verificationFailed": "Email confirmation failed"
+    "verificationFailed": "Email confirmation failed",
+    "forgot": {
+      "title": "Reset password",
+      "description": "Enter your email and we will send you a link to choose a new password.",
+      "submit": "Send the link",
+      "sent": "If this address is registered, we have sent a link to it.",
+      "back": "Back to login"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "submit": "Save the password",
+      "success": "The password was changed. Log in with the new one.",
+      "missingToken": "The link is incomplete."
+    },
+    "confirm": {
+      "toLogin": "Go to login",
+      "emailChange": {
+        "done": "Your email was changed. Log in again.",
+        "failed": "The link is invalid or has expired."
+      },
+      "accountDeletion": {
+        "done": "Your account was deleted.",
+        "failed": "The link is invalid or has expired."
+      }
+    },
+    "account": {
+      "title": "Account",
+      "back": "Back to the game",
+      "signOut": "Sign out",
+      "password": {
+        "title": "Change password",
+        "submit": "Change the password",
+        "success": "The password was changed. Your other devices were signed out."
+      },
+      "email": {
+        "title": "Change email",
+        "submit": "Send the confirmation link",
+        "sent": "We sent a confirmation link to the new address."
+      },
+      "delete": {
+        "title": "Delete account",
+        "warning": "This erases your personal data. Your base stays on the map as the ruin of a deleted player.",
+        "submit": "Delete my account",
+        "sent": "We sent a confirmation link to your email. Follow it to finish."
+      }
+    }
+  },
+  "game": {
+    "account": "Account"
   },
   "terminal": {
     "welcome": "# Welcome to BotOS Alpha 0.1.0 #",

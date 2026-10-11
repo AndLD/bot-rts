@@ -1,10 +1,28 @@
 'use client'
 
 import { MailOutlined } from '@ant-design/icons'
+import { Button, Form, Input, notification } from 'antd'
 import { useTranslations } from 'next-intl'
+import { useErrorMessage } from '../../shared/errors'
+import { errorNotification } from '../../shared/notifications'
+import { useAuth } from './auth-client-context'
+import { useAuthRules } from './validation'
 
 export default function ForbiddenPage() {
-  const t = useTranslations('auth.forbidden')
+  const t = useTranslations('auth')
+  const rules = useAuthRules()
+  const getErrorMessage = useErrorMessage()
+  const auth = useAuth()
+
+  async function onFinish({ email }: { email: string }) {
+    const result = await auth.resendVerification(email)
+
+    if (result.ok) {
+      notification.success({ message: t('forbidden.resent') })
+    } else {
+      errorNotification(getErrorMessage(result.failure))
+    }
+  }
 
   return (
     <div
@@ -19,7 +37,13 @@ export default function ForbiddenPage() {
       }}
     >
       <MailOutlined style={{ fontSize: 100 }} />
-      <div>{t('message')}</div>
+      <div>{t('forbidden.message')}</div>
+      <Form layout="inline" onFinish={onFinish} style={{ fontSize: 16 }}>
+        <Form.Item name="email" rules={[rules.emailRequired, rules.email]}>
+          <Input type="email" placeholder={t('fields.email')} />
+        </Form.Item>
+        <Button htmlType="submit">{t('forbidden.resend')}</Button>
+      </Form>
     </div>
   )
 }

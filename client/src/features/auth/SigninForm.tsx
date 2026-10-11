@@ -3,11 +3,10 @@
 import { Button, Form, Input } from 'antd'
 import { IAuthPostBody } from '@lib/utils/interfaces/auth'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { errorNotification } from '../../shared/notifications'
 import { useErrorMessage } from '../../shared/errors'
-import { useAppDispatch } from '../../shared/store/hooks'
-import { setToken } from '../../shared/store/session.slice'
-import { useLoginMutation } from './auth.api'
+import { useAuth } from './auth-client-context'
 import { useAuthRules } from './validation'
 
 export default function SigninForm() {
@@ -15,16 +14,13 @@ export default function SigninForm() {
   const rules = useAuthRules()
   const getErrorMessage = useErrorMessage()
   const [form] = Form.useForm()
-  const dispatch = useAppDispatch()
-  const [login] = useLoginMutation()
+  const auth = useAuth()
 
   async function onFinish(credentials: IAuthPostBody) {
-    const result = await login(credentials)
+    const result = await auth.signIn(credentials)
 
-    if (result.data) {
-      dispatch(setToken(result.data.accessToken))
-    } else {
-      errorNotification(getErrorMessage(result.error), t('login.failed'))
+    if (!result.ok) {
+      errorNotification(getErrorMessage(result.failure), t('login.failed'))
     }
   }
 
@@ -37,6 +33,10 @@ export default function SigninForm() {
       <Form.Item name="password" rules={[rules.passwordRequired, rules.password]}>
         <Input.Password placeholder={t('fields.password')} />
       </Form.Item>
+
+      <Link href="/forgot-password" className="auth-link">
+        {t('login.forgot')}
+      </Link>
 
       <div className="button">
         <Button className="button" htmlType="submit" type="primary">

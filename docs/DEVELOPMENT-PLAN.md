@@ -53,9 +53,11 @@ come from the environment (task 0.2), never from the hardcoded development fallb
 
 ## Resuming work in a new session
 
-Start a phase with *"Start Phase N"* and continue an interrupted one with *"Continue Phase N"*. The agent works through
-the phase's tasks in the documented order **without pausing between tasks** and stops with a summary only when the phase's
-exit criteria are met (or when it is blocked or needs a decision). The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
+Ask for one phase or a range: *"Start Phase 0"*, *"Start Phases 0-3"*, *"Continue Phase 2"*. The agent works through the named
+phases' tasks in the documented order, creating and squash-merging every task's pull request into `develop` by itself (the
+request is the approval), **without pausing between tasks or between the named phases**. It stops with a summary after the
+last named phase, or earlier when it is blocked or needs a decision; phases you did not name are not started. Promoting
+`develop` to `main` still needs your approval. The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
 the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
 "next step".
 

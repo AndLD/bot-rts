@@ -9,7 +9,7 @@ const FONT_SIZE = 30
 
 export default function Terminal() {
   const t = useTranslations('terminal')
-  const { currentBotId, isLoading, isShellMode, lines, prefix, run } = useTerminal()
+  const { currentBotId, isLoading, isShellMode, lines, prefix, run, editor, saveEditor, closeEditor } = useTerminal()
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -50,7 +50,7 @@ export default function Terminal() {
         {/* Lines are escaped by the interpreter; only the line break tag is markup */}
         {currentBotId && lines.map((line, i) => <div key={i} dangerouslySetInnerHTML={{ __html: line }}></div>)}
       </div>
-      {currentBotId && (
+      {currentBotId && !editor && (
         <div style={{ display: 'flex', gap: 15 }}>
           {prefix}
           <input
@@ -59,12 +59,53 @@ export default function Terminal() {
             ref={inputRef}
             spellCheck={false}
             autoFocus
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                // The editor a command opens takes the focus; the key must not type a line break into it
+                e.preventDefault()
+                submit()
+              }
+            }}
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
         </div>
       )}
+      {editor && <FileEditor key={editor.path} {...editor} onSave={saveEditor} onCancel={closeEditor} />}
+    </div>
+  )
+}
+
+// A plain editor for the file of an `edit` command; the code editor with syntax highlighting arrives with the GUI
+function FileEditor({
+  path,
+  content,
+  onSave,
+  onCancel
+}: {
+  path: string
+  content: string
+  onSave: (content: string) => void
+  onCancel: () => void
+}) {
+  const t = useTranslations('terminal')
+  const [text, setText] = useState(content)
+
+  return (
+    <div className="terminal-editor" onClick={(e) => e.stopPropagation()}>
+      <div>{t('editing', { path })}</div>
+      <textarea
+        aria-label={t('editorLabel')}
+        className="terminal-editor-text"
+        spellCheck={false}
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <div style={{ display: 'flex', gap: 15 }}>
+        <button onClick={() => onSave(text)}>{t('save')}</button>
+        <button onClick={onCancel}>{t('cancel')}</button>
+      </div>
     </div>
   )
 }

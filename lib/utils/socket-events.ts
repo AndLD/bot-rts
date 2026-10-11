@@ -1,6 +1,7 @@
 import { IBot } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
-import { ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
+import { IFile } from './interfaces/files'
+import { ITerminalCommandResponse, ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
 
 // The error half of an acknowledgement
 export interface SocketError {
@@ -19,6 +20,10 @@ export interface ClientToServerEvents {
   // Opens a stored terminal session on one of the player's bots; it ends with 'close-terminal' or the disconnect
   'open-terminal': (botId: string, ack: SocketAck<ITerminalSession>) => void
   'close-terminal': (sessionId: string, ack: SocketAck<ITerminalSession>) => void
+  // Runs a line the player typed in the terminal of an open session
+  'terminal-command': (sessionId: string, line: string, ack: SocketAck<ITerminalCommandResponse>) => void
+  // Saves the file an 'edit' result asked for, in the directory the session is in
+  'save-terminal-file': (sessionId: string, path: string, content: string, ack: SocketAck<IFile>) => void
   // The newest stored lines of a bot's terminal sessions, oldest first
   'get-terminal-history': (botId: string, limit: number, ack: SocketAck<ITerminalLogEntry[]>) => void
 }

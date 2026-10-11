@@ -43,6 +43,19 @@ describe('terminal', () => {
       cy.contains('name="')
     })
 
+    it('lists the commands with help', () => {
+      command('help')
+
+      cy.contains('cd <path> - change the drive or the directory')
+      cy.contains('exit - sign out')
+    })
+
+    it('says that files need a drive', () => {
+      command('mkdir scripts')
+
+      cy.contains('No drive selected')
+    })
+
     it('answers an unknown command and clears the screen', () => {
       command('frobnicate')
       cy.contains('Unknown command')

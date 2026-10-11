@@ -3,6 +3,7 @@ import { FilesService } from '../../src/files/application/files.service'
 import { MapGenerator } from '../../src/map/domain/map-generator'
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
+import { createTerminalShell } from '../../src/terminal/application/shell/create-terminal-shell'
 import { TerminalService } from '../../src/terminal/application/terminal.service'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../../src/terminal/domain/terminal-retention'
 import { Rng } from '../../src/shared/application/rng'
@@ -46,6 +47,11 @@ export function createWorld(
 
   const terminalSessions = new InMemoryTerminalSessionRepository()
   const botsService = new BotsService(unitOfWork, repositories.bots, repositories.modules, ids, rng, clock, config)
+  const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids)
+  const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, {
+    ...DEFAULT_TERMINAL_RETENTION,
+    ...options.retention
+  })
   return {
     repositories,
     terminalSessions,
@@ -55,10 +61,8 @@ export function createWorld(
     config,
     mapService: new MapService(unitOfWork, ids, new MapGenerator(rng, config), clock, config.chunkSize),
     botsService,
-    filesService: new FilesService(unitOfWork, botsService, repositories.files, ids),
-    terminalService: new TerminalService(terminalSessions, botsService, ids, clock, {
-      ...DEFAULT_TERMINAL_RETENTION,
-      ...options.retention
-    })
+    filesService,
+    terminalService,
+    terminalShell: createTerminalShell(botsService, filesService, terminalService)
   }
 }

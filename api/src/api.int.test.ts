@@ -452,6 +452,16 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
         expect((await emit(bob, 'open-terminal', botId))[1]).toMatchObject({ code: 403 })
         expect(await emit(alice, 'get-terminal-history', botId, 10)).toEqual([[]])
 
+        const [listed] = (await emit(alice, 'terminal-command', session._id, 'list')) as [
+          { result: { lines: string[] } }
+        ]
+        expect(listed.result.lines).toEqual([expect.stringContaining(`(current) id="${botId}"`)])
+        expect((await emit(alice, 'terminal-command', session._id, 'nonsense'))[0]).toMatchObject({
+          result: { type: 'error', code: 'UNKNOWN_COMMAND' }
+        })
+        expect(await database.client.terminalLog.count({ where: { botId, sessionId: session._id } })).toBe(4)
+        expect((await emit(bob, 'terminal-command', session._id, 'list'))[1]).toMatchObject({ code: 403 })
+
         alice.close()
         const closedSessions = () =>
           database.client.terminalSession.count({ where: { id: session._id, endedAt: { not: null } } })

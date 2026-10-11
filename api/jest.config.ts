@@ -39,6 +39,7 @@ const config: Config = {
     '!coverage/**',
     '!jest.config.ts', // config
     '!index.ts', // process entry point (bootstrap only)
+    '!setup/load-env.ts', // loads the .env file at process start (bootstrap only)
     '!prisma/**' // seed script and migrations
   ],
   coverageReporters: ['text-summary', 'json-summary', 'lcov']

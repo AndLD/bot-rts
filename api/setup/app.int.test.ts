@@ -26,9 +26,9 @@ beforeAll(async () => {
   // The modules read their configuration when they are loaded, so the environment is prepared first
   Object.assign(process.env, { DATABASE_URL: urlForDatabase(databaseName), RATE_LIMIT_AUTH_MAX: '1000' })
   jest.isolateModules(() => {
-    const { createServices } = require('../src/composition')
-    const { setupServer } = require('./server')
-    const jwtUtils = require('../utils/jwt')
+    const { createServices } = jest.requireActual('../src/composition')
+    const { setupServer } = jest.requireActual('./server')
+    const jwtUtils = jest.requireActual('../utils/jwt')
     services = createServices(process.env, 'http://localhost:5173')
     server = setupServer(services)
     createEmailVerificationJwt = jwtUtils.createEmailVerificationJwt

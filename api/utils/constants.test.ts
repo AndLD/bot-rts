@@ -1,47 +1,56 @@
-describe('constants', () => {
-  const load = (env: Record<string, string>) => {
-    const saved = { ...process.env }
-    Object.assign(process.env, env)
-    let loaded: typeof import('./constants') | undefined
-    jest.isolateModules(() => {
-      loaded = require('./constants')
-    })
-    process.env = saved
-    return loaded!
+type Constants = typeof import('./constants')
+
+// The constants are read when the module loads, so every case loads a fresh copy under its own environment
+function loadConstants(env: Record<string, string | undefined>): Constants {
+  const saved = { ...process.env }
+  for (const [key, value] of Object.entries(env)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
   }
 
+  let loaded: Constants | undefined
+  jest.isolateModules(() => {
+    loaded = jest.requireActual('./constants')
+  })
+  process.env = saved
+
+  return loaded as Constants
+}
+
+describe('constants', () => {
   it('falls back to development defaults', () => {
-    const saved = { ...process.env }
-    delete process.env.NODE_ENV
-    delete process.env.FRONTEND_URL
-    delete process.env.PORT
-    delete process.env.RATE_LIMIT_WINDOW_MS
-    delete process.env.RATE_LIMIT_AUTH_MAX
-    let constants: typeof import('./constants') | undefined
-    jest.isolateModules(() => {
-      constants = require('./constants')
+    const constants = loadConstants({
+      NODE_ENV: undefined,
+      PORT: undefined,
+      FRONTEND_URL: undefined,
+      RATE_LIMIT_WINDOW_MS: undefined,
+      RATE_LIMIT_AUTH_MAX: undefined
     })
-    process.env = saved
 
     expect(constants).toMatchObject({
       environment: 'development',
       isProduction: false,
-      FRONTEND_URL: 'http://localhost:5173',
       port: 8080,
+      FRONTEND_URL: 'http://localhost:5173',
       rateLimit: { windowMs: 900000, maxAuthRequests: 20 }
     })
   })
 
   it('reads the environment', () => {
-    expect(
-      load({
-        NODE_ENV: 'production',
-        FRONTEND_URL: 'https://x',
-        RATE_LIMIT_WINDOW_MS: '1000',
-        RATE_LIMIT_AUTH_MAX: '3'
-      })
-    ).toMatchObject({
+    const constants = loadConstants({
+      NODE_ENV: 'production',
+      PORT: '9000',
+      FRONTEND_URL: 'https://x',
+      RATE_LIMIT_WINDOW_MS: '1000',
+      RATE_LIMIT_AUTH_MAX: '3'
+    })
+
+    expect(constants).toMatchObject({
       isProduction: true,
+      port: '9000',
       FRONTEND_URL: 'https://x',
       rateLimit: { windowMs: 1000, maxAuthRequests: 3 }
     })

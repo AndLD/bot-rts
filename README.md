@@ -163,11 +163,16 @@ npm install --prefix lib
 
 ### 2. Configure environment
 
-Create `api/.env.development` with the variables from the table below. `.env*` files are git-ignored, so a fresh clone
-has none, and there is no `.env.example` yet (it is added in [Phase 0](./docs/development-plan/phase-0-stabilize-ci.md),
-task 0.2). Without them the app runs on hardcoded development fallbacks.
+Copy the examples and adjust them (`.env*` files are git-ignored, `*.env.example` files are committed):
 
-> **Warning:** use exactly the variable names in the table. Older local `api/.env.*` files named the JWT secrets
+```bash
+cp api/.env.example api/.env.development
+cp client/.env.example client/.env
+```
+
+Without them the app runs on hardcoded development fallbacks.
+
+> **Warning:** use exactly the variable names in the table (and in the examples); email settings are `SMTP_*` now. Older local `api/.env.*` files named the JWT secrets
 > `JWT_ACCESS_TOKEN_SECRET` etc., which the code does not read, so the app silently fell back to hardcoded dev secrets.
 > Do **not** run this against a real database or expose it publicly.
 
@@ -206,18 +211,16 @@ pm2 start ecosystem.config.json
 | `MONGO_DB_URI`                        | api          | MongoDB connection string                            | `mongodb://localhost:27017` |
 | `MONGO_DB_NAME`                       | api          | Database name                                        | `bot-rts`               |
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |
-| `JWT_REFRESH_SECRET` / `_EXPIRES_IN`  | api          | Refresh-token secret / TTL                           | `super_secret2` / `24h` |
-| `REFRESH_JWT_EXPIRES_IN`              | api          | Refresh **cookie** max age (note the different name from `JWT_REFRESH_EXPIRES_IN`) | `30d` |
+| `JWT_REFRESH_SECRET` / `_EXPIRES_IN`  | api          | Refresh-token secret / TTL (also the refresh cookie max age) | `super_secret2` / `24h` |
 | `JWT_EMAIL_VERIFICATION_SECRET` / `_EXPIRES_IN` | api | Email-verification secret / TTL                      | `super_secret3` / `24h` |
-| `EMAIL_SMTP_USER` / `EMAIL_SMTP_PASS` | api          | SMTP credentials (host is hardcoded to Gmail today; `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` are planned, Plan 0.2) | — |
+| `SMTP_HOST`                           | api          | SMTP host (required in production)                   | `smtp.gmail.com` outside production |
+| `SMTP_PORT` / `SMTP_SECURE`           | api          | SMTP port / implicit TLS flag                        | `465` / `true` when the port is 465 |
+| `SMTP_USER` / `SMTP_PASS`             | api          | SMTP credentials; without them the email service is a no-op | — |
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
 | `VITE_API_URL`                        | client       | Backend base URL (Vite env)                          | `http://localhost:8080` |
 
 > **Planned:** `DATABASE_URL` (PostgreSQL) replaces `MONGO_DB_URI` / `MONGO_DB_NAME` when the persistence layer is switched
 > (Phase 1, task 1.1a).
-
-> **Known inconsistency:** the refresh token lifetime has two names, `JWT_REFRESH_EXPIRES_IN` (token) and
-> `REFRESH_JWT_EXPIRES_IN` (cookie), with different defaults (`24h` vs `30d`). Phase 0 task 0.2 aligns them.
 
 ---
 

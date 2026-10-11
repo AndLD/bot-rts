@@ -57,7 +57,7 @@ export class AuthController {
   @HttpCode(200)
   @Post('refresh')
   async refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
-    const refreshToken = request.cookies?.[REFRESH_COOKIE]
+    const refreshToken = request.cookies[REFRESH_COOKIE]
 
     if (typeof refreshToken !== 'string' || !refreshToken) {
       throw new UnauthorizedError('Unable to refresh the access token')
@@ -70,7 +70,7 @@ export class AuthController {
   @HttpCode(204)
   @Post('logout')
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
-    const refreshToken = request.cookies?.[REFRESH_COOKIE]
+    const refreshToken = request.cookies[REFRESH_COOKIE]
 
     if (typeof refreshToken === 'string' && refreshToken) {
       await this.auth.logout(refreshToken)

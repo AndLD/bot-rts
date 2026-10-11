@@ -43,6 +43,7 @@ import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repos
 import { PrismaSessionRepository } from './infrastructure/prisma-session.repository'
 import { AuthController, REFRESH_COOKIE_OPTIONS } from './presentation/auth.controller'
 import { AuthGuard } from './presentation/auth.guard'
+import { createRefreshCookieOptions } from './presentation/refresh-cookie'
 import { RolesGuard } from './presentation/roles.guard'
 
 // The adapter that verifies tokens is chosen by AUTH_PROVIDER. Only the custom (`local`) provider exists today; a hosted
@@ -150,13 +151,8 @@ import { RolesGuard } from './presentation/roles.guard'
     {
       provide: REFRESH_COOKIE_OPTIONS,
       inject: [APP_CONFIG],
-      useFactory: (config: AppConfig) => ({
-        secure: config.nodeEnv === 'production',
-        // The web client and the API may live on different sites in production
-        sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
-        path: '/api/v1/auth',
-        maxAgeMs: config.auth.policy.sessionTtlMs
-      })
+      useFactory: (config: AppConfig) =>
+        createRefreshCookieOptions({ nodeEnv: config.nodeEnv, sessionTtlMs: config.auth.policy.sessionTtlMs })
     },
     // Deny by default: every route needs a signed-in player unless it is @Public(); roles are checked after that
     { provide: APP_GUARD, useClass: AuthGuard },

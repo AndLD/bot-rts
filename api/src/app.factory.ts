@@ -52,9 +52,8 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
       forbidNonWhitelisted: true,
       transform: true,
       exceptionFactory: (errors) =>
-        new ValidationError(
-          errors.flatMap((error) => Object.values(error.constraints ?? {})).join('; ') || 'Invalid request'
-        )
+        // The DTOs are flat, so every failed property has constraints
+        new ValidationError(errors.flatMap((error) => Object.values(error.constraints as object)).join('; '))
     })
   )
   app.useGlobalFilters(new AppExceptionFilter(app.get<Logger>(LOGGER)))

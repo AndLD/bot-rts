@@ -190,6 +190,11 @@ describe('account flows', () => {
     await api().post('/api/v1/auth/login').send({ email: 'alice@example.com', password: PASSWORD }).expect(401)
   })
 
+  it('refuses to refresh without a cookie', async () => {
+    await api().post('/api/v1/auth/refresh').expect(401)
+    await api().post('/api/v1/auth/logout').expect(204)
+  })
+
   it('resends the verification link', async () => {
     await api()
       .post('/api/v1/auth/register')

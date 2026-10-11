@@ -5,7 +5,8 @@ import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { MapRepository } from '../../map/application/map.repository'
 import { KnownPoint, Location, MapPoint } from '../../map/domain/map-point.entity'
 import { WorldConfig } from '../../map/domain/world-config'
-import { INITIAL_BASE_MODULES, ModuleTemplate } from '../../modules/domain/initial-base-modules'
+import { ModuleFactory } from '../../modules/application/module.factory'
+import { ModuleTemplate } from '../../modules/domain/module-catalog'
 import { Module } from '../../modules/domain/module.entity'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
@@ -32,7 +33,8 @@ export class BotsService {
     private readonly rng: Rng,
     private readonly clock: Clock,
     private readonly world: WorldConfig,
-    private readonly hasher: PasswordHasher
+    private readonly hasher: PasswordHasher,
+    private readonly moduleFactory: ModuleFactory
   ) {}
 
   // Creates the first base of a player on a free cell, with the starting equipment and the access password others
@@ -65,7 +67,7 @@ export class BotsService {
       const spot = location ?? (await this.findFreeLocation(repositories.map))
 
       await repositories.bots.add(bot)
-      const modules = INITIAL_BASE_MODULES.map((template) => ({ ...template, id: this.ids.next(), botId: bot.id }))
+      const modules = this.moduleFactory.starterKit(bot.id)
       await repositories.modules.addMany(modules)
 
       const mapPoint = await repositories.map.upsertPoint({
@@ -111,7 +113,7 @@ export class BotsService {
         passwordHash: null
       }
       await repositories.bots.add(bot)
-      const modules = input.modules.map((template) => ({ ...template, id: this.ids.next(), botId: bot.id }))
+      const modules = input.modules.map((template) => this.moduleFactory.fromTemplate(template, bot.id))
       await repositories.modules.addMany(modules)
       return { bot, modules }
     })

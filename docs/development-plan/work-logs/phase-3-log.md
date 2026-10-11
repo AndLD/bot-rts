@@ -81,3 +81,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.9 (module registry and factory; starter kit with processor, memory and wireless adapter).
 - **Verify with:** `npm run db:up && npm run test:coverage && npm run i18n:check && npm run e2e`
 
+### 2026-10-11 — task 3.9: module registry and factory
+- **Tasks:** 3.9
+- **Branch:** `feature/3.9-module-registry` — done
+- **Decisions:** a stored module record stays plain data; `GameModule` is the class that gives it meaning, with one subclass per type (`ScannerModule`, `DriveModule`, `ProcessorModule`, `WirelessAdapterModule`, `WeaponModule`, `BatteryModule`, `StorageModule`, …; types without behaviour yet share `PlainModule`) and typed readers for the type-specific properties (a missing or unusable number falls back to a default). `ModuleRegistry` maps a type to its class (`createModuleRegistry` registers all 14 types; a test proves none is missing), and `instancesOf(records, Class)` is how a use case asks for, say, the drives of a bot; `ScanService` and `FilesService` use it instead of reading `props` themselves. The module catalog (`module-catalog.ts`, data) replaces `initial-base-modules.ts` and `ModuleFactory` creates modules from it by name (`starterKit` for a base). The starter kit now has the class-1 processor (2 ops per tick, 1 parallel), memory (64 KiB, read/write delay) and wireless adapter (range 20), ten modules in all.
+- **Consequences:** a deployed base now has a drive, so the file commands work from the first session; tests that need a small or broken drive change the kit's drive (`tests/fakes/drives.ts`).
+- **Lesson:** `jest | grep Tests:` hides a suite that fails to compile (a failed suite counts no tests); read the `Test Suites:` line too.
+- **Next step:** task 3.10 (base destruction lifecycle).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api`
+

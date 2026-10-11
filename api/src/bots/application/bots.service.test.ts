@@ -2,7 +2,7 @@ import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { FixedRng } from '../../../tests/fakes/fakes'
 import { createWorld } from '../../../tests/fakes/world'
-import { INITIAL_BASE_MODULES } from '../../modules/domain/initial-base-modules'
+import { MODULE_CATALOG, STARTER_KIT } from '../../modules/domain/module-catalog'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { toBotDto } from '../presentation/bot.mapper'
 import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
@@ -19,7 +19,7 @@ describe('BotsService.deployUserBase', () => {
     const { bot, modules, mapPoint } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     expect(bot).toMatchObject({ label: 'Alice base', type: BOT_TYPE.BASE, userId: alice.id, baseId: null })
-    expect(modules).toHaveLength(INITIAL_BASE_MODULES.length)
+    expect(modules.map((module) => module.name)).toEqual(STARTER_KIT)
     expect(modules.every((module) => module.botId === bot.id)).toBe(true)
     expect(mapPoint).toMatchObject({ location: { x: 3, y: 6, z: 0 }, type: MapPointType.BASE, contentId: bot.id })
     expect(repositories.map.known.size).toBe(1)
@@ -132,7 +132,7 @@ describe('BotsService queries', () => {
 })
 
 describe('BotsService.createBot', () => {
-  const modules = INITIAL_BASE_MODULES.slice(0, 2)
+  const modules = MODULE_CATALOG.slice(0, 2)
 
   it('builds a bot of the base from the modules and lists it with the base bots', async () => {
     const { botsService, repositories } = createWorld()
@@ -176,7 +176,7 @@ describe('BotsService.listBaseBots', () => {
     const { bot: worker } = await botsService.createBot(alice.id, {
       baseId: base.id,
       label: null,
-      modules: INITIAL_BASE_MODULES.slice(0, 1)
+      modules: MODULE_CATALOG.slice(0, 1)
     })
 
     await expect(botsService.listBaseBots(bob.id, base.id)).rejects.toThrow(ForbiddenError)

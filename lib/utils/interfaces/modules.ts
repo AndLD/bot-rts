@@ -23,6 +23,24 @@ export type ModuleType =
   | 'factory'
   | 'gps'
 
+// Every module type, for code that must cover them all
+export const MODULE_TYPES: readonly ModuleType[] = [
+  'engine',
+  'weapon',
+  'mining',
+  'manipulator',
+  'drive',
+  'processor',
+  'wirelessAdapter',
+  'battery',
+  'storage',
+  'armor',
+  'scanner',
+  'generator',
+  'factory',
+  'gps'
+]
+
 export enum EngineType {
   FUEL = 'fuel',
   STEAM = 'steam',

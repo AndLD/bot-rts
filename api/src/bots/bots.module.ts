@@ -7,6 +7,8 @@ import { MapService } from '../map/application/map.service'
 import { WORLD_CONFIG, WorldConfig } from '../map/domain/world-config'
 import { MapModule } from '../map/map.module'
 import { MODULE_REPOSITORY, ModuleRepository } from '../modules/application/module.repository'
+import { ModuleRegistry } from '../modules/domain/module-registry'
+import { ModuleFactory } from '../modules/application/module.factory'
 import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
@@ -40,7 +42,8 @@ import { BotsGateway } from './presentation/bots.gateway'
         RNG,
         CLOCK,
         WORLD_CONFIG,
-        PASSWORD_HASHER
+        PASSWORD_HASHER,
+        ModuleFactory
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -50,14 +53,20 @@ import { BotsGateway } from './presentation/bots.gateway'
         rng: Rng,
         clock: Clock,
         world: WorldConfig,
-        hasher: PasswordHasher
-      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher)
+        hasher: PasswordHasher,
+        moduleFactory: ModuleFactory
+      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher, moduleFactory)
     },
     {
       provide: ScanService,
-      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService],
-      useFactory: (bots: BotsService, modules: ModuleRepository, map: MapRepository, mapService: MapService) =>
-        new ScanService(bots, modules, map, mapService)
+      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry],
+      useFactory: (
+        bots: BotsService,
+        modules: ModuleRepository,
+        map: MapRepository,
+        mapService: MapService,
+        registry: ModuleRegistry
+      ) => new ScanService(bots, modules, map, mapService, registry)
     }
   ],
   exports: [BOT_REPOSITORY, BotsService, ScanService]

@@ -1,5 +1,7 @@
 import { KnownPoint } from '../../map/domain/map-point.entity'
 import { MapService } from '../../map/application/map.service'
+import { ScannerModule } from '../../modules/domain/game-module'
+import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { MapRepository } from '../../map/application/map.repository'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
@@ -10,14 +12,15 @@ export class ScanService {
     private readonly bots: BotsService,
     private readonly modules: ModuleRepository,
     private readonly map: MapRepository,
-    private readonly mapService: MapService
+    private readonly mapService: MapService,
+    private readonly registry: ModuleRegistry
   ) {}
 
   // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge
   async scan(userId: string, botId: string): Promise<KnownPoint[]> {
     await this.bots.getOwnedBot(userId, botId)
 
-    const scanner = (await this.modules.listOfBot(botId)).find((module) => module.type === 'scanner')
+    const [scanner] = this.registry.instancesOf(await this.modules.listOfBot(botId), ScannerModule)
     if (!scanner) {
       throw new ValidationError('The bot has no scanner module')
     }
@@ -27,7 +30,7 @@ export class ScanService {
       throw new NotFoundError('Bot location not found')
     }
 
-    const distance = Number(scanner.props.distance ?? 0)
+    const { distance } = scanner
     const { x, y, z } = position.location
 
     return this.mapService.observe(userId, {

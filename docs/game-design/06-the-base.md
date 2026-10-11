@@ -7,7 +7,7 @@ factory bot with a simple gun to defend itself with a simple scanner to track ne
 
 ## 6.1 Starting loadout
 
-Deploying a base attaches the initial module kit (`initialUserBaseModules`). ✅
+Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/domain/module-catalog.ts`, built by the `ModuleFactory` from the module catalog). ✅
 
 | Module | Type | Key stats | Role |
 | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Deploying a base attaches the initial module kit (`initialUserBaseModules`). ✅
 
 ✅ The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
-notes remains undefined. Update `initialUserBaseModules` accordingly.
+notes remains undefined. The kit is implemented this way (task 3.9).
 
 ## 6.2 Base capabilities
 

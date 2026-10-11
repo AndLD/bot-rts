@@ -11,7 +11,8 @@ function setup() {
     world.botsService,
     world.repositories.modules,
     world.repositories.map,
-    world.mapService
+    world.mapService,
+    world.moduleRegistry
   )
   return { ...world, scanService }
 }

@@ -1,7 +1,7 @@
 import { TERMINAL_COMMANDS } from '../../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../../tests/fakes/world'
-import { INITIAL_BASE_MODULES } from '../../../modules/domain/initial-base-modules'
-import { buildModule } from '../../../../tests/integration/builders'
+import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
+import { customiseDrive } from '../../../../tests/fakes/drives'
 import { ForbiddenError } from '../../../shared/domain/errors'
 import { TOP } from './cwd'
 
@@ -11,8 +11,7 @@ const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 async function setup() {
   const world = createWorld()
   const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
-  const drive = buildModule(bot.id, { type: 'drive', name: 'memory-class1', props: { quota: 100 } })
-  await world.repositories.modules.addMany([drive])
+  const drive = customiseDrive(world.repositories.modules, bot.id, { props: { quota: 100 } })
   const session = await world.terminalService.open(alice.id, bot.id)
 
   // Keeps the place between lines, as the gateway does
@@ -59,7 +58,7 @@ describe('the commands of the base terminal', () => {
 
     expect(await lines('list')).toEqual([`(current) id="${bot.id}" label="Alice base" type="base"`])
     const modules = (await lines('modules')) as string[]
-    expect(modules).toHaveLength(8)
+    expect(modules).toHaveLength(10)
     expect(modules).toContainEqual(expect.stringContaining('type="scanner" name="scanner-class1"'))
   })
 
@@ -207,7 +206,7 @@ describe('the file commands', () => {
     const { bot: worker } = await botsService.createBot(alice.id, {
       baseId: bot.id,
       label: null,
-      modules: INITIAL_BASE_MODULES.slice(0, 1)
+      modules: MODULE_CATALOG.slice(0, 1)
     })
 
     const { result } = await run('list')

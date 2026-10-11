@@ -42,3 +42,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.4 (bot model, `BotRepository`/`BotService`).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.4: bot service
+- **Tasks:** 3.4
+- **Branch:** `feature/3.4-bot-service` — done
+- **Decisions:** the bot model and `BotRepository` (`findById`, `add`, `listOfUser`, `listOfBase`) were already in place from Phase 1; this task adds `BotsService.createBot` (a worker of one of the player's bases from module templates, in one transaction; it is not placed on the map, that is the assembly's step with `SpawnService`, task 3.11 and 4.x) and `BotsService.listBaseBots`, exposed as `GET /api/v1/bots/:id/bots`. Assembly rule validation (design §8.2) arrives with the assembly (4.6).
+- **Next step:** task 3.5 (terminal session persistence).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api`
+

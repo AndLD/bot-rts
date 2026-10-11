@@ -1,5 +1,6 @@
 import { BOT_TYPE } from '../../lib/utils/interfaces/bots'
 import { MapPointType } from '../../lib/utils/interfaces/map'
+import { RESOURCE } from '../../lib/utils/interfaces/resources'
 import { toBotDto } from './bots/presentation/bot.mapper'
 import { toMapPointDto } from './map/presentation/map-point.mapper'
 import { toModuleDto } from './modules/presentation/module.mapper'
@@ -61,6 +62,10 @@ describe('presentation mappers', () => {
 
     expect(toMapPointDto(real)).toEqual({ _id: real.id, location: { x: 1, y: 2 }, contentId: null, type: 'resource' })
     expect(toMapPointDto(known)).toMatchObject({ userId: 'u1', seenAt: 7 })
+    expect(toMapPointDto({ ...real, resource: { resource: RESOURCE.GOLD, amount: 12 } }).resource).toEqual({
+      resource: 'gold',
+      amount: 12
+    })
     expect(toMapPointDto({ ...real, location: { x: 1, y: 2, z: 3 } }).location).toEqual({ x: 1, y: 2, z: 3 })
   })
 })

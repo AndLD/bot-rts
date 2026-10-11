@@ -43,6 +43,12 @@ export class BotsController {
     return (await this.bots.listUserBots(user.id, { type: query.type })).map(toBotDto)
   }
 
+  // The ordinary bots of one of the player's bases (design §8.4)
+  @Get(':id/bots')
+  async baseBots(@CurrentPrincipal() { user }: Principal, @Param('id', botIdPipe) id: string): Promise<IBot[]> {
+    return (await this.bots.listBaseBots(user.id, id)).map(toBotDto)
+  }
+
   @Get(':id/modules')
   async modules(@CurrentPrincipal() { user }: Principal, @Param('id', botIdPipe) id: string): Promise<ModuleProps[]> {
     return (await this.bots.getBotModules(user.id, id)).map(toModuleDto)

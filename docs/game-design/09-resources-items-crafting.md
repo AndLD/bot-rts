@@ -25,6 +25,8 @@
   | gold | rare | 4 |
 
   The overall chance that a newly generated cell is a resource cell stays a single configurable value (currently 20 %).
+- ✅ **Oil is also the generator fuel** (§12.5): bots burn it from their storage to make energy, so moving oil to where bots
+  work is part of logistics.
 
 ## 9.2 Extraction
 

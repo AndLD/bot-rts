@@ -7,13 +7,14 @@
 - The engine emits **typed game events** each tick: `BotMoved`, `ShotFired`, `ShotHit`, `ModuleDamaged`,
   `ModuleBroken`, `ResourceMined`, `DepositDepleted`, `ModuleRepaired`, `ModuleDisassembled`, `ItemCrafted`,
   `BotAssembled`, `BotAdopted`, `ScanCompleted`, `LinkEstablished`, `LinkLost`, `PasswordAttemptFailed`,
-  `ExecutionFinished`, `ExecutionFailed`, `EnergyLow`, `BaseControlLost`, the trade events of §26.8 (`OrderFilled`, `AuctionOutbid`, `AuctionWon`, `AuctionSold`, …), `TransferReceived`, and so on.
+  `ExecutionFinished`, `ExecutionFailed`, `EnergyLow`, `BaseControlLost`, `LiveScanStopped`, the trade events of §26.8 (`OrderFilled`, `AuctionOutbid`, `AuctionWon`, `AuctionSold`, …), `TransferReceived`, and so on.
 - Events are plain data, emitted after the commands of a tick are applied (§14.2), and are never used to change the
   simulation. They feed three consumers: **map animations** (§15.2), **achievements** (§23) and **notifications**
   (§24.2).
-- **Visibility (fog of war):** a player receives an event only if it happens in a cell that is currently visible to
-  them, meaning within the scan range of their own bots or bases at that tick. Events of the player's own bots are
-  always delivered. Players never learn about events in unseen cells.
+- **Visibility (fog of war):** a player receives an event if it (a) concerns **their own** bots, bases, modules, items, orders
+  or wallet, (b) is the **direct result of their own action** (for example the hit their bot's shot causes on an enemy), or
+  (c) happens inside their **live area** (continuous scanning, §4.4), whoever caused it. Everything else is learned only
+  through a later scan.
 
 ## 24.2 Notifications ✅
 
@@ -21,7 +22,7 @@
 - **Persistent:** every notification is also stored (30-day retention, tunable), so the player sees what happened while
   offline. The client shows a **notification center** with an unread count and mark-as-read.
 - **Categories** (each can be switched on/off in the profile settings, §15): *Attacks* (your bots or base are hit),
-  *Damage and energy* (module broken, battery low), *Scripts* (finished, crashed, restarted after a reboot, §12.3.1),
+  *Damage and energy* (module broken, battery low, out of fuel, live scan stopped), *Scripts* (finished, crashed, restarted after a reboot, §12.3.1),
   *Security* (failed password attempts on your bots, a bot adopted, base control lost), *Fabrication* (craft, assembly
   or research done), *Trade* (orders filled, auctions outbid / won / sold, transfers received), *Achievements* and *System* (tutorial, announcements).
 - **Anti-spam:** repeated events of one kind are **coalesced** (for example one "under attack" per bot per 30 seconds,

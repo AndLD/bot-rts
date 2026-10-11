@@ -50,3 +50,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.5 (bot assembly rules and the movement rule).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.5: bot assembly and the movement rule
+- **Tasks:** 4.5
+- **Branch:** `feature/4.5-bot-assembly` — done
+- **Decisions / deviations from the plan:** `bots/domain/assembly.ts` (`validateAssembly`: processor, wireless adapter and battery are required; a bot with an engine or a chassis needs both and a chassis that carries it) and `bots/domain/movement.ts` (`movementOf`: working engine and chassis, `totalWeight` ≤ the chassis `loadCapacity`, `ticksPerCell = clamp(ceil(weight / speed), 1, maxTicksPerCell)`; `MovementBalance.maxTicksPerCell` = 20 is a constructor argument the engine configures in phase 5). New result code `TOO_HEAVY`. **Crafted modules are `part` items** of the base (`ItemType.PART`, `name` = the catalog module): crafting (4.6) will produce them, `AssemblyService.assemble` turns the chosen parts into the modules of a new bot next to the base and removes them in the same transaction (`createBot` got `consumedItemIds`, the unit of work got the `items` repository). Assembly needs a working factory on the base and parts the base holds.
+- **Not done here, by design:** no endpoint, socket event or terminal command yet; those come with 4.6, where the factory also gets the craft and research operations.
+- **Next step:** task 4.6 (crafting API, sockets, terminal commands).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

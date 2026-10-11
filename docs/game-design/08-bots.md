@@ -30,7 +30,7 @@ Optional: memory (drive), storage, weapon, drill, manipulator, scanner, armor, g
 cannot store scripts but can still be driven remotely.
 
 Assembly validates these rules and rejects physically impossible builds (including `totalWeight > chassis.loadCapacity`
-for a mobile bot, §8.5). 🔴
+for a mobile bot, §8.5; an engine without a chassis, or the reverse, is rejected too). ✅ Assembly happens at a working **factory** of the base, from the module **parts** the base holds; the parts are used up.
 
 > **Future (backlog, §21):** a physical **port module** that lets a bot connect by "wire" to another bot or to the base
 > without a wireless adapter. Until then the wireless adapter is mandatory.

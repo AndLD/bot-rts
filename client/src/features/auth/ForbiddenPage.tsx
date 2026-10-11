@@ -1,8 +1,11 @@
 'use client'
 
 import { MailOutlined } from '@ant-design/icons'
+import { useTranslations } from 'next-intl'
 
 export default function ForbiddenPage() {
+  const t = useTranslations('auth.forbidden')
+
   return (
     <div
       style={{
@@ -16,7 +19,7 @@ export default function ForbiddenPage() {
       }}
     >
       <MailOutlined style={{ fontSize: 100 }} />
-      <div>Check your email. We have sent verification letter</div>
+      <div>{t('message')}</div>
     </div>
   )
 }

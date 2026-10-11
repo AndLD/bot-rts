@@ -1,16 +1,20 @@
 'use client'
 
 import { Button, Form, Input } from 'antd'
+import { IUserPostBody } from '@lib/utils/interfaces/users'
+import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { errorNotification } from '../../shared/notifications'
+import { useErrorMessage } from '../../shared/errors'
 import { useAppDispatch } from '../../shared/store/hooks'
 import { setToken } from '../../shared/store/session.slice'
-import { IUserPostBody } from '@lib/utils/interfaces/users'
-import { errorNotification } from '../../shared/notifications'
-import { getErrorMessage } from '../../shared/errors'
-import { validationRules } from '../../shared/validation'
-import { useRouter } from 'next/navigation'
 import { useRegisterMutation } from './auth.api'
+import { useAuthRules } from './validation'
 
 export default function SignupForm() {
+  const t = useTranslations('auth')
+  const rules = useAuthRules()
+  const getErrorMessage = useErrorMessage()
   const router = useRouter()
   const [form] = Form.useForm()
   const dispatch = useAppDispatch()
@@ -23,44 +27,27 @@ export default function SignupForm() {
       dispatch(setToken(result.data.accessToken))
       router.push('/forbidden')
     } else {
-      errorNotification(getErrorMessage(result.error), 'Could not sign up')
+      errorNotification(getErrorMessage(result.error), t('signup.failed'))
     }
   }
 
   return (
     <Form form={form} name="basic" onFinish={onFinish} autoComplete="off" className="auth-form">
-      <Form.Item
-        name="name"
-        rules={[
-          validationRules.REQUIRED('Будь-ласка введіть ваше ім`я та прізвище!'),
-          validationRules.NAME('Невірні ім`я та прізвище!')
-        ]}
-      >
-        <Input placeholder="Name" />
+      <Form.Item name="name" rules={[rules.nameRequired, rules.name]}>
+        <Input placeholder={t('fields.name')} />
       </Form.Item>
 
-      <Form.Item
-        name="email"
-        rules={[validationRules.EMAIL('Невірний email'), validationRules.REQUIRED('Будь-ласка введіть ваш email!')]}
-      >
-        <Input type="email" placeholder="Email" />
+      <Form.Item name="email" rules={[rules.email, rules.emailRequired]}>
+        <Input type="email" placeholder={t('fields.email')} />
       </Form.Item>
 
-      <Form.Item
-        name="password"
-        rules={[
-          validationRules.REQUIRED('Будь-ласка введіть ваш пароль!'),
-          validationRules.PASSWORD(
-            'Пароль має містити 6-20 символів, хочаб одну цифру, велику та маленьку літери латинського алфавіту та спеціальний символ: -#$.%&@(){}[]!?+*'
-          )
-        ]}
-      >
-        <Input.Password placeholder="Password" />
+      <Form.Item name="password" rules={[rules.passwordRequired, rules.password]}>
+        <Input.Password placeholder={t('fields.password')} />
       </Form.Item>
 
       <div className="button">
         <Button className="button" htmlType="submit" type="primary">
-          Sign up
+          {t('signup.submit')}
         </Button>
       </div>
     </Form>

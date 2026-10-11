@@ -1,15 +1,19 @@
 'use client'
 
 import { Button, Form, Input } from 'antd'
+import { IAuthPostBody } from '@lib/utils/interfaces/auth'
+import { useTranslations } from 'next-intl'
+import { errorNotification } from '../../shared/notifications'
+import { useErrorMessage } from '../../shared/errors'
 import { useAppDispatch } from '../../shared/store/hooks'
 import { setToken } from '../../shared/store/session.slice'
 import { useLoginMutation } from './auth.api'
-import { IAuthPostBody } from '@lib/utils/interfaces/auth'
-import { errorNotification } from '../../shared/notifications'
-import { getErrorMessage } from '../../shared/errors'
-import { validationRules } from '../../shared/validation'
+import { useAuthRules } from './validation'
 
 export default function SigninForm() {
+  const t = useTranslations('auth')
+  const rules = useAuthRules()
+  const getErrorMessage = useErrorMessage()
   const [form] = Form.useForm()
   const dispatch = useAppDispatch()
   const [login] = useLoginMutation()
@@ -20,26 +24,23 @@ export default function SigninForm() {
     if (result.data) {
       dispatch(setToken(result.data.accessToken))
     } else {
-      errorNotification(getErrorMessage(result.error), 'Login error')
+      errorNotification(getErrorMessage(result.error), t('login.failed'))
     }
   }
 
   return (
     <Form form={form} name="basic" onFinish={onFinish} autoComplete="off" className="auth-form">
-      <Form.Item name="email" rules={[validationRules.REQUIRED('Please enter your email!'), validationRules.EMAIL()]}>
-        <Input type="email" placeholder="Email" />
+      <Form.Item name="email" rules={[rules.emailRequired, rules.email]}>
+        <Input type="email" placeholder={t('fields.email')} />
       </Form.Item>
 
-      <Form.Item
-        name="password"
-        rules={[validationRules.REQUIRED('Please enter your password!'), validationRules.PASSWORD()]}
-      >
-        <Input.Password placeholder="Password" />
+      <Form.Item name="password" rules={[rules.passwordRequired, rules.password]}>
+        <Input.Password placeholder={t('fields.password')} />
       </Form.Item>
 
       <div className="button">
         <Button className="button" htmlType="submit" type="primary">
-          Log in
+          {t('login.submit')}
         </Button>
       </div>
     </Form>

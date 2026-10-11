@@ -1,0 +1,74 @@
+{
+  "common": {
+    "appName": "Bot RTS",
+    "language": "Language"
+  },
+  "marketing": {
+    "tagline": "Program your bots. Conquer the map.",
+    "play": "Play"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "submit": "Log in",
+      "failed": "Login error",
+      "toSignup": "Don't have an account? Sign up"
+    },
+    "signup": {
+      "title": "Sign Up",
+      "submit": "Sign up",
+      "failed": "Could not sign up",
+      "toLogin": "Already have an account? Log in"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password"
+    },
+    "validation": {
+      "nameRequired": "Please enter your first and last name!",
+      "nameInvalid": "Invalid first and last name!",
+      "emailRequired": "Please enter your email!",
+      "emailInvalid": "Invalid email",
+      "passwordRequired": "Please enter your password!",
+      "passwordInvalid": "The password must have 6-20 characters, a digit, an uppercase and a lowercase Latin letter and a special character: {characters}"
+    },
+    "forbidden": {
+      "message": "Check your email. We have sent a verification letter"
+    },
+    "blocked": {
+      "message": "Your account is blocked"
+    },
+    "signOutFailed": "Could not sign out",
+    "verificationFailed": "Email confirmation failed"
+  },
+  "terminal": {
+    "welcome": "# Welcome to BotOS Alpha 0.1.0 #",
+    "shellHeader": "Bot shell v0.0.1, bot id = {botId}",
+    "loading": "Loading...",
+    "failedToConnect": "Failed to connect",
+    "unknownCommand": "Unknown command",
+    "unknownPath": "Unknown path",
+    "error": "Error: {message}",
+    "nothing": "Nothing to show"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "UNAUTHORIZED": "Please sign in",
+    "FORBIDDEN": "You are not allowed to do this",
+    "NOT_FOUND": "Not found",
+    "VALIDATION_FAILED": "Please check the entered data",
+    "CREDENTIALS_INVALID": "The email or the password is wrong",
+    "EMAIL_ALREADY_EXISTS": "This email is already registered",
+    "EMAIL_NOT_VERIFIED": "Confirm your email first",
+    "USER_BANNED": "Your account is blocked",
+    "INVALID_TOKEN": "The link is invalid or has expired",
+    "TOKEN_EXPIRED": "Your session has expired",
+    "WRONG_PASSWORD": "The current password is wrong",
+    "BASE_ALREADY_EXISTS": "You already have a base",
+    "NO_FREE_LOCATION": "There is no free place for the base",
+    "TOO_MANY_REQUESTS": "Too many requests, try again later",
+    "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
+    "INTERNAL_ERROR": "Something went wrong on our side"
+  }
+}

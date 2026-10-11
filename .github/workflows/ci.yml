@@ -71,6 +71,8 @@ jobs:
         run: npm run check:boundaries
       - name: Typecheck
         run: npm run typecheck
+      - name: Message catalogues
+        run: npm run i18n:check
       - name: Markdown links
         run: npm run docs:check
       - name: Unit and integration tests with coverage

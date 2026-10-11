@@ -1,9 +1,11 @@
 import { IBot } from '@lib/utils/interfaces/bots'
 import { ModuleProps } from '@lib/utils/interfaces/modules'
-import { SocketError } from '@lib/utils/socket-events'
 
 export const DEFAULT_PREFIX = '/>'
 export const SHELL_PREFIX = '>>>'
+
+// A line of output: a message of ours (translated by the caller) or ready, HTML-escaped data
+export type TerminalReply = { message: 'unknownCommand' | 'unknownPath' } | { html: string }
 
 export interface TerminalSession {
   isShellMode: boolean
@@ -15,7 +17,7 @@ export interface TerminalSession {
 export type TerminalAction =
   | { type: 'none' }
   | { type: 'clear' }
-  | { type: 'reply'; text: string }
+  | { type: 'reply'; reply: TerminalReply }
   | { type: 'logout' }
   | { type: 'enter-shell' }
   | { type: 'exit-shell' }
@@ -63,7 +65,9 @@ function interpretDefaultCommand(command: string, session: TerminalSession): Ter
     case 'ls':
     case 'dir':
       // Listing the files of a drive is not available yet
-      return session.selectedDriveName ? { type: 'none' } : { type: 'reply', text: joinLines(session.driveNames) }
+      return session.selectedDriveName
+        ? { type: 'none' }
+        : { type: 'reply', reply: { html: joinLines(session.driveNames) } }
     case 'shell':
       return { type: 'enter-shell' }
     case 'exit':
@@ -80,7 +84,7 @@ function interpretDefaultCommand(command: string, session: TerminalSession): Ter
     return interpretChangeDrive(path, session)
   }
 
-  return { type: 'reply', text: 'Unknown command' }
+  return { type: 'reply', reply: { message: 'unknownCommand' } }
 }
 
 function interpretChangeDrive(path: string, session: TerminalSession): TerminalAction {
@@ -92,7 +96,7 @@ function interpretChangeDrive(path: string, session: TerminalSession): TerminalA
 
   return session.driveNames.includes(driveName)
     ? { type: 'select-drive', driveName }
-    : { type: 'reply', text: 'Unknown path' }
+    : { type: 'reply', reply: { message: 'unknownPath' } }
 }
 
 export function formatBots(bots: IBot[], currentBotId: string | null): string {
@@ -104,12 +108,6 @@ export function formatBots(bots: IBot[], currentBotId: string | null): string {
   )
 }
 
-export function formatModules(modules: ModuleProps[] | null, error?: SocketError): string {
-  if (error) {
-    return joinLines([`Error: ${error.msg}`])
-  }
-
-  return modules
-    ? joinLines(modules.map((module) => `- id="${module._id}" type="${module.type}" name="${module.name}"`))
-    : 'null'
+export function formatModules(modules: ModuleProps[]): string {
+  return joinLines(modules.map((module) => `- id="${module._id}" type="${module.type}" name="${module.name}"`))
 }

@@ -3,13 +3,17 @@ import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { EMAIL_SENDER, EmailSender } from './application/email-sender'
 import { SmtpEmailSender } from './infrastructure/smtp-email-sender'
 
+// Without SMTP settings no mail is sent (development)
+export function createEmailSender(config: Pick<AppConfig, 'smtp'>): EmailSender | undefined {
+  return config.smtp ? new SmtpEmailSender(config.smtp) : undefined
+}
+
 @Module({
   providers: [
     {
       provide: EMAIL_SENDER,
       inject: [APP_CONFIG],
-      // Without SMTP settings no mail is sent (development)
-      useFactory: (config: AppConfig) => (config.smtp ? new SmtpEmailSender(config.smtp) : undefined)
+      useFactory: createEmailSender
     }
   ],
   exports: [EMAIL_SENDER]

@@ -3,6 +3,7 @@ import { AppConfig } from './config/app-config'
 import { ConfigModule } from './config/config.module'
 import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
+import { CraftingModule } from './crafting/crafting.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { MapModule } from './map/map.module'
@@ -26,6 +27,7 @@ export class AppModule {
         UsersModule,
         AuthModule,
         ModulesModule,
+        CraftingModule,
         FilesModule,
         MapModule,
         BotsModule,

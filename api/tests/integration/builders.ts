@@ -4,6 +4,8 @@ import { FILE_KIND } from '../../../lib/utils/interfaces/files'
 import { Bot } from '../../src/bots/domain/bot.entity'
 import { File } from '../../src/files/domain/file.entity'
 import { KnownPoint, MapPoint } from '../../src/map/domain/map-point.entity'
+import { ItemType } from '../../../lib/utils/interfaces/items'
+import { Item } from '../../src/crafting/domain/item.entity'
 import { Module } from '../../src/modules/domain/module.entity'
 import { User } from '../../src/users/domain/user.entity'
 import { AuthToken } from '../../src/auth/domain/auth-token'
@@ -111,4 +113,8 @@ export function buildAuthToken(userId: string, overrides: Partial<AuthToken> = {
     usedAt: null,
     ...overrides
   }
+}
+
+export function buildItem(overrides: Partial<Item> = {}): Item {
+  return { id: randomUUID(), type: ItemType.BLUEPRINT, name: 'scanner-class2', weight: 0.1, botId: null, ...overrides }
 }

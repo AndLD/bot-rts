@@ -62,6 +62,42 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     weight: 30,
     props: { distance: 1, delay: 250 }
   },
+  {
+    type: 'weapon',
+    name: 'gun-class2',
+    ...full,
+    idleCost: 0.05,
+    operationCost: 6,
+    weight: 40,
+    props: { distance: 8, damage: 80, accuracy: 0.7, cooldown: 1500, caliber: 25, magazine: 15, loaded: 15 }
+  },
+  {
+    type: 'scanner',
+    name: 'scanner-class2',
+    ...full,
+    idleCost: 0.08,
+    operationCost: 1,
+    weight: 35,
+    props: { distance: 3, delay: 250 }
+  },
+  {
+    type: 'mining',
+    name: 'drill-class2',
+    ...full,
+    idleCost: 0,
+    operationCost: 4,
+    weight: 45,
+    props: { materialPerOperation: 10, strength: 3 }
+  },
+  {
+    type: 'battery',
+    name: 'battery-class2',
+    ...full,
+    idleCost: 0,
+    operationCost: 0,
+    weight: 70,
+    props: { isConnected: true, voltage: 24, capacity: 8000, value: 8000 }
+  },
   { type: 'factory', name: 'factory-class1', ...full, idleCost: 0.05, operationCost: 40, weight: 30, props: {} },
   {
     type: 'armor',

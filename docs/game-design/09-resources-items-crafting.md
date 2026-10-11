@@ -43,8 +43,7 @@ Crafting happens at the **factory** and requires:
 2. the **resources** the recipe demands,
 3. sufficient **energy/time** for the factory operation.
 
-Craft flow: `Factory GUI → Craft table → Assemble` (from the notes). ✅ Recipes are **data-driven**: they live in a
-recipes config file (not in game logic), so costs and craft times can be tuned without code changes. The table below
+Craft flow: `Factory GUI → Craft table → Assemble` (from the notes). ✅ Recipes are **data-driven**: they are `DEFAULT_RECIPES` in `lib`, overridable per module (and the research/loot numbers) through the JSON file named in `CRAFTING_RECIPES_FILE`, and validated at startup (every catalog module has exactly one recipe, a class above 1 has the class below it); a bad file stops the start. Known blueprints are stored per player (`blueprints`: the base set is class 1 and needs no row); blueprint items are rows of `items`, carried by a bot or lying on the map. They are not in game logic, so costs and craft times can be tuned without code changes. The table below
 is the set of **initial defaults — balance TBD**, to be tuned after playtesting once energy, mining and processor rules
 are settled:
 

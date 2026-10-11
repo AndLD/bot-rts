@@ -1,6 +1,6 @@
 import { FILE_KIND } from '../../../../lib/utils/interfaces/files'
 import { createWorld } from '../../../tests/fakes/world'
-import { buildModule } from '../../../tests/integration/builders'
+import { customiseDrive, removeDrives } from '../../../tests/fakes/drives'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { AlreadyExistsError, DriveBrokenError, DriveFullError } from '../domain/file.errors'
 
@@ -11,13 +11,7 @@ const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 async function setup(driveOverrides = {}) {
   const world = createWorld()
   const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
-  const drive = buildModule(bot.id, {
-    type: 'drive',
-    name: 'memory-class1',
-    props: { quota: 20 },
-    ...driveOverrides
-  })
-  await world.repositories.modules.addMany([drive])
+  const drive = customiseDrive(world.repositories.modules, bot.id, { props: { quota: 20 }, ...driveOverrides })
   const call = {
     write: (path: string, content = 'x', userId = alice.id) =>
       world.filesService.write(userId, bot.id, drive.id, path, content),
@@ -42,6 +36,7 @@ describe('FilesService drives', () => {
   it('has no drive for a bot without a memory module', async () => {
     const world = createWorld()
     const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
+    removeDrives(world.repositories.modules, bot.id)
 
     expect(await world.filesService.listDrives(alice.id, bot.id)).toEqual([])
     await expect(world.filesService.list(alice.id, bot.id, 'no-drive')).rejects.toThrow(NotFoundError)

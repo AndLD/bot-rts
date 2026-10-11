@@ -2,7 +2,8 @@ import { EventEmitter } from 'events'
 import { Socket } from 'socket.io'
 import { TERMINAL_LOG_KIND } from '../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../tests/fakes/world'
-import { buildModule, buildUser } from '../../../tests/integration/builders'
+import { customiseDrive } from '../../../tests/fakes/drives'
+import { buildUser } from '../../../tests/integration/builders'
 import { Logger } from '../../shared/application/logger'
 import { TerminalGateway } from './terminal.gateway'
 
@@ -28,8 +29,7 @@ async function setup(userId = alice.id) {
 
 async function withDrive() {
   const world = await setup()
-  const drive = buildModule(world.bot.id, { type: 'drive', name: 'memory-class1', props: { quota: 100 } })
-  await world.repositories.modules.addMany([drive])
+  const drive = customiseDrive(world.repositories.modules, world.bot.id, { props: { quota: 100 } })
   const [session] = (await world.call('open-terminal', world.bot.id)) as [{ _id: string }]
   return { ...world, drive, sessionId: session._id }
 }

@@ -41,7 +41,7 @@ describe('BotsGateway', () => {
 
     const [modules] = await call('get-bot-modules', bot.id)
 
-    expect(modules).toHaveLength(7)
+    expect(modules).toHaveLength(10)
     expect(modules).toContainEqual(expect.objectContaining({ type: 'scanner', distance: 1 }))
   })
 

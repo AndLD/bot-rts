@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../tests/integration/test-database'
@@ -329,8 +328,8 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect(deployed.body.bot.passwordHash).toBeUndefined()
     const stored = await database.client.bot.findUniqueOrThrow({ where: { id: botId } })
     expect(stored.passwordHash).toMatch(/^\$2[aby]\$/)
-    expect(deployed.body.modules).toHaveLength(7)
-    expect(await database.client.module.count({ where: { botId } })).toBe(7)
+    expect(deployed.body.modules).toHaveLength(10)
+    expect(await database.client.module.count({ where: { botId } })).toBe(10)
 
     await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(403)
 
@@ -345,7 +344,7 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     await api().get('/api/v1/bots?type=tank').set(bearer(accessToken)).expect(400)
 
     const modules = await api().get(`/api/v1/bots/${botId}/modules`).set(bearer(accessToken)).expect(200)
-    expect(modules.body).toHaveLength(7)
+    expect(modules.body).toHaveLength(10)
     expect(modules.body).toContainEqual(expect.objectContaining({ botId, type: 'scanner', distance: 1 }))
     await api().get('/api/v1/bots/not-an-id/modules').set(bearer(accessToken)).expect(400)
     await api().get('/api/v1/bots/0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e/modules').set(bearer(accessToken)).expect(404)
@@ -365,20 +364,8 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     const botId = (
       await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)
     ).body.bot._id
-    const drive = await database.client.module.create({
-      data: {
-        id: randomUUID(),
-        botId,
-        type: 'drive',
-        name: 'memory-class1',
-        condition: 100,
-        maxCondition: 100,
-        weight: 1,
-        operationCost: 0,
-        idleCost: 0,
-        props: { quota: 30 }
-      }
-    })
+    const drive = await database.client.module.findFirstOrThrow({ where: { botId, type: 'drive' } })
+    await database.client.module.update({ where: { id: drive.id }, data: { props: { quota: 30 } } })
     const drives = `/api/v1/bots/${botId}/drives`
     const files = `${drives}/${drive.id}`
 
@@ -456,7 +443,7 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       try {
         expect(await emit(alice, 'get-user-bases')).toEqual([[expect.objectContaining({ _id: botId })]])
         expect(await emit(alice, 'get-user-bots')).toEqual([[expect.objectContaining({ _id: botId })]])
-        expect((await emit(alice, 'get-bot-modules', botId))[0]).toHaveLength(7)
+        expect((await emit(alice, 'get-bot-modules', botId))[0]).toHaveLength(10)
         expect(await emit(bob, 'get-user-bots')).toEqual([[]])
         expect((await emit(bob, 'get-bot-modules', botId))[1]).toMatchObject({ code: 403 })
         expect((await emit(alice, 'get-bot-modules', { $ne: 1 }))[1]).toMatchObject({ code: 400 })

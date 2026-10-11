@@ -1,10 +1,11 @@
 import { FILE_KIND } from '../../../../lib/utils/interfaces/files'
 import { BotsService } from '../../bots/application/bots.service'
-import { Module } from '../../modules/domain/module.entity'
+import { DriveModule } from '../../modules/domain/game-module'
+import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
-import { driveNames, isDrive, isWorking, quotaOf } from '../domain/drive'
+import { driveNames } from '../domain/drive'
 import { File } from '../domain/file.entity'
 import { AlreadyExistsError, DriveBrokenError, DriveFullError } from '../domain/file.errors'
 import { isDirectChild, parentOf, parsePath } from '../domain/file-path'
@@ -24,21 +25,22 @@ export class FilesService {
     private readonly unitOfWork: UnitOfWork,
     private readonly bots: BotsService,
     private readonly files: FileRepository,
-    private readonly ids: IdGenerator
+    private readonly ids: IdGenerator,
+    private readonly registry: ModuleRegistry
   ) {}
 
   // The memory modules of an own bot, working or not
   async listDrives(userId: string, botId: string): Promise<DriveInfo[]> {
     await this.bots.getOwnedBot(userId, botId)
     return this.unitOfWork.run(async ({ modules, files }) => {
-      const drives = (await modules.listOfBot(botId)).filter(isDrive)
+      const drives = this.registry.instancesOf(await modules.listOfBot(botId), DriveModule)
       const names = driveNames(drives)
       return Promise.all(
         drives.map(async (drive) => ({
           id: drive.id,
           botId,
           name: names.get(drive.id) as string,
-          quota: quotaOf(drive),
+          quota: drive.quota,
           used: await files.usedBytes(drive.id)
         }))
       )
@@ -79,7 +81,7 @@ export class FilesService {
 
       const size = Buffer.byteLength(content, 'utf8')
       const used = (await files.usedBytes(driveId)) - (existing?.size ?? 0)
-      if (used + size > quotaOf(drive)) {
+      if (used + size > drive.quota) {
         throw new DriveFullError()
       }
 
@@ -140,15 +142,17 @@ export class FilesService {
     userId: string,
     botId: string,
     driveId: string,
-    work: (files: FileRepository, drive: Module) => Promise<T>
+    work: (files: FileRepository, drive: DriveModule) => Promise<T>
   ): Promise<T> {
     return this.bots.getOwnedBot(userId, botId).then(() =>
       this.unitOfWork.run(async ({ modules, files }) => {
-        const drive = (await modules.listOfBot(botId)).find((module) => module.id === driveId && isDrive(module))
+        const drive = this.registry
+          .instancesOf(await modules.listOfBot(botId), DriveModule)
+          .find((d) => d.id === driveId)
         if (!drive) {
           throw new NotFoundError('Drive not found')
         }
-        if (!isWorking(drive)) {
+        if (!drive.isWorking) {
           throw new DriveBrokenError()
         }
         return work(files, drive)

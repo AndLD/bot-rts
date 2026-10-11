@@ -23,7 +23,7 @@ export class TerminalService {
 
   // Starts a session on one of the player's bots; this is also when expired lines are dropped
   async open(userId: string, botId: string): Promise<TerminalSession> {
-    await this.bots.getOwnedBot(userId, botId)
+    await this.bots.getControlledBot(userId, botId)
     await this.dropExpiredLogs()
 
     const session: TerminalSession = {

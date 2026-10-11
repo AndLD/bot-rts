@@ -31,7 +31,7 @@ export class FilesService {
 
   // The memory modules of an own bot, working or not
   async listDrives(userId: string, botId: string): Promise<DriveInfo[]> {
-    await this.bots.getOwnedBot(userId, botId)
+    await this.bots.getControlledBot(userId, botId)
     return this.unitOfWork.run(async ({ modules, files }) => {
       const drives = this.registry.instancesOf(await modules.listOfBot(botId), DriveModule)
       const names = driveNames(drives)
@@ -144,7 +144,7 @@ export class FilesService {
     driveId: string,
     work: (files: FileRepository, drive: DriveModule) => Promise<T>
   ): Promise<T> {
-    return this.bots.getOwnedBot(userId, botId).then(() =>
+    return this.bots.getControlledBot(userId, botId).then(() =>
       this.unitOfWork.run(async ({ modules, files }) => {
         const drive = this.registry
           .instancesOf(await modules.listOfBot(botId), DriveModule)

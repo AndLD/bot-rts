@@ -19,7 +19,7 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 | 3.7 | Base terminal commands end-to-end: server command parser + socket events for the filesystem and info commands of design §11.1 (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`). `run` / `shell` / `top` / `kill` arrive with the runtime (5.6), `connect` with 6.5, `craft` / `assemble` / `research` / `learn` with 4.6, `passwd` / `adopt` with 5.9 | 13 | ✅ |
 | 3.8 | "Deploy your base" UI button + base-deployment confirmation flow, including setting the mandatory base access password | 5 | ✅ |
 | 3.9 | Module registry & factory for instantiating module classes by type (replaces the static `initialUserBaseModules`; the base starter kit now also includes class-1 processor, memory and wireless adapter) | 5 | ✅ |
-| 3.10 | Base destruction lifecycle per design §6.3: corpse base, redeploy of a new base ("one living base" rule), stale bots | 5 | ⬜ |
+| 3.10 | Base destruction lifecycle per design §6.3: corpse base, redeploy of a new base ("one living base" rule), stale bots | 5 | ✅ |
 | 3.11 | `SpawnService`: base placement per design §4.1 (free cell, minimum distance, retries; replaces random `[0,10]²`), adjacent-cell spawn for assembled bots (§8.3), and spawn seeds per design §22.3 | 5 | ⬜ |
 | 3.12 | `/api/v1` documentation and client generation per AGENTS.md §3.0 and design §22.1 (the versioned routes themselves exist since 1.10 / 1.12): OpenAPI spec generated in CI from controller/DTO definitions (CI fails when the committed spec differs from the generated one), and a typed client for the web client generated from it (replacing hand-written RTK Query endpoints) | 6 | ⬜ |
 | 3.13 | Cypress e2e for the Phase 3 flows: deploy a base (with password and spawn seed), terminal filesystem commands (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`), redeploy after a corpse base; also spawn seeds: players with the same code spawn near each other, a full seed and an expired seed (injected clock) are refused | 5 | ⬜ |
@@ -45,3 +45,4 @@ AGENTS.md §7.1).
 | `feature/3.7-terminal-commands` | 3.7 | #54 | merged |
 | `feature/3.8-deploy-base-ui` | 3.8 | #55 | merged |
 | `feature/3.9-module-registry` | 3.9 | #56 | merged |
+| `feature/3.10-base-lifecycle` | 3.10 | #57 | merged |

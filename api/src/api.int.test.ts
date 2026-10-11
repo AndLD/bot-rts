@@ -359,6 +359,31 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     await api().post('/api/v1/bots/not-an-id/scan').set(bearer(accessToken)).expect(400)
   })
 
+  it('lets a player whose base was lost deploy a new one, and leaves the old base as a corpse', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const deploy = () => api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' })
+    const oldId = (await deploy().expect(201)).body.bot._id
+    await database.client.module.updateMany({
+      where: { botId: oldId, type: 'wirelessAdapter' },
+      data: { condition: 0 }
+    })
+
+    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toEqual([])
+    const lost = await api().get(`/api/v1/bots/${oldId}/bots`).set(bearer(accessToken)).expect(403)
+    expect(lost.body.code).toBe('BASE_LOST')
+
+    const newId = (await deploy().expect(201)).body.bot._id
+    expect(newId).not.toBe(oldId)
+    await deploy().expect(403)
+
+    const points = await database.client.mapPoint.findMany({ where: { contentId: { in: [oldId, newId] } } })
+    expect(Object.fromEntries(points.map((p) => [p.contentId, p.type]))).toEqual({
+      [oldId]: 'corpse_base',
+      [newId]: 'base'
+    })
+    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(1)
+  })
+
   it('manages the files of a drive over HTTP', async () => {
     const { accessToken } = await signUp('alice@example.com')
     const botId = (

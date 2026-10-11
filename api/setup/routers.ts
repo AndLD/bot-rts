@@ -1,8 +1,8 @@
 import { Express, NextFunction, Request, Response, Router } from 'express'
-// import { boardsRouter } from '../routers/boards'
 import { ErrorHandler, handleError } from '../middlewares/ErrorHandler'
 import { Entity } from '../utils/constants'
 import { hasAdminStatus, isAuthorized } from '../middlewares/users'
+import { developmentOnly } from '../middlewares/developmentOnly'
 import { setReqEntity } from '../middlewares/decorators'
 import authPublicRouter from '../routers/public/auth'
 import authPrivateRouter from '../routers/private/auth'
@@ -31,7 +31,7 @@ export function setupRouters(app: Express) {
   privateRouter.use('/users', usersPrivateRouter)
   privateRouter.use('/statistics', statisticsPrivateRouter)
   privateRouter.use('/bots', botsPrivateRouter)
-  privateRouter.use('/debug', hasAdminStatus, debugPrivateRouter)
+  privateRouter.use('/debug', developmentOnly, hasAdminStatus, debugPrivateRouter)
 
   app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) => handleError(err, res))
 }

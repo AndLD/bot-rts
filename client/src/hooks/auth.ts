@@ -7,6 +7,7 @@ import { useRefreshToken } from './store/auth.api'
 import { API_URL } from '../utils/constants.ts'
 import { io } from 'socket.io-client'
 import axios from 'axios'
+import { SOCKET_TOKEN_EXPIRED } from '@lib/utils/constants'
 
 export function useAuth() {
   const dispatch = useAppDispatch()
@@ -63,7 +64,7 @@ export function useSocketServer() {
       }
     })
 
-    socket.on('unauthorized', async () => {
+    const handleUnauthorized = async () => {
       console.log(
         `[debug] Access token expired${lastEvent.current ? ` for event ${lastEvent.current.event}` : ''}, refreshing token...`
       )
@@ -77,7 +78,7 @@ export function useSocketServer() {
 
       try {
         // Refresh the access token
-        const response = await axios.get('http://localhost:8080/api/public/auth/refresh', {
+        const response = await axios.get(`${API_URL}/api/public/auth/refresh`, {
           withCredentials: true
         })
         const token = response.data.result
@@ -103,6 +104,14 @@ export function useSocketServer() {
       } catch (err) {
         console.error('Failed to refresh token:', err)
         socket.disconnect()
+      }
+    }
+
+    socket.on('unauthorized', handleUnauthorized)
+    // The server rejects an expired token during the handshake instead of letting the connection through
+    socket.on('connect_error', (err) => {
+      if (err.message === SOCKET_TOKEN_EXPIRED) {
+        handleUnauthorized()
       }
     })
 

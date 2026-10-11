@@ -15,7 +15,7 @@ template, and the components they refer to were never added. What exists:
   deletes every document of the named collections, with no confirmation and no environment guard.
 - **Client:** admin routes (`AdminLayout`, `Dashboard`, `Users`, `Settings`) are commented out in `routes/private.tsx` and the
   components do not exist; `ADMIN_URL` (the Socket.IO CORS origin) is a remnant of a former separate admin app.
-- **Security findings (fixed by task 0.8, with 1.9, 1.11 and 8.2):**
+- **Security findings (fixed by task 0.8, with 1.9, 1.11 and 8.2; every finding below except token revocation and the shared-store rate limit was fixed by 0.8 on 2026-10-11):**
   - `GET /api/private/users` and `PUT /api/private/users/:id` are behind the *login* check only, so **any logged-in player
     can list all users and edit any user, including setting their `status` to `admin`** (the next token refresh then carries
     the new role) or `active` to `true`.

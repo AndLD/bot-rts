@@ -2,24 +2,19 @@ import { Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { usersCollection } from '../../services/db'
+import { usersService } from '../../services/users'
 import { tryCatch } from '../../utils/decorators'
 import { IAuthPostBody } from '@lib/utils/interfaces/auth'
 import { errors } from '../../utils/constants'
-import { IUser, IUserState } from '@lib/utils/interfaces/users'
 import { createJwt, refreshJwtSecret } from '../../utils/jwt'
+import { parseUserIdFromSessionToken } from '../../utils/jwtPayload'
 import { apiUtils } from '../../utils/api'
-import { ObjectId } from 'mongodb'
-
-interface IRefreshJwtPayload extends jwt.JwtPayload {
-  user: {
-    _id: string
-  }
-}
+import { getAccessDenial, toUserState } from '../../utils/userAccess'
 
 async function postLogin(req: any, res: Response) {
   const body: IAuthPostBody = req.body
 
-  const user: IUser | null = await usersCollection.findOne({ email: body.email })
+  const user = await usersCollection.findOne({ email: body.email })
 
   if (!user) {
     return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)
@@ -32,19 +27,13 @@ async function postLogin(req: any, res: Response) {
     return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)
   }
 
-  // JWT
-  const userState: IUserState = {
-    _id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    status: user.status,
-    active: user.active,
-    subscription: user.subscription,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt
+  const denial = getAccessDenial(user)
+
+  if (denial) {
+    return apiUtils.sendError(res, denial)
   }
 
-  const tokens = createJwt(userState)
+  const tokens = createJwt(toUserState(user))
 
   apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   res.json({
@@ -59,36 +48,25 @@ async function getRefresh(req: any, res: Response) {
     return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
   }
 
-  // TODO: Investigate cases when jwt.verify can return a string ?
+  let userId: string | undefined
+
   try {
-    var decodeValue: IRefreshJwtPayload = jwt.verify(refreshToken, refreshJwtSecret) as IRefreshJwtPayload
+    userId = parseUserIdFromSessionToken(jwt.verify(refreshToken, refreshJwtSecret, { algorithms: ['HS256'] }))
   } catch (e) {
     return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
   }
-  if (!decodeValue?.user) {
-    throw new Error('decodeValue.user is empty!')
+  if (!userId) {
+    return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
   }
 
-  const userId = decodeValue.user._id
+  const user = await usersService.findUserById(userId)
+  const denial = getAccessDenial(user)
 
-  const user = await usersCollection.findOne({ _id: new ObjectId(userId) })
-
-  if (!user) {
-    return res.sendStatus(401)
+  if (denial) {
+    return apiUtils.sendError(res, denial)
   }
 
-  const userState: IUserState = {
-    _id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    status: user.status,
-    active: user.active,
-    subscription: user.subscription,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt
-  }
-
-  const tokens = createJwt(userState)
+  const tokens = createJwt(toUserState(user!))
 
   apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
   apiUtils.sendResult(res, tokens.accessToken)

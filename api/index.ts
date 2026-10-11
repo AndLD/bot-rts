@@ -8,3 +8,7 @@ startApp()
 process.on('uncaughtException', function (err) {
   logger.error(`UNCAUGHT EXCEPTION: ${err}`)
 })
+
+process.on('unhandledRejection', function (reason) {
+  logger.error(`UNHANDLED REJECTION: ${reason}`)
+})

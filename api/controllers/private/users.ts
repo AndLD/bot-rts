@@ -1,55 +1,65 @@
-import { Request, Response, NextFunction } from 'express'
-import { ObjectId } from 'mongodb'
-import { usersCollection } from '../../services/db'
-import { AuthorizedRequest } from '../../utils/types'
+import { Response } from 'express'
+import { IUser } from '@lib/utils/interfaces/users'
 import { usersService } from '../../services/users'
+import { apiUtils } from '../../utils/api'
+import { errors } from '../../utils/constants'
+import { tryCatch } from '../../utils/decorators'
+import { isValidId } from '../../utils/objectId'
+import { AuthorizedRequest } from '../../utils/types'
+import { hasOwnerOnlyFields, parseUserPutBody } from '../../utils/userUpdate'
+import { parseUsersQuery } from '../../utils/usersQuery'
 
-async function get(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  try {
-    const clientFilter = req.query.filters ? JSON.parse(req.query.filters as string) : {}
-    const pagination = {
-      page: req.query.page ? parseInt(req.query.page as string) : 1,
-      results: req.query.results ? parseInt(req.query.results as string) : 10
-    }
-    const skip = (pagination.page - 1) * pagination.results
-    const limit = pagination.results
-
-    const users = await usersService.getUsersWithTotalNodesPerCluster(clientFilter, skip, limit)
-
-    const total = await usersCollection.countDocuments(clientFilter)
-
-    res.json({
-      result: users.map(({ password, ...rest }) => rest),
-      meta: { pagination: { ...pagination, total } }
-    })
-  } catch (err) {
-    next(err)
-  }
+function withoutPassword({ password, ...rest }: IUser) {
+  return rest
 }
 
-async function put(req: Request, res: Response, next: NextFunction) {
-  try {
-    const id = req.params.id
-    const data = req.body
+async function get(req: AuthorizedRequest, res: Response) {
+  const query = parseUsersQuery(req.query)
 
-    const updateResult = await usersCollection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...data, updatedAt: new Date().getTime() } }
-    )
-
-    if (updateResult.modifiedCount === 0) {
-      return next(new Error('User was not updated'))
-    }
-
-    const result = await usersCollection.findOne({ _id: new ObjectId(id) })
-
-    res.json({ result })
-  } catch (err) {
-    next(err)
+  if (!query) {
+    return apiUtils.sendError(res, errors.BAD_FILTERS)
   }
+
+  const { users, total } = await usersService.listUsers(query.filter, (query.page - 1) * query.results, query.results)
+
+  res.json({
+    result: users,
+    meta: { pagination: { page: query.page, results: query.results, total } }
+  })
+}
+
+async function put(req: AuthorizedRequest, res: Response) {
+  const id = req.params.id
+  const body = parseUserPutBody(req.body)
+
+  if (!isValidId(id)) {
+    return apiUtils.sendError(res, errors.INVALID_ID)
+  }
+  if (!body) {
+    return apiUtils.sendError(res, errors.BAD_REQUEST)
+  }
+
+  const actorIsOwner = req.user!.status === 'owner'
+
+  if (hasOwnerOnlyFields(body) && !actorIsOwner) {
+    return apiUtils.sendError(res, errors.FORBIDDEN)
+  }
+
+  const target = await usersService.findUserById(id)
+
+  if (!target) {
+    return apiUtils.sendError(res, errors.DOC_NOT_FOUND)
+  }
+  if (!actorIsOwner && (target.status === 'owner' || target.status === 'admin')) {
+    return apiUtils.sendError(res, errors.FORBIDDEN)
+  }
+
+  const updated = (await usersService.updateUser(id, body)) as IUser
+
+  res.json({ result: withoutPassword(updated) })
 }
 
 export const usersPrivateControllers = {
-  get,
-  put
+  get: tryCatch(get),
+  put: tryCatch(put)
 }

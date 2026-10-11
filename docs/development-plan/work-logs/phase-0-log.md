@@ -35,3 +35,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the developer's local ignored `api/.env.*` files still use the old `*_TOKEN_SECRET` and `EMAIL_SMTP_*` names and need to be recreated from `api/.env.example`. Jest warns about a haste-map collision with `api/ts-built` (handled in 0.3).
 - **Next step:** task 0.3 (npm workspaces, root scripts, api Jest setup).
 - **Verify with:** `cd api && npx jest services/email && npx tsc --noEmit`
+
+### 2026-10-11 — task 0.3: npm workspaces and root scripts
+- **Tasks:** 0.3
+- **Branch:** `feature/0.3-npm-workspaces` — done
+- **Decisions / deviations from the plan:** workspaces are `lib`, `api`, `client` (packages `@bot-rts/*`, private); per-package lockfiles removed. `api` moved to TypeScript ^5.4 (AGENTS.md §2); `jsonwebtoken` `expiresIn` is cast through a small `toExpiresIn` helper because the newer typings require a branded duration type. `lib/tsconfig.json` is now a plain `noEmit` type-check project and the TS project references to it were dropped (consumers import its sources through the `@lib` alias). `api` Jest config moved to the non-deprecated `transform` form and ignores `ts-built`; test files are excluded from the `api` build. The client has no `test` script until Jest arrives in Phase 2 (`--if-present`).
+- **Problems / blockers / findings:** `lint` has no scripts in `api`/`lib` yet (task 0.4). Developers must delete old per-package `node_modules` and run `npm install` at the root.
+- **Next step:** task 0.8 (security hotfix), then 0.7, 0.4, 0.5, 0.6.
+- **Verify with:** `npm install && npm run typecheck && npm test && npm run build`

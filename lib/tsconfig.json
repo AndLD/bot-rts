@@ -2,12 +2,9 @@
   "compilerOptions": {
     "target": "es6",
     "module": "ESNext",
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "./",
-    "rootDir": ".",
-    "composite": true,
+    "moduleResolution": "node",
     "strict": true,
-    "moduleResolution": "node"
-  }
+    "noEmit": true
+  },
+  "include": ["utils"]
 }

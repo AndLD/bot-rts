@@ -1,5 +1,11 @@
 {
+  "name": "@bot-rts/lib",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
   "devDependencies": {
-    "@types/mongodb": "^4.0.7"
+    "typescript": "^5.4.5"
   }
 }

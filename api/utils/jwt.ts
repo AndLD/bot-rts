@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { IUserState } from '@lib/utils/interfaces/users'
 
 export const accessJwtSecret: string = process.env.JWT_ACCESS_SECRET || 'super_secret1'
@@ -10,9 +10,14 @@ export const refreshJwtExpiresIn: string = process.env.JWT_REFRESH_EXPIRES_IN ||
 export const emailVerificationJwtSecret: string = process.env.JWT_EMAIL_VERIFICATION_SECRET || 'super_secret3'
 const emailVerificationJwtExpiresIn: string = process.env.JWT_EMAIL_VERIFICATION_EXPIRES_IN || '24h'
 
+// env values are free-form strings; jsonwebtoken validates the duration format at signing time
+function toExpiresIn(value: string) {
+  return value as SignOptions['expiresIn']
+}
+
 export function createJwt(userState: IUserState) {
   const accessToken = jwt.sign({ user: userState }, accessJwtSecret, {
-    expiresIn: accessJwtExpiresIn
+    expiresIn: toExpiresIn(accessJwtExpiresIn)
   })
   const refreshToken = jwt.sign(
     {
@@ -22,7 +27,7 @@ export function createJwt(userState: IUserState) {
     },
     refreshJwtSecret,
     {
-      expiresIn: refreshJwtExpiresIn
+      expiresIn: toExpiresIn(refreshJwtExpiresIn)
     }
   )
 
@@ -34,6 +39,6 @@ export function createJwt(userState: IUserState) {
 
 export function createEmailVerificationJwt(userId: string) {
   return jwt.sign({ user: { id: userId } }, emailVerificationJwtSecret, {
-    expiresIn: emailVerificationJwtExpiresIn
+    expiresIn: toExpiresIn(emailVerificationJwtExpiresIn)
   })
 }

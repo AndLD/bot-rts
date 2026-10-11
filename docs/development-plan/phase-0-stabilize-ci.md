@@ -31,4 +31,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| `feature/0.1-fix-client-build` | 0.1 | PR_0_1 | 🟡 |
+| `feature/0.1-fix-client-build` | 0.1 | [#22](https://github.com/AndLD/bot-rts/pull/22) | ✅ |

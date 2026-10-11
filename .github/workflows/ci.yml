@@ -95,21 +95,24 @@ jobs:
         run: npm run i18n:check
       - name: Markdown links
         run: npm run docs:check
-      - name: Unit and integration tests with coverage
+      - name: Unit and integration tests with the 97 % coverage gate
         if: steps.changes.outputs.code == 'true'
         run: npm run test:coverage
       - name: Coverage report
-        if: always() && steps.changes.outputs.code == 'true' && hashFiles('api/coverage/coverage-summary.json') != ''
+        if: always() && steps.changes.outputs.code == 'true'
         run: |
-          {
-            echo '### Coverage (api)'
-            echo '```'
-            node -e "const s=require('./api/coverage/coverage-summary.json').total;for(const m of ['statements','branches','functions','lines'])console.log(m.padEnd(11),s[m].pct+'%')"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          for pkg in api client; do
+            [ -f "$pkg/coverage/coverage-summary.json" ] || continue
+            {
+              echo "### Coverage ($pkg)"
+              echo '```'
+              node -e "const s=require('./$pkg/coverage/coverage-summary.json').total;for(const m of ['statements','branches','functions','lines'])console.log(m.padEnd(11),s[m].pct+'%')"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          done
       - name: Coverage of changed files (at least 97 %)
         if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api
+        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client
       - name: Build
         if: steps.changes.outputs.code == 'true'
         run: npm run build

@@ -228,6 +228,7 @@ pm2 start ecosystem.config.json
 | `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `FRONTEND_URL`          |
 | `DATABASE_URL`                        | api          | PostgreSQL connection string (Prisma, integration tests) | `postgresql://botrts:botrts@localhost:5432/botrts` |
 | `WORLD_SEED`                          | api          | Seed of the world-generation random numbers          | random per start        |
+| `CRAFTING_RECIPES_FILE`               | api          | JSON file that overrides recipes (by module name) and the crafting numbers | built-in recipes |
 | `WORLD_RESOURCE_CHANCE`               | api          | Chance that a generated map cell holds a resource    | `0.2`                   |
 | `WORLD_SPAWN_MAX_DISTANCE` / `WORLD_SPAWN_ATTEMPTS` | api | Where a new base may appear / how many cells are tried | `10` / `20` |
 | `AUTH_PROVIDER`                       | api          | Identity adapter (`local` = email + password)        | `local`                 |

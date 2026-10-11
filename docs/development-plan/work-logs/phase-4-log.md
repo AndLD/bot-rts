@@ -42,3 +42,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.4 (blueprints and recipes).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.4: recipes, blueprints and items
+- **Tasks:** 4.4
+- **Branch:** `feature/4.4-blueprints-recipes` — done
+- **Decisions / deviations from the plan:** new `crafting` Nest module. `DEFAULT_RECIPES` and `DEFAULT_CRAFTING_BALANCE` (research ×5 cost / ×10 time, 1 % world blueprints, 10 % loot) live in `lib/utils/interfaces/crafting.ts`; `CRAFTING_RECIPES_FILE` overrides recipes by module name and the balance, and `validateRecipes` (every catalog module has exactly one recipe, positive numbers, a class above 1 has the class below) stops the start with a `ConfigError` on a bad file. Added defaults for the modules the design table does not price (armor, generator, manipulator, gps, factory) and four class-2 modules (scanner, gun, drill, battery) with catalog entries, so research has something to reach. `RecipeBook` is the domain lookup (`known`, `previousClass`, `researchCost`). Persistence: tables `blueprints` (per player, composite key; the class-1 base set needs no row) and `items` (type, name = the module of a blueprint item, `botId` when carried; an item on the map is a map point of type item pointing at it), migration `blueprints_and_items`, `Prisma*` repositories with integration tests. `GET /api/v1/crafting/recipes` shows each recipe with `isKnown`, `canResearch` and the research cost. Blueprint items still have no way into the world or a storage: spawning them is 4.9, learning them 4.6.
+- **Findings:** the local development database had a stale migration history (a phase-3 migration was renamed), so the migration SQL was produced with `prisma migrate diff` against the previous schema instead of `migrate dev`; CI and the tests apply the migrations from scratch.
+- **Next step:** task 4.5 (bot assembly rules and the movement rule).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

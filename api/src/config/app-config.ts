@@ -2,6 +2,8 @@ import { AuthPolicy, DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { WorldConfig } from '../map/domain/world-config'
 import { convertTimeStringToMilliseconds } from '../shared/domain/duration'
 import { SpawnConfig } from '../spawn/domain/spawn-config'
+import { CraftingConfig } from '../crafting/domain/crafting-config'
+import { readCraftingConfig } from '../crafting/infrastructure/crafting-config.reader'
 import { readSpawnConfig } from '../spawn/infrastructure/spawn-config.reader'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
@@ -36,6 +38,7 @@ export interface AppConfig {
   worldSeed: number | undefined
   world: WorldConfig
   spawn: SpawnConfig
+  crafting: CraftingConfig
   terminal: TerminalRetention
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
@@ -119,6 +122,7 @@ export function loadConfig(env: Env): AppConfig {
   )
 
   const world = readWorldConfig(env, problems)
+  const crafting = readCraftingConfig(env, problems)
 
   if (problems.length) {
     throw new ConfigError(problems)
@@ -137,6 +141,7 @@ export function loadConfig(env: Env): AppConfig {
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
     world,
     spawn: readSpawnConfig(env),
+    crafting,
     terminal: {
       logDays: positiveInt(env.TERMINAL_LOG_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.logDays),
       maxLinesPerBot: positiveInt(env.TERMINAL_LOG_MAX_LINES, DEFAULT_TERMINAL_RETENTION.maxLinesPerBot),

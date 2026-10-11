@@ -65,6 +65,9 @@ const injectedRtkApi = api.injectEndpoints({
         query: (queryArg) => ({ url: `/api/v1/auth/account/delete/confirm`, method: 'POST', body: queryArg.tokenDto })
       }
     ),
+    craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
+      query: () => ({ url: `/api/v1/crafting/recipes` })
+    }),
     filesDrives: build.query<FilesDrivesApiResponse, FilesDrivesApiArg>({
       query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.botId}/drives` })
     }),
@@ -200,6 +203,8 @@ export type AuthConfirmAccountDeletionApiResponse = unknown
 export type AuthConfirmAccountDeletionApiArg = {
   tokenDto: TokenDto
 }
+export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
+export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
 export type FilesDrivesApiArg = {
   botId: string
@@ -386,6 +391,30 @@ export type ChangeEmailDto = {
 export type PasswordDto = {
   password: string
 }
+export type RecipeResourceResponse = {
+  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
+  amount: number
+}
+export type ResearchCostResponse = {
+  resources: RecipeResourceResponse[]
+  /** ms */
+  timeMs: number
+}
+export type RecipeResponse = {
+  /** The module the recipe builds */
+  module: string
+  /** Class 1 is the base set every player knows */
+  classLevel: number
+  resources: RecipeResourceResponse[]
+  /** ms the factory needs */
+  craftTimeMs: number
+  /** The player has the blueprint */
+  isKnown: boolean
+  /** The player can research it: the class below it is known */
+  canResearch: boolean
+  /** Classes above 1 only */
+  research: ResearchCostResponse | null
+}
 export type DriveResponse = {
   _id: string
   botId: string
@@ -504,6 +533,7 @@ export const {
   useAuthConfirmEmailChangeMutation,
   useAuthRequestAccountDeletionMutation,
   useAuthConfirmAccountDeletionMutation,
+  useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,
   useFilesReadQuery,

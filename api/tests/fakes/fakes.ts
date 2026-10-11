@@ -1,6 +1,10 @@
 import { BOT_TYPE } from '../../../lib/utils/interfaces/bots'
 import { Bot } from '../../src/bots/domain/bot.entity'
 import { BotRepository } from '../../src/bots/application/bot.repository'
+import { BlueprintRepository } from '../../src/crafting/application/blueprint.repository'
+import { Blueprint } from '../../src/crafting/domain/blueprint.entity'
+import { ItemRepository } from '../../src/crafting/application/item.repository'
+import { Item } from '../../src/crafting/domain/item.entity'
 import { File } from '../../src/files/domain/file.entity'
 import { FileRepository } from '../../src/files/application/file.repository'
 import { MapRepository } from '../../src/map/application/map.repository'
@@ -500,5 +504,39 @@ export class FakeUnitOfWork implements UnitOfWork {
 
   run<T>(work: (repositories: Repositories) => Promise<T>): Promise<T> {
     return work(this.repositories)
+  }
+}
+
+export class InMemoryBlueprintRepository implements BlueprintRepository {
+  readonly items: Blueprint[] = []
+
+  async add(blueprint: Blueprint) {
+    if (!this.items.some((b) => b.userId === blueprint.userId && b.module === blueprint.module)) {
+      this.items.push(blueprint)
+    }
+  }
+
+  async listOfUser(userId: string) {
+    return this.items.filter((blueprint) => blueprint.userId === userId)
+  }
+}
+
+export class InMemoryItemRepository implements ItemRepository {
+  readonly items = new Map<string, Item>()
+
+  async add(item: Item) {
+    this.items.set(item.id, item)
+  }
+
+  async findById(id: string) {
+    return this.items.get(id) ?? null
+  }
+
+  async listOfBot(botId: string) {
+    return [...this.items.values()].filter((item) => item.botId === botId)
+  }
+
+  async remove(id: string) {
+    this.items.delete(id)
   }
 }

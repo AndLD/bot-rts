@@ -466,6 +466,24 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect(await database.client.file.count()).toBe(0)
   })
 
+  it('lists the recipes with what the player knows of them', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    await api().get('/api/v1/crafting/recipes').expect(401)
+
+    const { body } = await api().get('/api/v1/crafting/recipes').set(bearer(accessToken)).expect(200)
+
+    expect(body.find((r: { module: string }) => r.module === 'scanner-class1')).toMatchObject({
+      isKnown: true,
+      canResearch: false,
+      research: null
+    })
+    expect(body.find((r: { module: string }) => r.module === 'scanner-class2')).toMatchObject({
+      isKnown: false,
+      canResearch: true,
+      research: { timeMs: 200_000 }
+    })
+  })
+
   describe('Socket.IO', () => {
     const open = (token: unknown) =>
       new Promise<Socket>((resolve, reject) => {

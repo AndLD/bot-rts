@@ -1,5 +1,6 @@
 import { DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { DEFAULT_WORLD_CONFIG } from '../map/domain/world-config'
+import { DEFAULT_CRAFTING_CONFIG } from '../crafting/domain/crafting-config'
 import { DEFAULT_SPAWN_CONFIG } from '../spawn/domain/spawn-config'
 import { DEFAULT_TERMINAL_RETENTION } from '../terminal/domain/terminal-retention'
 import { ConfigError, loadConfig } from './app-config'
@@ -18,6 +19,7 @@ describe('loadConfig', () => {
       worldSeed: undefined,
       world: DEFAULT_WORLD_CONFIG,
       spawn: DEFAULT_SPAWN_CONFIG,
+      crafting: DEFAULT_CRAFTING_CONFIG,
       terminal: DEFAULT_TERMINAL_RETENTION,
       smtp: undefined,
       emailOutboxDir: undefined,

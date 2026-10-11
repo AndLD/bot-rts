@@ -667,6 +667,45 @@
         ]
       }
     },
+    "/api/v1/crafting/recipes": {
+      "get": {
+        "operationId": "craftingRecipeList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "crafting"
+        ]
+      }
+    },
     "/api/v1/bots/{botId}/drives": {
       "get": {
         "operationId": "filesDrives",
@@ -1689,6 +1728,99 @@
         },
         "required": [
           "password"
+        ]
+      },
+      "RecipeResourceResponse": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "iron",
+              "stone",
+              "wood",
+              "oil",
+              "crystal",
+              "gold"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "ResearchCostResponse": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeResourceResponse"
+            }
+          },
+          "timeMs": {
+            "type": "number",
+            "description": "ms"
+          }
+        },
+        "required": [
+          "resources",
+          "timeMs"
+        ]
+      },
+      "RecipeResponse": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "example": "scanner-class1",
+            "description": "The module the recipe builds"
+          },
+          "classLevel": {
+            "type": "number",
+            "description": "Class 1 is the base set every player knows"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeResourceResponse"
+            }
+          },
+          "craftTimeMs": {
+            "type": "number",
+            "description": "ms the factory needs"
+          },
+          "isKnown": {
+            "type": "boolean",
+            "description": "The player has the blueprint"
+          },
+          "canResearch": {
+            "type": "boolean",
+            "description": "The player can research it: the class below it is known"
+          },
+          "research": {
+            "nullable": true,
+            "description": "Classes above 1 only",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ResearchCostResponse"
+              }
+            ]
+          }
+        },
+        "required": [
+          "module",
+          "classLevel",
+          "resources",
+          "craftTimeMs",
+          "isKnown",
+          "canResearch",
+          "research"
         ]
       },
       "DriveResponse": {

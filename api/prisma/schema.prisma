@@ -96,6 +96,7 @@ model User {
   knownPoints          KnownPoint[]
   spawnSeedMemberships SpawnSeedMember[]
   terminalSessions     TerminalSession[]
+  blueprints           Blueprint[]
 
   @@index([createdAt])
   @@map("users")
@@ -181,6 +182,7 @@ model Bot {
   terminalSessions     TerminalSession[]
   terminalLogs         TerminalLog[]
   spawnSeedMemberships SpawnSeedMember[]
+  items                Item[]
 
   @@index([userId, type])
   @@index([baseId])
@@ -325,4 +327,47 @@ model SpawnSeedMember {
   @@id([seedCode, userId])
   @@index([baseId])
   @@map("spawn_seed_members")
+}
+
+enum ItemType {
+  blueprint
+  ammunition
+  part
+
+  @@map("item_type")
+}
+
+// A discrete object (design §9.1). It is carried by a bot (`botId`) or lies on the map, where a map point of type item
+// points at it; a blueprint item's `name` is the module it holds the blueprint of.
+model Item {
+  id     String   @id @db.Uuid
+  type   ItemType
+  name   String
+  weight Float
+  botId  String?  @map("bot_id") @db.Uuid
+
+  bot Bot? @relation(fields: [botId], references: [id], onDelete: SetNull)
+
+  @@index([botId])
+  @@map("items")
+}
+
+enum BlueprintSource {
+  research
+  item
+
+  @@map("blueprint_source")
+}
+
+// A blueprint a player learned (design §9.3); the class-1 base set is known without a row
+model Blueprint {
+  userId    String          @map("user_id") @db.Uuid
+  module    String
+  source    BlueprintSource
+  learnedAt DateTime        @map("learned_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, module])
+  @@map("blueprints")
 }

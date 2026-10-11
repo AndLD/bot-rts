@@ -12,11 +12,11 @@ import {
   MiningModule,
   MovementModule,
   ProcessorModule,
-  ScannerModule,
   StorageModule,
-  WeaponModule,
   WirelessAdapterModule
 } from './game-module'
+import { ScannerModule } from './scanner-module'
+import { WeaponModule } from './weapon-module'
 
 const of = <T>(
   moduleClass: new (record: ReturnType<typeof buildModule>) => T,
@@ -76,7 +76,7 @@ describe('the behaviour of the module types', () => {
     })
     expect(of(WirelessAdapterModule, {})).toMatchObject({ isConnected: false, isOnline: false })
     expect(of(WirelessAdapterModule, { isConnected: true }, { condition: 0 }).isOnline).toBe(false)
-    expect(of(ArmorModule, { material: 'iron' }).material).toBe('iron')
+    expect(of(ArmorModule, { material: 'iron', protection: 10 })).toMatchObject({ material: 'iron', protection: 10 })
     expect(of(ArmorModule, { material: 5 }).material).toBe('')
     expect(of(GeneratorModule, { isEnabled: true, delay: 250, energyPerOperation: 300 })).toMatchObject({
       isEnabled: true,

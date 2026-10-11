@@ -19,6 +19,10 @@ export class PrismaModuleRepository implements ModuleRepository {
     await this.db.module.createMany({ data: modules.map(toModuleRow) })
   }
 
+  async update(module: Module): Promise<void> {
+    await this.db.module.update({ where: { id: module.id }, data: toModuleRow(module) })
+  }
+
   async listOfBot(botId: string): Promise<Module[]> {
     const rows = await this.db.module.findMany({ where: { botId }, orderBy: { id: 'asc' } })
     return rows.map(toModuleEntity)

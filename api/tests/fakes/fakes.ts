@@ -336,6 +336,11 @@ export class InMemoryModuleRepository implements ModuleRepository {
     this.items.push(...modules)
   }
 
+  async update(module: Module) {
+    const index = this.items.findIndex((candidate) => candidate.id === module.id)
+    this.items[index] = module
+  }
+
   async listOfBot(botId: string) {
     return this.items.filter((module) => module.botId === botId)
   }

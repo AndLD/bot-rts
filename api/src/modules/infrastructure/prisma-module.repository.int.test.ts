@@ -39,6 +39,15 @@ describe('PrismaModuleRepository', () => {
     expect(stored).toEqual(expect.arrayContaining([gun, battery]))
   })
 
+  it('writes the changed state of a module', async () => {
+    const battery = buildModule(baseId, { type: 'battery', props: { value: 10 } })
+    await modules.addMany([battery])
+
+    await modules.update({ ...battery, condition: 40, props: { value: 3 } })
+
+    expect(await modules.listOfBot(baseId)).toEqual([{ ...battery, condition: 40, props: { value: 3 } }])
+  })
+
   it('lists nothing for an unknown bot', async () => {
     expect(await modules.listOfBot(randomUUID())).toEqual([])
   })

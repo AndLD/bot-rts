@@ -13,12 +13,12 @@ import {
   MiningModule,
   MovementModule,
   ProcessorModule,
-  ScannerModule,
   StorageModule,
-  WeaponModule,
   WirelessAdapterModule
 } from './game-module'
 import { Module } from './module.entity'
+import { ScannerModule } from './scanner-module'
+import { WeaponModule } from './weapon-module'
 
 type ModuleClass = new (record: Module) => GameModule
 

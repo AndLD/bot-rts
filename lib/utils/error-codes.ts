@@ -1,8 +1,8 @@
+import { ResultCode } from './result'
+
 // Stable machine-readable error codes returned by the API; clients branch on these, not on messages
 export const ErrorCode = {
   UNAUTHORIZED: 'UNAUTHORIZED',
-  FORBIDDEN: 'FORBIDDEN',
-  NOT_FOUND: 'NOT_FOUND',
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   CREDENTIALS_INVALID: 'CREDENTIALS_INVALID',
   EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
@@ -25,7 +25,9 @@ export const ErrorCode = {
   ALREADY_EXISTS: 'ALREADY_EXISTS',
   TERMINAL_SESSION_CLOSED: 'TERMINAL_SESSION_CLOSED',
   TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
-  INTERNAL_ERROR: 'INTERNAL_ERROR'
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  // A game action that failed as an expected outcome keeps the code of its result (design §10.3)
+  ...ResultCode
 } as const
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode]

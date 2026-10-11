@@ -1,10 +1,12 @@
 import { KnownPoint } from '../../map/domain/map-point.entity'
 import { MapService } from '../../map/application/map.service'
-import { ScannerModule } from '../../modules/domain/game-module'
+import { ScannerModule } from '../../modules/domain/scanner-module'
 import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { MapRepository } from '../../map/application/map.repository'
+import { Clock } from '../../shared/application/clock'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
+import { unwrap } from '../../shared/domain/result'
 import { BotsService } from './bots.service'
 
 export class ScanService {
@@ -13,10 +15,12 @@ export class ScanService {
     private readonly modules: ModuleRepository,
     private readonly map: MapRepository,
     private readonly mapService: MapService,
-    private readonly registry: ModuleRegistry
+    private readonly registry: ModuleRegistry,
+    private readonly clock: Clock
   ) {}
 
-  // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge
+  // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge. The scanner must
+  // be working, not live and off cooldown; a scan starts the cooldown.
   async scan(userId: string, botId: string): Promise<KnownPoint[]> {
     await this.bots.getControlledBot(userId, botId)
 
@@ -29,6 +33,9 @@ export class ScanService {
     if (!position) {
       throw new NotFoundError('Bot location not found')
     }
+
+    const { patch } = unwrap(scanner.scan(this.clock.now().getTime()))
+    await this.modules.update(scanner.withProps(patch))
 
     const { distance } = scanner
     const { x, y, z } = position.location

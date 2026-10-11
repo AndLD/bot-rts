@@ -42,8 +42,13 @@ export function useTerminal() {
       setIsLoading(false)
 
       if (bases?.length) {
-        setCurrentBotId(bases[0]._id)
-        socket.emit('open-terminal', bases[0]._id, (session) => setSessionId(session?._id ?? null))
+        // The terminal is ready, and the prompt shown, only once the server has stored the session
+        socket.emit('open-terminal', bases[0]._id, (session) => {
+          if (session) {
+            setSessionId(session._id)
+            setCurrentBotId(bases[0]._id)
+          }
+        })
       }
     })
   }, [socket])

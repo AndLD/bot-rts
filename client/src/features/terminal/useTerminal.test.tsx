@@ -85,15 +85,16 @@ describe('useTerminal: connecting', () => {
     expect(result.current.currentBotId).toBeNull()
   })
 
-  it('cannot run commands without a session', async () => {
+  it('shows no prompt and runs nothing when the server does not open a session', async () => {
     const socket = createSocket(
       handlers({ 'open-terminal': ((_b: string, ack: (s: null) => void) => ack(null)) as Handler })
     )
     const { result } = setup(socket)
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     act(() => result.current.run('ls'))
 
+    expect(result.current.currentBotId).toBeNull()
     expect(result.current.lines).toEqual(['/&gt; ls', 'The terminal is not connected yet'])
   })
 })

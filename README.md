@@ -219,7 +219,7 @@ pm2 start ecosystem.config.json
 | `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | —                       |
 | `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
 | `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `http://localhost:5173` |
-| `DATABASE_URL`                        | api          | PostgreSQL connection string (not read by the code until Phase 1) | `postgresql://botrts:botrts@localhost:5432/botrts` |
+| `DATABASE_URL`                        | api          | PostgreSQL connection string (Prisma, integration tests) | `postgresql://botrts:botrts@localhost:5432/botrts` |
 | `MONGO_DB_URI`                        | api          | MongoDB connection string                            | `mongodb://localhost:27017` |
 | `MONGO_DB_NAME`                       | api          | Database name                                        | `bot-rts`               |
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |

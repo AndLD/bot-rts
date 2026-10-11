@@ -181,6 +181,7 @@
     "NOT_LIVE": "The scanner is not in live mode",
     "BUSY": "The module is busy",
     "TOO_LOW": "Too low",
+    "TOO_HEAVY": "The bot is too heavy for its wheels or tracks",
     "EXPIRED": "It has expired",
     "INBOX_FULL": "The inbox is full",
     "OUT_OF_RANGE": "The target is out of reach",

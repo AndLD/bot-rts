@@ -10,12 +10,17 @@ export class ModuleFactory {
     private readonly catalog: readonly ModuleTemplate[] = MODULE_CATALOG
   ) {}
 
-  create(name: string, botId: string): Module {
+  // The template of a module by name
+  template(name: string): ModuleTemplate {
     const template = this.catalog.find((candidate) => candidate.name === name)
     if (!template) {
       throw new UnknownModuleError(name)
     }
-    return this.fromTemplate(template, botId)
+    return template
+  }
+
+  create(name: string, botId: string): Module {
+    return this.fromTemplate(this.template(name), botId)
   }
 
   fromTemplate(template: ModuleTemplate, botId: string): Module {

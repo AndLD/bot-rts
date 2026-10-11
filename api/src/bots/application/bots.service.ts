@@ -93,10 +93,16 @@ export class BotsService {
   }
 
   // A new ordinary bot of one of the player's bases, built from the given modules, placed on a free cell next to the
-  // base (design §8.3); with no free cell the bot is not created
+  // base (design §8.3); with no free cell the bot is not created. The items listed in `consumedItemIds` (the parts
+  // the modules were made from) disappear in the same transaction.
   async createBot(
     userId: string,
-    input: { baseId: string; label: string | null; modules: readonly ModuleTemplate[] }
+    input: {
+      baseId: string
+      label: string | null
+      modules: readonly ModuleTemplate[]
+      consumedItemIds?: readonly string[]
+    }
   ): Promise<{ bot: Bot; modules: Module[]; mapPoint: MapPoint }> {
     const base = await this.getControlledBot(userId, input.baseId)
     if (base.type !== BOT_TYPE.BASE) {
@@ -116,6 +122,9 @@ export class BotsService {
         passwordHash: null
       }
       await repositories.bots.add(bot)
+      for (const itemId of input.consumedItemIds ?? []) {
+        await repositories.items.remove(itemId)
+      }
       const modules = input.modules.map((template) => this.moduleFactory.fromTemplate(template, bot.id))
       await repositories.modules.addMany(modules)
 

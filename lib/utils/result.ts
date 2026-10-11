@@ -11,6 +11,7 @@ export const ResultCode = {
   BUSY: 'BUSY',
   NOT_FOUND: 'NOT_FOUND',
   TOO_LOW: 'TOO_LOW',
+  TOO_HEAVY: 'TOO_HEAVY',
   EXPIRED: 'EXPIRED',
   INBOX_FULL: 'INBOX_FULL',
   OUT_OF_RANGE: 'OUT_OF_RANGE',

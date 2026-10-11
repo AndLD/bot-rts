@@ -313,6 +313,7 @@ export type ErrorResponseModel = {
     | 'BUSY'
     | 'NOT_FOUND'
     | 'TOO_LOW'
+    | 'TOO_HEAVY'
     | 'EXPIRED'
     | 'INBOX_FULL'
     | 'OUT_OF_RANGE'

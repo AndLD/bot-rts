@@ -4,6 +4,8 @@ import { PASSWORD_HASHER, PasswordHasher } from '../auth/application/ports'
 import { AuthModule } from '../auth/auth.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
 import { MapService } from '../map/application/map.service'
+import { CraftingModule } from '../crafting/crafting.module'
+import { ITEM_REPOSITORY, ItemRepository } from '../crafting/application/item.repository'
 import { SpawnModule } from '../spawn/spawn.module'
 import { SpawnService } from '../spawn/application/spawn.service'
 import { MapModule } from '../map/map.module'
@@ -19,13 +21,14 @@ import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BaseLifecycle } from './application/base-lifecycle'
 import { BotsService } from './application/bots.service'
+import { AssemblyService } from './application/assembly.service'
 import { ScanService } from './application/scan.service'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
 import { BotsController } from './presentation/bots.controller'
 import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
-  imports: [AuthModule, MapModule, ModulesModule, SpawnModule],
+  imports: [AuthModule, MapModule, ModulesModule, SpawnModule, CraftingModule],
   controllers: [BotsController],
   providers: [
     BotsGateway,
@@ -65,6 +68,17 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new BotsService(unitOfWork, bots, modules, ids, clock, hasher, moduleFactory, lifecycle, spawn)
     },
     {
+      provide: AssemblyService,
+      inject: [BotsService, MODULE_REPOSITORY, ITEM_REPOSITORY, ModuleFactory, ModuleRegistry],
+      useFactory: (
+        bots: BotsService,
+        modules: ModuleRepository,
+        items: ItemRepository,
+        moduleFactory: ModuleFactory,
+        registry: ModuleRegistry
+      ) => new AssemblyService(bots, modules, items, moduleFactory, registry)
+    },
+    {
       provide: ScanService,
       inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry, CLOCK, EnergyService],
       useFactory: (
@@ -78,6 +92,6 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new ScanService(bots, modules, map, mapService, registry, clock, energy)
     }
   ],
-  exports: [BOT_REPOSITORY, BotsService, ScanService]
+  exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService]
 })
 export class BotsModule {}

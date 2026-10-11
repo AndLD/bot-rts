@@ -160,6 +160,6 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
     { provide: APP_GUARD, useClass: RolesGuard },
     SocketAuthGateway
   ],
-  exports: [AuthService]
+  exports: [AuthService, PASSWORD_HASHER]
 })
 export class AuthModule {}

@@ -23,7 +23,8 @@ const worker = (baseId: string): Bot => ({
   label: 'worker',
   type: BOT_TYPE.WORKER,
   userId: null,
-  baseId
+  baseId,
+  passwordHash: null
 })
 
 describe('PrismaBotRepository', () => {

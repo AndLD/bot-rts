@@ -4,8 +4,10 @@ import { FixedRng } from '../../../tests/fakes/fakes'
 import { createWorld } from '../../../tests/fakes/world'
 import { INITIAL_BASE_MODULES } from '../../modules/domain/initial-base-modules'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
+import { toBotDto } from '../presentation/bot.mapper'
 import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 
@@ -14,7 +16,7 @@ describe('BotsService.deployUserBase', () => {
     // 0.3 * 11 -> 3, 0.6 * 11 -> 6
     const { botsService, repositories } = createWorld({ rng: new FixedRng([0.3, 0.6]) })
 
-    const { bot, modules, mapPoint } = await botsService.deployUserBase(alice)
+    const { bot, modules, mapPoint } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     expect(bot).toMatchObject({ label: 'Alice base', type: BOT_TYPE.BASE, userId: alice.id, baseId: null })
     expect(modules).toHaveLength(INITIAL_BASE_MODULES.length)
@@ -25,19 +27,35 @@ describe('BotsService.deployUserBase', () => {
     expect(await repositories.modules.listOfBot(bot.id)).toEqual(modules)
   })
 
+  it('keeps the access password only as a hash, which the bot DTO never carries', async () => {
+    const { botsService } = createWorld()
+
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
+
+    expect(bot.passwordHash).toBe(`hashed:${PASSWORD}`)
+    expect(toBotDto(bot)).not.toHaveProperty('passwordHash')
+  })
+
+  it.each(['', 'short', 'x'.repeat(65)])('refuses the password %p', async (password) => {
+    const { botsService, repositories } = createWorld()
+
+    await expect(botsService.deployUserBase(alice, { password })).rejects.toThrow(ValidationError)
+    expect(repositories.bots.items.size).toBe(0)
+  })
+
   it('places the base at the requested location', async () => {
     const { botsService } = createWorld()
 
-    const { mapPoint } = await botsService.deployUserBase(alice, { x: 7, y: 8, z: 0 })
+    const { mapPoint } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 7, y: 8, z: 0 } })
 
     expect(mapPoint.location).toEqual({ x: 7, y: 8, z: 0 })
   })
 
   it('allows one base per player', async () => {
     const { botsService } = createWorld()
-    await botsService.deployUserBase(alice)
+    await botsService.deployUserBase(alice, { password: PASSWORD })
 
-    await expect(botsService.deployUserBase(alice)).rejects.toThrow(BaseAlreadyExistsError)
+    await expect(botsService.deployUserBase(alice, { password: PASSWORD })).rejects.toThrow(BaseAlreadyExistsError)
   })
 
   it('skips occupied cells and fails when none is free', async () => {
@@ -45,22 +63,22 @@ describe('BotsService.deployUserBase', () => {
       rng: new FixedRng([0, 0, 0.99, 0.99]),
       config: { spawnMaxDistance: 10, spawnAttempts: 2 }
     })
-    await world.botsService.deployUserBase(alice)
+    await world.botsService.deployUserBase(alice, { password: PASSWORD })
 
-    const second = await world.botsService.deployUserBase(bob)
+    const second = await world.botsService.deployUserBase(bob, { password: PASSWORD })
     expect(second.mapPoint.location).toEqual({ x: 10, y: 10, z: 0 })
 
     const crowded = createWorld({ rng: new FixedRng([0]), config: { spawnAttempts: 3 } })
-    await crowded.botsService.deployUserBase(alice)
-    await expect(crowded.botsService.deployUserBase(bob)).rejects.toThrow(NoFreeLocationError)
+    await crowded.botsService.deployUserBase(alice, { password: PASSWORD })
+    await expect(crowded.botsService.deployUserBase(bob, { password: PASSWORD })).rejects.toThrow(NoFreeLocationError)
   })
 })
 
 describe('BotsService queries', () => {
   it('lists the bots of a player', async () => {
     const { botsService } = createWorld()
-    const { bot } = await botsService.deployUserBase(alice)
-    await botsService.deployUserBase(bob, { x: 1, y: 1, z: 0 })
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
+    await botsService.deployUserBase(bob, { password: PASSWORD, location: { x: 1, y: 1, z: 0 } })
 
     expect(await botsService.listUserBots(alice.id)).toEqual([bot])
     expect(await botsService.listUserBots(alice.id, { type: BOT_TYPE.WORKER })).toEqual([])
@@ -68,14 +86,14 @@ describe('BotsService queries', () => {
 
   it('returns the modules of an own base', async () => {
     const { botsService } = createWorld()
-    const { bot, modules } = await botsService.deployUserBase(alice)
+    const { bot, modules } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     expect(await botsService.getBotModules(alice.id, bot.id)).toEqual(modules)
   })
 
   it('answers not found and forbidden', async () => {
     const { botsService } = createWorld()
-    const { bot } = await botsService.deployUserBase(alice)
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     await expect(botsService.getBotModules(alice.id, 'missing')).rejects.toThrow(NotFoundError)
     await expect(botsService.getBotModules(bob.id, bot.id)).rejects.toThrow(ForbiddenError)
@@ -83,9 +101,23 @@ describe('BotsService queries', () => {
 
   it('resolves the owner of an ordinary bot through its base', async () => {
     const { botsService, repositories } = createWorld()
-    const { bot: base } = await botsService.deployUserBase(alice)
-    const worker = { id: 'worker-1', label: null, type: BOT_TYPE.WORKER, userId: null, baseId: base.id }
-    const orphan = { id: 'orphan-1', label: null, type: BOT_TYPE.WORKER, userId: null, baseId: null }
+    const { bot: base } = await botsService.deployUserBase(alice, { password: PASSWORD })
+    const worker = {
+      id: 'worker-1',
+      label: null,
+      type: BOT_TYPE.WORKER,
+      userId: null,
+      baseId: base.id,
+      passwordHash: null
+    }
+    const orphan = {
+      id: 'orphan-1',
+      label: null,
+      type: BOT_TYPE.WORKER,
+      userId: null,
+      baseId: null,
+      passwordHash: null
+    }
     await repositories.bots.add(worker)
     await repositories.bots.add(orphan)
 
@@ -104,7 +136,7 @@ describe('BotsService.createBot', () => {
 
   it('builds a bot of the base from the modules and lists it with the base bots', async () => {
     const { botsService, repositories } = createWorld()
-    const { bot: base } = await botsService.deployUserBase(alice)
+    const { bot: base } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     const { bot, modules: attached } = await botsService.createBot(alice.id, {
       baseId: base.id,
@@ -122,7 +154,7 @@ describe('BotsService.createBot', () => {
 
   it('refuses a foreign base, a bot as the owner, and an empty bot', async () => {
     const { botsService } = createWorld()
-    const { bot: base } = await botsService.deployUserBase(alice)
+    const { bot: base } = await botsService.deployUserBase(alice, { password: PASSWORD })
     const { bot: worker } = await botsService.createBot(alice.id, { baseId: base.id, label: null, modules })
 
     await expect(botsService.createBot(bob.id, { baseId: base.id, label: null, modules })).rejects.toThrow(
@@ -140,7 +172,7 @@ describe('BotsService.createBot', () => {
 describe('BotsService.listBaseBots', () => {
   it('answers only for a base the player owns', async () => {
     const { botsService } = createWorld()
-    const { bot: base } = await botsService.deployUserBase(alice)
+    const { bot: base } = await botsService.deployUserBase(alice, { password: PASSWORD })
     const { bot: worker } = await botsService.createBot(alice.id, {
       baseId: base.id,
       label: null,

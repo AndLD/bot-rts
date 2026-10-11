@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
+import { PASSWORD_HASHER, PasswordHasher } from '../auth/application/ports'
 import { AuthModule } from '../auth/auth.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
 import { MapService } from '../map/application/map.service'
@@ -31,7 +32,16 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: BotsService,
-      inject: [UNIT_OF_WORK, BOT_REPOSITORY, MODULE_REPOSITORY, ID_GENERATOR, RNG, CLOCK, WORLD_CONFIG],
+      inject: [
+        UNIT_OF_WORK,
+        BOT_REPOSITORY,
+        MODULE_REPOSITORY,
+        ID_GENERATOR,
+        RNG,
+        CLOCK,
+        WORLD_CONFIG,
+        PASSWORD_HASHER
+      ],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotRepository,
@@ -39,8 +49,9 @@ import { BotsGateway } from './presentation/bots.gateway'
         ids: IdGenerator,
         rng: Rng,
         clock: Clock,
-        world: WorldConfig
-      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world)
+        world: WorldConfig,
+        hasher: PasswordHasher
+      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher)
     },
     {
       provide: ScanService,

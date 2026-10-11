@@ -17,7 +17,7 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 | 3.5 | Terminal **session persistence**: store every connection session + logs to the database (per `notes.txt`), with a `TerminalSession` model/repository | 5 | ✅ |
 | 3.6 | Bot filesystem: `File`/`Drive` model and file CRUD with drive quotas and name validation, per design §11.4 | 8 | ✅ |
 | 3.7 | Base terminal commands end-to-end: server command parser + socket events for the filesystem and info commands of design §11.1 (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`). `run` / `shell` / `top` / `kill` arrive with the runtime (5.6), `connect` with 6.5, `craft` / `assemble` / `research` / `learn` with 4.6, `passwd` / `adopt` with 5.9 | 13 | ✅ |
-| 3.8 | "Deploy your base" UI button + base-deployment confirmation flow, including setting the mandatory base access password | 5 | ⬜ |
+| 3.8 | "Deploy your base" UI button + base-deployment confirmation flow, including setting the mandatory base access password | 5 | ✅ |
 | 3.9 | Module registry & factory for instantiating module classes by type (replaces the static `initialUserBaseModules`; the base starter kit now also includes class-1 processor, memory and wireless adapter) | 5 | ⬜ |
 | 3.10 | Base destruction lifecycle per design §6.3: corpse base, redeploy of a new base ("one living base" rule), stale bots | 5 | ⬜ |
 | 3.11 | `SpawnService`: base placement per design §4.1 (free cell, minimum distance, retries; replaces random `[0,10]²`), adjacent-cell spawn for assembled bots (§8.3), and spawn seeds per design §22.3 | 5 | ⬜ |
@@ -43,3 +43,4 @@ AGENTS.md §7.1).
 | `feature/3.5-terminal-sessions` | 3.5 | #52 | merged |
 | `feature/3.6-bot-filesystem` | 3.6 | #53 | merged |
 | `feature/3.7-terminal-commands` | 3.7 | #54 | merged |
+| `feature/3.8-deploy-base-ui` | 3.8 | #55 | merged |

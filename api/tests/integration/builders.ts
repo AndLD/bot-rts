@@ -26,7 +26,15 @@ export function buildUser(overrides: Partial<User> = {}): User {
 }
 
 export function buildBase(userId: string, overrides: Partial<Bot> = {}): Bot {
-  return { id: randomUUID(), label: 'base', type: BOT_TYPE.BASE, userId, baseId: null, ...overrides }
+  return {
+    id: randomUUID(),
+    label: 'base',
+    type: BOT_TYPE.BASE,
+    userId,
+    baseId: null,
+    passwordHash: 'hash',
+    ...overrides
+  }
 }
 
 export function buildModule(botId: string, overrides: Partial<Module> = {}): Module {

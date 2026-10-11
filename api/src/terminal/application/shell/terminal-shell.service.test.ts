@@ -5,11 +5,12 @@ import { buildModule } from '../../../../tests/integration/builders'
 import { ForbiddenError } from '../../../shared/domain/errors'
 import { TOP } from './cwd'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 
 async function setup() {
   const world = createWorld()
-  const { bot } = await world.botsService.deployUserBase(alice)
+  const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
   const drive = buildModule(bot.id, { type: 'drive', name: 'memory-class1', props: { quota: 100 } })
   await world.repositories.modules.addMany([drive])
   const session = await world.terminalService.open(alice.id, bot.id)

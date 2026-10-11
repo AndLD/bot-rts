@@ -3,13 +3,14 @@ import { createWorld } from '../../../tests/fakes/world'
 import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { TerminalSessionClosedError } from '../domain/terminal.errors'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 const DAY_MS = 24 * 3600 * 1000
 
 async function setup(retention = {}) {
   const world = createWorld({ retention })
-  const { bot } = await world.botsService.deployUserBase(alice)
+  const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
   return { ...world, bot }
 }
 

@@ -4,12 +4,13 @@ import { buildModule } from '../../../tests/integration/builders'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { AlreadyExistsError, DriveBrokenError, DriveFullError } from '../domain/file.errors'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 
 async function setup(driveOverrides = {}) {
   const world = createWorld()
-  const { bot } = await world.botsService.deployUserBase(alice)
+  const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
   const drive = buildModule(bot.id, {
     type: 'drive',
     name: 'memory-class1',
@@ -40,7 +41,7 @@ describe('FilesService drives', () => {
 
   it('has no drive for a bot without a memory module', async () => {
     const world = createWorld()
-    const { bot } = await world.botsService.deployUserBase(alice)
+    const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
 
     expect(await world.filesService.listDrives(alice.id, bot.id)).toEqual([])
     await expect(world.filesService.list(alice.id, bot.id, 'no-drive')).rejects.toThrow(NotFoundError)

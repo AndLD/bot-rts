@@ -7,4 +7,6 @@ export interface Bot {
   readonly type: BOT_TYPE
   readonly userId: string | null
   readonly baseId: string | null
+  // The hash of the access password others need to connect (design §11.2.2); a base always has one
+  readonly passwordHash: string | null
 }

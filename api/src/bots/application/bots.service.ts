@@ -1,4 +1,6 @@
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
+import { BOT_PASSWORD_MAX_LENGTH, BOT_PASSWORD_MIN_LENGTH, isValidBotPassword } from '../../../../lib/utils/validation'
+import { PasswordHasher } from '../../auth/application/ports'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { MapRepository } from '../../map/application/map.repository'
 import { KnownPoint, Location, MapPoint } from '../../map/domain/map-point.entity'
@@ -29,11 +31,24 @@ export class BotsService {
     private readonly ids: IdGenerator,
     private readonly rng: Rng,
     private readonly clock: Clock,
-    private readonly world: WorldConfig
+    private readonly world: WorldConfig,
+    private readonly hasher: PasswordHasher
   ) {}
 
-  // Creates the first base of a player on a free cell, with the starting equipment
-  deployUserBase(user: { id: string; name: string }, location?: Location): Promise<DeployedBase> {
+  // Creates the first base of a player on a free cell, with the starting equipment and the access password others
+  // need to connect to it
+  async deployUserBase(
+    user: { id: string; name: string },
+    options: { password: string; location?: Location }
+  ): Promise<DeployedBase> {
+    if (!isValidBotPassword(options.password)) {
+      throw new ValidationError(
+        `The password must have ${BOT_PASSWORD_MIN_LENGTH}-${BOT_PASSWORD_MAX_LENGTH} characters`
+      )
+    }
+    const passwordHash = await this.hasher.hash(options.password)
+    const { location } = options
+
     return this.unitOfWork.run(async (repositories) => {
       if ((await repositories.bots.listOfUser(user.id)).length) {
         throw new BaseAlreadyExistsError()
@@ -44,7 +59,8 @@ export class BotsService {
         label: `${user.name} base`,
         type: BOT_TYPE.BASE,
         userId: user.id,
-        baseId: null
+        baseId: null,
+        passwordHash
       }
       const spot = location ?? (await this.findFreeLocation(repositories.map))
 
@@ -91,7 +107,8 @@ export class BotsService {
         label: input.label,
         type: BOT_TYPE.WORKER,
         userId: null,
-        baseId: base.id
+        baseId: base.id,
+        passwordHash: null
       }
       await repositories.bots.add(bot)
       const modules = input.modules.map((template) => ({ ...template, id: this.ids.next(), botId: bot.id }))

@@ -6,12 +6,13 @@ import { buildModule, buildUser } from '../../../tests/integration/builders'
 import { Logger } from '../../shared/application/logger'
 import { TerminalGateway } from './terminal.gateway'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 
 async function setup(userId = alice.id) {
   const world = createWorld()
-  const { bot } = await world.botsService.deployUserBase(alice)
+  const { bot } = await world.botsService.deployUserBase(alice, { password: PASSWORD })
   const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
   const gateway = new TerminalGateway(world.terminalService, world.terminalShell, logger)
   const socket = Object.assign(new EventEmitter(), { principal: { user: buildUser({ id: userId }) } })

@@ -93,7 +93,26 @@
     }
   },
   "game": {
-    "account": "Account"
+    "account": "Account",
+    "loading": "Loading...",
+    "loadFailed": "Could not load your base",
+    "deploy": {
+      "title": "Deploy your base",
+      "intro": "Your base is where everything starts. Set the password others need to connect to it.",
+      "password": "Base password",
+      "passwordHelp": "{min}-{max} characters",
+      "passwordRequired": "Please enter a password for your base",
+      "passwordLength": "The password must have {min}-{max} characters",
+      "confirmation": "Repeat the password",
+      "confirmationRequired": "Please repeat the password",
+      "confirmationMismatch": "The passwords do not match",
+      "submit": "Deploy base",
+      "confirmTitle": "Deploy your base?",
+      "confirmText": "Your base is placed on a free spot of the map with its starting equipment. You can deploy only one base.",
+      "confirmOk": "Deploy",
+      "confirmCancel": "Cancel",
+      "failed": "The base was not deployed"
+    }
   },
   "terminal": {
     "welcome": "# Welcome to BotOS Alpha 0.1.0 #",

@@ -2,6 +2,7 @@ import { createWorld } from '../../../tests/fakes/world'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { ScanService } from './scan.service'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 
 function setup() {
@@ -18,7 +19,7 @@ function setup() {
 describe('ScanService.scan', () => {
   it('shows the player the cells within the scanner distance of the bot', async () => {
     const { botsService, scanService } = setup()
-    const { bot } = await botsService.deployUserBase(alice, { x: 5, y: 5, z: 0 })
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
 
     const seen = await scanService.scan(alice.id, bot.id)
 
@@ -31,7 +32,7 @@ describe('ScanService.scan', () => {
 
   it('requires an own bot with a scanner and a position', async () => {
     const { botsService, scanService, repositories } = setup()
-    const { bot } = await botsService.deployUserBase(alice, { x: 5, y: 5, z: 0 })
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
 
     await expect(scanService.scan('someone-else', bot.id)).rejects.toThrow()
 
@@ -45,7 +46,7 @@ describe('ScanService.scan', () => {
 
   it('reports a bot that is not on the map', async () => {
     const { botsService, scanService, repositories } = setup()
-    const { bot } = await botsService.deployUserBase(alice, { x: 5, y: 5, z: 0 })
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
     repositories.map.points.clear()
 
     await expect(scanService.scan(alice.id, bot.id)).rejects.toThrow(NotFoundError)
@@ -53,7 +54,7 @@ describe('ScanService.scan', () => {
 
   it('treats a scanner without distance as range zero', async () => {
     const { botsService, scanService, repositories } = setup()
-    const { bot } = await botsService.deployUserBase(alice, { x: 5, y: 5, z: 0 })
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
     const index = repositories.modules.items.findIndex((m) => m.type === 'scanner')
     repositories.modules.items[index] = { ...repositories.modules.items[index], props: {} }
 

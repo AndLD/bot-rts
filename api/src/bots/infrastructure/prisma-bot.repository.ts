@@ -4,7 +4,14 @@ import { BotRepository } from '../application/bot.repository'
 import { Bot } from '../domain/bot.entity'
 
 function toEntity(row: BotRow): Bot {
-  return { id: row.id, label: row.label, type: row.type as BOT_TYPE, userId: row.userId, baseId: row.baseId }
+  return {
+    id: row.id,
+    label: row.label,
+    type: row.type as BOT_TYPE,
+    userId: row.userId,
+    baseId: row.baseId,
+    passwordHash: row.passwordHash
+  }
 }
 
 export class PrismaBotRepository implements BotRepository {

@@ -56,7 +56,8 @@ export class BotsService {
         id: this.ids.next(),
         location: spot,
         type: MapPointType.BASE,
-        contentId: bot.id
+        contentId: bot.id,
+        resource: null
       })
       const known: KnownPoint = {
         ...mapPoint,

@@ -1,4 +1,5 @@
 import { BotsService } from '../../src/bots/application/bots.service'
+import { MapGenerator } from '../../src/map/domain/map-generator'
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
 import { Rng } from '../../src/shared/application/rng'
@@ -43,7 +44,7 @@ export function createWorld(options: { rng?: Rng; config?: Partial<WorldConfig> 
     clock,
     ids,
     config,
-    mapService: new MapService(unitOfWork, ids, rng, clock, config),
+    mapService: new MapService(unitOfWork, ids, new MapGenerator(rng, config), clock, config.chunkSize),
     botsService: new BotsService(unitOfWork, repositories.bots, repositories.modules, ids, rng, clock, config)
   }
 }

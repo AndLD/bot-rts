@@ -8,7 +8,7 @@
   model for future layering). ✅ The world is **2D**: `z` is **reserved** in the type but has no gameplay meaning, is
   never set by the game, and is ignored by movement, scanning and the map.
 - ✅ **The world is unbounded.** There is no border: coordinates may be negative and cells are generated lazily on
-  first scan. Storage must therefore be sparse (only materialized cells are stored) and indexed by location.
+  first scan. Storage must therefore be sparse (only materialized cells are stored) and indexed by location. The map is addressed in **chunks** (square blocks of `chunkSize` cells, default 16, `WORLD_CHUNK_SIZE`) in the domain model, so generation and later sharding work chunk by chunk; negative cells belong to negative chunks.
 - Each cell has a **type** and an optional content reference. Implemented point types (`MapPointType`):
 
   | Type | Meaning |

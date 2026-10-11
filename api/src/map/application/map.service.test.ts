@@ -1,4 +1,5 @@
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
+import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import { FixedRng } from '../../../tests/fakes/fakes'
 import { createWorld } from '../../../tests/fakes/world'
 
@@ -7,8 +8,10 @@ const range = { from: { x: 0, y: 0, z: 0 }, to: { x: 1, y: 1, z: 0 } }
 
 describe('MapService.observe', () => {
   it('generates the missing cells of the real map and returns snapshots of them', async () => {
-    // cells are generated in x-major order: 0.1 and 0.9 alternate resource / empty (chance 0.2)
-    const { mapService, repositories, clock } = createWorld({ rng: new FixedRng([0.1, 0.9, 0.9, 0.1]) })
+    // cells are generated in x-major order; a resource cell (roll below 0.2) also rolls its kind and its amount
+    const { mapService, repositories, clock } = createWorld({
+      rng: new FixedRng([0.1, 0.5, 0.5, 0.9, 0.9, 0.1, 0.99, 0])
+    })
 
     const seen = await mapService.observe(user, range)
 
@@ -18,6 +21,9 @@ describe('MapService.observe', () => {
       [1, 0, null],
       [1, 1, MapPointType.RESOURCE]
     ])
+    expect(seen[0].resource).toEqual({ resource: RESOURCE.STONE, amount: 175 })
+    expect(seen[3].resource).toEqual({ resource: RESOURCE.GOLD, amount: 10 })
+    expect(seen[1].resource).toBeNull()
     expect(seen.every((p) => p.userId === user && p.seenAt === clock.current.getTime())).toBe(true)
     expect(repositories.map.points.size).toBe(4)
     expect(repositories.map.known.size).toBe(4)
@@ -58,5 +64,24 @@ describe('MapService.observe', () => {
     await mapService.observe('22222222-2222-4222-8222-222222222222', { from: range.from, to: range.from })
 
     expect(repositories.map.known.size).toBe(5)
+  })
+
+  it('works a range that spans chunks, negative ones included, and returns the cells in order', async () => {
+    const { mapService, repositories } = createWorld({ rng: new FixedRng([0.9]), config: { chunkSize: 2 } })
+
+    const seen = await mapService.observe(user, { from: { x: -1, y: -1, z: 0 }, to: { x: 2, y: 0, z: 0 } })
+
+    expect(seen).toHaveLength(8)
+    expect(seen.map((p) => [p.location.x, p.location.y])).toEqual([
+      [-1, -1],
+      [-1, 0],
+      [0, -1],
+      [0, 0],
+      [1, -1],
+      [1, 0],
+      [2, -1],
+      [2, 0]
+    ])
+    expect(repositories.map.points.size).toBe(8)
   })
 })

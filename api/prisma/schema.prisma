@@ -45,6 +45,17 @@ enum MapPointType {
   @@map("map_point_type")
 }
 
+enum ResourceType {
+  iron
+  stone
+  wood
+  oil
+  crystal
+  gold
+
+  @@map("resource_type")
+}
+
 enum AuthTokenKind {
   email_verification
   password_reset
@@ -198,6 +209,9 @@ model MapPoint {
   z         Int           @default(0)
   type      MapPointType?
   contentId String?       @map("content_id") @db.Uuid
+  // A deposit: what it holds and how much is left (set only on resource cells)
+  resource  ResourceType?
+  amount    Int?
 
   @@unique([x, y, z])
   @@index([contentId])
@@ -213,6 +227,8 @@ model KnownPoint {
   z         Int           @default(0)
   type      MapPointType?
   contentId String?       @map("content_id") @db.Uuid
+  resource  ResourceType?
+  amount    Int?
   seenAt    BigInt        @default(0) @map("seen_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

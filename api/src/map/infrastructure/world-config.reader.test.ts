@@ -8,6 +8,11 @@ describe('readWorldConfig', () => {
     expect(DEFAULT_WORLD_CONFIG).toMatchObject({ resourceChance: 0.2, spawnMaxDistance: 10, spawnAttempts: 20 })
   })
 
+  it('reads the chunk size and never lets it drop below one cell', () => {
+    expect(readWorldConfig({ WORLD_CHUNK_SIZE: '32' }).chunkSize).toBe(32)
+    expect(readWorldConfig({ WORLD_CHUNK_SIZE: '0' }).chunkSize).toBe(1)
+  })
+
   it('reads overrides', () => {
     expect(
       readWorldConfig({ WORLD_RESOURCE_CHANCE: '0.5', WORLD_SPAWN_MAX_DISTANCE: '50', WORLD_SPAWN_ATTEMPTS: '3' })

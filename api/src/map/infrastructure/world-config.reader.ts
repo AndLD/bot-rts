@@ -40,6 +40,7 @@ export function readWorldConfig(env: Env, problems: string[] = [], readFile: Rea
   const resourceChance = readNumber(env.WORLD_RESOURCE_CHANCE, DEFAULT_WORLD_CONFIG.resourceChance)
 
   const config: WorldConfig = {
+    chunkSize: Math.max(1, Math.floor(readNumber(env.WORLD_CHUNK_SIZE, DEFAULT_WORLD_CONFIG.chunkSize))),
     resourceChance: Math.min(resourceChance, 1),
     resources: readResourceBalance(env.WORLD_RESOURCE_BALANCE_FILE, readFile, problems),
     spawnMaxDistance: Math.floor(readNumber(env.WORLD_SPAWN_MAX_DISTANCE, DEFAULT_WORLD_CONFIG.spawnMaxDistance)),

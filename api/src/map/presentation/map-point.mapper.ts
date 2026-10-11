@@ -10,6 +10,10 @@ export function toMapPointDto(point: MapPoint | KnownPoint): IMapPoint {
     type: point.type
   }
 
+  if (point.resource) {
+    dto.resource = point.resource
+  }
+
   if ('userId' in point) {
     dto.userId = point.userId
     dto.seenAt = point.seenAt

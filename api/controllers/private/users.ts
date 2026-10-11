@@ -1,5 +1,5 @@
 import { Response } from 'express'
-import { AppServices } from '../../src/composition'
+import { AppServices } from '../../src/legacy/legacy-services'
 import { ValidationError } from '../../src/shared/domain/errors'
 import { isValidId } from '../../src/shared/domain/ids'
 import { toUserInfo } from '../../src/users/presentation/user.mapper'

@@ -34,8 +34,14 @@ describe('GET /users', () => {
     expect((await request(app).get('/?active=false').expect(200)).body.result).toEqual([])
   })
 
-  it('rejects operator injection in the filter', async () => {
-    await request(setup('admin').app).get('/?email[$ne]=x').expect(400)
+  it('does not let query-string syntax smuggle operators into the filter', async () => {
+    const { app, repositories } = setup('admin')
+    const user = buildUser({ email: 'a@example.com' })
+    repositories.users.items.set(user.id, user)
+
+    // Express 5 does not parse `email[$ne]=x` into an object; the key is ignored and a repeated key is rejected
+    expect((await request(app).get('/?email[$ne]=x').expect(200)).body.result).toHaveLength(1)
+    await request(app).get('/?email=a&email=b').expect(400)
   })
 })
 

@@ -1,6 +1,6 @@
 import { BotsService } from '../../src/bots/application/bots.service'
 import { ScanService } from '../../src/bots/application/scan.service'
-import { AppServices } from '../../src/composition'
+import { AppServices } from '../../src/legacy/legacy-services'
 import { EmailSender } from '../../src/notifications/application/email-sender'
 import { UsersService } from '../../src/users/application/users.service'
 import { VerificationMailer } from '../../src/users/application/verification-mailer'
@@ -18,8 +18,7 @@ export function createFakeServices(options: Parameters<typeof createWorld>[0] = 
     bots,
     scan: new ScanService(bots, world.repositories.modules, world.repositories.map, world.mapService),
     mapService: world.mapService,
-    verificationMailer: new VerificationMailer(sender, 'https://game.example'),
-    close: async () => undefined
+    verificationMailer: new VerificationMailer(sender, 'https://game.example')
   }
 
   return { ...world, services, sender }

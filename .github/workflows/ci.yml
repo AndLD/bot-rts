@@ -67,6 +67,8 @@ jobs:
             --shadow-database-url postgresql://botrts:botrts@localhost:5432/botrts_shadow --exit-code
       - name: Lint
         run: npm run lint
+      - name: Import boundaries
+        run: npm run check:boundaries
       - name: Typecheck
         run: npm run typecheck
       - name: Markdown links

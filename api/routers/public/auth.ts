@@ -3,7 +3,7 @@ import { validate } from 'simple-express-validation'
 import { createAuthPublicControllers } from '../../controllers/public/auth'
 import { asyncHandler } from '../../middlewares/async-handler'
 import { authRateLimiter } from '../../middlewares/rateLimiters'
-import { AppServices } from '../../src/composition'
+import { AppServices } from '../../src/legacy/legacy-services'
 import { authPublicValidationSchemas } from '../../validation/public/auth'
 
 export function createAuthPublicRouter(services: Pick<AppServices, 'users'>) {

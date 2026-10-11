@@ -8,9 +8,9 @@ Each scenario is a short narrative walkthrough of a mechanic, in the order a pla
 
 1. Alice signs up and confirms her email link.
 2. The game shows a red **"Deploy your base to start"** button.
-3. She clicks it. The server places `Alice base` at a random empty-ish cell within 10 cells of the origin, attaches
-   the seven starting modules, and writes the base's map point.
-4. The monitor opens, showing mostly black cells (fog of war) and her blue base square.
+3. She clicks it. The server places `Alice base` on a free cell chosen by the spawn rule (§4.1), attaches the starting
+   module kit, credits her wallet with the starter grant (§26.1), and writes the base's map point.
+4. The monitor opens, showing mostly black cells (fog of war) and her base sprite tinted blue.
 5. **Design intent:** onboarding must end with the player looking at a world they want to explore.
 
 ## Scenario B — "First light" (scanning)
@@ -65,27 +65,8 @@ program around.
 
 ## Scenario D — "The haul" (mining loop)
 
-Bob has a bot with drill + manipulator + storage:
-
-```js
-async function main(bot, baseId) {
-  while (true) {
-    const scan = await bot.scan()
-    const deposit = scan.ok && scan.data.find((c) => c.type === 'RESOURCE.IRON' && c.amount > 0)
-
-    if (deposit) {
-      const dug = await bot.dig()
-      if (dug.ok) {
-        const stored = await bot.store('iron')
-        if (stored.ok) bot.log('stored iron')
-      }
-    } else {
-      await bot.move(1)
-    }
-    await bot.sleep(500)
-  }
-}
-```
+Bob has a bot with drill + manipulator + storage. His script (see [Miner + hauler loop](./18-example-scripts.md#182-miner--hauler-loop))
+scans for iron, digs it, stores it, and otherwise moves on, checking each result's `ok` flag.
 
 Design intent: extraction + logistics is where the economy loop becomes visible, and where storage capacity, energy,
 and travel time force trade-offs.
@@ -107,9 +88,19 @@ and travel time force trade-offs.
 3. The server checks the target bot has an **enabled wireless adapter**; it does, so a draggable terminal opens for
    that bot.
 4. He writes a script with `edit miner.js`, then `run miner.js`.
-5. His network drops: the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
+5. His own internet connection drops (this is the player's client, not the bot's radio link): the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
    running on the server**.
-6. On reconnect, the session (with all logs so far) is still there — it was persisted to MongoDB.
+6. On reconnect, the session (with all logs so far) is still there — it was persisted to the database.
+
+## Scenario H — "Out of range"
+
+1. Frank's scout walks away from the base and leaves the range of its wireless adapter.
+2. On the map the scout turns grey with diagonal hatching at its last known position; its terminal shows "Connection
+   interrupted" and he gets a `LinkLost` notification. His manual commands to the scout are refused (`NO_SIGNAL`).
+3. The scout's script keeps running. It calls `getLinkStatus()`, sees `connected: false`, and walks back toward the base.
+4. A relay tower built earlier also runs out of oil, so two more bots behind it are hatched as well.
+5. Frank refuels the tower; the link returns by itself, the terminals resume, the scout's buffered scans appear on the map
+   with their real times, and a summary of the missed events arrives.
 
 ## Scenario G — "Debugging in the field"
 

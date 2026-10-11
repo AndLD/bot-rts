@@ -6,9 +6,14 @@ wireless adapter, …). Players can micromanage bots by hand from the GUI, or wr
 automate them; scripts execute on the server in a fair, sandboxed, tick-based runtime.
 
 > Status: **Early prototype / vertical slice.** Auth, email verification, base deployment, procedural map generation,
-> a module model (scanner is functional), Socket.IO transport and a partial BotOS terminal + code editor exist.
-> The script-execution engine (the heart of the game), most module behaviors, crafting/factory, the canvas map and
-> automated tests are **not implemented yet**. See [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md).
+> a module model (scanner is functional), Socket.IO transport and a partial BotOS terminal exist; a code-editor
+> component exists but is not mounted yet. The script-execution engine (the heart of the game), most module behaviors,
+> crafting/factory, the canvas map and automated tests are **not implemented yet**. The client build currently fails on
+> broken imports and unused variables (fixed in Phase 0, task 0.1).
+>
+> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–8, with story
+> points per task) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
+> agents are in [`AGENTS.md`](./AGENTS.md).
 
 ---
 
@@ -43,19 +48,21 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 
 - Auth page (login / sign-up), verification page, inactive-user ("check your email") page.
 - RTK Query API slices with automatic access-token refresh (`baseQueryWithRefresh`).
-- Game page: a draggable **Code Editor** (CodeMirror + prettier format) and a **BotOS terminal**
-  (`ls`/`dir`, `cd`, `clear`, `shell`, `exit`, `list`, `modules` are partially wired to Socket.IO).
+- Game page: a **BotOS terminal** (`ls`/`dir`, `cd`, `clear`, `shell`, `exit`, `list`, `modules` are partially wired to
+  Socket.IO). A draggable **code editor** component (CodeMirror + prettier format) exists in `components/Game/FileEditor`,
+  but it is a stub and is not mounted on the game page yet.
 
 ---
 
 ## Architecture
 
-The repository is a lightweight multi-package TypeScript project (three `package.json`s sharing one Git repo):
+The repository is a lightweight multi-package TypeScript project (`api`, `client` and `lib`, each with its own
+`package.json`, plus a root `package.json` for formatting, sharing one Git repo):
 
 ```
 ┌─────────────┐        ┌──────────────────────┐        ┌─────────────┐
 │   client/   │  HTTP  │        api/          │        │    MongoDB  │
-│ React+Vite  │◄──────►│ NestJS + Socket.IO   │◄──────►│  (users,    │
+│ React+Vite  │◄──────►│ Express + Socket.IO  │◄──────►│  (users,    │
 │ RTK Query   │  WS    │ controllers/services │        │   bots,     │
 └──────┬──────┘        └──────────┬───────────┘        │   modules,  │
        │                          │                    │   map,      │
@@ -63,11 +70,14 @@ The repository is a lightweight multi-package TypeScript project (three `package
          shared TS interfaces                          └─────────────┘
 ```
 
+(Planned: the client moves to Next.js, the API to NestJS, and MongoDB is replaced by PostgreSQL with Prisma behind
+repository ports; the local database runs in Docker. See the development plan.)
+
 **Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
 
 ```
 presentation (controllers, gateways, DTOs) → application (use cases + ports) → domain
-infrastructure (Mongo repositories, JWT, email, engine bridge) implements the application ports
+infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) implements the application ports
 ```
 
 (The current code is still the older Express layout: routers → middlewares → controllers → services → MongoDB.)
@@ -89,7 +99,8 @@ infrastructure (Mongo repositories, JWT, email, engine bridge) implements the ap
 | Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5; today Vite 5, **moving to Next.js (App Router)** in Phase 1, which will also host the landing page |
 | Code editor  | CodeMirror 6 (`@uiw/react-codemirror`), `prettier-standalone`                |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest + `ts-jest` (installed, **not configured to run**), planned `mongodb-memory-server` + Cypress |
+| Testing      | Jest + `ts-jest` (installed, **not configured to run**); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
+| Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
 
@@ -123,7 +134,10 @@ bot-rts/
 ├── docs/                         # Game design, development plan, quality review
 │   └── archived-docs/            # Decision log (UNCERTAINTIES.md) and original product notes (notes.txt)
 ├── ecosystem.config.json         # PM2 process definition (prod)
-├── .prettierrc.json
+├── AGENTS.md                     # Engineering rules for contributors and agents
+├── README.md
+├── package.json                  # Root: Prettier `format` script
+└── .prettierrc.json
 ```
 
 ---
@@ -132,8 +146,8 @@ bot-rts/
 
 ### Prerequisites
 
-- Node.js ≥ 18 (backend targets CommonJS; client uses Vite 5)
-- MongoDB running locally, or a MongoDB URI
+- Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
+- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL in Docker at the start of Phase 1 — Docker will then be required)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
@@ -149,15 +163,13 @@ npm install --prefix lib
 
 ### 2. Configure environment
 
-Copy the existing env templates into place (or create fresh files) and fill in real values:
+Create `api/.env.development` with the variables from the table below. `.env*` files are git-ignored, so a fresh clone
+has none, and there is no `.env.example` yet (it is added in [Phase 0](./docs/development-plan/phase-0-stabilize-ci.md),
+task 0.2). Without them the app runs on hardcoded development fallbacks.
 
-```bash
-cp api/.env.development api/.env.development.local   # or set values directly
-```
-
-> **Note:** the env keys currently in `api/.env.*` (`JWT_ACCESS_TOKEN_SECRET`, …) do **not** match the keys the code
-> reads (`JWT_ACCESS_SECRET`, …). Until this is fixed (see [Phase 0](./docs/development-plan/phase-0-stabilize-ci.md)), the app silently falls back
-> to hardcoded dev secrets. Do **not** run this against a real database or expose it publicly.
+> **Warning:** use exactly the variable names in the table. Older local `api/.env.*` files named the JWT secrets
+> `JWT_ACCESS_TOKEN_SECRET` etc., which the code does not read, so the app silently fell back to hardcoded dev secrets.
+> Do **not** run this against a real database or expose it publicly.
 
 ### 3. Run in development
 
@@ -190,18 +202,22 @@ pm2 start ecosystem.config.json
 | `NODE_ENV`                            | api          | `development` / `production` / `test`                | `development`           |
 | `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | —                       |
 | `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
+| `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `http://localhost:5173` |
 | `MONGO_DB_URI`                        | api          | MongoDB connection string                            | `mongodb://localhost:27017` |
 | `MONGO_DB_NAME`                       | api          | Database name                                        | `bot-rts`               |
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |
 | `JWT_REFRESH_SECRET` / `_EXPIRES_IN`  | api          | Refresh-token secret / TTL                           | `super_secret2` / `24h` |
+| `REFRESH_JWT_EXPIRES_IN`              | api          | Refresh **cookie** max age (note the different name from `JWT_REFRESH_EXPIRES_IN`) | `30d` |
 | `JWT_EMAIL_VERIFICATION_SECRET` / `_EXPIRES_IN` | api | Email-verification secret / TTL                      | `super_secret3` / `24h` |
 | `EMAIL_SMTP_USER` / `EMAIL_SMTP_PASS` | api          | SMTP credentials (host is hardcoded to Gmail today; `SMTP_HOST`/`SMTP_PORT`/`SMTP_SECURE` are planned, Plan 0.2) | — |
-| `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root`        |
+| `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
 | `VITE_API_URL`                        | client       | Backend base URL (Vite env)                          | `http://localhost:8080` |
 
-> **Warning (known bug):** `api/.env.*` currently names the JWT secrets `JWT_ACCESS_TOKEN_SECRET`,
-> `JWT_REFRESH_TOKEN_SECRET`, `JWT_EMAIL_VERIFICATION_TOKEN_SECRET` — the code reads `JWT_ACCESS_SECRET`,
-> `JWT_REFRESH_SECRET`, `JWT_EMAIL_VERIFICATION_SECRET`. Rename the env keys or the code, and add a `.env.example`.
+> **Planned:** `DATABASE_URL` (PostgreSQL) replaces `MONGO_DB_URI` / `MONGO_DB_NAME` when the persistence layer is switched
+> (Phase 1, task 1.1a).
+
+> **Known inconsistency:** the refresh token lifetime has two names, `JWT_REFRESH_EXPIRES_IN` (token) and
+> `REFRESH_JWT_EXPIRES_IN` (cookie), with different defaults (`24h` vs `30d`). Phase 0 task 0.2 aligns them.
 
 ---
 
@@ -225,7 +241,7 @@ pm2 start ecosystem.config.json
 ## Testing
 
 - **Unit / integration:** Jest (`api/jest.config.ts`) is installed but there are **no test files** and no `test` script.
-  The plan is to use `mongodb-memory-server` for integration tests against a real (in-memory) MongoDB.
+  Integration tests will run against a real PostgreSQL in Docker; no in-memory database is used.
 - **E2E:** Cypress (not installed yet).
 - **Coverage gate:** ≥ 97 % (see `AGENTS.md`).
 
@@ -235,21 +251,22 @@ See [Phase 2](./docs/development-plan/phase-2-test-infrastructure.md) of the dev
 
 ## Branching / Git Flow
 
-The project uses a feature-branch model (feature branches merged to `main` via pull requests). The target model is
-full **Git Flow**:
+The project uses **Git Flow**:
 
 - `main` — always releasable, tagged with versions.
-- `develop` — integration branch (does not exist yet).
-- `feature/*`, `bugfix/*`, `release/*`, `hotfix/*`.
+- `develop` — integration branch; all work starts here.
+- `feature/<task>-<slug>`, `bugfix/*`, `docs/*`, `chore/*` branch from `develop` and are squash-merged back through a pull request.
+- `release/*` and `hotfix/*` merge into `main` and back into `develop`.
+- Merged branches are kept on GitHub for history.
 
-Full rules live in `AGENTS.md`.
+Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./AGENTS.md) §7.
 
 ---
 
 ## Documentation
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
-  screens, in-game scenarios, and the implementation status matrix.
+  screens, in-game scenarios, and examples.
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
 - [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–8).

@@ -11,7 +11,9 @@ refactor the touched area to comply rather than perpetuating the anti-pattern.
 The project is developed to align with:
 
 - **SOLID** — single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
-- **High scalability** — horizontal-friendly services, indexed data access, no in-process mutable globals as state of record.
+- **High scalability** — a stateless, horizontally scalable API tier and indexed data access. The one exception is by design: the
+  **engine** is the single authoritative in-memory owner of world state (persisted to PostgreSQL by write-behind) and is
+  reached only through a port (see `docs/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
 - **High testability** — dependency injection, pure domain logic, no hidden I/O.
 - **High maintainability** — small cohesive modules, no dead code, self-documenting names, up-to-date docs.
 - **Low coupling** — layers talk through interfaces, not concrete singletons or HTTP objects.
@@ -31,7 +33,7 @@ Non-negotiables (a PR that violates these is rejected):
 ## 2. Tech stack & test tooling (do not substitute)
 
 - **Language:** TypeScript 5.x. `api` is CommonJS + `strict: true`; `client` (Next.js) is ESM + `strict: true`. Node 20 LTS.
-- **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and the MongoDB driver (no ORM).
+- **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and **PostgreSQL** accessed through **Prisma**, with the ORM confined to the infrastructure layer (§3.4).
   Nest's DI container is the composition root; OpenAPI comes from `@nestjs/swagger`.
 - **Frontend:** **Next.js** (App Router) with React, Redux Toolkit + RTK Query, Ant Design 5, CodeMirror 6, and `next-intl`
   for English/Russian. One Next.js app contains both the public marketing pages (statically rendered for SEO) and the
@@ -39,14 +41,21 @@ Non-negotiables (a PR that violates these is rejected):
   **presentation only**: no business logic and no database access in Next route handlers; NestJS stays the single
   backend. The frontend is intended to be hosted on Vercel and the API/engine on a long-running server (Socket.IO and the
   engine thread cannot run on Vercel).
-- **Unit / integration tests:** **Jest** (with `ts-jest`) for **both** `api` and `client` (the client is configured with
-  `next/jest` with `jsdom`, a mapper for the `@lib` alias and style files, and `NEXT_PUBLIC_*` env; Vitest is not used).
-- **Integration DB:** **`mongodb-memory-server`** — never a shared/real DB in tests.
+- **Unit / integration tests:** **Jest** for **both** packages: `ts-jest` for `api`; `next/jest` with `jsdom`, a mapper for the
+  `@lib` alias and style files, and `NEXT_PUBLIC_*` env for `client`. Vitest is not used.
+- **Script sandbox:** player scripts run in **QuickJS compiled to WASM** behind a `ScriptRuntime` interface, in the engine
+  (never Node's `vm`, which is not a security boundary).
+- **Monorepo:** npm workspaces for `api`, `client` and `lib` (plus the `mcp/` MCP-server package when it is added).
+- **Database:** PostgreSQL with a pinned version; locally and in CI it runs in **Docker** (`docker-compose.yml`), with the
+  same image and version as production.
+- **Integration DB:** a **real PostgreSQL in Docker** — never a shared or production database in tests. Each Jest worker
+  uses its own database/schema created by `prisma migrate deploy`.
+  **No in-memory or embedded database** (PGlite, pg-mem, SQLite, `mongodb-memory-server`) is used in tests.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
-If a tool is not yet installed, that is part of Phase 0 (see [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md)) — install it, don't hand-roll an
-alternative.
+If a tool is not yet installed, the [development plan](./docs/DEVELOPMENT-PLAN.md) schedules it (Jest and
+the Docker PostgreSQL setup in Phase 0, Cypress in Phase 2, and so on) — install it, don't hand-roll an alternative.
 
 ---
 
@@ -63,10 +72,11 @@ api
                       HTTP/WS transport concerns ONLY (parse input, call a use case, map the result/error)
    application      — use cases (services) and PORTS: repository/gateway interfaces + their DI tokens
    domain           — entities, value objects, domain services and rules (Module, Bot, MapPoint, …); pure TypeScript
-   infrastructure   — adapters implementing the ports: Mongo repositories, JWT, email sender, engine bridge, config
+   infrastructure   — adapters implementing the ports: Prisma/PostgreSQL repositories, JWT, email sender, engine bridge, config
 engine             — the game engine (tick loop, scheduler, QuickJS runtime), framework-free, reached through a port
+mcp                — MCP server package: a thin client of /api/v1 using an API key (no direct DB or engine access)
 lib
-   shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO mongodb types)
+   shared types, interfaces, constants and pure functions used by api + client (NO runtime deps, NO persistence types)
 ```
 
 Each feature is a **Nest module** (`auth`, `users`, `bots`, `map`, `modules`, `files`, `terminal`, …) that contains its
@@ -87,11 +97,11 @@ presentation → application → domain
 infrastructure → application (implements its ports) → domain
 ```
 
-- `domain` imports nothing from the other layers or from NestJS/Express/MongoDB.
+- `domain` imports nothing from the other layers or from NestJS/Express/Prisma.
 - `application` depends on `domain` and on **ports** (TypeScript interfaces) that it owns. It may use Nest's `@Injectable()`
   / `@Inject()` for dependency injection only; it never imports HTTP types (`Request`, `Response`, `Socket`), Express
-  or MongoDB.
-- `infrastructure` implements the ports (for example `MongoUserRepository implements UserRepository`) and is bound to
+  or Prisma.
+- `infrastructure` implements the ports (for example `PrismaUserRepository implements UserRepository`) and is bound to
   the port's **DI token** in the feature module's providers. Swapping an implementation (or a test fake) is a one-line
   provider change.
 - `presentation` calls use cases through their interfaces and never touches repositories or the database.
@@ -103,19 +113,17 @@ infrastructure → application (implements its ports) → domain
 | Layer          | Forbidden                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------- |
 | presentation   | business logic, direct DB/repository access, status-code decisions inside use cases        |
-| application    | `req`/`res`/`Socket`, HTTP status knowledge, `mongodb` types, importing `infrastructure`     |
-| domain         | any framework import (Nest, Express, mongodb), I/O, importing other layers                  |
+| application    | `req`/`res`/`Socket`, HTTP status knowledge, `@prisma/client` types, importing `infrastructure`     |
+| domain         | any framework import (Nest, Express, Prisma), I/O, importing other layers                  |
 | infrastructure | business rules (it only adapts: persistence, tokens, email, messaging)                      |
-| `lib`          | importing `mongodb` types, runtime dependencies, I/O, Node- or browser-specific APIs       |
+| `lib`          | importing persistence types, runtime dependencies, I/O, Node- or browser-specific APIs       |
 
-**Specifically, the current anti-patterns to eliminate when touching a file:**
+**Legacy anti-patterns in the current Express code (eliminated by Phase 1; fix them whenever you touch a file):**
 
 - `usersService.addUser(body, res)` — a service must **never** receive an Express `Response`. Split into a pure
   `addUser(body, status, active)` returning the user, and let the controller handle HTTP responses.
 - Services calling `apiUtils.sendError(res, …)` — return domain errors / throw typed exceptions instead.
 - Controllers reaching into `usersCollection` / `db.collection(...)` — move all data access to repositories.
-
----
 
 ### 3.3 Identity provider abstraction
 
@@ -126,12 +134,13 @@ provider later) without touching game code.
   (`{ provider, subject, email, emailVerified }`). It is used by the HTTP guard, the WebSocket guard and the MCP/API
   layers. Nothing outside the identity adapters reads provider-specific tokens or claims.
 - **`CredentialAuthService` (application port, only for providers whose credentials we manage):** register, login,
-  refresh, logout, verify email, resend verification. The custom adapter implements it and exposes the `/api/v1/auth/*`
+  refresh, logout, verify email, resend verification, request/perform password reset, change password, change email,
+  delete account. The custom adapter implements it and exposes the `/api/v1/auth/*`
   endpoints. A hosted provider such as Clerk does these steps in the browser, so its adapter does not implement this
   port and those endpoints are not mounted.
 - **Own user model:** the domain `User` (internal `userId`, name, roles, `active`/ban state) is separate from login
   credentials. Provider links live in an `identities` mapping `(provider, subject) → userId`. Custom-auth secrets
-  (password hash, verification tokens) live only in the custom adapter's own collection. Roles and bans are always
+  (password hash, verification tokens) live only in the custom adapter's own table. Roles and bans are always
   checked against our database, never taken from the token.
 - **Provisioning:** on the first verified identity, a `UserProvisioner` creates the `User` and the identity link (lazy
   creation); webhooks, if a provider has them, are only a backup.
@@ -142,6 +151,27 @@ provider later) without touching game code.
   `localAuthClient` implementation over the `/api/v1/auth/*` endpoints; a hosted provider would add its own
   implementation. Components use hooks only, never the provider SDK directly.
 - **Tests:** a `FakeIdentityVerifier` for Jest, and a shared contract test suite that every adapter must pass.
+
+### 3.4 Persistence isolation (PostgreSQL + Prisma)
+
+The database is an implementation detail that must stay replaceable (clean architecture / DDD):
+
+- **Prisma stays in `infrastructure`.** The Prisma schema, migrations, `PrismaClient` and the generated types live only in
+  the persistence part of the infrastructure layer. They are never imported by `domain`, `application`, `presentation`,
+  `engine` or `lib`; the import-boundary check (§3.1) enforces it.
+- **Repositories map, ports are persistence-agnostic.** A repository takes and returns **domain entities**; the mapping
+  between Prisma rows and entities happens inside the adapter. Port methods express domain intent (`findByEmail`,
+  `listBotsOfBase`), not SQL or Prisma query shapes.
+- **Ids are domain-owned strings (UUIDs).** No database-generated ids or Prisma types leak into entities or DTOs.
+- **Transactions through a port.** Use cases that need atomicity use a `UnitOfWork` port implemented with Prisma's
+  `$transaction`.
+- **The engine persists through a `WorldStateStore` port** (batched upserts, one database transaction per flush). The
+  adapter may use `createMany` or raw SQL for performance; that stays inside the adapter.
+- **Migrations are code:** `prisma migrate` files are committed, applied migrations are never edited, and destructive
+  changes follow an expand/contract plan.
+- Replacing the database must mean rewriting the infrastructure adapters only.
+
+---
 
 ## 4. SOLID checklist (apply per file)
 
@@ -163,7 +193,9 @@ provider later) without touching game code.
 
 - Files: PascalCase for React components/domain classes (`Terminal.tsx`, `ScannerModule.ts`), camelCase for
   modules/utilities (`jwt.ts`, `app.reducer.ts`).
-- Exported service objects: `*Service` (`botsService`, `usersService`).
+- Injectable classes are PascalCase with a role suffix: `*Controller`, `*Service` (use cases), `*Repository` (port),
+  `Prisma*Repository` (adapter). No module-level service objects (`botsService`-style singletons). File names inside Nest
+  modules follow `<name>.<role>.ts` (for example `users.controller.ts`).
 - Domain classes: `Module`, `ScannerModule`, `Bot`, `MapPoint`.
 - Test files co-located or in `__tests__/`: `foo.test.ts` / `foo.spec.ts`.
 - Boolean flags/params: `is…` / `has…` / `can…`. Avoid positional booleans (`addUser(body, true)` → use options).
@@ -174,15 +206,15 @@ provider later) without touching game code.
 - TypeScript `strict: true`; no `any` unless documented with a `// TODO(type)` and a reason.
 - Errors: typed error classes extending a base `AppError(statusCode, code, message)`; don't throw raw `Error` with
   human-facing messages, don't string-match error messages.
-- Logging: `getLogger('module')` from `api/utils/logger`. No `console.log`.
+- Logging: inject the logger provider (log4js-backed, set up in Phase 1 task 1.10) — no `console.log`. (Until then the
+  legacy `getLogger('module')` from `api/utils/logger` is used.)
 
 ### 5.3 Shared code
 
 - `lib/` holds shared **types, interfaces, constants and small pure functions** (for example validation patterns and the
   `ErrorCode` set). It has **no runtime dependencies**, no I/O, and no Node- or browser-specific APIs, so both `api` and
   `client` can import it.
-- `lib` must not import `mongodb`. Replace `ID = string | ObjectId` with `string` at the API boundary and map at the
-  repository edge.
+- `lib` must not import persistence libraries. Ids are plain strings (UUIDs) everywhere above the repositories.
 
 ---
 
@@ -195,29 +227,33 @@ provider later) without touching game code.
 - Scope: all source code is counted, including the engine, sandbox and React components. Only entry/bootstrap files
   (`index.ts`, `main.tsx`), config files, type-only files and generated code are excluded, and every exclusion is listed
   with its reason in a single coverage config file.
-- The gate is enforced in CI. A PR that drops below 97 % is blocked.
+- The gate is enforced in CI. A PR that drops below 97 % is blocked. Until the full per-package gate is switched on
+  (tasks 2.2 and 2.8), CI reports coverage and **blocks PRs whose changed files are below 97 %** (check added in task 0.5,
+  blocking from Phase 1). The per-phase test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
 - Exclusions are only allowed via targeted `/* istanbul ignore next */` with a comment explaining why, and must be
   justified in the PR.
 
 ### 6.2 Unit tests (Jest)
 
 - Pure functions, domain models, utilities, middleware factories, validation.
-- Use injected fakes/mocks (`jest.fn`) — never real I/O.
+- Use injected fakes/mocks (`jest.fn`, or small hand-written fakes of a port) — never real I/O and never a database,
+  in-memory or otherwise. Anything that needs a database is an integration test (§6.3).
 - Test edge cases: empty inputs, boundary values, error paths.
 
-### 6.3 Integration tests (Jest + `mongodb-memory-server`)
+### 6.3 Integration tests (Jest + PostgreSQL in Docker)
 
-- Repositories, services, and full controller→router→DB slices.
-- Each suite boots its own in-memory Mongo instance; isolate per test (unique DB name or clean collections).
-- Auth middleware + real JWT signing in tests where relevant.
+- Repositories, use cases, and full controller→use case→repository slices (Nest testing module + `supertest`).
+- Each Jest worker uses its own database/schema on the Docker PostgreSQL; isolate per test (transaction rollback or
+  truncate).
+- Auth guards + real JWT signing in tests where relevant (or the `FakeIdentityVerifier`, §3.3).
 
 ### 6.4 E2E tests (Cypress)
 
-- Critical user journeys only:
-  1. Sign-up → email verification → deploy base → see terminal.
-  2. Login → open terminal → run `list` / `modules`.
-  3. (future) connect to a bot, edit a script, `run` it, observe output.
-- Use a seeded test backend with deterministic data; never depend on the production DB.
+- **Every core user and game flow has a Cypress spec.** The list of flows and the plan task that owns each spec is the
+  end-to-end coverage matrix in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+  A PR that adds or changes a user-visible flow adds or updates its spec and the matrix.
+- Use a seeded test backend with deterministic data (seeded RNG and injected clock); never depend on a production DB.
+- The full suite runs in CI on every PR into `develop`; shard it when it grows slow.
 
 ### 6.5 Definition of Done (DoD)
 
@@ -225,12 +261,19 @@ A feature is done only when **all** of these hold:
 
 - [ ] Business logic implemented behind interfaces; no `any` at public boundaries.
 - [ ] Unit tests cover the new code's happy path + error paths.
-- [ ] Integration tests exercise the new data access/use cases against in-memory Mongo.
+- [ ] Integration tests exercise the new data access/use cases against PostgreSQL (Docker).
 - [ ] E2E test added for any new user-visible flow.
 - [ ] Coverage ≥ 97 % (CI green).
 - [ ] `npm run lint` and `npm run typecheck` pass (both packages).
 - [ ] No dead code, no commented-out blocks, no `console.log`.
-- [ ] README/docs updated if the change alters public behavior or env vars.
+- [ ] The task is marked ✅ in its phase file and the work log has an entry for it (§7.6).
+- [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
+      criteria are met, in the summary table and in the phase file), and the branch and PR of the task are added to the
+      phase's implementation log.
+- [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
+      file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
+- [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
+      Russian).
 - [ ] Feature branch (named per §7.1), descriptive PR, reviewed, merged by the strategy in §7.2; the branch is kept (§7.3).
 
 ---
@@ -242,7 +285,7 @@ A feature is done only when **all** of these hold:
 | Branch                | Purpose                                                              | Branched from | Merges into          |
 | --------------------- | -------------------------------------------------------------------- | ------------- | -------------------- |
 | `main`                | Always releasable; every release is tagged `vX.Y.Z`                  | —             | —                    |
-| `develop`             | Integration branch (created in Phase 0, task 0.6)                    | `main`        | —                    |
+| `develop`             | Integration branch; all work starts here                             | `main`        | —                    |
 | `feature/<id>-<slug>` | New work                                                             | `develop`     | `develop`            |
 | `bugfix/<id>-<slug>`  | Non-release fixes                                                    | `develop`     | `develop`            |
 | `docs/<slug>`         | Documentation-only changes                                           | `develop`     | `develop`            |
@@ -250,6 +293,8 @@ A feature is done only when **all** of these hold:
 | `release/<x.y.z>`     | Release stabilization (fixes only, no new features)                  | `develop`     | `main` **and** `develop` |
 | `hotfix/<x.y.z>`      | Urgent production fix                                                | `main`        | `main` **and** `develop` |
 
+- A branch may cover one task or a few closely related ones; name it after the first task and list all of them in the
+  phase's implementation log.
 - **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`,
   `feature/1.18-nextjs-migration`. Use the plan task that the branch implements.
 - A release is finished by merging `release/<x.y.z>` (or `hotfix/<x.y.z>`) into `main`, tagging `main` with `vX.Y.Z`, and
@@ -267,7 +312,8 @@ A feature is done only when **all** of these hold:
 - **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks.
+- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks (branch
+  protection and CI are set up in Phase 0, tasks 0.5–0.6; until then these rules are followed by convention).
 
 ### 7.4 Commit & PR rules
 
@@ -275,7 +321,8 @@ A feature is done only when **all** of these hold:
   optional scope in parentheses (`feat(engine): …`, `fix(auth): …`). Breaking changes use `!` after the type
   (`feat(api)!: …`) and a `BREAKING CHANGE:` footer. Mention the plan task id in the body (for example `Plan: 3.12`).
 - One logical change per commit; PRs should be small and single-purpose.
-- No direct commits to `main` or `develop`; merge via PR with at least one review.
+- No direct commits to `main` or `develop`; merge via PR with at least one review (while the project is solo, the owner's
+  approval to merge counts as the review).
 - CI must be green (lint, typecheck, unit/integration, e2e, coverage gate) before merge.
 
 ### 7.5 Rules for agents
@@ -283,10 +330,32 @@ A feature is done only when **all** of these hold:
 - If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files.
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
   push directly to `main` or `develop`.
-- **Ask the user before creating a pull request and before merging a pull request.** Approval for one does not carry over
-  to the other.
+- **Phase work (standing approval):** while working through the tasks of a development-plan phase, create each task's
+  pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI exists:
+  once lint, typecheck and tests pass locally). Do not pause between tasks; stop with a summary when the phase's exit
+  criteria are met, when blocked, or when a decision is needed.
+- **Ask the user before creating or merging any other pull request:** documentation or chore PRs that are not phase tasks,
+  anything targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one PR does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
+
+### 7.6 Session protocol (resuming and pausing a phase)
+
+Sessions can end at any time, so the repository, not the chat, carries the state of the work.
+
+- **Pacing:** a phase is worked straight through in the plan's execution order; the pause points are the end of the phase,
+  a blocker, and a decision that only the user can make.
+- **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
+  statuses, implementation log) and its work log (`docs/development-plan/work-logs/phase-N-log.md`), then check `git status`,
+  `git branch -a` and the open pull requests, and continue from the latest "next step".
+- **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds.
+  Commit often and push the task branch, so unfinished work is in git and not only in a working tree.
+- **When a session ends or pauses, and when a task finishes:** append an entry to the phase's work log (template inside
+  the file): tasks, branch and its state, decisions and deviations from the plan, problems and findings, the exact next
+  step, and the commands that verify the current state. Commit and push it on the task branch, in the same pull request
+  as the work.
+- Decisions that change the design or the plan go into the matching file in `docs/` in the same pull request, not only
+  into the log.
 
 ---
 
@@ -294,9 +363,9 @@ A feature is done only when **all** of these hold:
 
 ### ✅ Do
 
-- Inject dependencies; use interfaces from `lib`.
-- Keep controllers thin and services DB-only.
-- Add `mongodb-memory-server` integration tests with every repository/service.
+- Inject dependencies (including the clock and RNG); use interfaces from `lib`.
+- Keep controllers thin; use cases depend on repository ports and never touch the database directly.
+- Add integration tests against PostgreSQL (Docker) with every repository.
 - Add a Cypress spec with every user-visible flow.
 - Add/update `.env.example` for new env vars.
 - Run formatter, linter, typecheck, and tests before pushing.
@@ -304,11 +373,34 @@ A feature is done only when **all** of these hold:
 ### ❌ Don't
 
 - Don't pass `req`/`res`/`Socket` into services or models.
-- Don't read `db`/collections directly outside repositories.
+- Don't use Prisma (`PrismaClient`, generated types) outside the infrastructure layer.
 - Don't use module-level mutable singletons as test state.
 - Don't commit secrets, `.env`, `node_modules`, or build output.
 - Don't leave `console.log`, commented-out code, or dead aggregation pipelines.
 - Don't introduce new `any`-typed public signatures.
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't create or merge a PR without asking the user first (§7.5).
+- Don't create or merge a PR outside the standing phase approval without asking the user first (§7.5).
+
+---
+
+## 9. Project-specific rules (details in `docs/`)
+
+- **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
+  [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
+- **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
+  terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
+  (design §14.2). Until the engine exists (Phase 5), world-mutating use cases run in the API process behind the same
+  command-handler interface the engine will implement.
+- **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
+  (design §12.4).
+- **Tunable balance:** gameplay numbers (costs, ranges, tick rate, limits) live in config, not in code.
+- **Script API results:** every script API call returns `Result<T>`; expected failures are values, not exceptions
+  (design §10.3).
+- **Game events:** the engine emits typed events after applying a tick's commands; animations, achievements and
+  notifications consume them outside the tick path (design §24).
+- **Admin endpoints** (`/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
+  every call is written to the audit log, and they are never available to API keys.
+- **Money and goods:** credits and traded items move only through engine commands that write double-entry **ledger**
+  entries (design §26.1); nothing updates a wallet, escrow or inbox directly, and a reconciliation test must prove that the
+  money supply and item counts are conserved.

@@ -25,6 +25,8 @@
   | gold | rare | 4 |
 
   The overall chance that a newly generated cell is a resource cell stays a single configurable value (currently 20 %).
+- ✅ **Oil is also the generator fuel** (§12.5): bots burn it from their storage to make energy, so moving oil to where bots
+  work is part of logistics.
 
 ## 9.2 Extraction
 
@@ -58,6 +60,7 @@ are settled:
 | Memory class 1 | default | 10 crystal | 10 s |
 | Processor class 1 | default | 25 crystal, 10 gold | 25 s |
 | Remote-control block | default | 15 crystal, 20 gold | 20 s |
+| Market terminal | default | 40 iron, 20 crystal, 15 gold | 20 s |
 
 - ✅ Blueprints are acquired from **three sources** (mixed model):
   1. **Base set** — class-1 blueprints are known from the start.

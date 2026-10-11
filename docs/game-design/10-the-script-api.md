@@ -53,7 +53,8 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 
 | Function | Provided by | Signature | Description |
 | --- | --- | --- | --- |
-| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells. |
+| `scan()` | scanner | `scan(): Promise<Result<MapCell[]>>` | Scan cells in radius. Returns a flat array of map cells, each with its contents and `seenAt` (a snapshot, §4.2); waits for the scanner cooldown; fails with `BUSY` while the scanner is in live mode. |
+| `view(since?)` | scanner (continuous mode) | `view(since?: number): Promise<Result<{ cells: MapCell[]; tick: number }>>` | Read the live view; with `since`, only the cells that changed after that tick. Costs 1 op; fails with `NOT_LIVE` if the scanner is not enabled. |
 | `move(n)` | engine + chassis | `move(cells: number): Promise<Result>` | Move forward `n` cells; fails with `BLOCKED` if the next cell is occupied. |
 | `turn(dir)` | engine + chassis | `turn(direction): Promise<Result>` | Rotate the bot. |
 | `aim(x, y)` | weapon | `aim(x, y): Promise<Result>` | Point the weapon at a target. |
@@ -66,14 +67,16 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `repair(bot, moduleId)` | repair | `repair(...): Promise<Result>` | Restore condition of a module on an adjacent bot (§8.4.2). |
 | `disassemble(bot, moduleId)` | repair | `disassemble(...): Promise<Result<Scrap>>` | Strip a module into scrap (§8.4.2). |
 | `craft(module, count?)`, `assemble(label, moduleIds)`, `research(module)`, `learn(itemId)` | factory | `Promise<Result<…>>` | Factory operations, available to scripts on a bot with a factory module (the base). Same rules as the terminal commands and the Factory GUI. |
+| `market.getWallet()`, `market.getOrderBook(resource)`, `market.placeOrder(...)`, `market.cancelOrder(id)`, `market.listAuctions(filter)`, `market.createAuction(...)`, `market.bid(id, amount)`, `market.buyNow(id)`, `market.claimInbox(...)` | marketTerminal | `Promise<Result<…>>` | The remote market (§26); each call costs ops and energy. |
 | `connect(botId)` | wireless adapter | `connect(botId): Promise<Result<Connection>>` | Open a link to another bot. |
+| `getLinkStatus()` | wireless adapter | `getLinkStatus(): Promise<Result<{ connected: boolean; signal: 0 | 1 | 2 | 3 | 4; hops: number; weakestLink?: { botId: string; margin: number }; lostSince?: number }>>` | Whether the bot is connected to its base through the radio network, its signal bars (0–4), the number of hops, the weakest link on the path, and since when it is not connected (§11.2.1). |
 | `sendMessage(botId, msg)` | wireless adapter | `sendMessage(botId, msg): Promise<Result>` | Send a message to another bot/base. |
 | `execute(file)` | processor | `execute(file): Promise<Result<{ executionId: string }>>` | Run a stored script (spawns a parallel execution). |
 | `log(...args)` | processor (always on) | `log(...args): void` | Write to the terminal session log. |
 | `sleep(ms)` | processor (always on) | `sleep(ms): Promise<void>` | Yield for `ms` of game time. |
 
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
-`enable()`/`disable()` (battery, generator), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
+`enable()`/`disable()` (battery, generator, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
 
 ## 10.3 Return values & error handling ✅
 
@@ -85,7 +88,7 @@ Every API call returns a **result object**; expected failures are **values**, ne
 ```
 
 - **Error codes** are a closed, typed set in `lib` (initial set): `BLOCKED`, `EMPTY`, `GONE`, `NO_ENERGY`, `NO_MODULE`,
-  `BROKEN_MODULE`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
+  `BROKEN_MODULE`, `NO_FUNDS`, `NOT_LIVE`, `BUSY`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED`, `INBOX_FULL`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
 - **Only misuse throws**: invalid arguments, calling an API the bot has no module for at the language level, or sandbox
   violations. A throw ends the execution (`killed`, with the error in its log).
 - Scripts branch with `if (!r.ok)`; no `try/catch` is needed for routine events such as a blocked cell.

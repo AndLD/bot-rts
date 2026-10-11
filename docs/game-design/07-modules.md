@@ -32,7 +32,7 @@ mention `memory` and `circute`.
 
 | Module | Type key | Status | Grants | Notes |
 | --- | --- | --- | --- | --- |
-| **Scanner** | `scanner` | ✅ | `scan()` | Radius in cells, `delay` between scans (ms). Reveals cells and updates fog of war. |
+| **Scanner** | `scanner` | ✅ | `scan()` | Radius in cells, `delay` (cooldown) between scans (ms). Each scan costs ops and energy and returns a **snapshot** stamped with `seenAt` (§4.2); it can also run in **live (continuous) mode** (`enable()` / `disable()`), keeping its radius live for energy only (§4.4). The two modes are mutually exclusive per module: `scan()` is refused with `BUSY` while the scanner is live. |
 | **Weapon** | `weapon` | 🟡 | `shoot()`, `aim()`, `reload()` | `damage`, `caliber`, `distance`, `accuracy`, `cooldown`, optional `batchSize`/`batchCooldown`, `isArtillery`. `shoot`/`reload` are stubs today. |
 | **Engine** | `engine` | 🔴 | `move()`, `turn()` | `engineType` (fuel/steam/electric), `speed`. |
 | **Wheels / Tracks** | `movement`* | 🔴 | movement support | `loadCapacity`; chosen chassis affects speed and terrain. |
@@ -47,6 +47,7 @@ mention `memory` and `circute`.
 | **Armor** | `armor` | 🟡 | damage resistance | `material`. |
 | **Factory** | `factory` | 🟡 | crafting | Present on the base and in the kit. |
 | **GPS** | `gps` | 🔴 | `getLocation()` | Absolute position readout. |
+| **Market terminal** | `marketTerminal` | 🔴 | `market.*` | ✅ Single class, no upgrades; remote access to the market from anywhere (§26.2). |
 | **Repair ("fixing") module** | `repair` | 🔴 | `repair(target)`, `disassemble(target)` | ✅ Used on a module of a bot on an **adjacent cell**; see §8.4.2. Required to restore a corpse base. |
 
 \* The codebase models the chassis as `IMovementModuleProps`; the notes call this "колёса/гусеницы". (`drive` in the
@@ -55,5 +56,5 @@ code is the **disk**, not the chassis.)
 ## 7.3 Module instances & classes
 
 Modules are instances of `Module` subclasses (`ScannerModule`, `WeaponModule`, …). ✅ (base + scanner + weapon stub)
-The base class validates that a `type` is present and assigns props. Modules are persisted in the `modules`
-collection and linked to a bot by `botId`. ✅
+The base class validates that a `type` is present and assigns props. Modules are persisted in the database
+(a `modules` table) and linked to a bot by `botId`. ✅

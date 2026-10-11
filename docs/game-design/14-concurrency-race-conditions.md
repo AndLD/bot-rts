@@ -17,14 +17,15 @@ Many bots from many players can issue commands that touch the same map cells at 
 ## 14.2 Mechanisms ✅
 
 Because the **engine thread is the only writer of world state** (§12.2.2), conflicts are resolved **in memory**; no
-MongoDB transactions, replica set, versioned writes or per-cell queues are needed.
+database transactions, row locks, versioned writes or per-cell queues are needed for gameplay conflicts.
 
 - **Single writer rule:** *every change to the game world goes through the engine as a command* — scripts, the
   terminal, and API requests (deploy base, edit a file, craft, assemble) alike. The API thread forwards the request to the
-  engine and returns its result; it never writes world collections directly.
+  engine and returns its result; it never writes world tables directly.
 - **Collect-then-apply:** commands are gathered for the tick and applied in the deterministic order (§12.4).
 - **Reservations:** moving bots reserve the target cell during the apply phase; the loser of a contested action gets an
   error value (`BLOCKED`, `EMPTY`, `GONE`).
 - **Deterministic RNG:** seeded per tick, so results are reproducible and testable.
-- **Persistence:** the engine flushes changed state to MongoDB in **batched bulk writes** (write-behind). The flush interval is 1 second and
+- **Persistence:** the engine flushes changed state to the database in **batched bulk writes** (write-behind), each flush in a single database
+  transaction so a crash never leaves a half-applied tick. The flush interval is 1 second and
   crash recovery relaunches running executions (§12.3.1).

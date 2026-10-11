@@ -4,46 +4,78 @@ This plan turns the current prototype into a SOLID, well-tested, scalable codeba
 It is sequenced so that **stabilization and testing infrastructure come before new features** — adding features on top
 of the current base would compound the existing coupling and zero-test debt.
 
+**Phase status legend:** ⬜ Not started · 🟡 In progress · ✅ Done. A phase's status is kept in the summary table below and
+in the phase file, and is updated in the pull request that starts or finishes it. Each phase file also has an
+**implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
+
+**Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
+append-only **work log** in `development-plan/work-logs/` so a phase can be resumed in a new session.
+
 **Story points (SP):** Fibonacci scale, `1 SP ≈ 0.5 developer-day` (or one focused agent session). Estimates assume a
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**
 the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
 **Summary**
 
-| Phase | Theme                                | Story points |
-| ----- | ------------------------------------ | ------------ |
-| 0     | Stabilize, CI & safety-net tests     | 20           |
-| 1     | Architecture refactor & NestJS migration | 76       |
-| 2     | Test infrastructure & coverage backfill | 39        |
-| 3     | Core gameplay foundations            | 72           |
-| 4     | Module system & crafting             | 59           |
-| 5     | Script runtime, scheduler & sandbox  | 83           |
-| 6     | Core game GUI & map animations       | 72           |
-| 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 40 |
-| 8     | Multiplayer, public API & hardening  | 64           |
-|        | **Total**                            | **525**      |
+| Phase | Theme                                | Story points | Status |
+| ----- | ------------------------------------ | ------------ | ------ |
+| 0     | Stabilize & CI foundation            | 24           | ⬜ Not started |
+| 1     | Architecture refactor & NestJS migration | 100       | ⬜ Not started |
+| 2     | Test infrastructure & coverage backfill | 43        | ⬜ Not started |
+| 3     | Core gameplay foundations            | 76           | ⬜ Not started |
+| 4     | Module system & crafting             | 70           | ⬜ Not started |
+| 5     | Script runtime, scheduler & sandbox  | 104           | ⬜ Not started |
+| 6     | Core game GUI & map animations       | 96           | ⬜ Not started |
+| 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 47 | ⬜ Not started |
+| 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
+| 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
+| 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
+|        | **Total**                            | **839**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–8 (525 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–10 (839 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
+
+---
+
+## Deployment gate
+
+The prototype has known security holes (design §25.1) and must **not be deployed anywhere reachable** until these tasks
+are ✅: **0.8** (security hotfix), **1.9** and **1.11** (authorization tests, revocable sessions and database-checked roles),
+**8.2** (rate limiting, timeouts, headers), and **9.14** (authorization matrix) if the admin console is deployed. Secrets must
+come from the environment (task 0.2), never from the hardcoded development fallbacks.
+
+---
+
+## Resuming work in a new session
+
+Start a phase with *"Start Phase N"* and continue an interrupted one with *"Continue Phase N"*. The agent works through
+the phase's tasks in the documented order **without pausing between tasks** and stops with a summary only when the phase's
+exit criteria are met (or when it is blocked or needs a decision). The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
+the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
+"next step".
 
 ---
 
 ## Contents
 
 - [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (20 SP)](./development-plan/phase-0-stabilize-ci.md)
-- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (76 SP)](./development-plan/phase-1-architecture-refactor.md)
-- [Phase 2 — Test infrastructure & coverage backfill (39 SP)](./development-plan/phase-2-test-infrastructure.md)
-- [Phase 3 — Core gameplay foundations (72 SP)](./development-plan/phase-3-core-gameplay.md)
-- [Phase 4 — Module system & crafting (59 SP)](./development-plan/phase-4-modules-crafting.md)
-- [Phase 5 — Script runtime, scheduler & sandbox (83 SP)](./development-plan/phase-5-script-runtime.md)
-- [Phase 6 — Core game GUI & map animations (72 SP)](./development-plan/phase-6-gui.md)
-- [Phase 7 — Presentation & engagement (40 SP)](./development-plan/phase-7-presentation-engagement.md)
-- [Phase 8 — Multiplayer, public API & production hardening (64 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
+- [Phase 0 — Stabilize & CI foundation (24 SP)](./development-plan/phase-0-stabilize-ci.md)
+- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)](./development-plan/phase-1-architecture-refactor.md)
+- [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./development-plan/phase-2-test-infrastructure.md)
+- [Phase 3 — Core gameplay foundations (76 SP)](./development-plan/phase-3-core-gameplay.md)
+- [Phase 4 — Module system & crafting (70 SP)](./development-plan/phase-4-modules-crafting.md)
+- [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./development-plan/phase-5-script-runtime.md)
+- [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
+- [Phase 7 — Presentation & engagement (47 SP)](./development-plan/phase-7-presentation-engagement.md)
+- [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
+- [Phase 9 — Admin console (98 SP)](./development-plan/phase-9-admin-console.md)
+- [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
+- [Testing strategy](./development-plan/testing-strategy.md)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
+- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md)

@@ -35,7 +35,7 @@
   calls**, including the processor: each manual action costs ops from the bot's `opsPerTick` budget (§12.2.1), so a bot
   with a broken or missing processor cannot be controlled by hand either (the wireless adapter is still required for
   remote control). There is one rule set and no separate manual budget, so fast clicking cannot beat the hardware limits.
-- **Categories:** ✅ the micromanagement UI is split into **seven categories** by module role:
+- **Categories:** ✅ the micromanagement UI is split into **eight categories** by module role:
 
   | Category | Actions |
   | --- | --- |
@@ -46,6 +46,7 @@
   | **Fabrication** | craft, assemble, research, learn |
   | **Maintenance** | repair, disassemble, enable/disable modules |
   | **Communication** | connect, ping, sendMessage, adopt |
+  | **Trade** | market orders, auctions, bids, buy-now, claiming the inbox (needs a market terminal, §26.2) |
 
   **Observation** (viewing the map, scanning, inspecting cells and bots) is always on and is not a category. All
   categories are on by default.
@@ -69,10 +70,10 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 | Dig / mine | drill shake with dust particles; the deposit sprite shrinks; a small pop when depleted |
 | Repair | sparks and a welding beam toward the target module; a green flicker when finished |
 | Disassemble | scrap pieces pop out of the target |
-| Scan | expanding radar pulse over the scan radius |
+| Scan | expanding radar pulse over the scan radius, after which the revealed cells appear at full strength and start fading with age (§4.3) |
 | Craft / assemble | build-up effect at the base, then the new bot "boots" in on its spawn cell |
 | Module broken | smoke, then flames if it stays broken; a cracked overlay (§4.3) |
-| Link / connect | dotted line between the two bots, pulse on connect; flicker on "Connection interrupted" |
+| Link / connect | dotted line between the two bots, pulse on connect; on link loss the bot turns hatched and grey, on recovery the hatching fades out (§11.2.1) |
 | Low energy | slow blinking of the bot's energy icon |
 | Adopt / control lost | ownership tint cross-fades to the new owner's colour |
 

@@ -72,7 +72,7 @@ A processor module defines two numbers:
 
 - **API thread** — the NestJS app (HTTP + Socket.IO) only; never runs game logic or scripts.
 - **Engine thread** — runs the tick loop, owns the world state, runs all QuickJS contexts, applies commands, and is the
-  only writer to MongoDB (batched write-behind, not one query per command).
+  only writer to the database (batched write-behind, not one query per command).
 
 Scripts never touch the world directly: an API call such as `move()` spends ops and **queues a command**, and the engine
 applies all commands for the tick in the deterministic order (§12.4); results resolve the script's pending promises at
@@ -85,7 +85,10 @@ changing game logic.
 **Scaling:** ✅ there is **one authoritative engine process** for the whole world. The API tier scales horizontally;
 the engine scales vertically. The map is addressed in **chunks** so that sharding the world by region across several
 engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
-until it restarts and reloads the world from MongoDB.
+until it restarts and reloads the world from the database.
+
+**Live vision and map cache:** continuous scanning (design §4.4) is implemented as a subscription index of live areas by
+chunk with batched diffs, and the world map lives in chunks with an LRU cache over the database.
 
 **Capacity guard-rails** (rough estimates to be validated by a benchmark spike, not promises): an engine thread should
 handle a few hundred up to about 1,000 *actively running* bots at 10 ticks/s; idle bots are almost free. Per-bot limits
@@ -108,7 +111,7 @@ metrics.
 
 ## 12.3.1 Engine restart and crash recovery ✅
 
-- **Execution records are durable.** Starting, finishing or killing an execution is written to MongoDB immediately
+- **Execution records are durable.** Starting, finishing or killing an execution is written to the database immediately
   (file, args, bot, state), so the engine always knows what was running.
 - **World state is flushed every second** (every 10 ticks) in a batched bulk write. A crash loses at most about one
   second of game time; the world reloads from the last flush.
@@ -137,8 +140,10 @@ metrics.
 - **Idle drain:** every tick, each attached module drains its `idleCost` from the battery.
 - **Operation drain:** each executed action additionally drains the acting module's `operationCost`.
 - **Battery:** stores energy up to its `capacity`; it can never exceed it or go below zero.
-- **Generator:** while enabled, each cycle (every `delay` ms) adds `energyPerOperation` to the battery, capped at
-  `capacity`. It is a module like any other and pays its own `idleCost`.
+- **Generator:** ✅ while enabled, each cycle (every `delay` ms) **burns `fuelPerCycle` oil taken from the bot's storage**
+  and adds `energyPerCycle` to the battery, capped at `capacity`. Without oil it produces nothing (an `EnergyLow` /
+  out-of-fuel event is raised). It is a module like any other and pays its own `idleCost`. Placeholder class-1 defaults
+  (tunable): 12 energy per cycle for 0.02 oil per cycle, about 600 energy per oil.
 - **Empty battery:** the bot cannot perform operations and its executions suspend until energy returns (generator
   refill or a player intervention). Charging happens inside the tick, after commands are applied.
 

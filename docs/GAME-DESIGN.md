@@ -43,9 +43,12 @@ throughout the docs match the file numbers.
 16. [Economy & progression](./game-design/16-economy-progression.md)
 17. [In-game scenarios](./game-design/17-in-game-scenarios.md)
 18. [Example scripts](./game-design/18-example-scripts.md)
-19. [Implementation status matrix](./game-design/19-implementation-status-matrix.md)
+19. *(removed — status is tracked by the ✅/🟡/🔴 markers in each section and the README; the numbering is kept stable)*
 20. [Open questions](./game-design/20-open-questions.md)
 21. [Backlog (deliberately out of scope for now)](./game-design/21-backlog.md)
 22. [Public API & integrations](./game-design/22-public-api-integrations.md)
 23. [Achievements](./game-design/23-achievements.md)
 24. [Game events and realtime notifications](./game-design/24-notifications-and-events.md)
+25. [Admin console](./game-design/25-admin-console.md)
+26. [Market and currency](./game-design/26-market-and-currency.md)
+27. [Chat and transfers](./game-design/27-chat-and-transfers.md)

@@ -15,3 +15,6 @@
 - **Browser push and email digests** for notifications (§24.3).
 - **Cosmetic achievement rewards** (badges, sprite skins) (§23).
 - **More UI languages** beyond English and Russian (§15.4).
+- **Group chat channels and alliances** (§27.1).
+- **Trading modules and bots**, and physical delivery of goods (§26.3).
+- **Bot-script access to transfers** (§27.2).

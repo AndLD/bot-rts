@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { AuthModule } from '../auth/auth.module'
-import { FilesModule } from '../files/files.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
 import { MapService } from '../map/application/map.service'
 import { WORLD_CONFIG, WorldConfig } from '../map/domain/world-config'
@@ -21,7 +20,7 @@ import { BotsController } from './presentation/bots.controller'
 import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
-  imports: [AuthModule, MapModule, ModulesModule, FilesModule],
+  imports: [AuthModule, MapModule, ModulesModule],
   controllers: [BotsController],
   providers: [
     BotsGateway,

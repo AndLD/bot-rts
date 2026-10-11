@@ -1,4 +1,5 @@
 import { BotsService } from '../../src/bots/application/bots.service'
+import { FilesService } from '../../src/files/application/files.service'
 import { MapGenerator } from '../../src/map/domain/map-generator'
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
@@ -54,6 +55,7 @@ export function createWorld(
     config,
     mapService: new MapService(unitOfWork, ids, new MapGenerator(rng, config), clock, config.chunkSize),
     botsService,
+    filesService: new FilesService(unitOfWork, botsService, repositories.files, ids),
     terminalService: new TerminalService(terminalSessions, botsService, ids, clock, {
       ...DEFAULT_TERMINAL_RETENTION,
       ...options.retention

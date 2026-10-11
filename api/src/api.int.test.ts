@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../tests/integration/test-database'
@@ -337,6 +338,72 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     await api().get(`/api/v1/bots/${botId}/modules`).set(bearer(stranger.accessToken)).expect(403)
     await api().post(`/api/v1/bots/${botId}/scan`).set(bearer(stranger.accessToken)).expect(403)
     await api().post('/api/v1/bots/not-an-id/scan').set(bearer(accessToken)).expect(400)
+  })
+
+  it('manages the files of a drive over HTTP', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const botId = (await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)).body.bot._id
+    const drive = await database.client.module.create({
+      data: {
+        id: randomUUID(),
+        botId,
+        type: 'drive',
+        name: 'memory-class1',
+        condition: 100,
+        maxCondition: 100,
+        weight: 1,
+        operationCost: 0,
+        idleCost: 0,
+        props: { quota: 30 }
+      }
+    })
+    const drives = `/api/v1/bots/${botId}/drives`
+    const files = `${drives}/${drive.id}`
+
+    expect((await api().get(drives).set(bearer(accessToken)).expect(200)).body).toEqual([
+      { _id: drive.id, botId, name: 'memory-class1', quota: 30, used: 0 }
+    ])
+
+    await api().post(`${files}/directories`).set(bearer(accessToken)).send({ path: 'scripts' }).expect(201)
+    await api().post(`${files}/directories`).set(bearer(accessToken)).send({ path: 'scripts' }).expect(409)
+    const written = await api()
+      .put(`${files}/file`)
+      .set(bearer(accessToken))
+      .send({ path: 'scripts/mine.js', content: 'mine()' })
+      .expect(200)
+    expect(written.body).toMatchObject({ path: 'scripts/mine.js', kind: 'file', size: 6 })
+    expect(written.body.content).toBeUndefined()
+
+    const read = await api()
+      .get(`${files}/file`)
+      .query({ path: 'scripts/mine.js' })
+      .set(bearer(accessToken))
+      .expect(200)
+    expect(read.body.content).toBe('mine()')
+    const listed = await api()
+      .get(`${files}/files`)
+      .query({ directory: 'scripts' })
+      .set(bearer(accessToken))
+      .expect(200)
+    expect(listed.body).toEqual([expect.objectContaining({ path: 'scripts/mine.js' })])
+
+    await api()
+      .put(`${files}/file`)
+      .set(bearer(accessToken))
+      .send({ path: 'big.txt', content: 'x'.repeat(30) })
+      .expect(413)
+    await api().put(`${files}/file`).set(bearer(accessToken)).send({ path: 'bad.exe', content: '' }).expect(400)
+    await api().put(`${files}/file`).set(bearer(accessToken)).send({ path: 'a.js' }).expect(400)
+    await api().get(`${files}/file`).query({ path: 'none.js' }).set(bearer(accessToken)).expect(404)
+    await api().get(`${drives}/not-an-id/files`).set(bearer(accessToken)).expect(400)
+
+    const stranger = await signUp('bob@example.com', 'Bob')
+    await api().get(drives).set(bearer(stranger.accessToken)).expect(403)
+
+    await api().delete(`${files}/file`).query({ path: 'scripts' }).set(bearer(accessToken)).expect(400)
+    await api().delete(`${files}/file`).query({ path: 'scripts/mine.js' }).set(bearer(accessToken)).expect(204)
+    await api().delete(`${files}/file`).query({ path: 'scripts' }).set(bearer(accessToken)).expect(204)
+    expect(await database.client.file.count()).toBe(0)
   })
 
   describe('Socket.IO', () => {

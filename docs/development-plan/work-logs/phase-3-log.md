@@ -57,3 +57,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.6 (bot filesystem: drives, files, quotas).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.6: bot filesystem
+- **Tasks:** 3.6
+- **Branch:** `feature/3.6-bot-filesystem` — done
+- **Decisions:** a drive is a `drive` module; a file is identified by its slash-separated `path` on the drive (the `files.name` column became `path`, plus `kind` file/directory, `content`, `size`; migration `bot_filesystem`, with a CHECK that a directory holds nothing). Rules in the domain: names `[A-Za-z0-9._-]` (not starting with a dot), at most 64 characters per segment and 8 levels, a file ends in `.js` / `.ts` / `.json` / `.txt`, parents must exist (`mkdir` is one level), `rm` removes a file or an empty directory. Quota = the module's `quota` property in bytes (fallback 64 KiB, the class-1 size) counted in UTF-8 bytes; a write that does not fit fails with `DRIVE_FULL` (413), a module with no condition left makes the drive inaccessible (`DRIVE_BROKEN`, design §8.4.1). `cd <drive>` takes the module name, numbered (`name-2`) when a bot has several of the same name. Use cases (`FilesService`) check ownership through `BotsService` and run in one transaction. REST surface under `/api/v1/bots/:botId/drives` (list drives, list/read/write/delete files, create a directory) for the web client, scripts' tooling and third parties. `FilesModule` now imports `BotsModule` (the reverse import was unused and was removed).
+- **Not yet done:** `readDelay` / `writeDelay` are engine timing (Phase 5); the starter kit gets its memory module with task 3.9, so a freshly deployed base has no drive until then (tests create one).
+- **Next step:** task 3.7 (server-side command parser and the terminal socket events).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api && npm run i18n:check`
+

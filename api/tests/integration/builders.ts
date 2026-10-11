@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto'
 import { BOT_TYPE } from '../../../lib/utils/interfaces/bots'
+import { FILE_KIND } from '../../../lib/utils/interfaces/files'
 import { Bot } from '../../src/bots/domain/bot.entity'
 import { File } from '../../src/files/domain/file.entity'
 import { KnownPoint, MapPoint } from '../../src/map/domain/map-point.entity'
@@ -45,7 +46,16 @@ export function buildModule(botId: string, overrides: Partial<Module> = {}): Mod
 }
 
 export function buildFile(driveId: string, overrides: Partial<File> = {}): File {
-  return { id: randomUUID(), driveId, name: 'main.js', ...overrides }
+  const content = overrides.content ?? 'export function main() {}'
+  return {
+    id: randomUUID(),
+    driveId,
+    path: 'main.js',
+    kind: FILE_KIND.FILE,
+    content,
+    size: Buffer.byteLength(content, 'utf8'),
+    ...overrides
+  }
 }
 
 export function buildPoint(x: number, y: number, overrides: Partial<MapPoint> = {}): MapPoint {

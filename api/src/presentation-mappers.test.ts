@@ -3,11 +3,19 @@ import { MapPointType } from '../../lib/utils/interfaces/map'
 import { RESOURCE } from '../../lib/utils/interfaces/resources'
 import { TERMINAL_LOG_KIND } from '../../lib/utils/interfaces/terminal'
 import { toLogEntryDto, toSessionDto } from './terminal/presentation/terminal.mapper'
+import { toDriveDto, toFileDto } from './files/presentation/file.mapper'
 import { toBotDto } from './bots/presentation/bot.mapper'
 import { toMapPointDto } from './map/presentation/map-point.mapper'
 import { toModuleDto } from './modules/presentation/module.mapper'
 import { toUserInfo, toUserState } from './users/presentation/user.mapper'
-import { buildBase, buildKnownPoint, buildModule, buildPoint, buildUser } from '../tests/integration/builders'
+import {
+  buildBase,
+  buildFile,
+  buildKnownPoint,
+  buildModule,
+  buildPoint,
+  buildUser
+} from '../tests/integration/builders'
 
 describe('presentation mappers', () => {
   it('maps a user to the client identity without secrets', () => {
@@ -86,5 +94,19 @@ describe('presentation mappers', () => {
         text: 'ls'
       })
     ).toEqual({ _id: 'l1', sessionId: 's1', botId: 'b1', at: 1500, kind: 'input', text: 'ls' })
+  })
+
+  it('maps files without content in listings and drives with their usage', () => {
+    const file = buildFile('d1', { path: 'a.txt', content: 'abc' })
+
+    expect(toFileDto(file)).toEqual({ _id: file.id, driveId: 'd1', path: 'a.txt', kind: 'file', size: 3 })
+    expect(toFileDto(file, { withContent: true }).content).toBe('abc')
+    expect(toDriveDto({ id: 'd1', botId: 'b1', name: 'memory-class1', quota: 10, used: 3 })).toEqual({
+      _id: 'd1',
+      botId: 'b1',
+      name: 'memory-class1',
+      quota: 10,
+      used: 3
+    })
   })
 })

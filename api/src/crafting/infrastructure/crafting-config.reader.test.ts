@@ -26,6 +26,11 @@ describe('readCraftingConfig', () => {
     expect(config.balance).toMatchObject({ researchCostFactor: 2, researchTimeFactor: 10 })
   })
 
+  it('takes a file that changes only the recipes or only the balance', () => {
+    expect(read({ balance: { lootBlueprintChance: 0.5 } }).config.balance.lootBlueprintChance).toBe(0.5)
+    expect(read({ recipes: {} }).config.recipes).toEqual(DEFAULT_CRAFTING_CONFIG.recipes)
+  })
+
   it('reports an unreadable file and falls back to the defaults', () => {
     expect(read('{ nope')).toEqual({
       config: DEFAULT_CRAFTING_CONFIG,

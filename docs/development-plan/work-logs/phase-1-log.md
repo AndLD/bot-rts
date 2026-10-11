@@ -19,4 +19,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ## Entries
 
-_No entries yet._
+### 2026-10-11 — task 1.0: TypeScript 5 / Node 20 baseline, blocking changed-files coverage
+- **Tasks:** 1.0
+- **Branch:** `feature/1.0-typescript-node-baseline` — done
+- **Decisions / deviations from the plan:** the upgrade itself happened in Phase 0 (task 0.3): `api`, `client` and `lib` all resolve TypeScript 5.9.3 from one root install. This task adds `.nvmrc` (20, also used by CI through `node-version-file`) and makes the changed-files coverage check (≥ 97 % on files touched by a PR) blocking, as planned for Phase 1.
+- **Problems / blockers / findings:** none.
+- **Next step:** task 1.7 (`ID` becomes `string`), then 1.1.
+- **Verify with:** `npm ls typescript && npm run typecheck`

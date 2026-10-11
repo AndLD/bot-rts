@@ -20,7 +20,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | Phase | Theme                                | Story points | Status |
 | ----- | ------------------------------------ | ------------ | ------ |
 | 0     | Stabilize & CI foundation            | 24           | ✅ Done |
-| 1     | Architecture refactor & NestJS migration | 100       | ⬜ Not started |
+| 1     | Architecture refactor & NestJS migration | 100       | 🟡 In progress |
 | 2     | Test infrastructure & coverage backfill | 43        | ⬜ Not started |
 | 3     | Core gameplay foundations            | 76           | ⬜ Not started |
 | 4     | Module system & crafting             | 70           | ⬜ Not started |

@@ -2,7 +2,7 @@
 
 # Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-1-log](./work-logs/phase-1-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-1-log](./work-logs/phase-1-log.md)
 
 Mostly behavior-preserving refactors that make the code testable and layered, the move from Express to **NestJS** with a
 clean-architecture layout (AGENTS.md §3), and the client's move from Vite to **Next.js** (tasks 1.18 and 1.18a, done while the client is small). Each refactor is its own small PR, verified by the repository integration tests (1.1a) and, from task 1.9 on, by the safety-net tests.
@@ -12,7 +12,7 @@ The legacy Express routers keep running inside Nest until each feature module is
 
 | # | Task                                                                                                     | SP | Status |
 | --- | ------------------------------------------------------------------------------------------------------- | -- | --- |
-| 1.0 | Upgrade TypeScript to 5.x and Node to 20 LTS across packages; fix resulting type errors | 2 | ⬜ |
+| 1.0 | Upgrade TypeScript to 5.x and Node to 20 LTS across packages; fix resulting type errors | 2 | ✅ |
 | 1.1 | Introduce the **ports** in `application` as interfaces + DI tokens: `UserRepository`, `BotRepository`, `ModuleRepository`, `MapRepository`, `FileRepository`, the `UnitOfWork` and `WorldStateStore` ports, and the domain entities they exchange (persistence-agnostic, AGENTS.md §3.4) | 5 | ⬜ |
 | 1.1a | **PostgreSQL + Prisma adapters** (AGENTS.md §3.4) for the data the app has today: Prisma schema (users incl. their current credentials, bases and bots with the ownership model of design §8.1 — ordinary bots carry `baseId`, only bases carry `userId` —, modules, drives/files, map points, per-user known points) with committed migrations, `Prisma*Repository` classes mapping rows to domain entities, seed script, per-worker Docker test database harness, integration tests of every repository, and a CI check that applies all migrations to an empty database; the prototype's MongoDB data is discarded. Later phases extend the schema with their own migrations; known cells carry `seenAt` (design §4.2) | 14 | ⬜ |
 | 1.2 | Replace global `services/db.ts` singletons with an injected `PrismaClient` provided by the composition root (infrastructure only), configured from `DATABASE_URL`; it is wrapped as a Nest `PrismaModule` in 1.10 | 5 | ⬜ |
@@ -48,4 +48,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/1.0-typescript-node-baseline` | 1.0 | PR_N | ✅ |

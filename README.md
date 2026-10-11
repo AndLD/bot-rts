@@ -39,18 +39,22 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 - Sign-up, login, logout with **JWT access + refresh tokens** (httpOnly refresh cookie).
 - Email verification flow (`nodemailer`), 24 h token validity.
 - Role model: `admin`, `owner`, `user`, `unlimited`, `banned` (enforced in auth middlewares).
-- Deploy a user base (creates a `BOT_TYPE.BASE`, attaches the initial module kit, upserts a map point).
-- Procedural map: real map points + **per-user fog-of-war points**, generated on demand.
-- Module model: abstract `Module` base class + a **working `ScannerModule`**; `WeaponModule` is a stub.
-- Socket.IO server with authenticated events: `get-user-bases`, `get-user-bots`, `get-bot-modules`.
+- Deploy a base with an **access password** and an optional **spawn seed**: a free cell at least 30 cells from every other
+  base, the starter kit (gun, scanner, factory, armor, battery, generator, storage, processor, memory, wireless adapter);
+  one living base per player, a lost base stays on the map as a corpse base and its owner can redeploy.
+- Procedural map in chunks, with **deposits** of six resources and **per-user fog-of-war points**, generated on demand.
+- Module classes by type with a registry and a factory; the **bot filesystem** (a drive per memory module with a byte
+  quota, directories, `.js` / `.ts` / `.json` / `.txt` files) over REST and the terminal.
+- **BotOS commands on the server** (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`) over
+  Socket.IO; every terminal session and its lines are stored in the database (30 days, 5,000 lines per bot).
+- OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code; the web client's endpoints are generated from it.
 
 **Frontend (`client`)**
 
 - Auth page (login / sign-up), verification page, inactive-user ("check your email") page.
-- RTK Query API slices with automatic access-token refresh (`baseQueryWithRefresh`).
-- Game page: a **BotOS terminal** (`ls`/`dir`, `cd`, `clear`, `shell`, `exit`, `list`, `modules` are partially wired to
-  Socket.IO). A draggable **code editor** component (CodeMirror + prettier format) exists in `components/Game/FileEditor`,
-  but it is a stub and is not mounted on the game page yet.
+- RTK Query endpoints generated from the OpenAPI document, with automatic access-token refresh (`baseQueryWithRefresh`).
+- Game page: the **deploy dialog** for a new player, then the **BotOS terminal** with the file commands and a plain editor
+  for `edit` (the CodeMirror editor window arrives with the GUI, phase 6).
 
 ---
 

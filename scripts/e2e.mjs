@@ -107,6 +107,8 @@ try {
       TRUST_PROXY: 'true',
       // The browser's requests share one address; the rate-limit spec uses addresses of its own
       RATE_LIMIT_AUTH_MAX: '200',
+      // A spawn seed takes two players, so that a full seed can be shown
+      SPAWN_SEED_MAX_PLAYERS: '2',
       WORLD_SEED: '1'
     }
   })

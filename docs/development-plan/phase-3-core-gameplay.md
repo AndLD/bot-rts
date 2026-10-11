@@ -2,7 +2,7 @@
 
 # Phase 3 — Core gameplay foundations (76 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-3-log](./work-logs/phase-3-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-3-log](./work-logs/phase-3-log.md)
 
 Establish the game-domain backbone the product notes describe (bases, bots, resources, map, storage).
 
@@ -22,7 +22,7 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 | 3.10 | Base destruction lifecycle per design §6.3: corpse base, redeploy of a new base ("one living base" rule), stale bots | 5 | ✅ |
 | 3.11 | `SpawnService`: base placement per design §4.1 (free cell, minimum distance, retries; replaces random `[0,10]²`), adjacent-cell spawn for assembled bots (§8.3), and spawn seeds per design §22.3 | 5 | ✅ |
 | 3.12 | `/api/v1` documentation and client generation per AGENTS.md §3.0 and design §22.1 (the versioned routes themselves exist since 1.10 / 1.12): OpenAPI spec generated in CI from controller/DTO definitions (CI fails when the committed spec differs from the generated one), and a typed client for the web client generated from it (replacing hand-written RTK Query endpoints) | 6 | ✅ |
-| 3.13 | Cypress e2e for the Phase 3 flows: deploy a base (with password and spawn seed), terminal filesystem commands (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`), redeploy after a corpse base; also spawn seeds: players with the same code spawn near each other, a full seed and an expired seed (injected clock) are refused | 5 | ⬜ |
+| 3.13 | Cypress e2e for the Phase 3 flows: deploy a base (with password and spawn seed), terminal filesystem commands (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`), redeploy after a corpse base; also spawn seeds: players with the same code spawn near each other, a full seed and an expired seed (injected clock) are refused | 5 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
@@ -48,3 +48,4 @@ AGENTS.md §7.1).
 | `feature/3.10-base-lifecycle` | 3.10 | #57 | merged |
 | `feature/3.11-spawn-service` | 3.11 | #58 | merged |
 | `feature/3.12-openapi-client` | 3.12 | #59 | merged |
+| `feature/3.13-phase-3-e2e` | 3.13 | #60 | merged |

@@ -334,8 +334,10 @@ A feature is done only when **all** of these hold:
   pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI exists:
   once lint, typecheck and tests pass locally). Do not pause between tasks; stop with a summary when the phase's exit
   criteria are met, when blocked, or when a decision is needed.
-- **Ask the user before creating or merging any other pull request:** documentation or chore PRs that are not phase tasks,
-  anything targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one PR does not carry over to another.
+- **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
+  `release/*` and `hotfix/*` into `main`) without asking.
+- **Ask the user before merging any other pull request:** documentation or chore PRs that are not phase tasks, anything
+  targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one merge does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
 
@@ -380,7 +382,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - Don't introduce new `any`-typed public signatures.
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't create or merge a PR outside the standing phase approval without asking the user first (§7.5).
+- Don't merge a PR outside the standing phase approval without asking the user first (§7.5); opening PRs needs no approval.
 
 ---
 

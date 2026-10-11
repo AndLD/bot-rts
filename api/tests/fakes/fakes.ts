@@ -331,6 +331,13 @@ export class InMemoryBotRepository implements BotRepository {
   async listOfBase(baseId: string) {
     return [...this.items.values()].filter((bot) => bot.baseId === baseId)
   }
+
+  async setLastPosition(botId: string, position: Location) {
+    const bot = this.items.get(botId)
+    if (bot) {
+      this.items.set(botId, { ...bot, lastPosition: position })
+    }
+  }
 }
 
 export class InMemoryModuleRepository implements ModuleRepository {

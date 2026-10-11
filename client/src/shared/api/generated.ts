@@ -524,6 +524,11 @@ export type WriteFileDto = {
 export type MakeDirectoryDto = {
   path: string
 }
+export type BotLastPositionResponse = {
+  x: number
+  y: number
+  z?: number
+}
 export type BotResponse = {
   _id: string
   label?: string
@@ -532,6 +537,8 @@ export type BotResponse = {
   /** Any other bot belongs to a base */
   baseId?: string
   type: 'base' | 'worker'
+  /** Only a bot whose modules were all taken apart: it has no cell on the map, just its last place */
+  lastPosition?: BotLastPositionResponse
 }
 export type ModuleResponse = {
   _id: string

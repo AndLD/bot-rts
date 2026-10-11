@@ -1,4 +1,5 @@
 import { Bot as BotRow, Prisma } from '@prisma/client'
+import { Location } from '../../../../lib/utils/interfaces/map'
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
 import { BotRepository } from '../application/bot.repository'
 import { Bot } from '../domain/bot.entity'
@@ -10,7 +11,8 @@ function toEntity(row: BotRow): Bot {
     type: row.type as BOT_TYPE,
     userId: row.userId,
     baseId: row.baseId,
-    passwordHash: row.passwordHash
+    passwordHash: row.passwordHash,
+    lastPosition: row.lastX === null ? null : { x: row.lastX, y: row.lastY as number, z: row.lastZ as number }
   }
 }
 
@@ -23,7 +25,10 @@ export class PrismaBotRepository implements BotRepository {
   }
 
   async add(bot: Bot): Promise<void> {
-    await this.db.bot.create({ data: { ...bot, type: bot.type } })
+    const { lastPosition, ...fields } = bot
+    await this.db.bot.create({
+      data: { ...fields, lastX: lastPosition?.x, lastY: lastPosition?.y, lastZ: lastPosition?.z }
+    })
   }
 
   async listOfUser(userId: string, filter?: { type?: BOT_TYPE }): Promise<Bot[]> {
@@ -32,6 +37,10 @@ export class PrismaBotRepository implements BotRepository {
       orderBy: { id: 'asc' }
     })
     return rows.map(toEntity)
+  }
+
+  async setLastPosition(botId: string, { x, y, z = 0 }: Location): Promise<void> {
+    await this.db.bot.update({ where: { id: botId }, data: { lastX: x, lastY: y, lastZ: z } })
   }
 
   async listOfBase(baseId: string): Promise<Bot[]> {

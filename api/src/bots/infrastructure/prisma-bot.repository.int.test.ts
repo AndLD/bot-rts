@@ -24,7 +24,8 @@ const worker = (baseId: string): Bot => ({
   type: BOT_TYPE.WORKER,
   userId: null,
   baseId,
-  passwordHash: null
+  passwordHash: null,
+  lastPosition: null
 })
 
 describe('PrismaBotRepository', () => {
@@ -84,5 +85,34 @@ describe('PrismaBotRepository', () => {
     await database.client.user.delete({ where: { id: user.id } })
 
     expect(await bots.findById(base.id)).toBeNull()
+  })
+
+  it('remembers where a bot without modules was', async () => {
+    const user = buildUser()
+    await users.add(user)
+    const base = buildBase(user.id)
+    await bots.add(base)
+    const bot = worker(base.id)
+    await bots.add(bot)
+
+    await bots.setLastPosition(bot.id, { x: 4, y: -2 })
+
+    expect(await bots.findById(bot.id)).toEqual({ ...bot, lastPosition: { x: 4, y: -2, z: 0 } })
+    expect(await bots.findById(base.id)).toMatchObject({ lastPosition: null })
+  })
+
+  it('stores a bot with a last position, and refuses a partial one', async () => {
+    const user = buildUser()
+    await users.add(user)
+    const base = buildBase(user.id)
+    await bots.add(base)
+    const stored = { ...worker(base.id), lastPosition: { x: 1, y: 2, z: 3 } }
+
+    await bots.add(stored)
+
+    expect(await bots.findById(stored.id)).toEqual(stored)
+    await expect(
+      database.client.bot.create({ data: { id: randomUUID(), type: 'worker', baseId: base.id, lastX: 1 } })
+    ).rejects.toThrow()
   })
 })

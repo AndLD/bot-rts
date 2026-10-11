@@ -3,6 +3,7 @@ import { IResourceStack } from '../../../../lib/utils/interfaces/resources'
 import { fail, ResultCode } from '../../../../lib/utils/result'
 import { ItemType } from '../../../../lib/utils/interfaces/items'
 import { Item } from '../../crafting/domain/item.entity'
+import { MapPoint } from '../../map/domain/map-point.entity'
 import { RecipeBook } from '../../crafting/domain/recipe-book'
 import { distanceBetween } from '../../modules/domain/weapon-module'
 import { EnergyModel } from '../../modules/domain/energy-model'
@@ -39,6 +40,7 @@ export interface MaintenanceOrder {
 
 interface Job {
   repositories: Repositories
+  targetPoint: MapPoint
   repairer: RepairModule
   repairerRecords: Module[]
   target: Bot
@@ -95,6 +97,7 @@ export class MaintenanceService {
       const paid = unwrap(this.energy.spend(stored, job.repairer.record.operationCost))
       await this.save(repositories, job.repairerRecords, this.replace(paid, job.repairer.withProps(kept.patch)))
       await repositories.modules.remove(job.module.id)
+      await this.retireIfEmpty(repositories, job.target, job.targetPoint)
 
       const blueprint = await this.lootBlueprint(repositories, job, repairerBot)
       await this.syncOwner(repositories, job.target)
@@ -142,6 +145,7 @@ export class MaintenanceService {
     }
     return {
       repositories,
+      targetPoint: to,
       repairer: repairer as RepairModule,
       repairerRecords,
       target,
@@ -157,6 +161,15 @@ export class MaintenanceService {
       return bot.userId
     }
     return bot.baseId ? ((await repositories.bots.findById(bot.baseId))?.userId ?? null) : null
+  }
+
+  // A bot whose last module is gone keeps its record, but its cell on the map is emptied and it only remembers where it
+  // was (design §8.4.1)
+  private async retireIfEmpty(repositories: Repositories, bot: Bot, point: MapPoint): Promise<void> {
+    if (!(await repositories.modules.listOfBot(bot.id)).length) {
+      await repositories.map.upsertPoint({ ...point, type: null, contentId: null })
+      await repositories.bots.setLastPosition(bot.id, point.location)
+    }
   }
 
   // The blueprint item of the module, by chance, carried by the bot that took it apart. A base its owner lost control

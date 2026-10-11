@@ -51,6 +51,20 @@ describe('FilesService drives', () => {
     await expect(filesService.list(alice.id, bot.id, scanner.id)).rejects.toThrow(NotFoundError)
   })
 
+  it('gives the files back when the drive is repaired: they were hidden, not wiped', async () => {
+    const { bot, drive, call, repositories } = await setup()
+    await call.write('main.js', 'hello')
+    const index = repositories.modules.items.findIndex((m) => m.id === drive.id)
+    const intact = repositories.modules.items[index]
+
+    repositories.modules.items[index] = { ...intact, condition: 0 }
+    await expect(call.read('main.js')).rejects.toThrow(DriveBrokenError)
+
+    repositories.modules.items[index] = { ...intact, condition: 25 }
+    expect((await call.read('main.js')).content).toBe('hello')
+    expect(bot.id).toBeDefined()
+  })
+
   it('makes a broken drive inaccessible but keeps it listed', async () => {
     const { filesService, bot, call } = await setup({ condition: 0 })
 

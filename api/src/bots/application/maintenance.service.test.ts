@@ -336,7 +336,8 @@ describe('MaintenanceService.disassemble', () => {
         type: 'worker' as never,
         userId: null,
         baseId,
-        passwordHash: null
+        passwordHash: null,
+        lastPosition: null
       })
       const module = { ...moduleFactory.create('storage-class1', id), id: `${id}-storage` }
       repositories.modules.items.push(module)
@@ -410,5 +411,44 @@ describe('MaintenanceService.disassemble', () => {
     })
 
     expect(blueprint).toBeNull()
+  })
+
+  it('keeps a bot whose last module was taken apart, with its last position and an empty cell', async () => {
+    const {
+      maintenanceService,
+      botsService,
+      moduleFactory,
+      base,
+      medicAt,
+      repositories,
+      modulesOf,
+      move,
+      advance,
+      stock,
+      order
+    } = await setup()
+    stock([])
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: 'Scrap',
+      modules: [moduleFactory.template('storage-class1'), moduleFactory.template('processor-class1')]
+    })
+    const cell = { x: medicAt.x, y: medicAt.y + 1, z: 0 }
+    await move(worker.id, cell)
+
+    for (const module of modulesOf(worker.id)) {
+      advance(1000)
+      await maintenanceService.disassemble(alice.id, order(worker.id, module.id))
+    }
+
+    expect(modulesOf(worker.id)).toEqual([])
+    expect(await repositories.bots.findById(worker.id)).toMatchObject({ lastPosition: cell })
+    expect(await repositories.map.findPointByContentId(worker.id)).toBeNull()
+    expect(await repositories.map.findPointsInRange({ from: cell, to: cell })).toEqual([
+      expect.objectContaining({ type: null, contentId: null })
+    ])
+    expect(await botsService.listBaseBots(alice.id, base.id)).toContainEqual(
+      expect.objectContaining({ id: worker.id, lastPosition: cell })
+    )
   })
 })

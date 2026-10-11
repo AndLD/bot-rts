@@ -49,6 +49,8 @@ The terminal already exposes a `list` command backed by a socket event. ✅
 
 ## 8.4.1 Module damage, disassembly and bot lifecycle ✅
 
+*Implemented: a broken processor/adapter is checked by `canRunScripts` / `canConnect` (`bots/domain/capabilities.ts`; a terminal cannot be opened on a bot without a working adapter, `NO_SIGNAL`), a broken drive hides its files until it is repaired (`DRIVE_BROKEN`), the other modules refuse their actions with `BROKEN_MODULE`. A bot whose last module is taken apart keeps its record with `lastPosition`, its map cell becomes empty.*
+
 **A bot is never "dead".** Damage affects individual modules; the bot record persists.
 
 - **Module at `condition` 0 is broken, not deleted.** It stays attached but stops working. Effects by type:

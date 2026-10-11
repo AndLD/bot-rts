@@ -35,6 +35,7 @@ export function buildBase(userId: string, overrides: Partial<Bot> = {}): Bot {
     userId,
     baseId: null,
     passwordHash: 'hash',
+    lastPosition: null,
     ...overrides
   }
 }

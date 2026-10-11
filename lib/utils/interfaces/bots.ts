@@ -1,5 +1,5 @@
 import { ID } from '../types'
-import { IMapPoint } from './map'
+import { IMapPoint, Location } from './map'
 import { ModuleProps } from './modules'
 
 export enum BOT_TYPE {
@@ -15,6 +15,8 @@ export interface IBot {
   userId?: string
   baseId?: string
   type: BOT_TYPE
+  // Set when all modules of the bot were taken apart: the bot has no cell on the map, only this last place
+  lastPosition?: Location
 }
 
 // A new bot with its modules and its place on the map

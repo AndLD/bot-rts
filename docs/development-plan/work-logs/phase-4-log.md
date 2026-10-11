@@ -82,3 +82,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.10 (module condition lifecycle).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.10: module condition lifecycle
+- **Tasks:** 4.10
+- **Branch:** `feature/4.10-module-condition-lifecycle` — done
+- **Decisions / deviations from the plan:** **Effects of a broken module (design §8.4.1):** the processor rule is `canRunScripts` and the adapter rule `canConnect` (`bots/domain/capabilities.ts`); the runtime (phase 5) calls the first, `BotsService.getReachableBot` uses the second, and `TerminalService.open` now refuses a bot without a working adapter with `NO_SIGNAL` (a base without one is a corpse and refused earlier with `BASE_LOST`); a broken drive already hid its files (`DRIVE_BROKEN`, task 3.6) and a test now shows they return when the drive is repaired; every other module refuses its actions with `BROKEN_MODULE`. **Module-less bots:** `Bot.lastPosition` (columns `last_x/y/z`, migration `bot_last_position` with an all-or-none CHECK); when `MaintenanceService.disassemble` takes the last module of a bot, the bot record stays, its map cell is emptied (`type`/`contentId` null) and `lastPosition` remembers the cell; the terminal `list` and the bot DTO show it. A base without modules is a corpse (no adapter) and goes the same way.
+- **Next step:** task 4.7 — the unit + integration + e2e tests of the fabrication and maintenance flows, now that 4.8–4.10 exist: Cypress specs for craft → assemble → repair/disassemble through the terminal commands, the matrix in `docs/development-plan/testing-strategy.md`, the missing weight/speed/capacity/assembly-rejection/broken-module cases in unit and integration tests.
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

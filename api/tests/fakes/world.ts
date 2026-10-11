@@ -2,6 +2,7 @@ import { SpawnService } from '../../src/spawn/application/spawn.service'
 import { DEFAULT_SPAWN_CONFIG, SpawnConfig } from '../../src/spawn/domain/spawn-config'
 import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
+import { MaintenanceService } from '../../src/bots/application/maintenance.service'
 import { AssemblyService } from '../../src/bots/application/assembly.service'
 import { RecipeService } from '../../src/crafting/application/recipe.service'
 import { FactoryService } from '../../src/bots/application/factory.service'
@@ -110,6 +111,16 @@ export function createWorld(
     factoryService
   )
   const recipeService = new RecipeService(recipeBook, repositories.blueprints)
+  const maintenanceService = new MaintenanceService(
+    unitOfWork,
+    botsService,
+    recipeBook,
+    moduleRegistry,
+    new EnergyModel(moduleRegistry),
+    clock,
+    rng,
+    new BaseLifecycle(moduleRegistry)
+  )
 
   return {
     repositories,
@@ -131,13 +142,15 @@ export function createWorld(
     terminalService,
     assemblyService,
     recipeService,
+    maintenanceService,
     terminalShell: createTerminalShell(
       botsService,
       filesService,
       terminalService,
       factoryService,
       assemblyService,
-      recipeService
+      recipeService,
+      maintenanceService
     )
   }
 }

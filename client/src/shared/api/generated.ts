@@ -161,6 +161,20 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.assembleDto
       })
     }),
+    maintenanceRepair: build.mutation<MaintenanceRepairApiResponse, MaintenanceRepairApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.botId}/maintenance/repair`,
+        method: 'POST',
+        body: queryArg.maintenanceDto
+      })
+    }),
+    maintenanceDisassemble: build.mutation<MaintenanceDisassembleApiResponse, MaintenanceDisassembleApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.botId}/maintenance/disassemble`,
+        method: 'POST',
+        body: queryArg.maintenanceDto
+      })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -313,6 +327,16 @@ export type FactoryAssembleApiResponse = /** status 201  */ AssembledBotResponse
 export type FactoryAssembleApiArg = {
   baseId: string
   assembleDto: AssembleDto
+}
+export type MaintenanceRepairApiResponse = /** status 200 The module after the repair */ ModuleResponse
+export type MaintenanceRepairApiArg = {
+  botId: string
+  maintenanceDto: MaintenanceDto
+}
+export type MaintenanceDisassembleApiResponse = /** status 200 The scrap */ RecipeResourceResponse[]
+export type MaintenanceDisassembleApiArg = {
+  botId: string
+  maintenanceDto: MaintenanceDto
 }
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
@@ -528,6 +552,7 @@ export type ModuleResponse = {
     | 'generator'
     | 'factory'
     | 'gps'
+    | 'repair'
   name: string
   /** Hit points left; 0 means broken */
   condition: number
@@ -619,6 +644,12 @@ export type AssembleDto = {
   /** Module parts held by the base */
   partIds: string[]
 }
+export type MaintenanceDto = {
+  /** The bot on an adjacent cell whose module is worked on */
+  targetBotId: string
+  /** The module to repair or take apart */
+  moduleId: string
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -658,5 +689,7 @@ export const {
   useFactoryResearchMutation,
   useFactoryLearnMutation,
   useFactoryAssembleMutation,
+  useMaintenanceRepairMutation,
+  useMaintenanceDisassembleMutation,
   useHealthCheckQuery
 } = injectedRtkApi

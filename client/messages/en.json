@@ -145,6 +145,8 @@
       "research": "research the blueprint of a higher class",
       "learn": "learn a blueprint item",
       "assemble": "assemble a bot from module parts",
+      "repair": "repair a module of a bot on an adjacent cell",
+      "disassemble": "take a module of a bot on an adjacent cell apart",
       "clear": "clear the screen",
       "exit": "sign out"
     }

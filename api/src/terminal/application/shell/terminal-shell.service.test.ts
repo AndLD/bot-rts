@@ -9,6 +9,7 @@ import { InMemoryBlueprintRepository } from '../../../../tests/fakes/fakes'
 import { DEFAULT_CRAFTING_BALANCE, DEFAULT_RECIPES } from '../../../../../lib/utils/interfaces/crafting'
 import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
 import { RecipesCommand } from './commands/factory-commands'
+import { DisassembleCommand } from './commands/maintenance-commands'
 import { TOP } from './cwd'
 
 const PASSWORD = 'secret1'
@@ -345,5 +346,51 @@ describe('the factory commands', () => {
 
     expect(result).toMatchObject({ type: 'output' })
     expect((result as { lines: string[] }).lines).toContain('- module="scanner-class3" locked cost="1 iron" time=1s')
+  })
+
+  it('repairs and disassembles on an adjacent bot, from the terminal of the bot with the repair module', async () => {
+    const { botsService, moduleFactory, repositories, terminalService, terminalShell, bot, clock } = await withStock()
+    const kit = ['processor-class1', 'wireless-adapter-class1', 'battery-class1', 'storage-class1', 'repair-class1']
+    const { bot: medic } = await botsService.createBot(alice.id, {
+      baseId: bot.id,
+      label: null,
+      modules: kit.map((name) => moduleFactory.template(name))
+    })
+    const storage = repositories.modules.items.find((m) => m.botId === medic.id && m.type === 'storage')!
+    repositories.modules.items[repositories.modules.items.indexOf(storage)] = {
+      ...storage,
+      props: { capacity: 500, items: [{ resource: 'iron', amount: 100 }] }
+    }
+    const gun = repositories.modules.items.find((m) => m.botId === bot.id && m.type === 'weapon')!
+    repositories.modules.items[repositories.modules.items.indexOf(gun)] = { ...gun, condition: 50 }
+
+    const session = await terminalService.open(alice.id, medic.id)
+    const run = async (line: string) => (await terminalShell.execute(alice.id, session.id, line, TOP)).response.result
+
+    expect(await run(`repair ${bot.id} ${gun.id}`)).toEqual({
+      type: 'output',
+      lines: ['repaired gun-class1: condition 75/100']
+    })
+    clock.current = new Date(clock.now().getTime() + 1000)
+    expect(await run(`disassemble ${bot.id} ${gun.id}`)).toEqual({
+      type: 'output',
+      lines: ['disassembled, scrap: 20 iron']
+    })
+    expect(repositories.modules.items.some((m) => m.id === gun.id)).toBe(false)
+  })
+
+  it('says when the scrap of a disassembly is nothing', async () => {
+    const command = new DisassembleCommand({ disassemble: async () => [] } as never)
+
+    const { result } = await command.execute({ userId: alice.id, session: { botId: 'bot' }, args: ['a', 'b'] } as never)
+
+    expect(result).toEqual({ type: 'output', lines: ['disassembled, scrap: nothing'] })
+  })
+
+  it('reports the usage of the maintenance commands', async () => {
+    const { run } = await setup()
+
+    expect((await run('repair a')).result).toMatchObject({ code: 'COMMAND_USAGE' })
+    expect((await run('disassemble a b c')).result).toMatchObject({ code: 'COMMAND_USAGE' })
   })
 })

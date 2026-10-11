@@ -86,7 +86,7 @@ export class BotsService {
       }
       await repositories.map.upsertKnownPoints([known])
       await this.spawn.joinSeed(repositories, placement, { userId: user.id, baseId: bot.id })
-      await this.lifecycle.markCorpses(user.id, repositories)
+      await this.lifecycle.syncMapState(user.id, repositories)
 
       return { bot, modules, mapPoint }
     })

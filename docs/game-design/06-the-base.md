@@ -54,4 +54,5 @@ adapter is broken or missing (or the base has no modules left) the base is a cor
 - **Re-adopting stale bots:** *anyone* — including the former owner — who gets access to a stale bot (reaching it with
   a wireless link and bypassing or knowing its password, §11.2.2) can run `adopt` and assign it to **their own base**.
 - **Restoring a corpse:** a player who reaches the corpse of **their own** base can **repair it using bot(s) equipped
-  with a repair ("fixing") module**, returning it to operation (§8.4.2).
+  with a repair ("fixing") module**, returning it to operation (§8.4.2). ✅ The corpse shows as a base on the map again
+  once control is regained; having deployed a new base in the meantime does not prevent it.

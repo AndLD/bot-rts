@@ -44,3 +44,27 @@ export function withdrawStacks(records: readonly Module[], stacks: readonly IRes
   }
   return ok(current.filter((record) => !records.includes(record)))
 }
+
+// Puts the stacks into the storages, one storage after the other. All or nothing: the changed records, or NO_SPACE.
+export function depositStacks(records: readonly Module[], stacks: readonly IResourceStack[]): Result<Module[]> {
+  let current = [...records]
+
+  for (const stack of stacks.filter(({ amount }) => amount > 0)) {
+    if (storagesOf(current).reduce((sum, storage) => sum + (storage.isWorking ? storage.free : 0), 0) < stack.amount) {
+      return fail(ResultCode.NO_SPACE, 'The storage is full')
+    }
+    let left = stack.amount
+    for (const storage of storagesOf(current).filter((candidate) => candidate.isWorking)) {
+      const added = Math.min(storage.free, left)
+      if (added > 0) {
+        const result = storage.add({ resource: stack.resource, amount: added })
+        if (result.ok) {
+          const changed = storage.withProps({ items: result.data })
+          current = current.map((record) => (record.id === changed.id ? changed : record))
+          left = clean(left - added)
+        }
+      }
+    }
+  }
+  return ok(current.filter((record) => !records.includes(record)))
+}

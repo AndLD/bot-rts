@@ -1,4 +1,5 @@
 import { AssemblyService } from '../../../bots/application/assembly.service'
+import { MaintenanceService } from '../../../bots/application/maintenance.service'
 import { FactoryService } from '../../../bots/application/factory.service'
 import { RecipeService } from '../../../crafting/application/recipe.service'
 import { BotsService } from '../../../bots/application/bots.service'
@@ -14,6 +15,7 @@ import {
   RecipesCommand,
   ResearchCommand
 } from './commands/factory-commands'
+import { DisassembleCommand, RepairCommand } from './commands/maintenance-commands'
 import { TerminalShell } from './terminal-shell.service'
 
 // The shell with every command of the base terminal (design §11.1); the commands of later phases are added here
@@ -23,7 +25,8 @@ export function createTerminalShell(
   terminal: TerminalService,
   factory: FactoryService,
   assembly: AssemblyService,
-  recipes: RecipeService
+  recipes: RecipeService,
+  maintenance: MaintenanceService
 ): TerminalShell {
   return new TerminalShell(
     [
@@ -38,6 +41,8 @@ export function createTerminalShell(
       new ResearchCommand(factory),
       new LearnCommand(factory),
       new AssembleCommand(assembly),
+      new RepairCommand(maintenance),
+      new DisassembleCommand(maintenance),
       new LsCommand(files),
       new CdCommand(files),
       new MkdirCommand(files),

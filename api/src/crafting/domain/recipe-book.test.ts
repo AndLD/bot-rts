@@ -71,7 +71,7 @@ describe('RecipeBook', () => {
   })
 
   it('knows class 1 from the start and what was learned on top', () => {
-    expect(book.baseSet()).toHaveLength(15)
+    expect(book.baseSet()).toHaveLength(16)
     expect(book.baseSet()).toContain('scanner-class1')
     expect(book.baseSet()).not.toContain('scanner-class2')
     expect(book.known([])).not.toContain('scanner-class2')

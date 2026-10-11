@@ -17,6 +17,7 @@ import {
   WirelessAdapterModule
 } from './game-module'
 import { Module } from './module.entity'
+import { RepairModule } from './repair-module'
 import { ScannerModule } from './scanner-module'
 import { WeaponModule } from './weapon-module'
 
@@ -66,4 +67,5 @@ export function createModuleRegistry(): ModuleRegistry {
     .register('mining', MiningModule)
     .register('manipulator', ManipulatorModule)
     .register('gps', GpsModule)
+    .register('repair', RepairModule)
 }

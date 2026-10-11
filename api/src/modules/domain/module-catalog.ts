@@ -43,6 +43,15 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     weight: 20,
     props: { loadCapacity: 50 }
   },
+  {
+    type: 'repair',
+    name: 'repair-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 5,
+    weight: 25,
+    props: { repairPerOp: 25, delay: 1000 }
+  },
   { type: 'gps', name: 'gps-class1', ...full, idleCost: 0.01, operationCost: 0.1, weight: 2, props: {} },
   {
     type: 'weapon',

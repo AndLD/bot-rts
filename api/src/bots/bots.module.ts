@@ -65,14 +65,15 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: ScanService,
-      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry],
+      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry, CLOCK],
       useFactory: (
         bots: BotsService,
         modules: ModuleRepository,
         map: MapRepository,
         mapService: MapService,
-        registry: ModuleRegistry
-      ) => new ScanService(bots, modules, map, mapService, registry)
+        registry: ModuleRegistry,
+        clock: Clock
+      ) => new ScanService(bots, modules, map, mapService, registry, clock)
     }
   ],
   exports: [BOT_REPOSITORY, BotsService, ScanService]

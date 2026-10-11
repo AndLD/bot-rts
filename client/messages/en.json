@@ -170,6 +170,23 @@
     "INTERNAL_ERROR": "Something went wrong on our side",
     "UNKNOWN_COMMAND": "Unknown command",
     "NO_DRIVE_SELECTED": "No drive selected: use cd with a drive name",
-    "COMMAND_USAGE": "The command was used wrongly"
+    "COMMAND_USAGE": "The command was used wrongly",
+    "BLOCKED": "The way is blocked",
+    "EMPTY": "There is nothing there",
+    "GONE": "It is gone",
+    "NO_ENERGY": "Not enough energy",
+    "NO_MODULE": "The bot has no module for this",
+    "BROKEN_MODULE": "The module is broken",
+    "NO_FUNDS": "Not enough funds",
+    "NOT_LIVE": "The scanner is not in live mode",
+    "BUSY": "The module is busy",
+    "TOO_LOW": "Too low",
+    "EXPIRED": "It has expired",
+    "INBOX_FULL": "The inbox is full",
+    "OUT_OF_RANGE": "The target is out of reach",
+    "COOLDOWN": "The module is cooling down",
+    "NO_AMMO": "No ammunition",
+    "NO_SIGNAL": "No signal",
+    "NO_SPACE": "There is not enough space"
   }
 }

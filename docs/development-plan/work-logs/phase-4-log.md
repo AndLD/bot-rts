@@ -26,3 +26,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.2 (`WeaponModule` shoot/aim/reload rules and scanner polish).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.2: weapon and scanner rules
+- **Tasks:** 4.2
+- **Branch:** `feature/4.2-weapon-scanner` — done
+- **Decisions / deviations from the plan:** `WeaponModule` and `ScannerModule` moved into `weapon-module.ts` / `scanner-module.ts`. Weapon rules (`aim`, `shoot`, `reload`, `hitChance`, `resolve`, `damageAgainst`) follow design §12.6 and return a `Result`; a shot returns a `Shot` with its energy cost and the state `patch` (`loaded`, `readyAt`) for the caller to store; `CombatBalance` (`minDamage`, `accuracyFalloff`) is passed in, the engine injects the configured values in phase 5. Ammunition is a magazine (`magazine` / `loaded` props of the weapon); where the ammunition in the storage comes from is decided with the weapon commands. The scanner has a cooldown (`readyAt`), an area-scaled `energyCost` (`operationCost` × cells of the square), and live mode rules (`enable` / `disable` / `view`, `scan` is `BUSY` while live); the live-area machinery stays in 5.12. `ScanService.scan` now enforces cooldown / broken / live and stores the cooldown (new `ModuleRepository.update`); a failed `Result` becomes an `ActionFailedError` (`unwrap`) with the result code as the API error code, so `ErrorCode` now includes every `ResultCode` and `errors.*` has English messages for them (the Russian catalogue is still a placeholder until phase 7). Armor got a `protection` prop.
+- **Not done here, by design:** deducting the scan energy from the battery is task 4.3 (the energy accounting); refreshing the cell an action touched (design §4.2) comes with the actions themselves (4.6 commands / phase 5 engine), `MapService.observe` over one cell already does it.
+- **Next step:** task 4.3 (energy accounting).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

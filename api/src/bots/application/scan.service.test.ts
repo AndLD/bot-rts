@@ -12,7 +12,8 @@ function setup() {
     world.repositories.modules,
     world.repositories.map,
     world.mapService,
-    world.moduleRegistry
+    world.moduleRegistry,
+    world.clock
   )
   return { ...world, scanService }
 }
@@ -60,5 +61,32 @@ describe('ScanService.scan', () => {
     repositories.modules.items[index] = { ...repositories.modules.items[index], props: {} }
 
     expect(await scanService.scan(alice.id, bot.id)).toHaveLength(1)
+  })
+
+  it('starts the cooldown of the scanner and refuses a scan during it', async () => {
+    const { botsService, scanService, clock, repositories } = setup()
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
+
+    await scanService.scan(alice.id, bot.id)
+    const scanner = repositories.modules.items.find((m) => m.type === 'scanner')
+    expect(scanner?.props.readyAt).toBe(clock.now().getTime() + 250)
+
+    await expect(scanService.scan(alice.id, bot.id)).rejects.toMatchObject({ statusCode: 409, code: 'COOLDOWN' })
+
+    clock.current = new Date(clock.now().getTime() + 250)
+    await expect(scanService.scan(alice.id, bot.id)).resolves.toHaveLength(9)
+  })
+
+  it('refuses a broken scanner and a scanner that is live', async () => {
+    const { botsService, scanService, repositories } = setup()
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
+    const index = repositories.modules.items.findIndex((m) => m.type === 'scanner')
+    const original = repositories.modules.items[index]
+
+    repositories.modules.items[index] = { ...original, props: { ...original.props, isLive: true } }
+    await expect(scanService.scan(alice.id, bot.id)).rejects.toMatchObject({ code: 'BUSY' })
+
+    repositories.modules.items[index] = { ...original, condition: 0 }
+    await expect(scanService.scan(alice.id, bot.id)).rejects.toMatchObject({ code: 'BROKEN_MODULE' })
   })
 })

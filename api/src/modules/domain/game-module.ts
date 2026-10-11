@@ -37,6 +37,11 @@ export abstract class GameModule {
     return this.isWorking ? ok() : fail(ResultCode.BROKEN_MODULE, `The module ${this.name} is broken`)
   }
 
+  // The record with some properties replaced; the stored state of a module changes only through such copies
+  withProps(patch: Record<string, unknown>): Module {
+    return { ...this.record, props: { ...this.record.props, ...patch } }
+  }
+
   // A numeric property, or the fallback when it is missing or not a usable number
   protected number(key: string, fallback: number): number {
     const value = Number(this.record.props[key])
@@ -51,18 +56,6 @@ export abstract class GameModule {
   protected text(key: string, fallback: string): string {
     const value = this.record.props[key]
     return typeof value === 'string' ? value : fallback
-  }
-}
-
-export class ScannerModule extends GameModule {
-  // Radius in cells
-  get distance(): number {
-    return this.number('distance', 0)
-  }
-
-  // Cooldown in ms
-  get delay(): number {
-    return this.number('delay', 0)
   }
 }
 
@@ -111,16 +104,6 @@ export class WirelessAdapterModule extends GameModule {
   // Whether the bot can take part in radio traffic at all
   get isOnline(): boolean {
     return this.isWorking && this.isConnected
-  }
-}
-
-export class WeaponModule extends GameModule {
-  get damage(): number {
-    return this.number('damage', 0)
-  }
-
-  get distance(): number {
-    return this.number('distance', 0)
   }
 }
 
@@ -236,6 +219,11 @@ function withAmount(items: IResourceStack[], resource: IResourceStack['resource'
 export class FactoryModule extends GameModule {}
 
 export class ArmorModule extends GameModule {
+  // Damage taken off every hit (design §12.6)
+  get protection(): number {
+    return this.number('protection', 0)
+  }
+
   get material(): string {
     return this.text('material', '')
   }

@@ -51,7 +51,7 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     idleCost: 0.05,
     operationCost: 5,
     weight: 30,
-    props: { distance: 5, damage: 50, accuracy: 0.5, cooldown: 2000, caliber: 25 }
+    props: { distance: 5, damage: 50, accuracy: 0.5, cooldown: 2000, caliber: 25, magazine: 10, loaded: 10 }
   },
   {
     type: 'scanner',
@@ -70,7 +70,7 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     idleCost: 0,
     operationCost: 0,
     weight: 45,
-    props: { material: 'iron' }
+    props: { material: 'iron', protection: 10 }
   },
   {
     type: 'battery',

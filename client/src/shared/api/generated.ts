@@ -274,8 +274,6 @@ export type ErrorResponseModel = {
   /** Stable machine-readable code; clients branch on it */
   code:
     | 'UNAUTHORIZED'
-    | 'FORBIDDEN'
-    | 'NOT_FOUND'
     | 'VALIDATION_FAILED'
     | 'CREDENTIALS_INVALID'
     | 'EMAIL_ALREADY_EXISTS'
@@ -299,6 +297,25 @@ export type ErrorResponseModel = {
     | 'TERMINAL_SESSION_CLOSED'
     | 'TOO_MANY_REQUESTS'
     | 'INTERNAL_ERROR'
+    | 'BLOCKED'
+    | 'EMPTY'
+    | 'GONE'
+    | 'NO_ENERGY'
+    | 'NO_MODULE'
+    | 'BROKEN_MODULE'
+    | 'NO_FUNDS'
+    | 'NOT_LIVE'
+    | 'BUSY'
+    | 'NOT_FOUND'
+    | 'TOO_LOW'
+    | 'EXPIRED'
+    | 'INBOX_FULL'
+    | 'OUT_OF_RANGE'
+    | 'COOLDOWN'
+    | 'NO_AMMO'
+    | 'NO_SIGNAL'
+    | 'NO_SPACE'
+    | 'FORBIDDEN'
   /** The human-readable message */
   error: string
 }

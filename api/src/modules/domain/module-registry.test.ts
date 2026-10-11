@@ -1,9 +1,10 @@
 import { MODULE_TYPES } from '../../../../lib/utils/interfaces/modules'
 import { buildModule } from '../../../tests/integration/builders'
-import { DriveModule, GameModule, GpsModule, ScannerModule } from './game-module'
+import { DriveModule, GameModule, GpsModule } from './game-module'
 import { MODULE_CATALOG, STARTER_KIT } from './module-catalog'
 import { UnknownModuleTypeError } from './module.errors'
 import { createModuleRegistry, ModuleRegistry } from './module-registry'
+import { ScannerModule } from './scanner-module'
 
 describe('the module registry', () => {
   const registry = createModuleRegistry()

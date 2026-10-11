@@ -9,6 +9,7 @@ import { errors } from '../utils/constants'
 import { accessJwtSecret } from '../utils/jwt'
 import { parseUserIdFromSessionToken } from '../utils/jwtPayload'
 import { getLogger } from '../utils/logger'
+import { AuthorizedRequest } from '../utils/types'
 import { getAccessDenial, toUserState } from '../utils/userAccess'
 
 const logger = getLogger('middlewares/authorization')
@@ -41,7 +42,7 @@ async function authenticate(users: UserSource, token: string | undefined): Promi
 }
 
 export function createIsAuthorized(users: UserSource) {
-  return async function isAuthorized(req: any, res: Response, next: NextFunction) {
+  return async function isAuthorized(req: AuthorizedRequest, res: Response, next: NextFunction) {
     if (!req.headers.authorization) {
       return apiUtils.sendError(res, errors.AUTHORIZATION_HEADER_EMPTY)
     }

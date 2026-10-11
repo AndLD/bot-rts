@@ -7,4 +7,4 @@ export type Error = {
   code: number
 }
 
-export type Item = any
+export type Item = unknown

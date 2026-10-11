@@ -18,7 +18,7 @@ export default class WeaponModule extends Module implements IWeaponModule {
     // Object.assign(this, props)
   }
 
-  async shoot(x: number, y: number, z?: number): Promise<Error | null> {
+  async shoot(_x: number, _y: number, _z?: number): Promise<Error | null> {
     // Example implementation
     try {
       // Your shoot logic here

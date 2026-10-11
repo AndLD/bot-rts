@@ -3,7 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint . --ext ts --max-warnings 0"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

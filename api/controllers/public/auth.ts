@@ -1,4 +1,4 @@
-import { Response } from 'express'
+import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { usersCollection } from '../../services/db'
@@ -11,7 +11,7 @@ import { parseUserIdFromSessionToken } from '../../utils/jwtPayload'
 import { apiUtils } from '../../utils/api'
 import { getAccessDenial, toUserState } from '../../utils/userAccess'
 
-async function postLogin(req: any, res: Response) {
+async function postLogin(req: Request, res: Response) {
   const body: IAuthPostBody = req.body
 
   const user = await usersCollection.findOne({ email: body.email })
@@ -41,7 +41,7 @@ async function postLogin(req: any, res: Response) {
   })
 }
 
-async function getRefresh(req: any, res: Response) {
+async function getRefresh(req: Request, res: Response) {
   const refreshToken = req.cookies.refreshToken
 
   if (!refreshToken) {
@@ -72,7 +72,7 @@ async function getRefresh(req: any, res: Response) {
   apiUtils.sendResult(res, tokens.accessToken)
 }
 
-async function postLogout(_: any, res: Response) {
+async function postLogout(_: Request, res: Response) {
   res.clearCookie('refreshToken')
   res.sendStatus(200)
 }

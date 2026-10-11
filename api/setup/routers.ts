@@ -33,5 +33,5 @@ export function setupRouters(app: Express) {
   privateRouter.use('/bots', botsPrivateRouter)
   privateRouter.use('/debug', developmentOnly, hasAdminStatus, debugPrivateRouter)
 
-  app.use((err: ErrorHandler, req: Request, res: Response, next: NextFunction) => handleError(err, res))
+  app.use((err: ErrorHandler, _req: Request, res: Response, _next: NextFunction) => handleError(err, res))
 }

@@ -14,30 +14,26 @@ export const Utils = {
     return result
   },
   getDirectorySizeSync(directoryPath: string) {
-    try {
-      let totalSize = 0
+    let totalSize = 0
 
-      const files = fs.readdirSync(directoryPath)
+    const files = fs.readdirSync(directoryPath)
 
-      for (const file of files) {
-        const filePath = path.join(directoryPath, file)
-        const stats = fs.statSync(filePath)
+    for (const file of files) {
+      const filePath = path.join(directoryPath, file)
+      const stats = fs.statSync(filePath)
 
-        if (stats.isFile()) {
-          totalSize += stats.size
-        } else if (stats.isDirectory()) {
-          const subdirectorySize = Utils.getDirectorySizeSync(filePath)
-          totalSize += subdirectorySize
-        }
+      if (stats.isFile()) {
+        totalSize += stats.size
+      } else if (stats.isDirectory()) {
+        const subdirectorySize = Utils.getDirectorySizeSync(filePath)
+        totalSize += subdirectorySize
       }
-
-      // Convert bytes to megabytes
-      const sizeInMB = Math.round(totalSize) / 1000
-
-      return parseFloat(sizeInMB.toFixed(2))
-    } catch (error) {
-      throw error
     }
+
+    // Convert bytes to megabytes
+    const sizeInMB = Math.round(totalSize) / 1000
+
+    return parseFloat(sizeInMB.toFixed(2))
   },
   // Recursive function to get files
   getFileNames(dir: string, files: string[] = [], extensions: string[] = []) {

@@ -1,4 +1,4 @@
-import { Response } from 'express'
+import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { tryCatch } from '../../utils/decorators'
 import { IUserPostBody } from '@lib/utils/interfaces/users'
@@ -13,7 +13,7 @@ import { toUserState } from '../../utils/userAccess'
 
 const logger = getLogger('controllers/private/users')
 
-async function postUser(req: any, res: Response) {
+async function postUser(req: Request, res: Response) {
   const body: IUserPostBody = req.body
 
   const user = await usersService.getUserByEmail(body.email)
@@ -36,7 +36,7 @@ async function postUser(req: any, res: Response) {
   })
 }
 
-async function getVerifyEmail(req: any, res: Response) {
+async function getVerifyEmail(req: Request, res: Response) {
   const token = req.query.token
 
   if (!token) {

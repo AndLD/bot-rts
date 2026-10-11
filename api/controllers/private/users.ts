@@ -9,7 +9,7 @@ import { AuthorizedRequest } from '../../utils/types'
 import { hasOwnerOnlyFields, parseUserPutBody } from '../../utils/userUpdate'
 import { parseUsersQuery } from '../../utils/usersQuery'
 
-function withoutPassword({ password, ...rest }: IUser) {
+function withoutPassword({ password: _password, ...rest }: IUser) {
   return rest
 }
 

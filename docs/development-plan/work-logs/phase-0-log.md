@@ -66,3 +66,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** Docker Desktop was not running at the start of the session and was launched with `open -a Docker`. `DATABASE_URL` is documented but not read by the code until Phase 1 (task 1.1a).
 - **Next step:** task 0.4 (ESLint for `api`, shared Prettier check, `lint`/`typecheck` in both packages).
 - **Verify with:** `npm run db:up && docker compose ps && npm run db:down`
+
+### 2026-10-11 — task 0.4: ESLint for every package and a Prettier check
+- **Tasks:** 0.4
+- **Branch:** `feature/0.4-eslint-prettier` — done
+- **Decisions / deviations from the plan:** ESLint 8 with the existing `@typescript-eslint` recommended setup (legacy `.eslintrc.cjs`) for `api`, `client` and `lib`, `--max-warnings 0`; unused names starting with `_` are allowed. Legacy files that still use `any` or have hook-dependency warnings are listed in an `overrides` block in `api/.eslintrc.cjs` and `client/.eslintrc.cjs` (the NestJS and Next.js migrations rewrite them; delete entries as they go) — new code gets the strict rules. The root `npm run lint` also runs `prettier --check` over code and config (`.prettierignore` skips Markdown and `docs/`, which were never Prettier-formatted). Small fixes made on the way: typed JWT claims in the client, unused `res` parameter, a useless try/catch, regex escapes, `Item = unknown`.
+- **Problems / blockers / findings:** none.
+- **Next step:** task 0.5 (GitHub Actions CI).
+- **Verify with:** `npm run lint && npm run typecheck && npm test`

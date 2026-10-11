@@ -20,11 +20,9 @@ async function setup(recipes = DEFAULT_RECIPES) {
     world.unitOfWork,
     world.botsService,
     new RecipeBook(recipes, DEFAULT_CRAFTING_BALANCE),
-    world.ids,
     world.clock,
-    world.moduleRegistry,
     new EnergyModel(world.moduleRegistry),
-    world.moduleFactory
+    world.factorySettler
   )
   const modules = world.repositories.modules
   const change = (type: string, props: Record<string, unknown>, extra: Record<string, unknown> = {}) => {

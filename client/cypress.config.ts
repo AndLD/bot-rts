@@ -20,6 +20,9 @@ function readOutbox(): Mail[] {
     .map((file) => JSON.parse(readFileSync(join(OUTBOX_DIR, file), 'utf8')) as Mail)
 }
 
+// The base of the user whose email is the first parameter of the statement
+const BASE_OF_USER = `(SELECT id FROM bots WHERE type = 'base' AND user_id = (SELECT id FROM users WHERE email = $1) LIMIT 1)`
+
 async function sql(text: string, values: unknown[]) {
   const client = new Client({ connectionString: DATABASE_URL })
   await client.connect()
@@ -90,6 +93,79 @@ export default defineConfig({
           )
 
           return rows.map((row) => `${row.kind}: ${row.text}`)
+        },
+
+        // The base of the player gets room and resources in its storage (design §9.3)
+        async stockBase({ email, items }: { email: string; items: { resource: string; amount: number }[] }) {
+          await sql(
+            `UPDATE modules SET props = props || jsonb_build_object('capacity', 5000, 'items', $2::jsonb)
+             WHERE type = 'storage' AND bot_id = ${BASE_OF_USER}`,
+            [email, JSON.stringify(items)]
+          )
+
+          return null
+        },
+
+        // Every job of the factory of the base is done by now
+        async finishFactoryJobs({ email }: { email: string }) {
+          await sql(
+            `UPDATE modules SET props = jsonb_set(props, '{jobs}', COALESCE(
+               (SELECT jsonb_agg(jsonb_set(job, '{readyAt}', '1'::jsonb)) FROM jsonb_array_elements(props->'jobs') job),
+               '[]'::jsonb))
+             WHERE type = 'factory' AND bot_id = ${BASE_OF_USER}`,
+            [email]
+          )
+
+          return null
+        },
+
+        // A repair module on the base itself, so the base's terminal can repair its neighbours
+        async addRepairModule({ email }: { email: string }) {
+          await sql(
+            `INSERT INTO modules (id, bot_id, type, name, condition, max_condition, weight, operation_cost, idle_cost, props)
+             SELECT gen_random_uuid(), ${BASE_OF_USER}, 'repair', 'repair-class1', 100, 100, 25, 5, 0,
+                    '{"repairPerOp": 25, "delay": 1000}'::jsonb`,
+            [email]
+          )
+
+          return null
+        },
+
+        // A blueprint item lies in the inventory of the player's base
+        async giveBlueprint({ email, module }: { email: string; module: string }) {
+          await sql(
+            `INSERT INTO items (id, type, name, weight, bot_id)
+             SELECT gen_random_uuid(), 'blueprint', $2, 0.1, ${BASE_OF_USER}`,
+            [email, module]
+          )
+
+          return null
+        },
+
+        async setBaseEnergy({ email, value }: { email: string; value: number }) {
+          await sql(
+            `UPDATE modules SET props = jsonb_set(props, '{value}', to_jsonb($2::int))
+             WHERE type = 'battery' AND bot_id = ${BASE_OF_USER}`,
+            [email, value]
+          )
+
+          return null
+        },
+
+        // The ordinary bots of the player's base: id and label
+        async workersOf({ email }: { email: string }) {
+          const { rows } = await sql(`SELECT id, label FROM bots WHERE base_id = ${BASE_OF_USER} ORDER BY id`, [email])
+
+          return rows as { id: string; label: string | null }[]
+        },
+
+        async damageModule({ botId, type, condition }: { botId: string; type: string; condition: number }) {
+          const { rows } = await sql(
+            `UPDATE modules SET condition = $3 WHERE bot_id = $1::uuid AND type = $2 RETURNING id`,
+            [botId, type, condition]
+          )
+
+          return (rows[0]?.id as string | undefined) ?? null
         },
 
         // Makes every unused link of a kind sent to the user's address expire an hour ago

@@ -5,16 +5,14 @@ import { fail, ResultCode } from '../../../../lib/utils/result'
 import { AlreadyKnownError } from '../../crafting/domain/crafting.errors'
 import { Blueprint } from '../../crafting/domain/blueprint.entity'
 import { Item } from '../../crafting/domain/item.entity'
+import { FactorySettler } from '../../crafting/application/factory-settler'
 import { RecipeBook } from '../../crafting/domain/recipe-book'
-import { ModuleFactory } from '../../modules/application/module.factory'
 import { EnergyModel } from '../../modules/domain/energy-model'
 import { FactoryJob, FactoryModule } from '../../modules/domain/game-module'
 import { Module } from '../../modules/domain/module.entity'
-import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { withdrawStacks } from '../../modules/domain/storage-stock'
 import { Repositories, UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
-import { IdGenerator } from '../../shared/application/id-generator'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { unwrap } from '../../shared/domain/result'
 import { Bot } from '../domain/bot.entity'
@@ -37,18 +35,16 @@ export class FactoryService {
     private readonly unitOfWork: UnitOfWork,
     private readonly bots: BotsService,
     private readonly recipes: RecipeBook,
-    private readonly ids: IdGenerator,
     private readonly clock: Clock,
-    private readonly registry: ModuleRegistry,
     private readonly energy: EnergyModel,
-    private readonly moduleFactory: ModuleFactory
+    private readonly settler: FactorySettler
   ) {}
 
   async status(userId: string, baseId: string): Promise<FactoryStatus> {
     const base = await this.getBase(userId, baseId)
 
     return this.unitOfWork.run(async (repositories) => {
-      const records = await this.settle(repositories, base)
+      const records = await this.settler.settle(repositories, base)
       const items = await repositories.items.listOfBot(base.id)
       const carried = await this.carriedByBots(repositories, base)
       return {
@@ -70,7 +66,7 @@ export class FactoryService {
     const recipe = this.recipes.get(module)
 
     return this.unitOfWork.run(async (repositories) => {
-      const records = await this.settle(repositories, base)
+      const records = await this.settler.settle(repositories, base)
       await this.requireKnown(repositories, userId, module)
 
       const pending = this.pay(
@@ -98,7 +94,7 @@ export class FactoryService {
     this.recipes.get(module)
 
     return this.unitOfWork.run(async (repositories) => {
-      const records = await this.settle(repositories, base)
+      const records = await this.settler.settle(repositories, base)
       const known = await this.knownModules(repositories, userId)
       if (known.has(module)) {
         throw new AlreadyKnownError(`You already know the blueprint of ${module}`)
@@ -126,7 +122,7 @@ export class FactoryService {
     const base = await this.getBase(userId, baseId)
 
     return this.unitOfWork.run(async (repositories) => {
-      const records = await this.settle(repositories, base)
+      const records = await this.settler.settle(repositories, base)
       this.workingFactory(records)
 
       const item = await repositories.items.findById(itemId)
@@ -153,43 +149,7 @@ export class FactoryService {
 
   // Finishes what is done by now, in a transaction of its own
   async settleBase(base: Bot): Promise<void> {
-    await this.unitOfWork.run((repositories) => this.settle(repositories, base))
-  }
-
-  // Finishes the jobs that are done by now: crafted modules become parts in the base's inventory, researched
-  // blueprints become known. Returns the base's module records afterwards.
-  async settle(repositories: Repositories, base: Bot): Promise<Module[]> {
-    const records = await repositories.modules.listOfBot(base.id)
-    const factory = this.factoryOf(records)
-    if (!factory) {
-      return records
-    }
-
-    const { done, patch } = factory.settle(this.now())
-    for (const job of done) {
-      if (job.kind === 'craft') {
-        await repositories.items.add({
-          id: this.ids.next(),
-          type: ItemType.PART,
-          name: job.module,
-          weight: this.moduleFactory.template(job.module).weight,
-          botId: base.id
-        })
-      } else {
-        await repositories.blueprints.add({
-          userId: base.userId as string,
-          module: job.module,
-          source: BlueprintSource.RESEARCH,
-          learnedAt: new Date(job.readyAt)
-        })
-      }
-    }
-    if (!done.length) {
-      return records
-    }
-    const settled = factory.withProps(patch)
-    await repositories.modules.update(settled)
-    return records.map((record) => (record.id === settled.id ? settled : record))
+    await this.unitOfWork.run((repositories) => this.settler.settle(repositories, base))
   }
 
   // The items carried by the ordinary bots of the base: a blueprint a bot found or looted can be learned at the factory
@@ -212,7 +172,7 @@ export class FactoryService {
   }
 
   private factoryOf(records: readonly Module[]): FactoryModule | undefined {
-    return this.registry.instancesOf(records, FactoryModule).find((factory) => factory.isWorking)
+    return this.settler.factoryOf(records)
   }
 
   // The first working factory of the base, or NO_MODULE

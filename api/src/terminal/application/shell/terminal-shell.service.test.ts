@@ -351,7 +351,8 @@ describe('the factory commands', () => {
         ],
         DEFAULT_CRAFTING_BALANCE
       ),
-      new InMemoryBlueprintRepository()
+      new InMemoryBlueprintRepository(),
+      { settleUser: async () => undefined } as never
     )
 
     const { result } = await new RecipesCommand(recipes).execute({ userId: alice.id } as never)

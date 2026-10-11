@@ -1,6 +1,7 @@
 import { IRecipe } from '../../../../lib/utils/interfaces/crafting'
 import { RecipeBook, ResearchCost } from '../domain/recipe-book'
 import { BlueprintRepository } from './blueprint.repository'
+import { FactorySettler } from './factory-settler'
 
 // A recipe as one player sees it
 export interface RecipeView extends IRecipe {
@@ -15,10 +16,12 @@ export interface RecipeView extends IRecipe {
 export class RecipeService {
   constructor(
     private readonly book: RecipeBook,
-    private readonly blueprints: BlueprintRepository
+    private readonly blueprints: BlueprintRepository,
+    private readonly settler: FactorySettler
   ) {}
 
   async listFor(userId: string): Promise<RecipeView[]> {
+    await this.settler.settleUser(userId)
     const learned = (await this.blueprints.listOfUser(userId)).map((blueprint) => blueprint.module)
     const known = this.book.known(learned)
 

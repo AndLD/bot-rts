@@ -22,6 +22,7 @@ import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BaseLifecycle } from './application/base-lifecycle'
 import { BotsService } from './application/bots.service'
+import { FactorySettler } from '../crafting/application/factory-settler'
 import { RecipeBook } from '../crafting/domain/recipe-book'
 import { EnergyModel } from '../modules/domain/energy-model'
 import { AssemblyService } from './application/assembly.service'
@@ -78,17 +79,15 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: FactoryService,
-      inject: [UNIT_OF_WORK, BotsService, RecipeBook, ID_GENERATOR, CLOCK, ModuleRegistry, EnergyModel, ModuleFactory],
+      inject: [UNIT_OF_WORK, BotsService, RecipeBook, CLOCK, EnergyModel, FactorySettler],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotsService,
         recipes: RecipeBook,
-        ids: IdGenerator,
         clock: Clock,
-        registry: ModuleRegistry,
         energy: EnergyModel,
-        moduleFactory: ModuleFactory
-      ) => new FactoryService(unitOfWork, bots, recipes, ids, clock, registry, energy, moduleFactory)
+        settler: FactorySettler
+      ) => new FactoryService(unitOfWork, bots, recipes, clock, energy, settler)
     },
     {
       provide: MaintenanceService,

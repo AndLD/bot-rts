@@ -136,4 +136,5 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 - Writing past a drive's quota fails with an error value; reading/writing takes the module's `readDelay` / `writeDelay`.
 - A bot without a memory module has no drive and cannot store files (the base starts with one, §6.1).
 - Destroying a memory module destroys the drive and its files.
-- Quotas are tunable config (class-1 starting value: 64 KB, also used in the base starter kit).
+- Quotas are tunable config (class-1 starting value: 64 KB, also used in the base starter kit): the module's `quota` property, in bytes.
+- Paths are slash-separated; names use letters, digits, `_`, `-` and `.` (not first), up to 64 characters per segment and 8 levels; `mkdir` creates one level at a time and `rm` removes a file or an empty directory.

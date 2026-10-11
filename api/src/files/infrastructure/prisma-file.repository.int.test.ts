@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto'
+import { FILE_KIND } from '../../../../lib/utils/interfaces/files'
 import { buildBase, buildFile, buildModule, buildUser } from '../../../tests/integration/builders'
 import { createTestDatabase, TestDatabase } from '../../../tests/integration/test-database'
 import { PrismaBotRepository } from '../../bots/infrastructure/prisma-bot.repository'
@@ -27,20 +28,39 @@ beforeEach(async () => {
 afterAll(() => database.drop())
 
 describe('PrismaFileRepository', () => {
-  it('stores, lists and finds files of a drive', async () => {
-    const [b, a] = [buildFile(driveId, { name: 'b.js' }), buildFile(driveId, { name: 'a.js' })]
-    await files.add(b)
-    await files.add(a)
+  it('saves, lists, finds and removes the files of a drive', async () => {
+    const [b, a] = [buildFile(driveId, { path: 'b.js' }), buildFile(driveId, { path: 'a.js' })]
+    const directory = buildFile(driveId, { path: 'dir', kind: FILE_KIND.DIRECTORY, content: '', size: 0 })
+    await files.save(b)
+    await files.save(a)
+    await files.save(directory)
 
-    expect(await files.listOfDrive(driveId)).toEqual([a, b])
-    expect(await files.findByName(driveId, 'a.js')).toEqual(a)
-    expect(await files.findByName(driveId, 'missing.js')).toBeNull()
+    expect(await files.listOfDrive(driveId)).toEqual([a, b, directory])
+    expect(await files.findByPath(driveId, 'a.js')).toEqual(a)
+    expect(await files.findByPath(driveId, 'missing.js')).toBeNull()
     expect(await files.listOfDrive(randomUUID())).toEqual([])
+
+    await files.remove(a.id)
+    expect(await files.findByPath(driveId, 'a.js')).toBeNull()
   })
 
-  it('keeps file names unique per drive', async () => {
-    await files.add(buildFile(driveId, { name: 'a.js' }))
+  it('replaces the content of a saved file and sums the sizes', async () => {
+    const file = buildFile(driveId, { content: 'abc', size: 3 })
+    await files.save(file)
+    await files.save({ ...file, content: 'abcdef', size: 6 })
+    await files.save(buildFile(driveId, { path: 'other.txt', content: 'zz', size: 2 }))
 
-    await expect(files.add(buildFile(driveId, { name: 'a.js' }))).rejects.toThrow()
+    expect((await files.findByPath(driveId, 'main.js'))?.content).toBe('abcdef')
+    expect(await files.usedBytes(driveId)).toBe(8)
+    expect(await files.usedBytes(randomUUID())).toBe(0)
+  })
+
+  it('keeps paths unique per drive and rejects a directory with content', async () => {
+    await files.save(buildFile(driveId, { path: 'a.js' }))
+
+    await expect(files.save(buildFile(driveId, { path: 'a.js' }))).rejects.toThrow()
+    await expect(
+      files.save(buildFile(driveId, { path: 'd', kind: FILE_KIND.DIRECTORY, content: 'x', size: 1 }))
+    ).rejects.toThrow()
   })
 })

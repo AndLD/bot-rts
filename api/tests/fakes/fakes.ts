@@ -339,18 +339,28 @@ export class InMemoryModuleRepository implements ModuleRepository {
 }
 
 export class InMemoryFileRepository implements FileRepository {
-  readonly items: File[] = []
+  readonly items = new Map<string, File>()
 
-  async add(file: File) {
-    this.items.push(file)
+  async save(file: File) {
+    this.items.set(file.id, file)
+  }
+
+  async remove(id: string) {
+    this.items.delete(id)
+  }
+
+  async findByPath(driveId: string, path: string) {
+    return [...this.items.values()].find((file) => file.driveId === driveId && file.path === path) ?? null
   }
 
   async listOfDrive(driveId: string) {
-    return this.items.filter((file) => file.driveId === driveId)
+    return [...this.items.values()]
+      .filter((file) => file.driveId === driveId)
+      .sort((a, b) => (a.path < b.path ? -1 : 1))
   }
 
-  async findByName(driveId: string, name: string) {
-    return this.items.find((file) => file.driveId === driveId && file.name === name) ?? null
+  async usedBytes(driveId: string) {
+    return (await this.listOfDrive(driveId)).reduce((sum, file) => sum + file.size, 0)
   }
 }
 

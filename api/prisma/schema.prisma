@@ -202,14 +202,26 @@ model Module {
   @@map("modules")
 }
 
+enum FileKind {
+  file
+  directory
+
+  @@map("file_kind")
+}
+
+// A file or directory on a drive (a memory module); `path` runs from the root of the drive
 model File {
-  id      String @id @db.Uuid
-  driveId String @map("drive_id") @db.Uuid
-  name    String
+  id      String   @id @db.Uuid
+  driveId String   @map("drive_id") @db.Uuid
+  path    String
+  kind    FileKind @default(file)
+  content String   @default("")
+  // Bytes of `content`, kept for the quota
+  size    Int      @default(0)
 
   drive Module @relation(fields: [driveId], references: [id], onDelete: Cascade)
 
-  @@unique([driveId, name])
+  @@unique([driveId, path])
   @@map("files")
 }
 

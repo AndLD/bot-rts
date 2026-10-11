@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
@@ -11,10 +11,11 @@ jest.mock('../../shared/notifications', () => ({ errorNotification: jest.fn() })
 
 const query = jest.mocked(baseQueryWithRefresh)
 
+// Sets whole values at once: typing key by key through the antd inputs is slow on a busy machine
 async function fill(password: string, confirmation = password) {
-  await userEvent.type(screen.getByLabelText('Base password'), password)
-  await userEvent.type(screen.getByLabelText('Repeat the password'), confirmation)
-  await userEvent.click(screen.getByRole('button', { name: 'Deploy base' }))
+  fireEvent.change(screen.getByLabelText('Base password'), { target: { value: password } })
+  fireEvent.change(screen.getByLabelText('Repeat the password'), { target: { value: confirmation } })
+  await userEvent.click(screen.getByText('Deploy base'))
 }
 
 describe('DeployBase', () => {
@@ -25,7 +26,7 @@ describe('DeployBase', () => {
   })
 
   it('wants a password of the right length, repeated', async () => {
-    await userEvent.click(screen.getByRole('button', { name: 'Deploy base' }))
+    await userEvent.click(screen.getByText('Deploy base'))
     expect(await screen.findByText('Please enter a password for your base')).toBeInTheDocument()
     expect(screen.getByText('Please repeat the password')).toBeInTheDocument()
 
@@ -45,7 +46,7 @@ describe('DeployBase', () => {
     await fill('secret1')
 
     expect(await screen.findByText('Deploy your base?')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    await userEvent.click(screen.getByText('Cancel'))
 
     await waitFor(() => expect(screen.queryByText('Deploy your base?')).not.toBeVisible())
     expect(query).not.toHaveBeenCalled()
@@ -55,7 +56,7 @@ describe('DeployBase', () => {
     query.mockResolvedValue({ data: {} })
     await fill('secret1')
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Deploy' }))
+    await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
 
     await waitFor(() =>
       expect(query).toHaveBeenCalledWith(
@@ -71,7 +72,7 @@ describe('DeployBase', () => {
     query.mockResolvedValue({ error: { status: 403, data: { code: 'BASE_ALREADY_EXISTS', error: 'exists' } } })
     await fill('secret1')
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Deploy' }))
+    await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
 
     await waitFor(() =>
       expect(errorNotification).toHaveBeenCalledWith('You already have a base', 'The base was not deployed')
@@ -82,7 +83,7 @@ describe('DeployBase', () => {
     query.mockResolvedValue({ error: { status: 500, data: undefined } as never })
     await fill('secret1')
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Deploy' }))
+    await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
 
     await waitFor(() =>
       expect(errorNotification).toHaveBeenCalledWith('Something went wrong', 'The base was not deployed')

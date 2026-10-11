@@ -38,6 +38,13 @@ describe('GamePage', () => {
     )
   })
 
+  it('asks for nothing without a session', () => {
+    renderApp(<GamePage />)
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    expect(query).not.toHaveBeenCalled()
+  })
+
   it('offers to deploy a base to a player who has none', async () => {
     query.mockResolvedValue({ data: [] })
 

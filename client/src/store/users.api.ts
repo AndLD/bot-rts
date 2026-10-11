@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   IFetchUsersResponse,
+  IUsersFilter,
   IUserPostBody,
   IUserPostResponse,
   IUserPutBody,
@@ -24,17 +25,15 @@ export const privateUsersApi = createApi({
       IFetchUsersResponse,
       {
         pagination: { current: number; pageSize: number }
-        filters?: string
-        order?: string
+        filter?: IUsersFilter
       }
     >({
-      query: ({ pagination, filters, order }) => ({
+      query: ({ pagination, filter }) => ({
         url: '/api/private/users',
         params: {
           page: pagination.current,
           results: pagination.pageSize,
-          filters,
-          order
+          ...filter
         }
       })
     })

@@ -211,6 +211,7 @@ pm2 start ecosystem.config.json
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |
 | `JWT_REFRESH_SECRET` / `_EXPIRES_IN`  | api          | Refresh-token secret / TTL (also the refresh cookie max age) | `super_secret2` / `24h` |
 | `JWT_EMAIL_VERIFICATION_SECRET` / `_EXPIRES_IN` | api | Email-verification secret / TTL                      | `super_secret3` / `24h` |
+| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_AUTH_MAX` | api | Rate limit of signup, login and refresh (per IP, in memory) | `900000` / `20` |
 | `SMTP_HOST`                           | api          | SMTP host (required in production)                   | `smtp.gmail.com` outside production |
 | `SMTP_PORT` / `SMTP_SECURE`           | api          | SMTP port / implicit TLS flag                        | `465` / `true` when the port is 465 |
 | `SMTP_USER` / `SMTP_PASS`             | api          | SMTP credentials; without them the email service is a no-op | — |

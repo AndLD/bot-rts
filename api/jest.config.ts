@@ -7,6 +7,7 @@ const config: Config = {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }]
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'node'],
+  moduleNameMapper: { '^@lib/(.*)$': '<rootDir>/../lib/$1' },
   modulePathIgnorePatterns: ['<rootDir>/ts-built/'],
   testMatch: ['**/tests/**/*.test.ts?(x)', '**/?(*.)+(spec|test).ts?(x)']
 }

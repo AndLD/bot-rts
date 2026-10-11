@@ -3,6 +3,8 @@ export const startTimestamp = Date.now()
 export const environment = process.env.NODE_ENV || 'development'
 export const isProduction = environment === 'production'
 
+export const isDevelopment = environment === 'development'
+
 export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 export enum Entity {
@@ -49,7 +51,16 @@ export const errors = {
     msg: 'Послуга сповіщень відключена',
     code: 503
   },
-  ARRAY_CONTAINS_NOT_UNIQUE: { msg: 'Array contains not unique', code: 400 }
+  ARRAY_CONTAINS_NOT_UNIQUE: { msg: 'Array contains not unique', code: 400 },
+  USER_BANNED: { msg: 'User is banned', code: 403 },
+  EMAIL_NOT_VERIFIED: { msg: 'Email is not verified', code: 403 },
+  TOO_MANY_REQUESTS: { msg: 'Too many requests, try again later', code: 429 },
+  INVALID_ID: { msg: 'Invalid id', code: 400 }
+}
+
+export const rateLimit = {
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  maxAuthRequests: Number(process.env.RATE_LIMIT_AUTH_MAX) || 20
 }
 
 export const rootUser = {

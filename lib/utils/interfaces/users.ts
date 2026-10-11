@@ -1,6 +1,6 @@
 import { ID } from '../types'
 
-export type Subscription = 'free' | 'monthly' | 'yearly'
+export type Subscription = (typeof SUBSCRIPTIONS)[number]
 
 export interface IUser {
   _id: ID
@@ -64,7 +64,11 @@ export interface IUserPostBody {
   password: string
 }
 
-export type UserStatus = 'admin' | 'owner' | 'user' | 'unlimited' | 'banned'
+export const USER_STATUSES = ['admin', 'owner', 'user', 'unlimited', 'banned'] as const
+
+export type UserStatus = (typeof USER_STATUSES)[number]
+
+export const SUBSCRIPTIONS = ['free', 'monthly', 'yearly'] as const
 
 export interface IFetchAuthorizedUserResponse {
   result: IUserInfo | null
@@ -85,8 +89,19 @@ export interface IUserPostResponse {
   result: string
 }
 
+// Fields `status`, `active` and `password` can be changed by an owner only
 export interface IUserPutBody {
-  status: UserStatus
+  name?: string
+  subscription?: Subscription
+  status?: UserStatus
+  active?: boolean
+  password?: string
+}
+
+export interface IUsersFilter {
+  status?: UserStatus
+  active?: boolean
+  email?: string
 }
 
 export interface IUserPutResponse {

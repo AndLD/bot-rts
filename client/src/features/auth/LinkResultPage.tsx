@@ -18,7 +18,7 @@ export default function LinkResultPage({ action }: { action: LinkAction }) {
   const token = useSearchParams().get('token')
   const [outcome, setOutcome] = useState<'working' | 'done' | 'failed'>('working')
   // A link works once, so it must be sent once even when React runs the effect twice in development
-  const confirmedToken = useRef<string | null>(null)
+  const confirmedToken = useRef<string | null | undefined>(undefined)
 
   useEffect(() => {
     if (confirmedToken.current === token) {

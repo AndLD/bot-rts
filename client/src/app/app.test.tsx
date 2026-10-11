@@ -1,0 +1,102 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import { NextIntlClientProvider } from 'next-intl'
+import { makeJwt } from '../../tests/jwt'
+import { renderApp } from '../../tests/render'
+import GamePage from '../features/game/GamePage'
+import { baseQueryWithRefresh } from '../shared/store/baseQuery'
+import { MarketingContent } from './(marketing)/MarketingContent'
+import GameLayout from './(game)/layout'
+import messages from '../../messages/en.json'
+import { Providers } from './Providers'
+
+const replace = jest.fn()
+let pathname = '/game'
+
+jest.mock('next/navigation', () => ({ useRouter: () => ({ replace }), usePathname: () => pathname }))
+jest.mock('../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
+jest.mock('../shared/socket/SocketProvider', () => ({
+  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}))
+
+const query = jest.mocked(baseQueryWithRefresh)
+
+function renderProviders(children = <p>content</p>) {
+  return render(
+    <NextIntlWrapper>
+      <Providers>{children}</Providers>
+    </NextIntlWrapper>
+  )
+}
+
+// Providers brings its own store and auth client, so only the texts are wrapped
+function NextIntlWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
+      {children}
+    </NextIntlClientProvider>
+  )
+}
+
+describe('Providers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    localStorage.clear()
+    pathname = '/game'
+  })
+
+  it('sends an anonymous visitor to the login and renders nothing meanwhile', async () => {
+    const { container } = renderProviders()
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/auth'))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('renders the page of a visitor who may see it', async () => {
+    pathname = '/auth'
+    renderProviders()
+
+    expect(await screen.findByText('content')).toBeInTheDocument()
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('renders nothing while the visitor is being identified, then the page', async () => {
+    localStorage.setItem('token', makeJwt(60))
+    query.mockResolvedValue({ data: { _id: 'u1', name: 'Jon' } })
+    renderProviders()
+
+    expect(screen.queryByText('content')).not.toBeInTheDocument()
+    expect(await screen.findByText('content')).toBeInTheDocument()
+  })
+
+  it('wraps the pages of the (game) group', async () => {
+    pathname = '/auth'
+    render(
+      <NextIntlWrapper>
+        <GameLayout>
+          <p>inside</p>
+        </GameLayout>
+      </NextIntlWrapper>
+    )
+
+    expect(await screen.findByText('inside')).toBeInTheDocument()
+  })
+})
+
+describe('GamePage', () => {
+  it('shows the terminal with a link to the account', () => {
+    renderApp(<GamePage />)
+
+    expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/account')
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+  })
+})
+
+describe('MarketingContent', () => {
+  it('shows the name, the tagline and the way into the game', () => {
+    renderApp(<MarketingContent />)
+
+    expect(screen.getByRole('heading', { name: 'Bot RTS' })).toBeInTheDocument()
+    expect(screen.getByText('Program your bots. Conquer the map.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Play' })).toHaveAttribute('href', '/game')
+  })
+})

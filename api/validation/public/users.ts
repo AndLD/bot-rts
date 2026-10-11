@@ -7,7 +7,7 @@ export const user = {
   name: {
     required: true,
     type: 'string',
-    regexp: /([A-Z][a-z\-\']{1,50})|([А-ЯЁIЇҐЄ][а-яёіїґє\-\']{1,50})/
+    regexp: /([A-Z][a-z\-']{1,50})|([А-ЯЁIЇҐЄ][а-яёіїґє\-']{1,50})/
   },
   password: {
     required: true,

@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt'
-import { Response } from 'express'
 import { Entity, rootUser as rootUserConfig } from '../utils/constants'
 import { IUser, IUserPost, IUserPostBody, IUserPutBody, IUsersFilter, UserStatus } from '@lib/utils/interfaces/users'
 import { getKeywords } from '../utils/keywords'
@@ -12,7 +11,7 @@ const logger = getLogger('services/users')
 
 const entity = Entity.USERS
 
-async function countUsersByState(res: Response) {
+async function countUsersByState() {
   const raws: {
     _id: ID
     status?: UserStatus

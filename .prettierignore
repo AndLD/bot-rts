@@ -1,0 +1,10 @@
+node_modules
+dist
+ts-built
+coverage
+logs
+package-lock.json
+*.woff2
+*.ttf
+*.md
+docs

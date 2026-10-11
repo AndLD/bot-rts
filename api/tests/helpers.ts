@@ -1,7 +1,8 @@
 import express, { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
-import { IUser } from '@lib/utils/interfaces/users'
+import { IUser, IUserState } from '@lib/utils/interfaces/users'
 import { accessJwtSecret } from '../utils/jwt'
+import { AuthorizedRequest } from '../utils/types'
 
 export function makeUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -32,8 +33,9 @@ export function makeApp(setup: (app: express.Express) => void) {
 }
 
 export function asUser(user: Record<string, unknown>): RequestHandler {
-  return (req: any, _res, next) => {
-    req.user = user
+  return (req, _res, next) => {
+    const authorized: AuthorizedRequest = req
+    authorized.user = user as unknown as IUserState
     next()
   }
 }

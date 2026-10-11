@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { SOCKET_TOKEN_EXPIRED, SOCKET_UNAUTHORIZED } from '../../lib/utils/constants'
 import { makeApp, makeUser, signAccessToken } from '../tests/helpers'
+import { AuthorizedRequest } from '../utils/types'
 import { createIsAuthorized, createIsSocketAuthorized } from './authorization'
 
 const userId = '64b7f0f2a1b2c3d4e5f60718'
@@ -8,7 +9,7 @@ const userId = '64b7f0f2a1b2c3d4e5f60718'
 function setup(user = makeUser()) {
   const findUserById = jest.fn().mockResolvedValue(user)
   const app = makeApp((app) => {
-    app.get('/private', createIsAuthorized({ findUserById }), (req: any, res) => res.json(req.user))
+    app.get('/private', createIsAuthorized({ findUserById }), (req: AuthorizedRequest, res) => res.json(req.user))
   })
 
   return { app, findUserById }

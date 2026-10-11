@@ -8,7 +8,7 @@ import { Utils } from '../../utils/utils'
 import path from 'path'
 
 async function getStatistics(_: any, res: Response) {
-  const usersByStatus = await usersService.countUsersByState(res)
+  const usersByStatus = await usersService.countUsersByState()
   if (!usersByStatus) {
     return
   }

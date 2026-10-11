@@ -6,7 +6,7 @@ interface IValidationRules {
 
 export const validationRules: IValidationRules = {
   NAME: (message) => ({
-    pattern: /([A-Z][a-z\-\']{1,50})|([А-ЯЁIЇҐЄ][а-яёіїґє\-\']{1,50})/,
+    pattern: /([A-Z][a-z\-']{1,50})|([А-ЯЁIЇҐЄ][а-яёіїґє\-']{1,50})/,
     message: message || 'Невірні ім`я та прізвище'
   }),
   REQUIRED: (message) => ({

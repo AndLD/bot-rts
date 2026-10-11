@@ -159,7 +159,7 @@ The repo is an **npm workspaces** monorepo (`lib`, `api`, `client`): one install
 npm install
 ```
 
-Root scripts run in every workspace that defines them: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
+Root scripts run in every workspace that defines them: `npm run lint` (ESLint per package plus a Prettier check), `npm run typecheck`, `npm test`, `npm run build`; `npm run format` rewrites files with Prettier.
 
 ### 2. Configure environment
 

@@ -180,7 +180,7 @@
     "NO_DRIVE_SELECTED": "No drive selected: use cd with a drive name",
     "COMMAND_USAGE": "The command was used wrongly",
     "BLOCKED": "The way is blocked",
-    "EMPTY": "There is nothing there",
+    "EMPTY": "Not enough resources, or nothing to do here",
     "GONE": "It is gone",
     "NO_ENERGY": "Not enough energy",
     "NO_MODULE": "The bot has no module for this",

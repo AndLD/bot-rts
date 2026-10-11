@@ -650,6 +650,133 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect(await database.client.module.count({ where: { id: gun.id } })).toBe(0)
   })
 
+  it('keeps the parts when there is no free cell next to the base for the new bot', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const { body: deployed } = await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
+    const baseId = deployed.bot._id
+    const at = deployed.mapPoint.location
+
+    for (const type of ['processor', 'wirelessAdapter', 'battery']) {
+      const part = await database.client.item.create({
+        data: {
+          id: randomUUID(),
+          type: 'part',
+          name: {
+            processor: 'processor-class1',
+            wirelessAdapter: 'wireless-adapter-class1',
+            battery: 'battery-class1'
+          }[type] as string,
+          weight: 5,
+          botId: baseId
+        }
+      })
+      expect(part.id).toBeDefined()
+    }
+    // Every cell around the base holds a deposit
+    for (const [dx, dy] of [
+      [-1, -1],
+      [0, -1],
+      [1, -1],
+      [-1, 0],
+      [1, 0],
+      [-1, 1],
+      [0, 1],
+      [1, 1]
+    ]) {
+      await database.client.mapPoint.create({
+        data: {
+          id: randomUUID(),
+          x: at.x + dx,
+          y: at.y + dy,
+          z: at.z ?? 0,
+          type: 'resource',
+          resource: 'iron',
+          amount: 5
+        }
+      })
+    }
+    const partIds = (await database.client.item.findMany({ where: { botId: baseId } })).map((item) => item.id)
+
+    const refused = await api()
+      .post(`/api/v1/bots/${baseId}/factory/assemble`)
+      .set(bearer(accessToken))
+      .send({ label: 'Scout', partIds })
+      .expect(409)
+
+    expect(refused.body.code).toBe('NO_FREE_LOCATION')
+    expect(await database.client.item.count({ where: { botId: baseId } })).toBe(3)
+    expect(await database.client.bot.count({ where: { baseId } })).toBe(0)
+    expect(await database.client.module.count({ where: { botId: baseId } })).toBe(10)
+  })
+
+  it('gives a lost base back to its owner when a bot repairs its wireless adapter', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const deploy = async () =>
+      (await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)).body
+    const old = await deploy()
+    const oldId: string = old.bot._id
+    const adapter = await database.client.module.findFirstOrThrow({ where: { botId: oldId, type: 'wirelessAdapter' } })
+    await database.client.module.update({ where: { id: adapter.id }, data: { condition: 0 } })
+    await api().get(`/api/v1/bots/${oldId}/bots`).set(bearer(accessToken)).expect(403)
+
+    // A new base next to the old one, with a repair module and the resources for the adapter
+    const fresh = await deploy()
+    const freshId: string = fresh.bot._id
+    const at = await database.client.mapPoint.findFirstOrThrow({ where: { contentId: oldId } })
+    await database.client.mapPoint.updateMany({
+      where: { contentId: freshId },
+      data: { x: at.x + 1, y: at.y, z: at.z }
+    })
+    const repair = await database.client.module.create({
+      data: {
+        id: randomUUID(),
+        botId: freshId,
+        type: 'repair',
+        name: 'repair-class1',
+        condition: 100,
+        maxCondition: 100,
+        weight: 25,
+        operationCost: 5,
+        idleCost: 0,
+        props: { repairPerOp: 25, delay: 1000 }
+      }
+    })
+    const storage = await database.client.module.findFirstOrThrow({ where: { botId: freshId, type: 'storage' } })
+    await database.client.module.update({
+      where: { id: storage.id },
+      data: {
+        props: {
+          capacity: 500,
+          items: [
+            { resource: 'crystal', amount: 50 },
+            { resource: 'gold', amount: 50 }
+          ]
+        }
+      }
+    })
+
+    for (let step = 0; step < 4; step++) {
+      await database.client.module.update({
+        where: { id: repair.id },
+        data: { props: { repairPerOp: 25, delay: 1000 } }
+      })
+      await api()
+        .post(`/api/v1/bots/${freshId}/maintenance/repair`)
+        .set(bearer(accessToken))
+        .send({ targetBotId: oldId, moduleId: adapter.id })
+        .expect(200)
+    }
+
+    expect((await database.client.module.findUniqueOrThrow({ where: { id: adapter.id } })).condition).toBe(100)
+    expect((await database.client.mapPoint.findFirstOrThrow({ where: { contentId: oldId } })).type).toBe('base')
+    await api().get(`/api/v1/bots/${oldId}/bots`).set(bearer(accessToken)).expect(200)
+    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(2)
+  })
+
   describe('Socket.IO', () => {
     const open = (token: unknown) =>
       new Promise<Socket>((resolve, reject) => {

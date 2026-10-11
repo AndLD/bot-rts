@@ -4,6 +4,7 @@ import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
 import { MaintenanceService } from '../../src/bots/application/maintenance.service'
 import { AssemblyService } from '../../src/bots/application/assembly.service'
+import { FactorySettler } from '../../src/crafting/application/factory-settler'
 import { RecipeService } from '../../src/crafting/application/recipe.service'
 import { FactoryService } from '../../src/bots/application/factory.service'
 import { RecipeBook } from '../../src/crafting/domain/recipe-book'
@@ -93,15 +94,14 @@ export function createWorld(
     ...DEFAULT_TERMINAL_RETENTION,
     ...options.retention
   })
+  const factorySettler = new FactorySettler(unitOfWork, moduleRegistry, ids, clock, moduleFactory)
   const factoryService = new FactoryService(
     unitOfWork,
     botsService,
     recipeBook,
-    ids,
     clock,
-    moduleRegistry,
     new EnergyModel(moduleRegistry),
-    moduleFactory
+    factorySettler
   )
   const assemblyService = new AssemblyService(
     botsService,
@@ -111,7 +111,7 @@ export function createWorld(
     moduleRegistry,
     factoryService
   )
-  const recipeService = new RecipeService(recipeBook, repositories.blueprints)
+  const recipeService = new RecipeService(recipeBook, repositories.blueprints, factorySettler)
   const maintenanceService = new MaintenanceService(
     unitOfWork,
     botsService,
@@ -146,6 +146,7 @@ export function createWorld(
     energyService: new EnergyService(repositories.modules, new EnergyModel(moduleRegistry)),
     recipeBook,
     factoryService,
+    factorySettler,
     filesService,
     terminalService,
     assemblyService,

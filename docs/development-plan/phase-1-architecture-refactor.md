@@ -54,4 +54,4 @@ AGENTS.md §7.1).
 | `feature/1.8-split-terminal` | 1.8 | [#34](https://github.com/AndLD/bot-rts/pull/34) | ✅ |
 | `feature/1.10-nestjs-foundation` | 1.10 | [#35](https://github.com/AndLD/bot-rts/pull/35) | ✅ |
 | `feature/1.11-identity-and-sessions` | 1.11, 1.11a, 1.16 | [#36](https://github.com/AndLD/bot-rts/pull/36) | ✅ |
-| `feature/1.12-bots-gateway-nest` | 1.12 | PR_N | ✅ |
+| `feature/1.12-bots-gateway-nest` | 1.12 | [#37](https://github.com/AndLD/bot-rts/pull/37) | ✅ |

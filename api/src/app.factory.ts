@@ -1,10 +1,11 @@
-import { ValidationPipe, VersioningType } from '@nestjs/common'
+import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
+import { REFRESH_COOKIE } from './auth/presentation/refresh-cookie'
 import { AppConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
 import { ForbiddenError, ValidationError } from './shared/domain/errors'
@@ -22,6 +23,24 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
   })
 
   return configureApp(app, config)
+}
+
+// The OpenAPI document of the public API (AGENTS.md §3.0). The operation ids are `<controller><Method>`, for example
+// `authLogin`, which is what the generated web client names its endpoints after.
+export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
+  const builder = new DocumentBuilder()
+    .setTitle('Bot RTS API')
+    .setDescription('The one API of the game: the web client, third-party clients and the MCP server use it.')
+    .setVersion('1')
+    .addBearerAuth()
+    .addCookieAuth(REFRESH_COOKIE)
+
+  return SwaggerModule.createDocument(app, builder.build(), {
+    operationIdFactory: (controllerKey, methodKey) => {
+      const controller = controllerKey.replace(/Controller$/, '')
+      return `${controller[0].toLowerCase()}${controller.slice(1)}${methodKey[0].toUpperCase()}${methodKey.slice(1)}`
+    }
+  })
 }
 
 // Everything that turns a Nest application into the API; shared by the real server and the tests
@@ -55,11 +74,7 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   )
   app.useGlobalFilters(new AppExceptionFilter(logger))
 
-  SwaggerModule.setup(
-    'api/docs',
-    app,
-    SwaggerModule.createDocument(app, new DocumentBuilder().setTitle('Bot RTS API').setVersion('1').build())
-  )
+  SwaggerModule.setup('api/docs', app, buildOpenApiDocument(app))
 
   await app.init()
 

@@ -73,6 +73,15 @@ jobs:
       - name: Generate the Prisma client
         if: steps.changes.outputs.code == 'true'
         run: npm run prisma:generate -w api
+      - name: API document and generated client are up to date
+        if: steps.changes.outputs.code == 'true'
+        run: |
+          npm run openapi:generate -w api
+          npm run api:generate -w client
+          git diff --exit-code -- api/openapi.json client/src/shared/api/generated.ts || {
+            echo "Run 'npm run openapi:generate -w api && npm run api:generate -w client' and commit the result"
+            exit 1
+          }
       - name: Migrations match the Prisma schema
         if: steps.changes.outputs.code == 'true'
         env:

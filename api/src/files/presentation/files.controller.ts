@@ -1,10 +1,19 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiDefaultResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags
+} from '@nestjs/swagger'
 import { IDrive, IFile } from '../../../../lib/utils/interfaces/files'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ValidationError } from '../../shared/domain/errors'
+import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { FilesService } from '../application/files.service'
+import { DriveResponse, FileResponse } from './dto/files.response'
 import { FilePathQueryDto, ListFilesQueryDto, MakeDirectoryDto, WriteFileDto } from './dto/files.dto'
 import { toDriveDto, toFileDto } from './file.mapper'
 
@@ -12,16 +21,19 @@ const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('
 
 // The drives (memory modules) of a bot and the files on them (design §11.4)
 @ApiTags('files')
+@ApiDefaultResponse({ type: ErrorResponseModel })
 @ApiBearerAuth()
 @Controller({ path: 'bots/:botId/drives', version: '1' })
 export class FilesController {
   constructor(private readonly files: FilesService) {}
 
+  @ApiOkResponse({ type: [DriveResponse] })
   @Get()
   async drives(@CurrentPrincipal() { user }: Principal, @Param('botId', idPipe) botId: string): Promise<IDrive[]> {
     return (await this.files.listDrives(user.id, botId)).map(toDriveDto)
   }
 
+  @ApiOkResponse({ type: [FileResponse] })
   @Get(':driveId/files')
   async list(
     @CurrentPrincipal() { user }: Principal,
@@ -32,6 +44,7 @@ export class FilesController {
     return (await this.files.list(user.id, botId, driveId, query.directory)).map((file) => toFileDto(file))
   }
 
+  @ApiOkResponse({ type: FileResponse })
   @Get(':driveId/file')
   async read(
     @CurrentPrincipal() { user }: Principal,
@@ -42,6 +55,7 @@ export class FilesController {
     return toFileDto(await this.files.read(user.id, botId, driveId, query.path), { withContent: true })
   }
 
+  @ApiOkResponse({ type: FileResponse })
   @Put(':driveId/file')
   async write(
     @CurrentPrincipal() { user }: Principal,
@@ -52,6 +66,7 @@ export class FilesController {
     return toFileDto(await this.files.write(user.id, botId, driveId, body.path, body.content))
   }
 
+  @ApiNoContentResponse()
   @Delete(':driveId/file')
   @HttpCode(204)
   async remove(
@@ -63,6 +78,7 @@ export class FilesController {
     await this.files.remove(user.id, botId, driveId, query.path)
   }
 
+  @ApiCreatedResponse({ type: FileResponse })
   @Post(':driveId/directories')
   async makeDirectory(
     @CurrentPrincipal() { user }: Principal,

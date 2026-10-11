@@ -3,7 +3,7 @@ import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { refreshOnce } from '../../shared/store/refresh'
 import { setToken } from '../../shared/store/session.slice'
 import type { AppStore } from '../../shared/store'
-import { authApi } from './auth.api'
+import { api } from '../../shared/api'
 import { AuthClient, AuthFailure, AuthResult } from './auth-client'
 
 interface ApiErrorBody {
@@ -21,7 +21,7 @@ function toFailure(error: unknown): AuthFailure {
 // The client of our own identity provider: the `/api/v1/auth/*` endpoints through RTK Query, with the access token kept
 // in the session slice and the refresh token in an HTTP-only cookie
 export function createLocalAuthClient(store: AppStore): AuthClient {
-  const { endpoints } = authApi
+  const { endpoints } = api
 
   async function attempt(call: () => Promise<unknown>): Promise<AuthResult> {
     try {
@@ -32,33 +32,40 @@ export function createLocalAuthClient(store: AppStore): AuthClient {
     }
   }
 
+  // A new login never sees what the previous player left in the cache
   const startSession = async (token: string) => {
+    store.dispatch(api.util.resetApiState())
     store.dispatch(setToken(token))
   }
 
   return {
     signIn: (credentials) =>
       attempt(async () =>
-        startSession((await store.dispatch(endpoints.login.initiate(credentials)).unwrap()).accessToken)
+        startSession(
+          (await store.dispatch(endpoints.authLogin.initiate({ loginDto: credentials })).unwrap()).accessToken
+        )
       ),
 
     signUp: (registration) =>
       attempt(async () =>
-        startSession((await store.dispatch(endpoints.register.initiate(registration)).unwrap()).accessToken)
+        startSession(
+          (await store.dispatch(endpoints.authRegister.initiate({ registerDto: registration })).unwrap()).accessToken
+        )
       ),
 
     async signOut() {
       await store
-        .dispatch(endpoints.logout.initiate())
+        .dispatch(endpoints.authLogout.initiate())
         .unwrap()
         .catch(() => undefined)
+      store.dispatch(api.util.resetApiState())
       store.dispatch(setToken(null))
     },
 
     async refresh() {
       const token = await refreshOnce(async () => {
         try {
-          return (await store.dispatch(endpoints.refreshToken.initiate()).unwrap()).accessToken
+          return (await store.dispatch(endpoints.authRefresh.initiate()).unwrap()).accessToken
         } catch {
           return null
         }
@@ -69,22 +76,33 @@ export function createLocalAuthClient(store: AppStore): AuthClient {
       return token
     },
 
-    verifyEmail: (token) => attempt(() => store.dispatch(endpoints.verifyEmail.initiate({ token })).unwrap()),
+    verifyEmail: (token) =>
+      attempt(() => store.dispatch(endpoints.authVerifyEmail.initiate({ tokenDto: { token } })).unwrap()),
     resendVerification: (email) =>
-      attempt(() => store.dispatch(endpoints.resendVerification.initiate({ email })).unwrap()),
+      attempt(() => store.dispatch(endpoints.authResendVerification.initiate({ emailDto: { email } })).unwrap()),
     requestPasswordReset: (email) =>
-      attempt(() => store.dispatch(endpoints.requestPasswordReset.initiate({ email })).unwrap()),
+      attempt(() => store.dispatch(endpoints.authForgotPassword.initiate({ emailDto: { email } })).unwrap()),
     resetPassword: (token, password) =>
-      attempt(() => store.dispatch(endpoints.resetPassword.initiate({ token, password })).unwrap()),
+      attempt(() =>
+        store.dispatch(endpoints.authResetPassword.initiate({ resetPasswordDto: { token, password } })).unwrap()
+      ),
     changePassword: (currentPassword, newPassword) =>
-      attempt(() => store.dispatch(endpoints.changePassword.initiate({ currentPassword, newPassword })).unwrap()),
+      attempt(() =>
+        store
+          .dispatch(endpoints.authChangePassword.initiate({ changePasswordDto: { currentPassword, newPassword } }))
+          .unwrap()
+      ),
     requestEmailChange: (password, newEmail) =>
-      attempt(() => store.dispatch(endpoints.requestEmailChange.initiate({ password, newEmail })).unwrap()),
+      attempt(() =>
+        store.dispatch(endpoints.authRequestEmailChange.initiate({ changeEmailDto: { password, newEmail } })).unwrap()
+      ),
     confirmEmailChange: (token) =>
-      attempt(() => store.dispatch(endpoints.confirmEmailChange.initiate({ token })).unwrap()),
+      attempt(() => store.dispatch(endpoints.authConfirmEmailChange.initiate({ tokenDto: { token } })).unwrap()),
     requestAccountDeletion: (password) =>
-      attempt(() => store.dispatch(endpoints.requestAccountDeletion.initiate({ password })).unwrap()),
+      attempt(() =>
+        store.dispatch(endpoints.authRequestAccountDeletion.initiate({ passwordDto: { password } })).unwrap()
+      ),
     confirmAccountDeletion: (token) =>
-      attempt(() => store.dispatch(endpoints.confirmAccountDeletion.initiate({ token })).unwrap())
+      attempt(() => store.dispatch(endpoints.authConfirmAccountDeletion.initiate({ tokenDto: { token } })).unwrap())
   }
 }

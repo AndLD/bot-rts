@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto'
-import bcrypt from 'bcrypt'
 import { PrismaClient } from '@prisma/client'
-import { PrismaUserRepository } from '../src/users/infrastructure/prisma-user.repository'
+import { BcryptPasswordHasher } from '../src/auth/infrastructure/bcrypt-password-hasher'
+import { LOCAL_PROVIDER } from '../src/auth/domain/identity'
+import { PrismaUnitOfWork } from '../src/persistence/infrastructure/prisma-unit-of-work'
 
-// Creates the root administrator from ROOT_USER_EMAIL / ROOT_USER_PASSWORD; safe to run repeatedly
+// Creates the root owner with a verified email from ROOT_USER_EMAIL / ROOT_USER_PASSWORD; safe to run repeatedly
 async function main() {
-  const email = process.env.ROOT_USER_EMAIL || 'root@root.root'
+  const email = (process.env.ROOT_USER_EMAIL || 'root@root.root').toLowerCase()
   const password = process.env.ROOT_USER_PASSWORD
 
   if (!password) {
@@ -15,25 +16,31 @@ async function main() {
   const client = new PrismaClient()
 
   try {
-    const users = new PrismaUserRepository(client)
+    const passwordHash = await new BcryptPasswordHasher().hash(password)
+    const created = await new PrismaUnitOfWork(client).run(async ({ users, identities, credentials }) => {
+      if (await users.findByEmail(email)) {
+        return false
+      }
 
-    if (await users.findByEmail(email)) {
-      process.stdout.write(`Root user ${email} already exists` + '\n')
-      return
-    }
+      const now = new Date()
+      const id = randomUUID()
+      await users.add({
+        id,
+        name: 'Root',
+        email,
+        status: 'owner',
+        subscription: 'free',
+        createdAt: now,
+        updatedAt: null,
+        deletedAt: null
+      })
+      await identities.add({ id: randomUUID(), provider: LOCAL_PROVIDER, subject: id, userId: id, createdAt: now })
+      await credentials.add({ userId: id, passwordHash, emailVerified: true, updatedAt: now })
 
-    await users.add({
-      id: randomUUID(),
-      name: 'Root',
-      email,
-      passwordHash: await bcrypt.hash(password, 10),
-      status: 'owner',
-      isActive: true,
-      subscription: 'free',
-      createdAt: new Date(),
-      updatedAt: null
+      return true
     })
-    process.stdout.write(`Root user ${email} created` + '\n')
+
+    process.stdout.write(`Root user ${email} ${created ? 'created' : 'already exists'}\n`)
   } finally {
     await client.$disconnect()
   }

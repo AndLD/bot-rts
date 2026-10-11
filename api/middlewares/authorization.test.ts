@@ -1,72 +1,59 @@
 import request from 'supertest'
 import { SOCKET_TOKEN_EXPIRED, SOCKET_UNAUTHORIZED } from '../../lib/utils/constants'
-import { FakeClock, FakeHasher, InMemoryUserRepository, SequentialIdGenerator } from '../tests/fakes/fakes'
-import { buildUser } from '../tests/integration/builders'
-import { makeApp, signAccessToken } from '../tests/http'
-import { UsersService } from '../src/users/application/users.service'
+import { createAuthWorld } from '../tests/fakes/auth'
+import { makeApp } from '../tests/http'
 import { AuthorizedRequest, createIsAuthorized, createIsSocketAuthorized } from './authorization'
 
-function setup(overrides = {}) {
-  const repository = new InMemoryUserRepository()
-  const user = buildUser(overrides)
-  repository.items.set(user.id, user)
-  const users = new UsersService(repository, new FakeHasher(), new SequentialIdGenerator(), new FakeClock())
+const input = { name: 'Alice', email: 'alice@example.com', password: 'Passw0rd!x' }
+
+async function setup(verifyEmail = true) {
+  const world = createAuthWorld()
+  const { accessToken } = await world.auth.register(input)
+  if (verifyEmail) {
+    await world.auth.verifyEmail(world.mailer.last('verification')!.token)
+  }
   const app = makeApp((app) => {
-    app.get('/private', createIsAuthorized(users), (req, res) => res.json((req as AuthorizedRequest).user))
+    app.get('/private', createIsAuthorized(world.authService), (req, res) => res.json((req as AuthorizedRequest).user))
   })
-  return { app, user, users }
+  return { ...world, app, accessToken }
 }
 
 describe('isAuthorized', () => {
-  it('rejects a request without the header', async () => {
-    await request(setup().app).get('/private').expect(401)
-  })
+  it('rejects a request without a bearer token', async () => {
+    const { app } = await setup()
 
-  it('rejects a malformed token', async () => {
-    const { app } = setup()
-
-    await request(app).get('/private').set('Authorization', 'Bearer nope').expect(401)
+    await request(app).get('/private').expect(401)
+    await request(app).get('/private').set('Authorization', 'Basic abc').expect(401)
     await request(app).get('/private').set('Authorization', 'Bearer').expect(401)
   })
 
-  it('rejects a token whose payload has the wrong shape', async () => {
-    const { app } = setup()
-    const token = signAccessToken({ user: { _id: { $ne: null } } })
+  it('rejects a malformed or expired token', async () => {
+    const { app, accessToken, accessTokens } = await setup()
+    accessTokens.expired.add(accessToken)
 
-    await request(app).get('/private').set('Authorization', `Bearer ${token}`).expect(401)
+    await request(app).get('/private').set('Authorization', 'Bearer nope').expect(401)
+    const expired = await request(app).get('/private').set('Authorization', `Bearer ${accessToken}`).expect(401)
+    expect(expired.body.code).toBe('TOKEN_EXPIRED')
   })
 
-  it('rejects an expired token and the token of a deleted user', async () => {
-    const { app, user } = setup()
+  it('rejects unverified and banned users', async () => {
+    const unverified = await setup(false)
+    await request(unverified.app).get('/private').set('Authorization', `Bearer ${unverified.accessToken}`).expect(403)
 
-    await request(app)
-      .get('/private')
-      .set('Authorization', `Bearer ${signAccessToken({ user: { _id: user.id } }, { expiresIn: -10 })}`)
-      .expect(401)
-    await request(app)
-      .get('/private')
-      .set('Authorization', `Bearer ${signAccessToken({ user: { _id: '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e' } })}`)
-      .expect(401)
+    const banned = await setup()
+    const [user] = banned.repositories.users.items.values()
+    banned.repositories.users.items.set(user.id, { ...user, status: 'banned' })
+    await request(banned.app).get('/private').set('Authorization', `Bearer ${banned.accessToken}`).expect(403)
   })
 
-  it('rejects banned and unverified users even with a valid token', async () => {
-    for (const overrides of [{ status: 'banned' }, { isActive: false }]) {
-      const { app, user } = setup(overrides)
+  it('exposes the current state of the user, never the token claims or secrets', async () => {
+    const { app, accessToken, repositories } = await setup()
+    const [user] = repositories.users.items.values()
+    repositories.users.items.set(user.id, { ...user, status: 'admin' })
 
-      await request(app)
-        .get('/private')
-        .set('Authorization', `Bearer ${signAccessToken({ user: { _id: user.id } })}`)
-        .expect(403)
-    }
-  })
+    const response = await request(app).get('/private').set('Authorization', `Bearer ${accessToken}`).expect(200)
 
-  it('takes the current role from the store, not from the token', async () => {
-    const { app, user } = setup({ status: 'user' })
-    const token = signAccessToken({ user: { _id: user.id, status: 'owner' } })
-
-    const response = await request(app).get('/private').set('Authorization', `Bearer ${token}`).expect(200)
-
-    expect(response.body.status).toBe('user')
+    expect(response.body).toMatchObject({ _id: user.id, status: 'admin', active: true })
     expect(JSON.stringify(response.body)).not.toContain('hash')
   })
 })
@@ -75,22 +62,13 @@ describe('isSocketAuthorized', () => {
   const makeSocket = (token?: unknown, via: 'auth' | 'query' = 'auth') =>
     ({ handshake: via === 'auth' ? { auth: { token }, query: {} } : { auth: {}, query: { token } } }) as never
 
-  const run = async (socket: never, overrides = {}) => {
-    const { users, user } = setup(overrides)
-    const next = jest.fn()
-    await createIsSocketAuthorized(users)(socket, next)
-    return { next, user }
-  }
-
-  const tokenFor = (id: string, options = {}) => signAccessToken({ user: { _id: id } }, options)
-
   it('attaches the user for a valid token, from the auth object or the query', async () => {
-    const { users, user } = setup()
+    const { authService, accessToken } = await setup()
     for (const via of ['auth', 'query'] as const) {
-      const socket = makeSocket(tokenFor(user.id), via)
+      const socket = makeSocket(accessToken, via)
       const next = jest.fn()
 
-      await createIsSocketAuthorized(users)(socket, next)
+      await createIsSocketAuthorized(authService)(socket, next)
 
       expect(next).toHaveBeenCalledWith()
       expect((socket as { user?: { status: string } }).user?.status).toBe('user')
@@ -98,31 +76,36 @@ describe('isSocketAuthorized', () => {
   })
 
   it('rejects a missing or non-string token', async () => {
+    const { authService } = await setup()
     for (const token of [undefined, '', 5, ['a']]) {
-      const { next } = await run(makeSocket(token))
+      const next = jest.fn()
+
+      await createIsSocketAuthorized(authService)(makeSocket(token), next)
 
       expect(next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
     }
   })
 
-  it('rejects an expired token with a distinct message', async () => {
-    const { users, user } = setup()
-    const next = jest.fn()
+  it('tells an expired token from an invalid one', async () => {
+    const { authService, accessToken, accessTokens } = await setup()
+    accessTokens.expired.add(accessToken)
+    const [expired, invalid] = [jest.fn(), jest.fn()]
 
-    await createIsSocketAuthorized(users)(makeSocket(tokenFor(user.id, { expiresIn: -10 })), next)
+    await createIsSocketAuthorized(authService)(makeSocket(accessToken), expired)
+    await createIsSocketAuthorized(authService)(makeSocket('garbage'), invalid)
 
-    expect(next.mock.calls[0][0].message).toBe(SOCKET_TOKEN_EXPIRED)
+    expect(expired.mock.calls[0][0].message).toBe(SOCKET_TOKEN_EXPIRED)
+    expect(invalid.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
   })
 
-  it('rejects an invalid token, a bad payload and a banned user', async () => {
-    expect((await run(makeSocket('garbage'))).next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
-    expect((await run(makeSocket(signAccessToken({ user: {} })))).next.mock.calls[0][0].message).toBe(
-      SOCKET_UNAUTHORIZED
-    )
-
-    const { users, user } = setup({ status: 'banned' })
+  it('rejects banned users', async () => {
+    const { authService, accessToken, repositories } = await setup()
+    const [user] = repositories.users.items.values()
+    repositories.users.items.set(user.id, { ...user, status: 'banned' })
     const next = jest.fn()
-    await createIsSocketAuthorized(users)(makeSocket(tokenFor(user.id)), next)
+
+    await createIsSocketAuthorized(authService)(makeSocket(accessToken), next)
+
     expect(next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
   })
 })

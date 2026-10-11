@@ -16,7 +16,7 @@ export default function SignupForm() {
   function onFinish(user: IUserPostBody) {
     postUser(user).then((value: any) => {
       if (value.data) {
-        const token = value.data.result
+        const token = value.data.accessToken
         dispatch(appSlice.actions.setToken(token))
 
         navigate('/forbidden')

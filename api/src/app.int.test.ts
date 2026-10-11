@@ -43,7 +43,7 @@ describe('the Nest application', () => {
   })
 
   it('still serves the legacy routes next to the Nest ones', async () => {
-    await request(url).get('/api/private/auth/verify').expect(401)
+    await request(url).post('/api/private/bots/base').expect(401)
   })
 
   it('publishes the OpenAPI document', async () => {

@@ -6,7 +6,11 @@ import {
   FakeClock,
   FakeUnitOfWork,
   FixedRng,
+  InMemoryAuthTokenRepository,
   InMemoryBotRepository,
+  InMemoryCredentialRepository,
+  InMemoryIdentityRepository,
+  InMemorySessionRepository,
   InMemoryFileRepository,
   InMemoryMapRepository,
   InMemoryModuleRepository,
@@ -21,7 +25,11 @@ export function createWorld(options: { rng?: Rng; config?: Partial<WorldConfig> 
     bots: new InMemoryBotRepository(),
     modules: new InMemoryModuleRepository(),
     files: new InMemoryFileRepository(),
-    map: new InMemoryMapRepository()
+    map: new InMemoryMapRepository(),
+    identities: new InMemoryIdentityRepository(),
+    credentials: new InMemoryCredentialRepository(),
+    sessions: new InMemorySessionRepository(),
+    authTokens: new InMemoryAuthTokenRepository()
   }
   const unitOfWork = new FakeUnitOfWork(repositories)
   const ids = new SequentialIdGenerator()
@@ -31,6 +39,7 @@ export function createWorld(options: { rng?: Rng; config?: Partial<WorldConfig> 
 
   return {
     repositories,
+    unitOfWork,
     clock,
     ids,
     config,

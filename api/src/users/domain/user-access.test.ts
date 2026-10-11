@@ -4,14 +4,15 @@ import { assertCanUpdate, assertCanUseApi, isAdmin } from './user-access'
 import { EmailNotVerifiedError, UserBannedError } from './user.errors'
 
 describe('assertCanUseApi', () => {
-  it('accepts an active user', () => {
-    expect(() => assertCanUseApi(buildUser())).not.toThrow()
+  it('accepts an existing, unbanned user with a verified email', () => {
+    expect(() => assertCanUseApi(buildUser(), true)).not.toThrow()
   })
 
-  it('rejects a missing, banned or unverified user', () => {
-    expect(() => assertCanUseApi(null)).toThrow(UnauthorizedError)
-    expect(() => assertCanUseApi(buildUser({ status: 'banned' }))).toThrow(UserBannedError)
-    expect(() => assertCanUseApi(buildUser({ isActive: false }))).toThrow(EmailNotVerifiedError)
+  it('rejects a missing or deleted user, a banned user and an unverified email', () => {
+    expect(() => assertCanUseApi(null, true)).toThrow(UnauthorizedError)
+    expect(() => assertCanUseApi(buildUser({ deletedAt: new Date() }), true)).toThrow(UnauthorizedError)
+    expect(() => assertCanUseApi(buildUser({ status: 'banned' }), true)).toThrow(UserBannedError)
+    expect(() => assertCanUseApi(buildUser(), false)).toThrow(EmailNotVerifiedError)
   })
 })
 
@@ -31,23 +32,15 @@ describe('assertCanUpdate', () => {
   const regular = buildUser()
 
   it('lets an owner change anything of anyone', () => {
-    expect(() =>
-      assertCanUpdate('owner', buildUser({ status: 'admin' }), { status: 'banned', password: 'x' })
-    ).not.toThrow()
+    expect(() => assertCanUpdate('owner', buildUser({ status: 'admin' }), { status: 'banned' })).not.toThrow()
   })
 
   it('lets an admin change the profile of a regular user', () => {
     expect(() => assertCanUpdate('admin', regular, { name: 'Bob', subscription: 'monthly' })).not.toThrow()
   })
 
-  it.each([{ status: 'banned' as const }, { isActive: false }, { password: 'x' }])(
-    'forbids an admin from changing %p',
-    (patch) => {
-      expect(() => assertCanUpdate('admin', regular, patch)).toThrow(ForbiddenError)
-    }
-  )
-
-  it('forbids an admin from editing admins and owners', () => {
+  it('forbids an admin from changing the status and from editing admins and owners', () => {
+    expect(() => assertCanUpdate('admin', regular, { status: 'banned' })).toThrow(ForbiddenError)
     expect(() => assertCanUpdate('admin', buildUser({ status: 'admin' }), { name: 'Bob' })).toThrow(ForbiddenError)
     expect(() => assertCanUpdate('admin', buildUser({ status: 'owner' }), { name: 'Bob' })).toThrow(ForbiddenError)
   })

@@ -1,5 +1,4 @@
 import { useSocketServer } from '../hooks/auth'
-import FileEditor from '../components/Game/FileEditor/FileEditor'
 import Terminal from '../components/Game/Terminal/Terminal'
 
 export default function Game() {
@@ -17,7 +16,6 @@ export default function Game() {
       }}
     >
       <Terminal />
-      {/* <FileEditor /> */}
     </div>
   )
 }

@@ -19,4 +19,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ## Entries
 
-_No entries yet._
+### 2026-10-11 — task 0.1: client build is green
+- **Tasks:** 0.1
+- **Branch:** `feature/0.1-fix-client-build` — done
+- **Decisions / deviations from the plan:** the unused `beautify` import, `replyAsync` function and `setDrives` setter were removed rather than silenced; the commented-out `<FileEditor />` in `Game.tsx` was removed with its import (no commented-out code, AGENTS.md §1).
+- **Problems / blockers / findings:** none.
+- **Next step:** task 0.2 (env/config drift, `EmailSender` interface).
+- **Verify with:** `cd client && npx tsc --noEmit && npm run build`

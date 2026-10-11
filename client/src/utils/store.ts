@@ -2,7 +2,7 @@ import { BaseQueryApi, BaseQueryExtraOptions, BaseQueryFn } from '@reduxjs/toolk
 import { FetchArgs, fetchBaseQuery, FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import { RootState } from '../store'
 import { appSlice } from '../store/app.reducer'
-import { IRefreshPostResponse } from './interfaces/auth'
+import { IRefreshPostResponse } from '@lib/utils/interfaces/auth'
 import { isJwtExpired } from './jwt'
 import { API_URL } from './constants'
 

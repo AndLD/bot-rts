@@ -316,4 +316,40 @@ describe('MaintenanceService.disassemble', () => {
     replace(storage.id, { condition: 0 })
     await expect(maintenanceService.disassemble(alice.id, order(bobBot.id, storage.id))).resolves.toBeDefined()
   })
+
+  it("treats a bot that has no owner as nobody's: only its broken modules can be taken apart", async () => {
+    const { maintenanceService, repositories, medicAt, free, moduleFactory, replace, stock, advance, order } =
+      await setup()
+    stock([])
+    for (const [id, baseId] of [
+      ['orphan', null],
+      ['lost-base', 'gone']
+    ] as const) {
+      const location = await free(medicAt)
+      repositories.bots.items.set(id, {
+        id,
+        label: null,
+        type: 'worker' as never,
+        userId: null,
+        baseId,
+        passwordHash: null
+      })
+      const module = { ...moduleFactory.create('storage-class1', id), id: `${id}-storage` }
+      repositories.modules.items.push(module)
+      await repositories.map.upsertPoint({
+        id: `${id}-point`,
+        location,
+        type: 'bot' as never,
+        contentId: id,
+        resource: null
+      })
+
+      await expect(maintenanceService.disassemble(alice.id, order(id, module.id))).rejects.toMatchObject({
+        code: 'FORBIDDEN'
+      })
+      replace(module.id, { condition: 0 })
+      await expect(maintenanceService.disassemble(alice.id, order(id, module.id))).resolves.toBeDefined()
+      advance(1000)
+    }
+  })
 })

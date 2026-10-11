@@ -4,10 +4,14 @@ import {
   ArmorModule,
   BatteryModule,
   DriveModule,
+  EngineModule,
   FactoryModule,
   GameModule,
   GeneratorModule,
-  PlainModule,
+  GpsModule,
+  ManipulatorModule,
+  MiningModule,
+  MovementModule,
   ProcessorModule,
   ScannerModule,
   StorageModule,
@@ -57,8 +61,9 @@ export function createModuleRegistry(): ModuleRegistry {
     .register('storage', StorageModule)
     .register('factory', FactoryModule)
     .register('armor', ArmorModule)
-    .register('engine', PlainModule)
-    .register('mining', PlainModule)
-    .register('manipulator', PlainModule)
-    .register('gps', PlainModule)
+    .register('engine', EngineModule)
+    .register('movement', MovementModule)
+    .register('mining', MiningModule)
+    .register('manipulator', ManipulatorModule)
+    .register('gps', GpsModule)
 }

@@ -26,7 +26,7 @@ Every module has these fields (`IModuleProps`):
 
 ## 7.2 Module catalog
 
-Types defined in the shared interfaces: `engine`, `weapon`, `mining`, `manipulator`, `drive` (disk), `processor`,
+Types defined in the shared interfaces: `engine`, `movement`, `weapon`, `mining`, `manipulator`, `drive` (disk), `processor`,
 `wirelessAdapter`, `battery`, `storage`, `armor`, `scanner`, `generator`, `factory`, `gps`. The notes additionally
 mention `memory` and `circute`.
 
@@ -35,7 +35,7 @@ mention `memory` and `circute`.
 | **Scanner** | `scanner` | ✅ | `scan()` | Radius in cells, `delay` (cooldown) between scans (ms). Each scan costs ops and energy and returns a **snapshot** stamped with `seenAt` (§4.2); it can also run in **live (continuous) mode** (`enable()` / `disable()`), keeping its radius live for energy only (§4.4). The two modes are mutually exclusive per module: `scan()` is refused with `BUSY` while the scanner is live. |
 | **Weapon** | `weapon` | 🟡 | `shoot()`, `aim()`, `reload()` | `damage`, `caliber`, `distance`, `accuracy`, `cooldown`, optional `batchSize`/`batchCooldown`, `isArtillery`. `shoot`/`reload` are stubs today. |
 | **Engine** | `engine` | 🔴 | `move()`, `turn()` | `engineType` (fuel/steam/electric), `speed`. |
-| **Wheels / Tracks** | `movement`* | 🔴 | movement support | `loadCapacity`; chosen chassis affects speed and terrain. |
+| **Wheels / Tracks** | `movement`* | 🟡 | movement support | `loadCapacity`; chosen chassis affects speed and terrain. |
 | **Drill** | `mining` | 🔴 | `dig()` / `mine()` | `materialPerOperation`. |
 | **Manipulator** | `manipulator` | 🔴 | `pick()` / `take()`, `drop()` | `loadCapacity`; grabs loose items/cells. |
 | **Battery** | `battery` | 🟡 | power storage | `capacity`, `voltage`, `value`, `isConnected`; drains via `idleCost`/`operationCost`. |
@@ -55,6 +55,6 @@ code is the **disk**, not the chassis.)
 
 ## 7.3 Module instances & classes
 
-Modules are instances of `Module` subclasses (`ScannerModule`, `WeaponModule`, …). ✅ (base + scanner + weapon stub)
+Modules are instances of `Module` subclasses (`ScannerModule`, `WeaponModule`, …), one class per type, registered in the `ModuleRegistry`. ✅ Each class types its props and holds the pure rules of its type that answer with a `Result` (§10.3); the calls that touch the world are executed by the engine. ✅
 The base class validates that a `type` is present and assigns props. Modules are persisted in the database
 (a `modules` table) and linked to a bot by `botId`. ✅

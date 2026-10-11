@@ -1,6 +1,6 @@
 import { MODULE_TYPES } from '../../../../lib/utils/interfaces/modules'
 import { buildModule } from '../../../tests/integration/builders'
-import { DriveModule, GameModule, PlainModule, ScannerModule } from './game-module'
+import { DriveModule, GameModule, GpsModule, ScannerModule } from './game-module'
 import { MODULE_CATALOG, STARTER_KIT } from './module-catalog'
 import { UnknownModuleTypeError } from './module.errors'
 import { createModuleRegistry, ModuleRegistry } from './module-registry'
@@ -17,7 +17,7 @@ describe('the module registry', () => {
   it('gives each type its own class', () => {
     expect(registry.instantiate(buildModule('bot', { type: 'scanner' }))).toBeInstanceOf(ScannerModule)
     expect(registry.instantiate(buildModule('bot', { type: 'drive' }))).toBeInstanceOf(DriveModule)
-    expect(registry.instantiate(buildModule('bot', { type: 'gps' }))).toBeInstanceOf(PlainModule)
+    expect(registry.instantiate(buildModule('bot', { type: 'gps' }))).toBeInstanceOf(GpsModule)
   })
 
   it('refuses a type nobody registered', () => {

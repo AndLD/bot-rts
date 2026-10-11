@@ -411,6 +411,7 @@ export type ModuleResponse = {
   botId: string
   type:
     | 'engine'
+    | 'movement'
     | 'weapon'
     | 'mining'
     | 'manipulator'

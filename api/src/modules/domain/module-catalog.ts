@@ -8,6 +8,43 @@ const full = { condition: 100, maxCondition: 100 }
 // (and, later, in the recipes config of design §9.3).
 export const MODULE_CATALOG: readonly ModuleTemplate[] = [
   {
+    type: 'engine',
+    name: 'engine-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 2,
+    weight: 40,
+    props: { engineType: 'electric', speed: 50 }
+  },
+  {
+    type: 'movement',
+    name: 'wheels-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 0,
+    weight: 25,
+    props: { loadCapacity: 400 }
+  },
+  {
+    type: 'mining',
+    name: 'drill-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 3,
+    weight: 35,
+    props: { materialPerOperation: 5, strength: 2 }
+  },
+  {
+    type: 'manipulator',
+    name: 'manipulator-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 1,
+    weight: 20,
+    props: { loadCapacity: 50 }
+  },
+  { type: 'gps', name: 'gps-class1', ...full, idleCost: 0.01, operationCost: 0.1, weight: 2, props: {} },
+  {
     type: 'weapon',
     name: 'gun-class1',
     ...full,

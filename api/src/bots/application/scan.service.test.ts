@@ -13,7 +13,8 @@ function setup() {
     world.repositories.map,
     world.mapService,
     world.moduleRegistry,
-    world.clock
+    world.clock,
+    world.energyService
   )
   return { ...world, scanService }
 }
@@ -88,5 +89,25 @@ describe('ScanService.scan', () => {
 
     repositories.modules.items[index] = { ...original, condition: 0 }
     await expect(scanService.scan(alice.id, bot.id)).rejects.toMatchObject({ code: 'BROKEN_MODULE' })
+  })
+
+  it('charges the energy of the scan to the battery, and refuses a scan the battery cannot pay', async () => {
+    const { botsService, scanService, repositories, clock } = setup()
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD, location: { x: 5, y: 5, z: 0 } })
+    const battery = () => repositories.modules.items.find((m) => m.type === 'battery')
+
+    await scanService.scan(alice.id, bot.id)
+    // 3x3 cells at 1 energy each
+    expect(battery()?.props.value).toBe(3000 - 9)
+
+    repositories.modules.items[repositories.modules.items.findIndex((m) => m.type === 'battery')] = {
+      ...(battery() as NonNullable<ReturnType<typeof battery>>),
+      props: { capacity: 3000, value: 5 }
+    }
+    const scanner = () => repositories.modules.items.find((m) => m.type === 'scanner')
+    const before = scanner()
+    clock.current = new Date(clock.now().getTime() + 250)
+    await expect(scanService.scan(alice.id, bot.id)).rejects.toMatchObject({ statusCode: 409, code: 'NO_ENERGY' })
+    expect(scanner()).toBe(before)
   })
 })

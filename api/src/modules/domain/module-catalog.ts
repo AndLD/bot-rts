@@ -88,7 +88,7 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     idleCost: 0,
     operationCost: 1,
     weight: 50,
-    props: { delay: 250, isEnabled: false, energyPerOperation: 300 }
+    props: { delay: 250, isEnabled: true, energyPerCycle: 12, fuelPerCycle: 0.02 }
   },
   {
     type: 'storage',
@@ -97,7 +97,7 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     idleCost: 0,
     operationCost: 1,
     weight: 50,
-    props: { capacity: 200, items: [] }
+    props: { capacity: 200, items: [{ resource: 'oil', amount: 50 }] }
   },
   {
     type: 'processor',

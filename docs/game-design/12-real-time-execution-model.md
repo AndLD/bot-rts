@@ -144,6 +144,7 @@ metrics.
   and adds `energyPerCycle` to the battery, capped at `capacity`. Without oil it produces nothing (an `EnergyLow` /
   out-of-fuel event is raised). It is a module like any other and pays its own `idleCost`. Placeholder class-1 defaults
   (tunable): 12 energy per cycle for 0.02 oil per cycle, about 600 energy per oil.
+- **Live scanner:** a scanner in live mode pays its area-scaled energy cost on every tick; if the battery cannot pay, it switches itself off and a `LiveScanStopped` event is raised.
 - **Empty battery:** the bot cannot perform operations and its executions suspend until energy returns (generator
   refill or a player intervention). Charging happens inside the tick, after commands are applied.
 

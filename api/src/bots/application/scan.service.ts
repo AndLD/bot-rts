@@ -2,6 +2,7 @@ import { KnownPoint } from '../../map/domain/map-point.entity'
 import { MapService } from '../../map/application/map.service'
 import { ScannerModule } from '../../modules/domain/scanner-module'
 import { ModuleRegistry } from '../../modules/domain/module-registry'
+import { EnergyService } from '../../modules/application/energy.service'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { MapRepository } from '../../map/application/map.repository'
 import { Clock } from '../../shared/application/clock'
@@ -16,11 +17,12 @@ export class ScanService {
     private readonly map: MapRepository,
     private readonly mapService: MapService,
     private readonly registry: ModuleRegistry,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly energy: EnergyService
   ) {}
 
   // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge. The scanner must
-  // be working, not live and off cooldown; a scan starts the cooldown.
+  // be working, not live and off cooldown, and the bot pays its energy cost; a scan starts the cooldown.
   async scan(userId: string, botId: string): Promise<KnownPoint[]> {
     await this.bots.getControlledBot(userId, botId)
 
@@ -35,6 +37,7 @@ export class ScanService {
     }
 
     const { patch } = unwrap(scanner.scan(this.clock.now().getTime()))
+    await this.energy.pay(botId, scanner.energyCost)
     await this.modules.update(scanner.withProps(patch))
 
     const { distance } = scanner

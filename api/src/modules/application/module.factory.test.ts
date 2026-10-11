@@ -17,10 +17,11 @@ describe('ModuleFactory', () => {
     const factory = new ModuleFactory(new SequentialIdGenerator())
     const [a, b] = [factory.create('storage-class1', 'bot-1'), factory.create('storage-class1', 'bot-1')]
 
-    ;(a.props.items as unknown[]).push('oil')
+    ;(a.props.items as unknown[]).push('junk')
 
-    expect(b.props.items).toEqual([])
-    expect(MODULE_CATALOG.find((t) => t.name === 'storage-class1')?.props.items).toEqual([])
+    const oil = [{ resource: 'oil', amount: 50 }]
+    expect(b.props.items).toEqual(oil)
+    expect(MODULE_CATALOG.find((t) => t.name === 'storage-class1')?.props.items).toEqual(oil)
   })
 
   it('refuses an unknown module', () => {

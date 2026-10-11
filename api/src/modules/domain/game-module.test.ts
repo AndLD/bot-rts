@@ -78,12 +78,25 @@ describe('the behaviour of the module types', () => {
     expect(of(WirelessAdapterModule, { isConnected: true }, { condition: 0 }).isOnline).toBe(false)
     expect(of(ArmorModule, { material: 'iron', protection: 10 })).toMatchObject({ material: 'iron', protection: 10 })
     expect(of(ArmorModule, { material: 5 }).material).toBe('')
-    expect(of(GeneratorModule, { isEnabled: true, delay: 250, energyPerOperation: 300 })).toMatchObject({
+    expect(
+      of(GeneratorModule, { isEnabled: true, delay: 250, energyPerCycle: 12, fuelPerCycle: 0.02, lastCycleAt: 500 })
+    ).toMatchObject({
       isEnabled: true,
       delay: 250,
-      energyPerOperation: 300
+      energyPerCycle: 12,
+      fuelPerCycle: 0.02,
+      lastCycleAt: 500
     })
-    expect(of(GeneratorModule, {})).toMatchObject({ isEnabled: false, delay: 0, energyPerOperation: 0 })
+    expect(of(GeneratorModule, {})).toMatchObject({ isEnabled: false, delay: 0, energyPerCycle: 0, fuelPerCycle: 0 })
+    expect(of(GeneratorModule, {}).lastCycleAt).toBeUndefined()
+    expect(of(GeneratorModule, {}).enable(900)).toEqual({
+      ok: true,
+      data: { patch: { isEnabled: true, lastCycleAt: 900 } }
+    })
+    expect(of(GeneratorModule, {}, { condition: 0 }).enable(0)).toMatchObject({ code: 'BROKEN_MODULE' })
+    expect(of(GeneratorModule, { isEnabled: true }, { condition: 0 }).disable()).toEqual({
+      patch: { isEnabled: false }
+    })
     expect(of(ProcessorModule, { delay: 250 }).delay).toBe(250)
   })
 

@@ -175,7 +175,8 @@ export interface IScannerModule extends IScannerModuleProps {
 }
 
 export interface IGeneratorModuleProps extends IModuleProps {
-  energyPerOperation: number
+  energyPerCycle: number
+  fuelPerCycle: number // oil burnt from the bot's storage per cycle
   delay: number // in ms
   isEnabled: boolean
 }

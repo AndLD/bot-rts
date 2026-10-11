@@ -55,10 +55,26 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - name: Detect markdown-only changes
+        id: changes
+        # The required checks must still report, so a markdown-only change runs the job but skips the code checks
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
+            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          else
+            files="unknown.ts"
+          fi
+          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Install dependencies
+        if: steps.changes.outputs.code == 'true'
+        run: npm ci
       - name: Generate the Prisma client
+        if: steps.changes.outputs.code == 'true'
         run: npm run prisma:generate -w api
       - name: Migrations match the Prisma schema
+        if: steps.changes.outputs.code == 'true'
         env:
           PGPASSWORD: botrts
         run: |
@@ -66,19 +82,24 @@ jobs:
           cd api && npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma \
             --shadow-database-url postgresql://botrts:botrts@localhost:5432/botrts_shadow --exit-code
       - name: Lint
+        if: steps.changes.outputs.code == 'true'
         run: npm run lint
       - name: Import boundaries
+        if: steps.changes.outputs.code == 'true'
         run: npm run check:boundaries
       - name: Typecheck
+        if: steps.changes.outputs.code == 'true'
         run: npm run typecheck
       - name: Message catalogues
+        if: steps.changes.outputs.code == 'true'
         run: npm run i18n:check
       - name: Markdown links
         run: npm run docs:check
       - name: Unit and integration tests with coverage
+        if: steps.changes.outputs.code == 'true'
         run: npm run test:coverage
       - name: Coverage report
-        if: always() && hashFiles('api/coverage/coverage-summary.json') != ''
+        if: always() && steps.changes.outputs.code == 'true' && hashFiles('api/coverage/coverage-summary.json') != ''
         run: |
           {
             echo '### Coverage (api)'
@@ -87,7 +108,8 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Coverage of changed files (at least 97 %)
-        if: github.event_name == 'pull_request'
+        if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
         run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api
       - name: Build
+        if: steps.changes.outputs.code == 'true'
         run: npm run build

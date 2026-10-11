@@ -152,14 +152,13 @@ bot-rts/
 
 ### 1. Install dependencies
 
-The repo is moving to **npm workspaces** (Plan 0.3): a single `npm install` at the root will install `api`, `client`
-and `lib`. Until that lands, each package has its own lockfile:
+The repo is an **npm workspaces** monorepo (`lib`, `api`, `client`): one install at the root, one lockfile.
 
 ```bash
-npm install --prefix api
-npm install --prefix client
-npm install --prefix lib
+npm install
 ```
+
+Root scripts run in every workspace that defines them: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
 
 ### 2. Configure environment
 
@@ -180,10 +179,10 @@ Without them the app runs on hardcoded development fallbacks.
 
 ```bash
 # Terminal 1 — backend (nodemon + ts-node)
-npm run dev --prefix api
+npm run dev -w api
 
 # Terminal 2 — frontend (Vite dev server, proxies /api to :8080)
-npm run dev --prefix client
+npm run dev -w client
 ```
 
 Open <http://localhost:5173>. Sign up, confirm the email link (or set the user active in the DB during development),
@@ -192,8 +191,7 @@ then open the `/game` route.
 ### 4. Production build
 
 ```bash
-npm run build --prefix api     # tsc → api/ts-built
-npm run build --prefix client  # tsc + vite build
+npm run build  # api: tsc → api/ts-built, client: tsc + vite build
 pm2 start ecosystem.config.json
 ```
 

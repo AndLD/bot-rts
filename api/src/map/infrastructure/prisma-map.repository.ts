@@ -4,6 +4,9 @@ import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import { MapRepository } from '../application/map.repository'
 import { KnownPoint, Location, LocationRange, MapPoint } from '../domain/map-point.entity'
 
+// The types of a cell that holds a base
+const BASE_TYPES = [MapPointType.BASE, MapPointType.CORPSE_BASE]
+
 function toPoint(row: MapPointRow): MapPoint {
   return {
     id: row.id,
@@ -55,6 +58,15 @@ export class PrismaMapRepository implements MapRepository {
   async findPointByContentId(contentId: string): Promise<MapPoint | null> {
     const row = await this.db.mapPoint.findFirst({ where: { contentId } })
     return row && toPoint(row)
+  }
+
+  async findBasePointsInRange(range: LocationRange): Promise<MapPoint[]> {
+    const rows = await this.db.mapPoint.findMany({ where: { ...inRange(range), type: { in: BASE_TYPES } } })
+    return rows.map(toPoint)
+  }
+
+  async countBases(): Promise<number> {
+    return await this.db.mapPoint.count({ where: { type: { in: BASE_TYPES } } })
   }
 
   async addPoints(points: MapPoint[]): Promise<void> {

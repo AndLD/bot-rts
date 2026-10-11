@@ -5,7 +5,7 @@ import { readWorldConfig } from './world-config.reader'
 describe('readWorldConfig', () => {
   it('uses the defaults for an empty environment', () => {
     expect(readWorldConfig({})).toEqual(DEFAULT_WORLD_CONFIG)
-    expect(DEFAULT_WORLD_CONFIG).toMatchObject({ resourceChance: 0.2, spawnMaxDistance: 10, spawnAttempts: 20 })
+    expect(DEFAULT_WORLD_CONFIG).toMatchObject({ chunkSize: 16, resourceChance: 0.2 })
   })
 
   it('reads the chunk size and never lets it drop below one cell', () => {
@@ -13,17 +13,11 @@ describe('readWorldConfig', () => {
     expect(readWorldConfig({ WORLD_CHUNK_SIZE: '0' }).chunkSize).toBe(1)
   })
 
-  it('reads overrides', () => {
-    expect(
-      readWorldConfig({ WORLD_RESOURCE_CHANCE: '0.5', WORLD_SPAWN_MAX_DISTANCE: '50', WORLD_SPAWN_ATTEMPTS: '3' })
-    ).toMatchObject({ resourceChance: 0.5, spawnMaxDistance: 50, spawnAttempts: 3 })
-  })
-
-  it('falls back on garbage and clamps the chance and attempts', () => {
-    expect(
-      readWorldConfig({ WORLD_RESOURCE_CHANCE: '7', WORLD_SPAWN_MAX_DISTANCE: 'far', WORLD_SPAWN_ATTEMPTS: '0' })
-    ).toMatchObject({ resourceChance: 1, spawnMaxDistance: 10, spawnAttempts: 1 })
-    expect(readWorldConfig({ WORLD_RESOURCE_CHANCE: '', WORLD_SPAWN_ATTEMPTS: '-4' }).spawnAttempts).toBe(20)
+  it('reads the resource chance, falling back on garbage and clamping it to one', () => {
+    expect(readWorldConfig({ WORLD_RESOURCE_CHANCE: '0.5' }).resourceChance).toBe(0.5)
+    expect(readWorldConfig({ WORLD_RESOURCE_CHANCE: '7' }).resourceChance).toBe(1)
+    expect(readWorldConfig({ WORLD_RESOURCE_CHANCE: 'lots' }).resourceChance).toBe(0.2)
+    expect(readWorldConfig({ WORLD_RESOURCE_CHANCE: '' }).resourceChance).toBe(0.2)
   })
 
   describe('the resource balance file', () => {

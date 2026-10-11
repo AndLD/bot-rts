@@ -41,6 +41,26 @@ describe('PrismaMapRepository: deposits', () => {
   })
 })
 
+describe('PrismaMapRepository: bases', () => {
+  it('finds and counts the bases, corpse bases included, and nothing else', async () => {
+    await map.addPoints([
+      buildPoint(0, 0, { type: MapPointType.BASE, contentId: randomUUID() }),
+      buildPoint(1, 1, { type: MapPointType.CORPSE_BASE, contentId: randomUUID() }),
+      buildPoint(2, 2, { type: MapPointType.BOT, contentId: randomUUID() }),
+      buildPoint(1, 0, { type: MapPointType.RESOURCE }),
+      buildPoint(50, 50, { type: MapPointType.BASE, contentId: randomUUID() })
+    ])
+
+    const near = await map.findBasePointsInRange(range)
+
+    expect(near.map((p) => [p.location.x, p.location.y, p.type])).toEqual([
+      [0, 0, MapPointType.BASE],
+      [1, 1, MapPointType.CORPSE_BASE]
+    ])
+    expect(await map.countBases()).toBe(3)
+  })
+})
+
 describe('PrismaMapRepository: constraints', () => {
   const oil = (amount: number) => ({ resource: RESOURCE.OIL, amount })
 

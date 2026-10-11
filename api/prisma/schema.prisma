@@ -88,13 +88,14 @@ model User {
   // Set when the player deleted the account: personal data is erased, the row stays for the player's base
   deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
 
-  identities       Identity[]
-  credential       LocalCredential?
-  sessions         Session[]
-  authTokens       AuthToken[]
-  bases            Bot[]
-  knownPoints      KnownPoint[]
-  terminalSessions TerminalSession[]
+  identities           Identity[]
+  credential           LocalCredential?
+  sessions             Session[]
+  authTokens           AuthToken[]
+  bases                Bot[]
+  knownPoints          KnownPoint[]
+  spawnSeedMemberships SpawnSeedMember[]
+  terminalSessions     TerminalSession[]
 
   @@index([createdAt])
   @@map("users")
@@ -173,12 +174,13 @@ model Bot {
   // The hash of the access password others need to connect (design §11.2.2); a base always has one
   passwordHash String? @map("password_hash")
 
-  user             User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  base             Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)
-  bots             Bot[]             @relation("BaseBots")
-  modules          Module[]
-  terminalSessions TerminalSession[]
-  terminalLogs     TerminalLog[]
+  user                 User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  base                 Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)
+  bots                 Bot[]             @relation("BaseBots")
+  modules              Module[]
+  terminalSessions     TerminalSession[]
+  terminalLogs         TerminalLog[]
+  spawnSeedMemberships SpawnSeedMember[]
 
   @@index([userId, type])
   @@index([baseId])
@@ -296,4 +298,31 @@ model TerminalLog {
   @@index([botId, at])
   @@index([at])
   @@map("terminal_logs")
+}
+
+// A code that lets players start near each other; the first deploy with it sets the anchor (design §22.3)
+model SpawnSeed {
+  code      String   @id
+  anchorX   Int      @map("anchor_x")
+  anchorY   Int      @map("anchor_y")
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+
+  members SpawnSeedMember[]
+
+  @@map("spawn_seeds")
+}
+
+// The players of a seed, each with the base they started with
+model SpawnSeedMember {
+  seedCode String @map("seed_code")
+  userId   String @map("user_id") @db.Uuid
+  baseId   String @map("base_id") @db.Uuid
+
+  seed SpawnSeed @relation(fields: [seedCode], references: [code], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bot  Bot       @relation(fields: [baseId], references: [id], onDelete: Cascade)
+
+  @@id([seedCode, userId])
+  @@index([baseId])
+  @@map("spawn_seed_members")
 }

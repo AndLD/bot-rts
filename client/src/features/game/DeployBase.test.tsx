@@ -12,9 +12,12 @@ jest.mock('../../shared/notifications', () => ({ errorNotification: jest.fn() })
 const query = jest.mocked(baseQueryWithRefresh)
 
 // Sets whole values at once: typing key by key through the antd inputs is slow on a busy machine
-async function fill(password: string, confirmation = password) {
+async function fill(password: string, confirmation = password, seed = '') {
   fireEvent.change(screen.getByLabelText('Base password'), { target: { value: password } })
   fireEvent.change(screen.getByLabelText('Repeat the password'), { target: { value: confirmation } })
+  if (seed) {
+    fireEvent.change(screen.getByLabelText('Spawn seed (optional)'), { target: { value: seed } })
+  }
   await userEvent.click(screen.getByText('Deploy base'))
 }
 
@@ -33,6 +36,28 @@ describe('DeployBase', () => {
     await fill('abc')
     expect(await screen.findByText('The password must have 6-64 characters')).toBeInTheDocument()
     expect(screen.queryByText('Deploy your base?')).not.toBeInTheDocument()
+  })
+
+  it('refuses a malformed spawn seed', async () => {
+    await fill('secret1', 'secret1', 'x')
+
+    expect(await screen.findByText('3-24 letters, digits or dashes, for example ALPHA-7K2')).toBeInTheDocument()
+    expect(query).not.toHaveBeenCalled()
+  })
+
+  it('sends the spawn seed with the password when there is one', async () => {
+    query.mockResolvedValue({ data: {} })
+    await fill('secret1', 'secret1', ' ALPHA-7K2 ')
+
+    await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
+
+    await waitFor(() =>
+      expect(query).toHaveBeenCalledWith(
+        { method: 'POST', url: '/api/v1/bots/base', body: { password: 'secret1', spawnSeed: 'ALPHA-7K2' } },
+        expect.anything(),
+        undefined
+      )
+    )
   })
 
   it('refuses a repetition that differs', async () => {

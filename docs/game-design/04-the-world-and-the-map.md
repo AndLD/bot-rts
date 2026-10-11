@@ -27,8 +27,7 @@
 - ✅ **Base spawn:** a new base is placed on a **free cell** (not occupied, not a deposit) that is at least
   `minBaseDistance` cells (default 30, tunable) from every living base and every corpse base. Candidates are drawn at
   random inside a ring around the world origin whose radius grows with the number of bases; on conflict the search
-  retries. This replaces the current prototype behavior (random cell in `[0,10]²` with no occupancy check, see
-  `spawnMaxDistance` in `api/services/bots.ts`), which only works for a handful of players. A redeploy after base
+  retries. This replaced the prototype behavior (a random cell in `[0,10]²` with no occupancy check). The numbers are configuration (`WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_RADIUS`, `WORLD_SPAWN_RADIUS_PER_BASE`, `WORLD_SPAWN_ATTEMPTS`); the ring is a square of half-width `radius + radiusPerBase × bases` around the origin. A redeploy after base
   destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds-) to start near
   friends.
 

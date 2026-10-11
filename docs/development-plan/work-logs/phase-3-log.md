@@ -99,3 +99,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.11 (`SpawnService`).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.11: SpawnService
+- **Tasks:** 3.11
+- **Branch:** `feature/3.11-spawn-service` — done
+- **Decisions:** new `spawn` module. `SpawnService.chooseBaseLocation` draws random cells in a square around the origin whose half-width is `radius + radiusPerBase × bases` (a base count from `MapRepository.countBases`) and takes the first that is free (no point or an empty one: not occupied, not a deposit, no item) and at least `minBaseDistance` (Chebyshev distance, default 30) from every base, living or corpse (`findBasePointsInRange`, served by a partial index on `type IN ('base', 'corpse_base')`); after `attempts` tries it fails with `NO_FREE_LOCATION`. All numbers are the new `SpawnConfig` (env `WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_*`, `SPAWN_SEED_*`); `spawnMaxDistance` and the old `[0,10]²` rule are gone. Spawn seeds (design §22.3): code of 3-24 letters, digits or dashes, case-insensitive; the first deploy with a code sets the anchor (tables `spawn_seeds`, `spawn_seed_members`, one row per player); later players start within `seedRadius` (12) of the anchor and are exempt from the distance rule only against the bases of that seed; a seed takes `seedMaxPlayers` (8) players (a member who starts again is not counted twice) and closes `seedTtlHours` (24) after the anchor was set (`SPAWN_SEED_FULL`, `SPAWN_SEED_CLOSED`, both 409). `findAdjacentCell` gives a free neighbour of the base at random for an assembled bot (design §8.3); `BotsService.createBot` now uses it, writes the bot's map point and the owner's snapshot of it, and fails (and rolls the bot back) when no cell is free or the base is not on the map. The deploy API takes an optional `spawnSeed`, and the deploy dialog has the field. `NoFreeLocationError` moved to the spawn module.
+- **Note:** the fakes' unit of work does not roll back, so the "no bot is created when no cell is free" guarantee rests on the real transaction (`PrismaUnitOfWork`) and is not asserted in a unit test.
+- **Next step:** task 3.12 (OpenAPI spec generated in CI, typed client).
+- **Verify with:** `npm run db:up && npm run test:coverage && npm run i18n:check`
+

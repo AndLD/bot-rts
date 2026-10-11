@@ -5,7 +5,7 @@ import { createWorld } from '../../../tests/fakes/world'
 import { MODULE_CATALOG, STARTER_KIT } from '../../modules/domain/module-catalog'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { toBotDto } from '../presentation/bot.mapper'
-import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
+import { BaseAlreadyExistsError } from '../domain/bot.errors'
 
 const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
@@ -13,7 +13,7 @@ const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
 
 describe('BotsService.deployUserBase', () => {
   it('creates the base, its starting modules and its map point', async () => {
-    // 0.3 * 11 -> 3, 0.6 * 11 -> 6
+    // the first base: a square of half-width 60 around the origin; 0.3 * 121 - 60 = -24, 0.6 * 121 - 60 = 12
     const { botsService, repositories } = createWorld({ rng: new FixedRng([0.3, 0.6]) })
 
     const { bot, modules, mapPoint } = await botsService.deployUserBase(alice, { password: PASSWORD })
@@ -21,7 +21,7 @@ describe('BotsService.deployUserBase', () => {
     expect(bot).toMatchObject({ label: 'Alice base', type: BOT_TYPE.BASE, userId: alice.id, baseId: null })
     expect(modules.map((module) => module.name)).toEqual(STARTER_KIT)
     expect(modules.every((module) => module.botId === bot.id)).toBe(true)
-    expect(mapPoint).toMatchObject({ location: { x: 3, y: 6, z: 0 }, type: MapPointType.BASE, contentId: bot.id })
+    expect(mapPoint).toMatchObject({ location: { x: -24, y: 12, z: 0 }, type: MapPointType.BASE, contentId: bot.id })
     expect(repositories.map.known.size).toBe(1)
     expect(await repositories.bots.findById(bot.id)).toEqual(bot)
     expect(await repositories.modules.listOfBot(bot.id)).toEqual(modules)
@@ -56,21 +56,6 @@ describe('BotsService.deployUserBase', () => {
     await botsService.deployUserBase(alice, { password: PASSWORD })
 
     await expect(botsService.deployUserBase(alice, { password: PASSWORD })).rejects.toThrow(BaseAlreadyExistsError)
-  })
-
-  it('skips occupied cells and fails when none is free', async () => {
-    const world = createWorld({
-      rng: new FixedRng([0, 0, 0.99, 0.99]),
-      config: { spawnMaxDistance: 10, spawnAttempts: 2 }
-    })
-    await world.botsService.deployUserBase(alice, { password: PASSWORD })
-
-    const second = await world.botsService.deployUserBase(bob, { password: PASSWORD })
-    expect(second.mapPoint.location).toEqual({ x: 10, y: 10, z: 0 })
-
-    const crowded = createWorld({ rng: new FixedRng([0]), config: { spawnAttempts: 3 } })
-    await crowded.botsService.deployUserBase(alice, { password: PASSWORD })
-    await expect(crowded.botsService.deployUserBase(bob, { password: PASSWORD })).rejects.toThrow(NoFreeLocationError)
   })
 })
 

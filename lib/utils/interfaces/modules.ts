@@ -1,31 +1,30 @@
-import { Error, ID } from '../types'
+import { ID } from '../types'
+import { Result } from '../result'
 import { IFile } from './files'
-import { IItem as Item } from './items'
-import { IMapPoint } from './map'
+import { IMapPoint, Location } from './map'
+import { IResourceStack } from './resources'
 
 export type ModuleType =
   | 'engine'
+  | 'movement'
   | 'weapon'
   | 'mining'
   | 'manipulator'
-  // | 'circute'
   | 'drive'
   | 'processor'
-  // | 'cooler'
   | 'wirelessAdapter'
   | 'battery'
   | 'storage'
   | 'armor'
   | 'scanner'
   | 'generator'
-  // | 'wire'
-  // | 'pipe'
   | 'factory'
   | 'gps'
 
 // Every module type, for code that must cover them all
 export const MODULE_TYPES: readonly ModuleType[] = [
   'engine',
+  'movement',
   'weapon',
   'mining',
   'manipulator',
@@ -47,6 +46,7 @@ export enum EngineType {
   ELECTRIC = 'electric'
 }
 
+// What every module has (design §7.1)
 export interface IModuleProps {
   _id?: ID
   botId?: ID
@@ -57,30 +57,25 @@ export interface IModuleProps {
   weight: number // kg
   operationCost: number // amount of energy/fuel per operation
   idleCost: number // amount of energy/fuel while idle
-  // upgrades: IModuleUpgrade[]
 }
 
 export interface IModule extends IModuleProps {
   _id: ID
-  type: ModuleType
-
-  onError?(error: Error): void
 }
+
+// The props of each type and the script functions it grants. Every function returns Promise<Result<T>>: expected
+// failures are values, not exceptions (design §10.3).
 
 export interface IEngineModuleProps extends IModuleProps {
   engineType: EngineType
   speed: number
-  // power: number
-
-  move(x: number, y: number, z?: number): Promise<Error | null>
-  move(x: number, y: number, z?: number, callback?: (error: Error | null) => void): Promise<Error | null>
 }
-
 export interface IEngineModule extends IEngineModuleProps {
-  move(x: number, y: number, z?: number): Promise<Error | null>
-  move(x: number, y: number, z?: number, callback?: (error: Error | null) => void): Promise<Error | null>
+  move(cells: number): Promise<Result>
+  turn(direction: 'left' | 'right'): Promise<Result>
 }
 
+// Wheels or tracks: what the bot rolls on, and how much it can carry
 export interface IMovementModuleProps extends IModuleProps {
   loadCapacity: number
 }
@@ -95,77 +90,56 @@ export interface IWeaponModuleProps extends IModuleProps {
   batchSize?: number
   batchCooldown?: number // in ms
   isArtillery?: boolean // if true, shoot along a hinged trajectory instead of straight
-  // minDistance?: number
-  // splash?: number
-  // speed: number
 }
 export interface IWeaponModule extends IWeaponModuleProps {
-  shoot(x: number, y: number, z?: number): Promise<Error | null>
-  shoot(x: number, y: number, z?: number, callback?: (error: Error | null) => void): void
-  reload(): Promise<Error | null>
-  reload(callback?: (error: Error) => void): void
+  aim(x: number, y: number): Promise<Result>
+  shoot(x: number, y: number): Promise<Result>
+  reload(): Promise<Result>
 }
 
 export interface IMiningModuleProps extends IModuleProps {
   materialPerOperation: number
+  // The hardest resource the drill can break (design §9.1)
+  strength: number
 }
 export interface IMiningModule extends IMiningModuleProps {
-  mine(x: number, y: number, z?: number): Promise<Error | null>
-  mine(x: number, y: number, z?: number, callback?: (error: Error | null) => void): void
+  mine(x: number, y: number): Promise<Result<IResourceStack>>
 }
 
 export interface IManipulatorModuleProps extends IModuleProps {
   loadCapacity: number
 }
 export interface IManipulatorModule extends IManipulatorModuleProps {
-  take(x: number, y: number, z?: number): Promise<Error | null | Item>
-  take(x: number, y: number, z?: number, callback?: (error: Error | null, item: Item | null) => void): void
-
-  take(itemId: ID, x: number, y: number, z?: number): Promise<Error | null | Item>
-  take(itemId: ID, x: number, y: number, z?: number, callback?: (error: Error | null, item: Item | null) => void): void
-
-  take(itemId: ID): Promise<Error | null | Item>
-  take(itemId: ID, callback?: (error: Error | null, item: Item | null) => void): void
-
-  drop(x: number, y: number, z?: number): Promise<Error | null | Item>
-  drop(x: number, y: number, z?: number, callback?: (error: Error | null, item: Item) => void): void
+  take(itemId?: ID): Promise<Result<ID>>
+  drop(x?: number, y?: number): Promise<Result>
 }
-
-export interface ICircuteModuleProps extends IModuleProps {
-  delay: number // between operations in ms
-}
-export interface ICircuteModule extends ICircuteModuleProps {}
 
 export interface IDriveModuleProps extends IModuleProps {
+  quota: number // in bytes
   readDelay: number // in ms
   writeDelay: number // in ms
 }
 export interface IDriveModule extends IDriveModuleProps {
-  read(filename: string): Promise<Error | null | IFile>
-  read(filename: string, callback?: (error: Error | null, file: IFile | null) => void): void
-  write(filename: string): Promise<Error | null>
-  write(filename: string, callback?: (error: Error | null) => void): void
+  read(path: string): Promise<Result<IFile>>
+  write(path: string, content: string): Promise<Result<IFile>>
 }
 
 export interface IProcessorModuleProps extends IModuleProps {
   delay: number // in ms
-  // temperature: number // degrees in C
+  opsPerTick: number
+  parallelExecutions: number
 }
 export interface IProcessorModule extends IProcessorModuleProps {
-  runCode(filename: string): Promise<Error | null>
-  runCode(filename: string, callback?: (error: Error | null) => void): void
+  execute(path: string): Promise<Result<{ executionId: ID }>>
 }
 
 export interface IWirelessAdapterModuleProps extends IModuleProps {
-  _id: ID
   isConnected: boolean
-  // maxConnections: number
+  range: number // in cells
 }
 export interface IWirelessAdapterModule extends IWirelessAdapterModuleProps {
-  connect(deviceId: ID): Promise<Error | null | ID>
-  connect(deviceId: ID, callback?: (error: Error | null, deviceId: ID) => void): void
-  disconnect(deviceId: ID): Promise<Error | null | ID>
-  disconnect(deviceId: ID, callback?: (error: Error | null, deviceId: ID) => void): void
+  connect(botId: ID): Promise<Result>
+  disconnect(botId: ID): Promise<Result>
 }
 
 export interface IBatteryModuleProps extends IModuleProps {
@@ -175,20 +149,16 @@ export interface IBatteryModuleProps extends IModuleProps {
   isConnected: boolean
 }
 export interface IBatteryModule extends IBatteryModuleProps {
-  enable(): Promise<Error | null>
-  enable(callback?: (error: Error | null) => void): void
-  disable(): Promise<Error | null>
-  disable(callback?: (error: Error | null) => void): void
+  enable(): Promise<Result>
+  disable(): Promise<Result>
 }
 
 export interface IStorageModuleProps extends IModuleProps {
-  // storageType: 'fluid' | 'block'
   capacity: number
-  items: Item[]
+  items: IResourceStack[]
 }
 export interface IStorageModule extends IStorageModuleProps {
-  store(item: Item): Promise<Error | null | Item>
-  store(item: Item, callback?: (error: Error | null, item: Item) => void): void
+  store(stack: IResourceStack): Promise<Result>
 }
 
 export interface IArmorModuleProps extends IModuleProps {
@@ -201,8 +171,7 @@ export interface IScannerModuleProps extends IModuleProps {
   delay: number // in ms
 }
 export interface IScannerModule extends IScannerModuleProps {
-  scan(): Promise<Error | null | IMapPoint[]>
-  scan(callback?: (error: Error | null, result: IMapPoint[]) => void): void
+  scan(): Promise<Result<IMapPoint[]>>
 }
 
 export interface IGeneratorModuleProps extends IModuleProps {
@@ -211,10 +180,8 @@ export interface IGeneratorModuleProps extends IModuleProps {
   isEnabled: boolean
 }
 export interface IGeneratorModule extends IGeneratorModuleProps {
-  enable(): Promise<Error | null>
-  enable(callback?: (error: Error | null) => void): void
-  disable(): Promise<Error | null>
-  disable(callback?: (error: Error | null) => void): void
+  enable(): Promise<Result>
+  disable(): Promise<Result>
 }
 
 export interface IFactoryModuleProps extends IModuleProps {}
@@ -222,8 +189,7 @@ export interface IFactoryModule extends IFactoryModuleProps {}
 
 export interface IGpsModuleProps extends IModuleProps {}
 export interface IGpsModule extends IGpsModuleProps {
-  getLocation(): Promise<Error | null | IMapPoint>
-  getLocation(callback?: (error: Error | null, location: IMapPoint) => void): void
+  getLocation(): Promise<Result<Location>>
 }
 
 export type Module =
@@ -232,7 +198,6 @@ export type Module =
   | IWeaponModule
   | IMiningModule
   | IManipulatorModule
-  | ICircuteModule
   | IDriveModule
   | IProcessorModule
   | IWirelessAdapterModule
@@ -250,7 +215,6 @@ export type ModuleProps =
   | IWeaponModuleProps
   | IMiningModuleProps
   | IManipulatorModuleProps
-  | ICircuteModuleProps
   | IDriveModuleProps
   | IProcessorModuleProps
   | IWirelessAdapterModuleProps

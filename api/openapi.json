@@ -1838,6 +1838,7 @@
             "type": "string",
             "enum": [
               "engine",
+              "movement",
               "weapon",
               "mining",
               "manipulator",

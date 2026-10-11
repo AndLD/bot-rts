@@ -23,7 +23,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 1     | Architecture refactor & NestJS migration | 100       | ✅ Done |
 | 2     | Test infrastructure & coverage backfill | 43        | ✅ Done |
 | 3     | Core gameplay foundations            | 76           | ✅ Done |
-| 4     | Module system & crafting             | 70           | ⬜ Not started |
+| 4     | Module system & crafting             | 70           | 🟡 In progress |
 | 5     | Script runtime, scheduler & sandbox  | 104           | ⬜ Not started |
 | 6     | Core game GUI & map animations       | 96           | ⬜ Not started |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n) | 47 | ⬜ Not started |

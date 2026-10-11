@@ -7,6 +7,12 @@ export class BaseAlreadyExistsError extends AppError {
   }
 }
 
+export class BaseLostError extends AppError {
+  constructor() {
+    super(403, ErrorCode.BASE_LOST, 'The base is lost: deploy a new one')
+  }
+}
+
 export class NoFreeLocationError extends AppError {
   constructor() {
     super(409, ErrorCode.NO_FREE_LOCATION, 'No free location for the base')

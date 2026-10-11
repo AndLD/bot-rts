@@ -14,7 +14,8 @@ import { IdGenerator } from '../../shared/application/id-generator'
 import { Rng } from '../../shared/application/rng'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { Bot } from '../domain/bot.entity'
-import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
+import { BaseAlreadyExistsError, BaseLostError, NoFreeLocationError } from '../domain/bot.errors'
+import { BaseLifecycle } from './base-lifecycle'
 import { BotRepository } from './bot.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
 
@@ -34,7 +35,8 @@ export class BotsService {
     private readonly clock: Clock,
     private readonly world: WorldConfig,
     private readonly hasher: PasswordHasher,
-    private readonly moduleFactory: ModuleFactory
+    private readonly moduleFactory: ModuleFactory,
+    private readonly lifecycle: BaseLifecycle
   ) {}
 
   // Creates the first base of a player on a free cell, with the starting equipment and the access password others
@@ -52,7 +54,8 @@ export class BotsService {
     const { location } = options
 
     return this.unitOfWork.run(async (repositories) => {
-      if ((await repositories.bots.listOfUser(user.id)).length) {
+      // One living base per player; a corpse base does not count (design §6.3)
+      if ((await this.lifecycle.livingBases(user.id, repositories)).length) {
         throw new BaseAlreadyExistsError()
       }
 
@@ -84,6 +87,7 @@ export class BotsService {
         seenAt: this.clock.now().getTime()
       }
       await repositories.map.upsertKnownPoints([known])
+      await this.lifecycle.markCorpses(user.id, repositories)
 
       return { bot, modules, mapPoint }
     })
@@ -95,7 +99,7 @@ export class BotsService {
     userId: string,
     input: { baseId: string; label: string | null; modules: readonly ModuleTemplate[] }
   ): Promise<{ bot: Bot; modules: Module[] }> {
-    const base = await this.getOwnedBot(userId, input.baseId)
+    const base = await this.getControlledBot(userId, input.baseId)
     if (base.type !== BOT_TYPE.BASE) {
       throw new ValidationError('A bot belongs to a base, not to another bot')
     }
@@ -121,15 +125,18 @@ export class BotsService {
 
   // The bots of one of the player's bases
   async listBaseBots(userId: string, baseId: string): Promise<Bot[]> {
-    const base = await this.getOwnedBot(userId, baseId)
+    const base = await this.getControlledBot(userId, baseId)
     if (base.type !== BOT_TYPE.BASE) {
       throw new ValidationError('The bot is not a base')
     }
     return this.bots.listOfBase(base.id)
   }
 
-  listUserBots(userId: string, filter?: { type?: BOT_TYPE }): Promise<Bot[]> {
-    return this.bots.listOfUser(userId, filter)
+  // The bases of the player that live and their bots; corpse bases and stale bots are in no list (design §6.3)
+  async listUserBots(userId: string, filter?: { type?: BOT_TYPE }): Promise<Bot[]> {
+    const lost = new Set((await this.lifecycle.lostBases(userId, this.reads)).map((base) => base.id))
+    const bots = await this.bots.listOfUser(userId, filter)
+    return bots.filter((bot) => !lost.has(bot.id) && !(bot.baseId && lost.has(bot.baseId)))
   }
 
   async getBotModules(userId: string, botId: string): Promise<Module[]> {
@@ -151,6 +158,19 @@ export class BotsService {
       throw new ForbiddenError('The bot belongs to another player')
     }
 
+    return bot
+  }
+
+  private get reads() {
+    return { bots: this.bots, modules: this.modules }
+  }
+
+  // The bot, provided it is the user's and the user still has control of it: its base has not become a corpse
+  async getControlledBot(userId: string, botId: string): Promise<Bot> {
+    const bot = await this.getOwnedBot(userId, botId)
+    if (!(await this.lifecycle.hasControl(bot, this.reads))) {
+      throw new BaseLostError()
+    }
     return bot
   }
 

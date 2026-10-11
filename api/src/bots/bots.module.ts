@@ -16,6 +16,7 @@ import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { RNG, Rng } from '../shared/application/rng'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
+import { BaseLifecycle } from './application/base-lifecycle'
 import { BotsService } from './application/bots.service'
 import { ScanService } from './application/scan.service'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
@@ -33,6 +34,11 @@ import { BotsGateway } from './presentation/bots.gateway'
       useFactory: (client: PrismaClient) => new PrismaBotRepository(client)
     },
     {
+      provide: BaseLifecycle,
+      inject: [ModuleRegistry],
+      useFactory: (registry: ModuleRegistry) => new BaseLifecycle(registry)
+    },
+    {
       provide: BotsService,
       inject: [
         UNIT_OF_WORK,
@@ -43,7 +49,8 @@ import { BotsGateway } from './presentation/bots.gateway'
         CLOCK,
         WORLD_CONFIG,
         PASSWORD_HASHER,
-        ModuleFactory
+        ModuleFactory,
+        BaseLifecycle
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -54,8 +61,9 @@ import { BotsGateway } from './presentation/bots.gateway'
         clock: Clock,
         world: WorldConfig,
         hasher: PasswordHasher,
-        moduleFactory: ModuleFactory
-      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher, moduleFactory)
+        moduleFactory: ModuleFactory,
+        lifecycle: BaseLifecycle
+      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher, moduleFactory, lifecycle)
     },
     {
       provide: ScanService,

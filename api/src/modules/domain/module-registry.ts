@@ -35,11 +35,13 @@ export class ModuleRegistry {
     return new moduleClass(record)
   }
 
+  instantiateAll(records: readonly Module[]): GameModule[] {
+    return records.map((record) => this.instantiate(record))
+  }
+
   // The modules of one class among the records, e.g. the scanners of a bot
   instancesOf<T extends GameModule>(records: readonly Module[], moduleClass: new (record: Module) => T): T[] {
-    return records
-      .map((record) => this.instantiate(record))
-      .filter((module): module is T => module instanceof moduleClass)
+    return this.instantiateAll(records).filter((module): module is T => module instanceof moduleClass)
   }
 }
 

@@ -154,6 +154,7 @@
     "TOKEN_EXPIRED": "Your session has expired",
     "WRONG_PASSWORD": "The current password is wrong",
     "BASE_ALREADY_EXISTS": "You already have a base",
+    "BASE_LOST": "This base is lost: deploy a new one",
     "NO_FREE_LOCATION": "There is no free place for the base",
     "ALREADY_EXISTS": "It already exists",
     "DRIVE_BROKEN": "The drive is broken",

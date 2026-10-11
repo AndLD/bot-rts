@@ -41,6 +41,7 @@ enum MapPointType {
   bot
   item
   base
+  corpse_base
 
   @@map("map_point_type")
 }

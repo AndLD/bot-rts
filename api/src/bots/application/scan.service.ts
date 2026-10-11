@@ -18,7 +18,7 @@ export class ScanService {
 
   // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge
   async scan(userId: string, botId: string): Promise<KnownPoint[]> {
-    await this.bots.getOwnedBot(userId, botId)
+    await this.bots.getControlledBot(userId, botId)
 
     const [scanner] = this.registry.instancesOf(await this.modules.listOfBot(botId), ScannerModule)
     if (!scanner) {

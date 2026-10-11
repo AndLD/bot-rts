@@ -90,3 +90,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.10 (base destruction lifecycle).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.10: base destruction lifecycle
+- **Tasks:** 3.10
+- **Branch:** `feature/3.10-base-lifecycle` — done
+- **Decisions:** a corpse base is derived, never stored (`isCorpse` in the domain: no working wireless adapter, or no module at all), so repairing the adapter brings the base back. `BaseLifecycle` (application) answers which bases of a player live, whether the owner still controls a bot (a base while it lives, any other bot while its base lives; the bots of a corpse base are stale and have no active owner), and shows the corpse bases on the real map (`MapPointType.CORPSE_BASE`, migrations `corpse_base_type` and `corpse_base_constraint`, two files because PostgreSQL cannot use a new enum value in the transaction that adds it). `BotsService.getControlledBot` is `getOwnedBot` plus that control check and fails with `BASE_LOST` (403); the terminal, files, scan, `createBot` and `listBaseBots` use it, while reading the modules or the session history needs ownership only. `listUserBots` (and so `list`, `GET /bots?type=base` and the client's deploy screen) hides corpse bases and stale bots, which is what brings the Deploy button back. The deploy rule is now "one living base": a corpse does not count, and the redeploy marks the old bases' map points as corpse bases. Stale bots keep their `baseId` and are not adopted by the new base (adoption is 5.9).
+- **Left to the engine (5.x):** noticing in the tick that a base became a corpse and updating its map point at that moment (today the point is updated when the player redeploys); repair of a corpse; the loot of a corpse base.
+- **Known race:** two simultaneous deploys of one player could both pass the living-base check; the requests of one player are serial in practice, and the engine's single writer removes it later.
+- **Next step:** task 3.11 (`SpawnService`).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api`
+

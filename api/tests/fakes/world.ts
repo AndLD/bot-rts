@@ -1,3 +1,4 @@
+import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
 import { createModuleRegistry } from '../../src/modules/domain/module-registry'
@@ -60,7 +61,8 @@ export function createWorld(
     clock,
     config,
     new FakeHasher(),
-    moduleFactory
+    moduleFactory,
+    new BaseLifecycle(moduleRegistry)
   )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids, moduleRegistry)
   const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, {

@@ -5,7 +5,9 @@ export enum MapPointType {
   RESOURCE = 'resource',
   BOT = 'bot',
   ITEM = 'item',
-  BASE = 'base'
+  BASE = 'base',
+  // A base its owner lost control of (design §6.3)
+  CORPSE_BASE = 'corpse_base'
 }
 
 export type Location = { x: number; y: number; z?: number }

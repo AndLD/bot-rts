@@ -82,3 +82,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** current `api` coverage is ~40 % (legacy services untested); this is reported, not gated, until Phase 2. Branch protection (which makes `verify` and `pr-title` required) is task 0.6.
 - **Next step:** task 0.6 (protect `main` and `develop`; keep merged branches) — needs repository admin rights; if `gh` lacks them, hand the exact steps to the user.
 - **Verify with:** `npm ci && npm run lint && npm run typecheck && npm run docs:check && npm run test:coverage && npm run build`
+
+### 2026-10-11 — task 0.6: branch protection blocked by the GitHub plan (phase 0 paused)
+- **Tasks:** 0.6 (partial)
+- **Branch:** `chore/0.6-branch-protection` — script and docs; the repository settings are not changed
+- **Decisions / deviations from the plan:** `gh api` returns HTTP 403 ("Upgrade to GitHub Pro or make this repository public") for branch protection and rulesets, because `AndLD/bot-rts` is private on the free plan. Added `scripts/protect-branches.sh` (requires `verify` and `pr-title`, no force-push or deletion, no required approvals while the project is solo) so the settings can be applied with one command later. "Automatically delete head branches" is already off (`delete_branch_on_merge: false`). Until then, the Conventional Commits rule is enforced by the `pr-title` check but a red CI does not block merging technically.
+- **Problems / blockers / findings:** needs a decision from the owner: make the repository public, upgrade the plan, or accept convention-only protection.
+- **Next step:** after the decision, run `scripts/protect-branches.sh`, set 0.6 and Phase 0 to ✅ in the plan, then start Phase 1.
+- **Verify with:** `gh api repos/AndLD/bot-rts/branches/develop/protection` (200 once protection is on)

@@ -31,4 +31,4 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/2.1-client-jest-and-thresholds` | 2.1 (Jest part), 2.2, 2.6 | [#44](https://github.com/AndLD/bot-rts/pull/44) | merged |
 | `feature/2.8-coverage-ci-and-pre-push` | 2.8 | [#45](https://github.com/AndLD/bot-rts/pull/45) | merged |
-| `feature/2.7-cypress-e2e` | 2.1 (Cypress), 2.3–2.5 (audit), 2.7 | _PR pending_ | open |
+| `feature/2.7-cypress-e2e` | 2.1 (Cypress), 2.3–2.5 (audit), 2.7 | [#46](https://github.com/AndLD/bot-rts/pull/46) | merged |

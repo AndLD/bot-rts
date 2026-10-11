@@ -47,3 +47,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Phase 2 exit criteria:** coverage ≥ 97 % per package (api 100 %, client 99.7 %); unit, integration and e2e run in CI and locally; `npm test` works.
 - **Next step:** Phase 2 is complete; Phase 3 when requested. The `e2e` job should be added to the required checks of `develop` once it has run green on `develop`.
 - **Verify with:** `npm run db:up && npm run test:coverage && npm run e2e`
+
+### 2026-10-11 — Phase 2 complete
+- All tasks are done and merged (#44, #45, #46); the exit criteria hold: coverage ≥ 97 % per package (api 100 %, client 99.7 %), unit, integration and e2e run in CI and locally, `npm test` is a first-class command.
+- **Next step:** Phase 3 when requested; add the `e2e` job to the required checks of `develop`.

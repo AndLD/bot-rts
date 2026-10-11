@@ -21,7 +21,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | ----- | ------------------------------------ | ------------ | ------ |
 | 0     | Stabilize & CI foundation            | 24           | ✅ Done |
 | 1     | Architecture refactor & NestJS migration | 100       | ✅ Done |
-| 2     | Test infrastructure & coverage backfill | 43        | ⬜ Not started |
+| 2     | Test infrastructure & coverage backfill | 43        | ✅ Done |
 | 3     | Core gameplay foundations            | 76           | ⬜ Not started |
 | 4     | Module system & crafting             | 70           | ⬜ Not started |
 | 5     | Script runtime, scheduler & sandbox  | 104           | ⬜ Not started |

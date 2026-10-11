@@ -56,3 +56,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - Prisma 6 warns that the `package.json#prisma` key is deprecated in favour of `prisma.config.ts` (Prisma 7); migrate when upgrading.
 - **Next step:** task 1.10 (NestJS foundation: bootstrap Nest on the Express adapter, mount the legacy routers, exception filter, `/api/v1`, typed config, logger, `PrismaModule`, health endpoint, import-boundary check).
 - **Verify with:** `npm run db:up && npm run lint && npm run typecheck && npm test && npm run build`
+
+### 2026-10-11 — task 1.8: terminal split into interpreter, hook and UI
+- **Tasks:** 1.8
+- **Branch:** `feature/1.8-split-terminal` — done
+- **Decisions / deviations from the plan:** `client/src/components/Game/Terminal/` now holds `interpreter.ts` (pure: `interpret(input, session)` returns a `TerminalAction`, plus prefix and output formatting), `useTerminal.ts` (state and the effects of the actions: socket calls, logout) and `Terminal.tsx` (UI only). The old effect-driven "waiting for reply" state machine is gone. Output is HTML-escaped by the interpreter (`joinLines`), which closes an XSS hole through bot labels and typed input. The legacy lint override for `Terminal.tsx` was removed.
+- **Problems / blockers / findings:** the client has no test runner until task 2.1, so the interpreter's unit tests are scheduled in task 2.6 (the interpreter was checked by hand through a one-off bundle). Behaviour kept as it was, including the not-yet-implemented `ls` inside a drive and shell-mode code execution.
+- **Next step:** task 1.10 (NestJS foundation).
+- **Verify with:** `npm run lint && npm run typecheck && npm run build -w client`

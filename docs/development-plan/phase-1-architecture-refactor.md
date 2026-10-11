@@ -57,4 +57,4 @@ AGENTS.md §7.1).
 | `feature/1.12-bots-gateway-nest` | 1.12 | [#37](https://github.com/AndLD/bot-rts/pull/37) | ✅ |
 | `feature/1.14-client-structure` | 1.14, 1.15 | [#38](https://github.com/AndLD/bot-rts/pull/38) | ✅ |
 | `feature/1.18-nextjs-migration` | 1.18, 1.18a | [#39](https://github.com/AndLD/bot-rts/pull/39) | ✅ |
-| `feature/1.17-i18n-foundation` | 1.17 | PR_N | ✅ |
+| `feature/1.17-i18n-foundation` | 1.17 | [#40](https://github.com/AndLD/bot-rts/pull/40) | ✅ |

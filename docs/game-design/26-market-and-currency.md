@@ -6,14 +6,26 @@
 
 - The in-game currency is **credits**. Every player has one **wallet** at the **account level** (not tied to a base, so it
   survives base loss and redeploys).
-- **Sources (faucets):** a **starter grant** when the player first deploys a base (default 1,000 credits), and the
-  **system buyer**, which buys resources at fixed **floor prices** from the balance config (placeholder defaults per unit:
-  iron 1, stone 1, wood 1, oil 3, crystal 5, gold 12).
-- **Sinks:** listing and sales fees (§26.4–26.5), and crafting, research and repair fees where the balance config sets
-  them. All rates are tunable configuration.
-- **Ledger:** every change of a wallet or an escrow is an entry in an **append-only double-entry ledger** inside the same
-  engine transaction. The money supply (all wallets plus all escrow) always equals starter grants + system purchases −
-  fees; a reconciliation job checks the invariant and the admin console shows it (§25).
+- **Faucets (credits entering the economy):** a **starter grant** when the player first deploys a base (default 1,000
+  credits), and the **system buyer** (§26.4), which buys resources at fixed **floor prices** from the balance config
+  (placeholder defaults per unit: iron 1, stone 1, wood 1, oil 3, crystal 5, gold 12). The buyer pays from the treasury
+  first and only **mints** new credits within a capped budget (below).
+- **Fees go to the treasury, they never vanish.** Listing and sales fees (§26.4–26.5), and crafting, research and repair fees
+  where the balance config sets them, are **transferred** to the **treasury**, a system account in the ledger that belongs to
+  no player. Credits are therefore only ever moved, never destroyed.
+- **The treasury funds the system buyer.** Every purchase by the system buyer is paid from the treasury, so the fees players
+  pay come back to them as demand for their resources. This closes the loop: the more the players trade and craft, the more
+  the system can buy.
+- **Bounded minting.** When the treasury holds less than its **reserve** (tunable), the buyer may mint the missing credits, but
+  only up to a **daily mint budget** (tunable). When the budget is spent, the buyer pays only what the treasury can afford:
+  its bids are reduced proportionally to the treasury balance and resume as fees arrive. The money supply can therefore grow
+  only through starter grants and the capped mint, never without limit.
+- **Treasury health:** an optional rule scales the floor prices by `clamp(treasury / target, minFactor, 1)`, so a nearly empty
+  treasury lowers the system's bids instead of printing money. Admins tune the reserve, the daily mint budget, the target and
+  the factors, and watch the treasury balance, fees in, purchases out and credits minted per day (§25).
+- **Ledger:** every change of a wallet, an escrow or the treasury is an entry in an **append-only double-entry ledger** inside
+  the same engine transaction. The invariant is: wallets + escrow + treasury = starter grants + credits minted. A
+  reconciliation job checks it and the admin console shows it (§25).
 
 ## 26.2 The market terminal module ✅
 
@@ -43,8 +55,9 @@ market and by transfers (§27).
   tick's collect-then-apply (§12.4, §14.2), so it is deterministic and conflict-free.
 - **Escrow:** a sell order locks the resources and a buy order locks the credits at placement. Cancelling releases them.
   Orders expire after 7 days (tunable).
-- **Fees:** the seller pays a 2 % fee on the value of each trade (tunable).
-- The **system buyer** (§26.1) acts as a standing bid at the floor price for each resource; there is no system seller.
+- **Fees:** the seller pays a 2 % fee on the value of each trade (tunable); it goes to the treasury (§26.1).
+- The **system buyer** (§26.1) acts as a standing bid at the floor price for each resource, paid from the treasury (and a
+  capped mint when the treasury is short); there is no system seller.
 
 ## 26.5 Auctions ✅
 
@@ -56,7 +69,7 @@ market and by transfers (§27).
 - **Settlement:** at the end (or on buy-now) the engine moves the item to the winner's inbox and the credits, minus fees,
   to the seller's wallet. A listing can be cancelled only while it has no bids.
 - **Fees:** a listing fee of 1 % of the starting price (minimum 1 credit, not refunded) and a sales fee of 5 % of the final
-  price (tunable).
+  price (tunable); both go to the treasury (§26.1).
 
 ## 26.6 Selling scripts ✅
 

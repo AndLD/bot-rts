@@ -3,6 +3,12 @@ import { FileRepository } from '../../files/application/file.repository'
 import { MapRepository } from '../../map/application/map.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { UserRepository } from '../../users/application/user.repository'
+import {
+  AuthTokenRepository,
+  CredentialRepository,
+  IdentityRepository,
+  SessionRepository
+} from '../../auth/application/ports'
 
 export const UNIT_OF_WORK = Symbol('UnitOfWork')
 
@@ -12,6 +18,10 @@ export interface Repositories {
   modules: ModuleRepository
   files: FileRepository
   map: MapRepository
+  identities: IdentityRepository
+  credentials: CredentialRepository
+  sessions: SessionRepository
+  authTokens: AuthTokenRepository
 }
 
 export interface UnitOfWork {

@@ -1,9 +1,7 @@
 import express, { Express, RequestHandler } from 'express'
-import jwt from 'jsonwebtoken'
 import { handleError } from '../middlewares/error-handler'
 import { User } from '../src/users/domain/user.entity'
 import { toUserState } from '../src/users/presentation/user.mapper'
-import { accessJwtSecret } from '../utils/jwt'
 import { AuthorizedRequest } from '../middlewares/authorization'
 
 // An Express app with JSON parsing and the real error handler, for HTTP-level tests of routers and middlewares
@@ -15,13 +13,9 @@ export function makeApp(setup: (app: Express) => void) {
   return app
 }
 
-export function signAccessToken(payload: unknown, options: jwt.SignOptions = {}) {
-  return jwt.sign(payload as object, accessJwtSecret, { expiresIn: '5m', ...options })
-}
-
-export function asUser(user: User): RequestHandler {
+export function asUser(user: User, isEmailVerified = true): RequestHandler {
   return (req: AuthorizedRequest, _res, next) => {
-    req.user = toUserState(user)
+    req.user = toUserState(user, isEmailVerified)
     next()
   }
 }

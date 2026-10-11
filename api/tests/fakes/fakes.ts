@@ -11,7 +11,23 @@ import { Repositories, UnitOfWork } from '../../src/persistence/application/unit
 import { Clock } from '../../src/shared/application/clock'
 import { IdGenerator } from '../../src/shared/application/id-generator'
 import { Rng } from '../../src/shared/application/rng'
-import { PasswordHasher } from '../../src/users/application/password-hasher'
+import {
+  AccessTokenClaims,
+  AccessTokenService,
+  AuthMailer,
+  AuthTokenRepository,
+  CredentialRepository,
+  IdentityRepository,
+  PasswordHasher,
+  SecretGenerator,
+  SessionRepository
+} from '../../src/auth/application/ports'
+import { AuthToken, AuthTokenKind } from '../../src/auth/domain/auth-token'
+import { AccessTokenExpiredError } from '../../src/auth/domain/auth.errors'
+import { IdentityLink } from '../../src/auth/domain/identity'
+import { LocalCredential } from '../../src/auth/domain/local-credential'
+import { Session } from '../../src/auth/domain/session'
+import { UnauthorizedError } from '../../src/shared/domain/errors'
 import { UserCountByStatus, UserListQuery, UserPage, UserRepository } from '../../src/users/application/user.repository'
 import { User } from '../../src/users/domain/user.entity'
 import { USER_STATUSES } from '../../../lib/utils/interfaces/users'
@@ -45,6 +61,73 @@ export class FakeHasher implements PasswordHasher {
   }
 }
 
+export class FakeSecretGenerator implements SecretGenerator {
+  private counter = 0
+
+  generate(): string {
+    this.counter += 1
+    return `secret-${this.counter}`
+  }
+
+  hash(secret: string): string {
+    return `h(${secret})`
+  }
+}
+
+export class FakeAccessTokenService implements AccessTokenService {
+  expired = new Set<string>()
+
+  sign({ userId, sessionId }: AccessTokenClaims): string {
+    return `access.${userId}.${sessionId}`
+  }
+
+  verify(token: string): AccessTokenClaims {
+    const [kind, userId, sessionId] = token.split('.')
+
+    if (this.expired.has(token)) {
+      throw new AccessTokenExpiredError()
+    }
+    if (kind !== 'access' || !userId || !sessionId) {
+      throw new UnauthorizedError('The token is invalid')
+    }
+
+    return { userId, sessionId }
+  }
+}
+
+export class RecordingMailer implements AuthMailer {
+  readonly sent: { kind: string; to: string; token: string }[] = []
+  fail = false
+
+  private record(kind: string, to: string, token: string) {
+    if (this.fail) {
+      return Promise.reject(new Error('smtp down'))
+    }
+    this.sent.push({ kind, to, token })
+    return Promise.resolve()
+  }
+
+  sendEmailVerification(to: string, token: string) {
+    return this.record('verification', to, token)
+  }
+
+  sendPasswordReset(to: string, token: string) {
+    return this.record('password-reset', to, token)
+  }
+
+  sendEmailChange(to: string, token: string) {
+    return this.record('email-change', to, token)
+  }
+
+  sendAccountDeletion(to: string, token: string) {
+    return this.record('account-deletion', to, token)
+  }
+
+  last(kind: string) {
+    return [...this.sent].reverse().find((message) => message.kind === kind)
+  }
+}
+
 // Returns the given values in order and repeats the last one
 export class FixedRng implements Rng {
   private index = 0
@@ -60,9 +143,16 @@ export class FixedRng implements Rng {
 
 export class InMemoryUserRepository implements UserRepository {
   readonly items = new Map<string, User>()
+  // Users whose email counts as verified in the list (the real adapter joins the credentials)
+  readonly verified = new Set<string>()
 
   async findById(id: string) {
     return this.items.get(id) ?? null
+  }
+
+  async findListItemById(id: string) {
+    const user = this.items.get(id)
+    return user ? { ...user, isEmailVerified: this.verified.has(id) } : null
   }
 
   async findByEmail(email: string) {
@@ -77,33 +167,134 @@ export class InMemoryUserRepository implements UserRepository {
     this.items.set(user.id, user)
   }
 
-  async list({ status, isActive, email, offset, limit }: UserListQuery): Promise<UserPage> {
-    const matching = [...this.items.values()].filter(
-      (user) =>
-        (status === undefined || user.status === status) &&
-        (isActive === undefined || user.isActive === isActive) &&
-        (email === undefined || user.email === email)
-    )
+  async list({ status, isEmailVerified, email, offset, limit }: UserListQuery): Promise<UserPage> {
+    const matching = [...this.items.values()]
+      .filter((user) => !user.deletedAt)
+      .map((user) => ({ ...user, isEmailVerified: this.verified.has(user.id) }))
+      .filter(
+        (user) =>
+          (status === undefined || user.status === status) &&
+          (isEmailVerified === undefined || user.isEmailVerified === isEmailVerified) &&
+          (email === undefined || user.email === email)
+      )
     return { users: matching.slice(offset, offset + limit), total: matching.length }
   }
 
   async countByStatus(): Promise<UserCountByStatus> {
     const counts = Object.fromEntries(USER_STATUSES.map((status) => [status, 0])) as UserCountByStatus
     for (const user of this.items.values()) {
-      counts[user.status] += 1
+      if (!user.deletedAt) {
+        counts[user.status] += 1
+      }
     }
     return counts
   }
+}
 
-  async deleteInactiveCreatedBefore(date: Date) {
-    let deleted = 0
-    for (const user of [...this.items.values()]) {
-      if (!user.isActive && user.createdAt < date) {
-        this.items.delete(user.id)
-        deleted += 1
+export class InMemoryIdentityRepository implements IdentityRepository {
+  readonly items: IdentityLink[] = []
+
+  async findByIdentity(provider: string, subject: string) {
+    return this.items.find((link) => link.provider === provider && link.subject === subject) ?? null
+  }
+
+  async add(link: IdentityLink) {
+    this.items.push(link)
+  }
+
+  async deleteByUserId(userId: string) {
+    this.items.splice(0, this.items.length, ...this.items.filter((link) => link.userId !== userId))
+  }
+}
+
+export class InMemoryCredentialRepository implements CredentialRepository {
+  readonly items = new Map<string, LocalCredential>()
+
+  async findByUserId(userId: string) {
+    return this.items.get(userId) ?? null
+  }
+
+  async add(credential: LocalCredential) {
+    this.items.set(credential.userId, credential)
+  }
+
+  async update(credential: LocalCredential) {
+    this.items.set(credential.userId, credential)
+  }
+
+  async deleteByUserId(userId: string) {
+    this.items.delete(userId)
+  }
+}
+
+export class InMemorySessionRepository implements SessionRepository {
+  readonly items = new Map<string, Session>()
+
+  async findById(id: string) {
+    return this.items.get(id) ?? null
+  }
+
+  async findByRefreshTokenHash(hash: string) {
+    return [...this.items.values()].find((session) => session.refreshTokenHash === hash) ?? null
+  }
+
+  async add(session: Session) {
+    this.items.set(session.id, session)
+  }
+
+  async update(session: Session) {
+    this.items.set(session.id, session)
+  }
+
+  async revokeAllOfUser(userId: string, now: Date, exceptSessionId?: string) {
+    for (const session of this.items.values()) {
+      if (session.userId === userId && !session.revokedAt && session.id !== exceptSessionId) {
+        this.items.set(session.id, { ...session, revokedAt: now })
       }
     }
-    return deleted
+  }
+
+  async deleteByUserId(userId: string) {
+    for (const session of [...this.items.values()]) {
+      if (session.userId === userId) {
+        this.items.delete(session.id)
+      }
+    }
+  }
+}
+
+export class InMemoryAuthTokenRepository implements AuthTokenRepository {
+  readonly items = new Map<string, AuthToken>()
+
+  async findByHash(hash: string) {
+    return [...this.items.values()].find((token) => token.tokenHash === hash) ?? null
+  }
+
+  async add(token: AuthToken) {
+    this.items.set(token.id, token)
+  }
+
+  async markUsed(id: string, now: Date) {
+    const token = this.items.get(id)
+    if (token) {
+      this.items.set(id, { ...token, usedAt: now })
+    }
+  }
+
+  async expirePending(userId: string, kind: AuthTokenKind, now: Date) {
+    for (const token of this.items.values()) {
+      if (token.userId === userId && token.kind === kind && !token.usedAt && token.expiresAt > now) {
+        this.items.set(token.id, { ...token, expiresAt: now })
+      }
+    }
+  }
+
+  async deleteByUserId(userId: string) {
+    for (const token of [...this.items.values()]) {
+      if (token.userId === userId) {
+        this.items.delete(token.id)
+      }
+    }
   }
 }
 

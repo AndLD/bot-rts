@@ -3,10 +3,7 @@ export interface IAuthPostBody {
   password: string
 }
 
-export interface IAuthPostResponse {
-  result: string
-}
-
-export interface IRefreshPostResponse {
-  result: string
+// Returned by register, login and refresh; the refresh token travels in an HTTP-only cookie
+export interface IAuthTokenResponse {
+  accessToken: string
 }

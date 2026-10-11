@@ -7,39 +7,32 @@ export interface UserPatch {
   name?: string
   subscription?: User['subscription']
   status?: UserStatus
-  isActive?: boolean
-  password?: string
 }
-
-// Fields only an owner may change
-const OWNER_ONLY_FIELDS: readonly (keyof UserPatch)[] = ['status', 'isActive', 'password']
 
 export function isAdmin(status: UserStatus): boolean {
   return status === 'admin' || status === 'owner'
 }
 
-// A user may use the API only when the account exists, is not banned and its email is verified
-export function assertCanUseApi(user: User | null): asserts user is User {
-  if (!user) {
+// An account may use the API when it exists, was not deleted, is not banned and its email is verified. Whether the email
+// is verified is a fact of the identity provider, so the caller passes it in.
+export function assertCanUseApi(user: User | null, isEmailVerified: boolean): asserts user is User {
+  if (!user || user.deletedAt) {
     throw new UnauthorizedError('Unknown user')
   }
   if (user.status === 'banned') {
     throw new UserBannedError()
   }
-  if (!user.isActive) {
+  if (!isEmailVerified) {
     throw new EmailNotVerifiedError()
   }
 }
 
-// Admins edit regular accounts; owners edit everything, and only owners change status, activation and password
+// Admins edit the profile of regular accounts; owners edit everything, and only owners change the status
 export function assertCanUpdate(actorStatus: UserStatus, target: User, patch: UserPatch): void {
   if (actorStatus === 'owner') {
     return
   }
-  if (!isAdmin(actorStatus)) {
-    throw new ForbiddenError()
-  }
-  if (OWNER_ONLY_FIELDS.some((field) => patch[field] !== undefined) || isAdmin(target.status)) {
+  if (!isAdmin(actorStatus) || patch.status !== undefined || isAdmin(target.status)) {
     throw new ForbiddenError()
   }
 }

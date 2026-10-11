@@ -1,6 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common'
 import { AppConfig } from './config/app-config'
 import { ConfigModule } from './config/config.module'
+import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
@@ -23,6 +24,7 @@ export class AppModule {
         PersistenceModule,
         NotificationsModule,
         UsersModule,
+        AuthModule,
         ModulesModule,
         FilesModule,
         MapModule,

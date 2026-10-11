@@ -2,7 +2,18 @@ import { randomUUID } from 'crypto'
 import { PrismaClient } from '@prisma/client'
 import { TEMPLATE_DATABASE, urlForDatabase } from './database-url'
 
-const TABLES = ['known_points', 'map_points', 'files', 'modules', 'bots', 'users']
+const TABLES = [
+  'known_points',
+  'map_points',
+  'files',
+  'modules',
+  'bots',
+  'auth_tokens',
+  'sessions',
+  'local_credentials',
+  'identities',
+  'users'
+]
 
 export interface TestDatabase {
   client: PrismaClient

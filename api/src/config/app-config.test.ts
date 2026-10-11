@@ -1,3 +1,4 @@
+import { DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { ConfigError, loadConfig } from './app-config'
 
 const base = { DATABASE_URL: 'postgresql://botrts:botrts@localhost:5432/botrts' }
@@ -13,7 +14,15 @@ describe('loadConfig', () => {
       corsOrigins: ['http://localhost:5173'],
       worldSeed: undefined,
       world: { resourceChance: 0.2, spawnMaxDistance: 10, spawnAttempts: 20 },
-      smtp: undefined
+      smtp: undefined,
+      auth: {
+        provider: 'local',
+        accessSecret: 'development-only-access-secret',
+        accessTtlSeconds: 600,
+        policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 }
+      },
+      rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20 },
+      trustProxy: false
     })
   })
 
@@ -29,7 +38,13 @@ describe('loadConfig', () => {
       WORLD_RESOURCE_CHANCE: '0.5',
       SMTP_USER: 'u',
       SMTP_PASS: 'p',
-      SMTP_HOST: 'smtp.example.com'
+      SMTP_HOST: 'smtp.example.com',
+      JWT_ACCESS_SECRET: 's3cret',
+      JWT_ACCESS_EXPIRES_IN: '5m',
+      JWT_REFRESH_EXPIRES_IN: '7d',
+      RATE_LIMIT_WINDOW_MS: '60000',
+      RATE_LIMIT_AUTH_MAX: '5',
+      TRUST_PROXY: 'true'
     })
 
     expect(config).toMatchObject({
@@ -40,7 +55,10 @@ describe('loadConfig', () => {
       corsOrigins: ['https://a.example', 'https://b.example'],
       worldSeed: 42,
       world: { resourceChance: 0.5 },
-      smtp: { host: 'smtp.example.com', user: 'u' }
+      smtp: { host: 'smtp.example.com', user: 'u' },
+      auth: { accessSecret: 's3cret', accessTtlSeconds: 300, policy: { sessionTtlMs: 7 * 24 * 3600 * 1000 } },
+      rateLimit: { windowMs: 60000, authMax: 5 },
+      trustProxy: true
     })
   })
 
@@ -52,10 +70,16 @@ describe('loadConfig', () => {
     expect.assertions(4)
 
     try {
-      loadConfig({ NODE_ENV: 'staging', PORT: 'abc', DATABASE_URL: 'mongodb://x' })
+      loadConfig({
+        NODE_ENV: 'staging',
+        PORT: 'abc',
+        DATABASE_URL: 'mongodb://x',
+        AUTH_PROVIDER: 'clerk',
+        JWT_ACCESS_EXPIRES_IN: 'soon'
+      })
     } catch (error) {
       expect(error).toBeInstanceOf(ConfigError)
-      expect((error as ConfigError).problems).toHaveLength(3)
+      expect((error as ConfigError).problems).toHaveLength(5)
       expect((error as ConfigError).message).toContain('NODE_ENV must be one of')
       expect((error as ConfigError).message).toContain('DATABASE_URL')
     }
@@ -67,17 +91,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, PORT: '1.5' })).toThrow('PORT')
   })
 
-  it('requires the JWT secrets in production', () => {
+  it('requires the access token secret in production', () => {
     expect(() => loadConfig({ ...base, NODE_ENV: 'production' })).toThrow('JWT_ACCESS_SECRET is required in production')
 
-    expect(
-      loadConfig({
-        ...base,
-        NODE_ENV: 'production',
-        JWT_ACCESS_SECRET: 'a',
-        JWT_REFRESH_SECRET: 'b',
-        JWT_EMAIL_VERIFICATION_SECRET: 'c'
-      }).nodeEnv
-    ).toBe('production')
+    expect(loadConfig({ ...base, NODE_ENV: 'production', JWT_ACCESS_SECRET: 'a' }).nodeEnv).toBe('production')
+  })
+
+  it('falls back on a malformed rate limit maximum', () => {
+    expect(loadConfig({ ...base, RATE_LIMIT_AUTH_MAX: 'many' }).rateLimit.authMax).toBe(20)
+    expect(loadConfig({ ...base, RATE_LIMIT_AUTH_MAX: '-3' }).rateLimit.authMax).toBe(20)
   })
 })

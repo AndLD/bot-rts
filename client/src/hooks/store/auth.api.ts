@@ -34,7 +34,7 @@ export function useRefreshToken(callback?: () => void) {
     refreshTokenMutation()
       .then((value: any) => {
         if (value.data) {
-          const token = value.data.result
+          const token = value.data.accessToken
           if (token) {
             dispatch(appSlice.actions.setToken(token))
           }

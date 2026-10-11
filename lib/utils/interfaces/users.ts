@@ -85,17 +85,11 @@ export interface IFetchUsersResponse {
   }
 }
 
-export interface IUserPostResponse {
-  result: string
-}
-
-// Fields `status`, `active` and `password` can be changed by an owner only
+// The `status` can be changed by an owner only
 export interface IUserPutBody {
   name?: string
   subscription?: Subscription
   status?: UserStatus
-  active?: boolean
-  password?: string
 }
 
 export interface IUsersFilter {

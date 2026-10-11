@@ -10,7 +10,7 @@ describe('presentation mappers', () => {
   it('maps a user to the client identity without secrets', () => {
     const user = buildUser({ updatedAt: new Date(5) })
 
-    expect(toUserState(user)).toEqual({
+    expect(toUserState(user, true)).toEqual({
       _id: user.id,
       name: 'Alice',
       email: user.email,
@@ -20,8 +20,8 @@ describe('presentation mappers', () => {
       createdAt: user.createdAt.getTime(),
       updatedAt: 5
     })
-    expect(JSON.stringify(toUserInfo(user))).not.toContain('hash')
-    expect(toUserState(buildUser()).updatedAt).toBeUndefined()
+    expect(JSON.stringify(toUserInfo(user, true))).not.toContain('hash')
+    expect(toUserState(buildUser(), false).updatedAt).toBeUndefined()
   })
 
   it('maps bots, leaving out empty links', () => {

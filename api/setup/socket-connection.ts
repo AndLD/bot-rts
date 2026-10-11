@@ -15,7 +15,7 @@ export function setupSocketServer(server: httpServer.Server, services: AppServic
     }
   })
 
-  io.use(createIsSocketAuthorized(services.users))
+  io.use(createIsSocketAuthorized(services.auth))
 
   io.on('connection', async (socket) => {
     const socketId = socket.id

@@ -1,64 +1,34 @@
 import { Navigate, RouteObject, useRoutes } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useCurrentUser } from '../hooks/auth'
+import Blocked from '../pages/Blocked'
 import privateRoutes from '../routes/private'
 import publicRoutes from '../routes/public'
-// import Forbidden from '../pages/Forbidden'
-import { IUserState } from '@lib/utils/interfaces/users.ts'
-import { parseUser } from '../utils/jwt'
-import { useToken } from '../hooks/auth'
-// import { layoutContext } from '../context'
-// import useLayoutContext from '../hooks/pages/layout'
-import { inactiveRoutes } from '../routes/inactive.tsx'
+import { inactiveRoutes } from '../routes/inactive'
+
+const BLOCKED_ROUTES: RouteObject[] = [{ path: '/blocked', element: <Blocked /> }]
 
 export default function AppRoutes() {
-  const token = useToken()
+  const currentUser = useCurrentUser()
 
-  const [routes, setRoutes] = useState<RouteObject[]>([])
-  const [redirectRoute, setRedirectRoute] = useState<string | null>(null)
-
-  useEffect(() => {
-    const user: IUserState | null = parseUser(token)
-
-    if (user && !user.active) {
-      setRoutes(inactiveRoutes)
-      setRedirectRoute('/forbidden')
-      return
-    }
-
-    if (user) {
-      if (user.status === 'owner' || user.status === 'admin') {
-        setRoutes(privateRoutes)
-        setRedirectRoute('/game')
-      } else if (user.status === 'user' || user.status === 'unlimited') {
-        setRoutes(privateRoutes)
-
-        setRedirectRoute('/game')
-      } else {
-        // setRoutes([{ path: '/forbidden', element: <Forbidden /> }])
-        // setRedirectRoute('/forbidden')
-      }
-    } else {
-      setRoutes(publicRoutes)
-      setRedirectRoute('/auth')
-    }
-  }, [token])
-
+  const { routes, redirect } = getRoutes(currentUser.state)
   const routing = useRoutes(
-    redirectRoute
-      ? [
-          ...routes,
-          {
-            path: '*',
-            element: <Navigate replace to={redirectRoute} />
-          }
-        ]
-      : routes
+    routes.length ? [...routes, { path: '*', element: <Navigate replace to={redirect} /> }] : []
   )
 
-  return (
-    // <clustersContext.Provider value={useClustersContextValue()}>
-    //     <layoutContext.Provider value={useLayoutContext()}>{routing}</layoutContext.Provider>
-    // </clustersContext.Provider>
-    <>{routing}</>
-  )
+  return <>{routing}</>
+}
+
+function getRoutes(state: ReturnType<typeof useCurrentUser>['state']): { routes: RouteObject[]; redirect: string } {
+  switch (state) {
+    case 'loading':
+      return { routes: [], redirect: '' }
+    case 'active':
+      return { routes: privateRoutes, redirect: '/game' }
+    case 'unverified':
+      return { routes: inactiveRoutes, redirect: '/forbidden' }
+    case 'blocked':
+      return { routes: BLOCKED_ROUTES, redirect: '/blocked' }
+    default:
+      return { routes: publicRoutes, redirect: '/auth' }
+  }
 }

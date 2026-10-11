@@ -1,10 +1,26 @@
+import { AuthPolicy, DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { WorldConfig } from '../map/domain/world-config'
+import { convertTimeStringToMilliseconds } from '../shared/domain/duration'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 
 export const APP_CONFIG = Symbol('AppConfig')
 
 export type NodeEnv = 'development' | 'test' | 'production'
+
+export interface AuthConfig {
+  // Which identity adapter verifies tokens (AGENTS.md §3.3); `local` is the custom email + password provider
+  provider: 'local'
+  accessSecret: string
+  accessTtlSeconds: number
+  policy: AuthPolicy
+}
+
+export interface RateLimitConfig {
+  windowMs: number
+  // Requests per window for the sensitive auth routes (register, login, refresh, password and email flows)
+  authMax: number
+}
 
 export interface AppConfig {
   nodeEnv: NodeEnv
@@ -17,6 +33,10 @@ export interface AppConfig {
   worldSeed: number | undefined
   world: WorldConfig
   smtp: SmtpConfig | undefined
+  auth: AuthConfig
+  rateLimit: RateLimitConfig
+  // Trust X-Forwarded-* headers of a reverse proxy (needed for per-client rate limits behind one)
+  trustProxy: boolean
 }
 
 type Env = Record<string, string | undefined>
@@ -29,8 +49,24 @@ export class ConfigError extends Error {
 }
 
 const NODE_ENVS: readonly NodeEnv[] = ['development', 'test', 'production']
-// Secrets of the JWT module that must be set explicitly in production (it falls back to dev values otherwise)
-const PRODUCTION_SECRETS = ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'JWT_EMAIL_VERIFICATION_SECRET']
+const AUTH_PROVIDERS = ['local'] as const
+const DEV_ACCESS_SECRET = 'development-only-access-secret'
+
+// "10m", "24h", "30d" or "500ms" -> milliseconds; a malformed value is reported as a problem
+function duration(value: string | undefined, fallback: string, name: string, problems: string[]): number {
+  const ms = convertTimeStringToMilliseconds(value || fallback)
+
+  if (ms <= 0) {
+    problems.push(`${name} must be a duration like 10m, 24h or 30d`)
+  }
+
+  return ms
+}
+
+function positiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+}
 
 function list(value: string | undefined): string[] {
   return (value ?? '')
@@ -57,13 +93,23 @@ export function loadConfig(env: Env): AppConfig {
     problems.push('DATABASE_URL must be a postgresql:// connection string')
   }
 
-  if (nodeEnv === 'production') {
-    for (const name of PRODUCTION_SECRETS) {
-      if (!env[name]) {
-        problems.push(`${name} is required in production`)
-      }
-    }
+  if (nodeEnv === 'production' && !env.JWT_ACCESS_SECRET) {
+    problems.push('JWT_ACCESS_SECRET is required in production')
   }
+
+  const provider = env.AUTH_PROVIDER || 'local'
+  if (!AUTH_PROVIDERS.includes(provider as (typeof AUTH_PROVIDERS)[number])) {
+    problems.push(`AUTH_PROVIDER must be one of ${AUTH_PROVIDERS.join(', ')}`)
+  }
+
+  const accessTtl = duration(env.JWT_ACCESS_EXPIRES_IN, '10m', 'JWT_ACCESS_EXPIRES_IN', problems)
+  const sessionTtl = duration(env.JWT_REFRESH_EXPIRES_IN, '30d', 'JWT_REFRESH_EXPIRES_IN', problems)
+  const rateWindow = duration(
+    env.RATE_LIMIT_WINDOW_MS ? `${env.RATE_LIMIT_WINDOW_MS}ms` : undefined,
+    '15m',
+    'RATE_LIMIT_WINDOW_MS',
+    problems
+  )
 
   if (problems.length) {
     throw new ConfigError(problems)
@@ -81,6 +127,14 @@ export function loadConfig(env: Env): AppConfig {
     corsOrigins: list(env.WHITELIST_URLS).length ? list(env.WHITELIST_URLS) : [frontendUrl],
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
     world: readWorldConfig(env),
-    smtp: readSmtpConfig(env)
+    smtp: readSmtpConfig(env),
+    auth: {
+      provider: provider as AuthConfig['provider'],
+      accessSecret: env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
+      accessTtlSeconds: Math.floor(accessTtl / 1000),
+      policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl }
+    },
+    rateLimit: { windowMs: rateWindow, authMax: positiveInt(env.RATE_LIMIT_AUTH_MAX, 20) },
+    trustProxy: env.TRUST_PROXY === 'true'
   }
 }

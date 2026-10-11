@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { IAuthTokenResponse } from '@lib/utils/interfaces/auth'
 import {
   IFetchUsersResponse,
   IUsersFilter,
   IUserPostBody,
-  IUserPostResponse,
   IUserPutBody,
   IUserPutResponse
 } from '@lib/utils/interfaces/users'
@@ -17,7 +17,7 @@ export const privateUsersApi = createApi({
     putUser: builder.mutation<IUserPutResponse, { id: string; body: IUserPutBody }>({
       query: ({ id, body }) => ({
         method: 'PUT',
-        url: `/api/private/users/${id}`,
+        url: `/api/v1/users/${id}`,
         body
       })
     }),
@@ -29,7 +29,7 @@ export const privateUsersApi = createApi({
       }
     >({
       query: ({ pagination, filter }) => ({
-        url: '/api/private/users',
+        url: '/api/v1/users',
         params: {
           page: pagination.current,
           results: pagination.pageSize,
@@ -49,17 +49,16 @@ export const publicUsersApi = createApi({
   endpoints: (builder) => ({
     fetchVerifyEmail: builder.query<void, { emailVerificationToken: string | null }>({
       query: ({ emailVerificationToken }) => ({
-        url: '/api/public/users/verify',
-        params: {
-          token: emailVerificationToken
-        },
+        method: 'POST',
+        url: '/api/v1/auth/email/verify',
+        body: { token: emailVerificationToken },
         responseHandler: 'text'
       })
     }),
-    postUser: builder.mutation<IUserPostResponse, IUserPostBody>({
+    postUser: builder.mutation<IAuthTokenResponse, IUserPostBody>({
       query: (body) => ({
         method: 'POST',
-        url: '/api/public/users',
+        url: '/api/v1/auth/register',
         body
       })
     })

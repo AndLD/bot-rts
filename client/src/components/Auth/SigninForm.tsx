@@ -14,7 +14,7 @@ export default function SigninForm() {
   function onFinish(user: IAuthPostBody) {
     login(user).then((value: any) => {
       if (value.data) {
-        const token = value.data.result
+        const token = value.data.accessToken
         dispatch(appSlice.actions.setToken(token))
       } else {
         const error = value.error?.msg || value.error?.data?.error

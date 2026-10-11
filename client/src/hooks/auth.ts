@@ -1,40 +1,51 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { appSlice } from '../store/app.reducer'
-import { useVerifyTokenQuery } from '../store/auth.api.ts'
-import { isJwtExpired } from '../utils/jwt'
+import { skipToken } from '@reduxjs/toolkit/query'
+import { ErrorCode } from '@lib/utils/error-codes'
+import { IUserInfo } from '@lib/utils/interfaces/users'
+import { useGetMeQuery } from '../store/auth.api.ts'
 import { useAppDispatch, useAppSelector } from './store'
-import { useRefreshToken } from './store/auth.api'
 import { API_URL } from '../utils/constants.ts'
 import { io } from 'socket.io-client'
 import axios from 'axios'
 import { SOCKET_TOKEN_EXPIRED } from '@lib/utils/constants'
 
-export function useAuth() {
+export type CurrentUser =
+  { state: 'anonymous' | 'loading' | 'unverified' | 'blocked' } | { state: 'active'; user: IUserInfo }
+
+interface ApiErrorBody {
+  status?: number
+  data?: { code?: string }
+}
+
+// The player behind the access token, as the server sees them right now
+export function useCurrentUser(): CurrentUser {
   const dispatch = useAppDispatch()
   const token = useToken()
-  const [isVerifyTokenSkip, setIsVerifyTokenSkip] = useState<boolean>(true)
-
-  const verifyTokenQuery = useVerifyTokenQuery(undefined, {
-    skip: isVerifyTokenSkip
-  })
-  const refreshToken = useRefreshToken()
+  const { data, error, isLoading } = useGetMeQuery(token ?? skipToken)
+  const failure = error as ApiErrorBody | undefined
+  const isTokenRejected = failure?.status === 401
 
   useEffect(() => {
-    if (token) {
-      if (isJwtExpired(token)) {
-        refreshToken()
-      } else {
-        dispatch(appSlice.actions.setToken(token))
-        setIsVerifyTokenSkip(false)
-      }
+    if (isTokenRejected) {
+      dispatch(appSlice.actions.setToken(null))
     }
-  }, [])
+  }, [isTokenRejected, dispatch])
 
-  useEffect(() => {
-    if (verifyTokenQuery.isLoading) {
-      setIsVerifyTokenSkip(true)
-    }
-  }, [verifyTokenQuery.isLoading])
+  if (!token || isTokenRejected) {
+    return { state: 'anonymous' }
+  }
+  if (data) {
+    return { state: 'active', user: data }
+  }
+  if (failure?.data?.code === ErrorCode.EMAIL_NOT_VERIFIED) {
+    return { state: 'unverified' }
+  }
+  if (failure?.data?.code === ErrorCode.USER_BANNED) {
+    return { state: 'blocked' }
+  }
+
+  return { state: isLoading ? 'loading' : 'anonymous' }
 }
 
 export function useToken() {
@@ -73,10 +84,8 @@ export function useSocketServer() {
 
       try {
         // Refresh the access token
-        const response = await axios.get(`${API_URL}/api/public/auth/refresh`, {
-          withCredentials: true
-        })
-        const token = response.data.result
+        const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, undefined, { withCredentials: true })
+        const token = response.data.accessToken
 
         if (token) {
           dispatch(appSlice.actions.setToken(token))

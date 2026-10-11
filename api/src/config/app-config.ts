@@ -1,6 +1,8 @@
 import { AuthPolicy, DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { WorldConfig } from '../map/domain/world-config'
 import { convertTimeStringToMilliseconds } from '../shared/domain/duration'
+import { SpawnConfig } from '../spawn/domain/spawn-config'
+import { readSpawnConfig } from '../spawn/infrastructure/spawn-config.reader'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
@@ -33,6 +35,7 @@ export interface AppConfig {
   corsOrigins: string[]
   worldSeed: number | undefined
   world: WorldConfig
+  spawn: SpawnConfig
   terminal: TerminalRetention
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
@@ -133,6 +136,7 @@ export function loadConfig(env: Env): AppConfig {
     corsOrigins: list(env.WHITELIST_URLS).length ? list(env.WHITELIST_URLS) : [frontendUrl],
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
     world,
+    spawn: readSpawnConfig(env),
     terminal: {
       logDays: positiveInt(env.TERMINAL_LOG_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.logDays),
       maxLinesPerBot: positiveInt(env.TERMINAL_LOG_MAX_LINES, DEFAULT_TERMINAL_RETENTION.maxLinesPerBot),

@@ -35,7 +35,7 @@ export class BotsController {
   async deployBase(@CurrentPrincipal() { user }: Principal, @Body() body: DeployBaseDto): Promise<DeployedBaseDto> {
     const { bot, modules, mapPoint } = await this.bots.deployUserBase(
       { id: user.id, name: user.name },
-      { password: body.password }
+      { password: body.password, seedCode: body.spawnSeed }
     )
 
     return { bot: toBotDto(bot), modules: modules.map(toModuleDto), mapPoint: toMapPointDto(mapPoint) }

@@ -4,7 +4,8 @@ import { PASSWORD_HASHER, PasswordHasher } from '../auth/application/ports'
 import { AuthModule } from '../auth/auth.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
 import { MapService } from '../map/application/map.service'
-import { WORLD_CONFIG, WorldConfig } from '../map/domain/world-config'
+import { SpawnModule } from '../spawn/spawn.module'
+import { SpawnService } from '../spawn/application/spawn.service'
 import { MapModule } from '../map/map.module'
 import { MODULE_REPOSITORY, ModuleRepository } from '../modules/application/module.repository'
 import { ModuleRegistry } from '../modules/domain/module-registry'
@@ -14,7 +15,6 @@ import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-wor
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
-import { RNG, Rng } from '../shared/application/rng'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BaseLifecycle } from './application/base-lifecycle'
 import { BotsService } from './application/bots.service'
@@ -24,7 +24,7 @@ import { BotsController } from './presentation/bots.controller'
 import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
-  imports: [AuthModule, MapModule, ModulesModule],
+  imports: [AuthModule, MapModule, ModulesModule, SpawnModule],
   controllers: [BotsController],
   providers: [
     BotsGateway,
@@ -45,25 +45,23 @@ import { BotsGateway } from './presentation/bots.gateway'
         BOT_REPOSITORY,
         MODULE_REPOSITORY,
         ID_GENERATOR,
-        RNG,
         CLOCK,
-        WORLD_CONFIG,
         PASSWORD_HASHER,
         ModuleFactory,
-        BaseLifecycle
+        BaseLifecycle,
+        SpawnService
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotRepository,
         modules: ModuleRepository,
         ids: IdGenerator,
-        rng: Rng,
         clock: Clock,
-        world: WorldConfig,
         hasher: PasswordHasher,
         moduleFactory: ModuleFactory,
-        lifecycle: BaseLifecycle
-      ) => new BotsService(unitOfWork, bots, modules, ids, rng, clock, world, hasher, moduleFactory, lifecycle)
+        lifecycle: BaseLifecycle,
+        spawn: SpawnService
+      ) => new BotsService(unitOfWork, bots, modules, ids, clock, hasher, moduleFactory, lifecycle, spawn)
     },
     {
       provide: ScanService,

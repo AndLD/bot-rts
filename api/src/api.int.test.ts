@@ -384,6 +384,32 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(1)
   })
 
+  it('starts players with the same spawn seed near each other and keeps strangers away', async () => {
+    const [alice, bob, carol] = [
+      await signUp('alice@example.com'),
+      await signUp('bob@example.com', 'Bob'),
+      await signUp('carol@example.com', 'Carol')
+    ]
+    const deploy = (player: { accessToken: string }, body: object) =>
+      api()
+        .post('/api/v1/bots/base')
+        .set(bearer(player.accessToken))
+        .send({ password: 'secret1', ...body })
+    const where = async (response: { body: { mapPoint: { location: { x: number; y: number } } } }) =>
+      response.body.mapPoint.location
+
+    await deploy(alice, { spawnSeed: 'x' }).expect(400)
+    const first = await where(await deploy(alice, { spawnSeed: 'ALPHA-7K2' }).expect(201))
+    const second = await where(await deploy(bob, { spawnSeed: 'alpha-7k2' }).expect(201))
+    const stranger = await where(await deploy(carol, {}).expect(201))
+
+    const chebyshev = (a: typeof first, b: typeof first) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y))
+    expect(chebyshev(first, second)).toBeLessThanOrEqual(12)
+    expect(chebyshev(first, stranger)).toBeGreaterThanOrEqual(30)
+    expect(chebyshev(second, stranger)).toBeGreaterThanOrEqual(30)
+    expect(await database.client.spawnSeedMember.count({ where: { seedCode: 'ALPHA-7K2' } })).toBe(2)
+  })
+
   it('manages the files of a drive over HTTP', async () => {
     const { accessToken } = await signUp('alice@example.com')
     const botId = (

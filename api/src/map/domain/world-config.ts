@@ -8,10 +8,6 @@ export interface WorldConfig {
   resourceChance: number
   // Spawn weight, deposit size and hardness per resource (design §9.1)
   resources: ResourceBalance
-  // A new base appears within this distance (inclusive) of the origin on both axes
-  spawnMaxDistance: number
-  // How many random cells are tried before a base spawn fails
-  spawnAttempts: number
 }
 
 export const WORLD_CONFIG = Symbol('WorldConfig')
@@ -19,7 +15,5 @@ export const WORLD_CONFIG = Symbol('WorldConfig')
 export const DEFAULT_WORLD_CONFIG: WorldConfig = {
   chunkSize: 16,
   resourceChance: 0.2,
-  resources: DEFAULT_RESOURCE_BALANCE,
-  spawnMaxDistance: 10,
-  spawnAttempts: 20
+  resources: DEFAULT_RESOURCE_BALANCE
 }

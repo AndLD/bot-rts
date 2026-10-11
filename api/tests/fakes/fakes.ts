@@ -8,6 +8,9 @@ import { KnownPoint, Location, LocationRange, MapPoint } from '../../src/map/dom
 import { TerminalSessionRepository } from '../../src/terminal/application/terminal-session.repository'
 import { TerminalLogEntry, TerminalSession } from '../../src/terminal/domain/terminal-session'
 import { TERMINAL_LOG_KIND } from '../../../lib/utils/interfaces/terminal'
+import { MapPointType } from '../../../lib/utils/interfaces/map'
+import { SpawnSeedRepository } from '../../src/spawn/application/spawn-seed.repository'
+import { SpawnSeed, SpawnSeedMember } from '../../src/spawn/domain/spawn-seed'
 import { Module } from '../../src/modules/domain/module.entity'
 import { ModuleRepository } from '../../src/modules/application/module.repository'
 import { Repositories, UnitOfWork } from '../../src/persistence/application/unit-of-work'
@@ -380,6 +383,18 @@ export class InMemoryMapRepository implements MapRepository {
     return [...this.points.values()].find((point) => point.contentId === contentId) ?? null
   }
 
+  async findBasePointsInRange(range: LocationRange) {
+    return (await this.findPointsInRange(range)).filter(
+      (point) => point.type === MapPointType.BASE || point.type === MapPointType.CORPSE_BASE
+    )
+  }
+
+  async countBases() {
+    return [...this.points.values()].filter(
+      (point) => point.type === MapPointType.BASE || point.type === MapPointType.CORPSE_BASE
+    ).length
+  }
+
   async addPoints(points: MapPoint[]) {
     for (const point of points) {
       if (!this.points.has(keyOf(point.location))) {
@@ -446,6 +461,32 @@ export class InMemoryTerminalSessionRepository implements TerminalSessionReposit
     const ordinary = this.logs.filter((entry) => entry.botId === botId && entry.kind !== TERMINAL_LOG_KIND.SECURITY)
     const dropped = new Set(ordinary.slice(0, Math.max(0, ordinary.length - keep)))
     this.logs = this.logs.filter((entry) => !dropped.has(entry))
+  }
+}
+
+export class InMemorySpawnSeedRepository implements SpawnSeedRepository {
+  readonly seeds = new Map<string, SpawnSeed>()
+  readonly members: SpawnSeedMember[] = []
+
+  async find(code: string) {
+    return this.seeds.get(code) ?? null
+  }
+
+  async add(seed: SpawnSeed) {
+    this.seeds.set(seed.code, seed)
+  }
+
+  async membersOf(code: string) {
+    return this.members.filter((member) => member.seedCode === code)
+  }
+
+  async saveMember(member: SpawnSeedMember) {
+    const index = this.members.findIndex((m) => m.seedCode === member.seedCode && m.userId === member.userId)
+    if (index === -1) {
+      this.members.push(member)
+    } else {
+      this.members[index] = member
+    }
   }
 }
 

@@ -25,3 +25,6 @@ export const BOT_PASSWORD_MAX_LENGTH = 64
 export function isValidBotPassword(value: string): boolean {
   return value.length >= BOT_PASSWORD_MIN_LENGTH && value.length <= BOT_PASSWORD_MAX_LENGTH
 }
+
+// A spawn seed code such as ALPHA-7K2 (design §22.3): 3-24 letters, digits or dashes, not starting with a dash
+export const SPAWN_SEED_PATTERN = /^[A-Z0-9][A-Z0-9-]{2,23}$/i

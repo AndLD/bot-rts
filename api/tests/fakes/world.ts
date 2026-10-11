@@ -1,3 +1,5 @@
+import { SpawnService } from '../../src/spawn/application/spawn.service'
+import { DEFAULT_SPAWN_CONFIG, SpawnConfig } from '../../src/spawn/domain/spawn-config'
 import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
@@ -22,6 +24,7 @@ import {
   InMemorySessionRepository,
   InMemoryFileRepository,
   InMemoryMapRepository,
+  InMemorySpawnSeedRepository,
   InMemoryModuleRepository,
   InMemoryTerminalSessionRepository,
   InMemoryUserRepository,
@@ -30,7 +33,12 @@ import {
 
 // Everything a use-case test needs, wired with fakes
 export function createWorld(
-  options: { rng?: Rng; config?: Partial<WorldConfig>; retention?: Partial<TerminalRetention> } = {}
+  options: {
+    rng?: Rng
+    config?: Partial<WorldConfig>
+    spawn?: Partial<SpawnConfig>
+    retention?: Partial<TerminalRetention>
+  } = {}
 ) {
   const repositories = {
     users: new InMemoryUserRepository(),
@@ -38,6 +46,7 @@ export function createWorld(
     modules: new InMemoryModuleRepository(),
     files: new InMemoryFileRepository(),
     map: new InMemoryMapRepository(),
+    spawnSeeds: new InMemorySpawnSeedRepository(),
     identities: new InMemoryIdentityRepository(),
     credentials: new InMemoryCredentialRepository(),
     sessions: new InMemorySessionRepository(),
@@ -52,17 +61,18 @@ export function createWorld(
   const terminalSessions = new InMemoryTerminalSessionRepository()
   const moduleFactory = new ModuleFactory(ids)
   const moduleRegistry = createModuleRegistry()
+  const spawnConfig = { ...DEFAULT_SPAWN_CONFIG, ...options.spawn }
+  const spawnService = new SpawnService(rng, clock, spawnConfig)
   const botsService = new BotsService(
     unitOfWork,
     repositories.bots,
     repositories.modules,
     ids,
-    rng,
     clock,
-    config,
     new FakeHasher(),
     moduleFactory,
-    new BaseLifecycle(moduleRegistry)
+    new BaseLifecycle(moduleRegistry),
+    spawnService
   )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids, moduleRegistry)
   const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, {
@@ -76,6 +86,8 @@ export function createWorld(
     clock,
     ids,
     config,
+    spawnConfig,
+    spawnService,
     mapService: new MapService(unitOfWork, ids, new MapGenerator(rng, config), clock, config.chunkSize),
     botsService,
     moduleFactory,

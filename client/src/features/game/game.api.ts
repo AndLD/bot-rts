@@ -13,7 +13,7 @@ export const gameApi = createApi({
       providesTags: ['Bases']
     }),
     // Deploys the first base of the player with its access password (design §5, §11.2.2)
-    deployBase: builder.mutation<unknown, { password: string }>({
+    deployBase: builder.mutation<unknown, { password: string; spawnSeed?: string }>({
       query: (body) => ({ method: 'POST', url: '/api/v1/bots/base', body }),
       invalidatesTags: ['Bases']
     })

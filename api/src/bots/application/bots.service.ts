@@ -2,19 +2,17 @@ import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
 import { BOT_PASSWORD_MAX_LENGTH, BOT_PASSWORD_MIN_LENGTH, isValidBotPassword } from '../../../../lib/utils/validation'
 import { PasswordHasher } from '../../auth/application/ports'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
-import { MapRepository } from '../../map/application/map.repository'
 import { KnownPoint, Location, MapPoint } from '../../map/domain/map-point.entity'
-import { WorldConfig } from '../../map/domain/world-config'
+import { SpawnService } from '../../spawn/application/spawn.service'
 import { ModuleFactory } from '../../modules/application/module.factory'
 import { ModuleTemplate } from '../../modules/domain/module-catalog'
 import { Module } from '../../modules/domain/module.entity'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
-import { Rng } from '../../shared/application/rng'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { Bot } from '../domain/bot.entity'
-import { BaseAlreadyExistsError, BaseLostError, NoFreeLocationError } from '../domain/bot.errors'
+import { BaseAlreadyExistsError, BaseLostError } from '../domain/bot.errors'
 import { BaseLifecycle } from './base-lifecycle'
 import { BotRepository } from './bot.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
@@ -31,19 +29,18 @@ export class BotsService {
     private readonly bots: BotRepository,
     private readonly modules: ModuleRepository,
     private readonly ids: IdGenerator,
-    private readonly rng: Rng,
     private readonly clock: Clock,
-    private readonly world: WorldConfig,
     private readonly hasher: PasswordHasher,
     private readonly moduleFactory: ModuleFactory,
-    private readonly lifecycle: BaseLifecycle
+    private readonly lifecycle: BaseLifecycle,
+    private readonly spawn: SpawnService
   ) {}
 
   // Creates the first base of a player on a free cell, with the starting equipment and the access password others
   // need to connect to it
   async deployUserBase(
     user: { id: string; name: string },
-    options: { password: string; location?: Location }
+    options: { password: string; location?: Location; seedCode?: string }
   ): Promise<DeployedBase> {
     if (!isValidBotPassword(options.password)) {
       throw new ValidationError(
@@ -51,7 +48,6 @@ export class BotsService {
       )
     }
     const passwordHash = await this.hasher.hash(options.password)
-    const { location } = options
 
     return this.unitOfWork.run(async (repositories) => {
       // One living base per player; a corpse base does not count (design §6.3)
@@ -67,7 +63,9 @@ export class BotsService {
         baseId: null,
         passwordHash
       }
-      const spot = location ?? (await this.findFreeLocation(repositories.map))
+      const placement = options.location
+        ? { location: options.location, seed: null }
+        : await this.spawn.chooseBaseLocation(repositories, { userId: user.id, seedCode: options.seedCode })
 
       await repositories.bots.add(bot)
       const modules = this.moduleFactory.starterKit(bot.id)
@@ -75,7 +73,7 @@ export class BotsService {
 
       const mapPoint = await repositories.map.upsertPoint({
         id: this.ids.next(),
-        location: spot,
+        location: placement.location,
         type: MapPointType.BASE,
         contentId: bot.id,
         resource: null
@@ -87,18 +85,19 @@ export class BotsService {
         seenAt: this.clock.now().getTime()
       }
       await repositories.map.upsertKnownPoints([known])
+      await this.spawn.joinSeed(repositories, placement, { userId: user.id, baseId: bot.id })
       await this.lifecycle.markCorpses(user.id, repositories)
 
       return { bot, modules, mapPoint }
     })
   }
 
-  // A new ordinary bot of one of the player's bases, built from the given modules. It is not on the map yet: its
-  // placement next to the base belongs to the assembly (design §8.3).
+  // A new ordinary bot of one of the player's bases, built from the given modules, placed on a free cell next to the
+  // base (design §8.3); with no free cell the bot is not created
   async createBot(
     userId: string,
     input: { baseId: string; label: string | null; modules: readonly ModuleTemplate[] }
-  ): Promise<{ bot: Bot; modules: Module[] }> {
+  ): Promise<{ bot: Bot; modules: Module[]; mapPoint: MapPoint }> {
     const base = await this.getControlledBot(userId, input.baseId)
     if (base.type !== BOT_TYPE.BASE) {
       throw new ValidationError('A bot belongs to a base, not to another bot')
@@ -119,7 +118,24 @@ export class BotsService {
       await repositories.bots.add(bot)
       const modules = input.modules.map((template) => this.moduleFactory.fromTemplate(template, bot.id))
       await repositories.modules.addMany(modules)
-      return { bot, modules }
+
+      const basePoint = await repositories.map.findPointByContentId(base.id)
+      if (!basePoint) {
+        throw new NotFoundError('The base is not on the map')
+      }
+      const cell = await this.spawn.findAdjacentCell(repositories, basePoint.location)
+      const mapPoint = await repositories.map.upsertPoint({
+        id: this.ids.next(),
+        location: cell,
+        type: MapPointType.BOT,
+        contentId: bot.id,
+        resource: null
+      })
+      await repositories.map.upsertKnownPoints([
+        { ...mapPoint, id: this.ids.next(), userId, seenAt: this.clock.now().getTime() }
+      ])
+
+      return { bot, modules, mapPoint }
     })
   }
 
@@ -172,24 +188,5 @@ export class BotsService {
       throw new BaseLostError()
     }
     return bot
-  }
-
-  private async findFreeLocation(map: MapRepository) {
-    const limit = this.world.spawnMaxDistance
-
-    for (let attempt = 0; attempt < this.world.spawnAttempts; attempt += 1) {
-      const location = { x: this.randomInt(limit), y: this.randomInt(limit), z: 0 }
-      const [existing] = await map.findPointsInRange({ from: location, to: location })
-
-      if (!existing?.contentId) {
-        return location
-      }
-    }
-
-    throw new NoFreeLocationError()
-  }
-
-  private randomInt(max: number): number {
-    return Math.floor(this.rng.next() * (max + 1))
   }
 }

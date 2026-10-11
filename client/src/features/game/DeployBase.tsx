@@ -1,6 +1,6 @@
 'use client'
 
-import { BOT_PASSWORD_MAX_LENGTH, BOT_PASSWORD_MIN_LENGTH } from '@lib/utils/validation'
+import { BOT_PASSWORD_MAX_LENGTH, BOT_PASSWORD_MIN_LENGTH, SPAWN_SEED_PATTERN } from '@lib/utils/validation'
 import { Button, Form, Input, Modal } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
@@ -11,6 +11,7 @@ import { useDeployBaseMutation } from './game.api'
 interface DeployForm {
   password: string
   confirmation: string
+  spawnSeed?: string
 }
 
 // The first thing a new player sees: set the access password of the base, confirm, and the base is deployed
@@ -23,7 +24,8 @@ export default function DeployBase() {
 
   async function deploy() {
     try {
-      await deployBase({ password: form.getFieldValue('password') }).unwrap()
+      const seed = form.getFieldValue('spawnSeed')
+      await deployBase({ password: form.getFieldValue('password'), ...(seed && { spawnSeed: seed }) }).unwrap()
     } catch (error) {
       const body = (error as { data?: { code?: string; error?: string } }).data
       errorNotification(getErrorMessage({ code: body?.code, message: body?.error }), t('failed'))
@@ -69,6 +71,16 @@ export default function DeployBase() {
           ]}
         >
           <Input.Password />
+        </Form.Item>
+
+        <Form.Item
+          name="spawnSeed"
+          label={t('spawnSeed')}
+          normalize={(value?: string) => value?.trim()}
+          extra={t('spawnSeedHelp')}
+          rules={[{ pattern: SPAWN_SEED_PATTERN, message: t('spawnSeedInvalid') }]}
+        >
+          <Input autoComplete="off" />
         </Form.Item>
 
         <Button htmlType="submit" type="primary">

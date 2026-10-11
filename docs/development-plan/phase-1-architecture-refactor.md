@@ -28,8 +28,8 @@ The legacy Express routers keep running inside Nest until each feature module is
 | 1.11a | Users / identities data model: domain `User` split from login credentials, with `users`, `identities` and custom-credentials tables in the Prisma schema (no data migration, the prototype data is discarded), removal of the matching legacy routers | 3 | ✅ |
 | 1.12 | Migrate **bots, map, modules, files** features and the **Socket.IO gateway** (`get-user-bases`, `get-user-bots`, `get-bot-modules`, socket auth) to Nest modules/gateways; everything lives under `/api/v1` and the web client uses it; remove the legacy Express routers and setup | 7 | ✅ |
 | 1.13 | Client `AuthClient` interface with a `localAuthClient` over the `/api/v1/auth/*` endpoints and auth hooks; auth forms and RTK Query slices use only the hooks; plus the matching account-management forms | 4 | ⬜ |
-| 1.14 | Client structure cleanup: remove the duplicated `src/store` / `src/hooks/store` folders and dead files, reorganise into feature folders (`auth`, `terminal`, `map`, …), API base URL from env instead of the hardcoded `localhost:8080` | 3 | ⬜ |
-| 1.15 | Move the socket out of Redux state into a typed `SocketProvider`/service (event types shared from `lib`), drop the `serializableCheck` workaround | 3 | ⬜ |
+| 1.14 | Client structure cleanup: remove the duplicated `src/store` / `src/hooks/store` folders and dead files, reorganise into feature folders (`auth`, `terminal`, `map`, …), API base URL from env instead of the hardcoded `localhost:8080` | 3 | ✅ |
+| 1.15 | Move the socket out of Redux state into a typed `SocketProvider`/service (event types shared from `lib`), drop the `serializableCheck` workaround | 3 | ✅ |
 | 1.16 | Move validation rules shared by api and client (name/password patterns) into `lib` as one source of truth; remove duplicated regexes | 2 | ✅ |
 | 1.17 | i18n foundation (after 1.18a): `next-intl`, English source strings and an empty Russian catalogue, namespaces per feature, language detection + switcher, all existing UI strings (currently mixed languages) moved to English keys, CI check for missing keys | 3 | ⬜ |
 | 1.18 | **Next.js migration, part 1**: start with a compatibility spike (React 19, Ant Design 5 with the Next registry, RTK/react-redux, CodeMirror, Socket.IO client, canvas); Next.js app skeleton with route groups `(marketing)` (empty placeholder) and `(game)`, `NEXT_PUBLIC_*` env, `@lib` alias, SCSS, Redux/socket/auth providers as client components | 3 | ⬜ |
@@ -55,3 +55,4 @@ AGENTS.md §7.1).
 | `feature/1.10-nestjs-foundation` | 1.10 | [#35](https://github.com/AndLD/bot-rts/pull/35) | ✅ |
 | `feature/1.11-identity-and-sessions` | 1.11, 1.11a, 1.16 | [#36](https://github.com/AndLD/bot-rts/pull/36) | ✅ |
 | `feature/1.12-bots-gateway-nest` | 1.12 | [#37](https://github.com/AndLD/bot-rts/pull/37) | ✅ |
+| `feature/1.14-client-structure` | 1.14, 1.15 | PR_N | ✅ |

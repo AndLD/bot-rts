@@ -33,3 +33,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.3 (indexes and constraints; query helpers).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.3: indexes and constraints
+- **Tasks:** 3.3
+- **Branch:** `feature/3.3-indexes-constraints` — done
+- **Findings:** most of the task was already in the schema from Phase 1 (`bots.baseId`, `(x, y, z)` unique on `map_points`, `(userId, x, y, z)` unique on `known_points`, `modules.botId`); `z` is reserved (design §4.1), so uniqueness stays on `(x, y, z)`, which is `(x, y)` while `z` is 0. Negative coordinates are covered by an integration test.
+- **Added (migration `indexes_and_map_constraints`):** `bots (user_id, type)` and `modules (bot_id, type)` indexes (finding a player's bases and a bot's scanner/drive), a partial index `map_points (x, y) WHERE type = 'base'` for the spawn distance rule (3.11), and CHECK constraints: a deposit is a resource cell with a positive amount (real and known layers) and bot/base/item cells carry content and others do not.
+- **Gotcha:** a CHECK that evaluates to NULL passes in PostgreSQL, so the constraints are NULL-safe (`IS NOT DISTINCT FROM`, `COALESCE`); the integration tests prove they reject.
+- **Next step:** task 3.4 (bot model, `BotRepository`/`BotService`).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api`
+

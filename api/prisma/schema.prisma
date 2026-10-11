@@ -165,7 +165,7 @@ model Bot {
   bots    Bot[]    @relation("BaseBots")
   modules Module[]
 
-  @@index([userId])
+  @@index([userId, type])
   @@index([baseId])
   @@map("bots")
 }
@@ -186,7 +186,7 @@ model Module {
   bot   Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
   files File[]
 
-  @@index([botId])
+  @@index([botId, type])
   @@map("modules")
 }
 

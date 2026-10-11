@@ -56,6 +56,15 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Generate the Prisma client
+        run: npm run prisma:generate -w api
+      - name: Migrations match the Prisma schema
+        env:
+          PGPASSWORD: botrts
+        run: |
+          psql -h localhost -U botrts -d botrts -c 'CREATE DATABASE botrts_shadow'
+          cd api && npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://botrts:botrts@localhost:5432/botrts_shadow --exit-code
       - name: Lint
         run: npm run lint
       - name: Typecheck

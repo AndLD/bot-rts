@@ -1,6 +1,6 @@
 import type { Config } from 'jest'
 
-const config: Config = {
+const shared: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
@@ -8,8 +8,26 @@ const config: Config = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'json', 'node'],
   moduleNameMapper: { '^@lib/(.*)$': '<rootDir>/../lib/$1' },
-  modulePathIgnorePatterns: ['<rootDir>/ts-built/'],
-  testMatch: ['**/tests/**/*.test.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
+  modulePathIgnorePatterns: ['<rootDir>/ts-built/']
+}
+
+const config: Config = {
+  testTimeout: 30000, // integration tests clone a database and migrate on first use
+  projects: [
+    {
+      ...shared,
+      displayName: 'unit',
+      testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
+      testPathIgnorePatterns: ['/node_modules/', '\\.int\\.test\\.ts$']
+    },
+    {
+      // Needs the PostgreSQL of docker-compose.yml (`npm run db:up`); in CI it is a service container
+      ...shared,
+      displayName: 'integration',
+      testMatch: ['**/*.int.test.ts'],
+      globalSetup: '<rootDir>/tests/integration/global-setup.ts'
+    }
+  ],
   // The single list of coverage exclusions (AGENTS.md §6.1); every entry has a reason
   collectCoverageFrom: [
     '**/*.ts',
@@ -20,7 +38,8 @@ const config: Config = {
     '!node_modules/**',
     '!coverage/**',
     '!jest.config.ts', // config
-    '!index.ts' // process entry point (bootstrap only)
+    '!index.ts', // process entry point (bootstrap only)
+    '!prisma/**' // seed script and migrations
   ],
   coverageReporters: ['text-summary', 'json-summary', 'lcov']
 }

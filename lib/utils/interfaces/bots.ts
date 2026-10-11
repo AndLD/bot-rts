@@ -1,9 +1,10 @@
 import { ID } from '../types'
 
 export enum BOT_TYPE {
-  BASE = 'base'
+  BASE = 'base',
+  // An ordinary bot, owned by a base
+  WORKER = 'worker'
 }
-// export type BOT_TYPE = string
 
 export interface IBot {
   _id: ID

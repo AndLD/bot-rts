@@ -1,0 +1,145 @@
+// Persistence model. Prisma is confined to the infrastructure layer (AGENTS.md §3.4): this schema, the migrations and the
+// generated client are imported only by the Prisma* adapters. Ids are UUIDs owned by the domain, never generated here.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  admin
+  owner
+  user
+  unlimited
+  banned
+
+  @@map("user_status")
+}
+
+enum Subscription {
+  free
+  monthly
+  yearly
+
+  @@map("subscription")
+}
+
+enum BotType {
+  base
+  // An ordinary bot, owned by a base
+  worker
+
+  @@map("bot_type")
+}
+
+enum MapPointType {
+  resource
+  bot
+  item
+  base
+
+  @@map("map_point_type")
+}
+
+model User {
+  id           String       @id @db.Uuid
+  name         String
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  status       UserStatus   @default(user)
+  isActive     Boolean      @default(false) @map("is_active")
+  subscription Subscription @default(free)
+  createdAt    DateTime     @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime?    @map("updated_at") @db.Timestamptz(3)
+
+  bases       Bot[]
+  knownPoints KnownPoint[]
+
+  @@index([createdAt])
+  @@map("users")
+}
+
+// Only bases carry `userId`; an ordinary bot belongs to a base through `baseId` (design §8.1).
+// The CHECK constraint `bots_ownership_check` lives in the migration SQL because Prisma cannot express it.
+model Bot {
+  id     String  @id @db.Uuid
+  label  String?
+  type   BotType
+  userId String? @map("user_id") @db.Uuid
+  baseId String? @map("base_id") @db.Uuid
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  base    Bot?     @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)
+  bots    Bot[]    @relation("BaseBots")
+  modules Module[]
+
+  @@index([userId])
+  @@index([baseId])
+  @@map("bots")
+}
+
+model Module {
+  id            String @id @db.Uuid
+  botId         String @map("bot_id") @db.Uuid
+  type          String
+  name          String
+  condition     Float
+  maxCondition  Float  @map("max_condition")
+  weight        Float
+  operationCost Float  @map("operation_cost")
+  idleCost      Float  @map("idle_cost")
+  // Type-specific properties (damage, capacity, …); the shape depends on `type`
+  props         Json   @default("{}")
+
+  bot   Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+  files File[]
+
+  @@index([botId])
+  @@map("modules")
+}
+
+model File {
+  id      String @id @db.Uuid
+  driveId String @map("drive_id") @db.Uuid
+  name    String
+
+  drive Module @relation(fields: [driveId], references: [id], onDelete: Cascade)
+
+  @@unique([driveId, name])
+  @@map("files")
+}
+
+// The real (authoritative) layer of the world map
+model MapPoint {
+  id        String        @id @db.Uuid
+  x         Int
+  y         Int
+  z         Int           @default(0)
+  type      MapPointType?
+  contentId String?       @map("content_id") @db.Uuid
+
+  @@unique([x, y, z])
+  @@index([contentId])
+  @@map("map_points")
+}
+
+// What a player knows about a cell: a snapshot taken at `seenAt` (game tick), design §4.2
+model KnownPoint {
+  id        String        @id @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  x         Int
+  y         Int
+  z         Int           @default(0)
+  type      MapPointType?
+  contentId String?       @map("content_id") @db.Uuid
+  seenAt    BigInt        @default(0) @map("seen_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, x, y, z])
+  @@map("known_points")
+}

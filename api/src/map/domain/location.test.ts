@@ -1,4 +1,4 @@
-import { cellsOf, chunkOf, locationKey, splitByChunk } from './location'
+import { cellsOf, chunkOf, compareLocations, locationKey, splitByChunk } from './location'
 
 describe('chunkOf', () => {
   it('floors towards negative infinity so that negative cells have negative chunks', () => {
@@ -27,5 +27,16 @@ describe('cellsOf and locationKey', () => {
   it('lists every cell of a range, x-major', () => {
     const cells = [...cellsOf({ from: { x: 0, y: 0, z: 0 }, to: { x: 1, y: 1, z: 0 } })]
     expect(cells.map(locationKey)).toEqual(['0:0:0', '0:1:0', '1:0:0', '1:1:0'])
+  })
+})
+
+describe('compareLocations', () => {
+  it('orders by x, then y, then z', () => {
+    const at = (x: number, y: number, z: number) => ({ x, y, z })
+
+    expect(compareLocations(at(0, 5, 5), at(1, 0, 0))).toBeLessThan(0)
+    expect(compareLocations(at(1, 0, 5), at(1, 1, 0))).toBeLessThan(0)
+    expect(compareLocations(at(1, 1, 1), at(1, 1, 0))).toBeGreaterThan(0)
+    expect(compareLocations(at(1, 1, 1), at(1, 1, 1))).toBe(0)
   })
 })

@@ -1,21 +1,24 @@
-import { Request, Router } from 'express'
+import { Router } from 'express'
 import { validate } from 'simple-express-validation'
-import { usersPublicControllers } from '../../controllers/public/users'
-import { validationMiddlewares } from '../../middlewares/validation'
-import { Entity } from '../../utils/constants'
+import { createUsersPublicControllers } from '../../controllers/public/users'
+import { asyncHandler } from '../../middlewares/async-handler'
 import { authRateLimiter } from '../../middlewares/rateLimiters'
+import { AppServices } from '../../src/composition'
 import { usersPublicValidationSchemas } from '../../validation/public/users'
 
-export default Router()
-  // Signup
-  .post(
-    '/',
-    authRateLimiter,
-    validate(usersPublicValidationSchemas.postUser.bodySchema),
-    validationMiddlewares.isEntityAlreadyExists(Entity.USERS, (req: Request) => ({
-      email: req.body.email
-    })),
-    usersPublicControllers.postUser
+export function createUsersPublicRouter(services: Pick<AppServices, 'users' | 'verificationMailer'>) {
+  const controllers = createUsersPublicControllers(services)
+
+  return (
+    Router()
+      // Signup
+      .post(
+        '/',
+        authRateLimiter,
+        validate(usersPublicValidationSchemas.postUser.bodySchema),
+        asyncHandler(controllers.postUser)
+      )
+      // Email Verification
+      .get('/verify', asyncHandler(controllers.getVerifyEmail))
   )
-  // Email Verification
-  .get('/verify', usersPublicControllers.getVerifyEmail)
+}

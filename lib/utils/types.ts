@@ -1,6 +1,5 @@
-import { ObjectId } from 'mongodb'
 
-export type ID = string | ObjectId
+export type ID = string
 
 export type Error = {
   msg: string

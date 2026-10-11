@@ -1,53 +1,23 @@
-import { NextFunction, Response } from 'express'
-import { AuthorizedRequest } from '../../utils/types'
-import { botsService } from '../../services/bots'
-import { modulesService } from '../../services/modules'
-import ScannerModule from '../../models/modules/ScannerModule'
-import { IScannerModuleProps } from '@lib/utils/interfaces/modules'
+import { Response } from 'express'
+import { toBotDto } from '../../src/bots/presentation/bot.mapper'
+import { AppServices } from '../../src/composition'
+import { toMapPointDto } from '../../src/map/presentation/map-point.mapper'
+import { toModuleDto } from '../../src/modules/presentation/module.mapper'
+import { AuthorizedRequest } from '../../middlewares/authorization'
 
-async function postUserBase(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  try {
-    const user = req.user!
+export function createBotsPrivateControllers({ bots, scan }: Pick<AppServices, 'bots' | 'scan'>) {
+  return {
+    async postUserBase(req: AuthorizedRequest, res: Response) {
+      const user = req.user!
+      const { bot, modules, mapPoint } = await bots.deployUserBase({ id: user._id, name: user.name })
 
-    const result = await botsService.deployUserBase(user)
+      res.json({ bot: toBotDto(bot), modules: modules.map(toModuleDto), mapPoint: toMapPointDto(mapPoint) })
+    },
 
-    return res.json(result)
-  } catch (error) {
-    next(error)
+    async postScan(req: AuthorizedRequest, res: Response) {
+      const seen = await scan.scan(req.user!._id, req.params.id)
+
+      res.json(seen.map(toMapPointDto))
+    }
   }
-}
-
-async function postScan(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  try {
-    const botId = req.params.id
-    const user = req.user!
-
-    const bot = await botsService.getBotById(botId)
-    if (!bot) {
-      return res.sendStatus(404)
-    }
-    if (bot.userId != user._id) {
-      return res.sendStatus(403)
-    }
-
-    const modules = await modulesService.getBotModules(botId)
-
-    const scannerProps = modules.find((module) => module.type === 'scanner') as IScannerModuleProps | undefined
-    if (!scannerProps) {
-      return res.sendStatus(400)
-    }
-
-    const scanner = new ScannerModule(scannerProps)
-
-    const result = await scanner.scan()
-
-    return res.json(result)
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const botsPrivateControllers = {
-  postUserBase,
-  postScan
 }

@@ -1,0 +1,17 @@
+// Stable machine-readable error codes returned by the API; clients branch on these, not on messages
+export const ErrorCode = {
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  VALIDATION_FAILED: 'VALIDATION_FAILED',
+  CREDENTIALS_INVALID: 'CREDENTIALS_INVALID',
+  EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+  USER_BANNED: 'USER_BANNED',
+  BASE_ALREADY_EXISTS: 'BASE_ALREADY_EXISTS',
+  NO_FREE_LOCATION: 'NO_FREE_LOCATION',
+  TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
+  INTERNAL_ERROR: 'INTERNAL_ERROR'
+} as const
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode]

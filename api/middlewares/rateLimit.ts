@@ -1,7 +1,6 @@
-import { Request, Response } from 'express'
 import { rateLimit } from 'express-rate-limit'
-import { apiUtils } from '../utils/api'
-import { errors } from '../utils/constants'
+import { ErrorCode } from '../../lib/utils/error-codes'
+import { AppError } from '../src/shared/domain/app-error'
 
 interface RateLimitOptions {
   windowMs: number
@@ -15,6 +14,7 @@ export function createRateLimiter({ windowMs, max }: RateLimitOptions) {
     limit: max,
     standardHeaders: true,
     legacyHeaders: false,
-    handler: (_: Request, res: Response) => apiUtils.sendError(res, errors.TOO_MANY_REQUESTS)
+    handler: (_req, _res, next) =>
+      next(new AppError(429, ErrorCode.TOO_MANY_REQUESTS, 'Too many requests, try again later'))
   })
 }

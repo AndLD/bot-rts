@@ -9,13 +9,8 @@ export enum BOT_TYPE {
 export interface IBot {
   _id: ID
   label?: string
+  // Only a base has `userId`; any other bot has `baseId` (design §8.1)
   userId?: string
-  type: BOT_TYPE
-}
-
-export interface IPostBot {
-  _id?: ID
-  label?: string
-  userId?: string
+  baseId?: string
   type: BOT_TYPE
 }

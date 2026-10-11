@@ -1,7 +1,13 @@
 import { Router } from 'express'
-import { usersPrivateControllers } from '../../controllers/private/users'
+import { createUsersPrivateControllers } from '../../controllers/private/users'
+import { asyncHandler } from '../../middlewares/async-handler'
 import { hasAdminStatus } from '../../middlewares/users'
+import { AppServices } from '../../src/composition'
 
-export const usersPrivateRouter = Router()
-  .get('/', hasAdminStatus, usersPrivateControllers.get)
-  .put('/:id', hasAdminStatus, usersPrivateControllers.put)
+export function createUsersPrivateRouter(services: Pick<AppServices, 'users'>) {
+  const controllers = createUsersPrivateControllers(services)
+
+  return Router()
+    .get('/', hasAdminStatus, asyncHandler(controllers.get))
+    .put('/:id', hasAdminStatus, asyncHandler(controllers.put))
+}

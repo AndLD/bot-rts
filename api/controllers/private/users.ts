@@ -1,65 +1,41 @@
 import { Response } from 'express'
-import { IUser } from '@lib/utils/interfaces/users'
-import { usersService } from '../../services/users'
-import { apiUtils } from '../../utils/api'
-import { errors } from '../../utils/constants'
-import { tryCatch } from '../../utils/decorators'
-import { isValidId } from '../../utils/objectId'
-import { AuthorizedRequest } from '../../utils/types'
-import { hasOwnerOnlyFields, parseUserPutBody } from '../../utils/userUpdate'
-import { parseUsersQuery } from '../../utils/usersQuery'
+import { AppServices } from '../../src/composition'
+import { ValidationError } from '../../src/shared/domain/errors'
+import { isValidId } from '../../src/shared/domain/ids'
+import { toUserInfo } from '../../src/users/presentation/user.mapper'
+import { parseUserPatch } from '../../src/users/presentation/user-update'
+import { parseUsersQuery } from '../../src/users/presentation/users-query'
+import { AuthorizedRequest } from '../../middlewares/authorization'
 
-function withoutPassword({ password: _password, ...rest }: IUser) {
-  return rest
-}
+export function createUsersPrivateControllers({ users }: Pick<AppServices, 'users'>) {
+  return {
+    async get(req: AuthorizedRequest, res: Response) {
+      const query = parseUsersQuery(req.query)
 
-async function get(req: AuthorizedRequest, res: Response) {
-  const query = parseUsersQuery(req.query)
+      if (!query) {
+        throw new ValidationError('Invalid filters in query params')
+      }
 
-  if (!query) {
-    return apiUtils.sendError(res, errors.BAD_FILTERS)
+      const { filter, page, results } = query
+      const { users: found, total } = await users.list({
+        status: filter.status,
+        isActive: filter.active,
+        email: filter.email,
+        page,
+        pageSize: results
+      })
+
+      res.json({ result: found.map(toUserInfo), meta: { pagination: { page, results, total } } })
+    },
+
+    async put(req: AuthorizedRequest, res: Response) {
+      const patch = parseUserPatch(req.body)
+
+      if (!isValidId(req.params.id) || !patch) {
+        throw new ValidationError()
+      }
+
+      res.json({ result: toUserInfo(await users.update(req.user!.status, req.params.id, patch)) })
+    }
   }
-
-  const { users, total } = await usersService.listUsers(query.filter, (query.page - 1) * query.results, query.results)
-
-  res.json({
-    result: users,
-    meta: { pagination: { page: query.page, results: query.results, total } }
-  })
-}
-
-async function put(req: AuthorizedRequest, res: Response) {
-  const id = req.params.id
-  const body = parseUserPutBody(req.body)
-
-  if (!isValidId(id)) {
-    return apiUtils.sendError(res, errors.INVALID_ID)
-  }
-  if (!body) {
-    return apiUtils.sendError(res, errors.BAD_REQUEST)
-  }
-
-  const actorIsOwner = req.user!.status === 'owner'
-
-  if (hasOwnerOnlyFields(body) && !actorIsOwner) {
-    return apiUtils.sendError(res, errors.FORBIDDEN)
-  }
-
-  const target = await usersService.findUserById(id)
-
-  if (!target) {
-    return apiUtils.sendError(res, errors.DOC_NOT_FOUND)
-  }
-  if (!actorIsOwner && (target.status === 'owner' || target.status === 'admin')) {
-    return apiUtils.sendError(res, errors.FORBIDDEN)
-  }
-
-  const updated = (await usersService.updateUser(id, body)) as IUser
-
-  res.json({ result: withoutPassword(updated) })
-}
-
-export const usersPrivateControllers = {
-  get: tryCatch(get),
-  put: tryCatch(put)
 }

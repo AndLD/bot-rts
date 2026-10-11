@@ -1,20 +1,11 @@
 import { Response } from 'express'
-import { Utils } from './utils'
 import { refreshJwtExpiresIn } from './jwt'
-import { Error } from '@lib/utils/types'
+import { convertTimeStringToMilliseconds } from './duration'
 
-function sendError(res: Response, error: Error) {
-  res.status(error.code || 500).json({
-    error: error.msg
-  })
-  return
-}
-
-function sendResult(res: Response, result: any) {
+function sendResult(res: Response, result: unknown) {
   res.json({
     result
   })
-  return
 }
 
 function setRefreshTokenCookie(res: Response, refreshToken: string) {
@@ -22,13 +13,12 @@ function setRefreshTokenCookie(res: Response, refreshToken: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: Utils.convertTimeStringToMilliseconds(refreshJwtExpiresIn),
+    maxAge: convertTimeStringToMilliseconds(refreshJwtExpiresIn),
     signed: false
   })
 }
 
 export const apiUtils = {
-  sendError,
   sendResult,
   setRefreshTokenCookie
 }

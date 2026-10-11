@@ -16,19 +16,6 @@ export interface IMapPoint {
   userId?: ID
   contentId: ID | null
   type: MapPointType | null
-}
-
-export interface IPostMapPoint {
-  location: Location
-  userId?: ID
-  contentId: ID | null
-  type: MapPointType | null
-}
-
-export interface IUpsertMapPoint {
-  _id?: ID
-  location: Location
-  userId?: ID
-  contentId: ID | null
-  type: MapPointType | null
+  // Game tick at which a player's snapshot of the cell was taken (known cells only)
+  seenAt?: number
 }

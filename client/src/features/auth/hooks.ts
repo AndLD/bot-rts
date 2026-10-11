@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { ErrorCode } from '@lib/utils/error-codes'
 import { IUserInfo } from '@lib/utils/interfaces/users'
 import { skipToken } from '@reduxjs/toolkit/query'
+import { useTranslations } from 'next-intl'
 import { errorNotification } from '../../shared/notifications'
 import { refreshOnce } from '../../shared/store/refresh'
 import { setToken } from '../../shared/store/session.slice'
@@ -48,6 +49,7 @@ export function useCurrentUser(): CurrentUser {
 
 // Signs the player out on the server and locally
 export function useLogout() {
+  const t = useTranslations('auth')
   const dispatch = useAppDispatch()
   const [logout] = useLogoutMutation()
 
@@ -56,13 +58,13 @@ export function useLogout() {
       const result = await logout()
 
       if ('error' in result) {
-        errorNotification('Could not sign out', 'Error')
+        errorNotification(t('signOutFailed'))
       }
 
       dispatch(setToken(null))
       afterLogout?.()
     },
-    [dispatch, logout]
+    [dispatch, logout, t]
   )
 }
 
@@ -86,6 +88,7 @@ export function useRefreshSession() {
 
 // Confirms the email with the token of the emailed link and then calls `onDone`, whatever the outcome
 export function useVerifyEmail(token: string | null, onDone: () => void) {
+  const t = useTranslations('auth')
   const [verifyEmail] = useVerifyEmailMutation()
 
   useEffect(() => {
@@ -95,7 +98,7 @@ export function useVerifyEmail(token: string | null, onDone: () => void) {
 
     verifyEmail({ token }).then((result) => {
       if ('error' in result) {
-        errorNotification('Email confirmation failed')
+        errorNotification(t('verificationFailed'))
       }
       onDone()
     })

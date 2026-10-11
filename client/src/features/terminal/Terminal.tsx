@@ -1,24 +1,25 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import './Terminal.scss'
 import { useTerminal } from './useTerminal'
 
 const FONT_SIZE = 30
 
-function getHeading({ currentBotId, isShellMode, isLoading }: ReturnType<typeof useTerminal>) {
-  if (!currentBotId) {
-    return isLoading ? 'Loading...' : 'Failed to connect'
-  }
-
-  return isShellMode ? `Bot shell v0.0.1, bot id = ${currentBotId}` : '# Welcome to BotOS Alpha 0.1.0 #'
-}
-
 export default function Terminal() {
-  const terminal = useTerminal()
-  const { currentBotId, lines, prefix, run } = terminal
+  const t = useTranslations('terminal')
+  const { currentBotId, isLoading, isShellMode, lines, prefix, run } = useTerminal()
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const heading = !currentBotId
+    ? isLoading
+      ? t('loading')
+      : t('failedToConnect')
+    : isShellMode
+      ? t('shellHeader', { botId: currentBotId })
+      : t('welcome')
 
   function focusInput() {
     setTimeout(() => inputRef.current?.focus(), 0)
@@ -44,7 +45,7 @@ export default function Terminal() {
       onClick={focusInput}
     >
       <div onClick={(e) => e.stopPropagation()}>
-        <div style={{ marginBottom: 10 }}>{getHeading(terminal)}</div>
+        <div style={{ marginBottom: 10 }}>{heading}</div>
 
         {/* Lines are escaped by the interpreter; only the line break tag is markup */}
         {currentBotId && lines.map((line, i) => <div key={i} dangerouslySetInnerHTML={{ __html: line }}></div>)}

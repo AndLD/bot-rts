@@ -1,8 +1,11 @@
 'use client'
 
 import { StopOutlined } from '@ant-design/icons'
+import { useTranslations } from 'next-intl'
 
 export default function BlockedPage() {
+  const t = useTranslations('auth.blocked')
+
   return (
     <div
       style={{
@@ -16,7 +19,7 @@ export default function BlockedPage() {
       }}
     >
       <StopOutlined style={{ fontSize: 100 }} />
-      <div>Your account is blocked</div>
+      <div>{t('message')}</div>
     </div>
   )
 }

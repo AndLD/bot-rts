@@ -1,5 +1,6 @@
 import { Response } from 'express'
 import { Utils } from './utils'
+import { refreshJwtExpiresIn } from './jwt'
 import { Error } from '@lib/utils/types'
 
 function sendError(res: Response, error: Error) {
@@ -21,7 +22,7 @@ function setRefreshTokenCookie(res: Response, refreshToken: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: Utils.convertTimeStringToMilliseconds(process.env.REFRESH_JWT_EXPIRES_IN || '30d'),
+    maxAge: Utils.convertTimeStringToMilliseconds(refreshJwtExpiresIn),
     signed: false
   })
 }

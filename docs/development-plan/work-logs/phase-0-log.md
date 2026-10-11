@@ -26,3 +26,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** task 0.2 (env/config drift, `EmailSender` interface).
 - **Verify with:** `cd client && npx tsc --noEmit && npm run build`
+
+
+### 2026-10-11 — task 0.2: env/config aligned, SMTP behind `EmailSender`
+- **Tasks:** 0.2
+- **Branch:** `feature/0.2-env-config-email-sender` — done
+- **Decisions / deviations from the plan:** the code's names win (`JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EMAIL_VERIFICATION_SECRET`); the cookie max age now reads the same `JWT_REFRESH_EXPIRES_IN` as the token (default `24h`, was `30d`). Email variables are renamed `EMAIL_SMTP_USER/PASS` → `SMTP_USER/PASS`, with `SMTP_HOST` (Gmail default only outside production), `SMTP_PORT`, `SMTP_SECURE`. `.gitignore` re-includes `*.env.example`; a `client/.env.example` was added too.
+- **Problems / blockers / findings:** the developer's local ignored `api/.env.*` files still use the old `*_TOKEN_SECRET` and `EMAIL_SMTP_*` names and need to be recreated from `api/.env.example`. Jest warns about a haste-map collision with `api/ts-built` (handled in 0.3).
+- **Next step:** task 0.3 (npm workspaces, root scripts, api Jest setup).
+- **Verify with:** `cd api && npx jest services/email && npx tsc --noEmit`

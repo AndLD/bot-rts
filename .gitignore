@@ -26,3 +26,4 @@ dist-ssr
 .env*
 api/public/*
 api/ts-built
+!.env.example

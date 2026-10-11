@@ -52,18 +52,40 @@ The unified command set:
      (§11.2.1), and for a foreign bot with a password the correct password must be supplied (§11.2.2);
    - if so → a new draggable bot terminal opens; 🟡
    - otherwise → an error value is shown. 🟡
-3. If the link drops **for any reason**, the terminal displays **"Connection interrupted"** centered in the window. 🔴
+3. If the link drops **for any reason**, the terminal displays **"Connection interrupted"** centered in the window, and it **resumes by itself** when the link returns (§11.2.1). 🔴
 4. The whole session — commands, outputs, script logs, and errors — is **persisted to the database**. 🟡
 
-## 11.2.1 Communication range ✅
+## 11.2.1 The radio network: range, relays, link loss and recovery ✅
 
-- Each wireless adapter has a **range in cells** (Chebyshev distance). `connect`, `ping` and `sendMessage` succeed only
-  if the target's adapter is within the sender's range, **directly or through a relay chain** of the player's own
-  bots, i.e. bots of bases owned by the same user (each hop within range of the next).
-- If the link breaks (target moves out of range, a relay is destroyed or loses power, the adapter is disabled or
-  destroyed), the terminal shows **"Connection interrupted"** (§11.2).
-- Higher adapter classes have longer range; relay bots are a deliberate strategy. Class-1 default: **20 cells**
-  (tunable config).
+**The link rule**
+- Each wireless adapter has a **range in cells** (Chebyshev distance; class 1: **20 cells**, tunable). Two adapters are
+  **linked** when their distance is at most the **smaller** of the two ranges, both adapters work, and both bots have
+  energy (an empty battery switches the adapter off).
+- The player's **network** is a graph rooted at the adapter of their living base. A bot is **connected** when a chain of
+  links leads from the base to it through the player's own bots (bots of bases owned by the same user; stale bots are
+  excluded). `connect`, `ping`, `sendMessage` and manual control work only for connected bots.
+- Any bot can be a **relay**. A **signal tower** is simply a static bot with a long-range adapter plus a battery and a
+  generator (burning oil, §12.5); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
+- The market terminal (§26.2), chat and transfers (§27) do not use the radio network.
+
+**When a bot loses the link** (it moves out of range, a relay breaks, loses power or fuel, or an adapter is disabled):
+- **Control stops:** manual control and the terminal are refused with `NO_SIGNAL`; the open terminal shows
+  **"Connection interrupted"**.
+- **Live information stops:** the bot's position, status, scan updates and events no longer reach the player. The map shows
+  its **last known state**, drawn **greyed with diagonal hatching** with a "connection lost N s ago" tooltip (§4.3). The
+  player gets a `LinkLost` notification.
+- **The bot stays autonomous:** its scripts keep running on its own processor. A script can ask `getLinkStatus()` (§10.2) and
+  react, for example by returning toward the base; `sendMessage` to the base fails with `NO_SIGNAL`.
+- **Nothing is lost:** while disconnected the bot buffers the newest **1,000 scanned cells** and the newest **200 events**
+  (tunable); its terminal logs are stored as usual.
+
+**Recovery is automatic.** The engine does not poll: it recomputes connectivity only around what changed (a bot moved, a
+relay was destroyed, lost power or was repaired, an adapter was switched). As soon as a path exists again:
+- the link is restored, the open terminal resumes and shows the logs written meanwhile;
+- the buffered scans are applied to the player's map **with their original `seenAt` times**, so they age correctly;
+- the missed events arrive as one **summary**, and the player gets a `LinkRestored` notification.
+
+**Display.** Disconnected bots are hatched (above); an optional overlay draws the links, so a broken relay is easy to find.
 
 ## 11.2.2 Bot security and takeover ✅
 

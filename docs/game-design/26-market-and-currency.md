@@ -20,7 +20,7 @@
 - A new module type, **`marketTerminal`**, with a **single class**: no upgrades. It is crafted like any other module (default
   recipe: 40 iron, 20 crystal, 15 gold, 20 s — tunable) and is **not** in the base starter kit.
 - The market is **remote**: a bot with a working market terminal can use the market from anywhere, with no wireless-range
-  requirement. Each market call costs ops and energy like any other module call, and a broken market terminal stops working.
+  requirement and independent of the radio network (§11.2.1). Each market call costs ops and energy like any other module call, and a broken market terminal stops working.
 - The module grants the `market` script functions (§10.2) and the **Trade** manual-control category (§15.1). The market
   screen of the web client is available to a player who has at least one bot with a working market terminal.
 

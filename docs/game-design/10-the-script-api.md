@@ -69,6 +69,7 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `craft(module, count?)`, `assemble(label, moduleIds)`, `research(module)`, `learn(itemId)` | factory | `Promise<Result<…>>` | Factory operations, available to scripts on a bot with a factory module (the base). Same rules as the terminal commands and the Factory GUI. |
 | `market.getWallet()`, `market.getOrderBook(resource)`, `market.placeOrder(...)`, `market.cancelOrder(id)`, `market.listAuctions(filter)`, `market.createAuction(...)`, `market.bid(id, amount)`, `market.buyNow(id)`, `market.claimInbox(...)` | marketTerminal | `Promise<Result<…>>` | The remote market (§26); each call costs ops and energy. |
 | `connect(botId)` | wireless adapter | `connect(botId): Promise<Result<Connection>>` | Open a link to another bot. |
+| `getLinkStatus()` | wireless adapter | `getLinkStatus(): Promise<Result<{ connected: boolean; hops: number; lostSince?: number }>>` | Whether the bot is connected to its base through the radio network, over how many hops, and since when it is not (§11.2.1). |
 | `sendMessage(botId, msg)` | wireless adapter | `sendMessage(botId, msg): Promise<Result>` | Send a message to another bot/base. |
 | `execute(file)` | processor | `execute(file): Promise<Result<{ executionId: string }>>` | Run a stored script (spawns a parallel execution). |
 | `log(...args)` | processor (always on) | `log(...args): void` | Write to the terminal session log. |

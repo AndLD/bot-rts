@@ -73,7 +73,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 | Scan | expanding radar pulse over the scan radius, after which the revealed cells appear at full strength and start fading with age (§4.3) |
 | Craft / assemble | build-up effect at the base, then the new bot "boots" in on its spawn cell |
 | Module broken | smoke, then flames if it stays broken; a cracked overlay (§4.3) |
-| Link / connect | dotted line between the two bots, pulse on connect; flicker on "Connection interrupted" |
+| Link / connect | dotted line between the two bots, pulse on connect; on link loss the bot turns hatched and grey, on recovery the hatching fades out (§11.2.1) |
 | Low energy | slow blinking of the bot's energy icon |
 | Adopt / control lost | ownership tint cross-fades to the new owner's colour |
 

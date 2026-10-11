@@ -171,7 +171,7 @@ describe('account flows', () => {
 
   it('deletes the account after the emailed confirmation but keeps the base', async () => {
     const { accessToken, userId } = await signUp('alice@example.com')
-    const base = await api().post('/api/private/bots/base').set(bearer(accessToken)).expect(200)
+    const base = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
 
     await api().post('/api/v1/auth/account/delete').set(bearer(accessToken)).send({ password: 'bad' }).expect(400)
     await api().post('/api/v1/auth/account/delete').set(bearer(accessToken)).send({ password: PASSWORD }).expect(204)
@@ -291,35 +291,48 @@ describe('authorization', () => {
   })
 })
 
-describe('game flows (legacy routes and Socket.IO)', () => {
-  it('rejects the legacy routes without a valid token and for unverified users', async () => {
-    await api().post('/api/private/bots/base').expect(401)
+describe('game flows (bots over HTTP and Socket.IO)', () => {
+  it('rejects the bot routes without a valid token and for unverified users', async () => {
+    await api().post('/api/v1/bots/base').expect(401)
 
     const registered = await api()
       .post('/api/v1/auth/register')
       .send({ name: 'Alice', email: 'alice@example.com', password: PASSWORD })
       .expect(201)
-    await api().post('/api/private/bots/base').set(bearer(registered.body.accessToken)).expect(403)
+    await api().post('/api/v1/bots/base').set(bearer(registered.body.accessToken)).expect(403)
   })
 
   it('deploys a base once and scans around it', async () => {
     const { userId, accessToken } = await signUp('alice@example.com')
 
-    const deployed = await api().post('/api/private/bots/base').set(bearer(accessToken)).expect(200)
+    const deployed = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
     const botId = deployed.body.bot._id
     expect(deployed.body.bot).toMatchObject({ userId, type: 'base' })
     expect(deployed.body.modules).toHaveLength(7)
     expect(await database.client.module.count({ where: { botId } })).toBe(7)
 
-    await api().post('/api/private/bots/base').set(bearer(accessToken)).expect(403)
+    await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(403)
 
-    const scan = await api().post(`/api/private/bots/${botId}/scan`).set(bearer(accessToken)).expect(200)
+    const scan = await api().post(`/api/v1/bots/${botId}/scan`).set(bearer(accessToken)).expect(200)
     expect(scan.body).toHaveLength(9)
     expect(await database.client.knownPoint.count({ where: { userId } })).toBe(9)
 
+    const bots = await api().get('/api/v1/bots').set(bearer(accessToken)).expect(200)
+    expect(bots.body).toEqual([expect.objectContaining({ _id: botId, type: 'base', userId })])
+    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(1)
+    expect((await api().get('/api/v1/bots?type=worker').set(bearer(accessToken)).expect(200)).body).toHaveLength(0)
+    await api().get('/api/v1/bots?type=tank').set(bearer(accessToken)).expect(400)
+
+    const modules = await api().get(`/api/v1/bots/${botId}/modules`).set(bearer(accessToken)).expect(200)
+    expect(modules.body).toHaveLength(7)
+    expect(modules.body).toContainEqual(expect.objectContaining({ botId, type: 'scanner', distance: 1 }))
+    await api().get('/api/v1/bots/not-an-id/modules').set(bearer(accessToken)).expect(400)
+    await api().get('/api/v1/bots/0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e/modules').set(bearer(accessToken)).expect(404)
+
     const stranger = await signUp('bob@example.com', 'Bob')
-    await api().post(`/api/private/bots/${botId}/scan`).set(bearer(stranger.accessToken)).expect(403)
-    await api().post('/api/private/bots/not-an-id/scan').set(bearer(accessToken)).expect(400)
+    await api().get(`/api/v1/bots/${botId}/modules`).set(bearer(stranger.accessToken)).expect(403)
+    await api().post(`/api/v1/bots/${botId}/scan`).set(bearer(stranger.accessToken)).expect(403)
+    await api().post('/api/v1/bots/not-an-id/scan').set(bearer(accessToken)).expect(400)
   })
 
   describe('Socket.IO', () => {
@@ -338,7 +351,7 @@ describe('game flows (legacy routes and Socket.IO)', () => {
 
     it('serves get-user-bases, get-user-bots and get-bot-modules to the owner only', async () => {
       const { accessToken } = await signUp('alice@example.com')
-      const deployed = await api().post('/api/private/bots/base').set(bearer(accessToken)).expect(200)
+      const deployed = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
       const botId = deployed.body.bot._id
       const stranger = await signUp('bob@example.com', 'Bob')
       const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]

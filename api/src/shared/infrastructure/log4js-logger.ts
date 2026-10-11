@@ -1,13 +1,23 @@
-import type { Logger as Log4jsInstance } from 'log4js'
-import { getLogger } from '../../../utils/logger'
+import log4js from 'log4js'
 import { Logger } from '../application/logger'
 
-// log4js is configured (appenders, level) by utils/logger.ts when that module loads
+const startedAt = new Date().toISOString().replace(/[:.]/g, '-')
+
+log4js.configure({
+  appenders: {
+    file: { type: 'file', filename: `logs/${startedAt}.log` },
+    con: { type: 'console' }
+  },
+  categories: {
+    default: { appenders: ['file', 'con'], level: 'info' }
+  }
+})
+
 export class Log4jsLogger implements Logger {
-  private readonly logger: Log4jsInstance
+  private readonly logger: log4js.Logger
 
   constructor(category: string) {
-    this.logger = getLogger(category)
+    this.logger = log4js.getLogger(category)
   }
 
   info(message: string): void {

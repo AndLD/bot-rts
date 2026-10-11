@@ -62,16 +62,16 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
 ```
 ┌─────────────┐        ┌──────────────────────┐        ┌─────────────┐
 │   client/   │  HTTP  │        api/          │        │ PostgreSQL  │
-│ React+Vite  │◄──────►│ Express + Socket.IO  │◄──────►│  (users,    │
-│ RTK Query   │  WS    │ routers → use cases  │        │   bots,     │
+│ React+Vite  │◄──────►│ NestJS + Socket.IO   │◄──────►│  (users,    │
+│ RTK Query   │  WS    │ controllers → use    │        │   bots,     │
 └──────┬──────┘        └──────────┬───────────┘        │   modules,  │
        │                          │                    │   map,      │
        └──────────► lib/ ◄────────┘                    │   files)    │
          shared TS interfaces                          └─────────────┘
 ```
 
-(Planned: the client moves to Next.js and the API to NestJS. The database is PostgreSQL behind repository ports,
-accessed with Prisma and run in Docker locally. See the development plan.)
+(Planned: the client moves to Next.js. The database is PostgreSQL behind repository ports, accessed with Prisma and run
+in Docker locally. See the development plan.)
 
 **Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
 
@@ -80,9 +80,10 @@ presentation (controllers, gateways, DTOs) → application (use cases + ports) �
 infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) implements the application ports
 ```
 
-The backend is part-way through the move: it already runs on NestJS (`api/src/app.module.ts`, versioned `/api/v1`, OpenAPI at `/api/docs`). The use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
-(`users`, `bots`, `modules`, `files`, `map`, `persistence`, …), and the legacy Express routers/controllers (`api/routers`,
-`api/controllers`, `api/middlewares`, `api/setup`) are mounted inside Nest and call them until they are migrated to Nest controllers. `npm run check:boundaries` enforces the layer rules.
+The backend runs on NestJS (`api/src/app.module.ts`, versioned `/api/v1`, OpenAPI at `/api/docs`). The use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
+(`users`, `auth`, `bots`, `modules`, `files`, `map`, `persistence`, …) with `domain`, `application`, `infrastructure` and
+`presentation` folders; the controllers and the Socket.IO gateway are in the `presentation` folders. `npm run check:boundaries`
+enforces the layer rules.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.

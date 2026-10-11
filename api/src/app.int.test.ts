@@ -42,10 +42,6 @@ describe('the Nest application', () => {
     await request(url).get('/api/health').expect(404)
   })
 
-  it('still serves the legacy routes next to the Nest ones', async () => {
-    await request(url).post('/api/private/bots/base').expect(401)
-  })
-
   it('publishes the OpenAPI document', async () => {
     const response = await request(url).get('/api/docs-json').expect(200)
 

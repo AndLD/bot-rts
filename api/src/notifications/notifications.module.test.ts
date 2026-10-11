@@ -1,4 +1,4 @@
-import { mkdtempSync, existsSync } from 'fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { LoggingEmailSender } from './infrastructure/logging-email-sender'
@@ -46,12 +46,17 @@ describe('createEmailSender', () => {
     ).toBeUndefined()
   })
 
-  it('collects the messages in the outbox directory when one is configured, ahead of SMTP', () => {
+  it('collects the messages in the outbox directory when one is configured, ahead of SMTP', async () => {
     const emailOutboxDir = join(mkdtempSync(join(tmpdir(), 'outbox-')), 'mail')
 
     const sender = createEmailSender({ smtp, nodeEnv: 'production', emailOutboxDir }, logger)
 
     expect(sender).toBeInstanceOf(OutboxEmailSender)
     expect(existsSync(emailOutboxDir)).toBe(true)
+
+    await sender?.send({ to: 'a@b.c', subject: 'Hi', html: 'body' })
+
+    const [file] = readdirSync(emailOutboxDir)
+    expect(JSON.parse(readFileSync(join(emailOutboxDir, file), 'utf8'))).toMatchObject({ to: 'a@b.c', subject: 'Hi' })
   })
 })

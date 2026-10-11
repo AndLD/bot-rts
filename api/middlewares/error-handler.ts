@@ -11,7 +11,7 @@ export function handleError(err: unknown, _req: Request, res: Response, _next: N
     return res.status(err.statusCode).json({ statusCode: err.statusCode, code: err.code, error: err.message })
   }
 
-  const status = (err as { status?: unknown } | null)?.status
+  const status = (err as { status?: unknown }).status
 
   // Malformed JSON and similar client mistakes raised by Express itself
   if (typeof status === 'number' && status >= 400 && status < 500) {

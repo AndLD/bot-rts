@@ -14,6 +14,7 @@ describe('constants', () => {
     const saved = { ...process.env }
     delete process.env.NODE_ENV
     delete process.env.FRONTEND_URL
+    delete process.env.PORT
     delete process.env.RATE_LIMIT_WINDOW_MS
     delete process.env.RATE_LIMIT_AUTH_MAX
     let constants: typeof import('./constants') | undefined
@@ -26,6 +27,7 @@ describe('constants', () => {
       environment: 'development',
       isProduction: false,
       FRONTEND_URL: 'http://localhost:5173',
+      port: 8080,
       rateLimit: { windowMs: 900000, maxAuthRequests: 20 }
     })
   })

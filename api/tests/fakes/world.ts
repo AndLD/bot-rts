@@ -9,6 +9,7 @@ import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../../src/termina
 import { Rng } from '../../src/shared/application/rng'
 import {
   FakeClock,
+  FakeHasher,
   FakeUnitOfWork,
   FixedRng,
   InMemoryAuthTokenRepository,
@@ -46,7 +47,16 @@ export function createWorld(
   const config = { ...DEFAULT_WORLD_CONFIG, ...options.config }
 
   const terminalSessions = new InMemoryTerminalSessionRepository()
-  const botsService = new BotsService(unitOfWork, repositories.bots, repositories.modules, ids, rng, clock, config)
+  const botsService = new BotsService(
+    unitOfWork,
+    repositories.bots,
+    repositories.modules,
+    ids,
+    rng,
+    clock,
+    config,
+    new FakeHasher()
+  )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids)
   const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, {
     ...DEFAULT_TERMINAL_RETENTION,

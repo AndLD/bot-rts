@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { IBot } from '../../../../lib/utils/interfaces/bots'
 import { IMapPoint } from '../../../../lib/utils/interfaces/map'
@@ -10,7 +10,7 @@ import { toModuleDto } from '../../modules/presentation/module.mapper'
 import { ValidationError } from '../../shared/domain/errors'
 import { BotsService } from '../application/bots.service'
 import { ScanService } from '../application/scan.service'
-import { ListBotsQueryDto } from './dto/bots.dto'
+import { DeployBaseDto, ListBotsQueryDto } from './dto/bots.dto'
 import { toBotDto } from './bot.mapper'
 
 const botIdPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
@@ -32,8 +32,11 @@ export class BotsController {
 
   // Deploys the first base of the player (design §5)
   @Post('base')
-  async deployBase(@CurrentPrincipal() { user }: Principal): Promise<DeployedBaseDto> {
-    const { bot, modules, mapPoint } = await this.bots.deployUserBase({ id: user.id, name: user.name })
+  async deployBase(@CurrentPrincipal() { user }: Principal, @Body() body: DeployBaseDto): Promise<DeployedBaseDto> {
+    const { bot, modules, mapPoint } = await this.bots.deployUserBase(
+      { id: user.id, name: user.name },
+      { password: body.password }
+    )
 
     return { bot: toBotDto(bot), modules: modules.map(toModuleDto), mapPoint: toMapPointDto(mapPoint) }
   }

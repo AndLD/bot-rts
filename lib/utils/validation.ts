@@ -17,3 +17,11 @@ export function isValidName(value: string): boolean {
 export function isValidPassword(value: string): boolean {
   return PASSWORD_PATTERN.test(value)
 }
+
+// The access password of a bot or base (design §11.2.2): others need it to connect, so it is short and typed in a terminal
+export const BOT_PASSWORD_MIN_LENGTH = 6
+export const BOT_PASSWORD_MAX_LENGTH = 64
+
+export function isValidBotPassword(value: string): boolean {
+  return value.length >= BOT_PASSWORD_MIN_LENGTH && value.length <= BOT_PASSWORD_MAX_LENGTH
+}

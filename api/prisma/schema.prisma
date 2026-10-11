@@ -164,11 +164,13 @@ model AuthToken {
 // Only bases carry `userId`; an ordinary bot belongs to a base through `baseId` (design §8.1).
 // The CHECK constraint `bots_ownership_check` lives in the migration SQL because Prisma cannot express it.
 model Bot {
-  id     String  @id @db.Uuid
-  label  String?
-  type   BotType
-  userId String? @map("user_id") @db.Uuid
-  baseId String? @map("base_id") @db.Uuid
+  id           String  @id @db.Uuid
+  label        String?
+  type         BotType
+  userId       String? @map("user_id") @db.Uuid
+  baseId       String? @map("base_id") @db.Uuid
+  // The hash of the access password others need to connect (design §11.2.2); a base always has one
+  passwordHash String? @map("password_hash")
 
   user             User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   base             Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)

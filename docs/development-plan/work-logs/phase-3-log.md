@@ -73,3 +73,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.8 (the Deploy button and the base password), which needs the password to be stored: see the design §11.2.2.
 - **Verify with:** `npm run db:up && npm run test:coverage && npm run i18n:check`
 
+### 2026-10-11 — task 3.8: deploy your base
+- **Tasks:** 3.8
+- **Branch:** `feature/3.8-deploy-base-ui` — done
+- **Decisions:** `POST /api/v1/bots/base` now requires `{ password }` (6-64 characters, `isValidBotPassword` in `lib`); the base keeps only a bcrypt hash (`bots.password_hash`, migration `bot_access_password`; a CHECK, `NOT VALID` so it spares rows from before, requires one for every base). The hash never reaches a DTO. `AuthModule` exports the `PASSWORD_HASHER` port that `BotsService` uses. The seed field of the deploy dialog arrives with the spawn seeds (3.11). Client: `GamePage` loads the player's bases (`gameApi`, the token is the cache key); a player with none sees `DeployBase` (password, repetition, a confirmation dialog), then the terminal. The `gameApi` endpoints are hand-written for now and are replaced by the generated client in task 3.12. The terminal shows its prompt only once the server has stored the session (found by the e2e run: typing right after the welcome text raced the session).
+- **E2E:** new `deploy.cy.ts` (validation, confirm and deploy, cancel); the terminal spec deploys through the API with the password. The old "cannot connect before a base" case is gone (the player now meets the deploy screen).
+- **Next step:** task 3.9 (module registry and factory; starter kit with processor, memory and wireless adapter).
+- **Verify with:** `npm run db:up && npm run test:coverage && npm run i18n:check && npm run e2e`
+

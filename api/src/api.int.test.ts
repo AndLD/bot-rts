@@ -172,7 +172,11 @@ describe('account flows', () => {
 
   it('deletes the account after the emailed confirmation but keeps the base', async () => {
     const { accessToken, userId } = await signUp('alice@example.com')
-    const base = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
+    const base = await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
 
     await api().post('/api/v1/auth/account/delete').set(bearer(accessToken)).send({ password: 'bad' }).expect(400)
     await api().post('/api/v1/auth/account/delete').set(bearer(accessToken)).send({ password: PASSWORD }).expect(204)
@@ -300,19 +304,35 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       .post('/api/v1/auth/register')
       .send({ name: 'Alice', email: 'alice@example.com', password: PASSWORD })
       .expect(201)
-    await api().post('/api/v1/bots/base').set(bearer(registered.body.accessToken)).expect(403)
+    await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(registered.body.accessToken))
+      .send({ password: 'secret1' })
+      .expect(403)
   })
 
   it('deploys a base once and scans around it', async () => {
     const { userId, accessToken } = await signUp('alice@example.com')
 
-    const deployed = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
+    await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({}).expect(400)
+    await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'short' }).expect(400)
+    expect(await database.client.bot.count()).toBe(0)
+
+    const deployed = await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
     const botId = deployed.body.bot._id
     expect(deployed.body.bot).toMatchObject({ userId, type: 'base' })
+    expect(JSON.stringify(deployed.body)).not.toContain('secret1')
+    expect(deployed.body.bot.passwordHash).toBeUndefined()
+    const stored = await database.client.bot.findUniqueOrThrow({ where: { id: botId } })
+    expect(stored.passwordHash).toMatch(/^\$2[aby]\$/)
     expect(deployed.body.modules).toHaveLength(7)
     expect(await database.client.module.count({ where: { botId } })).toBe(7)
 
-    await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(403)
+    await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(403)
 
     const scan = await api().post(`/api/v1/bots/${botId}/scan`).set(bearer(accessToken)).expect(200)
     expect(scan.body).toHaveLength(9)
@@ -342,7 +362,9 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
 
   it('manages the files of a drive over HTTP', async () => {
     const { accessToken } = await signUp('alice@example.com')
-    const botId = (await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)).body.bot._id
+    const botId = (
+      await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)
+    ).body.bot._id
     const drive = await database.client.module.create({
       data: {
         id: randomUUID(),
@@ -422,7 +444,11 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
 
     it('serves get-user-bases, get-user-bots and get-bot-modules to the owner only', async () => {
       const { accessToken } = await signUp('alice@example.com')
-      const deployed = await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)
+      const deployed = await api()
+        .post('/api/v1/bots/base')
+        .set(bearer(accessToken))
+        .send({ password: 'secret1' })
+        .expect(201)
       const botId = deployed.body.bot._id
       const stranger = await signUp('bob@example.com', 'Bob')
       const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]
@@ -442,7 +468,9 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
 
     it('stores terminal sessions and their history for the owner of the bot', async () => {
       const { userId, accessToken } = await signUp('alice@example.com')
-      const botId = (await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)).body.bot._id
+      const botId = (
+        await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)
+      ).body.bot._id
       const stranger = await signUp('bob@example.com', 'Bob')
       const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]
 

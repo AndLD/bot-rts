@@ -5,6 +5,7 @@ import { buildUser } from '../../../tests/integration/builders'
 import { Logger } from '../../shared/application/logger'
 import { BotsGateway } from './bots.gateway'
 
+const PASSWORD = 'secret1'
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 const missing = '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e'
 
@@ -27,7 +28,7 @@ function setup(userId = alice.id) {
 describe('BotsGateway', () => {
   it('returns the bases and the bots of the player as DTOs', async () => {
     const { botsService, call } = setup()
-    const { bot } = await botsService.deployUserBase(alice)
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     const expected = [[expect.objectContaining({ _id: bot.id, type: 'base', userId: alice.id })]]
     expect(await call('get-user-bases')).toEqual(expected)
@@ -36,7 +37,7 @@ describe('BotsGateway', () => {
 
   it('returns the modules of an own bot', async () => {
     const { botsService, call } = setup()
-    const { bot } = await botsService.deployUserBase(alice)
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     const [modules] = await call('get-bot-modules', bot.id)
 
@@ -52,7 +53,7 @@ describe('BotsGateway', () => {
 
   it('answers not found and forbidden', async () => {
     const { botsService, call } = setup('22222222-2222-4222-8222-222222222222')
-    const { bot } = await botsService.deployUserBase(alice)
+    const { bot } = await botsService.deployUserBase(alice, { password: PASSWORD })
 
     expect(await call('get-bot-modules', missing)).toEqual([null, { code: 404, msg: 'Bot not found' }])
     expect((await call('get-bot-modules', bot.id))[1]).toMatchObject({ code: 403 })

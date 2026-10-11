@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { makeJwt } from '../../tests/jwt'
 import { renderApp } from '../../tests/render'
-import GamePage from '../features/game/GamePage'
 import { baseQueryWithRefresh } from '../shared/store/baseQuery'
 import { MarketingContent } from './(marketing)/MarketingContent'
 import GameLayout from './(game)/layout'
@@ -14,9 +13,6 @@ let pathname = '/game'
 
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace }), usePathname: () => pathname }))
 jest.mock('../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
-jest.mock('../shared/socket/SocketProvider', () => ({
-  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
-}))
 
 const query = jest.mocked(baseQueryWithRefresh)
 
@@ -79,15 +75,6 @@ describe('Providers', () => {
     )
 
     expect(await screen.findByText('inside')).toBeInTheDocument()
-  })
-})
-
-describe('GamePage', () => {
-  it('shows the terminal with a link to the account', () => {
-    renderApp(<GamePage />)
-
-    expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/account')
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
   })
 })
 

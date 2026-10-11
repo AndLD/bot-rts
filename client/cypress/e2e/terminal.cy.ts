@@ -10,18 +10,13 @@ function command(text: string) {
 }
 
 describe('terminal', () => {
-  it('cannot connect before a base is deployed', () => {
-    cy.createPlayer(newEmail()).then(({ token }) => openGame(token))
-
-    cy.contains('Failed to connect')
-  })
-
   describe('with a deployed base', () => {
     beforeEach(() => {
       cy.createPlayer(newEmail()).then(({ token }) => {
         cy.apiRequest({
           method: 'POST',
           path: '/api/v1/bots/base',
+          body: { password: 'secret1' },
           headers: { Authorization: `Bearer ${token}` }
         })
         openGame(token)

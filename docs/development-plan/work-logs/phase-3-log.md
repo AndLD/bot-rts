@@ -19,4 +19,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ## Entries
 
-_No entries yet._
+### 2026-10-11 — task 3.1: resource and item model
+- **Tasks:** 3.1
+- **Branch:** `feature/3.1-resource-item-model` — done
+- **Decisions:** the types and the default balance table live in `lib` (`interfaces/resources.ts`: `RESOURCE`, `IResourceBalance`, `DEFAULT_RESOURCE_BALANCE`, `IResourceStack`; `interfaces/items.ts`: `IItem`, which replaces the untyped `Item = unknown`). The logic is in the API (`map/domain/resource-balance.ts`: `pickResource`, `rollDepositAmount`, `validateResourceBalance`) because `lib` carries no logic that must be tested. `WorldConfig.resources` holds the table; `WORLD_RESOURCE_BALANCE_FILE` points to a JSON file that overrides any field of any resource, and an invalid file fails the start with a `ConfigError`. Generation uses the table from task 3.2.
+- **Next step:** task 3.2 (`MapService` refactor, chunks, `MapPoint`/`Location` value objects; the deposit type and amount are stored on the map point).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

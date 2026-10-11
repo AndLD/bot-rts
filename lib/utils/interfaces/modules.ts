@@ -1,5 +1,6 @@
-import { Error, ID, Item } from '../types'
+import { Error, ID } from '../types'
 import { IFile } from './files'
+import { IItem as Item } from './items'
 import { IMapPoint } from './map'
 
 export type ModuleType =

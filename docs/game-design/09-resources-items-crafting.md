@@ -13,7 +13,7 @@
   modules, or loaded as ammunition.
 - ✅ **Resource set:** **gold**, **iron**, **oil/fuel**, **crystal**, **stone**, **wood**. Each has its own spawn
   weight, deposit amount range, mining hardness and crafting uses. The values live in a data-driven balance config
-  (not hardcoded), so they can be tuned without code changes. Initial defaults (relative weight among resource cells):
+  (not hardcoded), so they can be tuned without code changes (`DEFAULT_RESOURCE_BALANCE` in `lib`, overridable per field through the JSON file named in `WORLD_RESOURCE_BALANCE_FILE`). Initial defaults (relative weight among resource cells):
 
   | Resource | Rarity | Initial spawn weight |
   | --- | --- | --- |

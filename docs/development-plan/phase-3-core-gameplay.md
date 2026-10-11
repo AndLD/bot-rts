@@ -2,7 +2,7 @@
 
 # Phase 3 — Core gameplay foundations (76 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-3-log](./work-logs/phase-3-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-3-log](./work-logs/phase-3-log.md)
 
 Establish the game-domain backbone the product notes describe (bases, bots, resources, map, storage).
 
@@ -10,7 +10,7 @@ Establish the game-domain backbone the product notes describe (bases, bots, reso
 
 | # | Task                                                                                                      | SP | Status |
 | --- | -------------------------------------------------------------------------------------------------------- | -- | --- |
-| 3.1 | Resource & item model (`Resource`, `Item`) in `lib` and the data-driven resource balance config, per design §9.1 | 3 | ⬜ |
+| 3.1 | Resource & item model (`Resource`, `Item`) in `lib` and the data-driven resource balance config, per design §9.1 | 3 | ✅ |
 | 3.2 | Map domain service refactor: extract map generation/reconciliation into a `MapService` with injected RNG/clock; add `MapPoint`/`Location` value objects; the map is addressed in chunks (tunable size) in the domain model and the repository, keeping region sharding possible later (design §12.2.2) | 8 | ⬜ |
 | 3.3 | Indexes and constraints in the Prisma schema (e.g. `bots.baseId`, map `(x, y)` unique for real points, per-user known points `(userId, x, y)`, `modules.botId`) and query helpers; map storage is sparse and unbounded (negative coordinates supported) | 3 | ⬜ |
 | 3.4 | Bot model + `BotRepository`/`BotService` (create from modules, list a base's bots) on the ownership model of design §8.1 (the schema and `lib` types already carry `baseId` / `userId` since 1.1a) | 5 | ⬜ |
@@ -36,4 +36,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/3.1-resource-item-model` | 3.1 | #48 | merged |

@@ -99,7 +99,7 @@ infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) imple
 | Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5; today Vite 5, **moving to Next.js (App Router)** in Phase 1, which will also host the landing page |
 | Code editor  | CodeMirror 6 (`@uiw/react-codemirror`), `prettier-standalone`                |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest + `ts-jest` (installed, **not configured to run**); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
+| Testing      | Jest + `ts-jest` (`api`); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
 | Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
@@ -147,7 +147,8 @@ bot-rts/
 ### Prerequisites
 
 - Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
-- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL in Docker at the start of Phase 1 — Docker will then be required)
+- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL at the start of Phase 1)
+- Docker (for the local PostgreSQL; the current code does not use it yet)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
@@ -174,6 +175,18 @@ Without them the app runs on hardcoded development fallbacks.
 > **Warning:** use exactly the variable names in the table (and in the examples); email settings are `SMTP_*` now. Older local `api/.env.*` files named the JWT secrets
 > `JWT_ACCESS_TOKEN_SECRET` etc., which the code does not read, so the app silently fell back to hardcoded dev secrets.
 > Do **not** run this against a real database or expose it publicly.
+
+#### Local PostgreSQL (Docker)
+
+`docker-compose.yml` starts a pinned PostgreSQL 16.4 with a named volume and a healthcheck. Defaults
+(`botrts` / `botrts` / `botrts`, port 5432) can be overridden with `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and
+`POSTGRES_PORT` in a root `.env`; keep `DATABASE_URL` in `api/.env.development` in sync.
+
+```bash
+npm run db:up      # start and wait until healthy
+npm run db:down    # stop (data is kept in the volume)
+npm run db:reset   # drop the volume and start a fresh database
+```
 
 ### 3. Run in development
 
@@ -206,6 +219,7 @@ pm2 start ecosystem.config.json
 | `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | —                       |
 | `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
 | `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `http://localhost:5173` |
+| `DATABASE_URL`                        | api          | PostgreSQL connection string (not read by the code until Phase 1) | `postgresql://botrts:botrts@localhost:5432/botrts` |
 | `MONGO_DB_URI`                        | api          | MongoDB connection string                            | `mongodb://localhost:27017` |
 | `MONGO_DB_NAME`                       | api          | Database name                                        | `bot-rts`               |
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |

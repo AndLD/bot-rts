@@ -58,3 +58,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** `services/users.ts` has no tests yet (needs a database; integration tests arrive with the PostgreSQL repositories in Phase 1). `ts-built` in a local checkout may hold a stale layout (`ts-built/api/index.js` vs the `prod` script `ts-built/index`) — to be fixed with the NestJS migration. `trust proxy` is not configured, so behind a reverse proxy the rate limit would see the proxy IP; configure it when deployment is defined.
 - **Next step:** task 0.7 (Docker PostgreSQL).
 - **Verify with:** `npm run typecheck && npm test && npm run build`
+
+### 2026-10-11 — task 0.7: local PostgreSQL in Docker
+- **Tasks:** 0.7
+- **Branch:** `feature/0.7-local-postgres` — done
+- **Decisions / deviations from the plan:** image `postgres:16.4` (pinned; production must use the same major version); credentials/port are overridable through a root `.env`. `npm run db:up` uses `docker compose up --wait`, so it returns once the healthcheck passes.
+- **Problems / blockers / findings:** Docker Desktop was not running at the start of the session and was launched with `open -a Docker`. `DATABASE_URL` is documented but not read by the code until Phase 1 (task 1.1a).
+- **Next step:** task 0.4 (ESLint for `api`, shared Prettier check, `lint`/`typecheck` in both packages).
+- **Verify with:** `npm run db:up && docker compose ps && npm run db:down`

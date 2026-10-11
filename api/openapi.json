@@ -1645,14 +1645,11 @@
         },
         "responses": {
           "200": {
-            "description": "The scrap",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RecipeResourceResponse"
-                  }
+                  "$ref": "#/components/schemas/DisassemblyResponse"
                 }
               }
             }
@@ -2751,6 +2748,55 @@
         "required": [
           "targetBotId",
           "moduleId"
+        ]
+      },
+      "ScrapResponse": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "iron",
+              "stone",
+              "wood",
+              "oil",
+              "crystal",
+              "gold"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "DisassemblyResponse": {
+        "type": "object",
+        "properties": {
+          "scrap": {
+            "description": "A share of the recipe resources, now in the storage of the bot",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScrapResponse"
+            }
+          },
+          "blueprint": {
+            "nullable": true,
+            "description": "A blueprint item of the module, by chance",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ItemResponse"
+              }
+            ]
+          }
+        },
+        "required": [
+          "scrap",
+          "blueprint"
         ]
       },
       "HealthResponse": {

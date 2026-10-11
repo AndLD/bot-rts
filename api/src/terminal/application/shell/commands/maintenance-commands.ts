@@ -29,8 +29,15 @@ export class DisassembleCommand implements TerminalCommand {
 
   async execute({ userId, session, args }: CommandContext): Promise<CommandOutcome> {
     const [targetBotId, moduleId] = twoArguments(args, 'disassemble <bot-id> <module-id>')
-    const scrap = await this.maintenance.disassemble(userId, { repairerId: session.botId, targetBotId, moduleId })
+    const { scrap, blueprint } = await this.maintenance.disassemble(userId, {
+      repairerId: session.botId,
+      targetBotId,
+      moduleId
+    })
     const text = scrap.map(({ resource, amount }) => `${amount} ${resource}`).join(', ')
-    return output(`disassembled, scrap: ${text || 'nothing'}`)
+    return output(
+      `disassembled, scrap: ${text || 'nothing'}`,
+      ...(blueprint ? [`found a blueprint of ${blueprint.name}, id="${blueprint.id}"`] : [])
+    )
   }
 }

@@ -76,5 +76,5 @@ are settled:
     class (reverse engineering). Corpse bases drop none.
   - **Learning:** a blueprint item is **consumed** when used (`learn`) and the knowledge is then permanent. Until used it
     is an ordinary item: it can be carried, stored, dropped and traded between players.
-  🔴
+  ✅ Implemented: `MapGenerator` puts a blueprint item (a map point of type item) on `worldBlueprintChance` of new empty cells, for a random module of class 2 or above (class 1 is the base set); `MaintenanceService.disassemble` gives the blueprint of the module with `lootBlueprintChance`, never from a corpse base, into the inventory of the bot that took it apart; `learn` takes a blueprint item carried by the base or by one of its bots (until bots can bring items home with the manipulator, phase 5).
 - Crafting, assembly and research are exposed to the Factory GUI, to terminal commands (`craft`, `assemble`, `research`) and to scripts (`craft()`, `assemble()`, `research()`). 🔴

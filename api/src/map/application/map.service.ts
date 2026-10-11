@@ -1,3 +1,4 @@
+import { Item } from '../../crafting/domain/item.entity'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
@@ -18,7 +19,8 @@ export class MapService {
   // in the range becomes a fresh snapshot of the real cell. The range is worked chunk by chunk, so no step ever
   // needs more than one chunk of the map.
   observe(userId: string, range: LocationRange): Promise<KnownPoint[]> {
-    return this.unitOfWork.run(async ({ map }) => {
+    return this.unitOfWork.run(async (repositories) => {
+      const { map } = repositories
       const seenAt = this.clock.now().getTime()
       const snapshots: KnownPoint[] = []
 
@@ -26,13 +28,21 @@ export class MapService {
         const real = new Map((await map.findPointsInRange(part)).map((point) => [locationKey(point.location), point]))
         const generated: MapPoint[] = []
 
+        const items: Item[] = []
+
         for (const location of cellsOf(part)) {
           const key = locationKey(location)
           if (!real.has(key)) {
-            const point = this.generator.generate(this.ids.next(), location)
+            const { point, item } = this.generator.generate(this.ids.next(), location, () => this.ids.next())
             generated.push(point)
             real.set(key, point)
+            if (item) {
+              items.push(item)
+            }
           }
+        }
+        for (const item of items) {
+          await repositories.items.add(item)
         }
         await map.addPoints(generated)
 

@@ -36,6 +36,13 @@ export enum BlueprintSource {
   ITEM = 'item'
 }
 
+// What taking a module apart yielded (design §8.4.2)
+export interface IDisassembly {
+  scrap: IResourceStack[]
+  // The blueprint of the module's class, found by chance
+  blueprint: IItem | null
+}
+
 // A blueprint a player has learned
 export interface IBlueprint {
   userId: string

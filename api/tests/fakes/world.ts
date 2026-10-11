@@ -13,7 +13,7 @@ import { EnergyModel } from '../../src/modules/domain/energy-model'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
 import { createModuleRegistry } from '../../src/modules/domain/module-registry'
 import { FilesService } from '../../src/files/application/files.service'
-import { MapGenerator } from '../../src/map/domain/map-generator'
+import { BlueprintSpawn, MapGenerator } from '../../src/map/domain/map-generator'
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
 import { createTerminalShell } from '../../src/terminal/application/shell/create-terminal-shell'
@@ -48,6 +48,7 @@ export function createWorld(
     config?: Partial<WorldConfig>
     spawn?: Partial<SpawnConfig>
     retention?: Partial<TerminalRetention>
+    blueprints?: BlueprintSpawn
   } = {}
 ) {
   const repositories = {
@@ -119,7 +120,8 @@ export function createWorld(
     new EnergyModel(moduleRegistry),
     clock,
     rng,
-    new BaseLifecycle(moduleRegistry)
+    new BaseLifecycle(moduleRegistry),
+    ids
   )
 
   return {
@@ -131,7 +133,13 @@ export function createWorld(
     config,
     spawnConfig,
     spawnService,
-    mapService: new MapService(unitOfWork, ids, new MapGenerator(rng, config), clock, config.chunkSize),
+    mapService: new MapService(
+      unitOfWork,
+      ids,
+      new MapGenerator(rng, config, options.blueprints),
+      clock,
+      config.chunkSize
+    ),
     botsService,
     moduleFactory,
     moduleRegistry,

@@ -380,7 +380,7 @@ describe('the factory commands', () => {
   })
 
   it('says when the scrap of a disassembly is nothing', async () => {
-    const command = new DisassembleCommand({ disassemble: async () => [] } as never)
+    const command = new DisassembleCommand({ disassemble: async () => ({ scrap: [], blueprint: null }) } as never)
 
     const { result } = await command.execute({ userId: alice.id, session: { botId: 'bot' }, args: ['a', 'b'] } as never)
 

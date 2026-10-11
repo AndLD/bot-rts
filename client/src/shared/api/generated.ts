@@ -333,7 +333,7 @@ export type MaintenanceRepairApiArg = {
   botId: string
   maintenanceDto: MaintenanceDto
 }
-export type MaintenanceDisassembleApiResponse = /** status 200 The scrap */ RecipeResourceResponse[]
+export type MaintenanceDisassembleApiResponse = /** status 200  */ DisassemblyResponse
 export type MaintenanceDisassembleApiArg = {
   botId: string
   maintenanceDto: MaintenanceDto
@@ -649,6 +649,16 @@ export type MaintenanceDto = {
   targetBotId: string
   /** The module to repair or take apart */
   moduleId: string
+}
+export type ScrapResponse = {
+  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
+  amount: number
+}
+export type DisassemblyResponse = {
+  /** A share of the recipe resources, now in the storage of the bot */
+  scrap: ScrapResponse[]
+  /** A blueprint item of the module, by chance */
+  blueprint: ItemResponse | null
 }
 export type HealthResponse = {
   status: 'ok'

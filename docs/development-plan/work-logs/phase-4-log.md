@@ -74,3 +74,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.9 (blueprint acquisition: world blueprints, loot from disassembly).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.9: blueprint acquisition
+- **Tasks:** 4.9 (research and `learn` were built with 4.6)
+- **Branch:** `feature/4.9-blueprint-acquisition` — done
+- **Decisions / deviations from the plan:** **World blueprints:** `MapGenerator.generate` now returns the cell and the item lying on it; an empty new cell holds a blueprint item with `worldBlueprintChance` (1 %) for a random module of class 2 or above, stored in `items` in the same transaction as the map points and shown to players as a cell of type item (the generator takes the chance and module list from the `RecipeBook`, so they follow `CRAFTING_RECIPES_FILE`). **Loot:** `MaintenanceService.disassemble` returns `{ scrap, blueprint }`; with `lootBlueprintChance` (10 %) it also creates a blueprint item of the disassembled module, carried by the bot that did the work; a corpse base gives none (the rule of §9.3). **Learn from bots:** until bots can bring items home (manipulator and movement, phase 5), `learn` and the factory status accept blueprint items carried by the base or by any of its bots. The REST disassemble response changed shape (`{ scrap, blueprint }`) and the terminal `disassemble` prints the found blueprint id.
+- **Known gap:** two players observing the same new cell in parallel could both generate it; the second `addPoints` is ignored by the map repository but its item row would stay (an unreferenced item). The engine, the single writer of the world (phase 5), removes the race.
+- **Next step:** task 4.10 (module condition lifecycle).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

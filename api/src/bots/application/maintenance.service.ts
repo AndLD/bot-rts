@@ -1,6 +1,8 @@
 import { ICraftingBalance, IRecipe } from '../../../../lib/utils/interfaces/crafting'
 import { IResourceStack } from '../../../../lib/utils/interfaces/resources'
 import { fail, ResultCode } from '../../../../lib/utils/result'
+import { ItemType } from '../../../../lib/utils/interfaces/items'
+import { Item } from '../../crafting/domain/item.entity'
 import { RecipeBook } from '../../crafting/domain/recipe-book'
 import { distanceBetween } from '../../modules/domain/weapon-module'
 import { EnergyModel } from '../../modules/domain/energy-model'
@@ -11,12 +13,21 @@ import { RepairModule, scrapOf } from '../../modules/domain/repair-module'
 import { depositStacks, withdrawStacks } from '../../modules/domain/storage-stock'
 import { Repositories, UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
+import { IdGenerator } from '../../shared/application/id-generator'
 import { Rng } from '../../shared/application/rng'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { unwrap } from '../../shared/domain/result'
+import { isCorpse } from '../domain/base-state'
 import { Bot } from '../domain/bot.entity'
 import { BaseLifecycle } from './base-lifecycle'
 import { BotsService } from './bots.service'
+
+// What taking a module apart yielded
+export interface Disassembly {
+  scrap: IResourceStack[]
+  // Taking a module apart may also give away the blueprint of its class (design §9.3); a corpse base gives none
+  blueprint: Item | null
+}
 
 export interface MaintenanceOrder {
   // The bot with the repair module, one of the player's
@@ -46,7 +57,8 @@ export class MaintenanceService {
     private readonly energy: EnergyModel,
     private readonly clock: Clock,
     private readonly rng: Rng,
-    private readonly lifecycle: BaseLifecycle
+    private readonly lifecycle: BaseLifecycle,
+    private readonly ids: IdGenerator
   ) {}
 
   // Restores some condition of the module, using up resources of the repairer's storage and energy. Repairing the
@@ -70,7 +82,7 @@ export class MaintenanceService {
 
   // Takes the module apart: it disappears and a share of its recipe resources goes to the repairer's storage. Only a
   // broken module of another player's bot can be taken apart, or any module of an own bot.
-  async disassemble(userId: string, order: MaintenanceOrder): Promise<IResourceStack[]> {
+  async disassemble(userId: string, order: MaintenanceOrder): Promise<Disassembly> {
     const repairerBot = await this.bots.getControlledBot(userId, order.repairerId)
 
     return this.unitOfWork.run(async (repositories) => {
@@ -83,8 +95,10 @@ export class MaintenanceService {
       const paid = unwrap(this.energy.spend(stored, job.repairer.record.operationCost))
       await this.save(repositories, job.repairerRecords, this.replace(paid, job.repairer.withProps(kept.patch)))
       await repositories.modules.remove(job.module.id)
+
+      const blueprint = await this.lootBlueprint(repositories, job, repairerBot)
       await this.syncOwner(repositories, job.target)
-      return scrap
+      return { scrap, blueprint }
     })
   }
 
@@ -143,6 +157,24 @@ export class MaintenanceService {
       return bot.userId
     }
     return bot.baseId ? ((await repositories.bots.findById(bot.baseId))?.userId ?? null) : null
+  }
+
+  // The blueprint item of the module, by chance, carried by the bot that took it apart. A base its owner lost control
+  // of is a corpse and gives none.
+  private async lootBlueprint(repositories: Repositories, job: Job, repairerBot: Bot): Promise<Item | null> {
+    const isCorpseBase = job.target.userId !== null && isCorpse(this.registry.instantiateAll(job.targetRecords))
+    if (isCorpseBase || this.rng.next() >= this.balance.lootBlueprintChance) {
+      return null
+    }
+    const item: Item = {
+      id: this.ids.next(),
+      type: ItemType.BLUEPRINT,
+      name: job.module.name,
+      weight: 0.1,
+      botId: repairerBot.id
+    }
+    await repositories.items.add(item)
+    return item
   }
 
   // Shows the owner's bases on the map as they are now (a base lost its adapter, or got control back)

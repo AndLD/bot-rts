@@ -1,4 +1,5 @@
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
+import { FixedRng } from '../../../tests/fakes/fakes'
 import { createWorld } from '../../../tests/fakes/world'
 import { Location } from '../../map/domain/map-point.entity'
 import { BatteryModule, StorageModule } from '../../modules/domain/game-module'
@@ -227,10 +228,11 @@ describe('MaintenanceService.disassemble', () => {
     stock([])
     const gun = find(base.id, 'weapon')
 
-    const scrap = await maintenanceService.disassemble(alice.id, order(base.id, gun.id))
+    const { scrap, blueprint } = await maintenanceService.disassemble(alice.id, order(base.id, gun.id))
 
     // the middle of the 30-50 % of the 50 iron of the recipe
     expect(scrap).toEqual([{ resource: 'iron', amount: 20 }])
+    expect(blueprint).toBeNull()
     expect(storage().amountOf('iron' as never)).toBe(20)
     expect(modulesOf(base.id).some((m) => m.id === gun.id)).toBe(false)
     expect(find(medic.id, 'repair').props.readyAt).toBeGreaterThan(0)
@@ -269,7 +271,9 @@ describe('MaintenanceService.disassemble', () => {
       code: 'FORBIDDEN'
     })
     replace(gun.id, { condition: 0 })
-    await expect(maintenanceService.disassemble(alice.id, order(bobBase.id, gun.id))).resolves.toHaveLength(1)
+    await expect(maintenanceService.disassemble(alice.id, order(bobBase.id, gun.id))).resolves.toMatchObject({
+      scrap: [expect.anything()]
+    })
   })
 
   it("finds the owner of a bot through its base: own bots may be stripped, other players' only when broken", async () => {
@@ -351,5 +355,60 @@ describe('MaintenanceService.disassemble', () => {
       await expect(maintenanceService.disassemble(alice.id, order(id, module.id))).resolves.toBeDefined()
       advance(1000)
     }
+  })
+
+  it('may give away the blueprint of the module, which the bot then carries', async () => {
+    const world = createWorld({ rng: new FixedRng([0.5, 0.01]) })
+    const { bot: base } = await world.botsService.deployUserBase(alice, {
+      password: PASSWORD,
+      location: { x: 5, y: 5, z: 0 }
+    })
+    const { bot: medic } = await world.botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: null,
+      modules: KIT.map((name) => world.moduleFactory.template(name))
+    })
+    const gun = world.repositories.modules.items.find((m) => m.botId === base.id && m.type === 'weapon')!
+
+    const { blueprint } = await world.maintenanceService.disassemble(alice.id, {
+      repairerId: medic.id,
+      targetBotId: base.id,
+      moduleId: gun.id
+    })
+
+    expect(blueprint).toMatchObject({ type: 'blueprint', name: 'gun-class1', botId: medic.id })
+    expect(await world.repositories.items.findById(blueprint!.id)).toEqual(blueprint)
+  })
+
+  it('gives no blueprint from a corpse base', async () => {
+    const world = createWorld({ rng: new FixedRng([0.5, 0.01]) })
+    const { bot: base } = await world.botsService.deployUserBase(alice, {
+      password: PASSWORD,
+      location: { x: 5, y: 5, z: 0 }
+    })
+    const adapter = world.repositories.modules.items.find((m) => m.botId === base.id && m.type === 'wirelessAdapter')!
+    world.repositories.modules.items[world.repositories.modules.items.indexOf(adapter)] = { ...adapter, condition: 0 }
+    const gun = world.repositories.modules.items.find((m) => m.botId === base.id && m.type === 'weapon')!
+
+    // The bots of the corpse are stale, so a bot of the player's new base does the work
+    const { bot: newBase } = await world.botsService.deployUserBase(alice, {
+      password: PASSWORD,
+      location: { x: 40, y: 40, z: 0 }
+    })
+    const { bot: medic, mapPoint } = await world.botsService.createBot(alice.id, {
+      baseId: newBase.id,
+      label: null,
+      modules: KIT.map((name) => world.moduleFactory.template(name))
+    })
+    world.repositories.map.points.delete(`${mapPoint.location.x}:${mapPoint.location.y}:${mapPoint.location.z}`)
+    await world.repositories.map.upsertPoint({ ...mapPoint, location: { x: 5, y: 6, z: 0 } })
+
+    const { blueprint } = await world.maintenanceService.disassemble(alice.id, {
+      repairerId: medic.id,
+      targetBotId: base.id,
+      moduleId: gun.id
+    })
+
+    expect(blueprint).toBeNull()
   })
 })

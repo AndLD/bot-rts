@@ -230,6 +230,19 @@ describe('FactoryService.learn', () => {
     expect((await service.status(alice.id, base.id)).blueprintItems).toEqual([])
   })
 
+  it('learns a blueprint a bot of the base carries, and lists it in the status', async () => {
+    const { service, base, repositories, botsService, moduleFactory } = await setup()
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: null,
+      modules: [moduleFactory.template('processor-class1')]
+    })
+    await repositories.items.add(blueprintItem(worker.id))
+
+    expect((await service.status(alice.id, base.id)).blueprintItems).toEqual([expect.objectContaining({ id: 'bp-1' })])
+    await expect(service.learn(alice.id, base.id, 'bp-1')).resolves.toMatchObject({ module: 'scanner-class2' })
+  })
+
   it('keeps an item it cannot use', async () => {
     const { service, base, repositories, change } = await setup()
     await repositories.items.add(blueprintItem(null))

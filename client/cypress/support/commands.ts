@@ -107,3 +107,37 @@ Cypress.Commands.add('loginViaForm', (email, password = PASSWORD) => {
   cy.get('input[type=password]').type(password, { parseSpecialCharSequences: false })
   cy.contains('button', 'Log in').click()
 })
+
+export interface Cell {
+  x: number
+  y: number
+}
+
+// Declared here, next to the other custom commands
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable {
+      // Deploys the player's base through the API; resolves to the id of the base and the cell it stands on
+      deployBaseViaApi(
+        token: string,
+        body?: { password?: string; spawnSeed?: string }
+      ): Chainable<{ id: string; at: Cell }>
+    }
+  }
+}
+
+Cypress.Commands.add('deployBaseViaApi', (token, body = {}) =>
+  cy
+    .apiRequest({
+      method: 'POST',
+      path: '/api/v1/bots/base',
+      body: { password: 'secret1', ...body },
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then((response) => {
+      const { bot, mapPoint } = response.body as { bot: { _id: string }; mapPoint: { location: Cell } }
+
+      return { id: bot._id, at: { x: mapPoint.location.x, y: mapPoint.location.y } }
+    })
+)

@@ -115,3 +115,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.13 (Cypress for the Phase 3 flows: files in the terminal, redeploy after a corpse base, spawn seeds), then close the phase.
 - **Verify with:** `npm run openapi:generate -w api && npm run api:generate -w client && git status` (nothing changes), then `npm run test:coverage && npm run e2e`
 
+### 2026-10-11 — task 3.13: end-to-end specs of the phase, and Phase 3 complete
+- **Tasks:** 3.13
+- **Branch:** `feature/3.13-phase-3-e2e` — done
+- **Specs (21 new cases):** `terminal-files.cy.ts` (the drive of the starter kit, `cd`, `mkdir`, editing a file in the terminal editor, `ls`, `cat`, `rm`, errors, and the stored session lines read from the database), `redeploy.cy.ts` (a lost base brings the deploy screen back, the redeploy hides the corpse, `BASE_LOST`, one living base), `spawn-seeds.cy.ts` (same code spawns within 12 cells, strangers stay 30 away, a full seed and an expired seed are refused with their messages, a malformed code is refused before asking), and `deploy.cy.ts` from 3.8. A player's base is placed through the API with `cy.deployBaseViaApi`.
+- **Deviations from the plan:** the expired seed uses a database task that ages the seed by 25 hours instead of an injected clock, because the e2e API runs on the system clock (the injected `FakeClock` is covered by the unit tests of `SpawnService`); the e2e API runs with `SPAWN_SEED_MAX_PLAYERS=2` so that a full seed takes three players only.
+- **Phase 3 exit criteria:** a user can deploy a base (password, optional spawn seed), open its terminal, manage files on its drive, and every command is stored in the session log in the database; all of it is covered by unit, integration and e2e tests (api 100 % coverage, client 99.4 %, 24 e2e cases in the five terminal/deploy/seed/redeploy specs).
+- **Next step:** Phase 4 when requested. Open items carried over: add the `e2e` job to the required checks of `develop`; the CodeMirror editor window (phase 6) replaces the plain textarea of `edit`; `readDelay` / `writeDelay` of drives and the tick-time corpse detection arrive with the engine (phase 5).
+- **Verify with:** `npm run db:up && npm run test:coverage && npm run e2e`
+

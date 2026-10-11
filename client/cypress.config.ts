@@ -61,6 +61,37 @@ export default defineConfig({
           return null
         },
 
+        // The wireless adapter of the player's base breaks: the base becomes a corpse for its owner (design §6.3)
+        async breakBaseAdapter({ email }: { email: string }) {
+          await sql(
+            `UPDATE modules SET condition = 0
+             WHERE type = 'wirelessAdapter' AND bot_id IN (
+               SELECT id FROM bots WHERE type = 'base' AND user_id = (SELECT id FROM users WHERE email = $1))`,
+            [email]
+          )
+
+          return null
+        },
+
+        // Lets a spawn seed look as if it was created a day and an hour ago, which is past its lifetime
+        async ageSpawnSeed({ code }: { code: string }) {
+          await sql(`UPDATE spawn_seeds SET created_at = now() - interval '25 hours' WHERE code = $1`, [code])
+
+          return null
+        },
+
+        // What the terminal stored for the player's base, oldest first, as `kind: text`
+        async terminalLines({ email }: { email: string }) {
+          const { rows } = await sql(
+            `SELECT kind::text AS kind, text FROM terminal_logs
+             WHERE bot_id IN (SELECT id FROM bots WHERE user_id = (SELECT id FROM users WHERE email = $1))
+             ORDER BY at, id`,
+            [email]
+          )
+
+          return rows.map((row) => `${row.kind}: ${row.text}`)
+        },
+
         // Makes every unused link of a kind sent to the user's address expire an hour ago
         async expireLinks({ email }: { email: string }) {
           await sql(

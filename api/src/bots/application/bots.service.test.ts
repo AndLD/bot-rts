@@ -3,7 +3,7 @@ import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { FixedRng } from '../../../tests/fakes/fakes'
 import { createWorld } from '../../../tests/fakes/world'
 import { INITIAL_BASE_MODULES } from '../../modules/domain/initial-base-modules'
-import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
 
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
@@ -96,5 +96,59 @@ describe('BotsService queries', () => {
     const detached = { ...worker, id: 'detached-1', baseId: 'deleted-base' }
     await repositories.bots.add(detached)
     await expect(botsService.getOwnedBot(alice.id, detached.id)).rejects.toThrow(ForbiddenError)
+  })
+})
+
+describe('BotsService.createBot', () => {
+  const modules = INITIAL_BASE_MODULES.slice(0, 2)
+
+  it('builds a bot of the base from the modules and lists it with the base bots', async () => {
+    const { botsService, repositories } = createWorld()
+    const { bot: base } = await botsService.deployUserBase(alice)
+
+    const { bot, modules: attached } = await botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: 'Digger',
+      modules
+    })
+
+    expect(bot).toMatchObject({ label: 'Digger', type: BOT_TYPE.WORKER, userId: null, baseId: base.id })
+    expect(attached).toHaveLength(2)
+    expect(attached.every((module) => module.botId === bot.id)).toBe(true)
+    expect(await repositories.modules.listOfBot(bot.id)).toEqual(attached)
+    expect(await botsService.listBaseBots(alice.id, base.id)).toEqual([bot])
+    expect(await botsService.listUserBots(alice.id)).toContainEqual(bot)
+  })
+
+  it('refuses a foreign base, a bot as the owner, and an empty bot', async () => {
+    const { botsService } = createWorld()
+    const { bot: base } = await botsService.deployUserBase(alice)
+    const { bot: worker } = await botsService.createBot(alice.id, { baseId: base.id, label: null, modules })
+
+    await expect(botsService.createBot(bob.id, { baseId: base.id, label: null, modules })).rejects.toThrow(
+      ForbiddenError
+    )
+    await expect(botsService.createBot(alice.id, { baseId: worker.id, label: null, modules })).rejects.toThrow(
+      ValidationError
+    )
+    await expect(botsService.createBot(alice.id, { baseId: base.id, label: null, modules: [] })).rejects.toThrow(
+      ValidationError
+    )
+  })
+})
+
+describe('BotsService.listBaseBots', () => {
+  it('answers only for a base the player owns', async () => {
+    const { botsService } = createWorld()
+    const { bot: base } = await botsService.deployUserBase(alice)
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: null,
+      modules: INITIAL_BASE_MODULES.slice(0, 1)
+    })
+
+    await expect(botsService.listBaseBots(bob.id, base.id)).rejects.toThrow(ForbiddenError)
+    await expect(botsService.listBaseBots(alice.id, worker.id)).rejects.toThrow(ValidationError)
+    await expect(botsService.listBaseBots(alice.id, 'missing')).rejects.toThrow(NotFoundError)
   })
 })

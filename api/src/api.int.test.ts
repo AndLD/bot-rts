@@ -329,7 +329,11 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     await api().get('/api/v1/bots/not-an-id/modules').set(bearer(accessToken)).expect(400)
     await api().get('/api/v1/bots/0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e/modules').set(bearer(accessToken)).expect(404)
 
+    expect((await api().get(`/api/v1/bots/${botId}/bots`).set(bearer(accessToken)).expect(200)).body).toEqual([])
+    await api().get('/api/v1/bots/not-an-id/bots').set(bearer(accessToken)).expect(400)
+
     const stranger = await signUp('bob@example.com', 'Bob')
+    await api().get(`/api/v1/bots/${botId}/bots`).set(bearer(stranger.accessToken)).expect(403)
     await api().get(`/api/v1/bots/${botId}/modules`).set(bearer(stranger.accessToken)).expect(403)
     await api().post(`/api/v1/bots/${botId}/scan`).set(bearer(stranger.accessToken)).expect(403)
     await api().post('/api/v1/bots/not-an-id/scan').set(bearer(accessToken)).expect(400)

@@ -3,13 +3,13 @@ import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { MapRepository } from '../../map/application/map.repository'
 import { KnownPoint, Location, MapPoint } from '../../map/domain/map-point.entity'
 import { WorldConfig } from '../../map/domain/world-config'
-import { INITIAL_BASE_MODULES } from '../../modules/domain/initial-base-modules'
+import { INITIAL_BASE_MODULES, ModuleTemplate } from '../../modules/domain/initial-base-modules'
 import { Module } from '../../modules/domain/module.entity'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { Rng } from '../../shared/application/rng'
-import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { Bot } from '../domain/bot.entity'
 import { BaseAlreadyExistsError, NoFreeLocationError } from '../domain/bot.errors'
 import { BotRepository } from './bot.repository'
@@ -69,6 +69,44 @@ export class BotsService {
 
       return { bot, modules, mapPoint }
     })
+  }
+
+  // A new ordinary bot of one of the player's bases, built from the given modules. It is not on the map yet: its
+  // placement next to the base belongs to the assembly (design §8.3).
+  async createBot(
+    userId: string,
+    input: { baseId: string; label: string | null; modules: readonly ModuleTemplate[] }
+  ): Promise<{ bot: Bot; modules: Module[] }> {
+    const base = await this.getOwnedBot(userId, input.baseId)
+    if (base.type !== BOT_TYPE.BASE) {
+      throw new ValidationError('A bot belongs to a base, not to another bot')
+    }
+    if (!input.modules.length) {
+      throw new ValidationError('A bot needs at least one module')
+    }
+
+    return this.unitOfWork.run(async (repositories) => {
+      const bot: Bot = {
+        id: this.ids.next(),
+        label: input.label,
+        type: BOT_TYPE.WORKER,
+        userId: null,
+        baseId: base.id
+      }
+      await repositories.bots.add(bot)
+      const modules = input.modules.map((template) => ({ ...template, id: this.ids.next(), botId: bot.id }))
+      await repositories.modules.addMany(modules)
+      return { bot, modules }
+    })
+  }
+
+  // The bots of one of the player's bases
+  async listBaseBots(userId: string, baseId: string): Promise<Bot[]> {
+    const base = await this.getOwnedBot(userId, baseId)
+    if (base.type !== BOT_TYPE.BASE) {
+      throw new ValidationError('The bot is not a base')
+    }
+    return this.bots.listOfBase(base.id)
   }
 
   listUserBots(userId: string, filter?: { type?: BOT_TYPE }): Promise<Bot[]> {

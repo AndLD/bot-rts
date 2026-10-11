@@ -41,6 +41,28 @@ describe('PrismaMapRepository: deposits', () => {
   })
 })
 
+describe('PrismaMapRepository: constraints', () => {
+  const oil = (amount: number) => ({ resource: RESOURCE.OIL, amount })
+
+  it('stores negative coordinates and keeps one cell per location', async () => {
+    const west = buildPoint(-5, -7)
+    await map.addPoints([west])
+
+    expect(await map.findPointsInRange({ from: { x: -9, y: -9, z: 0 }, to: { x: 0, y: 0, z: 0 } })).toEqual([west])
+  })
+
+  it('refuses a deposit that is not a resource cell or holds nothing', async () => {
+    await expect(map.addPoints([buildPoint(1, 1, { resource: oil(5) })])).rejects.toThrow()
+    await expect(map.addPoints([buildPoint(1, 2, { type: MapPointType.RESOURCE, resource: oil(0) })])).rejects.toThrow()
+    await expect(map.upsertKnownPoints([{ ...buildKnownPoint(userId, 1, 3), resource: oil(5) }])).rejects.toThrow()
+  })
+
+  it('refuses a bot, base or item cell without content and content on a cell without one', async () => {
+    await expect(map.addPoints([buildPoint(1, 1, { type: MapPointType.BASE })])).rejects.toThrow()
+    await expect(map.addPoints([buildPoint(1, 2, { contentId: randomUUID() })])).rejects.toThrow()
+  })
+})
+
 describe('PrismaMapRepository: real layer', () => {
   it('stores points and finds those inside a range, ordered by location', async () => {
     const inside = [buildPoint(1, 1), buildPoint(0, 0), buildPoint(2, 0)]

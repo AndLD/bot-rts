@@ -49,4 +49,4 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/1.0-typescript-node-baseline` | 1.0 | [#31](https://github.com/AndLD/bot-rts/pull/31) | ✅ |
-| `feature/1.1-ports-and-prisma-adapters` | 1.1, 1.1a | PR_N | ✅ |
+| `feature/1.1-ports-and-prisma-adapters` | 1.1, 1.1a | [#32](https://github.com/AndLD/bot-rts/pull/32) | ✅ |

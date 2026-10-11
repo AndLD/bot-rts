@@ -3,6 +3,12 @@ import { createWorld } from '../../../../tests/fakes/world'
 import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { customiseDrive } from '../../../../tests/fakes/drives'
 import { ForbiddenError } from '../../../shared/domain/errors'
+import { RecipeService } from '../../../crafting/application/recipe.service'
+import { RecipeBook } from '../../../crafting/domain/recipe-book'
+import { InMemoryBlueprintRepository } from '../../../../tests/fakes/fakes'
+import { DEFAULT_CRAFTING_BALANCE, DEFAULT_RECIPES } from '../../../../../lib/utils/interfaces/crafting'
+import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
+import { RecipesCommand } from './commands/factory-commands'
 import { TOP } from './cwd'
 
 const PASSWORD = 'secret1'
@@ -309,5 +315,35 @@ describe('the factory commands', () => {
     await lines(`assemble - ${ids.join(' ')}`)
 
     expect([...repositories.bots.items.values()].some((bot) => bot.type === 'worker' && bot.label === null)).toBe(true)
+  })
+
+  it('shows the blueprint items the base holds', async () => {
+    const { lines, repositories, bot } = await withStock()
+    await repositories.items.add({ id: 'bp', type: 'blueprint' as never, name: 'gun-class2', weight: 0, botId: bot.id })
+
+    expect(await lines('factory')).toEqual(['- blueprint id="bp" module="gun-class2"'])
+  })
+
+  it('marks a recipe locked while the class below it is unknown', async () => {
+    const recipes = new RecipeService(
+      new RecipeBook(
+        [
+          ...DEFAULT_RECIPES,
+          {
+            module: 'scanner-class3',
+            classLevel: 3,
+            resources: [{ resource: RESOURCE.IRON, amount: 1 }],
+            craftTimeMs: 1000
+          }
+        ],
+        DEFAULT_CRAFTING_BALANCE
+      ),
+      new InMemoryBlueprintRepository()
+    )
+
+    const { result } = await new RecipesCommand(recipes).execute({ userId: alice.id } as never)
+
+    expect(result).toMatchObject({ type: 'output' })
+    expect((result as { lines: string[] }).lines).toContain('- module="scanner-class3" locked cost="1 iron" time=1s')
   })
 })

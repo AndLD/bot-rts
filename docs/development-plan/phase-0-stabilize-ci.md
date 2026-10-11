@@ -43,4 +43,4 @@ AGENTS.md §7.1).
 | `feature/0.4-eslint-prettier` | 0.4 | [#27](https://github.com/AndLD/bot-rts/pull/27) | ✅ |
 | `feature/0.5-github-actions-ci` | 0.5 | [#28](https://github.com/AndLD/bot-rts/pull/28) | ✅ |
 | `chore/0.6-branch-protection` | 0.6 (script) | [#29](https://github.com/AndLD/bot-rts/pull/29) | ✅ |
-| `chore/0.6-finish-phase-0` | 0.6 (close-out) | PR_N | ✅ |
+| `chore/0.6-finish-phase-0` | 0.6 (close-out) | [#30](https://github.com/AndLD/bot-rts/pull/30) | ✅ |

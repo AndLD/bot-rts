@@ -116,3 +116,61 @@ jobs:
       - name: Build
         if: steps.changes.outputs.code == 'true'
         run: npm run build
+
+  e2e:
+    # Cypress against a throwaway stack: fresh database, the API and the built client (scripts/e2e.mjs)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: botrts
+          POSTGRES_PASSWORD: botrts
+          POSTGRES_DB: botrts
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U botrts -d botrts"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Detect markdown-only changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
+            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          else
+            files="unknown.ts"
+          fi
+          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Install dependencies
+        if: steps.changes.outputs.code == 'true'
+        run: npm ci
+      - name: Cache the Cypress binary
+        if: steps.changes.outputs.code == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: End-to-end tests
+        if: steps.changes.outputs.code == 'true'
+        run: npm run e2e
+      - name: Keep the screenshots and server logs of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure
+          path: |
+            client/cypress/screenshots
+            .e2e/*.log
+          if-no-files-found: ignore

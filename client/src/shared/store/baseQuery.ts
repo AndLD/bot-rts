@@ -40,7 +40,11 @@ export const baseQueryWithRefresh: BaseQueryFn<string | FetchArgs, unknown, Fetc
     if (refreshed) {
       api.dispatch(setToken(refreshed))
     } else {
-      await baseQuery({ url: '/api/v1/auth/logout', method: 'POST', responseHandler: 'text' }, api, extraOptions)
+      await baseQuery(
+        { url: '/api/v1/auth/logout', method: 'POST', responseHandler: 'content-type' },
+        api,
+        extraOptions
+      )
       api.dispatch(setToken(null))
     }
   }

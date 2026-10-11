@@ -22,34 +22,44 @@ export const authApi = createApi({
       query: () => ({ method: 'POST', url: '/api/v1/auth/refresh' })
     }),
     logout: builder.mutation<void, void>({
-      query: () => ({ method: 'POST', url: '/api/v1/auth/logout', responseHandler: 'text' })
+      query: () => ({ method: 'POST', url: '/api/v1/auth/logout', responseHandler: 'content-type' })
     }),
     verifyEmail: builder.mutation<void, { token: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/verify', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/verify', body, responseHandler: 'content-type' })
     }),
     resendVerification: builder.mutation<void, { email: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/resend', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/resend', body, responseHandler: 'content-type' })
     }),
     requestPasswordReset: builder.mutation<void, { email: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/forgot', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/forgot', body, responseHandler: 'content-type' })
     }),
     resetPassword: builder.mutation<void, { token: string; password: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/reset', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/reset', body, responseHandler: 'content-type' })
     }),
     changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/change', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/password/change', body, responseHandler: 'content-type' })
     }),
     requestEmailChange: builder.mutation<void, { password: string; newEmail: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/change', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/change', body, responseHandler: 'content-type' })
     }),
     confirmEmailChange: builder.mutation<void, { token: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/email/change/confirm', body, responseHandler: 'text' })
+      query: (body) => ({
+        method: 'POST',
+        url: '/api/v1/auth/email/change/confirm',
+        body,
+        responseHandler: 'content-type'
+      })
     }),
     requestAccountDeletion: builder.mutation<void, { password: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/account/delete', body, responseHandler: 'text' })
+      query: (body) => ({ method: 'POST', url: '/api/v1/auth/account/delete', body, responseHandler: 'content-type' })
     }),
     confirmAccountDeletion: builder.mutation<void, { token: string }>({
-      query: (body) => ({ method: 'POST', url: '/api/v1/auth/account/delete/confirm', body, responseHandler: 'text' })
+      query: (body) => ({
+        method: 'POST',
+        url: '/api/v1/auth/account/delete/confirm',
+        body,
+        responseHandler: 'content-type'
+      })
     })
   })
 })

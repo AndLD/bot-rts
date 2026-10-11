@@ -33,6 +33,8 @@ export interface AppConfig {
   worldSeed: number | undefined
   world: WorldConfig
   smtp: SmtpConfig | undefined
+  // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
+  emailOutboxDir: string | undefined
   auth: AuthConfig
   rateLimit: RateLimitConfig
   // Trust X-Forwarded-* headers of a reverse proxy (needed for per-client rate limits behind one)
@@ -128,6 +130,7 @@ export function loadConfig(env: Env): AppConfig {
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
     world: readWorldConfig(env),
     smtp: readSmtpConfig(env),
+    emailOutboxDir: env.EMAIL_OUTBOX_DIR || undefined,
     auth: {
       provider: provider as AuthConfig['provider'],
       accessSecret: env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,

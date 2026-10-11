@@ -29,3 +29,7 @@ api/ts-built
 !.env.example
 *.tsbuildinfo
 coverage
+
+.next
+next-env.d.ts
+out

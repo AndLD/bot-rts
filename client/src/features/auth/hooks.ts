@@ -75,7 +75,7 @@ export function useRefreshSession() {
     const token = await refreshOnce(async () => {
       const result = await refresh()
 
-      return 'data' in result ? result.data.accessToken : null
+      return result.data?.accessToken ?? null
     })
 
     dispatch(setToken(token))

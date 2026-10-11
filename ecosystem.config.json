@@ -16,7 +16,7 @@
     {
       "name": "bot-rts-react",
       "script": "npm",
-      "args": ["run", "prod"],
+      "args": ["run", "start"],
       "cwd": "./client",
       "instances": 1,
       "autorestart": true,

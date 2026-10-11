@@ -1,3 +1,5 @@
+'use client'
+
 import { StopOutlined } from '@ant-design/icons'
 
 export default function BlockedPage() {

@@ -1,3 +1,5 @@
+'use client'
+
 import { SocketProvider } from '../../shared/socket/SocketProvider'
 import Terminal from '../terminal/Terminal'
 

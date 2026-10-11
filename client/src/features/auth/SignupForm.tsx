@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Form, Input } from 'antd'
 import { useAppDispatch } from '../../shared/store/hooks'
 import { setToken } from '../../shared/store/session.slice'
@@ -5,11 +7,11 @@ import { IUserPostBody } from '@lib/utils/interfaces/users'
 import { errorNotification } from '../../shared/notifications'
 import { getErrorMessage } from '../../shared/errors'
 import { validationRules } from '../../shared/validation'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { useRegisterMutation } from './auth.api'
 
 export default function SignupForm() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [form] = Form.useForm()
   const dispatch = useAppDispatch()
   const [register] = useRegisterMutation()
@@ -17,9 +19,9 @@ export default function SignupForm() {
   async function onFinish(user: IUserPostBody) {
     const result = await register(user)
 
-    if ('data' in result) {
+    if (result.data) {
       dispatch(setToken(result.data.accessToken))
-      navigate('/forbidden')
+      router.push('/forbidden')
     } else {
       errorNotification(getErrorMessage(result.error), 'Could not sign up')
     }

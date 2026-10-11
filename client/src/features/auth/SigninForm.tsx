@@ -1,3 +1,5 @@
+'use client'
+
 import { Button, Form, Input } from 'antd'
 import { useAppDispatch } from '../../shared/store/hooks'
 import { setToken } from '../../shared/store/session.slice'
@@ -15,7 +17,7 @@ export default function SigninForm() {
   async function onFinish(credentials: IAuthPostBody) {
     const result = await login(credentials)
 
-    if ('data' in result) {
+    if (result.data) {
       dispatch(setToken(result.data.accessToken))
     } else {
       errorNotification(getErrorMessage(result.error), 'Login error')

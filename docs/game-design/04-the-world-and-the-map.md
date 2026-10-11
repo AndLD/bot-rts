@@ -57,6 +57,8 @@ Rules:
 - ✅ **What refreshes a cell:** a `scan()` that covers it; the direct result of an action of the player's own bot on it (the
   cell it moved into, dug, shot at or dropped an item on); and **continuous scanning** (§4.4), which keeps the cells inside a
   scanner's radius live. There is **no passive sight**: a bot without a running scanner sees nothing of its surroundings.
+- ✅ **A disconnected bot does not feed the player's map** (§11.2.1): its scans are buffered and applied with their original
+  `seenAt` when the link returns.
 - ✅ **Stale data is expected, not an error.** Other bots, dropped items and deposits can change after `seenAt`. Actions are
   always checked against the **real** world, so acting on a stale cell returns an ordinary error value (`BLOCKED`,
   `EMPTY`, `GONE`); a script that cares about freshness re-scans and compares `seenAt`. A one-shot `scan()` is not
@@ -119,6 +121,8 @@ Rules:
 | Bot | **chassis-based sprite** (wheels, tracks, immobile) plus **overlay icons** for key modules (weapon, drill, scanner, antenna), see below |
 | Base | base sprite; **corpse base** has its own broken variant (§6.3) |
 | Stale bot (§6.3) | the bot sprite in a greyed variant |
+| Connected bot | its sprite with a small **signal-strength indicator** (0–4 bars, colour from green to red) in a corner, updated live; hidden at low zoom (§11.2.1) |
+| Bot without a radio link to its base (§11.2.1) | the bot at its last known position, **greyed with diagonal hatching**, tooltip "connection lost N s ago"; optional link overlay shows the broken relay |
 | Cell in the live area (§4.4) | the sprite at full strength, with a subtle live outline |
 | Known cell (a snapshot) | the same sprite, **dimmed by age** since `seenAt` (full strength for the first moments, fading to a minimum for old data); a tooltip shows "seen N s ago"; a remembered bot or item is drawn as a last-seen ghost |
 

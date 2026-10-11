@@ -88,9 +88,19 @@ and travel time force trade-offs.
 3. The server checks the target bot has an **enabled wireless adapter**; it does, so a draggable terminal opens for
    that bot.
 4. He writes a script with `edit miner.js`, then `run miner.js`.
-5. His network drops: the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
+5. His own internet connection drops (this is the player's client, not the bot's radio link): the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
    running on the server**.
 6. On reconnect, the session (with all logs so far) is still there — it was persisted to the database.
+
+## Scenario H — "Out of range"
+
+1. Frank's scout walks away from the base and leaves the range of its wireless adapter.
+2. On the map the scout turns grey with diagonal hatching at its last known position; its terminal shows "Connection
+   interrupted" and he gets a `LinkLost` notification. His manual commands to the scout are refused (`NO_SIGNAL`).
+3. The scout's script keeps running. It calls `getLinkStatus()`, sees `connected: false`, and walks back toward the base.
+4. A relay tower built earlier also runs out of oil, so two more bots behind it are hatched as well.
+5. Frank refuels the tower; the link returns by itself, the terminals resume, the scout's buffered scans appear on the map
+   with their real times, and a summary of the missed events arrives.
 
 ## Scenario G — "Debugging in the field"
 

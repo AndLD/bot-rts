@@ -75,3 +75,4 @@ about 15 minutes it is sharded and run in parallel.
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
 | Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 |
+| Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 |

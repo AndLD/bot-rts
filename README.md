@@ -101,7 +101,7 @@ enforces the layer rules.
 | Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5, Next.js (App Router) with React 19, which also hosts the landing page |
 | Code editor  | CodeMirror 6 (planned for the script editor; verified to work with Next 16 / React 19) |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest + `ts-jest` (`api`); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
+| Testing      | Jest (`api` with `ts-jest`, `client` with `next/jest`), integration tests on PostgreSQL in Docker (no in-memory databases), Cypress end-to-end |
 | Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
@@ -246,8 +246,9 @@ pm2 start ecosystem.config.json
 | ------- | ------------------------ | ---------------------------------------------------- |
 | root    | `npm run lint`           | ESLint of every package and a Prettier check          |
 | root    | `npm run typecheck`      | TypeScript of every package                          |
-| root    | `npm test`               | Jest of `api` (needs `npm run db:up`)                |
-| root    | `npm run test:coverage`  | The same with a coverage report                      |
+| root    | `npm test`               | Jest of `api` (needs `npm run db:up`) and `client`   |
+| root    | `npm run test:coverage`  | The same with coverage; fails below 97 % per package |
+| root    | `npm run e2e`            | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
 | root    | `npm run check:boundaries` | Import-boundary rules of the layered `api/src`     |
 | root    | `npm run docs:check`     | Markdown link check                                  |
 | root    | `npm run format`         | Prettier across the repo                             |
@@ -267,7 +268,7 @@ pm2 start ecosystem.config.json
 - **Integration tests:** `*.int.test.ts` run against a real PostgreSQL in Docker (`npm run db:up`); every test file gets its own
   database cloned from a migrated template, and no in-memory database is used. They include the safety-net suite that drives
   the whole API over HTTP and Socket.IO.
-- **E2E:** Cypress (not installed yet).
+- **E2E:** Cypress in `client/cypress`, run by `npm run e2e`; a pre-push hook (`.githooks/pre-push`) runs the coverage gate.
 - **Coverage gate:** ≥ 97 % on the files a pull request changes (blocking in CI); the per-package gate arrives in Phase 2.
 
 See [Phase 2](./docs/development-plan/phase-2-test-infrastructure.md) of the development plan for the rollout.

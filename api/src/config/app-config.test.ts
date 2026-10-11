@@ -15,6 +15,7 @@ describe('loadConfig', () => {
       worldSeed: undefined,
       world: { resourceChance: 0.2, spawnMaxDistance: 10, spawnAttempts: 20 },
       smtp: undefined,
+      emailOutboxDir: undefined,
       auth: {
         provider: 'local',
         accessSecret: 'development-only-access-secret',
@@ -39,6 +40,7 @@ describe('loadConfig', () => {
       SMTP_USER: 'u',
       SMTP_PASS: 'p',
       SMTP_HOST: 'smtp.example.com',
+      EMAIL_OUTBOX_DIR: '/tmp/outbox',
       JWT_ACCESS_SECRET: 's3cret',
       JWT_ACCESS_EXPIRES_IN: '5m',
       JWT_REFRESH_EXPIRES_IN: '7d',
@@ -56,6 +58,7 @@ describe('loadConfig', () => {
       worldSeed: 42,
       world: { resourceChance: 0.5 },
       smtp: { host: 'smtp.example.com', user: 'u' },
+      emailOutboxDir: '/tmp/outbox',
       auth: { accessSecret: 's3cret', accessTtlSeconds: 300, policy: { sessionTtlMs: 7 * 24 * 3600 * 1000 } },
       rateLimit: { windowMs: 60000, authMax: 5 },
       trustProxy: true

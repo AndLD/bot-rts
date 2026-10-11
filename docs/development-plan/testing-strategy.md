@@ -45,7 +45,7 @@ about 15 minutes it is sharded and run in parallel.
 
 | Flow | Spec owned by |
 | --- | --- |
-| Sign up → verify email → inactive page → verified | 2.7 |
+| Sign up → verify email → inactive page → verified | 2.7 (`signup.cy.ts`) |
 | Login, logout, token refresh; banned and forbidden users | 2.7 |
 | Deploy a base (password, spawn seed); redeploy after a corpse base | 3.13 |
 | Terminal: `list`, `modules` | 2.7 |

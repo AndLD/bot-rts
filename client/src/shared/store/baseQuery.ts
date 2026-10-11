@@ -1,0 +1,49 @@
+import { IAuthTokenResponse } from '@lib/utils/interfaces/auth'
+import { BaseQueryFn, FetchArgs, fetchBaseQuery, FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
+import { API_URL } from '../config'
+import { isJwtExpired } from '../jwt'
+import { refreshOnce } from './refresh'
+import { setToken } from './session.slice'
+import type { RootState } from '.'
+
+const baseQuery = fetchBaseQuery({
+  baseUrl: API_URL,
+  credentials: 'include',
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as RootState).session.token
+
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+
+    return headers
+  }
+})
+
+// Refreshes an expired access token before the request; ends the session when the refresh fails
+export const baseQueryWithRefresh: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions
+) => {
+  const token = (api.getState() as RootState).session.token
+
+  if (token && isJwtExpired(token)) {
+    const refreshed = await refreshOnce(async () => {
+      const result = (await baseQuery({ url: '/api/v1/auth/refresh', method: 'POST' }, api, extraOptions)) as {
+        data?: IAuthTokenResponse
+      }
+
+      return result.data?.accessToken ?? null
+    })
+
+    if (refreshed) {
+      api.dispatch(setToken(refreshed))
+    } else {
+      await baseQuery({ url: '/api/v1/auth/logout', method: 'POST', responseHandler: 'text' }, api, extraOptions)
+      api.dispatch(setToken(null))
+    }
+  }
+
+  return await baseQuery(args, api, extraOptions)
+}

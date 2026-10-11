@@ -110,3 +110,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none open. The client needed no change: its REST calls were already on `/api/v1` and the socket protocol is unchanged.
 - **Next step:** tasks 1.14, 1.15, then 1.18 / 1.18a (Next.js), 1.17 (i18n) and 1.13 (client `AuthClient`), in the order of the phase file.
 - **Verify with:** `npm run db:up && npm run lint && npm run check:boundaries && npm run typecheck && npm test && npm run build`
+
+### 2026-10-11 — tasks 1.14 and 1.15: client structure and a typed socket service
+- **Tasks:** 1.14, 1.15
+- **Branch:** `feature/1.14-client-structure` — done
+- **Decisions / deviations from the plan:**
+  - New layout under `client/src`: `app/` (routes per visitor state, `AppRoutes`, global styles), `features/auth` (API slice, hooks, forms and pages), `features/terminal` (interpreter, hook, UI, styles), `features/game`, and `shared/` (`config`, `jwt`, `validation`, `notifications`, `errors`, `store/` with the session slice, the base query with refresh and typed hooks, `socket/`). The duplicated `src/store` and `src/hooks/store`, the empty route/hook files and the unused `FileEditor`/`CodeEditor` components, the unused users API slice and the dead notification helpers were deleted (the editor returns with the script runtime in Phase 6; CodeMirror, `prettier`, `json-beautify` and `axios` were dropped from the client dependencies and will be re-added when needed). The legacy ESLint override block of the client is gone.
+  - 1.15: the socket lives in a `SocketProvider` (context) instead of Redux, so the `serializableCheck: false` workaround is removed. Event types are shared from `lib/utils/socket-events.ts` (`ClientToServerEvents`, `SocketAck`, `SocketError`) and the socket is `Socket<ServerToClientEvents, ClientToServerEvents>`; the terminal's `emit` calls are now type-checked. The connection is opened only on the game page, and a handshake rejected for an expired token refreshes the session and reconnects, with the connection reading the latest token through `auth: (cb) => cb({ token })`.
+  - Refresh is single-flight (`shared/store/refresh.ts`): the refresh token rotates, so two simultaneous refreshes from the base query and the socket must share one request. Checked in a real browser with a 5-second access-token lifetime: after the token expired, a page load refreshed the session, reconnected the socket and the terminal worked.
+  - The API base URL comes from `VITE_API_URL` (documented default `http://localhost:8080` for local development); there is no hardcoded URL in the code.
+- **Problems / blockers / findings:** the server does not serialize two refreshes that arrive at the same instant with the same cookie (both can succeed); this is harmless for the client now that refresh is single-flight, and refresh-token reuse detection is a candidate for the sessions work in Phase 8.
+- **Next step:** tasks 1.18 and 1.18a (Next.js migration), then 1.17 (i18n) and 1.13 (`AuthClient`).
+- **Verify with:** `npm run lint && npm run typecheck && npm run build -w client`

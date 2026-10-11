@@ -64,3 +64,16 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the client has no test runner until task 2.1, so the interpreter's unit tests are scheduled in task 2.6 (the interpreter was checked by hand through a one-off bundle). Behaviour kept as it was, including the not-yet-implemented `ls` inside a drive and shell-mode code execution.
 - **Next step:** task 1.10 (NestJS foundation).
 - **Verify with:** `npm run lint && npm run typecheck && npm run build -w client`
+
+### 2026-10-11 — task 1.10: NestJS foundation
+- **Tasks:** 1.10
+- **Branch:** `feature/1.10-nestjs-foundation` — done
+- **Decisions / deviations from the plan:**
+  - Nest 11 on the Express adapter; `api` moved to Express 5 (one Express version in the tree), TypeScript target ES2021 with decorator metadata. `index.ts` → `src/bootstrap.ts` → `createApp(config)` (`src/app.factory.ts`, shared by the server and the tests): Helmet, CORS from an explicit origin list (the old check let every origin through when `WHITELIST_URLS` was unset; the default is now `FRONTEND_URL`, and a foreign origin gets 403), cookie parser, the legacy routers, global prefix `api` + URI versioning (default `v1`), the global `AppExceptionFilter`, Swagger/OpenAPI at `/api/docs` (JSON at `/api/docs-json`), then the Socket.IO server is attached to the HTTP server.
+  - The legacy Express routers are mounted inside Nest (`src/legacy/`): `LegacyModule` hands the Nest-provided use cases to them as `AppServices`; the temporary `src/composition.ts` is gone. Nest modules (`*.module.ts`) are the composition root; the use-case classes stay decorator-free and are built by `useFactory` providers, so the application layer has no Nest import. `PersistenceModule` owns the single `PrismaClient` (config-driven, disconnected on shutdown), `UNIT_OF_WORK` and `WORLD_STATE_STORE`.
+  - Typed config (`src/config/app-config.ts`): `loadConfig(env)` validates and reports every problem at once (`DATABASE_URL`, `PORT`, `NODE_ENV`; the three JWT secrets are mandatory in production, because the legacy JWT module still falls back to dev secrets). The logger is a port (`LOGGER`) backed by log4js. `GET /api/v1/health` (use case + `HealthProbe` port + Prisma adapter) answers 503 when the database is down.
+  - One error mapping, `toErrorResponse`, serves both the Nest filter and the legacy Express handler (`{ statusCode, code, error }`).
+  - Import-boundary check: `dependency-cruiser` (`api/.dependency-cruiser.cjs`, `npm run check:boundaries`, a CI step) enforces AGENTS.md §3.1–3.2 for `api/src`: no cross-layer imports against the dependency direction, no npm packages in `domain` or `application`, Prisma only in `infrastructure` and the modules, `lib` independent. It was verified to fail on deliberate violations.
+- **Problems / blockers / findings:** with Express 5 `?email[$ne]=x` is no longer parsed into an object (the key is ignored), so the users-list test changed from "rejects" to "ignores"; a repeated key is still rejected.
+- **Next step:** tasks 1.11 / 1.11a (identity ports, custom adapter, sessions, account management, users/identities data model).
+- **Verify with:** `npm run db:up && npm run lint && npm run check:boundaries && npm run typecheck && npm test && npm run build`

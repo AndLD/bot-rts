@@ -34,3 +34,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 4.3 (energy accounting).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
 
+### 2026-10-12 — task 4.3: energy accounting
+- **Tasks:** 4.3
+- **Branch:** `feature/4.3-energy-accounting` — done
+- **Decisions / deviations from the plan:** `EnergyModel` (`modules/domain/energy-model.ts`) is a stateless domain service over a bot's module records: `stored` / `capacity` / `isDepleted`, `spend` (operation drain, `NO_ENERGY` leaves the batteries untouched) and `tick(records, now, ticks)`, which in this order drains the idle cost of the working modules (clamped at zero), runs the enabled generators, charges every live scanner its refresh (`energyCost`) or switches it off, and reports `EnergyLow`, `OutOfFuel` and `LiveScanStopped` events (typed `ENERGY_EVENT`; the consumers are design §24). A generator runs `floor(elapsed / delay)` cycles from its `lastCycleAt`, never more than the battery has room for or the oil allows; each cycle burns `fuelPerCycle` oil from the working storages and adds `energyPerCycle` (12 energy for 0.02 oil, the placeholder of design §12.5; the old `energyPerOperation` prop is renamed). `GeneratorModule.enable(now)` restarts the cycle clock so a generator that was off does not catch up. The base's storage starts with 50 oil and its generator enabled. `EnergyService` persists the changed records (`pay`, `tick`); `ScanService` now pays the scan energy. `lowThreshold` (10 %) is the only balance number; it is a constructor argument, the engine injects configured values in phase 5.
+- **Not done here, by design:** nobody calls `EnergyService.tick` yet, the engine's tick loop does in phase 5 (5.x); until then the batteries only drain by operations. Suspending running executions on an empty battery needs the runtime (5.4).
+- **Next step:** task 4.4 (blueprints and recipes).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+

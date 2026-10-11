@@ -148,8 +148,29 @@ export class GeneratorModule extends GameModule {
     return this.number('delay', 0)
   }
 
-  get energyPerOperation(): number {
-    return this.number('energyPerOperation', 0)
+  // Energy added to the battery by one cycle, and the oil one cycle burns (design §12.5)
+  get energyPerCycle(): number {
+    return this.number('energyPerCycle', 0)
+  }
+
+  get fuelPerCycle(): number {
+    return this.number('fuelPerCycle', 0)
+  }
+
+  // When the last cycle was due, in ms of the game clock; unset until the generator first runs
+  get lastCycleAt(): number | undefined {
+    return this.record.props.lastCycleAt === undefined ? undefined : this.number('lastCycleAt', 0)
+  }
+
+  // Switching on starts the cycles from now, so a generator that was off does not catch up
+  enable(now: number): Result<{ patch: Record<string, unknown> }> {
+    const working = this.ensureWorking()
+    return working.ok ? ok({ patch: { isEnabled: true, lastCycleAt: now } }) : working
+  }
+
+  // Always possible, so that a broken generator can still be switched off
+  disable(): { patch: Record<string, unknown> } {
+    return { patch: { isEnabled: false } }
   }
 
   get isEnabled(): boolean {

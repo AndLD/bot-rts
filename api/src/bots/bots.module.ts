@@ -9,6 +9,7 @@ import { SpawnService } from '../spawn/application/spawn.service'
 import { MapModule } from '../map/map.module'
 import { MODULE_REPOSITORY, ModuleRepository } from '../modules/application/module.repository'
 import { ModuleRegistry } from '../modules/domain/module-registry'
+import { EnergyService } from '../modules/application/energy.service'
 import { ModuleFactory } from '../modules/application/module.factory'
 import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
@@ -65,15 +66,16 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: ScanService,
-      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry, CLOCK],
+      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry, CLOCK, EnergyService],
       useFactory: (
         bots: BotsService,
         modules: ModuleRepository,
         map: MapRepository,
         mapService: MapService,
         registry: ModuleRegistry,
-        clock: Clock
-      ) => new ScanService(bots, modules, map, mapService, registry, clock)
+        clock: Clock,
+        energy: EnergyService
+      ) => new ScanService(bots, modules, map, mapService, registry, clock, energy)
     }
   ],
   exports: [BOT_REPOSITORY, BotsService, ScanService]

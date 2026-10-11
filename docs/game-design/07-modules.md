@@ -39,7 +39,7 @@ mention `memory` and `circute`.
 | **Drill** | `mining` | 🔴 | `dig()` / `mine()` | `materialPerOperation`. |
 | **Manipulator** | `manipulator` | 🔴 | `pick()` / `take()`, `drop()` | `loadCapacity`; grabs loose items/cells. |
 | **Battery** | `battery` | 🟡 | power storage | `capacity`, `voltage`, `value`, `isConnected`; drains via `idleCost`/`operationCost`. |
-| **Generator** | `generator` | 🟡 | `enable()`, `disable()` | `energyPerOperation`, `delay`. |
+| **Generator** | `generator` | 🟡 | `enable()`, `disable()` | `energyPerCycle`, `fuelPerCycle`, `delay`; burns oil from the bot's storage (§12.5). |
 | **Storage** | `storage` | 🟡 | `store()` + take/drop actions | Box for ammo, mined resources, or any items. `capacity`, `items[]`. |
 | **Memory (drive)** | `drive` | 🟡 | `read()`, `write()` | ✅ The code's `drive` module *is* the memory module: a disk with a byte quota and `readDelay`/`writeDelay`. Holds scripts and data (§11.4). |
 | **Processor** | `processor` | 🔴 | `runCode()` / `execute()` | Defines `opsPerTick` and `parallelExecutions` (§12.2.1). The performance gate for scripts. |

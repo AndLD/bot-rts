@@ -2,6 +2,8 @@ import { SpawnService } from '../../src/spawn/application/spawn.service'
 import { DEFAULT_SPAWN_CONFIG, SpawnConfig } from '../../src/spawn/domain/spawn-config'
 import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
+import { EnergyService } from '../../src/modules/application/energy.service'
+import { EnergyModel } from '../../src/modules/domain/energy-model'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
 import { createModuleRegistry } from '../../src/modules/domain/module-registry'
 import { FilesService } from '../../src/files/application/files.service'
@@ -92,6 +94,7 @@ export function createWorld(
     botsService,
     moduleFactory,
     moduleRegistry,
+    energyService: new EnergyService(repositories.modules, new EnergyModel(moduleRegistry)),
     filesService,
     terminalService,
     terminalShell: createTerminalShell(botsService, filesService, terminalService)

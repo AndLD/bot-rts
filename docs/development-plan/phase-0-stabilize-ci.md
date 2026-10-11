@@ -32,4 +32,4 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/0.1-fix-client-build` | 0.1 | [#22](https://github.com/AndLD/bot-rts/pull/22) | ✅ |
-| `feature/0.2-env-config-email-sender` | 0.2 | PR_N | ✅ |
+| `feature/0.2-env-config-email-sender` | 0.2 | [#23](https://github.com/AndLD/bot-rts/pull/23) | ✅ |

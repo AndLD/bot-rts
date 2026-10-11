@@ -92,7 +92,17 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: MaintenanceService,
-      inject: [UNIT_OF_WORK, BotsService, RecipeBook, ModuleRegistry, EnergyModel, CLOCK, RNG, BaseLifecycle],
+      inject: [
+        UNIT_OF_WORK,
+        BotsService,
+        RecipeBook,
+        ModuleRegistry,
+        EnergyModel,
+        CLOCK,
+        RNG,
+        BaseLifecycle,
+        ID_GENERATOR
+      ],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotsService,
@@ -101,8 +111,9 @@ import { BotsGateway } from './presentation/bots.gateway'
         energy: EnergyModel,
         clock: Clock,
         rng: Rng,
-        lifecycle: BaseLifecycle
-      ) => new MaintenanceService(unitOfWork, bots, recipes, registry, energy, clock, rng, lifecycle)
+        lifecycle: BaseLifecycle,
+        ids: IdGenerator
+      ) => new MaintenanceService(unitOfWork, bots, recipes, registry, energy, clock, rng, lifecycle, ids)
     },
     {
       provide: AssemblyService,

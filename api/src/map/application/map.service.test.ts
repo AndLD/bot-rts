@@ -7,6 +7,25 @@ const user = '11111111-1111-4111-8111-111111111111'
 const range = { from: { x: 0, y: 0, z: 0 }, to: { x: 1, y: 1, z: 0 } }
 
 describe('MapService.observe', () => {
+  it('stores the blueprint items that lie on new cells and shows them as item cells', async () => {
+    // cells in x-major order: empty, then a blueprint (second module), then two empty ones
+    const { mapService, repositories } = createWorld({
+      rng: new FixedRng([0.9, 0.9, 0.9, 0.001, 0.99, 0.9, 0.9]),
+      blueprints: { chance: 0.5, modules: ['scanner-class2', 'gun-class2'] }
+    })
+
+    const seen = await mapService.observe(user, range)
+
+    const lying = seen.find((point) => point.type === MapPointType.ITEM)!
+    expect(lying.contentId).toEqual(expect.any(String))
+    expect(await repositories.items.findById(lying.contentId!)).toMatchObject({
+      type: 'blueprint',
+      name: 'gun-class2',
+      botId: null
+    })
+    expect(repositories.items.items.size).toBe(1)
+  })
+
   it('generates the missing cells of the real map and returns snapshots of them', async () => {
     // cells are generated in x-major order; a resource cell (roll below 0.2) also rolls its kind and its amount
     const { mapService, repositories, clock } = createWorld({

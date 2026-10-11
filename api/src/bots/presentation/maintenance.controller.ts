@@ -1,16 +1,17 @@
 import { Body, Controller, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common'
 import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { ModuleProps } from '../../../../lib/utils/interfaces/modules'
-import { IResourceStack } from '../../../../lib/utils/interfaces/resources'
+import { IDisassembly } from '../../../../lib/utils/interfaces/crafting'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
-import { RecipeResourceResponse } from '../../crafting/presentation/recipe.response'
 import { ModuleResponse } from '../../modules/presentation/module.response'
 import { toModuleDto } from '../../modules/presentation/module.mapper'
 import { ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { MaintenanceService } from '../application/maintenance.service'
+import { DisassemblyResponse } from './dto/factory.response'
 import { MaintenanceDto } from './dto/maintenance.dto'
+import { toItemDto } from './factory.mapper'
 
 const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
 
@@ -36,13 +37,14 @@ export class MaintenanceController {
 
   // Takes a module of a bot on an adjacent cell apart; the scrap goes to this bot's storage
   @HttpCode(200)
-  @ApiOkResponse({ type: [RecipeResourceResponse], description: 'The scrap' })
+  @ApiOkResponse({ type: DisassemblyResponse })
   @Post('disassemble')
-  disassemble(
+  async disassemble(
     @CurrentPrincipal() { user }: Principal,
     @Param('botId', idPipe) botId: string,
     @Body() body: MaintenanceDto
-  ): Promise<IResourceStack[]> {
-    return this.maintenance.disassemble(user.id, { repairerId: botId, ...body })
+  ): Promise<IDisassembly> {
+    const { scrap, blueprint } = await this.maintenance.disassemble(user.id, { repairerId: botId, ...body })
+    return { scrap, blueprint: blueprint && toItemDto(blueprint) }
   }
 }

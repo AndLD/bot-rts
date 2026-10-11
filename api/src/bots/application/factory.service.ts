@@ -50,11 +50,12 @@ export class FactoryService {
     return this.unitOfWork.run(async (repositories) => {
       const records = await this.settle(repositories, base)
       const items = await repositories.items.listOfBot(base.id)
+      const carried = await this.carriedByBots(repositories, base)
       return {
         now: this.now(),
         jobs: this.factoryOf(records)?.jobs ?? [],
         parts: items.filter((item) => item.type === ItemType.PART),
-        blueprintItems: items.filter((item) => item.type === ItemType.BLUEPRINT)
+        blueprintItems: [...items, ...carried].filter((item) => item.type === ItemType.BLUEPRINT)
       }
     })
   }
@@ -129,8 +130,9 @@ export class FactoryService {
       this.workingFactory(records)
 
       const item = await repositories.items.findById(itemId)
-      if (!item || item.botId !== base.id || item.type !== ItemType.BLUEPRINT) {
-        throw new NotFoundError('The base holds no such blueprint')
+      const held = [...(await repositories.items.listOfBot(base.id)), ...(await this.carriedByBots(repositories, base))]
+      if (!item || item.type !== ItemType.BLUEPRINT || !held.some((candidate) => candidate.id === item.id)) {
+        throw new NotFoundError('The base and its bots hold no such blueprint')
       }
       this.recipes.get(item.name)
       if ((await this.knownModules(repositories, userId)).has(item.name)) {
@@ -188,6 +190,13 @@ export class FactoryService {
     const settled = factory.withProps(patch)
     await repositories.modules.update(settled)
     return records.map((record) => (record.id === settled.id ? settled : record))
+  }
+
+  // The items carried by the ordinary bots of the base: a blueprint a bot found or looted can be learned at the factory
+  // over the radio link until bots can bring items home (phase 5)
+  private async carriedByBots(repositories: Repositories, base: Bot): Promise<Item[]> {
+    const bots = await repositories.bots.listOfBase(base.id)
+    return (await Promise.all(bots.map((bot) => repositories.items.listOfBot(bot.id)))).flat()
   }
 
   private async getBase(userId: string, baseId: string): Promise<Bot> {

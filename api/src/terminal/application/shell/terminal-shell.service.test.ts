@@ -380,11 +380,25 @@ describe('the factory commands', () => {
   })
 
   it('says when the scrap of a disassembly is nothing', async () => {
-    const command = new DisassembleCommand({ disassemble: async () => [] } as never)
+    const command = new DisassembleCommand({ disassemble: async () => ({ scrap: [], blueprint: null }) } as never)
 
     const { result } = await command.execute({ userId: alice.id, session: { botId: 'bot' }, args: ['a', 'b'] } as never)
 
     expect(result).toEqual({ type: 'output', lines: ['disassembled, scrap: nothing'] })
+  })
+
+  it('tells the player about a blueprint found while taking a module apart', async () => {
+    const found = { id: 'item-1', name: 'gun-class1' }
+    const command = new DisassembleCommand({
+      disassemble: async () => ({ scrap: [{ resource: 'iron', amount: 3 }], blueprint: found })
+    } as never)
+
+    const { result } = await command.execute({ userId: alice.id, session: { botId: 'bot' }, args: ['a', 'b'] } as never)
+
+    expect(result).toEqual({
+      type: 'output',
+      lines: ['disassembled, scrap: 3 iron', 'found a blueprint of gun-class1, id="item-1"']
+    })
   })
 
   it('reports the usage of the maintenance commands', async () => {

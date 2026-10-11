@@ -1,9 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { BlueprintSource } from '../../../../../lib/utils/interfaces/crafting'
 import { ItemType } from '../../../../../lib/utils/interfaces/items'
+import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
 import { MapPointResponse } from '../../../map/presentation/map-point.response'
 import { ModuleResponse } from '../../../modules/presentation/module.response'
 import { BotResponse } from './bots.response'
+
+export class ScrapResponse {
+  @ApiProperty({ enum: RESOURCE })
+  resource!: RESOURCE
+
+  @ApiProperty()
+  amount!: number
+}
 
 export class FactoryJobResponse {
   @ApiProperty({ enum: ['craft', 'research'] })
@@ -64,4 +73,12 @@ export class AssembledBotResponse {
 
   @ApiProperty({ type: MapPointResponse })
   mapPoint!: MapPointResponse
+}
+
+export class DisassemblyResponse {
+  @ApiProperty({ type: [ScrapResponse], description: 'A share of the recipe resources, now in the storage of the bot' })
+  scrap!: ScrapResponse[]
+
+  @ApiProperty({ type: ItemResponse, nullable: true, description: 'A blueprint item of the module, by chance' })
+  blueprint!: ItemResponse | null
 }

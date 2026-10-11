@@ -645,7 +645,8 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     await database.client.module.update({ where: { id: gun.id }, data: { condition: 0 } })
     await database.client.module.update({ where: { id: repair.id }, data: { props: { repairPerOp: 25, delay: 1000 } } })
     const scrap = await api().post(`${maintenance}/disassemble`).set(bearer(alice.accessToken)).send(order).expect(200)
-    expect(scrap.body).toEqual([{ resource: 'iron', amount: expect.any(Number) }])
+    expect(scrap.body.scrap).toEqual([{ resource: 'iron', amount: expect.any(Number) }])
+    expect(scrap.body).toHaveProperty('blueprint')
     expect(await database.client.module.count({ where: { id: gun.id } })).toBe(0)
   })
 

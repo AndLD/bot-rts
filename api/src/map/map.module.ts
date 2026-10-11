@@ -6,6 +6,8 @@ import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { RNG, Rng } from '../shared/application/rng'
+import { CraftingModule } from '../crafting/crafting.module'
+import { RecipeBook } from '../crafting/domain/recipe-book'
 import { MAP_REPOSITORY } from './application/map.repository'
 import { MapService } from './application/map.service'
 import { PrismaMapRepository } from './infrastructure/prisma-map.repository'
@@ -13,6 +15,7 @@ import { MapGenerator } from './domain/map-generator'
 import { WORLD_CONFIG, WorldConfig } from './domain/world-config'
 
 @Module({
+  imports: [CraftingModule],
   providers: [
     {
       provide: MAP_REPOSITORY,
@@ -22,8 +25,16 @@ import { WORLD_CONFIG, WorldConfig } from './domain/world-config'
     { provide: WORLD_CONFIG, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.world },
     {
       provide: MapGenerator,
-      inject: [RNG, WORLD_CONFIG],
-      useFactory: (rng: Rng, world: WorldConfig) => new MapGenerator(rng, world)
+      inject: [RNG, WORLD_CONFIG, RecipeBook],
+      useFactory: (rng: Rng, world: WorldConfig, recipes: RecipeBook) =>
+        new MapGenerator(rng, world, {
+          chance: recipes.balance.worldBlueprintChance,
+          // Blueprints worth finding: the ones that are not in the base set
+          modules: recipes
+            .all()
+            .filter((recipe) => recipe.classLevel > 1)
+            .map((recipe) => recipe.module)
+        })
     },
     {
       provide: MapService,

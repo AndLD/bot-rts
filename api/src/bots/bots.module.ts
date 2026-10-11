@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
+import { AuthModule } from '../auth/auth.module'
 import { FilesModule } from '../files/files.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
 import { MapService } from '../map/application/map.service'
@@ -16,10 +17,14 @@ import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BotsService } from './application/bots.service'
 import { ScanService } from './application/scan.service'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
+import { BotsController } from './presentation/bots.controller'
+import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
-  imports: [MapModule, ModulesModule, FilesModule],
+  imports: [AuthModule, MapModule, ModulesModule, FilesModule],
+  controllers: [BotsController],
   providers: [
+    BotsGateway,
     {
       provide: BOT_REPOSITORY,
       inject: [PRISMA_CLIENT],

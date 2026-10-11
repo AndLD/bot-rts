@@ -5,7 +5,6 @@ import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
-import { LegacyModule } from './legacy/legacy.module'
 import { MapModule } from './map/map.module'
 import { ModulesModule } from './modules/modules.module'
 import { NotificationsModule } from './notifications/notifications.module'
@@ -29,8 +28,7 @@ export class AppModule {
         FilesModule,
         MapModule,
         BotsModule,
-        HealthModule,
-        LegacyModule
+        HealthModule
       ]
     }
   }

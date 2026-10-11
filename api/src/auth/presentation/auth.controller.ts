@@ -1,6 +1,6 @@
-import { Body, Controller, HttpCode, Inject, Post, Req, Res } from '@nestjs/common'
+import { Body, Controller, HttpCode, Inject, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { ApiCookieAuth, ApiTags } from '@nestjs/swagger'
-import { Throttle } from '@nestjs/throttler'
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler'
 import { Request, Response } from 'express'
 import { IAuthTokenResponse } from '../../../../lib/utils/interfaces/auth'
 import { UnauthorizedError } from '../../shared/domain/errors'
@@ -22,7 +22,9 @@ import { REFRESH_COOKIE, RefreshCookieOptions } from './refresh-cookie'
 
 export const REFRESH_COOKIE_OPTIONS = Symbol('RefreshCookieOptions')
 
+// Every auth route is rate limited per client (RATE_LIMIT_*), except logout
 @ApiTags('auth')
+@UseGuards(ThrottlerGuard)
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(
@@ -31,7 +33,6 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Throttle({ default: {} })
   @Post('register')
   async register(@Body() body: RegisterDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     return this.respondWithSession(
@@ -41,7 +42,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(200)
   @Post('login')
   async login(@Body() body: LoginDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
@@ -52,7 +52,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @ApiCookieAuth()
   @HttpCode(200)
   @Post('refresh')
@@ -67,6 +66,7 @@ export class AuthController {
   }
 
   @Public()
+  @SkipThrottle()
   @HttpCode(204)
   @Post('logout')
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
@@ -79,7 +79,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('email/verify')
   async verifyEmail(@Body() { token }: TokenDto) {
@@ -87,7 +86,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('email/resend')
   async resendVerification(@Body() { email }: EmailDto) {
@@ -95,7 +93,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('password/forgot')
   async forgotPassword(@Body() { email }: EmailDto) {
@@ -103,7 +100,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('password/reset')
   async resetPassword(@Body() { token, password }: ResetPasswordDto) {
@@ -128,7 +124,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('email/change/confirm')
   async confirmEmailChange(@Body() { token }: TokenDto) {
@@ -142,7 +137,6 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: {} })
   @HttpCode(204)
   @Post('account/delete/confirm')
   async confirmAccountDeletion(@Body() { token }: TokenDto) {

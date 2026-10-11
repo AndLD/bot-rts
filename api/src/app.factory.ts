@@ -4,15 +4,13 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
-import { loggerMiddleware } from '../middlewares/logger'
-import { setupSocketServer } from '../setup/socket-connection'
 import { AppModule } from './app.module'
 import { AppConfig } from './config/app-config'
-import { AppServices, LEGACY_SERVICES } from './legacy/legacy-services'
-import { createLegacyRouter } from './legacy/legacy-router'
 import { LOGGER, Logger } from './shared/application/logger'
 import { ForbiddenError, ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
+import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
+import { createRequestLogger } from './shared/presentation/request-logger.middleware'
 
 function isAllowedOrigin(origin: string | undefined, allowed: string[]) {
   return !origin || allowed.includes(origin)
@@ -28,7 +26,7 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
 
 // Everything that turns a Nest application into the API; shared by the real server and the tests
 export async function configureApp(app: NestExpressApplication, config: AppConfig): Promise<NestExpressApplication> {
-  const services = app.get<AppServices>(LEGACY_SERVICES)
+  const logger = app.get<Logger>(LOGGER)
 
   app.use(helmet())
   app.enableCors({
@@ -39,9 +37,8 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
     credentials: true
   })
   app.use(cookieParser())
-  app.use(loggerMiddleware)
-  // Registered before Nest's own routes, so the legacy `/api/public` and `/api/private` routes keep working
-  app.use(createLegacyRouter(services))
+  app.use(createRequestLogger(logger))
+  app.useWebSocketAdapter(new ConfiguredIoAdapter(app, config.adminUrl))
 
   app.set('trust proxy', config.trustProxy)
   app.setGlobalPrefix('api')
@@ -56,7 +53,7 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
         new ValidationError(errors.flatMap((error) => Object.values(error.constraints as object)).join('; '))
     })
   )
-  app.useGlobalFilters(new AppExceptionFilter(app.get<Logger>(LOGGER)))
+  app.useGlobalFilters(new AppExceptionFilter(logger))
 
   SwaggerModule.setup(
     'api/docs',
@@ -65,7 +62,6 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   )
 
   await app.init()
-  setupSocketServer(app.getHttpServer(), services, config.adminUrl)
 
   return app
 }

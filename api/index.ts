@@ -1,8 +1,8 @@
-import './setup/load-env'
+import './src/load-env'
 import { bootstrap } from './src/bootstrap'
-import { getLogger } from './utils/logger'
+import { Log4jsLogger } from './src/shared/infrastructure/log4js-logger'
 
-const logger = getLogger('index')
+const logger = new Log4jsLogger('index')
 
 bootstrap(process.env).catch((error) => {
   logger.error(`Failed to start: ${error}`)

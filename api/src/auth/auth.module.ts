@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { NotificationsModule } from '../notifications/notifications.module'
@@ -156,8 +156,7 @@ import { RolesGuard } from './presentation/roles.guard'
     },
     // Deny by default: every route needs a signed-in player unless it is @Public(); roles are checked after that
     { provide: APP_GUARD, useClass: AuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
-    { provide: APP_GUARD, useClass: ThrottlerGuard }
+    { provide: APP_GUARD, useClass: RolesGuard }
   ],
   exports: [AuthService]
 })

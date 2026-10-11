@@ -5,7 +5,6 @@ import '../../../styles/Terminal.scss'
 import { useLogout } from '../../../hooks/store/auth.api'
 import { IBot } from '@lib/utils/interfaces/bots'
 import { ID } from '@lib/utils/types'
-import beautify from 'json-beautify'
 
 const defaultPrefix = '/>'
 const shellModePrefix = '>>>'
@@ -17,7 +16,7 @@ export default function Terminal() {
   const [command, setCommand] = useState('')
   const [isWaitingForReply, setIsWaitingForReply] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [drives, setDrives] = useState<IDriveModuleProps[]>([])
+  const [drives] = useState<IDriveModuleProps[]>([])
   const [selectedDrive, setSelectedDrive] = useState<IDriveModuleProps | null>(null)
   const [prefix, setPrefix] = useState(defaultPrefix)
   const [isShellMode, setIsShellMode] = useState(false)
@@ -56,16 +55,6 @@ export default function Terminal() {
 
     function reply(text: string) {
       updateCommands([...commands, formattedCommand, text])
-    }
-
-    async function replyAsync() {
-      if (!socket?.connected) {
-        return
-      }
-
-      const reply = 'Hello'
-
-      updateCommands([...commands, formattedCommand, reply])
     }
 
     // Common commands for both default and shell modes

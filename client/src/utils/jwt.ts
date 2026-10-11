@@ -1,5 +1,5 @@
 import { jwtDecode } from 'jwt-decode'
-import { IUserState } from './interfaces/users'
+import { IUserState } from '@lib/utils/interfaces/users'
 
 export function parseUser(token: string | null): IUserState | null {
   return token ? (jwtDecode(token) as any).user : null

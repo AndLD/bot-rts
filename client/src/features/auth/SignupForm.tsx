@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { errorNotification } from '../../shared/notifications'
 import { useErrorMessage } from '../../shared/errors'
-import { useAppDispatch } from '../../shared/store/hooks'
-import { setToken } from '../../shared/store/session.slice'
-import { useRegisterMutation } from './auth.api'
+import { useAuth } from './auth-client-context'
 import { useAuthRules } from './validation'
 
 export default function SignupForm() {
@@ -17,17 +15,15 @@ export default function SignupForm() {
   const getErrorMessage = useErrorMessage()
   const router = useRouter()
   const [form] = Form.useForm()
-  const dispatch = useAppDispatch()
-  const [register] = useRegisterMutation()
+  const auth = useAuth()
 
   async function onFinish(user: IUserPostBody) {
-    const result = await register(user)
+    const result = await auth.signUp(user)
 
-    if (result.data) {
-      dispatch(setToken(result.data.accessToken))
+    if (result.ok) {
       router.push('/forbidden')
     } else {
-      errorNotification(getErrorMessage(result.error), t('signup.failed'))
+      errorNotification(getErrorMessage(result.failure), t('signup.failed'))
     }
   }
 

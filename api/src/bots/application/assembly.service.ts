@@ -10,7 +10,17 @@ import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { unwrap } from '../../shared/domain/result'
 import { validateAssembly } from '../domain/assembly'
 import { MovementBalance, DEFAULT_MOVEMENT_BALANCE } from '../domain/movement'
+import { MapPoint } from '../../map/domain/map-point.entity'
+import { Module } from '../../modules/domain/module.entity'
+import { Bot } from '../domain/bot.entity'
 import { BotsService } from './bots.service'
+import { FactoryService } from './factory.service'
+
+export interface AssembledBot {
+  bot: Bot
+  modules: Module[]
+  mapPoint: MapPoint
+}
 
 // Assembling a bot at the factory of a base from the module parts it holds (design §8.2, §9.3)
 export class AssemblyService {
@@ -20,16 +30,22 @@ export class AssemblyService {
     private readonly items: ItemRepository,
     private readonly moduleFactory: ModuleFactory,
     private readonly registry: ModuleRegistry,
+    private readonly factory: FactoryService,
     private readonly balance: MovementBalance = DEFAULT_MOVEMENT_BALANCE
   ) {}
 
   // The parts become the modules of a new bot, which appears next to the base. Needs a working factory on the base and
   // parts of that base; the modules must make a legal bot, otherwise nothing is used up.
-  async assemble(userId: string, input: { baseId: string; label: string | null; partIds: readonly string[] }) {
+  async assemble(
+    userId: string,
+    input: { baseId: string; label: string | null; partIds: readonly string[] }
+  ): Promise<AssembledBot> {
     const base = await this.bots.getControlledBot(userId, input.baseId)
     if (base.type !== BOT_TYPE.BASE) {
       throw new ValidationError('A bot belongs to a base, not to another bot')
     }
+
+    await this.factory.settleBase(base)
 
     const factories = this.registry.instancesOf(await this.modules.listOfBot(base.id), FactoryModule)
     if (!factories.some((factory) => factory.isWorking)) {

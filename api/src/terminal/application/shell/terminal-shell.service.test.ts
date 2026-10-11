@@ -3,6 +3,12 @@ import { createWorld } from '../../../../tests/fakes/world'
 import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { customiseDrive } from '../../../../tests/fakes/drives'
 import { ForbiddenError } from '../../../shared/domain/errors'
+import { RecipeService } from '../../../crafting/application/recipe.service'
+import { RecipeBook } from '../../../crafting/domain/recipe-book'
+import { InMemoryBlueprintRepository } from '../../../../tests/fakes/fakes'
+import { DEFAULT_CRAFTING_BALANCE, DEFAULT_RECIPES } from '../../../../../lib/utils/interfaces/crafting'
+import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
+import { RecipesCommand } from './commands/factory-commands'
 import { TOP } from './cwd'
 
 const PASSWORD = 'secret1'
@@ -212,5 +218,132 @@ describe('the file commands', () => {
     const { result } = await run('list')
 
     expect(result).toMatchObject({ lines: expect.arrayContaining([`- id="${worker.id}" type="worker"`]) })
+  })
+})
+
+describe('the factory commands', () => {
+  async function withStock() {
+    const context = await setup()
+    const index = context.repositories.modules.items.findIndex((m) => m.type === 'storage')
+    const storage = context.repositories.modules.items[index]
+    context.repositories.modules.items[index] = {
+      ...storage,
+      props: {
+        capacity: 2000,
+        items: [
+          { resource: 'iron', amount: 500 },
+          { resource: 'crystal', amount: 300 },
+          { resource: 'gold', amount: 100 },
+          { resource: 'oil', amount: 50 }
+        ]
+      }
+    }
+    const advance = (ms: number) => (context.clock.current = new Date(context.clock.now().getTime() + ms))
+    return { ...context, advance }
+  }
+
+  it('lists the recipes with what the player may do', async () => {
+    const { lines } = await setup()
+
+    const recipes = (await lines('recipes')) as string[]
+
+    expect(recipes).toContain('- module="scanner-class1" known cost="20 iron, 5 crystal" time=10s')
+    expect(recipes).toContain('- module="scanner-class2" researchable cost="40 iron, 15 crystal" time=20s')
+  })
+
+  it('crafts, waits for the factory and assembles a bot from the parts', async () => {
+    const { lines, advance, repositories } = await withStock()
+
+    const queued = (await lines('craft processor-class1')) as string[]
+    expect(queued[0]).toMatch(/^queued 1 x processor-class1, the last one is ready at 2026-06-01T12:00:25/)
+    await lines('craft wireless-adapter-class1')
+    await lines('craft battery-class1')
+
+    expect(await lines('factory')).toEqual(
+      [
+        'craft module="processor-class1" ready in 25s',
+        'craft module="wireless-adapter-class1" ready in 45s',
+        'craft module="battery-class1" ready in 60s'
+      ].map((line) => `- ${line}`)
+    )
+
+    advance(60_000)
+    const status = (await lines('factory')) as string[]
+    expect(status).toHaveLength(3)
+    expect(status[0]).toMatch(/^- part id="[^"]+" module="processor-class1"$/)
+
+    const ids = status.map((line) => /id="([^"]+)"/.exec(line)?.[1] as string)
+    const assembled = (await lines(`assemble Scout ${ids.join(' ')}`)) as string[]
+    expect(assembled[0]).toMatch(/^assembled bot id="[^"]+" at \d+,\d+$/)
+    expect(await lines('factory')).toEqual([])
+    expect([...repositories.bots.items.values()].filter((bot) => bot.label === 'Scout')).toHaveLength(1)
+  })
+
+  it('researches and learns', async () => {
+    const { lines, advance, repositories, bot } = await withStock()
+
+    expect(((await lines('research scanner-class2')) as string[])[0]).toMatch(/^researching scanner-class2, ready at /)
+    advance(200_000)
+    await lines('factory')
+    expect(repositories.blueprints.items.map((b) => b.module)).toEqual(['scanner-class2'])
+
+    await repositories.items.add({ id: 'bp', type: 'blueprint' as never, name: 'gun-class2', weight: 0, botId: bot.id })
+    expect(await lines('learn bp')).toEqual(['learned the blueprint of gun-class2'])
+  })
+
+  it('reports usage and failures as errors', async () => {
+    const { run } = await setup()
+
+    expect((await run('craft')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
+    expect((await run('craft a 2 3')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
+    expect((await run('research')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
+    expect((await run('learn')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
+    expect((await run('assemble Scout')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
+    expect((await run('craft wheels-class1')).result).toMatchObject({ type: 'error', code: 'EMPTY' })
+    expect((await run('craft wheels-class1 x')).result).toMatchObject({ type: 'error', code: 'VALIDATION_FAILED' })
+    expect((await run('craft scanner-class2')).result).toMatchObject({ type: 'error', code: 'NO_BLUEPRINT' })
+  })
+
+  it('assembles a bot without a label when the label is a dash', async () => {
+    const { lines, advance, repositories } = await withStock()
+    for (const module of ['processor-class1', 'wireless-adapter-class1', 'battery-class1']) {
+      await lines(`craft ${module}`)
+    }
+    advance(100_000)
+    const ids = ((await lines('factory')) as string[]).map((line) => /id="([^"]+)"/.exec(line)?.[1] as string)
+
+    await lines(`assemble - ${ids.join(' ')}`)
+
+    expect([...repositories.bots.items.values()].some((bot) => bot.type === 'worker' && bot.label === null)).toBe(true)
+  })
+
+  it('shows the blueprint items the base holds', async () => {
+    const { lines, repositories, bot } = await withStock()
+    await repositories.items.add({ id: 'bp', type: 'blueprint' as never, name: 'gun-class2', weight: 0, botId: bot.id })
+
+    expect(await lines('factory')).toEqual(['- blueprint id="bp" module="gun-class2"'])
+  })
+
+  it('marks a recipe locked while the class below it is unknown', async () => {
+    const recipes = new RecipeService(
+      new RecipeBook(
+        [
+          ...DEFAULT_RECIPES,
+          {
+            module: 'scanner-class3',
+            classLevel: 3,
+            resources: [{ resource: RESOURCE.IRON, amount: 1 }],
+            craftTimeMs: 1000
+          }
+        ],
+        DEFAULT_CRAFTING_BALANCE
+      ),
+      new InMemoryBlueprintRepository()
+    )
+
+    const { result } = await new RecipesCommand(recipes).execute({ userId: alice.id } as never)
+
+    expect(result).toMatchObject({ type: 'output' })
+    expect((result as { lines: string[] }).lines).toContain('- module="scanner-class3" locked cost="1 iron" time=1s')
   })
 })

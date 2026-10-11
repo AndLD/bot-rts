@@ -6,3 +6,9 @@ export class UnknownRecipeError extends AppError {
     super(404, ErrorCode.NOT_FOUND, `No recipe for the module ${module}`)
   }
 }
+
+export class AlreadyKnownError extends AppError {
+  constructor(what: string) {
+    super(409, ErrorCode.ALREADY_EXISTS, what)
+  }
+}

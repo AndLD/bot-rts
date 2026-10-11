@@ -21,17 +21,23 @@ import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
 import { BaseLifecycle } from './application/base-lifecycle'
 import { BotsService } from './application/bots.service'
+import { RecipeBook } from '../crafting/domain/recipe-book'
+import { EnergyModel } from '../modules/domain/energy-model'
 import { AssemblyService } from './application/assembly.service'
+import { FactoryService } from './application/factory.service'
 import { ScanService } from './application/scan.service'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
+import { FactoryController } from './presentation/factory.controller'
+import { FactoryGateway } from './presentation/factory.gateway'
 import { BotsController } from './presentation/bots.controller'
 import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
   imports: [AuthModule, MapModule, ModulesModule, SpawnModule, CraftingModule],
-  controllers: [BotsController],
+  controllers: [BotsController, FactoryController],
   providers: [
     BotsGateway,
+    FactoryGateway,
     {
       provide: BOT_REPOSITORY,
       inject: [PRISMA_CLIENT],
@@ -68,15 +74,30 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new BotsService(unitOfWork, bots, modules, ids, clock, hasher, moduleFactory, lifecycle, spawn)
     },
     {
+      provide: FactoryService,
+      inject: [UNIT_OF_WORK, BotsService, RecipeBook, ID_GENERATOR, CLOCK, ModuleRegistry, EnergyModel, ModuleFactory],
+      useFactory: (
+        unitOfWork: UnitOfWork,
+        bots: BotsService,
+        recipes: RecipeBook,
+        ids: IdGenerator,
+        clock: Clock,
+        registry: ModuleRegistry,
+        energy: EnergyModel,
+        moduleFactory: ModuleFactory
+      ) => new FactoryService(unitOfWork, bots, recipes, ids, clock, registry, energy, moduleFactory)
+    },
+    {
       provide: AssemblyService,
-      inject: [BotsService, MODULE_REPOSITORY, ITEM_REPOSITORY, ModuleFactory, ModuleRegistry],
+      inject: [BotsService, MODULE_REPOSITORY, ITEM_REPOSITORY, ModuleFactory, ModuleRegistry, FactoryService],
       useFactory: (
         bots: BotsService,
         modules: ModuleRepository,
         items: ItemRepository,
         moduleFactory: ModuleFactory,
-        registry: ModuleRegistry
-      ) => new AssemblyService(bots, modules, items, moduleFactory, registry)
+        registry: ModuleRegistry,
+        factory: FactoryService
+      ) => new AssemblyService(bots, modules, items, moduleFactory, registry, factory)
     },
     {
       provide: ScanService,
@@ -92,6 +113,6 @@ import { BotsGateway } from './presentation/bots.gateway'
       ) => new ScanService(bots, modules, map, mapService, registry, clock, energy)
     }
   ],
-  exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService]
+  exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService, FactoryService]
 })
 export class BotsModule {}

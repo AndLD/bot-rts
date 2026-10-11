@@ -2,6 +2,11 @@ import { SpawnService } from '../../src/spawn/application/spawn.service'
 import { DEFAULT_SPAWN_CONFIG, SpawnConfig } from '../../src/spawn/domain/spawn-config'
 import { BaseLifecycle } from '../../src/bots/application/base-lifecycle'
 import { BotsService } from '../../src/bots/application/bots.service'
+import { AssemblyService } from '../../src/bots/application/assembly.service'
+import { RecipeService } from '../../src/crafting/application/recipe.service'
+import { FactoryService } from '../../src/bots/application/factory.service'
+import { RecipeBook } from '../../src/crafting/domain/recipe-book'
+import { DEFAULT_CRAFTING_CONFIG } from '../../src/crafting/domain/crafting-config'
 import { EnergyService } from '../../src/modules/application/energy.service'
 import { EnergyModel } from '../../src/modules/domain/energy-model'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
@@ -26,6 +31,7 @@ import {
   InMemorySessionRepository,
   InMemoryFileRepository,
   InMemoryItemRepository,
+  InMemoryBlueprintRepository,
   InMemoryMapRepository,
   InMemorySpawnSeedRepository,
   InMemoryModuleRepository,
@@ -49,6 +55,7 @@ export function createWorld(
     modules: new InMemoryModuleRepository(),
     files: new InMemoryFileRepository(),
     items: new InMemoryItemRepository(),
+    blueprints: new InMemoryBlueprintRepository(),
     map: new InMemoryMapRepository(),
     spawnSeeds: new InMemorySpawnSeedRepository(),
     identities: new InMemoryIdentityRepository(),
@@ -62,6 +69,7 @@ export function createWorld(
   const rng = options.rng ?? new FixedRng([0.5])
   const config = { ...DEFAULT_WORLD_CONFIG, ...options.config }
 
+  const recipeBook = new RecipeBook(DEFAULT_CRAFTING_CONFIG.recipes, DEFAULT_CRAFTING_CONFIG.balance)
   const terminalSessions = new InMemoryTerminalSessionRepository()
   const moduleFactory = new ModuleFactory(ids)
   const moduleRegistry = createModuleRegistry()
@@ -83,6 +91,26 @@ export function createWorld(
     ...DEFAULT_TERMINAL_RETENTION,
     ...options.retention
   })
+  const factoryService = new FactoryService(
+    unitOfWork,
+    botsService,
+    recipeBook,
+    ids,
+    clock,
+    moduleRegistry,
+    new EnergyModel(moduleRegistry),
+    moduleFactory
+  )
+  const assemblyService = new AssemblyService(
+    botsService,
+    repositories.modules,
+    repositories.items,
+    moduleFactory,
+    moduleRegistry,
+    factoryService
+  )
+  const recipeService = new RecipeService(recipeBook, repositories.blueprints)
+
   return {
     repositories,
     terminalSessions,
@@ -97,8 +125,19 @@ export function createWorld(
     moduleFactory,
     moduleRegistry,
     energyService: new EnergyService(repositories.modules, new EnergyModel(moduleRegistry)),
+    recipeBook,
+    factoryService,
     filesService,
     terminalService,
-    terminalShell: createTerminalShell(botsService, filesService, terminalService)
+    assemblyService,
+    recipeService,
+    terminalShell: createTerminalShell(
+      botsService,
+      filesService,
+      terminalService,
+      factoryService,
+      assemblyService,
+      recipeService
+    )
   }
 }

@@ -32,7 +32,12 @@ describe('RecipeService.listFor', () => {
 
   it('marks what the player learned, and nobody else', async () => {
     const { service, blueprints } = setup()
-    await blueprints.add({ userId: 'alice', module: 'scanner-class2', source: BlueprintSource.RESEARCH })
+    await blueprints.add({
+      userId: 'alice',
+      module: 'scanner-class2',
+      source: BlueprintSource.RESEARCH,
+      learnedAt: new Date()
+    })
 
     const find = async (user: string) => (await service.listFor(user)).find((r) => r.module === 'scanner-class2')
 

@@ -42,6 +42,12 @@ export const TERMINAL_COMMANDS = [
   { name: 'rm', usage: 'rm <file>' },
   { name: 'list', usage: 'list' },
   { name: 'modules', usage: 'modules' },
+  { name: 'recipes', usage: 'recipes' },
+  { name: 'factory', usage: 'factory' },
+  { name: 'craft', usage: 'craft <module> [count]' },
+  { name: 'research', usage: 'research <module>' },
+  { name: 'learn', usage: 'learn <blueprint-id>' },
+  { name: 'assemble', usage: 'assemble <label|-> <part-id>...' },
   { name: 'clear', usage: 'clear' },
   { name: 'exit', usage: 'exit' }
 ] as const

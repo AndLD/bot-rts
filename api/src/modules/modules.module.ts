@@ -34,6 +34,6 @@ import { PrismaModuleRepository } from './infrastructure/prisma-module.repositor
       useFactory: (ids: IdGenerator) => new ModuleFactory(ids)
     }
   ],
-  exports: [MODULE_REPOSITORY, ModuleRegistry, ModuleFactory, EnergyService]
+  exports: [MODULE_REPOSITORY, ModuleRegistry, ModuleFactory, EnergyService, EnergyModel]
 })
 export class ModulesModule {}

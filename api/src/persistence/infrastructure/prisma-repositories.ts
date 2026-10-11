@@ -3,6 +3,7 @@ import { PrismaCredentialRepository } from '../../auth/infrastructure/prisma-cre
 import { PrismaAuthTokenRepository } from '../../auth/infrastructure/prisma-auth-token.repository'
 import { PrismaIdentityRepository } from '../../auth/infrastructure/prisma-identity.repository'
 import { PrismaSessionRepository } from '../../auth/infrastructure/prisma-session.repository'
+import { PrismaBlueprintRepository } from '../../crafting/infrastructure/prisma-blueprint.repository'
 import { PrismaItemRepository } from '../../crafting/infrastructure/prisma-item.repository'
 import { PrismaBotRepository } from '../../bots/infrastructure/prisma-bot.repository'
 import { PrismaFileRepository } from '../../files/infrastructure/prisma-file.repository'
@@ -19,6 +20,7 @@ export function createPrismaRepositories(db: Prisma.TransactionClient): Reposito
     modules: new PrismaModuleRepository(db),
     files: new PrismaFileRepository(db),
     items: new PrismaItemRepository(db),
+    blueprints: new PrismaBlueprintRepository(db),
     map: new PrismaMapRepository(db),
     spawnSeeds: new PrismaSpawnSeedRepository(db),
     identities: new PrismaIdentityRepository(db),

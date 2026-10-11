@@ -18,7 +18,8 @@ async function setup() {
     world.repositories.modules,
     world.repositories.items,
     world.moduleFactory,
-    world.moduleRegistry
+    world.moduleRegistry,
+    world.factoryService
   )
   let counter = 0
   const part = async (name: string, overrides = {}) => {

@@ -1,3 +1,4 @@
+import { IItem } from './items'
 import { IResourceStack, RESOURCE } from './resources'
 
 // What it takes to build one module at a factory (design §9.3). Data, not logic: tuned in configuration.
@@ -9,6 +10,24 @@ export interface IRecipe {
   resources: IResourceStack[]
   // Time the factory needs, in ms
   craftTimeMs: number
+}
+
+// A piece of production the factory of a base works on, done at `readyAt` (ms)
+export interface IFactoryJob {
+  kind: 'craft' | 'research'
+  module: string
+  readyAt: number
+}
+
+// What the factory of a base holds for its owner
+export interface IFactoryStatus {
+  // The game clock when the status was taken, in ms
+  now: number
+  jobs: IFactoryJob[]
+  // Finished modules, ready to be assembled into a bot
+  parts: IItem[]
+  // Blueprints found or looted, not yet learned
+  blueprintItems: IItem[]
 }
 
 // Where a player's knowledge of a blueprint came from (the base set is known without a record)
@@ -23,6 +42,9 @@ export interface IBlueprint {
   module: string
   source: BlueprintSource
 }
+
+// The most modules one craft order may ask for
+export const MAX_CRAFT_COUNT = 100
 
 // The tunable numbers of crafting and research (design §9.3)
 export interface ICraftingBalance {

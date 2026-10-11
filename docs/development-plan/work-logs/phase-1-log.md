@@ -143,3 +143,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the server's own messages stay English; they are only a fallback now. Pluralization and number/date formatting helpers will be added with the first texts that need them. The i18n test of the pure helpers (`detectLocale`, `withFallback`) is scheduled with the client tests (task 2.6).
 - **Next step:** task 1.13 (client `AuthClient` over `/api/v1/auth/*` and the account-management forms), which closes Phase 1.
 - **Verify with:** `npm run lint && npm run typecheck && npm run i18n:check && npm run build`
+
+### 2026-10-11 — task 1.13: client `AuthClient` and account management
+- **Tasks:** 1.13
+- **Branch:** `feature/1.13-auth-client` — done (tests for the new client code are still to write, see below)
+- **Decisions:** `features/auth/auth-client.ts` is the provider-agnostic interface (sign in/up/out, refresh, verify and resend email, password reset/change, email change, account deletion; results are `{ ok } | { ok: false, failure: { code, message } }`); `local-auth-client.ts` implements it over the RTK Query endpoints of `/api/v1/auth/*` and the session slice; `AuthClientProvider` + `useAuth()` hand it to components, which never touch RTK mutations or endpoints. New pages in the `(game)` group: forgot/reset password, `confirm-email-change`, `confirm-account-deletion`, `/account` (change password, change email, delete account) and a "send the letter again" form on the unverified page; `app/access.ts` knows them (link pages are open to everyone). Emailed-link pages send the token once even under React StrictMode. In development without SMTP the API now logs emails (`LoggingEmailSender`), so links are in the server log. Texts are in `en.json`.
+- **Verified in a browser:** register → verification link → forgot password → reset link → new password accepted by the API, old one rejected.
+- **Not done:** browser checks of the account page, email change and account deletion; unit tests for the client code (client Jest arrives in task 2.1, tests listed in 2.6) and the API's `createEmailSender` branches are covered by unit tests.
+- **Next step:** Phase 1 exit criteria review, then mark the phase ✅ and start Phase 2 when asked.
+- **Verify with:** `npm run lint && npm run typecheck && npm run i18n:check && npm run build && npm test`

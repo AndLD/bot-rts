@@ -1,24 +1,38 @@
+import { ITerminalCommandResponse, ITerminalCwd } from '@lib/utils/interfaces/terminal'
+import { ErrorCode } from '@lib/utils/error-codes'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { useLogout } from '../auth/hooks'
+import { useErrorMessage } from '../../shared/errors'
 import { useSocket } from '../../shared/socket/socket-context'
-import { escapeHtml, formatBots, formatModules, getPrefix, interpret, TerminalAction } from './interpreter'
+import { escapeHtml, getPrefix, interpret, joinLines } from './interpreter'
+
+const TOP: ITerminalCwd = { drive: null, directory: null }
+
+// The file an `edit` command asked to open
+export interface EditorState {
+  path: string
+  content: string
+}
 
 // The state of the terminal and the effects of the commands; the interpreter decides, this hook performs
 export function useTerminal() {
   const t = useTranslations('terminal')
+  const errorMessage = useErrorMessage()
   const socket = useSocket()
   const logout = useLogout()
 
   const [currentBotId, setCurrentBotId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lines, setLines] = useState<string[]>([])
   const [isShellMode, setIsShellMode] = useState(false)
-  const [driveNames] = useState<string[]>([])
-  const [selectedDriveName, setSelectedDriveName] = useState<string | null>(null)
+  const [cwd, setCwd] = useState<ITerminalCwd>(TOP)
+  const [editor, setEditor] = useState<EditorState | null>(null)
 
-  const prefix = getPrefix({ isShellMode, selectedDriveName })
+  const prefix = getPrefix({ isShellMode, cwd })
 
+  // Every connection to the bot's terminal is a stored session on the server
   useEffect(() => {
     if (!socket?.active) {
       return
@@ -28,59 +42,109 @@ export function useTerminal() {
       setIsLoading(false)
 
       if (bases?.length) {
-        setCurrentBotId(bases[0]._id)
+        // The terminal is ready, and the prompt shown, only once the server has stored the session
+        socket.emit('open-terminal', bases[0]._id, (session) => {
+          if (session) {
+            setSessionId(session._id)
+            setCurrentBotId(bases[0]._id)
+          }
+        })
       }
     })
   }, [socket])
 
-  const perform = useCallback(
-    (action: TerminalAction, echo: string[]) => {
-      const print = (...output: string[]) => setLines((previous) => [...previous, ...echo, ...output])
+  const print = useCallback(
+    (echo: string[], ...output: string[]) => setLines((previous) => [...previous, ...echo, ...output]),
+    []
+  )
+
+  // The error as a line: translated by its code when we have a text for it, otherwise the server's own message. A usage
+  // error is the message itself, which says how the command is used.
+  const failure = useCallback(
+    (message?: string, code?: string) =>
+      escapeHtml(
+        t('error', { message: errorMessage({ code: code === ErrorCode.COMMAND_USAGE ? undefined : code, message }) })
+      ),
+    [t, errorMessage]
+  )
+
+  const show = useCallback(
+    ({ result, cwd: place }: ITerminalCommandResponse, echo: string[]) => {
+      setCwd(place)
+
+      switch (result.type) {
+        case 'output':
+          return print(echo, ...result.lines.map(escapeHtml))
+        case 'help':
+          return print(
+            echo,
+            joinLines(
+              result.commands.map(({ name, usage }) => `${usage} - ${t(`commands.${name}` as 'commands.help')}`)
+            )
+          )
+        case 'clear':
+          return setLines([])
+        case 'exit':
+          void logout()
+          return
+        case 'edit':
+          setEditor({ path: result.path, content: result.content })
+          return print(echo)
+        case 'error':
+          return print(echo, failure(result.message, result.code))
+      }
+    },
+    [print, failure, logout, t]
+  )
+
+  // Runs one line typed by the player; the promise-free API keeps the UI a plain controlled input
+  const run = useCallback(
+    (input: string) => {
+      const echo = [escapeHtml(`${prefix} ${input}`)]
+      const action = interpret(input, { isShellMode })
 
       switch (action.type) {
         case 'none':
-          return print()
+          return print(echo)
         case 'clear':
           return setLines([])
-        case 'reply':
-          return print('html' in action.reply ? action.reply.html : t(action.reply.message))
-        case 'logout':
-          return logout()
         case 'enter-shell':
           setIsShellMode(true)
           return setLines([])
         case 'exit-shell':
           setIsShellMode(false)
           return setLines([])
-        case 'select-drive':
-          setSelectedDriveName(action.driveName)
-          return print()
-        case 'list-bots':
-          return socket?.emit('get-user-bots', (bots) => print(formatBots(bots ?? [], currentBotId)))
-        case 'list-modules':
-          return currentBotId
-            ? socket?.emit('get-bot-modules', currentBotId, (modules, error) =>
-                print(
-                  error
-                    ? escapeHtml(t('error', { message: error.msg }))
-                    : modules
-                      ? formatModules(modules)
-                      : t('nothing')
-                )
-              )
-            : print(t('nothing'))
+        case 'send':
+          if (!socket || !sessionId) {
+            return print(echo, escapeHtml(t('notConnected')))
+          }
+          return socket.emit('terminal-command', sessionId, action.line, (response, error) =>
+            response ? show(response, echo) : print(echo, failure(error?.msg))
+          )
       }
     },
-    [socket, logout, currentBotId, t]
+    [socket, sessionId, isShellMode, prefix, print, show, failure, t]
   )
 
-  // Runs one line typed by the player; the returned promise-free API keeps the UI a plain controlled input
-  const run = useCallback(
-    (input: string) => {
-      perform(interpret(input, { isShellMode, driveNames, selectedDriveName }), [escapeHtml(`${prefix} ${input}`)])
+  const saveEditor = useCallback(
+    (content: string) => {
+      if (!socket || !sessionId || !editor) {
+        return
+      }
+
+      socket.emit('save-terminal-file', sessionId, editor.path, content, (file, error) => {
+        if (file) {
+          setEditor(null)
+          print([], escapeHtml(t('saved', { path: file.path })))
+        } else {
+          print([], failure(error?.msg))
+        }
+      })
     },
-    [perform, isShellMode, driveNames, selectedDriveName, prefix]
+    [socket, sessionId, editor, print, failure, t]
   )
 
-  return { currentBotId, isLoading, isShellMode, lines, prefix, run }
+  const closeEditor = useCallback(() => setEditor(null), [])
+
+  return { currentBotId, isLoading, isShellMode, lines, prefix, run, editor, saveEditor, closeEditor }
 }

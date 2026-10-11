@@ -65,3 +65,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.7 (server-side command parser and the terminal socket events).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api && npm run i18n:check`
 
+### 2026-10-11 — task 3.7: base terminal commands end to end
+- **Tasks:** 3.7
+- **Branch:** `feature/3.7-terminal-commands` — done
+- **Decisions:** the commands run on the server. `TerminalShell` (application) parses a typed line, finds the command in a registry and runs it; each command is a small class implementing `TerminalCommand` (`help`, `ls`/`dir`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`), and a new command is a new class added in `createTerminalShell` (open/closed). The place of a session (drive and directory) lives with the socket in the gateway, not in the database; `cd` follows relative and absolute paths, `..`, drive names and the old `../drive` form, and a vanished drive sends the session back to the top. The answer is typed data (`output`, `help`, `clear`, `exit`, `edit`, `error` with an error code) in `lib`, and the client translates it; `shell` and the shell mode stay on the client until the runtime (5.6). Every typed line and its output or error are stored in the session (3.5). New socket events: `terminal-command`, `save-terminal-file`. `edit` opens a plain textarea editor in the terminal; the CodeMirror editor window arrives with the GUI (phase 6). The client opens a stored session for the base on connect.
+- **Gaps for later tasks:** the starter kit has no memory module until 3.9, so the file commands cannot be run from a freshly deployed base yet; the Cypress specs for `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm` are written in task 3.13, after 3.9 adds the drive.
+- **Next step:** task 3.8 (the Deploy button and the base password), which needs the password to be stored: see the design §11.2.2.
+- **Verify with:** `npm run db:up && npm run test:coverage && npm run i18n:check`
+

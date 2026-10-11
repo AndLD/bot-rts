@@ -7,3 +7,21 @@
   border: none;
   cursor: default;
 }
+
+.terminal-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.terminal-editor-text {
+  min-height: 240px;
+  background: #111;
+  color: white;
+  font-family: monospace;
+  font-size: 20px;
+  border: 1px solid #555;
+  padding: 8px;
+}

@@ -1,19 +1,23 @@
 import { Module } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
+import { FilesModule } from '../files/files.module'
+import { FilesService } from '../files/application/files.service'
 import { BotsModule } from '../bots/bots.module'
 import { BotsService } from '../bots/application/bots.service'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { TERMINAL_SESSION_REPOSITORY, TerminalSessionRepository } from './application/terminal-session.repository'
+import { createTerminalShell } from './application/shell/create-terminal-shell'
+import { TerminalShell } from './application/shell/terminal-shell.service'
 import { TerminalService } from './application/terminal.service'
 import { TERMINAL_RETENTION, TerminalRetention } from './domain/terminal-retention'
 import { PrismaTerminalSessionRepository } from './infrastructure/prisma-terminal-session.repository'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({
-  imports: [BotsModule],
+  imports: [BotsModule, FilesModule],
   providers: [
     TerminalGateway,
     {
@@ -32,6 +36,11 @@ import { TerminalGateway } from './presentation/terminal.gateway'
         clock: Clock,
         retention: TerminalRetention
       ) => new TerminalService(sessions, bots, ids, clock, retention)
+    },
+    {
+      provide: TerminalShell,
+      inject: [BotsService, FilesService, TerminalService],
+      useFactory: createTerminalShell
     }
   ],
   exports: [TerminalService]

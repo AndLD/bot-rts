@@ -65,7 +65,7 @@ export class TerminalService {
     return this.sessions.listLogsOfBot(botId, limit)
   }
 
-  private async getOpenSession(userId: string, sessionId: string): Promise<TerminalSession> {
+  async getOpenSession(userId: string, sessionId: string): Promise<TerminalSession> {
     const session = await this.sessions.findById(sessionId)
     if (!session) {
       throw new NotFoundError('Terminal session not found')

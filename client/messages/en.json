@@ -100,10 +100,26 @@
     "shellHeader": "Bot shell v0.0.1, bot id = {botId}",
     "loading": "Loading...",
     "failedToConnect": "Failed to connect",
-    "unknownCommand": "Unknown command",
-    "unknownPath": "Unknown path",
     "error": "Error: {message}",
-    "nothing": "Nothing to show"
+    "notConnected": "The terminal is not connected yet",
+    "saved": "Saved {path}",
+    "editing": "Editing {path}",
+    "editorLabel": "File content",
+    "save": "Save",
+    "cancel": "Cancel",
+    "commands": {
+      "help": "list the commands",
+      "ls": "list the drives or the files",
+      "cd": "change the drive or the directory",
+      "mkdir": "create a directory",
+      "cat": "print a file",
+      "edit": "edit a file",
+      "rm": "delete a file or an empty directory",
+      "list": "list your bots",
+      "modules": "list the modules of this bot",
+      "clear": "clear the screen",
+      "exit": "sign out"
+    }
   },
   "errors": {
     "generic": "Something went wrong",
@@ -126,6 +142,9 @@
     "TERMINAL_SESSION_CLOSED": "The terminal session is closed",
     "TOO_MANY_REQUESTS": "Too many requests, try again later",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
-    "INTERNAL_ERROR": "Something went wrong on our side"
+    "INTERNAL_ERROR": "Something went wrong on our side",
+    "UNKNOWN_COMMAND": "Unknown command",
+    "NO_DRIVE_SELECTED": "No drive selected: use cd with a drive name",
+    "COMMAND_USAGE": "The command was used wrongly"
   }
 }

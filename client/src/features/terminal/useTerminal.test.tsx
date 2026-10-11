@@ -1,4 +1,5 @@
 import { BOT_TYPE } from '@lib/utils/interfaces/bots'
+import { ITerminalCommandResponse, ITerminalCwd, TerminalCommandResult } from '@lib/utils/interfaces/terminal'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { ReactNode } from 'react'
@@ -10,7 +11,7 @@ import { useTerminal } from './useTerminal'
 
 type Handler = (...args: never[]) => void
 
-function createSocket(handlers: Record<string, (...args: never[]) => void>, isActive = true) {
+function createSocket(handlers: Record<string, Handler>, isActive = true) {
   return {
     active: isActive,
     emit: jest.fn((event: string, ...args: never[]) => handlers[event]?.(...args))
@@ -19,6 +20,7 @@ function createSocket(handlers: Record<string, (...args: never[]) => void>, isAc
 
 const base = { _id: 'base-1', type: BOT_TYPE.BASE }
 const auth = createFakeAuth()
+const top: ITerminalCwd = { drive: null, directory: null }
 
 function setup(socket: GameSocket | null) {
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -32,12 +34,26 @@ function setup(socket: GameSocket | null) {
   return renderHook(() => useTerminal(), { wrapper })
 }
 
-const baseHandlers = (overrides: Record<string, Handler> = {}) => ({
+// The server answers every command with the given result and place
+const answering = (result: TerminalCommandResult, cwd = top): Handler =>
+  ((_session: string, _line: string, ack: (response: ITerminalCommandResponse) => void) =>
+    ack({ result, cwd })) as Handler
+
+const handlers = (overrides: Record<string, Handler> = {}): Record<string, Handler> => ({
   'get-user-bases': ((ack: (bases: unknown[]) => void) => ack([base])) as Handler,
+  'open-terminal': ((_bot: string, ack: (session: unknown) => void) => ack({ _id: 'session-1' })) as Handler,
+  'terminal-command': answering({ type: 'output', lines: [] }),
   ...overrides
 })
 
-describe('useTerminal', () => {
+async function connected(overrides: Record<string, Handler> = {}) {
+  const socket = createSocket(handlers(overrides))
+  const hook = setup(socket)
+  await waitFor(() => expect(hook.result.current.currentBotId).toBe('base-1'))
+  return { socket, ...hook }
+}
+
+describe('useTerminal: connecting', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('is loading until the socket answers', () => {
@@ -55,170 +71,241 @@ describe('useTerminal', () => {
     expect(socket.emit).not.toHaveBeenCalled()
   })
 
-  it('takes the first base as the current bot', async () => {
-    const { result } = setup(createSocket(baseHandlers()))
+  it('takes the first base as the current bot and opens a stored session on it', async () => {
+    const { socket, result } = await connected()
 
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
     expect(result.current.isLoading).toBe(false)
+    expect(socket.emit).toHaveBeenCalledWith('open-terminal', 'base-1', expect.any(Function))
   })
 
-  it('stops loading without a current bot when the player has no base', async () => {
-    const { result } = setup(createSocket({ 'get-user-bases': ((ack: (b: null) => void) => ack(null)) as Handler }))
+  it.each([[null], [[]]])('stops loading without a bot when the answer is %p', async (bases) => {
+    const { result } = setup(createSocket({ 'get-user-bases': ((ack: (b: unknown) => void) => ack(bases)) as Handler }))
 
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.currentBotId).toBeNull()
   })
 
-  it('also stops loading when the answer is an empty list', async () => {
-    const { result } = setup(createSocket({ 'get-user-bases': ((ack: (b: unknown[]) => void) => ack([])) as Handler }))
-
+  it('shows no prompt and runs nothing when the server does not open a session', async () => {
+    const socket = createSocket(
+      handlers({ 'open-terminal': ((_b: string, ack: (s: null) => void) => ack(null)) as Handler })
+    )
+    const { result } = setup(socket)
     await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.run('ls'))
+
     expect(result.current.currentBotId).toBeNull()
+    expect(result.current.lines).toEqual(['/&gt; ls', 'The terminal is not connected yet'])
   })
+})
 
-  it('echoes the input with the prompt and prints the reply', () => {
-    const { result } = setup(createSocket(baseHandlers()))
+describe('useTerminal: commands', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('echoes the input and prints the lines of the answer, escaped', async () => {
+    const { result } = await connected({ 'terminal-command': answering({ type: 'output', lines: ['a<b>', 'c'] }) })
 
     act(() => result.current.run('ls'))
-    act(() => result.current.run('unknown <b>'))
 
-    expect(result.current.lines).toEqual(['/&gt; ls', '', '/&gt; unknown &lt;b&gt;', 'Unknown command'])
+    expect(result.current.lines).toEqual(['/&gt; ls', 'a&lt;b&gt;', 'c'])
   })
 
-  it('echoes an empty command without output', () => {
-    const { result } = setup(createSocket(baseHandlers()))
+  it('sends the typed line with the session', async () => {
+    const { socket, result } = await connected()
 
-    act(() => result.current.run(' '))
+    act(() => result.current.run('  cat  a.txt '))
 
-    expect(result.current.lines).toEqual(['/&gt;  '])
+    expect(socket.emit).toHaveBeenCalledWith('terminal-command', 'session-1', 'cat  a.txt', expect.any(Function))
   })
 
-  it('clears the screen', () => {
-    const { result } = setup(createSocket(baseHandlers()))
+  it('follows the place the server reports in the prompt', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'output', lines: [] }, { drive: 'memory', directory: 'scripts' })
+    })
 
+    act(() => result.current.run('cd memory/scripts'))
+
+    expect(result.current.prefix).toBe('/memory/scripts>')
+  })
+
+  it('prints the help with the translated description of every command', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'help', commands: [{ name: 'ls', usage: 'ls [dir]' }] })
+    })
+
+    act(() => result.current.run('help'))
+
+    expect(result.current.lines.at(-1)).toBe('ls [dir] - list the drives or the files')
+  })
+
+  it('clears the screen when the server asks', async () => {
+    const { result } = await connected({ 'terminal-command': answering({ type: 'clear' }) })
+
+    act(() => result.current.run('anything'))
+
+    expect(result.current.lines).toEqual([])
+  })
+
+  it('clears the screen by itself for clear', async () => {
+    const { socket, result } = await connected()
     act(() => result.current.run('ls'))
+    socket.emit.mockClear()
+
     act(() => result.current.run('clear'))
 
     expect(result.current.lines).toEqual([])
+    expect(socket.emit).not.toHaveBeenCalled()
   })
 
-  it('enters and leaves shell mode with a clean screen', () => {
-    const { result } = setup(createSocket(baseHandlers()))
-
-    act(() => result.current.run('ls'))
-    act(() => result.current.run('shell'))
-    expect(result.current.isShellMode).toBe(true)
-    expect(result.current.prefix).toBe('>>>')
-    expect(result.current.lines).toEqual([])
-
-    act(() => result.current.run('exit'))
-    expect(result.current.isShellMode).toBe(false)
-    expect(result.current.prefix).toBe('/>')
-  })
-
-  it('has no drives yet, so cd reports an unknown path', () => {
-    const { result } = setup(createSocket(baseHandlers()))
-
-    act(() => result.current.run('cd C'))
-
-    expect(result.current.lines).toContain('Unknown path')
-  })
-
-  it('selects the drive when cd .. is accepted', () => {
-    const { result } = setup(createSocket(baseHandlers()))
-
-    act(() => result.current.run('cd ..'))
-
-    expect(result.current.prefix).toBe('/>')
-  })
-
-  it('signs out on exit', () => {
-    const { result } = setup(createSocket(baseHandlers()))
+  it('signs out when the server says exit', async () => {
+    const { result } = await connected({ 'terminal-command': answering({ type: 'exit' }) })
 
     act(() => result.current.run('exit'))
 
     expect(auth.signOut).toHaveBeenCalled()
   })
 
-  it("lists the player's bots", async () => {
-    const socket = createSocket(
-      baseHandlers({ 'get-user-bots': ((ack: (b: unknown[]) => void) => ack([base])) as Handler })
-    )
-    const { result } = setup(socket)
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
+  it('shows an error by its code when we have a text for it', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'error', code: 'UNKNOWN_COMMAND', message: 'Unknown command: x' })
+    })
 
-    act(() => result.current.run('list'))
+    act(() => result.current.run('x'))
 
-    expect(result.current.lines.at(-1)).toContain('(current) id=&quot;base-1&quot;')
+    expect(result.current.lines.at(-1)).toBe('Error: Unknown command')
   })
 
-  it('lists no bots when the server sends nothing', () => {
-    const { result } = setup(
-      createSocket(baseHandlers({ 'get-user-bots': ((ack: (b: null) => void) => ack(null)) as Handler }))
-    )
+  it('shows an error by its message when the code has no text', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'error', code: 'SOMETHING_NEW', message: 'raw <text>' })
+    })
 
-    act(() => result.current.run('list'))
+    act(() => result.current.run('x'))
 
-    expect(result.current.lines).toEqual(['/&gt; list', ''])
+    expect(result.current.lines.at(-1)).toBe('Error: raw &lt;text&gt;')
   })
 
-  it('lists the modules of the current bot', async () => {
-    const socket = createSocket(
-      baseHandlers({
-        'get-bot-modules': ((_id: string, ack: (m: unknown[]) => void) =>
-          ack([{ _id: 'm1', type: 'scanner', name: 'Scanner' }])) as Handler
-      })
-    )
-    const { result } = setup(socket)
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
+  it('shows the message of a usage error, which says how to use the command', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'error', code: 'COMMAND_USAGE', message: 'Usage: cat <file>' })
+    })
 
-    act(() => result.current.run('modules'))
+    act(() => result.current.run('cat'))
 
-    expect(socket.emit).toHaveBeenCalledWith('get-bot-modules', 'base-1', expect.any(Function))
-    expect(result.current.lines.at(-1)).toContain('name=&quot;Scanner&quot;')
+    expect(result.current.lines.at(-1)).toBe('Error: Usage: cat &lt;file&gt;')
   })
 
-  it('shows the error of a failed module request', async () => {
-    const socket = createSocket(
-      baseHandlers({
-        'get-bot-modules': ((_id: string, ack: (m: null, e: { code: number; msg: string }) => void) =>
-          ack(null, { code: 403, msg: '<denied>' })) as Handler
-      })
-    )
-    const { result } = setup(socket)
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
+  it('shows a failed request as an error', async () => {
+    const { result } = await connected({
+      'terminal-command': ((_s: string, _l: string, ack: (r: null, e: { code: number; msg: string }) => void) =>
+        ack(null, { code: 403, msg: 'denied' })) as Handler
+    })
 
-    act(() => result.current.run('modules'))
+    act(() => result.current.run('ls'))
+    act(() => result.current.run('ls'))
 
-    expect(result.current.lines.at(-1)).toContain('&lt;denied&gt;')
+    expect(result.current.lines.at(-1)).toBe('Error: denied')
   })
 
-  it('says there is nothing when the server sends no modules and no error', async () => {
-    const socket = createSocket(
-      baseHandlers({ 'get-bot-modules': ((_id: string, ack: (m: null) => void) => ack(null)) as Handler })
-    )
-    const { result } = setup(socket)
-    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
+  it('shows a generic error for a failed request without a message', async () => {
+    const { result } = await connected({
+      'terminal-command': ((_s: string, _l: string, ack: (r: null) => void) => ack(null)) as Handler
+    })
 
-    act(() => result.current.run('modules'))
+    act(() => result.current.run('ls'))
 
-    expect(result.current.lines.at(-1)).toBe('Nothing to show')
+    expect(result.current.lines.at(-1)).toBe('Error: Something went wrong')
   })
 
-  it('says there is nothing to show for modules without a current bot', () => {
-    const { result } = setup(createSocket({ 'get-user-bases': ((ack: (b: null) => void) => ack(null)) as Handler }))
+  it('echoes an empty line without output', async () => {
+    const { result } = await connected()
 
-    act(() => result.current.run('modules'))
+    act(() => result.current.run(' '))
 
-    expect(result.current.lines.at(-1)).toBe('Nothing to show')
+    expect(result.current.lines).toEqual(['/&gt;  '])
   })
 
-  it('prints nothing for a bot list when there is no socket', () => {
-    const { result } = setup(null)
+  it('enters and leaves shell mode with a clean screen, without asking the server', async () => {
+    const { socket, result } = await connected()
+    socket.emit.mockClear()
 
-    act(() => result.current.run('list'))
-    act(() => result.current.run('modules'))
+    act(() => result.current.run('shell'))
+    expect(result.current.isShellMode).toBe(true)
+    expect(result.current.prefix).toBe('>>>')
 
-    expect(result.current.lines).toEqual(['/&gt; modules', 'Nothing to show'])
+    act(() => result.current.run('exit'))
+    expect(result.current.isShellMode).toBe(false)
+    expect(result.current.prefix).toBe('/>')
+    expect(socket.emit).not.toHaveBeenCalled()
+  })
+})
+
+describe('useTerminal: the editor', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  const edit = answering({ type: 'edit', path: 'a.js', content: 'old' })
+
+  it('opens the file of an edit command and closes without saving', async () => {
+    const { result } = await connected({ 'terminal-command': edit })
+
+    act(() => result.current.run('edit a.js'))
+    expect(result.current.editor).toEqual({ path: 'a.js', content: 'old' })
+
+    act(() => result.current.closeEditor())
+    expect(result.current.editor).toBeNull()
+  })
+
+  it('saves the file through the server and says so', async () => {
+    const { socket, result } = await connected({
+      'terminal-command': edit,
+      'save-terminal-file': ((_s: string, _p: string, _c: string, ack: (f: unknown) => void) =>
+        ack({ path: 'dir/a.js' })) as Handler
+    })
+    act(() => result.current.run('edit a.js'))
+
+    act(() => result.current.saveEditor('new'))
+
+    expect(socket.emit).toHaveBeenCalledWith('save-terminal-file', 'session-1', 'a.js', 'new', expect.any(Function))
+    expect(result.current.editor).toBeNull()
+    expect(result.current.lines.at(-1)).toBe('Saved dir/a.js')
+  })
+
+  it('keeps the editor open and shows the reason when saving fails', async () => {
+    const { result } = await connected({
+      'terminal-command': edit,
+      'save-terminal-file': ((
+        _s: string,
+        _p: string,
+        _c: string,
+        ack: (f: null, e: { code: number; msg: string }) => void
+      ) => ack(null, { code: 413, msg: 'full' })) as Handler
+    })
+    act(() => result.current.run('edit a.js'))
+
+    act(() => result.current.saveEditor('new'))
+
+    expect(result.current.editor).not.toBeNull()
+    expect(result.current.lines.at(-1)).toBe('Error: full')
+  })
+
+  it('shows a generic error when saving fails without a message', async () => {
+    const { result } = await connected({
+      'terminal-command': edit,
+      'save-terminal-file': ((_s: string, _p: string, _c: string, ack: (f: null) => void) => ack(null)) as Handler
+    })
+    act(() => result.current.run('edit a.js'))
+
+    act(() => result.current.saveEditor('new'))
+
+    expect(result.current.lines.at(-1)).toBe('Error: Something went wrong')
+  })
+
+  it('saves nothing without an open editor', async () => {
+    const { socket, result } = await connected()
+    socket.emit.mockClear()
+
+    act(() => result.current.saveEditor('x'))
+
+    expect(socket.emit).not.toHaveBeenCalled()
   })
 })

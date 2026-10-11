@@ -18,13 +18,13 @@ The unified command set:
 
 | Command | Syntax | Description | Status |
 | --- | --- | --- | --- |
-| `help` | `help` | List available commands. | 🔴 |
-| `ls` / `dir` | `ls` | List files in the current drive/directory. | 🟡 |
-| `cd` | `cd <path>` / `cd ..` | Change directory / select a drive. | ✅ (drives) |
-| `mkdir` | `mkdir <name>` | Create a directory. | 🔴 |
-| `cat` | `cat <file>` | Print a file's contents. | 🔴 |
+| `help` | `help` | List available commands. | ✅ |
+| `ls` / `dir` | `ls` | List the drives, or the files of the current drive/directory. | ✅ |
+| `cd` | `cd <path>` / `cd ..` | Change directory / select a drive (`cd` alone or `cd /` goes to the top). | ✅ |
+| `mkdir` | `mkdir <name>` | Create a directory. | ✅ |
+| `cat` | `cat <file>` | Print a file's contents. | ✅ |
 | `edit` | `edit <file>` | Open a **draggable code editor**. New files are validated to `*.js`, `*.ts`, `*.json`, `*.txt` only. | 🟡 |
-| `rm` | `rm <file>` | Delete a file. | 🔴 |
+| `rm` | `rm <file>` | Delete a file or an empty directory. | ✅ |
 | `run` | `run <file> [args…]` | Run a script file; its exported `main(bot, …args)` is invoked. | 🔴 |
 | `shell` | `shell` | Enter shell mode: each input line is executed as code with `bot` in scope. `exit` leaves shell mode. | 🟡 |
 | `top` | `top` | List currently running script executions. | 🔴 |

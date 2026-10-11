@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import { Socket } from 'socket.io'
 import { TERMINAL_LOG_KIND } from '../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../tests/fakes/world'
-import { buildUser } from '../../../tests/integration/builders'
+import { buildModule, buildUser } from '../../../tests/integration/builders'
 import { Logger } from '../../shared/application/logger'
 import { TerminalGateway } from './terminal.gateway'
 
@@ -13,7 +13,7 @@ async function setup(userId = alice.id) {
   const world = createWorld()
   const { bot } = await world.botsService.deployUserBase(alice)
   const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
-  const gateway = new TerminalGateway(world.terminalService, logger)
+  const gateway = new TerminalGateway(world.terminalService, world.terminalShell, logger)
   const socket = Object.assign(new EventEmitter(), { principal: { user: buildUser({ id: userId }) } })
   gateway.handleConnection(socket as unknown as Socket)
 
@@ -23,6 +23,14 @@ async function setup(userId = alice.id) {
     })
 
   return { ...world, bot, logger, socket, call }
+}
+
+async function withDrive() {
+  const world = await setup()
+  const drive = buildModule(world.bot.id, { type: 'drive', name: 'memory-class1', props: { quota: 100 } })
+  await world.repositories.modules.addMany([drive])
+  const [session] = (await world.call('open-terminal', world.bot.id)) as [{ _id: string }]
+  return { ...world, drive, sessionId: session._id }
 }
 
 describe('TerminalGateway', () => {
@@ -84,5 +92,51 @@ describe('TerminalGateway', () => {
     expect(failing.logger.error).toHaveBeenCalled()
     expect(logger.error).not.toHaveBeenCalled()
     expect(terminalService).toBeDefined()
+  })
+
+  it('runs commands in the session and keeps the place between them', async () => {
+    const { call, sessionId } = await withDrive()
+
+    expect(await call('terminal-command', sessionId, 'cd memory-class1')).toEqual([
+      { result: { type: 'output', lines: [] }, cwd: { drive: 'memory-class1', directory: null } }
+    ])
+    await call('terminal-command', sessionId, 'mkdir scripts')
+    const [listing] = (await call('terminal-command', sessionId, 'ls')) as [{ result: { lines: string[] } }]
+
+    expect(listing.result.lines).toEqual(['scripts/'])
+  })
+
+  it('saves the file of the editor into the place the session is in', async () => {
+    const { call, sessionId } = await withDrive()
+    await call('terminal-command', sessionId, 'cd memory-class1')
+
+    const [file] = (await call('save-terminal-file', sessionId, 'main.js', 'run()')) as [{ path: string; size: number }]
+
+    expect(file).toMatchObject({ path: 'main.js', size: 5 })
+    expect(file).not.toHaveProperty('content')
+  })
+
+  it('validates command and save payloads', async () => {
+    const { call, sessionId } = await withDrive()
+
+    expect(await call('terminal-command', 'nope', 'ls')).toEqual([null, { code: 400, msg: 'Invalid command' }])
+    expect(await call('terminal-command', sessionId, 5)).toEqual([null, { code: 400, msg: 'Invalid command' }])
+    expect(await call('terminal-command', sessionId, 'x'.repeat(2000))).toEqual([
+      null,
+      { code: 400, msg: 'Invalid command' }
+    ])
+    expect(await call('save-terminal-file', sessionId, 5, 'x')).toEqual([null, { code: 400, msg: 'Invalid file' }])
+    expect(await call('save-terminal-file', sessionId, 'a.js', 5)).toEqual([null, { code: 400, msg: 'Invalid file' }])
+  })
+
+  it('drives a session only through the socket that opened it', async () => {
+    const { call, bot, terminalService } = await setup()
+    const other = await terminalService.open(alice.id, bot.id)
+
+    expect((await call('terminal-command', other.id, 'help'))[1]).toMatchObject({ code: 403 })
+    expect((await call('save-terminal-file', other.id, 'a.js', 'x'))[1]).toMatchObject({ code: 403 })
+    expect((await call('terminal-command', '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e', 'help'))[1]).toMatchObject({
+      code: 403
+    })
   })
 })

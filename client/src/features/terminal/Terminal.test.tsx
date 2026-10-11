@@ -13,11 +13,28 @@ function renderTerminal(socket: GameSocket | null) {
   )
 }
 
-const socketWith = (bases: unknown) =>
-  ({
+type Ack = (...args: unknown[]) => void
+
+// A socket whose server answers every command with `commandResult`
+function socketWith(bases: unknown, commandResult: unknown = { type: 'output', lines: [] }, onSave = jest.fn()) {
+  const cwd = { drive: null, directory: null }
+  const handlers: Record<string, (...args: unknown[]) => void> = {
+    'get-user-bases': (ack) => (ack as Ack)(bases),
+    'open-terminal': (_bot, ack) => (ack as Ack)({ _id: 's1' }),
+    'terminal-command': (_session, _line, ack) => (ack as Ack)({ result: commandResult, cwd }),
+    'save-terminal-file': (_session, path, content, ack) => {
+      onSave(path, content)
+      ;(ack as Ack)({ path })
+    }
+  }
+
+  return {
     active: true,
-    emit: jest.fn((event: string, ack: (b: unknown) => void) => event === 'get-user-bases' && ack(bases))
-  }) as unknown as GameSocket
+    emit: jest.fn((event: string, ...args: unknown[]) => handlers[event]?.(...args))
+  } as unknown as GameSocket
+}
+
+const base = [{ _id: 'b1', type: BOT_TYPE.BASE }]
 
 describe('Terminal', () => {
   it('says it is loading before the socket exists', () => {
@@ -34,26 +51,26 @@ describe('Terminal', () => {
   })
 
   it('welcomes a player with a base and runs a typed command', async () => {
-    renderTerminal(socketWith([{ _id: 'b1', type: BOT_TYPE.BASE }]))
+    renderTerminal(socketWith(base, { type: 'error', code: 'UNKNOWN_COMMAND', message: 'x' }))
 
     expect(screen.getByText('# Welcome to BotOS Alpha 0.1.0 #')).toBeInTheDocument()
 
     await userEvent.type(screen.getByRole('textbox'), 'what{Enter}')
 
-    expect(screen.getByText('Unknown command')).toBeInTheDocument()
+    expect(screen.getByText('Error: Unknown command')).toBeInTheDocument()
     expect(screen.getByRole('textbox')).toHaveValue('')
   })
 
   it('ignores other keys than Enter', async () => {
-    renderTerminal(socketWith([{ _id: 'b1', type: BOT_TYPE.BASE }]))
+    renderTerminal(socketWith(base, { type: 'error', code: 'UNKNOWN_COMMAND', message: 'x' }))
 
     await userEvent.type(screen.getByRole('textbox'), 'what')
 
-    expect(screen.queryByText('Unknown command')).not.toBeInTheDocument()
+    expect(screen.queryByText('Error: Unknown command')).not.toBeInTheDocument()
   })
 
   it('shows the shell header in shell mode', async () => {
-    renderTerminal(socketWith([{ _id: 'b1', type: BOT_TYPE.BASE }]))
+    renderTerminal(socketWith(base))
 
     await userEvent.type(screen.getByRole('textbox'), 'shell{Enter}')
 
@@ -63,7 +80,7 @@ describe('Terminal', () => {
   it('focuses the input when the screen is clicked, but not when the output is', async () => {
     jest.useFakeTimers()
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
-    renderTerminal(socketWith([{ _id: 'b1', type: BOT_TYPE.BASE }]))
+    renderTerminal(socketWith(base))
     const input = screen.getByRole('textbox')
 
     input.blur()
@@ -75,5 +92,46 @@ describe('Terminal', () => {
     jest.runAllTimers()
     expect(input).toHaveFocus()
     jest.useRealTimers()
+  })
+
+  it('opens the editor for an edit command, saves the text and goes back to the prompt', async () => {
+    const onSave = jest.fn()
+    renderTerminal(socketWith(base, { type: 'edit', path: 'a.js', content: 'old' }, onSave))
+
+    await userEvent.type(screen.getByRole('textbox'), 'edit a.js{Enter}')
+
+    expect(screen.getByText('Editing a.js')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: '' })).not.toBeInTheDocument()
+    const text = screen.getByRole('textbox', { name: 'File content' })
+    expect(text).toHaveValue('old')
+
+    await userEvent.clear(text)
+    await userEvent.type(text, 'new')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(onSave).toHaveBeenCalledWith('a.js', 'new')
+    expect(screen.queryByText('Editing a.js')).not.toBeInTheDocument()
+    expect(screen.getByText('Saved a.js')).toBeInTheDocument()
+  })
+
+  it('closes the editor without saving', async () => {
+    const onSave = jest.fn()
+    renderTerminal(socketWith(base, { type: 'edit', path: 'a.js', content: '' }, onSave))
+
+    await userEvent.type(screen.getByRole('textbox'), 'edit a.js{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.queryByText('Editing a.js')).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+  })
+
+  it('does not steal the focus from the editor when it is clicked', async () => {
+    renderTerminal(socketWith(base, { type: 'edit', path: 'a.js', content: '' }))
+
+    await userEvent.type(screen.getByRole('textbox'), 'edit a.js{Enter}')
+    await userEvent.click(screen.getByText('Editing a.js'))
+
+    expect(screen.getByRole('textbox', { name: 'File content' })).toBeInTheDocument()
   })
 })

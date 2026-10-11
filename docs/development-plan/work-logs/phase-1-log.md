@@ -97,3 +97,16 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - Nothing emails in development without SMTP settings; verify a local account by setting `local_credentials.email_verified` or configure SMTP.
 - **Next step:** task 1.12 (bots, map, modules, files and the Socket.IO gateway as Nest modules under `/api/v1`; delete the remaining Express routers and `api/setup`).
 - **Verify with:** `npm run db:up && npm run lint && npm run check:boundaries && npm run typecheck && npm test && npm run build`
+
+### 2026-10-11 — task 1.12: bots, the Socket.IO gateway and the end of the Express layer
+- **Tasks:** 1.12
+- **Branch:** `feature/1.12-bots-gateway-nest` — done
+- **Decisions / deviations from the plan:**
+  - `BotsController` (`/api/v1/bots`): `POST base` (201; deploy the first base), `GET` (own bots, optional `type`), `GET :id/modules`, `POST :id/scan`. Ids are validated as UUIDs, DTOs with `class-validator`. The `map`, `modules` and `files` features are Nest modules (`MapModule`, `ModulesModule`, `FilesModule`) that provide their repositories and use cases; they have no routes of their own yet because the game does not read maps or files over HTTP (the scan returns the cells; modules are read per bot).
+  - `BotsGateway` is a Nest `@WebSocketGateway` (`@nestjs/websockets` + `@nestjs/platform-socket.io`) that authenticates the handshake with the same `AuthService` and policy as the HTTP guard (`socket-auth.middleware.ts`) and keeps the acknowledgement protocol of the client terminal — `(result)` on success, `(null, { code, msg })` on failure — through a shared `guarded` wrapper, because Nest's `@SubscribeMessage` cannot send a two-argument acknowledgement. The CORS origin comes from the configuration through `ConfiguredIoAdapter`.
+  - The whole legacy layer is deleted: `routers/`, `controllers/`, `middlewares/`, `setup/`, `utils/`, `src/legacy/`, plus the `cors`, `simple-express-validation`, `moment` and `express-rate-limit` dependencies and the legacy ESLint override block. Logging is configured in `src/shared/infrastructure/log4js-logger.ts` (no `moment`), request logging is a small middleware over the `Logger` port, `.env` loading is `src/load-env.ts`.
+  - The throttler guard is now applied to `AuthController` only (it had been registered globally, which would have limited every route to the auth budget); logout is excluded. The general API rate limit comes with task 8.2.
+  - Tests: the old HTTP/socket tests were ported to the gateway (`bots.gateway.test.ts`), the handshake middleware and the safety-net suite, which now drives `/api/v1/bots/*` and the sockets; the controller is covered by the integration suite.
+- **Problems / blockers / findings:** none open. The client needed no change: its REST calls were already on `/api/v1` and the socket protocol is unchanged.
+- **Next step:** tasks 1.14, 1.15, then 1.18 / 1.18a (Next.js), 1.17 (i18n) and 1.13 (client `AuthClient`), in the order of the phase file.
+- **Verify with:** `npm run db:up && npm run lint && npm run check:boundaries && npm run typecheck && npm test && npm run build`

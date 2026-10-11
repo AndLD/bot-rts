@@ -37,7 +37,8 @@ export class ListCommand implements TerminalCommand {
     return output(
       ...bots.map((bot) => {
         const label = bot.label ? ` label="${bot.label}"` : ''
-        return `${bot.id === session.botId ? '(current)' : '-'} id="${bot.id}"${label} type="${bot.type}"`
+        const last = bot.lastPosition ? ` lastPosition="${bot.lastPosition.x},${bot.lastPosition.y}"` : ''
+        return `${bot.id === session.botId ? '(current)' : '-'} id="${bot.id}"${label} type="${bot.type}"${last}`
       })
     )
   }

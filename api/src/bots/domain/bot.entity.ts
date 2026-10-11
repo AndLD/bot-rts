@@ -1,4 +1,5 @@
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
+import { Location } from '../../../../lib/utils/interfaces/map'
 
 // Only a base has `userId`; any other bot belongs to a base (`baseId`), design §8.1
 export interface Bot {
@@ -9,4 +10,6 @@ export interface Bot {
   readonly baseId: string | null
   // The hash of the access password others need to connect (design §11.2.2); a base always has one
   readonly passwordHash: string | null
+  // Where the bot was when its last module was taken apart; such a bot has no cell on the map any more (design §8.4.1)
+  readonly lastPosition: Location | null
 }

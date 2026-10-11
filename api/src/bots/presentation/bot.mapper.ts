@@ -7,6 +7,7 @@ export function toBotDto(bot: Bot): IBot {
     label: bot.label ?? undefined,
     userId: bot.userId ?? undefined,
     baseId: bot.baseId ?? undefined,
-    type: bot.type
+    type: bot.type,
+    lastPosition: bot.lastPosition ?? undefined
   }
 }

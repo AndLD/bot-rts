@@ -4,6 +4,7 @@ import { MapRepository } from '../../map/application/map.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { isCorpse } from '../domain/base-state'
+import { canConnect } from '../domain/capabilities'
 import { Bot } from '../domain/bot.entity'
 import { BotRepository } from './bot.repository'
 
@@ -36,6 +37,11 @@ export class BaseLifecycle {
   async hasControl(bot: Bot, repositories: Reads): Promise<boolean> {
     const base = bot.type === BOT_TYPE.BASE ? bot : bot.baseId ? await repositories.bots.findById(bot.baseId) : null
     return base !== null && !(await this.isCorpse(base, repositories))
+  }
+
+  // Whether the bot can be connected to: its wireless adapter works (design §8.4.1)
+  async isReachable(bot: Bot, { modules }: Pick<Reads, 'modules'>): Promise<boolean> {
+    return canConnect(this.registry.instantiateAll(await modules.listOfBot(bot.id)))
   }
 
   // Shows the bases of the player on the real map as what they are now: a corpse base where control is lost, a base

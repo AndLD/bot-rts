@@ -34,6 +34,26 @@ describe('TerminalService sessions', () => {
     expect(terminalSessions.sessions.get(session.id)?.endedAt).toEqual(clock.current)
   })
 
+  it('does not open a session on a bot whose wireless adapter is broken', async () => {
+    const { terminalService, botsService, moduleFactory, bot, repositories } = await setup()
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: bot.id,
+      label: null,
+      modules: [moduleFactory.template('processor-class1'), moduleFactory.template('wireless-adapter-class1')]
+    })
+    const adapter = repositories.modules.items.find((m) => m.botId === worker.id && m.type === 'wirelessAdapter')!
+    const index = repositories.modules.items.indexOf(adapter)
+    repositories.modules.items[index] = { ...adapter, condition: 0 }
+
+    await expect(terminalService.open(alice.id, worker.id)).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'NO_SIGNAL'
+    })
+
+    repositories.modules.items[index] = adapter
+    await expect(terminalService.open(alice.id, worker.id)).resolves.toMatchObject({ botId: worker.id })
+  })
+
   it('returns the newest lines of the history', async () => {
     const { terminalService, bot } = await setup()
     const session = await terminalService.open(alice.id, bot.id)

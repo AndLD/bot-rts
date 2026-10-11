@@ -2319,6 +2319,24 @@
           "password"
         ]
       },
+      "BotLastPositionResponse": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "z": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
       "BotResponse": {
         "type": "object",
         "properties": {
@@ -2344,6 +2362,14 @@
             "enum": [
               "base",
               "worker"
+            ]
+          },
+          "lastPosition": {
+            "description": "Only a bot whose modules were all taken apart: it has no cell on the map, just its last place",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BotLastPositionResponse"
+              }
             ]
           }
         },

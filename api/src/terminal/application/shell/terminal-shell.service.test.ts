@@ -53,6 +53,18 @@ describe('the commands of the base terminal', () => {
     expect(result).toEqual({ type: 'help', commands: TERMINAL_COMMANDS.map((c) => ({ name: c.name, usage: c.usage })) })
   })
 
+  it('shows where a bot without modules was last', async () => {
+    const { lines, repositories, botsService, moduleFactory, bot } = await setup()
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: bot.id,
+      label: null,
+      modules: [moduleFactory.template('storage-class1')]
+    })
+    await repositories.bots.setLastPosition(worker.id, { x: 3, y: 4, z: 0 })
+
+    expect(await lines('list')).toContain(`- id="${worker.id}" type="worker" lastPosition="3,4"`)
+  })
+
   it('asks the client to clear the screen and to leave', async () => {
     const { run } = await setup()
 

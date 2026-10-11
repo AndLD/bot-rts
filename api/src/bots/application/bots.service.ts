@@ -12,7 +12,7 @@ import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { Bot } from '../domain/bot.entity'
-import { BaseAlreadyExistsError, BaseLostError } from '../domain/bot.errors'
+import { BaseAlreadyExistsError, BaseLostError, BotUnreachableError } from '../domain/bot.errors'
 import { BaseLifecycle } from './base-lifecycle'
 import { BotRepository } from './bot.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
@@ -61,7 +61,8 @@ export class BotsService {
         type: BOT_TYPE.BASE,
         userId: user.id,
         baseId: null,
-        passwordHash
+        passwordHash,
+        lastPosition: null
       }
       const placement = options.location
         ? { location: options.location, seed: null }
@@ -119,7 +120,8 @@ export class BotsService {
         type: BOT_TYPE.WORKER,
         userId: null,
         baseId: base.id,
-        passwordHash: null
+        passwordHash: null,
+        lastPosition: null
       }
       await repositories.bots.add(bot)
       for (const itemId of input.consumedItemIds ?? []) {
@@ -195,6 +197,15 @@ export class BotsService {
     const bot = await this.getOwnedBot(userId, botId)
     if (!(await this.lifecycle.hasControl(bot, this.reads))) {
       throw new BaseLostError()
+    }
+    return bot
+  }
+
+  // The bot, provided the user controls it and it can be connected to: its wireless adapter works
+  async getReachableBot(userId: string, botId: string): Promise<Bot> {
+    const bot = await this.getControlledBot(userId, botId)
+    if (!(await this.lifecycle.isReachable(bot, this.reads))) {
+      throw new BotUnreachableError()
     }
     return bot
   }

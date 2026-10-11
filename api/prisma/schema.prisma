@@ -174,6 +174,11 @@ model Bot {
   baseId       String? @map("base_id") @db.Uuid
   // The hash of the access password others need to connect (design §11.2.2); a base always has one
   passwordHash String? @map("password_hash")
+  // Where the bot was when its last module was taken apart (design §8.4.1); set together or not at all, the CHECK
+  // constraint `bots_last_position_check` lives in the migration SQL
+  lastX        Int?    @map("last_x")
+  lastY        Int?    @map("last_y")
+  lastZ        Int?    @map("last_z")
 
   user                 User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   base                 Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)

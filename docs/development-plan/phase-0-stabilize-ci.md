@@ -35,4 +35,4 @@ AGENTS.md §7.1).
 | `feature/0.2-env-config-email-sender` | 0.2 | [#23](https://github.com/AndLD/bot-rts/pull/23) | ✅ |
 | `feature/0.3-npm-workspaces` | 0.3 | [#24](https://github.com/AndLD/bot-rts/pull/24) | ✅ |
 | `feature/0.8-security-hotfix` | 0.8 | [#25](https://github.com/AndLD/bot-rts/pull/25) | ✅ |
-| `feature/0.7-local-postgres` | 0.7 | PR_N | ✅ |
+| `feature/0.7-local-postgres` | 0.7 | [#26](https://github.com/AndLD/bot-rts/pull/26) | ✅ |

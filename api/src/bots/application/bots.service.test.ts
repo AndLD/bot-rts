@@ -92,5 +92,9 @@ describe('BotsService queries', () => {
     expect(await botsService.getOwnedBot(alice.id, worker.id)).toEqual(worker)
     await expect(botsService.getOwnedBot(bob.id, worker.id)).rejects.toThrow(ForbiddenError)
     await expect(botsService.getOwnedBot(alice.id, orphan.id)).rejects.toThrow(ForbiddenError)
+
+    const detached = { ...worker, id: 'detached-1', baseId: 'deleted-base' }
+    await repositories.bots.add(detached)
+    await expect(botsService.getOwnedBot(alice.id, detached.id)).rejects.toThrow(ForbiddenError)
   })
 })

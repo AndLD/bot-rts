@@ -35,6 +35,7 @@ describe('presentation mappers', () => {
       type: BOT_TYPE.BASE
     })
     expect(toBotDto({ ...base, label: null }).label).toBeUndefined()
+    expect(toBotDto({ ...base, userId: null, baseId: 'b1' })).toMatchObject({ userId: undefined, baseId: 'b1' })
   })
 
   it('flattens module properties', () => {

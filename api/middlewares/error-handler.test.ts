@@ -44,6 +44,10 @@ describe('handleError', () => {
     expect(response.body).toEqual({ statusCode: 500, code: 'INTERNAL_ERROR', error: 'Internal server error' })
   })
 
+  it('treats a thrown null as an unexpected error', async () => {
+    await request(appThrowing(null)).post('/async').expect(500)
+  })
+
   it('reports malformed JSON as a client error', async () => {
     const response = await request(appThrowing(new Error('unused')))
       .post('/sync')

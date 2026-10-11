@@ -57,7 +57,7 @@ export function createIsAuthorized(users: UserSource) {
 
 export function createIsSocketAuthorized(users: UserSource) {
   return async function isSocketAuthorized(socket: Socket, next: (err?: ExtendedError) => void) {
-    const accessToken = socket.handshake.auth?.token || socket.handshake.query?.token
+    const accessToken = socket.handshake.auth.token || socket.handshake.query.token
 
     if (typeof accessToken !== 'string' || !accessToken) {
       return next(new Error(SOCKET_UNAUTHORIZED))

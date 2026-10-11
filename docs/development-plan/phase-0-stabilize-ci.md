@@ -44,4 +44,4 @@ AGENTS.md §7.1).
 | `feature/0.7-local-postgres` | 0.7 | [#26](https://github.com/AndLD/bot-rts/pull/26) | ✅ |
 | `feature/0.4-eslint-prettier` | 0.4 | [#27](https://github.com/AndLD/bot-rts/pull/27) | ✅ |
 | `feature/0.5-github-actions-ci` | 0.5 | [#28](https://github.com/AndLD/bot-rts/pull/28) | ✅ |
-| `chore/0.6-branch-protection` | 0.6 (script and docs; settings pending) | PR_N | 🟡 |
+| `chore/0.6-branch-protection` | 0.6 (script and docs; settings pending) | [#29](https://github.com/AndLD/bot-rts/pull/29) | 🟡 |

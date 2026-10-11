@@ -74,3 +74,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** task 0.5 (GitHub Actions CI).
 - **Verify with:** `npm run lint && npm run typecheck && npm test`
+
+### 2026-10-11 — task 0.5: GitHub Actions CI
+- **Tasks:** 0.5
+- **Branch:** `feature/0.5-github-actions-ci` — done
+- **Decisions / deviations from the plan:** `.github/workflows/ci.yml` has two jobs. `pr-title` enforces a Conventional Commit PR title (squash merges use it). `verify` (with a `postgres:16.4` service container and `DATABASE_URL`) runs `npm ci`, `lint` (ESLint + Prettier check), `typecheck`, `docs:check`, `test:coverage`, a coverage summary in the job summary, the changed-files coverage check and `build`. The Markdown link check is `scripts/check-markdown-links.mjs` (no dependency): it verifies targets exist, are not git-ignored and that `#anchors` into Markdown files match a heading using GitHub's slug rules (so headings ending in an emoji need a trailing `-` in the anchor; two links in `docs/game-design` were fixed). The changed-files check, `scripts/check-changed-coverage.mjs`, runs with `continue-on-error: true` and becomes blocking in Phase 1 by removing that line. Coverage exclusions live in `api/jest.config.ts` (`collectCoverageFrom`). Generated `api/coverage/` had been committed by mistake; it is untracked and git-ignored now.
+- **Problems / blockers / findings:** current `api` coverage is ~40 % (legacy services untested); this is reported, not gated, until Phase 2. Branch protection (which makes `verify` and `pr-title` required) is task 0.6.
+- **Next step:** task 0.6 (protect `main` and `develop`; keep merged branches) — needs repository admin rights; if `gh` lacks them, hand the exact steps to the user.
+- **Verify with:** `npm ci && npm run lint && npm run typecheck && npm run docs:check && npm run test:coverage && npm run build`

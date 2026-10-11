@@ -29,7 +29,7 @@
   random inside a ring around the world origin whose radius grows with the number of bases; on conflict the search
   retries. This replaces the current prototype behavior (random cell in `[0,10]²` with no occupancy check, see
   `spawnMaxDistance` in `api/services/bots.ts`), which only works for a handful of players. A redeploy after base
-  destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds) to start near
+  destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds-) to start near
   friends.
 
 ## 4.2 Two layers: real points and user points

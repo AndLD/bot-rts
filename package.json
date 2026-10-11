@@ -18,7 +18,9 @@
     "db:up": "docker compose up -d --wait db",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
-    "format:check": "prettier --config .prettierrc.json --check ."
+    "format:check": "prettier --config .prettierrc.json --check .",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "docs:check": "node scripts/check-markdown-links.mjs"
   },
   "devDependencies": {
     "prettier": "^3.3.3"

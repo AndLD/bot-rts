@@ -113,6 +113,8 @@ export function loadConfig(env: Env): AppConfig {
     problems
   )
 
+  const world = readWorldConfig(env, problems)
+
   if (problems.length) {
     throw new ConfigError(problems)
   }
@@ -128,7 +130,7 @@ export function loadConfig(env: Env): AppConfig {
     adminUrl: env.ADMIN_URL || frontendUrl,
     corsOrigins: list(env.WHITELIST_URLS).length ? list(env.WHITELIST_URLS) : [frontendUrl],
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
-    world: readWorldConfig(env),
+    world,
     smtp: readSmtpConfig(env),
     emailOutboxDir: env.EMAIL_OUTBOX_DIR || undefined,
     auth: {

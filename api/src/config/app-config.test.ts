@@ -1,4 +1,5 @@
 import { DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
+import { DEFAULT_WORLD_CONFIG } from '../map/domain/world-config'
 import { ConfigError, loadConfig } from './app-config'
 
 const base = { DATABASE_URL: 'postgresql://botrts:botrts@localhost:5432/botrts' }
@@ -13,7 +14,7 @@ describe('loadConfig', () => {
       adminUrl: 'http://localhost:5173',
       corsOrigins: ['http://localhost:5173'],
       worldSeed: undefined,
-      world: { resourceChance: 0.2, spawnMaxDistance: 10, spawnAttempts: 20 },
+      world: DEFAULT_WORLD_CONFIG,
       smtp: undefined,
       emailOutboxDir: undefined,
       auth: {
@@ -63,6 +64,12 @@ describe('loadConfig', () => {
       rateLimit: { windowMs: 60000, authMax: 5 },
       trustProxy: true
     })
+  })
+
+  it('fails on an unreadable resource balance file', () => {
+    expect(() => loadConfig({ ...base, WORLD_RESOURCE_BALANCE_FILE: '/definitely/missing.json' })).toThrow(
+      /WORLD_RESOURCE_BALANCE_FILE/
+    )
   })
 
   it('accepts the postgres:// scheme and an empty PORT', () => {

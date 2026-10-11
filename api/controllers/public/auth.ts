@@ -1,84 +1,52 @@
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
-import { usersCollection } from '../../services/db'
-import { usersService } from '../../services/users'
-import { tryCatch } from '../../utils/decorators'
-import { IAuthPostBody } from '@lib/utils/interfaces/auth'
-import { errors } from '../../utils/constants'
-import { createJwt, refreshJwtSecret } from '../../utils/jwt'
-import { parseUserIdFromSessionToken } from '../../utils/jwtPayload'
+import { IAuthPostBody } from '../../../lib/utils/interfaces/auth'
+import { parseUserIdFromSessionToken } from '../../src/auth/infrastructure/jwt-payload'
+import { AppServices } from '../../src/composition'
+import { UnauthorizedError } from '../../src/shared/domain/errors'
+import { toUserState } from '../../src/users/presentation/user.mapper'
+import { User } from '../../src/users/domain/user.entity'
 import { apiUtils } from '../../utils/api'
-import { getAccessDenial, toUserState } from '../../utils/userAccess'
+import { createJwt, refreshJwtSecret } from '../../utils/jwt'
 
-async function postLogin(req: Request, res: Response) {
-  const body: IAuthPostBody = req.body
-
-  const user = await usersCollection.findOne({ email: body.email })
-
-  if (!user) {
-    return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)
-  }
-
-  // Password check
-  const isPasswordValid = await bcrypt.compare(body.password, user.password)
-
-  if (!isPasswordValid) {
-    return apiUtils.sendError(res, errors.CREDENTIALS_INVALID)
-  }
-
-  const denial = getAccessDenial(user)
-
-  if (denial) {
-    return apiUtils.sendError(res, denial)
-  }
-
+function issueTokens(res: Response, user: User) {
   const tokens = createJwt(toUserState(user))
 
   apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
-  res.json({
-    result: tokens.accessToken
-  })
+
+  return tokens.accessToken
 }
 
-async function getRefresh(req: Request, res: Response) {
-  const refreshToken = req.cookies.refreshToken
+export function createAuthPublicControllers({ users }: Pick<AppServices, 'users'>) {
+  return {
+    async postLogin(req: Request, res: Response) {
+      const body: IAuthPostBody = req.body
+      const user = await users.authenticate(body.email, body.password)
 
-  if (!refreshToken) {
-    return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
+      res.json({ result: issueTokens(res, user) })
+    },
+
+    async getRefresh(req: Request, res: Response) {
+      const refreshToken = req.cookies.refreshToken
+      let userId: string | undefined
+
+      try {
+        userId = refreshToken
+          ? parseUserIdFromSessionToken(jwt.verify(refreshToken, refreshJwtSecret, { algorithms: ['HS256'] }))
+          : undefined
+      } catch {
+        userId = undefined
+      }
+      if (!userId) {
+        throw new UnauthorizedError('Unable to refresh access JWT')
+      }
+
+      apiUtils.sendResult(res, issueTokens(res, await users.getUsableUser(userId)))
+    },
+
+    async postLogout(_req: Request, res: Response) {
+      res.clearCookie('refreshToken')
+      res.sendStatus(200)
+    }
   }
-
-  let userId: string | undefined
-
-  try {
-    userId = parseUserIdFromSessionToken(jwt.verify(refreshToken, refreshJwtSecret, { algorithms: ['HS256'] }))
-  } catch (e) {
-    return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
-  }
-  if (!userId) {
-    return apiUtils.sendError(res, errors.UNABLE_TO_REFRESH_ACCESS_JWT)
-  }
-
-  const user = await usersService.findUserById(userId)
-  const denial = getAccessDenial(user)
-
-  if (denial) {
-    return apiUtils.sendError(res, denial)
-  }
-
-  const tokens = createJwt(toUserState(user!))
-
-  apiUtils.setRefreshTokenCookie(res, tokens.refreshToken)
-  apiUtils.sendResult(res, tokens.accessToken)
-}
-
-async function postLogout(_: Request, res: Response) {
-  res.clearCookie('refreshToken')
-  res.sendStatus(200)
-}
-
-export const authPublicControllers = {
-  postLogin: tryCatch(postLogin),
-  getRefresh: tryCatch(getRefresh),
-  postLogout: tryCatch(postLogout)
 }

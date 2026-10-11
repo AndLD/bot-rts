@@ -61,17 +61,17 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
 
 ```
 ┌─────────────┐        ┌──────────────────────┐        ┌─────────────┐
-│   client/   │  HTTP  │        api/          │        │    MongoDB  │
+│   client/   │  HTTP  │        api/          │        │ PostgreSQL  │
 │ React+Vite  │◄──────►│ Express + Socket.IO  │◄──────►│  (users,    │
-│ RTK Query   │  WS    │ controllers/services │        │   bots,     │
+│ RTK Query   │  WS    │ routers → use cases  │        │   bots,     │
 └──────┬──────┘        └──────────┬───────────┘        │   modules,  │
        │                          │                    │   map,      │
        └──────────► lib/ ◄────────┘                    │   files)    │
          shared TS interfaces                          └─────────────┘
 ```
 
-(Planned: the client moves to Next.js, the API to NestJS, and MongoDB is replaced by PostgreSQL with Prisma behind
-repository ports; the local database runs in Docker. See the development plan.)
+(Planned: the client moves to Next.js and the API to NestJS. The database is PostgreSQL behind repository ports,
+accessed with Prisma and run in Docker locally. See the development plan.)
 
 **Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
 
@@ -80,7 +80,9 @@ presentation (controllers, gateways, DTOs) → application (use cases + ports) �
 infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) implements the application ports
 ```
 
-(The current code is still the older Express layout: routers → middlewares → controllers → services → MongoDB.)
+The backend is part-way through the move: the use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
+(`users`, `bots`, `modules`, `files`, `map`, `persistence`, …), and the legacy Express routers/controllers (`api/routers`,
+`api/controllers`, `api/middlewares`, `api/setup`) call them. NestJS replaces the Express layer in Phase 1.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.
@@ -92,7 +94,7 @@ infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) imple
 
 | Layer        | Technology                                                                   |
 | ------------ | ---------------------------------------------------------------------------- |
-| Backend      | Node.js, Express 4, TypeScript 4.7 (strict), Socket.IO 4, mongodb driver 5 (**moving to NestJS on the Express adapter, TypeScript 5.x**, see the development plan) |
+| Backend      | Node.js, Express 4, TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL (**moving to NestJS on the Express adapter**, see the development plan) |
 | Auth         | `jsonwebtoken`, `bcrypt`, `cookie-parser`, `cors`, `helmet`                   |
 | Email        | `nodemailer` (SMTP)                                                           |
 | Logging      | `log4js`                                                                      |
@@ -147,8 +149,7 @@ bot-rts/
 ### Prerequisites
 
 - Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
-- MongoDB running locally, or a MongoDB URI (current code; replaced by PostgreSQL at the start of Phase 1)
-- Docker (for the local PostgreSQL; the current code does not use it yet)
+- Docker (for the local PostgreSQL)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
@@ -186,6 +187,8 @@ Without them the app runs on hardcoded development fallbacks.
 npm run db:up      # start and wait until healthy
 npm run db:down    # stop (data is kept in the volume)
 npm run db:reset   # drop the volume and start a fresh database
+npm run db:migrate -w api   # apply the Prisma migrations to the local database
+npm run db:seed -w api      # create the root user (needs ROOT_USER_PASSWORD)
 ```
 
 ### 3. Run in development
@@ -220,8 +223,9 @@ pm2 start ecosystem.config.json
 | `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
 | `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `http://localhost:5173` |
 | `DATABASE_URL`                        | api          | PostgreSQL connection string (Prisma, integration tests) | `postgresql://botrts:botrts@localhost:5432/botrts` |
-| `MONGO_DB_URI`                        | api          | MongoDB connection string                            | `mongodb://localhost:27017` |
-| `MONGO_DB_NAME`                       | api          | Database name                                        | `bot-rts`               |
+| `WORLD_SEED`                          | api          | Seed of the world-generation random numbers          | random per start        |
+| `WORLD_RESOURCE_CHANCE`               | api          | Chance that a generated map cell holds a resource    | `0.2`                   |
+| `WORLD_SPAWN_MAX_DISTANCE` / `WORLD_SPAWN_ATTEMPTS` | api | Where a new base may appear / how many cells are tried | `10` / `20` |
 | `JWT_ACCESS_SECRET` / `_EXPIRES_IN`   | api          | Access-token secret / TTL                            | `super_secret1` / `10m` |
 | `JWT_REFRESH_SECRET` / `_EXPIRES_IN`  | api          | Refresh-token secret / TTL (also the refresh cookie max age) | `super_secret2` / `24h` |
 | `JWT_EMAIL_VERIFICATION_SECRET` / `_EXPIRES_IN` | api | Email-verification secret / TTL                      | `super_secret3` / `24h` |
@@ -231,9 +235,6 @@ pm2 start ecosystem.config.json
 | `SMTP_USER` / `SMTP_PASS`             | api          | SMTP credentials; without them the email service is a no-op | — |
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
 | `VITE_API_URL`                        | client       | Backend base URL (Vite env)                          | `http://localhost:8080` |
-
-> **Planned:** `DATABASE_URL` (PostgreSQL) replaces `MONGO_DB_URI` / `MONGO_DB_NAME` when the persistence layer is switched
-> (Phase 1, task 1.1a).
 
 ---
 

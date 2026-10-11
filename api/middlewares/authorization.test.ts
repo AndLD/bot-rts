@@ -1,28 +1,28 @@
 import request from 'supertest'
 import { SOCKET_TOKEN_EXPIRED, SOCKET_UNAUTHORIZED } from '../../lib/utils/constants'
-import { makeApp, makeUser, signAccessToken } from '../tests/helpers'
-import { AuthorizedRequest } from '../utils/types'
-import { createIsAuthorized, createIsSocketAuthorized } from './authorization'
+import { FakeClock, FakeHasher, InMemoryUserRepository, SequentialIdGenerator } from '../tests/fakes/fakes'
+import { buildUser } from '../tests/integration/builders'
+import { makeApp, signAccessToken } from '../tests/http'
+import { UsersService } from '../src/users/application/users.service'
+import { AuthorizedRequest, createIsAuthorized, createIsSocketAuthorized } from './authorization'
 
-const userId = '64b7f0f2a1b2c3d4e5f60718'
-
-function setup(user = makeUser()) {
-  const findUserById = jest.fn().mockResolvedValue(user)
+function setup(overrides = {}) {
+  const repository = new InMemoryUserRepository()
+  const user = buildUser(overrides)
+  repository.items.set(user.id, user)
+  const users = new UsersService(repository, new FakeHasher(), new SequentialIdGenerator(), new FakeClock())
   const app = makeApp((app) => {
-    app.get('/private', createIsAuthorized({ findUserById }), (req: AuthorizedRequest, res) => res.json(req.user))
+    app.get('/private', createIsAuthorized(users), (req, res) => res.json((req as AuthorizedRequest).user))
   })
-
-  return { app, findUserById }
+  return { app, user, users }
 }
 
 describe('isAuthorized', () => {
   it('rejects a request without the header', async () => {
-    const { app } = setup()
-
-    await request(app).get('/private').expect(401)
+    await request(setup().app).get('/private').expect(401)
   })
 
-  it('rejects a malformed or foreign token', async () => {
+  it('rejects a malformed token', async () => {
     const { app } = setup()
 
     await request(app).get('/private').set('Authorization', 'Bearer nope').expect(401)
@@ -30,100 +30,99 @@ describe('isAuthorized', () => {
   })
 
   it('rejects a token whose payload has the wrong shape', async () => {
-    const { app, findUserById } = setup()
+    const { app } = setup()
     const token = signAccessToken({ user: { _id: { $ne: null } } })
 
     await request(app).get('/private').set('Authorization', `Bearer ${token}`).expect(401)
-    expect(findUserById).not.toHaveBeenCalled()
   })
 
-  it('rejects an expired token', async () => {
-    const { app } = setup()
-    const token = signAccessToken({ user: { _id: userId } }, { expiresIn: -10 })
-
-    await request(app).get('/private').set('Authorization', `Bearer ${token}`).expect(401)
-  })
-
-  it('rejects a token of a deleted user', async () => {
-    const { app, findUserById } = setup()
-    findUserById.mockResolvedValue(null)
+  it('rejects an expired token and the token of a deleted user', async () => {
+    const { app, user } = setup()
 
     await request(app)
       .get('/private')
-      .set('Authorization', `Bearer ${signAccessToken({ user: { _id: userId } })}`)
+      .set('Authorization', `Bearer ${signAccessToken({ user: { _id: user.id } }, { expiresIn: -10 })}`)
+      .expect(401)
+    await request(app)
+      .get('/private')
+      .set('Authorization', `Bearer ${signAccessToken({ user: { _id: '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e' } })}`)
       .expect(401)
   })
 
   it('rejects banned and unverified users even with a valid token', async () => {
-    const token = signAccessToken({ user: { _id: userId } })
+    for (const overrides of [{ status: 'banned' }, { isActive: false }]) {
+      const { app, user } = setup(overrides)
 
-    await request(setup(makeUser({ status: 'banned' })).app)
-      .get('/private')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403)
-    await request(setup(makeUser({ active: false })).app)
-      .get('/private')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403)
+      await request(app)
+        .get('/private')
+        .set('Authorization', `Bearer ${signAccessToken({ user: { _id: user.id } })}`)
+        .expect(403)
+    }
   })
 
-  it('takes the current role from the database, not from the token', async () => {
-    const { app } = setup(makeUser({ status: 'user' }))
-    const token = signAccessToken({ user: { _id: userId, status: 'owner' } })
+  it('takes the current role from the store, not from the token', async () => {
+    const { app, user } = setup({ status: 'user' })
+    const token = signAccessToken({ user: { _id: user.id, status: 'owner' } })
 
     const response = await request(app).get('/private').set('Authorization', `Bearer ${token}`).expect(200)
 
     expect(response.body.status).toBe('user')
-    expect(response.body.password).toBeUndefined()
+    expect(JSON.stringify(response.body)).not.toContain('hash')
   })
 })
 
 describe('isSocketAuthorized', () => {
   const makeSocket = (token?: unknown, via: 'auth' | 'query' = 'auth') =>
-    ({
-      handshake: via === 'auth' ? { auth: { token }, query: {} } : { auth: {}, query: { token } }
-    }) as never
+    ({ handshake: via === 'auth' ? { auth: { token }, query: {} } : { auth: {}, query: { token } } }) as never
 
-  const run = async (socket: never, user = makeUser()) => {
+  const run = async (socket: never, overrides = {}) => {
+    const { users, user } = setup(overrides)
     const next = jest.fn()
-    await createIsSocketAuthorized({ findUserById: jest.fn().mockResolvedValue(user) })(socket, next)
-    return next
+    await createIsSocketAuthorized(users)(socket, next)
+    return { next, user }
   }
 
-  it('attaches the user for a valid token', async () => {
-    const socket = makeSocket(signAccessToken({ user: { _id: userId } }))
-    const next = await run(socket)
+  const tokenFor = (id: string, options = {}) => signAccessToken({ user: { _id: id } }, options)
 
-    expect(next).toHaveBeenCalledWith()
-    expect((socket as { user?: { status: string } }).user?.status).toBe('user')
-  })
+  it('attaches the user for a valid token, from the auth object or the query', async () => {
+    const { users, user } = setup()
+    for (const via of ['auth', 'query'] as const) {
+      const socket = makeSocket(tokenFor(user.id), via)
+      const next = jest.fn()
 
-  it('reads the token from the query too', async () => {
-    const next = await run(makeSocket(signAccessToken({ user: { _id: userId } }), 'query'))
+      await createIsSocketAuthorized(users)(socket, next)
 
-    expect(next).toHaveBeenCalledWith()
+      expect(next).toHaveBeenCalledWith()
+      expect((socket as { user?: { status: string } }).user?.status).toBe('user')
+    }
   })
 
   it('rejects a missing or non-string token', async () => {
     for (const token of [undefined, '', 5, ['a']]) {
-      const next = await run(makeSocket(token))
+      const { next } = await run(makeSocket(token))
 
       expect(next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
     }
   })
 
   it('rejects an expired token with a distinct message', async () => {
-    const next = await run(makeSocket(signAccessToken({ user: { _id: userId } }, { expiresIn: -10 })))
+    const { users, user } = setup()
+    const next = jest.fn()
+
+    await createIsSocketAuthorized(users)(makeSocket(tokenFor(user.id, { expiresIn: -10 })), next)
 
     expect(next.mock.calls[0][0].message).toBe(SOCKET_TOKEN_EXPIRED)
   })
 
   it('rejects an invalid token, a bad payload and a banned user', async () => {
-    expect((await run(makeSocket('garbage'))).mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
-    expect((await run(makeSocket(signAccessToken({ user: {} })))).mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
-    expect(
-      (await run(makeSocket(signAccessToken({ user: { _id: userId } })), makeUser({ status: 'banned' }))).mock
-        .calls[0][0].message
-    ).toBe(SOCKET_UNAUTHORIZED)
+    expect((await run(makeSocket('garbage'))).next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
+    expect((await run(makeSocket(signAccessToken({ user: {} })))).next.mock.calls[0][0].message).toBe(
+      SOCKET_UNAUTHORIZED
+    )
+
+    const { users, user } = setup({ status: 'banned' })
+    const next = jest.fn()
+    await createIsSocketAuthorized(users)(makeSocket(tokenFor(user.id)), next)
+    expect(next.mock.calls[0][0].message).toBe(SOCKET_UNAUTHORIZED)
   })
 })

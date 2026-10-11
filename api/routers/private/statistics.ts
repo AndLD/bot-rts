@@ -1,5 +1,9 @@
 import { Router } from 'express'
-import { privateStatisticsControllers } from '../../controllers/private/statistics'
+import { createStatisticsPrivateControllers } from '../../controllers/private/statistics'
+import { asyncHandler } from '../../middlewares/async-handler'
 import { hasAdminStatus } from '../../middlewares/users'
+import { AppServices } from '../../src/composition'
 
-export const statisticsPrivateRouter = Router().get('/', hasAdminStatus, privateStatisticsControllers.getStatistics)
+export function createStatisticsPrivateRouter(services: Pick<AppServices, 'users'>) {
+  return Router().get('/', hasAdminStatus, asyncHandler(createStatisticsPrivateControllers(services).getStatistics))
+}

@@ -1,7 +1,13 @@
 import { Router } from 'express'
+import { createBotsPrivateControllers } from '../../controllers/private/bots'
+import { asyncHandler } from '../../middlewares/async-handler'
 import { validateIdParam } from '../../middlewares/validateId'
-import { botsPrivateControllers } from '../../controllers/private/bots'
+import { AppServices } from '../../src/composition'
 
-export const botsPrivateRouter = Router()
-  .post('/base', botsPrivateControllers.postUserBase)
-  .post('/:id/scan', validateIdParam('id'), botsPrivateControllers.postScan)
+export function createBotsPrivateRouter(services: Pick<AppServices, 'bots' | 'scan'>) {
+  const controllers = createBotsPrivateControllers(services)
+
+  return Router()
+    .post('/base', asyncHandler(controllers.postUserBase))
+    .post('/:id/scan', validateIdParam('id'), asyncHandler(controllers.postScan))
+}

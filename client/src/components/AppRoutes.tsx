@@ -17,8 +17,6 @@ export default function AppRoutes() {
   const [redirectRoute, setRedirectRoute] = useState<string | null>(null)
 
   useEffect(() => {
-    console.log(token)
-
     const user: IUserState | null = parseUser(token)
 
     if (user && !user.active) {

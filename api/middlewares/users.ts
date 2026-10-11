@@ -1,25 +1,12 @@
 import { NextFunction, Response } from 'express'
-import { usersService } from '../services/users'
-import { apiUtils } from '../utils/api'
-import { errors } from '../utils/constants'
-import { AuthorizedRequest } from '../utils/types'
-import { createIsAuthorized, createIsSocketAuthorized } from './authorization'
+import { ForbiddenError } from '../src/shared/domain/errors'
+import { isAdmin } from '../src/users/domain/user-access'
+import { AuthorizedRequest } from './authorization'
 
-export const isAuthorized = createIsAuthorized(usersService)
-export const isSocketAuthorized = createIsSocketAuthorized(usersService)
-
-export function hasOwnerStatus(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  if (req.user?.status === 'owner') {
-    return next()
-  }
-
-  return apiUtils.sendError(res, errors.FORBIDDEN)
+export function hasOwnerStatus(req: AuthorizedRequest, _res: Response, next: NextFunction) {
+  next(req.user?.status === 'owner' ? undefined : new ForbiddenError())
 }
 
-export function hasAdminStatus(req: AuthorizedRequest, res: Response, next: NextFunction) {
-  if (req.user?.status === 'admin' || req.user?.status === 'owner') {
-    return next()
-  }
-
-  return apiUtils.sendError(res, errors.FORBIDDEN)
+export function hasAdminStatus(req: AuthorizedRequest, _res: Response, next: NextFunction) {
+  next(req.user && isAdmin(req.user.status) ? undefined : new ForbiddenError())
 }

@@ -65,12 +65,7 @@ export function useSocketServer() {
     })
 
     const handleUnauthorized = async () => {
-      console.log(
-        `[debug] Access token expired${lastEvent.current ? ` for event ${lastEvent.current.event}` : ''}, refreshing token...`
-      )
-
       if (isRefreshLocked.current) {
-        console.log('Refresh is locked')
         return
       }
 
@@ -95,8 +90,6 @@ export function useSocketServer() {
           // Retry the original event with the new token
           if (lastEvent.current) {
             socket.emit(lastEvent.current.event, ...lastEvent.current.data)
-
-            console.log('[debug] Retried event with refreshed token:', lastEvent.current)
           }
         }
 

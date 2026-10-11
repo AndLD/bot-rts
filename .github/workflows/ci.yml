@@ -74,7 +74,7 @@ jobs:
       - name: Unit and integration tests with coverage
         run: npm run test:coverage
       - name: Coverage report
-        if: always()
+        if: always() && hashFiles('api/coverage/coverage-summary.json') != ''
         run: |
           {
             echo '### Coverage (api)'

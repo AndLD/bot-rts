@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
-export default Router()
+export const authPrivateRouter = Router()
   // Verify JWT token
-  .get('/verify', (_: any, res) => {
+  .get('/verify', (_req, res) => {
     res.sendStatus(200)
   })

@@ -1,16 +1,15 @@
-import { NextFunction, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { Socket } from 'socket.io'
 import { ExtendedError } from 'socket.io/dist/namespace'
-import { IUser, IUserState } from '@lib/utils/interfaces/users'
+import { IUserState } from '../../lib/utils/interfaces/users'
 import { SOCKET_TOKEN_EXPIRED, SOCKET_UNAUTHORIZED } from '../../lib/utils/constants'
-import { apiUtils } from '../utils/api'
-import { errors } from '../utils/constants'
+import { parseUserIdFromSessionToken } from '../src/auth/infrastructure/jwt-payload'
+import { UnauthorizedError } from '../src/shared/domain/errors'
+import { User } from '../src/users/domain/user.entity'
+import { toUserState } from '../src/users/presentation/user.mapper'
 import { accessJwtSecret } from '../utils/jwt'
-import { parseUserIdFromSessionToken } from '../utils/jwtPayload'
 import { getLogger } from '../utils/logger'
-import { AuthorizedRequest } from '../utils/types'
-import { getAccessDenial, toUserState } from '../utils/userAccess'
 
 const logger = getLogger('middlewares/authorization')
 
@@ -21,43 +20,35 @@ declare module 'socket.io' {
 }
 
 export interface UserSource {
-  findUserById(id: string): Promise<IUser | null>
+  getUsableUser(id: string): Promise<User>
 }
 
-type AuthenticationResult = { user: IUserState } | { error: typeof errors.JWT_INVALID }
+export interface AuthorizedRequest extends Request {
+  user?: IUserState
+}
 
-async function authenticate(users: UserSource, token: string | undefined): Promise<AuthenticationResult> {
+async function authenticate(users: UserSource, token: string | undefined): Promise<IUserState> {
   const payload = jwt.verify(token as string, accessJwtSecret, { algorithms: ['HS256'] })
   const userId = parseUserIdFromSessionToken(payload)
 
   if (!userId) {
-    return { error: errors.JWT_INVALID }
+    throw new UnauthorizedError('JWT invalid')
   }
 
-  // Role, ban and verification state always come from the database, never from the token
-  const user = await users.findUserById(userId)
-  const denial = getAccessDenial(user)
-
-  return denial ? { error: denial } : { user: toUserState(user as IUser) }
+  // Role, ban and verification state always come from the store, never from the token
+  return toUserState(await users.getUsableUser(userId))
 }
 
 export function createIsAuthorized(users: UserSource) {
-  return async function isAuthorized(req: AuthorizedRequest, res: Response, next: NextFunction) {
+  return async function isAuthorized(req: AuthorizedRequest, _res: Response, next: NextFunction) {
     if (!req.headers.authorization) {
-      return apiUtils.sendError(res, errors.AUTHORIZATION_HEADER_EMPTY)
+      return next(new UnauthorizedError('Authorization header is empty'))
     }
 
     try {
-      const result = await authenticate(users, req.headers.authorization.split(' ')[1])
-
-      if ('error' in result) {
-        return apiUtils.sendError(res, result.error)
-      }
-
-      req.user = result.user
-    } catch (e) {
-      logger.error(e)
-      return apiUtils.sendError(res, errors.JWT_INVALID)
+      req.user = await authenticate(users, req.headers.authorization.split(' ')[1])
+    } catch (error) {
+      return next(error instanceof jwt.JsonWebTokenError ? new UnauthorizedError('JWT invalid') : error)
     }
 
     next()
@@ -66,27 +57,21 @@ export function createIsAuthorized(users: UserSource) {
 
 export function createIsSocketAuthorized(users: UserSource) {
   return async function isSocketAuthorized(socket: Socket, next: (err?: ExtendedError) => void) {
-    const accessToken = socket.handshake.auth?.token || socket.handshake.query?.token
+    const accessToken = socket.handshake.auth.token || socket.handshake.query.token
 
     if (typeof accessToken !== 'string' || !accessToken) {
       return next(new Error(SOCKET_UNAUTHORIZED))
     }
 
     try {
-      const result = await authenticate(users, accessToken)
-
-      if ('error' in result) {
-        return next(new Error(SOCKET_UNAUTHORIZED))
-      }
-
-      socket.user = result.user
+      socket.user = await authenticate(users, accessToken)
       return next()
     } catch (err) {
       if ((err as Error).name === 'TokenExpiredError') {
         return next(new Error(SOCKET_TOKEN_EXPIRED))
       }
 
-      logger.error(err)
+      logger.warn(`Socket handshake rejected: ${(err as Error).message}`)
       return next(new Error(SOCKET_UNAUTHORIZED))
     }
   }

@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
-import { apiUtils } from '../utils/api'
-import { errors } from '../utils/constants'
-import { isValidId } from '../utils/objectId'
+import { ValidationError } from '../src/shared/domain/errors'
+import { isValidId } from '../src/shared/domain/ids'
 
 export function validateIdParam(param: string) {
-  return function validateId(req: Request, res: Response, next: NextFunction) {
-    return isValidId(req.params[param]) ? next() : apiUtils.sendError(res, errors.INVALID_ID)
+  return function validateId(req: Request, _res: Response, next: NextFunction) {
+    next(isValidId(req.params[param]) ? undefined : new ValidationError('Invalid id'))
   }
 }

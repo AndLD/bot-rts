@@ -1,21 +1,32 @@
 import { Socket } from 'socket.io'
-import { BOT_TYPE, IBot } from '../../lib/utils/interfaces/bots'
-import { ModuleProps } from '@lib/utils/interfaces/modules'
-import { errors } from '../utils/constants'
-import { isValidId } from '../utils/objectId'
+import { BOT_TYPE } from '../../lib/utils/interfaces/bots'
+import { ErrorCode } from '../../lib/utils/error-codes'
+import { BotsService } from '../src/bots/application/bots.service'
+import { toBotDto } from '../src/bots/presentation/bot.mapper'
+import { toModuleDto } from '../src/modules/presentation/module.mapper'
+import { AppError } from '../src/shared/domain/app-error'
+import { ValidationError } from '../src/shared/domain/errors'
+import { isValidId } from '../src/shared/domain/ids'
 import { getLogger } from '../utils/logger'
 
 const logger = getLogger('setup/socket-handlers')
 
-export interface SocketServices {
-  getUserBots(userId: string, filter?: { type?: BOT_TYPE }): Promise<IBot[]>
-  getBotById(id: string): Promise<IBot | null>
-  getBotModules(botId: string): Promise<ModuleProps[]>
+export type SocketBotsService = Pick<BotsService, 'listUserBots' | 'getBotModules'>
+
+export interface SocketError {
+  code: number
+  msg: string
 }
 
-type Ack = (result: unknown, error?: { code: number; msg: string }) => void
+type Ack = (result: unknown, error?: SocketError) => void
 
 const ignoreAck: Ack = () => undefined
+
+function toSocketError(error: unknown): SocketError {
+  return error instanceof AppError
+    ? { code: error.statusCode, msg: error.message }
+    : { code: 500, msg: ErrorCode.INTERNAL_ERROR }
+}
 
 // Wraps an event handler so a bad payload or a failing service can neither throw into Socket.IO nor crash the process
 function guarded(handler: (ack: Ack, ...args: unknown[]) => Promise<void>) {
@@ -24,27 +35,29 @@ function guarded(handler: (ack: Ack, ...args: unknown[]) => Promise<void>) {
     const ack = typeof last === 'function' ? (last as Ack) : ignoreAck
     const payload = typeof last === 'function' ? args.slice(0, -1) : args
 
-    handler(ack, ...payload).catch((err) => {
-      logger.error(err)
-      ack(null, errors.INTERNAL_SERVER_ERROR)
+    handler(ack, ...payload).catch((error) => {
+      if (!(error instanceof AppError)) {
+        logger.error(error)
+      }
+      ack(null, toSocketError(error))
     })
   }
 }
 
-export function registerBotHandlers(socket: Socket, services: SocketServices) {
+export function registerBotHandlers(socket: Socket, bots: SocketBotsService) {
   const userId = () => socket.user!._id
 
   socket.on(
     'get-user-bases',
     guarded(async (ack) => {
-      ack(await services.getUserBots(userId(), { type: BOT_TYPE.BASE }))
+      ack((await bots.listUserBots(userId(), { type: BOT_TYPE.BASE })).map(toBotDto))
     })
   )
 
   socket.on(
     'get-user-bots',
     guarded(async (ack) => {
-      ack(await services.getUserBots(userId()))
+      ack((await bots.listUserBots(userId())).map(toBotDto))
     })
   )
 
@@ -52,19 +65,10 @@ export function registerBotHandlers(socket: Socket, services: SocketServices) {
     'get-bot-modules',
     guarded(async (ack, botId) => {
       if (!isValidId(botId)) {
-        return ack(null, errors.INVALID_ID)
+        throw new ValidationError('Invalid id')
       }
 
-      const bot = await services.getBotById(botId)
-
-      if (!bot) {
-        return ack(null, errors.DOC_NOT_FOUND)
-      }
-      if (bot.userId !== userId()) {
-        return ack(null, errors.FORBIDDEN)
-      }
-
-      ack(await services.getBotModules(botId))
+      ack((await bots.getBotModules(userId(), botId)).map(toModuleDto))
     })
   )
 }

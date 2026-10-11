@@ -90,3 +90,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** needs a decision from the owner: make the repository public, upgrade the plan, or accept convention-only protection.
 - **Next step:** after the decision, run `scripts/protect-branches.sh`, set 0.6 and Phase 0 to ✅ in the plan, then start Phase 1.
 - **Verify with:** `gh api repos/AndLD/bot-rts/branches/develop/protection` (200 once protection is on)
+
+### 2026-10-11 — task 0.6 done, Phase 0 complete
+- **Tasks:** 0.6
+- **Branch:** `chore/0.6-finish-phase-0` — done
+- **Decisions / deviations from the plan:** the repository was made public by the owner (history scanned first: no secrets), then `scripts/protect-branches.sh` was run. `main` and `develop` now require `verify` and `pr-title`, forbid force-push and deletion; `delete_branch_on_merge` is off. Phase 0 exit criteria are met.
+- **Problems / blockers / findings:** none. Note that the changed-files coverage check is still non-blocking; Phase 1 removes `continue-on-error` in `.github/workflows/ci.yml`.
+- **Next step:** Phase 1 (only when requested).
+- **Verify with:** `gh api repos/AndLD/bot-rts/branches/develop/protection`

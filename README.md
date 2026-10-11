@@ -254,8 +254,10 @@ pm2 start ecosystem.config.json
 | root    | `npm run format`         | Prettier across the repo                             |
 | api     | `npm run dev`            | nodemon + ts-node                                    |
 | api     | `npm run build`          | `tsc` → `ts-built`                                   |
+| api     | `npm run openapi:generate` | Writes `api/openapi.json` from the controllers and DTOs (a test and CI fail when it is stale) |
 | api     | `npm run prod`           | `node ts-built/api/index`                            |
 | client  | `npm run dev`            | Next.js dev server on port 5173                      |
+| client  | `npm run api:generate`   | Generates the RTK Query client `src/shared/api/generated.ts` from `api/openapi.json` |
 | client  | `npm run build`          | `next build`                                         |
 | client  | `npm run start`          | `next start` on port 5173                            |
 

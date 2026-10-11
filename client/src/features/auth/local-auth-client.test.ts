@@ -1,6 +1,7 @@
 import { createLocalAuthClient } from './local-auth-client'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
 import { setupStore } from '../../shared/store'
+import { api } from '../../shared/api'
 import { AuthClient } from './auth-client'
 
 jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
@@ -21,6 +22,38 @@ describe('local auth client', () => {
   beforeEach(() => {
     query.mockReset()
     localStorage.clear()
+  })
+
+  describe('the cache of the previous player', () => {
+    // What the previous player's session left in the RTK Query cache
+    async function cacheAUser(store: ReturnType<typeof setupStore>) {
+      succeed({ _id: 'previous' })
+      await store.dispatch(api.endpoints.usersMe.initiate()).unwrap()
+      expect(api.endpoints.usersMe.select()(store.getState()).data).toEqual({ _id: 'previous' })
+    }
+
+    it('is gone once someone signs in or up', async () => {
+      const { store, client } = setup()
+      await cacheAUser(store)
+      succeed({ accessToken: 'jwt' })
+      await client.signIn({ email: 'a@b.co', password: 'Pa$$w0rd' })
+      expect(api.endpoints.usersMe.select()(store.getState()).data).toBeUndefined()
+
+      await cacheAUser(store)
+      succeed({ accessToken: 'jwt' })
+      await client.signUp({ name: 'Alice Smith', email: 'a@b.co', password: 'Pa$$w0rd' })
+      expect(api.endpoints.usersMe.select()(store.getState()).data).toBeUndefined()
+    })
+
+    it('is gone once the player signs out', async () => {
+      const { store, client } = setup()
+      await cacheAUser(store)
+      succeed()
+
+      await client.signOut()
+
+      expect(api.endpoints.usersMe.select()(store.getState()).data).toBeUndefined()
+    })
   })
 
   describe('signing in and up', () => {

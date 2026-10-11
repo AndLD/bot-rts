@@ -8,3 +8,5 @@ package-lock.json
 *.ttf
 *.md
 docs
+api/openapi.json
+client/src/shared/api/generated.ts

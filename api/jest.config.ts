@@ -40,7 +40,8 @@ const config: Config = {
     '!jest.config.ts', // config
     '!index.ts', // process entry point (bootstrap only)
     '!src/load-env.ts', // loads the .env file at process start (bootstrap only)
-    '!prisma/**' // seed script and migrations
+    '!prisma/**', // seed script and migrations
+    '!scripts/**' // command line entry points
   ],
   // The gate of AGENTS.md §6.1, per package
   coverageThreshold: { global: { statements: 97, branches: 97, functions: 97, lines: 97 } },

@@ -1,5 +1,12 @@
 import { Body, Controller, HttpCode, Inject, Post, Req, Res, UseGuards } from '@nestjs/common'
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger'
+import {
+  ApiCookieAuth,
+  ApiCreatedResponse,
+  ApiDefaultResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags
+} from '@nestjs/swagger'
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler'
 import { Request, Response } from 'express'
 import { IAuthTokenResponse } from '../../../../lib/utils/interfaces/auth'
@@ -17,6 +24,8 @@ import {
   ResetPasswordDto,
   TokenDto
 } from './dto/auth.dto'
+import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
+import { AuthTokenResponse } from './dto/auth.response'
 import { Public } from './public.decorator'
 import { REFRESH_COOKIE, RefreshCookieOptions } from './refresh-cookie'
 
@@ -24,6 +33,7 @@ export const REFRESH_COOKIE_OPTIONS = Symbol('RefreshCookieOptions')
 
 // Every auth route is rate limited per client (RATE_LIMIT_*), except logout
 @ApiTags('auth')
+@ApiDefaultResponse({ type: ErrorResponseModel })
 @UseGuards(ThrottlerGuard)
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -33,6 +43,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @ApiCreatedResponse({ type: AuthTokenResponse })
   @Post('register')
   async register(@Body() body: RegisterDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     return this.respondWithSession(
@@ -43,6 +54,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
+  @ApiOkResponse({ type: AuthTokenResponse })
   @Post('login')
   async login(@Body() body: LoginDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     return this.respondWithSession(
@@ -54,6 +66,7 @@ export class AuthController {
   @Public()
   @ApiCookieAuth()
   @HttpCode(200)
+  @ApiOkResponse({ type: AuthTokenResponse })
   @Post('refresh')
   async refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
     const refreshToken = request.cookies[REFRESH_COOKIE]
@@ -68,6 +81,7 @@ export class AuthController {
   @Public()
   @SkipThrottle()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('logout')
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
     const refreshToken = request.cookies[REFRESH_COOKIE]
@@ -80,6 +94,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('email/verify')
   async verifyEmail(@Body() { token }: TokenDto) {
     await this.auth.verifyEmail(token)
@@ -87,6 +102,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('email/resend')
   async resendVerification(@Body() { email }: EmailDto) {
     await this.auth.resendVerification(email)
@@ -94,6 +110,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('password/forgot')
   async forgotPassword(@Body() { email }: EmailDto) {
     await this.auth.requestPasswordReset(email)
@@ -101,12 +118,14 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('password/reset')
   async resetPassword(@Body() { token, password }: ResetPasswordDto) {
     await this.auth.resetPassword(token, password)
   }
 
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('password/change')
   async changePassword(@CurrentPrincipal() principal: Principal, @Body() body: ChangePasswordDto) {
     await this.auth.changePassword(
@@ -118,6 +137,7 @@ export class AuthController {
   }
 
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('email/change')
   async requestEmailChange(@CurrentPrincipal() principal: Principal, @Body() body: ChangeEmailDto) {
     await this.auth.requestEmailChange(principal.user.id, body.password, body.newEmail)
@@ -125,12 +145,14 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('email/change/confirm')
   async confirmEmailChange(@Body() { token }: TokenDto) {
     await this.auth.confirmEmailChange(token)
   }
 
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('account/delete')
   async requestAccountDeletion(@CurrentPrincipal() principal: Principal, @Body() { password }: PasswordDto) {
     await this.auth.requestAccountDeletion(principal.user.id, password)
@@ -138,6 +160,7 @@ export class AuthController {
 
   @Public()
   @HttpCode(204)
+  @ApiNoContentResponse()
   @Post('account/delete/confirm')
   async confirmAccountDeletion(@Body() { token }: TokenDto) {
     await this.auth.confirmAccountDeletion(token)

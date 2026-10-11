@@ -7,12 +7,12 @@ import { SocketProvider } from '../../shared/socket/SocketProvider'
 import { useToken } from '../../shared/store/hooks'
 import Terminal from '../terminal/Terminal'
 import DeployBase from './DeployBase'
-import { useGetBasesQuery } from './game.api'
+import { useBotsListQuery } from '../../shared/api'
 
 export default function GamePage() {
   const t = useTranslations('game')
   const token = useToken()
-  const { data: bases, isError } = useGetBasesQuery(token ?? skipToken)
+  const { data: bases, isError } = useBotsListQuery(token ? { type: 'base' } : skipToken)
 
   return (
     <div

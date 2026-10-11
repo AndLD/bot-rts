@@ -1,26 +1,31 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Put, Query } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { IUserInfo } from '../../../../lib/utils/interfaces/users'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { RequireRole } from '../../auth/presentation/roles.decorator'
 import { ValidationError } from '../../shared/domain/errors'
+import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { UsersService } from '../application/users.service'
+import { UserInfoResponse, UsersPageResponse, UserUpdatedResponse } from './dto/users.response'
 import { ListUsersQueryDto, UpdateUserDto } from './dto/users.dto'
 import { toUserInfo } from './user.mapper'
 
 @ApiTags('users')
+@ApiDefaultResponse({ type: ErrorResponseModel })
 @ApiBearerAuth()
 @Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
+  @ApiOkResponse({ type: UserInfoResponse })
   @Get('me')
   me(@CurrentPrincipal() { user, identity }: Principal): IUserInfo {
     return toUserInfo(user, identity.emailVerified)
   }
 
   @RequireRole('admin')
+  @ApiOkResponse({ type: UsersPageResponse })
   @Get()
   async list(@Query() query: ListUsersQueryDto) {
     const { users, total } = await this.users.list({
@@ -38,6 +43,7 @@ export class UsersController {
   }
 
   @RequireRole('admin')
+  @ApiOkResponse({ type: UserUpdatedResponse })
   @Put(':id')
   async update(
     @CurrentPrincipal() { user: actor }: Principal,

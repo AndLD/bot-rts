@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { errorNotification } from '../../shared/notifications'
 import { setToken } from '../../shared/store/session.slice'
 import { useAppDispatch, useToken } from '../../shared/store/hooks'
-import { useGetMeQuery } from './auth.api'
+import { useUsersMeQuery } from '../../shared/api'
 import { useAuth } from './auth-client-context'
 
 export type CurrentUser =
@@ -21,7 +21,7 @@ interface ApiErrorBody {
 export function useCurrentUser(): CurrentUser {
   const dispatch = useAppDispatch()
   const token = useToken()
-  const { data, error, isLoading } = useGetMeQuery(token ?? skipToken)
+  const { data, error, isLoading } = useUsersMeQuery(token ? undefined : skipToken)
   const failure = error as ApiErrorBody | undefined
   const isTokenRejected = failure?.status === 401
 

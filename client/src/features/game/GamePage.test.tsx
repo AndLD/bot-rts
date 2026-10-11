@@ -1,5 +1,6 @@
 import { BOT_TYPE } from '@lib/utils/interfaces/bots'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
@@ -32,7 +33,7 @@ describe('GamePage', () => {
     expect(screen.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/account')
     expect(screen.getByText('Loading...')).toBeInTheDocument()
     expect(query).toHaveBeenCalledWith(
-      expect.objectContaining({ url: '/api/v1/bots?type=base' }),
+      expect.objectContaining({ url: '/api/v1/bots', params: { type: 'base' } }),
       expect.anything(),
       undefined
     )
@@ -60,6 +61,21 @@ describe('GamePage', () => {
 
     expect(await screen.findByText('the terminal')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Deploy your base' })).not.toBeInTheDocument()
+  })
+
+  it('shows the terminal once a base is deployed, without a reload', async () => {
+    query.mockResolvedValueOnce({ data: [] })
+    renderGame()
+    await userEvent.click(await screen.findByText('Deploy base'))
+    fireEvent.change(screen.getByLabelText('Base password'), { target: { value: 'secret1' } })
+    fireEvent.change(screen.getByLabelText('Repeat the password'), { target: { value: 'secret1' } })
+    await userEvent.click(screen.getByText('Deploy base'))
+
+    query.mockResolvedValueOnce({ data: {} }) // the deployment
+    query.mockResolvedValueOnce({ data: [{ _id: 'b1', type: BOT_TYPE.BASE }] }) // the list, fetched again
+    await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
+
+    expect(await screen.findByText('the terminal')).toBeInTheDocument()
   })
 
   it('says so when the bases cannot be loaded', async () => {

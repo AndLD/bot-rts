@@ -1,0 +1,8 @@
+{
+  "schemaFile": "../api/openapi.json",
+  "apiFile": "./src/shared/api/empty-api.ts",
+  "apiImport": "emptyApi",
+  "outputFile": "./src/shared/api/generated.ts",
+  "exportName": "api",
+  "hooks": true
+}

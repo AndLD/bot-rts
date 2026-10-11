@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
-import { useDeployBaseMutation } from './game.api'
+import { useBotsDeployBaseMutation } from '../../shared/api'
 
 interface DeployForm {
   password: string
@@ -19,13 +19,15 @@ export default function DeployBase() {
   const t = useTranslations('game.deploy')
   const getErrorMessage = useErrorMessage()
   const [form] = Form.useForm<DeployForm>()
-  const [deployBase, { isLoading }] = useDeployBaseMutation()
+  const [deployBase, { isLoading }] = useBotsDeployBaseMutation()
   const [isConfirming, setIsConfirming] = useState(false)
 
   async function deploy() {
     try {
       const seed = form.getFieldValue('spawnSeed')
-      await deployBase({ password: form.getFieldValue('password'), ...(seed && { spawnSeed: seed }) }).unwrap()
+      await deployBase({
+        deployBaseDto: { password: form.getFieldValue('password'), ...(seed && { spawnSeed: seed }) }
+      }).unwrap()
     } catch (error) {
       const body = (error as { data?: { code?: string; error?: string } }).data
       errorNotification(getErrorMessage({ code: body?.code, message: body?.error }), t('failed'))

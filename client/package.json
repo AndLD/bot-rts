@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p cypress/tsconfig.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "api:generate": "rtk-query-codegen-openapi openapi-config.json"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
@@ -28,6 +29,7 @@
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
+    "@rtk-query/codegen-openapi": "^2.2.0",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

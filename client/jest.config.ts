@@ -20,7 +20,8 @@ const config: Config = {
     '!src/**/*.test.{ts,tsx}', // tests themselves
     '!src/**/*.d.ts', // type declarations
     '!src/app/**/page.tsx', // Next.js route entry points: each only re-exports a feature component that is tested
-    '!src/app/layout.tsx' // the root layout renders <html>, which only a Next.js server render can host
+    '!src/app/layout.tsx', // the root layout renders <html>, which only a Next.js server render can host
+    '!src/shared/api/generated.ts' // generated from the OpenAPI document of the API (npm run api:generate)
   ],
   coverageThreshold: { global: { statements: 97, branches: 97, functions: 97, lines: 97 } },
   coverageReporters: ['text-summary', 'json-summary', 'lcov']

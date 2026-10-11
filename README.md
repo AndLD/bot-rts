@@ -62,7 +62,7 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
 ```
 ┌─────────────┐        ┌──────────────────────┐        ┌─────────────┐
 │   client/   │  HTTP  │        api/          │        │ PostgreSQL  │
-│ React+Vite  │◄──────►│ NestJS + Socket.IO   │◄──────►│  (users,    │
+│ React+Next  │◄──────►│ NestJS + Socket.IO   │◄──────►│  (users,    │
 │ RTK Query   │  WS    │ controllers → use    │        │   bots,     │
 └──────┬──────┘        └──────────┬───────────┘        │   modules,  │
        │                          │                    │   map,      │
@@ -70,8 +70,7 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
          shared TS interfaces                          └─────────────┘
 ```
 
-(Planned: the client moves to Next.js. The database is PostgreSQL behind repository ports, accessed with Prisma and run
-in Docker locally. See the development plan.)
+(The database is PostgreSQL behind repository ports, accessed with Prisma and run in Docker locally. See the development plan.)
 
 **Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
 
@@ -87,7 +86,7 @@ enforces the layer rules.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.
-- `client/` is a Vite + React SPA proxying `/api` to the backend in dev (migrating to Next.js, see the development plan).
+- `client/` is a Next.js (App Router) application: the public landing page is a static `(marketing)` route and the game (`(game)` routes) is rendered on the client only. It talks to the API at `NEXT_PUBLIC_API_URL`.
 
 ---
 
@@ -99,8 +98,8 @@ enforces the layer rules.
 | Auth         | `jsonwebtoken`, `bcrypt`, `cookie-parser`, `cors`, `helmet`                   |
 | Email        | `nodemailer` (SMTP)                                                           |
 | Logging      | `log4js`                                                                      |
-| Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5; today Vite 5, **moving to Next.js (App Router)** in Phase 1, which will also host the landing page |
-| Code editor  | CodeMirror 6 (`@uiw/react-codemirror`), `prettier-standalone`                |
+| Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5, Next.js (App Router) with React 19, which also hosts the landing page |
+| Code editor  | CodeMirror 6 (planned for the script editor; verified to work with Next 16 / React 19) |
 | Shared       | `lib/` (plain TS interfaces)                                                  |
 | Testing      | Jest + `ts-jest` (`api`); planned: PostgreSQL in Docker for integration tests (no in-memory databases), Cypress |
 | Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
@@ -198,17 +197,17 @@ npm run db:seed -w api      # create the root user (needs ROOT_USER_PASSWORD)
 # Terminal 1 — backend (nodemon + ts-node)
 npm run dev -w api
 
-# Terminal 2 — frontend (Vite dev server, proxies /api to :8080)
+# Terminal 2 — frontend (Next.js dev server on :5173)
 npm run dev -w client
 ```
 
-Open <http://localhost:5173>. Sign up, confirm the email link (or set the user active in the DB during development),
-then open the `/game` route.
+Open <http://localhost:5173>. Sign up and confirm the emailed link. Without SMTP settings no mail is sent in development; mark
+the account as verified with `UPDATE local_credentials SET email_verified = true;` instead. Then open the `/game` route.
 
 ### 4. Production build
 
 ```bash
-npm run build  # api: tsc → api/ts-built, client: tsc + vite build
+npm run build  # api: tsc → api/ts-built, client: next build
 pm2 start ecosystem.config.json
 ```
 
@@ -237,33 +236,39 @@ pm2 start ecosystem.config.json
 | `SMTP_PORT` / `SMTP_SECURE`           | api          | SMTP port / implicit TLS flag                        | `465` / `true` when the port is 465 |
 | `SMTP_USER` / `SMTP_PASS`             | api          | SMTP credentials; without them the email service is a no-op | — |
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
-| `VITE_API_URL`                        | client       | Backend base URL (Vite env)                          | `http://localhost:8080` |
+| `NEXT_PUBLIC_API_URL`                 | client       | Backend base URL (read in the browser)               | `http://localhost:8080` |
 
 ---
 
 ## Scripts
 
-| Package | Command               | Description                              |
-| ------- | --------------------- | ---------------------------------------- |
-| root    | `npm run format`      | Prettier across the repo                 |
-| api     | `npm run dev`         | nodemon + ts-node                        |
-| api     | `npm run build`       | `tsc` → `ts-built`                       |
-| api     | `npm run prod`        | `node ts-built/index`                    |
-| client  | `npm run dev`         | Vite dev server                          |
-| client  | `npm run build`       | `tsc && vite build`                      |
-| client  | `npm run lint`        | ESLint (ts, tsx)                         |
-| client  | `npm run preview`     | Vite preview                             |
+| Package | Command                  | Description                                          |
+| ------- | ------------------------ | ---------------------------------------------------- |
+| root    | `npm run lint`           | ESLint of every package and a Prettier check          |
+| root    | `npm run typecheck`      | TypeScript of every package                          |
+| root    | `npm test`               | Jest of `api` (needs `npm run db:up`)                |
+| root    | `npm run test:coverage`  | The same with a coverage report                      |
+| root    | `npm run check:boundaries` | Import-boundary rules of the layered `api/src`     |
+| root    | `npm run docs:check`     | Markdown link check                                  |
+| root    | `npm run format`         | Prettier across the repo                             |
+| api     | `npm run dev`            | nodemon + ts-node                                    |
+| api     | `npm run build`          | `tsc` → `ts-built`                                   |
+| api     | `npm run prod`           | `node ts-built/api/index`                            |
+| client  | `npm run dev`            | Next.js dev server on port 5173                      |
+| client  | `npm run build`          | `next build`                                         |
+| client  | `npm run start`          | `next start` on port 5173                            |
 
-> There is currently **no `test` script** anywhere and **no root `lint`/`typecheck`**. Adding them is Phase 0 of the plan.
 
 ---
 
 ## Testing
 
-- **Unit / integration:** Jest (`api/jest.config.ts`) is installed but there are **no test files** and no `test` script.
-  Integration tests will run against a real PostgreSQL in Docker; no in-memory database is used.
+- **Unit tests:** Jest in `api` (`*.test.ts`, fakes of the ports, no I/O). The client gets Jest in Phase 2.
+- **Integration tests:** `*.int.test.ts` run against a real PostgreSQL in Docker (`npm run db:up`); every test file gets its own
+  database cloned from a migrated template, and no in-memory database is used. They include the safety-net suite that drives
+  the whole API over HTTP and Socket.IO.
 - **E2E:** Cypress (not installed yet).
-- **Coverage gate:** ≥ 97 % (see `AGENTS.md`).
+- **Coverage gate:** ≥ 97 % on the files a pull request changes (blocking in CI); the per-package gate arrives in Phase 2.
 
 See [Phase 2](./docs/development-plan/phase-2-test-infrastructure.md) of the development plan for the rollout.
 

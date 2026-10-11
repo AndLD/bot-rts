@@ -1,20 +1,22 @@
+'use client'
+
 import { LoadingOutlined } from '@ant-design/icons'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useToken } from '../../shared/store/hooks'
 import { useLogout, useVerifyEmail } from './hooks'
 import './VerificationPage.scss'
 
 export default function VerificationPage() {
-  const [queryParams] = useSearchParams()
-  const navigate = useNavigate()
+  const queryParams = useSearchParams()
+  const router = useRouter()
   const token = useToken()
   const logout = useLogout()
 
   useVerifyEmail(queryParams.get('token'), () => {
     if (token) {
-      logout(() => navigate('/auth'))
+      logout(() => router.push('/auth'))
     } else {
-      navigate('/auth')
+      router.push('/auth')
     }
   })
 

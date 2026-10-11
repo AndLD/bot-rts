@@ -21,9 +21,14 @@
     "format:check": "prettier --config .prettierrc.json --check .",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "docs:check": "node scripts/check-markdown-links.mjs",
-    "check:boundaries": "npm run check:boundaries --workspaces --if-present"
+    "check:boundaries": "npm run check:boundaries --workspaces --if-present",
+    "postinstall": "npm run prisma:generate -w api"
   },
   "devDependencies": {
     "prettier": "^3.3.3"
+  },
+  "overrides": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

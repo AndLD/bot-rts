@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef, useState } from 'react'
 import './Terminal.scss'
 import { useTerminal } from './useTerminal'

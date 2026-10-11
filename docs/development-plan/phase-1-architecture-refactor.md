@@ -32,8 +32,8 @@ The legacy Express routers keep running inside Nest until each feature module is
 | 1.15 | Move the socket out of Redux state into a typed `SocketProvider`/service (event types shared from `lib`), drop the `serializableCheck` workaround | 3 | ✅ |
 | 1.16 | Move validation rules shared by api and client (name/password patterns) into `lib` as one source of truth; remove duplicated regexes | 2 | ✅ |
 | 1.17 | i18n foundation (after 1.18a): `next-intl`, English source strings and an empty Russian catalogue, namespaces per feature, language detection + switcher, all existing UI strings (currently mixed languages) moved to English keys, CI check for missing keys | 3 | ⬜ |
-| 1.18 | **Next.js migration, part 1**: start with a compatibility spike (React 19, Ant Design 5 with the Next registry, RTK/react-redux, CodeMirror, Socket.IO client, canvas); Next.js app skeleton with route groups `(marketing)` (empty placeholder) and `(game)`, `NEXT_PUBLIC_*` env, `@lib` alias, SCSS, Redux/socket/auth providers as client components | 3 | ⬜ |
-| 1.18a | **Next.js migration, part 2**: replace React Router with App Router pages (login, verification, game, forbidden), game routes client-rendered only; remove Vite; keep build, typecheck and lint green (Jest and Cypress setup is task 2.1) | 5 | ⬜ |
+| 1.18 | **Next.js migration, part 1**: start with a compatibility spike (React 19, Ant Design 5 with the Next registry, RTK/react-redux, CodeMirror, Socket.IO client, canvas); Next.js app skeleton with route groups `(marketing)` (empty placeholder) and `(game)`, `NEXT_PUBLIC_*` env, `@lib` alias, SCSS, Redux/socket/auth providers as client components | 3 | ✅ |
+| 1.18a | **Next.js migration, part 2**: replace React Router with App Router pages (login, verification, game, forbidden), game routes client-rendered only; remove Vite; keep build, typecheck and lint green (Jest and Cypress setup is task 2.1) | 5 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
@@ -56,3 +56,4 @@ AGENTS.md §7.1).
 | `feature/1.11-identity-and-sessions` | 1.11, 1.11a, 1.16 | [#36](https://github.com/AndLD/bot-rts/pull/36) | ✅ |
 | `feature/1.12-bots-gateway-nest` | 1.12 | [#37](https://github.com/AndLD/bot-rts/pull/37) | ✅ |
 | `feature/1.14-client-structure` | 1.14, 1.15 | [#38](https://github.com/AndLD/bot-rts/pull/38) | ✅ |
+| `feature/1.18-nextjs-migration` | 1.18, 1.18a | [#39](https://github.com/AndLD/bot-rts/pull/39) | ✅ |

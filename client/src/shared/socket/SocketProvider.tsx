@@ -1,3 +1,5 @@
+'use client'
+
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { SOCKET_TOKEN_EXPIRED } from '@lib/utils/constants'
 import { io } from 'socket.io-client'

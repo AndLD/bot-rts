@@ -2,6 +2,7 @@ import { AuthPolicy, DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { WorldConfig } from '../map/domain/world-config'
 import { convertTimeStringToMilliseconds } from '../shared/domain/duration'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
+import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 
 export const APP_CONFIG = Symbol('AppConfig')
@@ -32,6 +33,7 @@ export interface AppConfig {
   corsOrigins: string[]
   worldSeed: number | undefined
   world: WorldConfig
+  terminal: TerminalRetention
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
   emailOutboxDir: string | undefined
@@ -131,6 +133,11 @@ export function loadConfig(env: Env): AppConfig {
     corsOrigins: list(env.WHITELIST_URLS).length ? list(env.WHITELIST_URLS) : [frontendUrl],
     worldSeed: Number.isFinite(seed) && env.WORLD_SEED ? seed : undefined,
     world,
+    terminal: {
+      logDays: positiveInt(env.TERMINAL_LOG_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.logDays),
+      maxLinesPerBot: positiveInt(env.TERMINAL_LOG_MAX_LINES, DEFAULT_TERMINAL_RETENTION.maxLinesPerBot),
+      securityDays: positiveInt(env.TERMINAL_SECURITY_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.securityDays)
+    },
     smtp: readSmtpConfig(env),
     emailOutboxDir: env.EMAIL_OUTBOX_DIR || undefined,
     auth: {

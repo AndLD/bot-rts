@@ -56,6 +56,15 @@ enum ResourceType {
   @@map("resource_type")
 }
 
+enum TerminalLogKind {
+  input
+  output
+  error
+  security
+
+  @@map("terminal_log_kind")
+}
+
 enum AuthTokenKind {
   email_verification
   password_reset
@@ -78,12 +87,13 @@ model User {
   // Set when the player deleted the account: personal data is erased, the row stays for the player's base
   deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
 
-  identities  Identity[]
-  credential  LocalCredential?
-  sessions    Session[]
-  authTokens  AuthToken[]
-  bases       Bot[]
-  knownPoints KnownPoint[]
+  identities       Identity[]
+  credential       LocalCredential?
+  sessions         Session[]
+  authTokens       AuthToken[]
+  bases            Bot[]
+  knownPoints      KnownPoint[]
+  terminalSessions TerminalSession[]
 
   @@index([createdAt])
   @@map("users")
@@ -160,10 +170,12 @@ model Bot {
   userId String? @map("user_id") @db.Uuid
   baseId String? @map("base_id") @db.Uuid
 
-  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  base    Bot?     @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)
-  bots    Bot[]    @relation("BaseBots")
-  modules Module[]
+  user             User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  base             Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)
+  bots             Bot[]             @relation("BaseBots")
+  modules          Module[]
+  terminalSessions TerminalSession[]
+  terminalLogs     TerminalLog[]
 
   @@index([userId, type])
   @@index([baseId])
@@ -235,4 +247,38 @@ model KnownPoint {
 
   @@unique([userId, x, y, z])
   @@map("known_points")
+}
+
+// One connection to a bot's terminal; its lines are in `terminal_logs` (design §11.2)
+model TerminalSession {
+  id        String    @id @db.Uuid
+  botId     String    @map("bot_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  startedAt DateTime  @map("started_at") @db.Timestamptz(3)
+  endedAt   DateTime? @map("ended_at") @db.Timestamptz(3)
+
+  bot  Bot           @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs TerminalLog[]
+
+  @@index([botId, startedAt])
+  @@index([userId])
+  @@map("terminal_sessions")
+}
+
+model TerminalLog {
+  id        String          @id @db.Uuid
+  sessionId String          @map("session_id") @db.Uuid
+  botId     String          @map("bot_id") @db.Uuid
+  at        DateTime        @db.Timestamptz(3)
+  kind      TerminalLogKind
+  text      String
+
+  session TerminalSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  bot     Bot             @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  // Reading a bot's newest lines, and the retention clean-up by age
+  @@index([botId, at])
+  @@index([at])
+  @@map("terminal_logs")
 }

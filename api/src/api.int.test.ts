@@ -373,6 +373,31 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       }
     })
 
+    it('stores terminal sessions and their history for the owner of the bot', async () => {
+      const { userId, accessToken } = await signUp('alice@example.com')
+      const botId = (await api().post('/api/v1/bots/base').set(bearer(accessToken)).expect(201)).body.bot._id
+      const stranger = await signUp('bob@example.com', 'Bob')
+      const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]
+
+      try {
+        const [session] = (await emit(alice, 'open-terminal', botId)) as [{ _id: string }]
+        expect(await database.client.terminalSession.count({ where: { botId, userId, endedAt: null } })).toBe(1)
+        expect((await emit(bob, 'open-terminal', botId))[1]).toMatchObject({ code: 403 })
+        expect(await emit(alice, 'get-terminal-history', botId, 10)).toEqual([[]])
+
+        alice.close()
+        const closedSessions = () =>
+          database.client.terminalSession.count({ where: { id: session._id, endedAt: { not: null } } })
+        for (let attempt = 0; attempt < 50 && !(await closedSessions()); attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 20))
+        }
+        expect(await closedSessions()).toBe(1)
+      } finally {
+        alice.close()
+        bob.close()
+      }
+    })
+
     it('rejects the handshake of missing, invalid, banned and logged-out users', async () => {
       const { userId, accessToken, cookie } = await signUp('alice@example.com')
 

@@ -1,9 +1,7 @@
 import { Inject } from '@nestjs/common'
-import { OnGatewayConnection, OnGatewayInit, WebSocketGateway } from '@nestjs/websockets'
-import { Server, Socket } from 'socket.io'
+import { OnGatewayConnection, WebSocketGateway } from '@nestjs/websockets'
+import { Socket } from 'socket.io'
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
-import { AuthService } from '../../auth/application/auth.service'
-import { createSocketAuthMiddleware } from '../../auth/presentation/socket-auth.middleware'
 import { toModuleDto } from '../../modules/presentation/module.mapper'
 import { LOGGER, Logger } from '../../shared/application/logger'
 import { ValidationError } from '../../shared/domain/errors'
@@ -15,16 +13,11 @@ import { toBotDto } from './bot.mapper'
 // The bot events of the game client. The acknowledgement protocol is `(result)` on success and `(null, { code, msg })`
 // on failure, which the client's terminal relies on. The origin allowed to connect is set by the configured adapter.
 @WebSocketGateway()
-export class BotsGateway implements OnGatewayInit, OnGatewayConnection {
+export class BotsGateway implements OnGatewayConnection {
   constructor(
     private readonly bots: BotsService,
-    private readonly auth: AuthService,
     @Inject(LOGGER) private readonly logger: Logger
   ) {}
-
-  afterInit(server: Server) {
-    server.use(createSocketAuthMiddleware(this.auth, this.logger))
-  }
 
   handleConnection(socket: Socket) {
     const userId = () => (socket.principal as NonNullable<typeof socket.principal>).user.id

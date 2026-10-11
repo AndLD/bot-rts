@@ -9,6 +9,7 @@ import { MapModule } from './map/map.module'
 import { ModulesModule } from './modules/modules.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PersistenceModule } from './persistence/persistence.module'
+import { TerminalModule } from './terminal/terminal.module'
 import { SharedModule } from './shared/shared.module'
 import { UsersModule } from './users/users.module'
 
@@ -28,6 +29,7 @@ export class AppModule {
         FilesModule,
         MapModule,
         BotsModule,
+        TerminalModule,
         HealthModule
       ]
     }

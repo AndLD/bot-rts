@@ -49,3 +49,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 3.5 (terminal session persistence).
 - **Verify with:** `npm run db:up && npm run test:coverage -w api`
 
+### 2026-10-11 — task 3.5: terminal session persistence
+- **Tasks:** 3.5
+- **Branch:** `feature/3.5-terminal-sessions` — done
+- **Decisions:** new `terminal` Nest module (domain / application / infrastructure / presentation). Tables `terminal_sessions` and `terminal_logs` (kinds `input`, `output`, `error`, `security`; indexes `(bot_id, at)` and `(at)`; cascade with the bot and the user). `TerminalService` opens a session only on a bot the player owns, records lines into an open session, closes it, and serves the history. Retention (design §11.2.3) is enforced without a scheduler: the 5,000-line cap per bot is applied after each recorded line (security events are not counted), and lines older than 30 days (security events 90 days) are dropped when a session opens; all three numbers are config (`TERMINAL_LOG_RETENTION_DAYS`, `TERMINAL_LOG_MAX_LINES`, `TERMINAL_SECURITY_RETENTION_DAYS`). Socket events: `open-terminal`, `close-terminal`, `get-terminal-history`; a session ends when its socket disconnects. The handshake authentication moved from `BotsGateway` into its own `SocketAuthGateway` (`auth` module) so that every gateway shares it exactly once.
+- **Not yet used:** the web client opens a session and `record`s commands in task 3.7, together with the server-side command parser.
+- **Next step:** task 3.6 (bot filesystem: drives, files, quotas).
+- **Verify with:** `npm run db:up && npm run test:coverage -w api`
+

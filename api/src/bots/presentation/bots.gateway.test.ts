@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { Server, Socket } from 'socket.io'
+import { Socket } from 'socket.io'
 import { createAuthWorld } from '../../../tests/fakes/auth'
 import { buildUser } from '../../../tests/integration/builders'
 import { Logger } from '../../shared/application/logger'
@@ -11,7 +11,7 @@ const missing = '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e'
 function setup(userId = alice.id) {
   const world = createAuthWorld()
   const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
-  const gateway = new BotsGateway(world.botsService, world.authService, logger)
+  const gateway = new BotsGateway(world.botsService, logger)
   const socket = Object.assign(new EventEmitter(), { principal: { user: buildUser({ id: userId }) } })
   gateway.handleConnection(socket as unknown as Socket)
 
@@ -25,15 +25,6 @@ function setup(userId = alice.id) {
 }
 
 describe('BotsGateway', () => {
-  it('installs the handshake authentication on the server', () => {
-    const { gateway } = setup()
-    const server = { use: jest.fn() }
-
-    gateway.afterInit(server as unknown as Server)
-
-    expect(server.use).toHaveBeenCalledWith(expect.any(Function))
-  })
-
   it('returns the bases and the bots of the player as DTOs', async () => {
     const { botsService, call } = setup()
     const { bot } = await botsService.deployUserBase(alice)

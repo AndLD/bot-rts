@@ -330,12 +330,16 @@ A feature is done only when **all** of these hold:
 - If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files.
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
   push directly to `main` or `develop`.
-- **Phase work (standing approval):** while working through the tasks of a development-plan phase, create each task's
-  pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI exists:
-  once lint, typecheck and tests pass locally). Do not pause between tasks; stop with a summary when the phase's exit
-  criteria are met, when blocked, or when a decision is needed.
-- **Ask the user before creating or merging any other pull request:** documentation or chore PRs that are not phase tasks,
-  anything targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one PR does not carry over to another.
+- **Plan work (approval given by the request):** when the user asks to start or continue one or more phases ("Start Phase 0",
+  "Start Phases 0-3", "Continue Phase 2"), that request is the approval for **every task PR of the named phases**. Create each
+  task's pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI
+  exists: once lint, typecheck and tests pass locally). Do not pause between tasks, and when a named phase's exit criteria are
+  met, record it and start the next named phase. Stop after the last named phase with a summary, and earlier only when
+  blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
+- **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
+  `release/*` and `hotfix/*` into `main`) without asking.
+- **Ask the user before merging any other pull request:** documentation or chore PRs that are not phase tasks, anything
+  targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one merge does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
 
@@ -343,8 +347,9 @@ A feature is done only when **all** of these hold:
 
 Sessions can end at any time, so the repository, not the chat, carries the state of the work.
 
-- **Pacing:** a phase is worked straight through in the plan's execution order; the pause points are the end of the phase,
-  a blocker, and a decision that only the user can make.
+- **Pacing:** the phases named in the user's request are worked straight through in the plan's order, across phase
+  boundaries; the pause points are a blocker, a decision that only the user can make, and the end of the last named phase.
+  A finished phase is recorded (status, work log) and the next named phase starts.
 - **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
   statuses, implementation log) and its work log (`docs/development-plan/work-logs/phase-N-log.md`), then check `git status`,
   `git branch -a` and the open pull requests, and continue from the latest "next step".
@@ -380,7 +385,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - Don't introduce new `any`-typed public signatures.
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't create or merge a PR outside the standing phase approval without asking the user first (§7.5).
+- Don't merge a PR outside the phases the user asked for without asking the user first (§7.5); opening PRs needs no approval.
 
 ---
 

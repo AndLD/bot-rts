@@ -1,12 +1,30 @@
+import { AssemblyService } from '../../../bots/application/assembly.service'
+import { FactoryService } from '../../../bots/application/factory.service'
+import { RecipeService } from '../../../crafting/application/recipe.service'
 import { BotsService } from '../../../bots/application/bots.service'
 import { FilesService } from '../../../files/application/files.service'
 import { TerminalService } from '../terminal.service'
 import { CatCommand, CdCommand, EditCommand, LsCommand, MkdirCommand, RmCommand } from './commands/file-commands'
 import { ClearCommand, ExitCommand, HelpCommand, ListCommand, ModulesCommand } from './commands/info-commands'
+import {
+  AssembleCommand,
+  CraftCommand,
+  FactoryCommand,
+  LearnCommand,
+  RecipesCommand,
+  ResearchCommand
+} from './commands/factory-commands'
 import { TerminalShell } from './terminal-shell.service'
 
 // The shell with every command of the base terminal (design §11.1); the commands of later phases are added here
-export function createTerminalShell(bots: BotsService, files: FilesService, terminal: TerminalService): TerminalShell {
+export function createTerminalShell(
+  bots: BotsService,
+  files: FilesService,
+  terminal: TerminalService,
+  factory: FactoryService,
+  assembly: AssemblyService,
+  recipes: RecipeService
+): TerminalShell {
   return new TerminalShell(
     [
       new HelpCommand(),
@@ -14,6 +32,12 @@ export function createTerminalShell(bots: BotsService, files: FilesService, term
       new ExitCommand(),
       new ListCommand(bots),
       new ModulesCommand(bots),
+      new RecipesCommand(recipes),
+      new FactoryCommand(factory),
+      new CraftCommand(factory),
+      new ResearchCommand(factory),
+      new LearnCommand(factory),
+      new AssembleCommand(assembly),
       new LsCommand(files),
       new CdCommand(files),
       new MkdirCommand(files),

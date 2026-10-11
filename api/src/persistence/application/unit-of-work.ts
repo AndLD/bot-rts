@@ -1,4 +1,5 @@
 import { BotRepository } from '../../bots/application/bot.repository'
+import { BlueprintRepository } from '../../crafting/application/blueprint.repository'
 import { ItemRepository } from '../../crafting/application/item.repository'
 import { FileRepository } from '../../files/application/file.repository'
 import { MapRepository } from '../../map/application/map.repository'
@@ -20,6 +21,7 @@ export interface Repositories {
   modules: ModuleRepository
   files: FileRepository
   items: ItemRepository
+  blueprints: BlueprintRepository
   map: MapRepository
   spawnSeeds: SpawnSeedRepository
   identities: IdentityRepository

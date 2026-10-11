@@ -484,6 +484,116 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     })
   })
 
+  it('crafts, researches, learns and assembles at the factory of a base over HTTP', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const stranger = await signUp('bob@example.com', 'Bob')
+    const { body: deployed } = await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
+    const baseId = deployed.bot._id
+    const factory = `/api/v1/bots/${baseId}/factory`
+    const moduleRow = (type: string) => database.client.module.findFirstOrThrow({ where: { botId: baseId, type } })
+
+    await api().get(factory).expect(401)
+    await api().get(`${factory}`).set(bearer(stranger.accessToken)).expect(403)
+    await api().get('/api/v1/bots/not-an-id/factory').set(bearer(accessToken)).expect(400)
+    expect((await api().get(factory).set(bearer(accessToken)).expect(200)).body).toMatchObject({
+      jobs: [],
+      parts: [],
+      blueprintItems: []
+    })
+
+    await api()
+      .post(`${factory}/craft`)
+      .set(bearer(accessToken))
+      .send({ module: 'processor-class1', count: 0 })
+      .expect(400)
+    await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'laser' }).expect(404)
+    await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'scanner-class2' }).expect(409)
+    expect(
+      (await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'processor-class1' }).expect(409))
+        .body.code
+    ).toBe('EMPTY')
+
+    const storage = await moduleRow('storage')
+    await database.client.module.update({
+      where: { id: storage.id },
+      data: {
+        props: {
+          capacity: 2000,
+          items: [
+            { resource: 'crystal', amount: 400 },
+            { resource: 'gold', amount: 100 },
+            { resource: 'iron', amount: 500 }
+          ]
+        }
+      }
+    })
+
+    for (const module of ['processor-class1', 'wireless-adapter-class1', 'battery-class1']) {
+      const crafted = await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module }).expect(201)
+      expect(crafted.body).toEqual([expect.objectContaining({ kind: 'craft', module })])
+    }
+    expect((await api().get(factory).set(bearer(accessToken)).expect(200)).body.jobs).toHaveLength(3)
+
+    const research = await api()
+      .post(`${factory}/research`)
+      .set(bearer(accessToken))
+      .send({ module: 'scanner-class2' })
+      .expect(201)
+    expect(research.body).toMatchObject({ kind: 'research', module: 'scanner-class2' })
+    await api().post(`${factory}/research`).set(bearer(accessToken)).send({}).expect(400)
+
+    // The factory is done with everything
+    const row = await moduleRow('factory')
+    const jobs = (row.props as { jobs: object[] }).jobs.map((job) => ({ ...job, readyAt: 1 }))
+    await database.client.module.update({ where: { id: row.id }, data: { props: { ...(row.props as object), jobs } } })
+
+    const status = (await api().get(factory).set(bearer(accessToken)).expect(200)).body
+    expect(status.jobs).toEqual([])
+    expect(status.parts.map((part: { name: string }) => part.name).sort()).toEqual([
+      'battery-class1',
+      'processor-class1',
+      'wireless-adapter-class1'
+    ])
+    const recipes = await api().get('/api/v1/crafting/recipes').set(bearer(accessToken)).expect(200)
+    expect(recipes.body.find((r: { module: string }) => r.module === 'scanner-class2').isKnown).toBe(true)
+
+    const partIds = status.parts.map((part: { _id: string }) => part._id)
+    await api().post(`${factory}/assemble`).set(bearer(accessToken)).send({ partIds: [] }).expect(400)
+    await api().post(`${factory}/assemble`).set(bearer(stranger.accessToken)).send({ partIds }).expect(403)
+    const assembled = await api()
+      .post(`${factory}/assemble`)
+      .set(bearer(accessToken))
+      .send({ label: 'Scout', partIds })
+      .expect(201)
+    expect(assembled.body.bot).toMatchObject({ label: 'Scout', baseId, type: 'worker' })
+    expect(assembled.body.modules).toHaveLength(3)
+    expect((await api().get(`/api/v1/bots/${baseId}/bots`).set(bearer(accessToken)).expect(200)).body).toHaveLength(1)
+    expect(await database.client.item.count({ where: { botId: baseId } })).toBe(0)
+
+    const blueprint = await database.client.item.create({
+      data: {
+        id: '0b7b4b0e-7d3a-4f0e-9a52-0f0b9a1c2d3e',
+        type: 'blueprint',
+        name: 'gun-class2',
+        weight: 0.1,
+        botId: baseId
+      }
+    })
+    expect((await api().get(factory).set(bearer(accessToken)).expect(200)).body.blueprintItems).toHaveLength(1)
+    await api().post(`${factory}/learn`).set(bearer(accessToken)).send({ itemId: 'nope' }).expect(400)
+    const learned = await api()
+      .post(`${factory}/learn`)
+      .set(bearer(accessToken))
+      .send({ itemId: blueprint.id })
+      .expect(201)
+    expect(learned.body).toMatchObject({ module: 'gun-class2', source: 'item' })
+    await api().post(`${factory}/learn`).set(bearer(accessToken)).send({ itemId: blueprint.id }).expect(404)
+  })
+
   describe('Socket.IO', () => {
     const open = (token: unknown) =>
       new Promise<Socket>((resolve, reject) => {
@@ -516,6 +626,30 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
         expect(await emit(bob, 'get-user-bots')).toEqual([[]])
         expect((await emit(bob, 'get-bot-modules', botId))[1]).toMatchObject({ code: 403 })
         expect((await emit(alice, 'get-bot-modules', { $ne: 1 }))[1]).toMatchObject({ code: 400 })
+      } finally {
+        alice.close()
+        bob.close()
+      }
+    })
+
+    it('serves the factory events to the owner of the base only', async () => {
+      const { accessToken } = await signUp('alice@example.com')
+      const deployed = await api()
+        .post('/api/v1/bots/base')
+        .set(bearer(accessToken))
+        .send({ password: 'secret1' })
+        .expect(201)
+      const baseId = deployed.body.bot._id
+      const stranger = await signUp('bob@example.com', 'Bob')
+      const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]
+
+      try {
+        expect(await emit(alice, 'get-factory', baseId)).toEqual([
+          expect.objectContaining({ jobs: [], parts: [], blueprintItems: [] })
+        ])
+        expect((await emit(alice, 'craft-module', baseId, 'wheels-class1'))[1]).toMatchObject({ code: 409 })
+        expect((await emit(bob, 'get-factory', baseId))[1]).toMatchObject({ code: 403 })
+        expect((await emit(alice, 'get-factory', 'nope'))[1]).toMatchObject({ code: 400 })
       } finally {
         alice.close()
         bob.close()

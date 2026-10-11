@@ -4,7 +4,11 @@ import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { FilesModule } from '../files/files.module'
 import { FilesService } from '../files/application/files.service'
 import { BotsModule } from '../bots/bots.module'
+import { AssemblyService } from '../bots/application/assembly.service'
 import { BotsService } from '../bots/application/bots.service'
+import { FactoryService } from '../bots/application/factory.service'
+import { CraftingModule } from '../crafting/crafting.module'
+import { RecipeService } from '../crafting/application/recipe.service'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
@@ -17,7 +21,7 @@ import { PrismaTerminalSessionRepository } from './infrastructure/prisma-termina
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({
-  imports: [BotsModule, FilesModule],
+  imports: [BotsModule, FilesModule, CraftingModule],
   providers: [
     TerminalGateway,
     {
@@ -39,7 +43,7 @@ import { TerminalGateway } from './presentation/terminal.gateway'
     },
     {
       provide: TerminalShell,
-      inject: [BotsService, FilesService, TerminalService],
+      inject: [BotsService, FilesService, TerminalService, FactoryService, AssemblyService, RecipeService],
       useFactory: createTerminalShell
     }
   ],

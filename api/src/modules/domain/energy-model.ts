@@ -1,9 +1,10 @@
 import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import { fail, ok, Result, ResultCode } from '../../../../lib/utils/result'
-import { BatteryModule, GameModule, GeneratorModule, StorageModule } from './game-module'
+import { BatteryModule, GameModule, GeneratorModule } from './game-module'
 import { Module } from './module.entity'
 import { ModuleRegistry } from './module-registry'
 import { ScannerModule } from './scanner-module'
+import { stockOf, withdrawStacks } from './storage-stock'
 
 // What happened to a bot's energy that somebody should hear about (design §12.5, §24)
 export const ENERGY_EVENT = {
@@ -115,13 +116,17 @@ export class EnergyModel {
         ? Math.ceil((this.capacity(current) - this.stored(current)) / generator.energyPerCycle)
         : 0
     const wanted = Math.min(due, Math.max(room, 0))
-    const fuelled = generator.fuelPerCycle > 0 ? Math.floor(clean(this.oil(current) / generator.fuelPerCycle)) : wanted
+    const fuelled =
+      generator.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / generator.fuelPerCycle)) : wanted
     const cycles = Math.min(wanted, fuelled)
     if (cycles < wanted) {
       events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: generator.id })
     }
     if (cycles > 0) {
-      current = this.burn(current, RESOURCE.OIL, clean(cycles * generator.fuelPerCycle))
+      current = this.apply(
+        current,
+        withdrawStacks(current, [{ resource: RESOURCE.OIL, amount: clean(cycles * generator.fuelPerCycle) }])
+      )
       current = this.deposit(current, cycles * generator.energyPerCycle)
     }
     return current
@@ -141,14 +146,11 @@ export class EnergyModel {
     return this.instances(records).filter((module): module is GeneratorModule => module instanceof GeneratorModule)
   }
 
-  private storages(records: readonly Module[]): StorageModule[] {
-    return this.instances(records).filter(
-      (module): module is StorageModule => module instanceof StorageModule && module.isWorking
-    )
-  }
-
-  private oil(records: readonly Module[]): number {
-    return this.storages(records).reduce((sum, storage) => sum + storage.amountOf(RESOURCE.OIL), 0)
+  // The records with the changed ones of a successful withdrawal put in; the caller has checked there is enough
+  private apply(records: readonly Module[], withdrawal: Result<Module[]>): Module[] {
+    return withdrawal.ok
+      ? withdrawal.data.reduce((current, changed) => this.replace(current, changed), [...records])
+      : [...records]
   }
 
   private replace(records: readonly Module[], changed: Module): Module[] {
@@ -178,23 +180,6 @@ export class EnergyModel {
       if (added > 0) {
         current = this.replace(current, battery.withProps({ value: clean(battery.value + added) }))
         left = clean(left - added)
-      }
-    }
-    return current
-  }
-
-  // Takes a resource out of the storages, one after the other; the caller has checked there is enough
-  private burn(records: readonly Module[], resource: RESOURCE, amount: number): Module[] {
-    let left = amount
-    let current: Module[] = [...records]
-    for (const storage of this.storages(records)) {
-      const taken = Math.min(storage.amountOf(resource), left)
-      if (taken > 0) {
-        const removed = storage.remove({ resource, amount: taken })
-        if (removed.ok) {
-          current = this.replace(current, storage.withProps({ items: removed.data }))
-          left = clean(left - taken)
-        }
       }
     }
     return current

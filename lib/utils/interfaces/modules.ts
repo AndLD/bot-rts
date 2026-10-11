@@ -1,5 +1,6 @@
 import { ID } from '../types'
 import { Result } from '../result'
+import { IBlueprint, IFactoryJob } from './crafting'
 import { IFile } from './files'
 import { IMapPoint, Location } from './map'
 import { IResourceStack } from './resources'
@@ -185,8 +186,15 @@ export interface IGeneratorModule extends IGeneratorModuleProps {
   disable(): Promise<Result>
 }
 
-export interface IFactoryModuleProps extends IModuleProps {}
-export interface IFactoryModule extends IFactoryModuleProps {}
+export interface IFactoryModuleProps extends IModuleProps {
+  queueSize: number
+}
+export interface IFactoryModule extends IFactoryModuleProps {
+  craft(module: string, count?: number): Promise<Result<IFactoryJob[]>>
+  assemble(label: string | null, partIds: ID[]): Promise<Result<ID>>
+  research(module: string): Promise<Result<IFactoryJob>>
+  learn(itemId: ID): Promise<Result<IBlueprint>>
+}
 
 export interface IGpsModuleProps extends IModuleProps {}
 export interface IGpsModule extends IGpsModuleProps {

@@ -139,6 +139,12 @@
       "rm": "delete a file or an empty directory",
       "list": "list your bots",
       "modules": "list the modules of this bot",
+      "recipes": "list the recipes and what you can craft or research",
+      "factory": "show the jobs, parts and blueprints of the factory",
+      "craft": "craft modules at the factory",
+      "research": "research the blueprint of a higher class",
+      "learn": "learn a blueprint item",
+      "assemble": "assemble a bot from module parts",
       "clear": "clear the screen",
       "exit": "sign out"
     }
@@ -176,6 +182,7 @@
     "GONE": "It is gone",
     "NO_ENERGY": "Not enough energy",
     "NO_MODULE": "The bot has no module for this",
+    "NO_BLUEPRINT": "You do not know this blueprint",
     "BROKEN_MODULE": "The module is broken",
     "NO_FUNDS": "Not enough funds",
     "NOT_LIVE": "The scanner is not in live mode",

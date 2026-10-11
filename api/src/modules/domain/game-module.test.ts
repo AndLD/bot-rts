@@ -6,6 +6,7 @@ import {
   DEFAULT_DRIVE_QUOTA_BYTES,
   DriveModule,
   EngineModule,
+  FactoryModule,
   GeneratorModule,
   GpsModule,
   ManipulatorModule,
@@ -178,5 +179,68 @@ describe('the behaviour of the module types', () => {
         1
       )
     ).toMatchObject({ code: 'BROKEN_MODULE' })
+  })
+})
+
+describe('FactoryModule', () => {
+  const factory = (props: Record<string, unknown> = {}, overrides = {}) =>
+    new FactoryModule(buildModule('bot', { type: 'factory', props, ...overrides }))
+
+  it('queues jobs one after the other', () => {
+    const first = factory().enqueue({ kind: 'craft', module: 'gun-class1', durationMs: 1000 }, 100)
+    expect(first).toEqual({
+      ok: true,
+      data: {
+        job: { kind: 'craft', module: 'gun-class1', readyAt: 1100 },
+        patch: { jobs: [{ kind: 'craft', module: 'gun-class1', readyAt: 1100 }] }
+      }
+    })
+
+    const busy = factory({ jobs: [{ kind: 'craft', module: 'gun-class1', readyAt: 1100 }] })
+    expect(busy.busyUntil).toBe(1100)
+    expect(busy.enqueue({ kind: 'research', module: 'scanner-class2', durationMs: 500 }, 200)).toMatchObject({
+      data: { job: { readyAt: 1600 } }
+    })
+    expect(busy.enqueue({ kind: 'craft', module: 'x', durationMs: 5 }, 5000)).toMatchObject({
+      data: { job: { readyAt: 5005 } }
+    })
+  })
+
+  it('refuses a job when broken or when the queue is full', () => {
+    expect(factory({}, { condition: 0 }).enqueue({ kind: 'craft', module: 'x', durationMs: 1 }, 0)).toMatchObject({
+      code: 'BROKEN_MODULE'
+    })
+    const full = factory({ queueSize: 1, jobs: [{ kind: 'craft', module: 'x', readyAt: 9 }] })
+    expect(full.enqueue({ kind: 'craft', module: 'x', durationMs: 1 }, 0)).toMatchObject({ code: 'BUSY' })
+    expect(factory().queueSize).toBe(10)
+  })
+
+  it('hands over the finished jobs and keeps the rest', () => {
+    const queue = factory({
+      jobs: [
+        { kind: 'craft', module: 'a', readyAt: 10 },
+        { kind: 'research', module: 'b', readyAt: 20 },
+        { kind: 'craft', module: 'c', readyAt: 30 }
+      ]
+    })
+
+    expect(queue.settle(5)).toEqual({ done: [], patch: {} })
+    expect(queue.settle(20)).toEqual({
+      done: [
+        { kind: 'craft', module: 'a', readyAt: 10 },
+        { kind: 'research', module: 'b', readyAt: 20 }
+      ],
+      patch: { jobs: [{ kind: 'craft', module: 'c', readyAt: 30 }] }
+    })
+    expect(factory({ jobs: queue.jobs }, { condition: 0 }).settle(99)).toEqual({ done: [], patch: {} })
+  })
+
+  it('ignores jobs it cannot read', () => {
+    expect(factory({ jobs: 'junk' }).jobs).toEqual([])
+    expect(
+      factory({ jobs: [null, { kind: 'dance', module: 'a', readyAt: 1 }, { kind: 'craft', module: 5, readyAt: 1 }] })
+        .jobs
+    ).toEqual([])
+    expect(factory().busyUntil).toBe(0)
   })
 })

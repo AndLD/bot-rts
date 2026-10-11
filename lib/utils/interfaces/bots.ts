@@ -1,4 +1,6 @@
 import { ID } from '../types'
+import { IMapPoint } from './map'
+import { ModuleProps } from './modules'
 
 export enum BOT_TYPE {
   BASE = 'base',
@@ -13,4 +15,11 @@ export interface IBot {
   userId?: string
   baseId?: string
   type: BOT_TYPE
+}
+
+// A new bot with its modules and its place on the map
+export interface IBotWithModules {
+  bot: IBot
+  modules: ModuleProps[]
+  mapPoint: IMapPoint
 }

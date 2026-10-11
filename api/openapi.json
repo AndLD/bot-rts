@@ -1297,6 +1297,274 @@
         ]
       }
     },
+    "/api/v1/bots/{baseId}/factory": {
+      "get": {
+        "operationId": "factoryStatus",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryStatusResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/craft": {
+      "post": {
+        "operationId": "factoryCraft",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CraftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FactoryJobResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/research": {
+      "post": {
+        "operationId": "factoryResearch",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryJobResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/learn": {
+      "post": {
+        "operationId": "factoryLearn",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlueprintResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/assemble": {
+      "post": {
+        "operationId": "factoryAssemble",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssembleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssembledBotResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -1391,6 +1659,7 @@
               "GONE",
               "NO_ENERGY",
               "NO_MODULE",
+              "NO_BLUEPRINT",
               "BROKEN_MODULE",
               "NO_FUNDS",
               "NOT_LIVE",
@@ -2127,6 +2396,209 @@
         ]
       },
       "DeployedBaseResponse": {
+        "type": "object",
+        "properties": {
+          "bot": {
+            "$ref": "#/components/schemas/BotResponse"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleResponse"
+            }
+          },
+          "mapPoint": {
+            "$ref": "#/components/schemas/MapPointResponse"
+          }
+        },
+        "required": [
+          "bot",
+          "modules",
+          "mapPoint"
+        ]
+      },
+      "FactoryJobResponse": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "craft",
+              "research"
+            ]
+          },
+          "module": {
+            "type": "string",
+            "example": "scanner-class1"
+          },
+          "readyAt": {
+            "type": "number",
+            "description": "When the job is done, in ms"
+          }
+        },
+        "required": [
+          "kind",
+          "module",
+          "readyAt"
+        ]
+      },
+      "ItemResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "blueprint",
+              "ammunition",
+              "part"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "For a part or a blueprint: the module it is"
+          },
+          "weight": {
+            "type": "number",
+            "description": "kg"
+          }
+        },
+        "required": [
+          "_id",
+          "type",
+          "name",
+          "weight"
+        ]
+      },
+      "FactoryStatusResponse": {
+        "type": "object",
+        "properties": {
+          "now": {
+            "type": "number",
+            "description": "The game clock when the status was taken, in ms"
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FactoryJobResponse"
+            }
+          },
+          "parts": {
+            "description": "Finished modules, ready to be assembled into a bot",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemResponse"
+            }
+          },
+          "blueprintItems": {
+            "description": "Blueprints found or looted and not yet learned",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemResponse"
+            }
+          }
+        },
+        "required": [
+          "now",
+          "jobs",
+          "parts",
+          "blueprintItems"
+        ]
+      },
+      "CraftDto": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "example": "scanner-class1",
+            "description": "The module to craft"
+          },
+          "count": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 1
+          }
+        },
+        "required": [
+          "module"
+        ]
+      },
+      "ResearchDto": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "example": "scanner-class2",
+            "description": "The module whose blueprint to research"
+          }
+        },
+        "required": [
+          "module"
+        ]
+      },
+      "LearnDto": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "A blueprint item held by the base"
+          }
+        },
+        "required": [
+          "itemId"
+        ]
+      },
+      "BlueprintResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "module": {
+            "type": "string",
+            "example": "scanner-class2"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "research",
+              "item"
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "module",
+          "source"
+        ]
+      },
+      "AssembleDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "partIds": {
+            "description": "Module parts held by the base",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "partIds"
+        ]
+      },
+      "AssembledBotResponse": {
         "type": "object",
         "properties": {
           "bot": {

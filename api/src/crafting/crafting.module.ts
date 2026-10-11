@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client'
 import { AuthModule } from '../auth/auth.module'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
-import { CLOCK, Clock } from '../shared/application/clock'
 import { BLUEPRINT_REPOSITORY, BlueprintRepository } from './application/blueprint.repository'
 import { ITEM_REPOSITORY } from './application/item.repository'
 import { RecipeService } from './application/recipe.service'
@@ -25,8 +24,8 @@ import { CraftingController } from './presentation/crafting.controller'
     },
     {
       provide: BLUEPRINT_REPOSITORY,
-      inject: [PRISMA_CLIENT, CLOCK],
-      useFactory: (client: PrismaClient, clock: Clock) => new PrismaBlueprintRepository(client, clock)
+      inject: [PRISMA_CLIENT],
+      useFactory: (client: PrismaClient) => new PrismaBlueprintRepository(client)
     },
     {
       provide: ITEM_REPOSITORY,
@@ -39,6 +38,6 @@ import { CraftingController } from './presentation/crafting.controller'
       useFactory: (book: RecipeBook, blueprints: BlueprintRepository) => new RecipeService(book, blueprints)
     }
   ],
-  exports: [RecipeBook, BLUEPRINT_REPOSITORY, ITEM_REPOSITORY]
+  exports: [RecipeBook, RecipeService, BLUEPRINT_REPOSITORY, ITEM_REPOSITORY]
 })
 export class CraftingModule {}

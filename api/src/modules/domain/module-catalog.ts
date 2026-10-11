@@ -98,7 +98,15 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     weight: 70,
     props: { isConnected: true, voltage: 24, capacity: 8000, value: 8000 }
   },
-  { type: 'factory', name: 'factory-class1', ...full, idleCost: 0.05, operationCost: 40, weight: 30, props: {} },
+  {
+    type: 'factory',
+    name: 'factory-class1',
+    ...full,
+    idleCost: 0.05,
+    operationCost: 40,
+    weight: 30,
+    props: { queueSize: 10, jobs: [] }
+  },
   {
     type: 'armor',
     name: 'armor-class1',

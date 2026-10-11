@@ -1,4 +1,5 @@
-import { IBot } from './interfaces/bots'
+import { IBlueprint, IFactoryJob, IFactoryStatus } from './interfaces/crafting'
+import { IBot, IBotWithModules } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
 import { IFile } from './interfaces/files'
 import { ITerminalCommandResponse, ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
@@ -17,6 +18,12 @@ export interface ClientToServerEvents {
   'get-user-bases': (ack: SocketAck<IBot[]>) => void
   'get-user-bots': (ack: SocketAck<IBot[]>) => void
   'get-bot-modules': (botId: string, ack: SocketAck<ModuleProps[]>) => void
+  // The factory of a base (design §9.3): what it is working on and the parts and blueprints it holds
+  'get-factory': (baseId: string, ack: SocketAck<IFactoryStatus>) => void
+  'craft-module': (baseId: string, module: string, count: number | undefined, ack: SocketAck<IFactoryJob[]>) => void
+  'research-module': (baseId: string, module: string, ack: SocketAck<IFactoryJob>) => void
+  'learn-blueprint': (baseId: string, itemId: string, ack: SocketAck<IBlueprint>) => void
+  'assemble-bot': (baseId: string, label: string | null, partIds: string[], ack: SocketAck<IBotWithModules>) => void
   // Opens a stored terminal session on one of the player's bots; it ends with 'close-terminal' or the disconnect
   'open-terminal': (botId: string, ack: SocketAck<ITerminalSession>) => void
   'close-terminal': (sessionId: string, ack: SocketAck<ITerminalSession>) => void

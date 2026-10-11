@@ -13,7 +13,7 @@ Flesh out the module ecosystem and the crafting/factory loop.
 | 4.3 | Energy accounting per design §12.5 (idle and operation drain, battery clamp, generator refill, out-of-energy state; running executions suspend on it once the runtime exists, 5.4); generators burn oil from the bot's storage and stop without fuel; a live scanner that cannot pay for a refresh switches itself off (`LiveScanStopped`); the base starts with 50 oil | 6 | ✅ |
 | 4.4 | Blueprint + crafting model per design §9.3: data-driven recipes config validated at startup, per-player known blueprints, blueprints as lootable items | 5 | ✅ |
 | 4.5 | Bot assembly per design §8.2 (required-module validation) and the movement rule of §8.5 | 5 | ✅ |
-| 4.6 | Crafting API + sockets (`craft-module`, `assemble-bot`, `research-module`, `learn-blueprint`) with authorization checks; matching terminal commands and script-API functions (design §9.3, §10.2, §11.1), all going through the command-handler interface (moved behind the engine in 5.5) | 8 | ⬜ |
+| 4.6 | Crafting API + sockets (`craft-module`, `assemble-bot`, `research-module`, `learn-blueprint`) with authorization checks; matching terminal commands and script-API functions (design §9.3, §10.2, §11.1), all going through the command-handler interface (moved behind the engine in 5.5) | 8 | ✅ |
 | 4.7 | Unit + integration + e2e tests for fabrication and maintenance through the terminal commands: craft, assemble (bot spawns adjacent), research and `learn`, repair and disassemble, restoring a corpse base, battery exhaustion; also weight / speed / capacity limits, assembly rejections (missing processor, adapter or battery, no free adjacent cell), broken-module effects (processor, memory, adapter), disassembly permissions; also generator out of fuel and a live scanner switching off when the battery runs dry | 9 | ⬜ |
 | 4.8 | Repair ("fixing") module and corpse-base restoration by the owner's bots (adjacent-cell `repair`/`disassemble`, repair threshold, scrap yield, storage consumption/credit); stale-bot adoption is in 5.9 | 5 | ⬜ |
 | 4.9 | Blueprint acquisition per design §9.3: factory research, blueprint items in the world, loot from disassembly, `learn` | 5 | ⬜ |
@@ -36,3 +36,4 @@ AGENTS.md §7.1).
 | `feature/4.3-energy-accounting` | 4.3 | #63 | merged |
 | `feature/4.4-blueprints-recipes` | 4.4 | #64 | merged |
 | `feature/4.5-bot-assembly` | 4.5 | #65 | merged |
+| `feature/4.6-crafting-api` | 4.6 | #66 | merged |

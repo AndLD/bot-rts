@@ -130,6 +130,37 @@ const injectedRtkApi = api.injectEndpoints({
     botsScan: build.mutation<BotsScanApiResponse, BotsScanApiArg>({
       query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.id}/scan`, method: 'POST' })
     }),
+    factoryStatus: build.query<FactoryStatusApiResponse, FactoryStatusApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.baseId}/factory` })
+    }),
+    factoryCraft: build.mutation<FactoryCraftApiResponse, FactoryCraftApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.baseId}/factory/craft`,
+        method: 'POST',
+        body: queryArg.craftDto
+      })
+    }),
+    factoryResearch: build.mutation<FactoryResearchApiResponse, FactoryResearchApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.baseId}/factory/research`,
+        method: 'POST',
+        body: queryArg.researchDto
+      })
+    }),
+    factoryLearn: build.mutation<FactoryLearnApiResponse, FactoryLearnApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.baseId}/factory/learn`,
+        method: 'POST',
+        body: queryArg.learnDto
+      })
+    }),
+    factoryAssemble: build.mutation<FactoryAssembleApiResponse, FactoryAssembleApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.baseId}/factory/assemble`,
+        method: 'POST',
+        body: queryArg.assembleDto
+      })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -259,6 +290,30 @@ export type BotsScanApiResponse = /** status 200  */ MapPointResponse[]
 export type BotsScanApiArg = {
   id: string
 }
+export type FactoryStatusApiResponse = /** status 200  */ FactoryStatusResponse
+export type FactoryStatusApiArg = {
+  baseId: string
+}
+export type FactoryCraftApiResponse = /** status 201  */ FactoryJobResponse[]
+export type FactoryCraftApiArg = {
+  baseId: string
+  craftDto: CraftDto
+}
+export type FactoryResearchApiResponse = /** status 201  */ FactoryJobResponse
+export type FactoryResearchApiArg = {
+  baseId: string
+  researchDto: ResearchDto
+}
+export type FactoryLearnApiResponse = /** status 201  */ BlueprintResponse
+export type FactoryLearnApiArg = {
+  baseId: string
+  learnDto: LearnDto
+}
+export type FactoryAssembleApiResponse = /** status 201  */ AssembledBotResponse
+export type FactoryAssembleApiArg = {
+  baseId: string
+  assembleDto: AssembleDto
+}
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
 export type UserInfoResponse = {
@@ -307,6 +362,7 @@ export type ErrorResponseModel = {
     | 'GONE'
     | 'NO_ENERGY'
     | 'NO_MODULE'
+    | 'NO_BLUEPRINT'
     | 'BROKEN_MODULE'
     | 'NO_FUNDS'
     | 'NOT_LIVE'
@@ -512,6 +568,57 @@ export type DeployBaseDto = {
   password: string
   spawnSeed?: string
 }
+export type FactoryJobResponse = {
+  kind: 'craft' | 'research'
+  module: string
+  /** When the job is done, in ms */
+  readyAt: number
+}
+export type ItemResponse = {
+  _id: string
+  type: 'blueprint' | 'ammunition' | 'part'
+  /** For a part or a blueprint: the module it is */
+  name: string
+  /** kg */
+  weight: number
+}
+export type FactoryStatusResponse = {
+  /** The game clock when the status was taken, in ms */
+  now: number
+  jobs: FactoryJobResponse[]
+  /** Finished modules, ready to be assembled into a bot */
+  parts: ItemResponse[]
+  /** Blueprints found or looted and not yet learned */
+  blueprintItems: ItemResponse[]
+}
+export type CraftDto = {
+  /** The module to craft */
+  module: string
+  count?: number
+}
+export type ResearchDto = {
+  /** The module whose blueprint to research */
+  module: string
+}
+export type BlueprintResponse = {
+  userId: string
+  module: string
+  source: 'research' | 'item'
+}
+export type LearnDto = {
+  /** A blueprint item held by the base */
+  itemId: string
+}
+export type AssembledBotResponse = {
+  bot: BotResponse
+  modules: ModuleResponse[]
+  mapPoint: MapPointResponse
+}
+export type AssembleDto = {
+  label?: string
+  /** Module parts held by the base */
+  partIds: string[]
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -546,5 +653,10 @@ export const {
   useBotsBaseBotsQuery,
   useBotsModulesQuery,
   useBotsScanMutation,
+  useFactoryStatusQuery,
+  useFactoryCraftMutation,
+  useFactoryResearchMutation,
+  useFactoryLearnMutation,
+  useFactoryAssembleMutation,
   useHealthCheckQuery
 } = injectedRtkApi

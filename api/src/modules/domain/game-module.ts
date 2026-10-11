@@ -237,7 +237,70 @@ function withAmount(items: IResourceStack[], resource: IResourceStack['resource'
   return amount > 0 ? [...others, { resource, amount }] : others
 }
 
-export class FactoryModule extends GameModule {}
+export type FactoryJobKind = 'craft' | 'research'
+
+// A piece of production the factory works on, done at `readyAt` (ms of the game clock)
+export interface FactoryJob {
+  kind: FactoryJobKind
+  // The module crafted, or the module whose blueprint is researched
+  module: string
+  readyAt: number
+}
+
+const JOB_KINDS: readonly string[] = ['craft', 'research']
+
+// The factory works through a queue of jobs one after another (design §9.3)
+export class FactoryModule extends GameModule {
+  // How many jobs may wait in the queue
+  get queueSize(): number {
+    return this.number('queueSize', 10)
+  }
+
+  get jobs(): FactoryJob[] {
+    const raw = this.record.props.jobs
+    if (!Array.isArray(raw)) {
+      return []
+    }
+    return raw.filter(
+      (job): job is FactoryJob =>
+        JOB_KINDS.includes(job?.kind) && typeof job.module === 'string' && Number.isFinite(job.readyAt)
+    )
+  }
+
+  // When the last job in the queue is done
+  get busyUntil(): number {
+    return this.jobs.reduce((latest, job) => Math.max(latest, job.readyAt), 0)
+  }
+
+  // Puts a job at the end of the queue: it starts when the one before it ends
+  enqueue(
+    job: { kind: FactoryJobKind; module: string; durationMs: number },
+    now: number
+  ): Result<{ job: FactoryJob; patch: Record<string, unknown> }> {
+    const working = this.ensureWorking()
+    if (!working.ok) {
+      return working
+    }
+    if (this.jobs.length >= this.queueSize) {
+      return fail(ResultCode.BUSY, 'The factory queue is full')
+    }
+    const queued: FactoryJob = {
+      kind: job.kind,
+      module: job.module,
+      readyAt: Math.max(now, this.busyUntil) + job.durationMs
+    }
+    return ok({ job: queued, patch: { jobs: [...this.jobs, queued] } })
+  }
+
+  // The jobs that are done by `now` and what the queue holds afterwards. A broken factory finishes nothing.
+  settle(now: number): { done: FactoryJob[]; patch: Record<string, unknown> } {
+    if (!this.isWorking) {
+      return { done: [], patch: {} }
+    }
+    const done = this.jobs.filter((job) => job.readyAt <= now)
+    return { done, patch: done.length ? { jobs: this.jobs.filter((job) => job.readyAt > now) } : {} }
+  }
+}
 
 export class ArmorModule extends GameModule {
   // Damage taken off every hit (design §12.6)

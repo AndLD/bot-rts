@@ -4,7 +4,7 @@
 
 ✅ There is **no prescribed progression**: no stages, quests or campaign. Progress comes only from blueprints,
 resources, hardware and the quality of players' scripts. The game is an endless sandbox (see §1). The only guidance is
-the optional, skippable [tutorial](#161-tutorial) below.
+the optional, skippable [tutorial](#161-tutorial-) below.
 
 ## 16.1 Tutorial ✅
 

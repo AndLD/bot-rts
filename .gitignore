@@ -28,3 +28,4 @@ api/public/*
 api/ts-built
 !.env.example
 *.tsbuildinfo
+coverage

@@ -1,18 +1,17 @@
-import http from 'http'
 import { AddressInfo } from 'net'
+import { NestExpressApplication } from '@nestjs/platform-express'
 import jwt from 'jsonwebtoken'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../tests/integration/test-database'
 import { urlForDatabase } from '../tests/integration/database-url'
 import { buildUser } from '../tests/integration/builders'
-import { AppServices } from '../src/composition'
+import { loadConfig } from '../src/config/app-config'
 
 // Safety-net tests: the golden flows of the whole stack (HTTP and Socket.IO → use cases → PostgreSQL)
 
 let database: TestDatabase
-let services: AppServices
-let server: http.Server
+let app: NestExpressApplication
 let url: string
 let createEmailVerificationJwt: (userId: string) => string
 let signAccessToken: (payload: unknown, options?: jwt.SignOptions) => string
@@ -23,25 +22,23 @@ beforeAll(async () => {
   database = await createTestDatabase()
   const databaseName = (await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`)[0].db
 
-  // The modules read their configuration when they are loaded, so the environment is prepared first
-  Object.assign(process.env, { DATABASE_URL: urlForDatabase(databaseName), RATE_LIMIT_AUTH_MAX: '1000' })
-  jest.isolateModules(() => {
-    const { createServices } = jest.requireActual('../src/composition')
-    const { setupServer } = jest.requireActual('./server')
-    const jwtUtils = jest.requireActual('../utils/jwt')
-    services = createServices(process.env, 'http://localhost:5173')
-    server = setupServer(services)
+  // The legacy modules read their configuration when they are loaded, so the environment is prepared first
+  Object.assign(process.env, { RATE_LIMIT_AUTH_MAX: '1000' })
+  const config = loadConfig({ ...process.env, DATABASE_URL: urlForDatabase(databaseName), NODE_ENV: 'test' })
+  await jest.isolateModulesAsync(async () => {
+    const { createApp } = jest.requireActual<typeof import('../src/app.factory')>('../src/app.factory')
+    const jwtUtils = jest.requireActual<typeof import('../utils/jwt')>('../utils/jwt')
+    app = await createApp(config)
     createEmailVerificationJwt = jwtUtils.createEmailVerificationJwt
     signAccessToken = (payload, options) =>
       jwt.sign(payload as object, jwtUtils.accessJwtSecret, { expiresIn: '5m', ...options })
   })
-  await new Promise<void>((resolve) => server.listen(0, resolve))
-  url = `http://localhost:${(server.address() as AddressInfo).port}`
+  await app.listen(0)
+  url = `http://localhost:${(app.getHttpServer().address() as AddressInfo).port}`
 })
 beforeEach(() => database.reset())
 afterAll(async () => {
-  await new Promise((resolve) => server.close(resolve))
-  await services.close()
+  await app.close()
   await database.drop()
 })
 

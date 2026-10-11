@@ -80,9 +80,9 @@ presentation (controllers, gateways, DTOs) → application (use cases + ports) �
 infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) implements the application ports
 ```
 
-The backend is part-way through the move: the use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
+The backend is part-way through the move: it already runs on NestJS (`api/src/app.module.ts`, versioned `/api/v1`, OpenAPI at `/api/docs`). The use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
 (`users`, `bots`, `modules`, `files`, `map`, `persistence`, …), and the legacy Express routers/controllers (`api/routers`,
-`api/controllers`, `api/middlewares`, `api/setup`) call them. NestJS replaces the Express layer in Phase 1.
+`api/controllers`, `api/middlewares`, `api/setup`) are mounted inside Nest and call them until they are migrated to Nest controllers. `npm run check:boundaries` enforces the layer rules.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.
@@ -219,9 +219,9 @@ pm2 start ecosystem.config.json
 | ------------------------------------- | ------------ | ---------------------------------------------------- | ----------------------- |
 | `PORT`                                | api          | HTTP/Socket.IO listen port                           | `8080`                  |
 | `NODE_ENV`                            | api          | `development` / `production` / `test`                | `development`           |
-| `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | —                       |
+| `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | `FRONTEND_URL`          |
 | `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
-| `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `http://localhost:5173` |
+| `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `FRONTEND_URL`          |
 | `DATABASE_URL`                        | api          | PostgreSQL connection string (Prisma, integration tests) | `postgresql://botrts:botrts@localhost:5432/botrts` |
 | `WORLD_SEED`                          | api          | Seed of the world-generation random numbers          | random per start        |
 | `WORLD_RESOURCE_CHANCE`               | api          | Chance that a generated map cell holds a resource    | `0.2`                   |

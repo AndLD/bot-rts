@@ -1,16 +1,16 @@
 import httpServer from 'http'
 import { Server } from 'socket.io'
 import { createIsSocketAuthorized } from '../middlewares/authorization'
-import { AppServices } from '../src/composition'
+import { AppServices } from '../src/legacy/legacy-services'
 import { getLogger } from '../utils/logger'
 import { registerBotHandlers } from './socket-handlers'
 
 const logger = getLogger('setup/socket-connection')
 
-export function setupSocketServer(server: httpServer.Server, services: AppServices) {
+export function setupSocketServer(server: httpServer.Server, services: AppServices, adminUrl: string) {
   const io = new Server(server, {
     cors: {
-      origin: process.env.ADMIN_URL || 'http://localhost:5173',
+      origin: adminUrl,
       credentials: true
     }
   })

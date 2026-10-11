@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { createBotsPrivateControllers } from '../../controllers/private/bots'
 import { asyncHandler } from '../../middlewares/async-handler'
 import { validateIdParam } from '../../middlewares/validateId'
-import { AppServices } from '../../src/composition'
+import { AppServices } from '../../src/legacy/legacy-services'
 
 export function createBotsPrivateRouter(services: Pick<AppServices, 'bots' | 'scan'>) {
   const controllers = createBotsPrivateControllers(services)

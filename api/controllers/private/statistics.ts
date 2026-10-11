@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { AppServices } from '../../src/composition'
+import { AppServices } from '../../src/legacy/legacy-services'
 import { apiUtils } from '../../utils/api'
 import { startTimestamp } from '../../utils/constants'
 

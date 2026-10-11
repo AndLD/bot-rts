@@ -1,0 +1,35 @@
+import { DynamicModule, Module } from '@nestjs/common'
+import { AppConfig } from './config/app-config'
+import { ConfigModule } from './config/config.module'
+import { BotsModule } from './bots/bots.module'
+import { FilesModule } from './files/files.module'
+import { HealthModule } from './health/health.module'
+import { LegacyModule } from './legacy/legacy.module'
+import { MapModule } from './map/map.module'
+import { ModulesModule } from './modules/modules.module'
+import { NotificationsModule } from './notifications/notifications.module'
+import { PersistenceModule } from './persistence/persistence.module'
+import { SharedModule } from './shared/shared.module'
+import { UsersModule } from './users/users.module'
+
+@Module({})
+export class AppModule {
+  static register(config: AppConfig): DynamicModule {
+    return {
+      module: AppModule,
+      imports: [
+        ConfigModule.forRoot(config),
+        SharedModule,
+        PersistenceModule,
+        NotificationsModule,
+        UsersModule,
+        ModulesModule,
+        FilesModule,
+        MapModule,
+        BotsModule,
+        HealthModule,
+        LegacyModule
+      ]
+    }
+  }
+}

@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - name: Lint
@@ -73,10 +73,8 @@ jobs:
             node -e "const s=require('./api/coverage/coverage-summary.json').total;for(const m of ['statements','branches','functions','lines'])console.log(m.padEnd(11),s[m].pct+'%')"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Coverage of changed files (not blocking until Phase 1)
+      - name: Coverage of changed files (at least 97 %)
         if: github.event_name == 'pull_request'
-        # Phase 1 removes `continue-on-error`, which makes this check blocking
-        continue-on-error: true
         run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api
       - name: Build
         run: npm run build

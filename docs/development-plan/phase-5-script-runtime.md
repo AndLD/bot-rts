@@ -46,4 +46,4 @@ AGENTS.md §7.1).
 | `feature/5.4-fair-scheduler` | 5.4 | #76 | merged |
 | `feature/5.5a-world-commands` | 5.5 (in-memory world, world functions, deterministic apply) | #77 | merged |
 | `feature/5.5b-single-writer` | 5.5 (single-writer routing of API requests) | #78 | merged |
-| `feature/5.12-live-vision` | 5.12 | PR_5_12 | merged |
+| `feature/5.12-live-vision` | 5.12 | #79 | merged |

@@ -9,6 +9,7 @@ import { RealtimeModule } from './engine/realtime.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { MapModule } from './map/map.module'
+import { MapViewModule } from './mapview/mapview.module'
 import { ModulesModule } from './modules/modules.module'
 import { NotificationsModule } from './notifications/notifications.module'
 import { PersistenceModule } from './persistence/persistence.module'
@@ -33,6 +34,7 @@ export class AppModule {
         FilesModule,
         MapModule,
         BotsModule,
+        MapViewModule,
         TerminalModule,
         EngineModule,
         RealtimeModule,

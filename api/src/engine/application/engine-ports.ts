@@ -36,6 +36,8 @@ export type EngineEvent =
   | { type: 'game'; userId: string; event: GameEvent }
   // The signal of bots that changed, only the changes (design §11.2.1)
   | { type: 'radio'; userId: string; changes: RadioChange[] }
+  // The squares a player's live scanners keep live now: sent for a player whenever the set or the place of them changes (§4.4)
+  | { type: 'live-areas'; userId: string; areas: LiveAreaView[] }
   // The cells that changed in a live area since its last batch (design §4.4)
   | {
       type: 'vision'
@@ -45,6 +47,14 @@ export type EngineEvent =
       tick: number
       cells: VisionCell[]
     }
+
+export interface LiveAreaView {
+  scannerId: string
+  botId: string
+  x: number
+  y: number
+  radius: number
+}
 
 export interface EngineSink {
   emit(event: EngineEvent): void

@@ -11,6 +11,7 @@ jest.mock('../../shared/socket/SocketProvider', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
+jest.mock('../map/GameMap', () => ({ __esModule: true, default: () => <div>the map</div> }))
 jest.mock('../terminal/Terminal', () => ({ __esModule: true, default: () => <div>the terminal</div> }))
 
 const query = jest.mocked(baseQueryWithRefresh)
@@ -60,6 +61,7 @@ describe('GamePage', () => {
     renderGame()
 
     expect(await screen.findByText('the terminal')).toBeInTheDocument()
+    expect(screen.getByText('the map')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Deploy your base' })).not.toBeInTheDocument()
   })
 

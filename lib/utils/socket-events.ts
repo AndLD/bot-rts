@@ -3,6 +3,7 @@ import { IBot, IBotWithModules } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
 import { IExecution, IScriptLog } from './interfaces/executions'
 import { IFile } from './interfaces/files'
+import { ILiveArea, IMapRange, IMapUpdate, IMapView, IRadioChange } from './interfaces/map'
 import { ITerminalCommandResponse, ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
 
 // The error half of an acknowledgement
@@ -25,6 +26,8 @@ export interface ClientToServerEvents {
   'research-module': (baseId: string, module: string, ack: SocketAck<IFactoryJob>) => void
   'learn-blueprint': (baseId: string, itemId: string, ack: SocketAck<IBlueprint>) => void
   'assemble-bot': (baseId: string, label: string | null, partIds: string[], ack: SocketAck<IBotWithModules>) => void
+  // The player's map inside a range, fog of war applied (design §4.2)
+  'get-map': (range: IMapRange, ack: SocketAck<IMapView>) => void
   // Opens a stored terminal session on one of the player's bots; it ends with 'close-terminal' or the disconnect
   'open-terminal': (botId: string, ack: SocketAck<ITerminalSession>) => void
   'close-terminal': (sessionId: string, ack: SocketAck<ITerminalSession>) => void
@@ -42,4 +45,12 @@ export interface ServerToClientEvents {
   'script-log': (log: IScriptLog) => void
   // An execution started, changed state or ended
   execution: (execution: IExecution) => void
+  // Only the bots whose link to the base changed, or whose signal strength did
+  'radio-changes': (changes: IRadioChange[]) => void
+  // Something that happened in the game and the player may see (design §24.1); the typed events come with the animations
+  'game-event': (event: { type: string; at: number }) => void
+  // Cells of the player's map that changed
+  'map-cells': (update: IMapUpdate) => void
+  // The squares the player's scanners keep live now (all of them, every time they change)
+  'live-areas': (areas: ILiveArea[]) => void
 }

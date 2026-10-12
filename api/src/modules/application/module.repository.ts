@@ -9,6 +9,8 @@ export interface ModuleRepository {
   // Deletes a module for good (it was taken apart)
   remove(id: string): Promise<void>
   listOfBot(botId: string): Promise<Module[]>
+  // The modules of several bots at once, for views of many bots (the map)
+  listOfBots(botIds: readonly string[]): Promise<Module[]>
   // The bots with a scanner in live mode (design §4.4), for the engine to resume their vision after a restart
   listBotIdsWithLiveScanner(): Promise<string[]>
 }

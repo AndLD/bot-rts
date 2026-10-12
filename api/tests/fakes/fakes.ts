@@ -380,6 +380,10 @@ export class InMemoryModuleRepository implements ModuleRepository {
     return this.items.filter((module) => module.botId === botId)
   }
 
+  async listOfBots(botIds: readonly string[]) {
+    return this.items.filter((module) => botIds.includes(module.botId))
+  }
+
   async listBotIdsWithLiveScanner() {
     const live = this.items.filter((module) => module.type === 'scanner' && module.props.isLive === true)
     return [...new Set(live.map((module) => module.botId))].sort()

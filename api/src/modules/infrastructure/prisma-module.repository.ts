@@ -32,6 +32,14 @@ export class PrismaModuleRepository implements ModuleRepository {
     return rows.map(toModuleEntity)
   }
 
+  async listOfBots(botIds: readonly string[]): Promise<Module[]> {
+    if (!botIds.length) {
+      return []
+    }
+    const rows = await this.db.module.findMany({ where: { botId: { in: [...botIds] } }, orderBy: { id: 'asc' } })
+    return rows.map(toModuleEntity)
+  }
+
   async listBotIdsWithLiveScanner(): Promise<string[]> {
     const rows = await this.db.module.findMany({
       where: { type: 'scanner', props: { path: ['isLive'], equals: true } },

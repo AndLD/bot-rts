@@ -130,6 +130,36 @@ describe('LiveVision', () => {
     expect(left.map((p) => p.seenAt)).toEqual([500, 500, 500])
   })
 
+  it('tells the player where the live areas are once per change, and when the last one is gone', async () => {
+    const t = await setup()
+    t.bot('a', at(5, 5), 'alice')
+    t.bot('b', at(20, 20), 'alice')
+    const announced = () => t.sink.events.filter((event) => event.type === 'live-areas')
+
+    await t.goLive('a')
+    await t.advance(1)
+    await t.advance(1)
+    expect(announced()).toEqual([
+      {
+        type: 'live-areas',
+        userId: 'alice',
+        areas: [{ scannerId: expect.any(String), botId: 'a', x: 5, y: 5, radius: 1 }]
+      }
+    ])
+
+    await t.goLive('b')
+    await t.advance(1)
+    expect(announced()).toHaveLength(2)
+    expect(announced()[1]).toMatchObject({ areas: [{ botId: 'a' }, { botId: 'b' }] })
+
+    await t.switchScanner('a', { isLive: false })
+    await t.switchScanner('b', { isLive: false })
+    await t.advance(1)
+    await t.advance(1)
+    expect(announced()).toHaveLength(3)
+    expect(announced()[2]).toEqual({ type: 'live-areas', userId: 'alice', areas: [] })
+  })
+
   it('keeps a cell live while another scanner of the same player still covers it', async () => {
     const t = await setup()
     t.bot('a', at(5, 5), 'alice')

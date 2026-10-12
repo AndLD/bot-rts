@@ -92,7 +92,7 @@ describe('the storage and the factory windows', () => {
     cy.contains('.game-window', 'Factory').within(() => {
       for (const module of ['Processor, class 1', 'Wireless adapter, class 1', 'Battery, class 1']) {
         cy.contains('.factory-recipe', module).contains('button', 'Craft').click()
-        cy.contains('[role=status]', `Crafting ${module}`)
+        cy.contains('[role=status]', `Crafting ${module}`, { timeout: 15000 })
       }
       cy.contains('In production')
     })

@@ -51,3 +51,4 @@ AGENTS.md §7.1).
 | `feature/5.10-event-bus` | 5.10 | #81 | merged |
 | `feature/5.6-terminal-scripts` | 5.6 | #82 | merged |
 | `feature/5.8-languages-imports` | 5.8 | #83 | merged |
+| `feature/5.9-bot-security` | 5.9 | PR_5_9 | merged |

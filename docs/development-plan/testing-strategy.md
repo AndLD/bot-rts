@@ -76,5 +76,5 @@ about 15 minutes it is sharded and run in parallel.
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
-| Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 (`gameplay.cy.ts`) |
+| Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 (`gameplay.cy.ts`: live area and ageing snapshot; the stale-scan recovery by the handler and script-api unit tests) |
 | Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 (`connect.cy.ts`, `radio.cy.ts`: out of range, relay chain, terminal interrupted and resumed, signal bars); relay towers do not exist (relays are the player's own bots); buffered scans and the summary of missed events: `radio-network.test.ts`, `radio-buffers.test.ts`, `useTerminal.test.tsx` |

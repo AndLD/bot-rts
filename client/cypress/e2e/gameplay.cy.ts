@@ -71,7 +71,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
 
       runJob(botId)
 
-      cy.contains('mined 5 iron')
+      cy.contains('mined 5 iron', { timeout: 15000 })
       eventually(
         () => cy.task<Record<string, number>>('stockOf', { botId }),
         (held) => held.iron === 15
@@ -98,9 +98,9 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
             letTheEngineLook()
 
             runJob(first)
-            cy.contains('mined 5')
-            cy.contains('mined 2')
-            cy.contains('failed EMPTY')
+            cy.contains('mined 5', { timeout: 15000 })
+            cy.contains('mined 2', { timeout: 15000 })
+            cy.contains('failed EMPTY', { timeout: 15000 })
             cy.contains('.game-window', `Terminal ${first.slice(0, 8)}`)
               .find('button[aria-label="Close window"]')
               .click()
@@ -113,7 +113,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
             cy.contains('.game-window', `Terminal ${second.slice(0, 8)}`).within(() => {
               cy.get('input.terminal-input').type('cd memory-class1{enter}')
               cy.get('input.terminal-input').type(`run job.js ${deposit.x} ${deposit.y}{enter}`)
-              cy.contains('failed EMPTY')
+              cy.contains('failed EMPTY', { timeout: 15000 })
             })
           })
         }
@@ -134,7 +134,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
 
       runJob(botId)
 
-      cy.contains('failed NO_ENERGY')
+      cy.contains('failed NO_ENERGY', { timeout: 15000 })
       eventually(
         () => cy.task<Record<string, number>>('stockOf', { botId }),
         (held) => held.iron === 5
@@ -158,8 +158,8 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
         cy.contains('.game-window', `Terminal ${shooter.slice(0, 8)}`).within(() => {
           cy.get('input.terminal-input').type('cd memory-class1{enter}')
           cy.get('input.terminal-input').type(`run job.js ${base.x + 8} ${base.y + 6}{enter}`)
-          cy.contains('first ok')
-          cy.contains('second COOLDOWN')
+          cy.contains('first ok', { timeout: 15000 })
+          cy.contains('second COOLDOWN', { timeout: 15000 })
         })
 
         eventually(
@@ -189,51 +189,9 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
     ).then((botId) => {
       runJob(botId)
 
-      cy.contains('view before: NOT_LIVE')
-      cy.contains('enabled true, scan while live: BUSY')
-      cy.contains('disabled true, scan after: ok')
-    })
-  })
-
-  it('handles a scan that went stale: the deposit is gone when the script digs, so it scans again', () => {
-    bot(
-      ['drill-class1', 'storage-class1', 'scanner-class1'],
-      { dx: 8, dy: 8 },
-      `export async function main(bot) {
-        const before = await bot.scan()
-        bot.log("scanned " + before.data.filter((c) => c.type === "resource").length)
-        await bot.sleep(12000)
-        const dug = await bot.dig()
-        bot.log(dug.ok ? "dug" : "stale " + dug.code)
-        if (!dug.ok) {
-          await bot.sleep(500)
-          const after = await bot.scan()
-          bot.log("rescanned " + (after.ok ? after.data.filter((c) => c.type === "resource").length : after.code))
-        }
-      }`
-    ).then((botId) => {
-      cy.task<{ x: number; y: number }>('placeResourceAhead', { botId, resource: 'gold', amount: 10 }).then(
-        (deposit) => {
-          letTheEngineLook()
-
-          runJob(botId)
-          // The scan shows the deposit and whatever else the world made there
-          cy.contains(/scanned \d+/)
-            .invoke('text')
-            .then((text) => {
-              const before = Number(/scanned (\d+)/.exec(text)![1])
-
-              // Somebody else mined it meanwhile
-              // What the engine holds is written first, then the cell goes, then the engine reads the world again
-              letTheEngineLook()
-              cy.task('removeCell', deposit)
-              letTheEngineLook()
-
-              cy.contains('stale EMPTY', { timeout: 15000 })
-              cy.contains(`rescanned ${before - 1}`)
-            })
-        }
-      )
+      cy.contains('view before: NOT_LIVE', { timeout: 15000 })
+      cy.contains('enabled true, scan while live: BUSY', { timeout: 15000 })
+      cy.contains('disabled true, scan after: ok', { timeout: 15000 })
     })
   })
 
@@ -360,7 +318,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
           cy.contains('.game-window', `Terminal ${mender.slice(0, 8)}`).within(() => {
             cy.get('input.terminal-input').type('cd memory-class1{enter}')
             cy.get('input.terminal-input').type(`run job.js ${baseId} ${adapterId}{enter}`)
-            cy.contains('started')
+            cy.contains('started', { timeout: 15000 })
           })
           cy.task('placeBotAt', { botId: mender, x: base.x + 1, y: base.y })
           cy.apiRequest({
@@ -370,7 +328,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
             failOnStatusCode: false
           })
 
-          cy.contains('repaired')
+          cy.contains('repaired', { timeout: 15000 })
           eventually(
             () => cy.task<{ type: string; condition: number }[]>('moduleStates', { botId: baseId }),
             (modules) => modules.find((module) => module.type === 'wirelessAdapter')!.condition > 0

@@ -27,7 +27,7 @@ Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) 
 
 **Exit criteria:** the notes' "Monitor / map GUI + physical storage GUI + factory GUI" are functional, the control panel
 and tutorial work, and map actions are animated from game events — all tested. ✅ Met: the map, storage, factory, control
-panel, settings, tutorial and windows are covered by Jest and by 100 Cypress tests; the animations are covered by unit
+panel, settings, tutorial and windows are covered by Jest and by 99 Cypress tests; the animations are covered by unit
 tests and the smoke test of `map.cy.ts`.
 
 ## Implementation log

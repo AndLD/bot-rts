@@ -2,7 +2,7 @@
 
 # Phase 6 — Core game GUI & map animations (96 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
+**Status:** 🟡 In progress · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
 
 Surface the game state in the browser.
 
@@ -10,7 +10,7 @@ Surface the game state in the browser.
 
 | # | Task                                                                                                       | SP | Status |
 | --- | --------------------------------------------------------------------------------------------------------- | -- | --- |
-| 6.1 | Canvas 2D map renderer with sprites per design §4.3: sprite atlas + JSON index loader, chassis-based bot sprites with module overlays and ownership tint, variants (corpse, stale, damaged), dimming, level of detail and colour fallback, fog of war, pan/zoom; framework-free so the ambient scene can reuse it; free tileset with its licence recorded; known cells fade with age since `seenAt` with a "seen N s ago" tooltip and last-seen ghosts for bots and items; cells in the live area are drawn at full strength with a live outline; hatched grey bots without a radio link and an optional link overlay (design §11.2.1); live signal-strength bars on connected bots | 16 | ⬜ |
+| 6.1 | Canvas 2D map renderer with sprites per design §4.3: sprite atlas + JSON index loader, chassis-based bot sprites with module overlays and ownership tint, variants (corpse, stale, damaged), dimming, level of detail and colour fallback, fog of war, pan/zoom; framework-free so the ambient scene can reuse it; free tileset with its licence recorded; known cells fade with age since `seenAt` with a "seen N s ago" tooltip and last-seen ghosts for bots and items; cells in the live area are drawn at full strength with a live outline; hatched grey bots without a radio link and an optional link overlay (design §11.2.1); live signal-strength bars on connected bots | 16 | ✅ |
 | 6.2 | Map state streaming over sockets (incremental updates, fog-of-war per user) | 5 | ⬜ |
 | 6.3 | Physical storage GUI (items list, take/drop) | 5 | ⬜ |
 | 6.4 | Factory GUI → craft table → assemble (blueprint picker, resource cost, assemble button) | 8 | ⬜ |
@@ -35,4 +35,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/6.1-map-renderer` | 6.1 | pending | open |

@@ -11,7 +11,7 @@
 | **Deploy base** | 🟡 | Red **"Deploy your base to start"** button for players without a base. |
 | **Monitor (map)** | 🟡 | Canvas map with sprites (§4.3), fog of war, pan/zoom, cell inspection, streamed from the server (Plan 6.1–6.2). |
 | **Base terminal** | 🟡 | BotOS terminal + bot list + `connect`. |
-| **Bot terminal** | 🟡 | Draggable terminal window per connected bot; "Connection interrupted" on drop. |
+| **Bot terminal** | ✅ | Draggable terminal window per connected bot (opened by `connect`); "Connection interrupted" on drop, resumed with a summary when the link is back (Plan 6.5). |
 | **Code editor** | 🟡 | Draggable CodeMirror editor, save/close, format; filename validation on create. |
 | **Physical storage GUI** | 🟡 | Resources and carried items of a bot; take/drop by manual actions (Plan 6.3). |
 | **Factory GUI → Craft table → Assemble** | 🟡 | Blueprint list, resource costs, craft button, then module selection and assembly (Plan 6.4). |

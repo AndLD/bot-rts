@@ -37,7 +37,8 @@
       "factory": "Фабрика",
       "control": "Панель управления",
       "settings": "Настройки",
-      "editor": "Редактор"
+      "editor": "Редактор",
+      "botTerminal": "Терминал {botId}"
     }
   },
   "storage": {

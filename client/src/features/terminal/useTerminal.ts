@@ -1,6 +1,8 @@
 import { EXECUTION_SHORT_ID_LENGTH, IExecution, IScriptLog } from '@lib/utils/interfaces/executions'
+import { GameEvent } from '@lib/utils/interfaces/events'
 import { ITerminalCommandResponse, ITerminalCwd } from '@lib/utils/interfaces/terminal'
 import { ErrorCode } from '@lib/utils/error-codes'
+import { ResultCode } from '@lib/utils/result'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
 import { useLogout } from '../auth/hooks'
@@ -16,28 +18,43 @@ export interface EditorState {
   content: string
 }
 
+export interface TerminalConnection {
+  botId: string
+  sessionId: string
+}
+
+export interface TerminalOptions {
+  // The terminal of a bot that `connect` reached: the stored session that was opened for it. Without it the terminal is the
+  // one of the player's base.
+  connection?: TerminalConnection
+  // `connect` opened a session on another bot: it is a terminal window of its own (design §15)
+  onConnected?: (connection: TerminalConnection) => void
+  // `exit` was typed in a connected terminal: its window goes away
+  onExit?: () => void
+}
+
 // The state of the terminal and the effects of the commands; the interpreter decides, this hook performs
-export function useTerminal() {
+export function useTerminal({ connection, onConnected, onExit }: TerminalOptions) {
   const t = useTranslations('terminal')
   const errorMessage = useErrorMessage()
   const socket = useSocket()
   const logout = useLogout()
 
-  const [currentBotId, setCurrentBotId] = useState<string | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [currentBotId, setCurrentBotId] = useState<string | null>(connection?.botId ?? null)
+  const [sessionId, setSessionId] = useState<string | null>(connection?.sessionId ?? null)
+  const [isLoading, setIsLoading] = useState(!connection)
   const [lines, setLines] = useState<string[]>([])
   const [isShellMode, setIsShellMode] = useState(false)
   const [cwd, setCwd] = useState<ITerminalCwd>(TOP)
   const [editor, setEditor] = useState<EditorState | null>(null)
-  // The terminals `connect` was typed in, innermost last; `exit` goes back to the one before (design §11.2)
-  const [outer, setOuter] = useState<Array<{ sessionId: string; botId: string }>>([])
+  // Whether the radio link between the bot and the base holds; a command cannot reach a bot that is out of reach (design §11.2.1)
+  const [isLinkUp, setIsLinkUp] = useState(true)
 
   const prefix = getPrefix({ isShellMode, cwd })
 
   // Every connection to the bot's terminal is a stored session on the server
   useEffect(() => {
-    if (!socket?.active) {
+    if (!socket?.active || connection) {
       return
     }
 
@@ -54,7 +71,7 @@ export function useTerminal() {
         })
       }
     })
-  }, [socket])
+  }, [socket, connection])
 
   const print = useCallback(
     (echo: string[], ...output: string[]) => setLines((previous) => [...previous, ...echo, ...output]),
@@ -88,6 +105,41 @@ export function useTerminal() {
     }
   }, [socket, currentBotId, t])
 
+  // The link of the bot to its base: when it drops, nothing can be sent until it is back, and when it is back the player is
+  // told what happened while the bot was out of reach (design §11.2.1)
+  useEffect(() => {
+    if (!socket || !currentBotId) {
+      return
+    }
+    const onGameEvent = (event: GameEvent) => {
+      if (event.parties[0].botId !== currentBotId) {
+        return
+      }
+      if (event.type === 'LinkLost') {
+        setIsLinkUp(false)
+        setLines((previous) => [...previous, escapeHtml(t('connectionInterrupted'))])
+      } else if (event.type === 'LinkRestored') {
+        const { scans, events } = event.missed
+        setIsLinkUp(true)
+        setLines((previous) => [
+          ...previous,
+          escapeHtml(t('connectionRestored')),
+          ...(scans || events ? [escapeHtml(t('missedSummary', { scans, events }))] : [])
+        ])
+      }
+    }
+    socket.on('game-event', onGameEvent)
+    return () => void socket.off('game-event', onGameEvent)
+  }, [socket, currentBotId, t])
+
+  // A terminal that was reached with `connect` ends its session when its window goes away
+  useEffect(() => {
+    if (!socket || !connection) {
+      return
+    }
+    return () => void socket.emit('close-terminal', connection.sessionId, () => undefined)
+  }, [socket, connection])
+
   // The error as a line: translated by its code when we have a text for it, otherwise the server's own message. A usage
   // error and a script that cannot be loaded are the message itself, which says how the command is used or what is wrong.
   const failure = useCallback(
@@ -119,33 +171,28 @@ export function useTerminal() {
           )
         case 'clear':
           return setLines([])
-        case 'exit': {
-          const previous = outer[outer.length - 1]
-          if (!previous || !sessionId) {
+        case 'exit':
+          if (onExit) {
+            onExit()
+          } else {
             void logout()
-            return
           }
-          socket?.emit('close-terminal', sessionId, () => undefined)
-          setOuter(outer.slice(0, -1))
-          setSessionId(previous.sessionId)
-          setCurrentBotId(previous.botId)
-          setCwd(TOP)
-          return print(echo, escapeHtml(t('backTo', { botId: previous.botId })))
-        }
+          return
         case 'connected':
-          setOuter([...outer, { sessionId: sessionId as string, botId: currentBotId as string }])
-          setSessionId(result.sessionId)
-          setCurrentBotId(result.botId)
-          setCwd(TOP)
+          onConnected?.({ botId: result.botId, sessionId: result.sessionId })
           return print(echo, escapeHtml(t('connectedTo', { botId: result.botId })))
         case 'edit':
           setEditor({ path: result.path, content: result.content })
           return print(echo)
         case 'error':
+          if (result.code === ResultCode.NO_SIGNAL) {
+            setIsLinkUp(false)
+            return print(echo, escapeHtml(t('connectionInterrupted')))
+          }
           return print(echo, failure(result.message, result.code))
       }
     },
-    [print, failure, logout, t, outer, sessionId, currentBotId, socket]
+    [print, failure, logout, t, onConnected, onExit]
   )
 
   // Runs one line typed by the player; the promise-free API keeps the UI a plain controlled input
@@ -169,12 +216,19 @@ export function useTerminal() {
           if (!socket || !sessionId) {
             return print(echo, escapeHtml(t('notConnected')))
           }
+          if (!isLinkUp) {
+            // Only the way out is left to a bot that cannot be reached
+            if (action.line === 'exit' && onExit) {
+              return onExit()
+            }
+            return print(echo, escapeHtml(t('connectionInterrupted')))
+          }
           return socket.emit('terminal-command', sessionId, action.line, (response, error) =>
             response ? show(response, echo) : print(echo, failure(error?.msg))
           )
       }
     },
-    [socket, sessionId, isShellMode, prefix, print, show, failure, t]
+    [socket, sessionId, isShellMode, isLinkUp, prefix, print, show, failure, t, onExit]
   )
 
   const saveEditor = useCallback(
@@ -197,5 +251,5 @@ export function useTerminal() {
 
   const closeEditor = useCallback(() => setEditor(null), [])
 
-  return { currentBotId, isLoading, isShellMode, lines, prefix, run, editor, saveEditor, closeEditor }
+  return { currentBotId, isLoading, isShellMode, isLinkUp, lines, prefix, run, editor, saveEditor, closeEditor }
 }

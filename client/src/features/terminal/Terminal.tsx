@@ -3,13 +3,14 @@
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import './Terminal.scss'
-import { useTerminal } from './useTerminal'
+import { TerminalOptions, useTerminal } from './useTerminal'
 
 const FONT_SIZE = 18
 
-export default function Terminal() {
+export default function Terminal(options: TerminalOptions) {
   const t = useTranslations('terminal')
-  const { currentBotId, isLoading, isShellMode, lines, prefix, run, editor, saveEditor, closeEditor } = useTerminal()
+  const { currentBotId, isLoading, isShellMode, isLinkUp, lines, prefix, run, editor, saveEditor, closeEditor } =
+    useTerminal(options)
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -46,6 +47,11 @@ export default function Terminal() {
     >
       <div onClick={(e) => e.stopPropagation()}>
         <div style={{ marginBottom: 10 }}>{heading}</div>
+        {!isLinkUp && (
+          <div role="alert" style={{ color: '#f87171', marginBottom: 10 }}>
+            {t('connectionInterrupted')}
+          </div>
+        )}
 
         {/* Lines are escaped by the interpreter; only the line break tag is markup */}
         {currentBotId && lines.map((line, i) => <div key={i} dangerouslySetInnerHTML={{ __html: line }}></div>)}
@@ -59,6 +65,7 @@ export default function Terminal() {
             ref={inputRef}
             spellCheck={false}
             autoFocus
+            disabled={!isLinkUp}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 // The editor a command opens takes the focus; the key must not type a line break into it

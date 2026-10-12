@@ -43,4 +43,4 @@ AGENTS.md §7.1).
 | `feature/5.2-quickjs-script-runtime` | 5.2 | #73 | merged |
 | `feature/5.3-script-api-layer` | 5.3 | #74 | merged |
 | `feature/5.4a-engine-thread` | 5.4a | #75 | merged |
-| `feature/5.4-fair-scheduler` | 5.4 | PR_5_4 | merged |
+| `feature/5.4-fair-scheduler` | 5.4 | #76 | merged |

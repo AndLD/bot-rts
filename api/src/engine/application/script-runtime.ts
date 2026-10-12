@@ -20,6 +20,8 @@ export interface ScriptExecutionOptions {
   // The source of the entry file; it exports `main(bot, ...args)` (design §10.1)
   source: string
   fileName: string
+  // The files the entry imports, as JavaScript by path (design §10.1.1); an import of anything else fails
+  modules: ReadonlyMap<string, string>
   args: JsonValue[]
   // Plain data copied onto the `bot` object (its identity)
   identity: Record<string, JsonValue>

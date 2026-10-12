@@ -41,6 +41,17 @@ async function main(bot, arg1, arg2, /* … */ argN) { /* … */ }
   modules grant (a `.d.ts` shipped from `lib`).
 - **Limits (tunable config):** 32 KB per file, 20 files and import depth 5 per execution.
 
+**Implementation (Phase 5).** `ModuleLoader` (engine) reads the entry file and, depth first, every file its compiled code
+imports from the bot's drives (`ScriptSource`), before the execution starts; a failure is a `SCRIPT_LOAD_FAILED` error that
+names the file, so the execution is never recorded. An import is a relative path (`./` or `../`) that stays on the drive;
+without an extension the loader tries `.js`, `.ts`, `.json` in this order. A `.json` file becomes a module whose default export
+is the parsed value. TypeScript goes through the `Transpiler` port, implemented by `SucraseTranspiler` (types stripped, ES
+modules kept; as in TypeScript, an import used only as a type is dropped), cached by the hash of path and content (the
+oldest entry goes first). QuickJS serves modules from the loaded set only, so a dynamic `import()` of anything else fails.
+Limits: `ENGINE_MODULE_MAX_FILE_BYTES`, `_MAX_FILES`, `_MAX_DEPTH`, `_CACHE_ENTRIES`. The editor typings are generated from
+the function catalog (`scriptTypings()` in `lib`); the in-game code editor does not use them yet because it is still a plain
+text area, so wiring them into CodeMirror 6 is left to the client work.
+
 ## 10.2 Available functions
 
 Every function is gated by the module that provides it — **no module, no function**.

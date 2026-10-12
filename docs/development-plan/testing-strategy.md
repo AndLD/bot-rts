@@ -60,6 +60,7 @@ about 15 minutes it is sharded and run in parallel.
 | Tutorial: complete, skip, reopen | 6.9 |
 | Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 |
 | Landing page, language switch, auth page scene | 7.9 |
+| Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |
 | API key lifecycle; two-player interaction (contest, fog privacy, attack, adopt) | 8.13 |
 | Account management: forgot / reset password, change password, change email, delete account | 2.7 |

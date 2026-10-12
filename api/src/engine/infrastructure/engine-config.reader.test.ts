@@ -23,7 +23,10 @@ describe('readEngineSettings', () => {
         ENGINE_SCRIPT_MEMORY_BYTES: '1048576',
         ENGINE_SCRIPT_STACK_BYTES: '65536',
         ENGINE_MAX_RESTARTS: '5',
-        ENGINE_HEALTHY_TICKS: '100'
+        ENGINE_HEALTHY_TICKS: '100',
+        ENGINE_MAX_TICKS_PER_CELL: '8',
+        ENGINE_MIN_DAMAGE: '2',
+        ENGINE_ACCURACY_FALLOFF: '0.25'
       },
       true,
       problems
@@ -38,7 +41,9 @@ describe('readEngineSettings', () => {
       memoryBytes: 1048576,
       stackBytes: 65536,
       maxRestarts: 5,
-      healthyTicks: 100
+      healthyTicks: 100,
+      movement: { maxTicksPerCell: 8 },
+      combat: { minDamage: 2, accuracyFalloff: 0.25 }
     })
     expect(problems).toEqual([])
   })

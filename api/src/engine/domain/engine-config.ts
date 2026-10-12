@@ -1,3 +1,6 @@
+import { DEFAULT_MOVEMENT_BALANCE, MovementBalance } from '../../bots/domain/movement'
+import { CombatBalance, DEFAULT_COMBAT_BALANCE } from '../../modules/domain/weapon-module'
+
 // The tunable numbers of the engine (design §12.2, §12.2.1, §12.3.1); the deployment may override them from the
 // environment, nothing in the game logic hard-codes them (AGENTS.md §9)
 export interface EngineConfig {
@@ -16,6 +19,9 @@ export interface EngineConfig {
   maxRestarts: number
   // An execution that has run this many ticks since its relaunch is healthy: its restart count is forgotten
   healthyTicks: number
+  // Game rules whose numbers the engine applies (design §8.5, §12.6)
+  movement: MovementBalance
+  combat: CombatBalance
 }
 
 export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
@@ -26,5 +32,7 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   memoryBytes: 4 * 1024 * 1024,
   stackBytes: 256 * 1024,
   maxRestarts: 3,
-  healthyTicks: 6000
+  healthyTicks: 6000,
+  movement: DEFAULT_MOVEMENT_BALANCE,
+  combat: DEFAULT_COMBAT_BALANCE
 }

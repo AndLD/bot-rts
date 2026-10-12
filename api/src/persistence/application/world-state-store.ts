@@ -1,3 +1,5 @@
+import { Heading } from '../../../../lib/utils/interfaces/map'
+import { Item } from '../../crafting/domain/item.entity'
 import { Module } from '../../modules/domain/module.entity'
 import { KnownPoint, MapPoint } from '../../map/domain/map-point.entity'
 
@@ -8,6 +10,11 @@ export interface WorldStateBatch {
   mapPoints: MapPoint[]
   knownPoints: KnownPoint[]
   modules: Module[]
+  items: Item[]
+  // Items used up
+  removedItemIds: string[]
+  // The way bots face now
+  headings: Array<{ botId: string; heading: Heading }>
 }
 
 export interface WorldStateStore {

@@ -20,7 +20,7 @@ export type CallAnswer = { value: JsonValue | undefined } | { misuse: string }
 // (design §12.2.2).
 export class LiveExecution {
   private readonly sleepers = new Map<number, number>()
-  private readonly answers: Array<{ callId: number; answer: CallAnswer }> = []
+  private answers: Array<{ callId: number; answer: CallAnswer; deliverAt: number }> = []
   private outstanding = 0
   private hasStarted = false
 
@@ -47,7 +47,9 @@ export class LiveExecution {
         this.script.resolveCall(callId, undefined)
       }
     }
-    for (const { callId, answer } of this.answers.splice(0)) {
+    const due = this.answers.filter((entry) => entry.deliverAt <= tick)
+    this.answers = this.answers.filter((entry) => entry.deliverAt > tick)
+    for (const { callId, answer } of due) {
       this.outstanding -= 1
       if ('misuse' in answer) {
         this.script.rejectCall(callId, answer.misuse)
@@ -57,8 +59,9 @@ export class LiveExecution {
     }
   }
 
-  answer(callId: number, answer: CallAnswer): void {
-    this.answers.push({ callId, answer })
+  // The answer reaches the script at the start of tick `deliverAt`
+  answer(callId: number, answer: CallAnswer, deliverAt: number): void {
+    this.answers.push({ callId, answer, deliverAt })
   }
 
   // Whether stepping can make progress: the script has not started, or something it waits for was settled

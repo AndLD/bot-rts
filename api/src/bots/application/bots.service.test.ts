@@ -94,7 +94,8 @@ describe('BotsService queries', () => {
       userId: null,
       baseId: base.id,
       passwordHash: null,
-      lastPosition: null
+      lastPosition: null,
+      heading: 0 as const
     }
     const orphan = {
       id: 'orphan-1',
@@ -103,7 +104,8 @@ describe('BotsService queries', () => {
       userId: null,
       baseId: null,
       passwordHash: null,
-      lastPosition: null
+      lastPosition: null,
+      heading: 0 as const
     }
     await repositories.bots.add(worker)
     await repositories.bots.add(orphan)

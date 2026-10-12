@@ -41,6 +41,15 @@ export function readEngineSettings(env: Env, isTest: boolean, problems: string[]
     memoryBytes: Math.floor(positive(env, 'ENGINE_SCRIPT_MEMORY_BYTES', defaults.memoryBytes, problems)),
     stackBytes: Math.floor(positive(env, 'ENGINE_SCRIPT_STACK_BYTES', defaults.stackBytes, problems)),
     maxRestarts: Math.floor(positive(env, 'ENGINE_MAX_RESTARTS', defaults.maxRestarts, problems)),
-    healthyTicks: Math.floor(positive(env, 'ENGINE_HEALTHY_TICKS', defaults.healthyTicks, problems))
+    healthyTicks: Math.floor(positive(env, 'ENGINE_HEALTHY_TICKS', defaults.healthyTicks, problems)),
+    movement: {
+      maxTicksPerCell: Math.floor(
+        positive(env, 'ENGINE_MAX_TICKS_PER_CELL', defaults.movement.maxTicksPerCell, problems)
+      )
+    },
+    combat: {
+      minDamage: positive(env, 'ENGINE_MIN_DAMAGE', defaults.combat.minDamage, problems),
+      accuracyFalloff: positive(env, 'ENGINE_ACCURACY_FALLOFF', defaults.combat.accuracyFalloff, problems)
+    }
   }
 }

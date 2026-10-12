@@ -28,7 +28,7 @@ describe('LiveExecution', () => {
     expect(live.view().state).toBe('awaiting')
     expect(live.isRunnable).toBe(false)
 
-    live.answer(1, { value: 4 })
+    live.answer(1, { value: 4 }, 2)
     live.settle(2)
     expect(script.settled).toEqual(['resolve 1 4'])
     expect(live.view().state).toBe('running')
@@ -57,6 +57,20 @@ describe('LiveExecution', () => {
     expect(script.settled).toEqual(['resolve 1 undefined', 'resolve 2 undefined'])
   })
 
+  it('delivers an answer only from the tick it is due', () => {
+    const script = new FakeScript()
+    const live = new LiveExecution(record, script, 0)
+    script.calls = [{ callId: 1, fn: 'move', args: [3] }]
+    live.step(1, 5, 100)
+
+    live.answer(1, { value: { moved: 3 } }, 5)
+    live.settle(4)
+    expect(script.settled).toEqual([])
+    expect(live.view().state).toBe('awaiting')
+    live.settle(5)
+    expect(script.settled).toEqual(['resolve 1 {"moved":3}'])
+  })
+
   it('rejects an invalid sleep as misuse', () => {
     const script = new FakeScript()
     const live = new LiveExecution(record, script, 0)
@@ -76,7 +90,7 @@ describe('LiveExecution', () => {
     script.calls = [{ callId: 1, fn: 'scan', args: [] }]
     live.step(1, 5, 100)
 
-    live.answer(1, { misuse: 'bad' })
+    live.answer(1, { misuse: 'bad' }, 2)
     live.settle(2)
 
     expect(script.settled).toEqual(['reject 1 bad'])

@@ -54,6 +54,10 @@ describe('PrismaItemRepository', () => {
     expect(await items.findById(lying.id)).toEqual(lying)
     expect(await items.findById(randomUUID())).toBeNull()
     expect(await items.listOfBot(baseId)).toEqual([carried])
+    expect((await items.listByIds([lying.id, carried.id, randomUUID()])).map((item) => item.id).sort()).toEqual(
+      [lying.id, carried.id].sort()
+    )
+    expect(await items.listByIds([])).toEqual([])
 
     await items.remove(carried.id)
     await items.remove(carried.id)

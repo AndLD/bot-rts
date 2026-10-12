@@ -25,7 +25,8 @@ const worker = (baseId: string): Bot => ({
   userId: null,
   baseId,
   passwordHash: null,
-  lastPosition: null
+  lastPosition: null,
+  heading: 0
 })
 
 describe('PrismaBotRepository', () => {
@@ -98,7 +99,7 @@ describe('PrismaBotRepository', () => {
     await bots.setLastPosition(bot.id, { x: 4, y: -2 })
 
     expect(await bots.findById(bot.id)).toEqual({ ...bot, lastPosition: { x: 4, y: -2, z: 0 } })
-    expect(await bots.findById(base.id)).toMatchObject({ lastPosition: null })
+    expect(await bots.findById(base.id)).toMatchObject({ lastPosition: null, heading: 0 })
   })
 
   it('stores a bot with a last position, and refuses a partial one', async () => {

@@ -62,7 +62,8 @@ export class BotsService {
         userId: user.id,
         baseId: null,
         passwordHash,
-        lastPosition: null
+        lastPosition: null,
+        heading: 0
       }
       const placement = options.location
         ? { location: options.location, seed: null }
@@ -121,7 +122,8 @@ export class BotsService {
         userId: null,
         baseId: base.id,
         passwordHash: null,
-        lastPosition: null
+        lastPosition: null,
+        heading: 0
       }
       await repositories.bots.add(bot)
       for (const itemId of input.consumedItemIds ?? []) {

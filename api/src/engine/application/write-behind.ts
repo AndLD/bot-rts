@@ -1,3 +1,5 @@
+import { Heading } from '../../../../lib/utils/interfaces/map'
+import { Item } from '../../crafting/domain/item.entity'
 import { KnownPoint, MapPoint } from '../../map/domain/map-point.entity'
 import { Module } from '../../modules/domain/module.entity'
 import { WorldStateBatch, WorldStateStore } from '../../persistence/application/world-state-store'
@@ -9,6 +11,9 @@ export class WriteBehind {
   private modules = new Map<string, Module>()
   private mapPoints = new Map<string, MapPoint>()
   private knownPoints = new Map<string, KnownPoint>()
+  private items = new Map<string, Item>()
+  private removedItems = new Set<string>()
+  private headings = new Map<string, Heading>()
   private lastFlushTick = 0
 
   constructor(
@@ -28,8 +33,29 @@ export class WriteBehind {
     this.knownPoints.set(point.id, point)
   }
 
+  stageItem(item: Item): void {
+    this.items.set(item.id, item)
+  }
+
+  // An item that no longer exists (used up)
+  stageItemRemoval(itemId: string): void {
+    this.items.delete(itemId)
+    this.removedItems.add(itemId)
+  }
+
+  stageHeading(botId: string, heading: Heading): void {
+    this.headings.set(botId, heading)
+  }
+
   get pending(): number {
-    return this.modules.size + this.mapPoints.size + this.knownPoints.size
+    return (
+      this.modules.size +
+      this.mapPoints.size +
+      this.knownPoints.size +
+      this.items.size +
+      this.headings.size +
+      this.removedItems.size
+    )
   }
 
   // Flushes when the interval since the last flush has passed; returns whether it did
@@ -50,11 +76,17 @@ export class WriteBehind {
     const batch: WorldStateBatch = {
       modules: [...this.modules.values()],
       mapPoints: [...this.mapPoints.values()],
-      knownPoints: [...this.knownPoints.values()]
+      knownPoints: [...this.knownPoints.values()],
+      items: [...this.items.values()],
+      removedItemIds: [...this.removedItems],
+      headings: [...this.headings].map(([botId, heading]) => ({ botId, heading }))
     }
     this.modules = new Map()
     this.mapPoints = new Map()
     this.knownPoints = new Map()
+    this.items = new Map()
+    this.removedItems = new Set()
+    this.headings = new Map()
     try {
       await this.store.flush(batch)
     } catch (error) {
@@ -68,5 +100,8 @@ export class WriteBehind {
     this.modules = new Map([...batch.modules.map((m): [string, Module] => [m.id, m]), ...this.modules])
     this.mapPoints = new Map([...batch.mapPoints.map((p): [string, MapPoint] => [p.id, p]), ...this.mapPoints])
     this.knownPoints = new Map([...batch.knownPoints.map((p): [string, KnownPoint] => [p.id, p]), ...this.knownPoints])
+    this.items = new Map([...batch.items.map((i): [string, Item] => [i.id, i]), ...this.items])
+    this.removedItems = new Set([...batch.removedItemIds, ...this.removedItems])
+    this.headings = new Map([...batch.headings.map((h): [string, Heading] => [h.botId, h.heading]), ...this.headings])
   }
 }

@@ -14,8 +14,11 @@ import { CraftingModule } from '../crafting/crafting.module'
 import { FilesService } from '../files/application/files.service'
 import { FilesModule } from '../files/files.module'
 import { MAP_REPOSITORY, MapRepository } from '../map/application/map.repository'
+import { MapGenerator } from '../map/domain/map-generator'
+import { WORLD_CONFIG, WorldConfig } from '../map/domain/world-config'
+import { ITEM_REPOSITORY, ItemRepository } from '../crafting/application/item.repository'
 import { MapModule } from '../map/map.module'
-import { EnergyService } from '../modules/application/energy.service'
+import { EnergyModel } from '../modules/domain/energy-model'
 import { MODULE_REPOSITORY, ModuleRepository } from '../modules/application/module.repository'
 import { ModuleRegistry } from '../modules/domain/module-registry'
 import { ModulesModule } from '../modules/modules.module'
@@ -33,6 +36,15 @@ import { EngineCore } from './application/engine-core'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
+import { World } from './application/world/world'
+import { RepositoryWorldSource } from './application/world/repository-world-source'
+import { WorldSource } from './application/world/world-source'
+import { CombatHandler } from './application/handlers/combat-handler'
+import { ManipulatorHandler } from './application/handlers/manipulator-handler'
+import { MiningHandler } from './application/handlers/mining-handler'
+import { MovementHandler } from './application/handlers/movement-handler'
+import { PowerHandler } from './application/handlers/power-handler'
+import { SyncedHandler } from './application/handlers/synced-handler'
 import { DriveHandler } from './application/handlers/drive-handler'
 import { FactoryHandler } from './application/handlers/factory-handler'
 import { GpsHandler } from './application/handlers/gps-handler'
@@ -53,6 +65,7 @@ import { SYSTEM_TIMERS } from './infrastructure/tick-loop'
 const ENGINE_CHANNEL = Symbol('EngineChannel')
 const ENGINE_SINK = Symbol('EngineSink')
 const SCRIPT_RUNTIME = Symbol('ScriptRuntime')
+const WORLD_SOURCE = Symbol('WorldSource')
 
 // The modules the engine thread needs: the use cases the scripts call, without any transport (design §12.2.2). The engine
 // thread has its own application context and its own database connections.
@@ -101,34 +114,70 @@ export class EngineWorkerModule {
             new FairScheduler(capacities, (seed) => new SeededRng(seed), app.worldSeed ?? 0)
         },
         {
+          provide: WORLD_SOURCE,
+          inject: [BOT_STATE_SOURCE, MAP_REPOSITORY, ITEM_REPOSITORY, MapGenerator, ID_GENERATOR, WORLD_CONFIG],
+          useFactory: (
+            states: BotStateSource,
+            map: MapRepository,
+            items: ItemRepository,
+            generator: MapGenerator,
+            ids: IdGenerator,
+            world: WorldConfig
+          ) => new RepositoryWorldSource(states, map, items, generator, ids, world.resources)
+        },
+        {
+          provide: World,
+          inject: [WORLD_SOURCE, WriteBehind, ModuleRegistry, EnergyModel, WORLD_CONFIG, APP_CONFIG],
+          useFactory: (
+            source: WorldSource,
+            writeBehind: WriteBehind,
+            registry: ModuleRegistry,
+            energy: EnergyModel,
+            world: WorldConfig,
+            app: AppConfig
+          ) =>
+            new World(
+              source,
+              writeBehind,
+              registry,
+              energy,
+              world.chunkSize,
+              (seed) => new SeededRng(seed),
+              app.worldSeed ?? 0
+            )
+        },
+        {
           provide: ScriptApi,
           inject: [
+            World,
+            CLOCK,
+            APP_CONFIG,
             ScanService,
-            MODULE_REPOSITORY,
-            ModuleRegistry,
-            MAP_REPOSITORY,
-            EnergyService,
             FactoryService,
             AssemblyService,
             MaintenanceService,
             FilesService
           ],
           useFactory: (
+            world: World,
+            clock: Clock,
+            app: AppConfig,
             scans: ScanService,
-            modules: ModuleRepository,
-            registry: ModuleRegistry,
-            map: MapRepository,
-            energy: EnergyService,
             factory: FactoryService,
             assembly: AssemblyService,
             maintenance: MaintenanceService,
             files: FilesService
           ) =>
             new ScriptApi([
-              new ScannerHandler(scans),
-              new GpsHandler(modules, registry, map, energy),
-              new FactoryHandler(factory, assembly),
-              new MaintenanceHandler(maintenance),
+              new GpsHandler(world),
+              new MovementHandler(world, app.engine.movement),
+              new MiningHandler(world),
+              new ManipulatorHandler(world),
+              new CombatHandler(world, clock, app.engine.combat),
+              new PowerHandler(world, clock),
+              new SyncedHandler(world, new ScannerHandler(scans)),
+              new SyncedHandler(world, new FactoryHandler(factory, assembly)),
+              new SyncedHandler(world, new MaintenanceHandler(maintenance)),
               new DriveHandler(files)
             ])
         },
@@ -151,6 +200,7 @@ export class EngineWorkerModule {
             BotCapacities,
             ModuleRegistry,
             WriteBehind,
+            World,
             ENGINE_SINK,
             ID_GENERATOR,
             CLOCK,
@@ -167,6 +217,7 @@ export class EngineWorkerModule {
             capacities: BotCapacities,
             registry: ModuleRegistry,
             writeBehind: WriteBehind,
+            world: World,
             sink: EngineSink,
             ids: IdGenerator,
             clock: Clock,
@@ -185,6 +236,7 @@ export class EngineWorkerModule {
               capacities,
               registry,
               writeBehind,
+              world,
               sink,
               ids,
               clock,

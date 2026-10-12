@@ -29,3 +29,9 @@ database transactions, row locks, versioned writes or per-cell queues are needed
 - **Persistence:** the engine flushes changed state to the database in **batched bulk writes** (write-behind), each flush in a single database
   transaction so a crash never leaves a half-applied tick. The flush interval is 1 second and
   crash recovery relaunches running executions (§12.3.1).
+- ✅ **Implementation (Plan 5.5):** the engine holds the cells, bots and items in use in memory (`World`), loaded in chunks on
+  demand, and applies the commands of a tick one after the other, so a cell a bot moved into is occupied for the next command
+  and the loser gets `BLOCKED` / `EMPTY` / `GONE`. The order of a tick's commands does not depend on how they were collected:
+  the bots take turns in a shuffle of their sorted ids seeded by `worldSeed` and the tick, and the commands of one bot go in
+  the order of their execution and call numbers. Use cases that work on the database (scan, the factory, repairs) are called
+  between a flush of the memory and an eviction of it.

@@ -19,6 +19,10 @@ export class PrismaItemRepository implements ItemRepository {
     return row && toItem(row)
   }
 
+  async listByIds(ids: readonly string[]): Promise<Item[]> {
+    return (await this.db.item.findMany({ where: { id: { in: [...ids] } }, orderBy: { id: 'asc' } })).map(toItem)
+  }
+
   async listOfBot(botId: string): Promise<Item[]> {
     return (await this.db.item.findMany({ where: { botId }, orderBy: { id: 'asc' } })).map(toItem)
   }

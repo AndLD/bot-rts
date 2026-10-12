@@ -8,8 +8,9 @@ import { BotState } from '../domain/bot-state'
 import { JsonValue } from '../domain/json-value'
 import { ScriptMisuseError } from '../domain/script-misuse'
 
-// What a handler returns: data for the script, or an expected failure
-export type CallOutcome = Result<JsonValue | undefined>
+// What a handler returns: data for the script, or an expected failure. An action that takes game time (a move) says after how
+// many ticks the script gets its answer.
+export type CallOutcome = Result<JsonValue | undefined> & { delayTicks?: number }
 
 // Serves some of the functions of the script API for the bot that called them. One handler per module family, so a new
 // family is a new class and the router stays unchanged (AGENTS.md §4).

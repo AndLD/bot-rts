@@ -79,43 +79,30 @@ describe('the storage and the factory windows', () => {
   })
 
   it('crafts a module in the factory window, waits for the factory, and refuses an assembly that is not a bot', () => {
-    // The base burns oil for its energy and the engine then writes the storage it remembers, which can wipe what a test put into the
-    // database a moment before; so the base is stocked right before the craft, and again if it was refused for lack of it
-    const stock = () =>
-      cy.task('stockBase', {
-        email,
-        items: [
-          { resource: 'iron', amount: 600 },
-          { resource: 'crystal', amount: 400 },
-          { resource: 'gold', amount: 100 }
-        ]
-      })
-    // Each attempt stocks the base, opens the window fresh and crafts; a refusal for lack of stock means the engine wrote its own
-    // storage over the test's, and the next attempt starts again
-    const craft = (attempts = 4): void => {
-      stock()
-      cy.contains('.game-toolbar button', 'Factory').click()
-      cy.contains('.game-window', 'Factory').within(() => {
-        cy.contains('.factory-recipe', 'Processor, class 1').contains('button', 'Craft').click()
-        cy.get('[role=status]', { timeout: 15000 })
-          .should('exist')
-          .then(($status) => {
-            if (!$status.text().includes('Crafting Processor, class 1') && attempts > 0) {
-              cy.root().then(() => cy.reload())
-            }
-          })
-      })
-      cy.get('body').then(($body) => {
-        if (!$body.text().includes('Crafting Processor, class 1') && attempts > 0) {
-          cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
-          craft(attempts - 1)
-        }
-      })
-    }
+    // The base burns oil for its energy, and the engine writes the storage it remembers whenever the oil changes, which wipes what a
+    // test puts into the database. So the base is quieted first and the engine made to read it again (a scan of the base does it).
+    cy.task('quietBase', { botId: baseId })
+    cy.apiRequest({
+      method: 'POST',
+      path: `/api/v1/bots/${baseId}/scan`,
+      headers: { Authorization: `Bearer ${token}` },
+      failOnStatusCode: false
+    })
+    cy.task('stockBase', {
+      email,
+      items: [
+        { resource: 'iron', amount: 600 },
+        { resource: 'crystal', amount: 400 },
+        { resource: 'gold', amount: 100 }
+      ]
+    })
 
-    craft()
+    cy.contains('.game-toolbar button', 'Factory').click()
     cy.contains('.game-window', 'Factory').within(() => {
-      cy.contains('[role=status]', 'Crafting Processor, class 1')
+      cy.contains('.factory-recipe', 'Processor, class 1')
+        .contains('button', 'Craft', { timeout: 15000 })
+        .click({ timeout: 15000 })
+      cy.contains('[role=status]', 'Crafting Processor, class 1', { timeout: 15000 })
       cy.contains('In production')
     })
 

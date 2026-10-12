@@ -258,6 +258,22 @@ export default defineConfig({
           return null
         },
 
+        // The base stops burning its oil: the generator is off and the battery full. The engine writes the storage it remembers
+        // whenever the oil changes, which wipes what a test puts there; once the engine has read the base again, this keeps it
+        // from writing the storage.
+        async quietBase({ botId }: { botId: string }) {
+          await sql(
+            `UPDATE modules SET props = props || '{"isEnabled": false}'::jsonb WHERE bot_id = $1::uuid AND type = 'generator'`,
+            [botId]
+          )
+          await sql(
+            `UPDATE modules SET props = jsonb_set(props, '{value}', props->'capacity') WHERE bot_id = $1::uuid AND type = 'battery'`,
+            [botId]
+          )
+
+          return null
+        },
+
         async damageModule({ botId, type, condition }: { botId: string; type: string; condition: number }) {
           const { rows } = await sql(
             `UPDATE modules SET condition = $3 WHERE bot_id = $1::uuid AND type = $2 RETURNING id`,

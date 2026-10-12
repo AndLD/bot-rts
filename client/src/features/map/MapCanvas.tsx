@@ -29,9 +29,10 @@ export default function MapCanvas({ store, loader, center }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<MapRenderer | null>(null)
   // Asks for the part of the map that is on screen, a moment after the view stopped changing
-  const loadVisibleRef = useRef<() => void>(() => undefined)
+  const loadVisibleRef = useRef<(() => void) | null>(null)
   // The renderer exists from the first render effect until the component goes away, which is when the handlers run
   const renderer = () => rendererRef.current as MapRenderer
+  const askForVisible = () => (loadVisibleRef.current as () => void)()
   const [selected, setSelected] = useState<{ x: number; y: number } | null>(null)
   const [, setTick] = useState(0)
 
@@ -84,7 +85,7 @@ export default function MapCanvas({ store, loader, center }: Props) {
   useEffect(() => {
     if (center) {
       renderer().setCamera({ centerX: center.x + 0.5, centerY: center.y + 0.5, zoom: 1 })
-      loadVisibleRef.current()
+      askForVisible()
     }
   }, [center])
 
@@ -103,7 +104,7 @@ export default function MapCanvas({ store, loader, center }: Props) {
     renderer().panBy(event.clientX - current.x, event.clientY - current.y)
     current.x = event.clientX
     current.y = event.clientY
-    loadVisibleRef.current()
+    askForVisible()
   }
 
   function onPointerUp(event: PointerEvent<HTMLCanvasElement>) {
@@ -121,7 +122,7 @@ export default function MapCanvas({ store, loader, center }: Props) {
   function onWheel(event: React.WheelEvent<HTMLCanvasElement>) {
     const rect = event.currentTarget.getBoundingClientRect()
     renderer().zoomAt(event.clientX - rect.left, event.clientY - rect.top, event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP)
-    loadVisibleRef.current()
+    askForVisible()
   }
 
   return (

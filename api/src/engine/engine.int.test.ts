@@ -134,6 +134,54 @@ describe("the engine to the player's sockets", () => {
   })
 })
 
+describe('scripts from the terminal', () => {
+  const ask = <T>(socket: Socket, event: string, ...args: unknown[]) =>
+    new Promise<T>((resolve, reject) =>
+      socket.emit(event, ...args, (result: T | null, error?: { msg: string }) =>
+        result ? resolve(result) : reject(new Error(error?.msg))
+      )
+    )
+  const lines = (reply: { result: { lines?: string[] } }) => reply.result.lines ?? []
+
+  it('runs a file and a line of the shell, streams their output, keeps it in the log, and kills a loop', async () => {
+    const { botId, accessToken } = await deployWithScript(
+      'export async function main(bot, n) { bot.log("ran", n); while (n === 0) { await bot.sleep(1) } }'
+    )
+    const socket = await new Promise<Socket>((resolve, reject) => {
+      const opened = connect(testApp.url, {
+        auth: { token: accessToken },
+        reconnection: false,
+        transports: ['websocket']
+      })
+      opened.on('connect', () => resolve(opened))
+      opened.on('connect_error', reject)
+    })
+    const heard: string[] = []
+    socket.on('script-log', (log: { text: string }) => heard.push(log.text))
+    const session = await ask<{ _id: string }>(socket, 'open-terminal', botId)
+    const command = (line: string) =>
+      ask<{ result: { lines?: string[]; message?: string } }>(socket, 'terminal-command', session._id, line)
+
+    expect(lines(await command('run /memory-class1/main.js 7'))[0]).toMatch(/^started /)
+    await until(() => heard.includes('ran 7'), 'the output of the file')
+    await command('eval bot.modules.length')
+    await until(() => heard.length >= 2, 'the value of the line')
+    expect(Number(heard[1])).toBeGreaterThan(0)
+
+    const looping = lines(await command('run /memory-class1/main.js 0'))[0].replace('started ', '')
+    await until(() => heard.includes('ran 0'), 'the loop to start')
+    expect(lines(await command('top')).join('\n')).toContain(looping)
+    expect(lines(await command(`kill ${looping.slice(0, 8)}`))).toEqual([`killed ${looping}`])
+    expect(lines(await command('top'))).toEqual([])
+
+    const history = await ask<Array<{ text: string }>>(socket, 'get-terminal-history', botId, 100)
+    expect(history.map((entry) => entry.text)).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^\[[0-9a-f]{8}\] ran 7$/)])
+    )
+    socket.close()
+  })
+})
+
 describe('the engine thread', () => {
   it('runs a script of a player: logs, a scan through the use cases, and a durable record', async () => {
     const { userId, botId } = await deployWithScript(

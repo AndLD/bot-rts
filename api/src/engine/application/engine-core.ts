@@ -15,6 +15,7 @@ import { EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionState, ExecutionStatus, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { ScriptFailure } from '../domain/script-failure'
+import { SHELL_FILE, shellSource } from '../domain/shell-script'
 import { ScriptMisuseError } from '../domain/script-misuse'
 import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
@@ -270,7 +271,10 @@ export class EngineCore {
 
   // Reads the script and prepares its sandbox; nothing is stored or registered yet
   private async build(record: Execution, state: BotState): Promise<LiveExecution> {
-    const source = await this.deps.sources.read(record.userId, record.botId, record.file)
+    const source =
+      record.file === SHELL_FILE
+        ? shellSource(String(record.args[0]))
+        : await this.deps.sources.read(record.userId, record.botId, record.file)
     const rng = this.deps.createRng(this.deps.worldSeed ^ hash(record.id))
     const host: ScriptHost = {
       random: () => rng.next(),
@@ -281,7 +285,7 @@ export class EngineCore {
     const script = this.deps.runtime.createExecution({
       source,
       fileName: record.file,
-      args: [...record.args],
+      args: record.file === SHELL_FILE ? [] : [...record.args],
       // The modules are listed so that a script can name the one it switches (`bot.enable(id)`)
       identity: { id: record.botId, modules: state.modules.map(({ id, type, name }) => ({ id, type, name })) },
       functions: scriptFunctionsFor(state.modules.map((module) => module.type)),
@@ -307,6 +311,9 @@ export class EngineCore {
     }
     const { outcome, commands } = live.step(tick, this.deps.config.sliceMs, this.deps.config.tickIntervalMs)
     if (outcome.status === 'finished') {
+      if (live.record.file === SHELL_FILE && outcome.value !== undefined) {
+        this.log(live.record, 'output', format(outcome.value))
+      }
       await this.finish(live, ExecutionStatus.FINISHED, null)
     } else if (outcome.status === 'failed') {
       await this.finish(live, ExecutionStatus.KILLED, describeFailure(outcome.failure))

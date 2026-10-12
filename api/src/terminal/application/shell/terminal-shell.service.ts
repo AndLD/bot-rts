@@ -10,7 +10,7 @@ import { AppError } from '../../../shared/domain/app-error'
 import { TerminalService } from '../terminal.service'
 import { Cwd, pathOnDrive, TOP } from './cwd'
 import { parseCommandLine } from './command-line'
-import { requireDrive, TerminalCommand, UnknownCommandError } from './terminal-command'
+import { requireDrive, TerminalCommand } from './terminal-command'
 
 export interface ShellReply {
   readonly response: ITerminalCommandResponse
@@ -24,7 +24,9 @@ export class TerminalShell {
   constructor(
     commands: readonly TerminalCommand[],
     private readonly terminal: TerminalService,
-    private readonly files: FilesService
+    private readonly files: FilesService,
+    // Runs a line that names no command (`<file>` runs a script)
+    private readonly fallback: TerminalCommand
   ) {
     for (const command of commands) {
       for (const name of command.names) {
@@ -45,11 +47,15 @@ export class TerminalShell {
     let result: TerminalCommandResult
     let place = cwd
     try {
-      const command = this.commands.get(parsed.name)
-      if (!command) {
-        throw new UnknownCommandError(parsed.name)
-      }
-      const outcome = await command.execute({ userId, session, cwd, args: parsed.args })
+      const command = this.commands.get(parsed.name) ?? this.fallback
+      const outcome = await command.execute({
+        userId,
+        session,
+        cwd,
+        args: parsed.args,
+        name: parsed.name,
+        rest: parsed.rest
+      })
       result = outcome.result
       place = outcome.cwd ?? cwd
     } catch (error) {

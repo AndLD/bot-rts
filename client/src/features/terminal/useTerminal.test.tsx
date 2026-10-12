@@ -12,10 +12,17 @@ import { useTerminal } from './useTerminal'
 type Handler = (...args: never[]) => void
 
 function createSocket(handlers: Record<string, Handler>, isActive = true) {
+  const listeners = new Map<string, Set<Handler>>()
   return {
     active: isActive,
-    emit: jest.fn((event: string, ...args: never[]) => handlers[event]?.(...args))
-  } as unknown as jest.Mocked<GameSocket>
+    emit: jest.fn((event: string, ...args: never[]) => handlers[event]?.(...args)),
+    on: jest.fn((event: string, listener: Handler) =>
+      listeners.set(event, (listeners.get(event) ?? new Set()).add(listener))
+    ),
+    off: jest.fn((event: string, listener: Handler) => listeners.get(event)?.delete(listener)),
+    // What the server pushes
+    push: (event: string, ...args: never[]) => listeners.get(event)?.forEach((listener) => listener(...args))
+  } as unknown as jest.Mocked<GameSocket> & { push: (event: string, ...args: unknown[]) => void }
 }
 
 const base = { _id: 'base-1', type: BOT_TYPE.BASE }
@@ -237,6 +244,52 @@ describe('useTerminal: commands', () => {
     expect(result.current.isShellMode).toBe(false)
     expect(result.current.prefix).toBe('/>')
     expect(socket.emit).not.toHaveBeenCalled()
+  })
+})
+
+describe('useTerminal: scripts', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  const log = (botId: string, text: string) => ({ executionId: 'abcdef0123456789', botId, kind: 'output', text })
+
+  it('shows what a script of the bot writes as it is written, escaped, and ignores other bots', async () => {
+    const { socket, result } = await connected()
+
+    act(() => socket.push('script-log', log('base-1', '<b>hi</b>')))
+    act(() => socket.push('script-log', log('other-bot', 'not mine')))
+
+    expect(result.current.lines).toEqual(['[abcdef01] &lt;b&gt;hi&lt;/b&gt;'])
+  })
+
+  it('says when a script of the bot ends, but not while it runs', async () => {
+    const { socket, result } = await connected()
+    const execution = (state: string, botId = 'base-1') => ({ id: 'abcdef0123456789', botId, state })
+
+    act(() => socket.push('execution', execution('running')))
+    act(() => socket.push('execution', execution('finished', 'other-bot')))
+    act(() => socket.push('execution', execution('finished')))
+    act(() => socket.push('execution', execution('killed')))
+
+    expect(result.current.lines).toEqual(['[abcdef01] finished', '[abcdef01] killed'])
+  })
+
+  it('stops listening when the terminal goes away', async () => {
+    const { socket, unmount } = await connected()
+
+    unmount()
+
+    expect(socket.off).toHaveBeenCalledWith('script-log', expect.any(Function))
+    expect(socket.off).toHaveBeenCalledWith('execution', expect.any(Function))
+  })
+
+  it('sends the lines of the shell mode as code', async () => {
+    const { socket, result } = await connected()
+    act(() => result.current.run('shell'))
+    socket.emit.mockClear()
+
+    act(() => result.current.run('bot.id'))
+
+    expect(socket.emit).toHaveBeenCalledWith('terminal-command', 'session-1', 'eval bot.id', expect.any(Function))
   })
 })
 

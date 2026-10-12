@@ -17,6 +17,7 @@ import { FilesService } from '../../src/files/application/files.service'
 import { BlueprintSpawn, MapGenerator } from '../../src/map/domain/map-generator'
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
+import { FakeScriptRunner } from './engine'
 import { createTerminalShell } from '../../src/terminal/application/shell/create-terminal-shell'
 import { OpenLinkGate } from '../../src/terminal/application/link-gate'
 import { TerminalService } from '../../src/terminal/application/terminal.service'
@@ -91,6 +92,7 @@ export function createWorld(
     spawnService
   )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids, moduleRegistry)
+  const scriptRunner = new FakeScriptRunner()
   const terminalService = new TerminalService(
     terminalSessions,
     botsService,
@@ -164,7 +166,9 @@ export function createWorld(
       factoryService,
       assemblyService,
       recipeService,
-      maintenanceService
-    )
+      maintenanceService,
+      scriptRunner
+    ),
+    scriptRunner
   }
 }

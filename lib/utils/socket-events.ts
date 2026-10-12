@@ -1,6 +1,7 @@
 import { IBlueprint, IFactoryJob, IFactoryStatus } from './interfaces/crafting'
 import { IBot, IBotWithModules } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
+import { IExecution, IScriptLog } from './interfaces/executions'
 import { IFile } from './interfaces/files'
 import { ITerminalCommandResponse, ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
 
@@ -35,6 +36,10 @@ export interface ClientToServerEvents {
   'get-terminal-history': (botId: string, limit: number, ack: SocketAck<ITerminalLogEntry[]>) => void
 }
 
-// The server sends nothing unprompted yet; game events arrive with the engine (Phase 5)
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ServerToClientEvents {}
+// What the server pushes to every connection of a player (design §11.2.3, §12.3)
+export interface ServerToClientEvents {
+  // A line one of the player's scripts wrote
+  'script-log': (log: IScriptLog) => void
+  // An execution started, changed state or ended
+  execution: (execution: IExecution) => void
+}

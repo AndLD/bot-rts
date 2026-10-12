@@ -1,3 +1,4 @@
+import { EXECUTION_SHORT_ID_LENGTH, IExecution, IScriptLog } from '@lib/utils/interfaces/executions'
 import { ITerminalCommandResponse, ITerminalCwd } from '@lib/utils/interfaces/terminal'
 import { ErrorCode } from '@lib/utils/error-codes'
 import { useTranslations } from 'next-intl'
@@ -57,6 +58,33 @@ export function useTerminal() {
     (echo: string[], ...output: string[]) => setLines((previous) => [...previous, ...echo, ...output]),
     []
   )
+
+  // What the player's scripts write on this bot reaches the terminal as it is written, and so does the end of a script
+  useEffect(() => {
+    if (!socket || !currentBotId) {
+      return
+    }
+    const onLog = ({ botId, executionId, text }: IScriptLog) => {
+      if (botId === currentBotId) {
+        setLines((previous) => [
+          ...previous,
+          escapeHtml(`[${executionId.slice(0, EXECUTION_SHORT_ID_LENGTH)}] ${text}`)
+        ])
+      }
+    }
+    const onExecution = ({ botId, id, state }: IExecution) => {
+      if (botId === currentBotId && (state === 'finished' || state === 'killed')) {
+        const line = t('scriptEnded', { id: id.slice(0, EXECUTION_SHORT_ID_LENGTH), state })
+        setLines((previous) => [...previous, escapeHtml(line)])
+      }
+    }
+    socket.on('script-log', onLog)
+    socket.on('execution', onExecution)
+    return () => {
+      socket.off('script-log', onLog)
+      socket.off('execution', onExecution)
+    }
+  }, [socket, currentBotId, t])
 
   // The error as a line: translated by its code when we have a text for it, otherwise the server's own message. A usage
   // error is the message itself, which says how the command is used.

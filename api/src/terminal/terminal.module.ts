@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Inject, Module, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { FilesModule } from '../files/files.module'
@@ -22,6 +22,10 @@ import { PrismaTerminalSessionRepository } from './infrastructure/prisma-termina
 import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
 import { EngineLinkGate } from '../engine/infrastructure/engine-link-gate'
 import { LINK_GATE, LinkGate, OpenLinkGate } from './application/link-gate'
+import { EngineScriptRunner } from '../engine/infrastructure/engine-script-runner'
+import { LOGGER, Logger } from '../shared/application/logger'
+import { ScriptLogRecorder } from './application/script-log-recorder'
+import { SCRIPT_OUTPUT_FEED, SCRIPT_RUNNER, ScriptOutputFeed } from './application/script-runner'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({
@@ -53,6 +57,18 @@ import { TerminalGateway } from './presentation/terminal.gateway'
       ) => new TerminalService(sessions, bots, ids, clock, retention, links)
     },
     {
+      provide: SCRIPT_RUNNER,
+      inject: [ENGINE_PORT],
+      useFactory: (engine: EnginePort) => new EngineScriptRunner(engine)
+    },
+    { provide: SCRIPT_OUTPUT_FEED, useExisting: SCRIPT_RUNNER },
+    {
+      provide: ScriptLogRecorder,
+      inject: [SCRIPT_OUTPUT_FEED, TerminalService, LOGGER],
+      useFactory: (feed: ScriptOutputFeed, terminal: TerminalService, logger: Logger) =>
+        new ScriptLogRecorder(feed, terminal, logger)
+    },
+    {
       provide: TerminalShell,
       inject: [
         BotsService,
@@ -61,11 +77,22 @@ import { TerminalGateway } from './presentation/terminal.gateway'
         FactoryService,
         AssemblyService,
         RecipeService,
-        MaintenanceService
+        MaintenanceService,
+        SCRIPT_RUNNER
       ],
       useFactory: createTerminalShell
     }
   ],
   exports: [TerminalService]
 })
-export class TerminalModule {}
+export class TerminalModule implements OnModuleInit, OnApplicationShutdown {
+  constructor(@Inject(ScriptLogRecorder) private readonly recorder: ScriptLogRecorder) {}
+
+  onModuleInit() {
+    this.recorder.start()
+  }
+
+  async onApplicationShutdown() {
+    await this.recorder.shutdown()
+  }
+}

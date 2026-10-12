@@ -125,6 +125,7 @@
     "error": "Error: {message}",
     "notConnected": "The terminal is not connected yet",
     "saved": "Saved {path}",
+    "scriptEnded": "[{id}] {state}",
     "editing": "Editing {path}",
     "editorLabel": "File content",
     "save": "Save",
@@ -147,6 +148,10 @@
       "assemble": "assemble a bot from module parts",
       "repair": "repair a module of a bot on an adjacent cell",
       "disassemble": "take a module of a bot on an adjacent cell apart",
+      "run": "run a script file with arguments; a file name alone runs it too",
+      "eval": "run a line of code with the bot in scope",
+      "top": "list the running scripts",
+      "kill": "stop a running script",
       "clear": "clear the screen",
       "exit": "sign out"
     }

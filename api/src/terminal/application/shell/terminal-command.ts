@@ -9,6 +9,9 @@ export interface CommandContext {
   readonly session: TerminalSession
   readonly cwd: Cwd
   readonly args: readonly string[]
+  // The name the command was called by, and the line after it as typed (code for `eval` must keep its spaces)
+  readonly name: string
+  readonly rest: string
 }
 
 // What a command did: its result and, when it moved, the new place

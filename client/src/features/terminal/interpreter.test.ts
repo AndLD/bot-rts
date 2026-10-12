@@ -37,10 +37,10 @@ describe('interpret', () => {
     expect(interpret(' clear ', { isShellMode: true })).toEqual({ type: 'clear' })
   })
 
-  it('enters the shell, and leaves it only with exit', () => {
+  it('enters the shell, runs every other line there as code, and leaves it only with exit', () => {
     expect(interpret('shell', { isShellMode: false })).toEqual({ type: 'enter-shell' })
     expect(interpret('exit', { isShellMode: true })).toEqual({ type: 'exit-shell' })
-    expect(interpret('1 + 1', { isShellMode: true })).toEqual({ type: 'none' })
+    expect(interpret('1 + 1', { isShellMode: true })).toEqual({ type: 'send', line: 'eval 1 + 1' })
   })
 
   it('leaves every other command to the server, trimmed', () => {

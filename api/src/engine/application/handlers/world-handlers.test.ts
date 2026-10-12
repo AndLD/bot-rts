@@ -15,6 +15,7 @@ import { GpsHandler } from './gps-handler'
 import { ManipulatorHandler } from './manipulator-handler'
 import { MiningHandler } from './mining-handler'
 import { MovementHandler } from './movement-handler'
+import { EventOutbox } from '../event-outbox'
 import { LiveVision } from '../live-vision'
 import { RecordingSink } from '../../../../tests/fakes/engine'
 import { SequentialIdGenerator } from '../../../../tests/fakes/fakes'
@@ -28,6 +29,7 @@ const at = (x: number, y: number) => ({ x, y, z: 0 })
 async function setup() {
   const engine = createEngineWorld()
   const clock = new FakeClock()
+  const outbox = new EventOutbox(clock)
   const vision = new LiveVision(
     engine.world,
     engine.source,
@@ -38,10 +40,10 @@ async function setup() {
     16
   )
   const handlers = {
-    movement: new MovementHandler(engine.world, DEFAULT_MOVEMENT_BALANCE),
-    mining: new MiningHandler(engine.world),
+    movement: new MovementHandler(engine.world, DEFAULT_MOVEMENT_BALANCE, outbox),
+    mining: new MiningHandler(engine.world, outbox),
     manipulator: new ManipulatorHandler(engine.world),
-    combat: new CombatHandler(engine.world, clock, DEFAULT_COMBAT_BALANCE),
+    combat: new CombatHandler(engine.world, clock, DEFAULT_COMBAT_BALANCE, outbox),
     power: new PowerHandler(engine.world, clock, vision),
     view: new ViewHandler(engine.world, vision),
     gps: new GpsHandler(engine.world)
@@ -55,7 +57,7 @@ async function setup() {
     const bot = await worldBot(id)
     engine.world.updateModules(bot, [module])
   }
-  return { ...engine, ...handlers, vision, clock, stateOf, worldBot, modulesOf, typeOf, replace }
+  return { ...engine, ...handlers, vision, outbox, clock, stateOf, worldBot, modulesOf, typeOf, replace }
 }
 
 describe('MovementHandler', () => {
@@ -76,6 +78,34 @@ describe('MovementHandler', () => {
     expect((await t.world.cell(at(5, 5))).type).toBeNull()
     expect(await t.world.cell(at(5, 3))).toMatchObject({ type: MapPointType.BOT, contentId: 'b1' })
     expect(await t.movement.handle(state, 'move', [1])).toMatchObject({ ok: false, code: 'BUSY' })
+  })
+
+  it('publishes where the bot went', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), FULL_KIT, { ownerId: 'alice' })
+
+    await t.movement.handle(await t.stateOf('b1'), 'move', [2])
+
+    expect(t.outbox.drain()).toEqual([
+      {
+        type: 'BotMoved',
+        at: t.clock.now().getTime(),
+        parties: [{ userId: 'alice', botId: 'b1' }],
+        location: at(5, 3),
+        from: at(5, 5),
+        to: at(5, 3)
+      }
+    ])
+  })
+
+  it('publishes nothing for a move that did not go anywhere', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5))
+    t.addBot('b2', at(5, 4))
+
+    await t.movement.handle(await t.stateOf('b1'), 'move', [1])
+
+    expect(t.outbox.drain()).toEqual([])
   })
 
   it('stops at an obstacle after the cells it managed', async () => {
@@ -185,6 +215,26 @@ describe('MiningHandler', () => {
     expect(await t.mining.handle(state, 'dig', [])).toMatchObject({ data: { amount: 3 } })
     expect(await t.world.cell(at(5, 4))).toMatchObject({ type: null, resource: null })
     expect(await t.mining.handle(state, 'dig', [])).toMatchObject({ ok: false, code: 'EMPTY' })
+  })
+
+  it('publishes what was mined, and when the deposit is used up', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), FULL_KIT, { ownerId: 'alice' })
+    t.placeCell(at(5, 4), deposit(RESOURCE.STONE, 7))
+    const state = await t.stateOf('b1')
+
+    await t.mining.handle(state, 'dig', [])
+    await t.mining.handle(state, 'dig', [])
+
+    const events = t.outbox.drain()
+    expect(events.map((e) => e.type)).toEqual(['ResourceMined', 'ResourceMined', 'DepositDepleted'])
+    expect(events[0]).toMatchObject({
+      resource: 'stone',
+      amount: 5,
+      location: at(5, 4),
+      parties: [{ userId: 'alice' }]
+    })
+    expect(events[2]).toMatchObject({ resource: 'stone' })
   })
 
   it('shares one deposit between two bots: the second gets what is left, then EMPTY', async () => {
@@ -371,7 +421,7 @@ describe('CombatHandler', () => {
     // A sure hit that does 50 damage
     const gun = await t.typeOf('shooter', 'weapon')
     await t.replace('shooter', { ...gun, props: { ...gun.props, accuracy: 1 } })
-    t.combat = new CombatHandler(t.world, t.clock, { minDamage: 1, accuracyFalloff: 0 })
+    t.combat = new CombatHandler(t.world, t.clock, { minDamage: 1, accuracyFalloff: 0 }, t.outbox)
     return t
   }
 
@@ -406,6 +456,25 @@ describe('CombatHandler', () => {
     expect(await damageTaken(t, 'victim')).toBe(0)
   })
 
+  it('hits nothing on a cell whose bot no longer exists', async () => {
+    const t = await duel()
+    t.world.setCell({ ...(await t.world.cell(at(5, 3))), type: MapPointType.BOT, contentId: 'ghost' })
+
+    const result = await t.combat.handle(await t.stateOf('shooter'), 'shoot', [5, 3])
+
+    expect(result).toMatchObject({ ok: true })
+    expect(await damageTaken(t, 'victim')).toBe(0)
+  })
+
+  it('hits nothing on a bot that has no modules left', async () => {
+    const t = await duel()
+    t.addBot('hollow', at(6, 5), [])
+
+    const result = await t.combat.handle(await t.stateOf('shooter'), 'shoot', [6, 5])
+
+    expect(result).toMatchObject({ ok: true })
+  })
+
   it('fires over bots in the way and splashes the neighbours when it is artillery', async () => {
     const t = await duel()
     t.addBot('between', at(5, 4))
@@ -420,6 +489,39 @@ describe('CombatHandler', () => {
     expect(await damageTaken(t, 'between')).toBe(25)
     expect(await damageTaken(t, 'neighbour')).toBe(25)
     expect(await damageTaken(t, 'victim')).toBe(50)
+  })
+
+  it('publishes the shot, the hit, the damage and the broken module, to the shooter and the victim', async () => {
+    const t = await duel()
+    const victim = await t.worldBot('victim')
+    // One module left with a point of condition: the first hit breaks it
+    const modules = victim.state.modules.map((m) => ({ ...m, condition: 1 }))
+    t.world.updateModules(victim, modules)
+
+    await t.combat.handle(await t.stateOf('shooter'), 'shoot', [5, 3])
+
+    const events = t.outbox.drain()
+    expect(events.map((e) => e.type)).toEqual(['ShotFired', 'ShotHit', 'ModuleDamaged', 'ModuleBroken'])
+    expect(events[1]).toMatchObject({
+      hits: 1,
+      victimBotId: 'victim',
+      parties: [{ botId: 'shooter' }, { userId: 'owner-victim', botId: 'victim' }],
+      location: at(5, 3)
+    })
+    expect(events[2]).toMatchObject({ condition: 0, parties: [{ userId: 'owner-victim', botId: 'victim' }] })
+  })
+
+  it('does not call a module broken again when it already was', async () => {
+    const t = await duel()
+    const victim = await t.worldBot('victim')
+    t.world.updateModules(
+      victim,
+      victim.state.modules.map((m) => ({ ...m, condition: 0 }))
+    )
+
+    await t.combat.handle(await t.stateOf('shooter'), 'shoot', [5, 3])
+
+    expect(t.outbox.drain().map((e) => e.type)).toEqual(['ShotFired', 'ShotHit', 'ModuleDamaged'])
   })
 
   it('misses an empty cell, and a miss does no harm', async () => {

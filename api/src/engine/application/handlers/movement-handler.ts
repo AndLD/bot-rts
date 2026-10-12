@@ -5,6 +5,7 @@ import { BotState } from '../../domain/bot-state'
 import { ahead, turned } from '../../domain/heading'
 import { JsonValue } from '../../domain/json-value'
 import { ScriptMisuseError } from '../../domain/script-misuse'
+import { EventOutbox } from '../event-outbox'
 import { CallOutcome, ScriptFunctionHandler } from '../script-api'
 import { World } from '../world/world'
 import { actingPlaced, isFailure } from './acting'
@@ -18,7 +19,8 @@ export class MovementHandler implements ScriptFunctionHandler {
 
   constructor(
     private readonly world: World,
-    private readonly balance: MovementBalance
+    private readonly balance: MovementBalance,
+    private readonly outbox: EventOutbox
   ) {}
 
   async handle(state: BotState, fn: string, args: readonly JsonValue[]): Promise<CallOutcome> {
@@ -48,6 +50,7 @@ export class MovementHandler implements ScriptFunctionHandler {
     if (cells < 1 || cells > MAX_MOVE_CELLS) {
       throw new ScriptMisuseError(`move: cells must be between 1 and ${MAX_MOVE_CELLS}`)
     }
+    const from = { ...acting.position }
     let moved = 0
     let stopped: ReturnType<typeof fail> | null = null
     while (moved < cells && !stopped) {
@@ -64,6 +67,17 @@ export class MovementHandler implements ScriptFunctionHandler {
       }
     }
 
+    if (moved) {
+      const to = acting.bot.position as NonNullable<typeof acting.bot.position>
+      this.outbox.publish({
+        type: 'BotMoved',
+        at: this.outbox.now(),
+        parties: [{ userId: state.ownerId, botId: state.bot.id }],
+        location: to,
+        from,
+        to
+      })
+    }
     const delayTicks = moved * movement.data.ticksPerCell
     this.world.keepBusy(state.bot.id, delayTicks)
     return { ...(stopped ?? ok({ moved })), delayTicks }

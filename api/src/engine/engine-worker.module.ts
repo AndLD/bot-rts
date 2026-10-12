@@ -36,6 +36,9 @@ import { EngineCore } from './application/engine-core'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
+import { EngineAudience } from './application/engine-audience'
+import { EventOutbox } from './application/event-outbox'
+import { GameEventBus } from './application/game-event-bus'
 import { LiveVision } from './application/live-vision'
 import { LinkHandler } from './application/handlers/link-handler'
 import { RadioBuffers } from './application/radio-buffers'
@@ -180,6 +183,7 @@ export class EngineWorkerModule {
             worldConfig: WorldConfig
           ) => new LiveVision(world, source, writeBehind, ids, sink, app.engine.tickIntervalMs, worldConfig.chunkSize)
         },
+        { provide: EventOutbox, inject: [CLOCK], useFactory: (clock: Clock) => new EventOutbox(clock) },
         {
           provide: RadioBuffers,
           inject: [APP_CONFIG],
@@ -188,16 +192,28 @@ export class EngineWorkerModule {
         },
         {
           provide: RadioNetwork,
-          inject: [World, WORLD_SOURCE, ENGINE_SINK, RadioBuffers, APP_CONFIG, LiveVision, CLOCK],
+          inject: [World, WORLD_SOURCE, ENGINE_SINK, EventOutbox, RadioBuffers, APP_CONFIG, LiveVision, CLOCK],
           useFactory: (
             world: World,
             source: WorldSource,
             sink: EngineSink,
+            outbox: EventOutbox,
             buffers: RadioBuffers,
             app: AppConfig,
             vision: LiveVision,
             clock: Clock
-          ) => new RadioNetwork(world, source, sink, buffers, app.engine.radio, vision, clock)
+          ) => new RadioNetwork(world, source, sink, outbox, buffers, app.engine.radio, vision, clock)
+        },
+        {
+          provide: GameEventBus,
+          inject: [EventOutbox, LiveVision, RadioNetwork, RadioBuffers, ENGINE_SINK],
+          useFactory: (
+            outbox: EventOutbox,
+            vision: LiveVision,
+            radio: RadioNetwork,
+            buffers: RadioBuffers,
+            sink: EngineSink
+          ) => new GameEventBus(outbox, new EngineAudience(vision, radio), buffers, sink)
         },
         {
           provide: ScriptApi,
@@ -206,6 +222,7 @@ export class EngineWorkerModule {
             LiveVision,
             RadioNetwork,
             RadioBuffers,
+            EventOutbox,
             CLOCK,
             APP_CONFIG,
             ScanService,
@@ -219,6 +236,7 @@ export class EngineWorkerModule {
             vision: LiveVision,
             radio: RadioNetwork,
             buffers: RadioBuffers,
+            outbox: EventOutbox,
             clock: Clock,
             app: AppConfig,
             scans: ScanService,
@@ -229,13 +247,13 @@ export class EngineWorkerModule {
           ) =>
             new ScriptApi([
               new GpsHandler(world),
-              new MovementHandler(world, app.engine.movement),
-              new MiningHandler(world),
+              new MovementHandler(world, app.engine.movement, outbox),
+              new MiningHandler(world, outbox),
               new ManipulatorHandler(world),
-              new CombatHandler(world, clock, app.engine.combat),
+              new CombatHandler(world, clock, app.engine.combat, outbox),
               new PowerHandler(world, clock, vision),
               new ViewHandler(world, vision),
-              new SyncedHandler(world, new ScannerHandler(scans, radio, buffers)),
+              new SyncedHandler(world, new ScannerHandler(scans, radio, buffers, outbox)),
               new LinkHandler(radio),
               new SyncedHandler(world, new FactoryHandler(factory, assembly)),
               new SyncedHandler(world, new MaintenanceHandler(maintenance)),
@@ -277,6 +295,8 @@ export class EngineWorkerModule {
             World,
             LiveVision,
             RadioNetwork,
+            EventOutbox,
+            GameEventBus,
             WorldActionExecutor,
             ENGINE_SINK,
             ID_GENERATOR,
@@ -297,6 +317,8 @@ export class EngineWorkerModule {
             world: World,
             vision: LiveVision,
             radio: RadioNetwork,
+            outbox: EventOutbox,
+            bus: GameEventBus,
             actions: WorldActionExecutor,
             sink: EngineSink,
             ids: IdGenerator,
@@ -319,6 +341,8 @@ export class EngineWorkerModule {
               world,
               vision,
               radio,
+              outbox,
+              bus,
               actions,
               sink,
               ids,

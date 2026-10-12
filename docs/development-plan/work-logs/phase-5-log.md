@@ -87,3 +87,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the buffer of events is filled by the event bus (5.10); a bot's `connect` / `sendMessage` / `ping` come with 5.9; the signal of the whole fleet is not yet pushed to sockets (5.6).
 - **Next step:** task 5.10 (game event bus).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.10: game event bus
+- **Tasks:** 5.10
+- **Branch:** `feature/5.10-event-bus` — done
+- **Decisions / deviations from the plan:** `GameEvent` (engine/domain) is a union of typed events with `parties` and an optional `location`; publishers write to the tick's `EventOutbox`, `GameEventBus.deliver()` runs after the commands and the radio refresh and chooses the audience (parties while connected, otherwise the per-bot buffer of 5.13; link events always; watchers of a live area through `LiveVision.audienceAt`). Events emitted so far: `BotMoved`, `ResourceMined`, `DepositDepleted`, `ShotFired`, `ShotHit`, `ModuleDamaged`, `ModuleBroken`, `ScanCompleted`, `ExecutionFinished`, `ExecutionFailed`, the energy events and the link events. The other events of design §24.1 are emitted by their own features (trade, adoption, passwords: 5.9 and later phases). On the API side `GameEventDispatcher` gives each event to registered consumers, and `RealtimeGateway` (rooms `user:<id>`) pushes `game-event`, `radio-changes`, `vision`, `execution` and `script-log` to the owner's sockets only; an integration test connects two players and checks the stranger hears nothing.
+- **Findings:** the e2e `factory` spec could no longer write a battery value straight into the database: the engine keeps a player's bots loaded for the radio network and its next flush overwrites the row. The "not enough energy" case is left to `factory.service.test.ts`.
+- **Next step:** task 5.6 (`run`, `shell`, `top`, `kill` in the terminal through the engine).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

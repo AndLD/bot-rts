@@ -3,8 +3,10 @@ import { fail, ok, ResultCode } from '../../../../../lib/utils/result'
 import { Location } from '../../../map/domain/map-point.entity'
 import { MiningModule, StorageModule } from '../../../modules/domain/game-module'
 import { BotState } from '../../domain/bot-state'
+import { EventParty } from '../../domain/game-event'
 import { ahead, isNeighbour } from '../../domain/heading'
 import { JsonValue } from '../../domain/json-value'
+import { EventOutbox } from '../event-outbox'
 import { CallOutcome, ScriptFunctionHandler } from '../script-api'
 import { World } from '../world/world'
 import { actingPlaced, isFailure } from './acting'
@@ -14,7 +16,10 @@ import { actingPlaced, isFailure } from './acting'
 export class MiningHandler implements ScriptFunctionHandler {
   readonly functions = ['dig', 'mine']
 
-  constructor(private readonly world: World) {}
+  constructor(
+    private readonly world: World,
+    private readonly outbox: EventOutbox
+  ) {}
 
   async handle(state: BotState, fn: string, args: readonly JsonValue[]): Promise<CallOutcome> {
     const acting = await actingPlaced(this.world, state)
@@ -55,10 +60,22 @@ export class MiningHandler implements ScriptFunctionHandler {
 
     this.world.updateModules(acting.bot, [fitting.storage.withProps({ items: fitting.added.data })])
     const left = cell.resource.amount - extracted.data.amount
+    const base = {
+      at: this.outbox.now(),
+      parties: [{ userId: state.ownerId, botId: state.bot.id }] as [EventParty],
+      location: target
+    }
+    this.outbox.publish({
+      ...base,
+      type: 'ResourceMined',
+      resource: extracted.data.resource,
+      amount: extracted.data.amount
+    })
     if (left > 0) {
       this.world.setCell({ ...cell, resource: { ...cell.resource, amount: left } })
     } else {
       this.world.emptyCell(cell)
+      this.outbox.publish({ ...base, type: 'DepositDepleted', resource: extracted.data.resource })
     }
     return ok({ resource: extracted.data.resource, amount: extracted.data.amount })
   }

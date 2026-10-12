@@ -3,8 +3,10 @@ import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { RecordingSink } from '../../../tests/fakes/engine'
 import { FakeClock } from '../../../tests/fakes/fakes'
 import { createEngineWorld } from '../../../tests/fakes/world-engine'
+import { GameEvent } from '../domain/game-event'
 import { KnownPoint } from '../../map/domain/map-point.entity'
 import { DEFAULT_RADIO_BALANCE } from '../domain/radio'
+import { EventOutbox } from './event-outbox'
 import { RadioBuffers } from './radio-buffers'
 import { NoSignalError, RadioNetwork } from './radio-network'
 
@@ -19,10 +21,12 @@ async function setup() {
   const buffers = new RadioBuffers({ scans: 10, events: 10 })
   const learned: Array<{ userId: string; points: KnownPoint[] }> = []
   const clock = new FakeClock()
+  const outbox = new EventOutbox(clock)
   const radio = new RadioNetwork(
     engine.world,
     engine.source,
     sink,
+    outbox,
     buffers,
     DEFAULT_RADIO_BALANCE,
     { learn: async (userId, points) => void learned.push({ userId, points }) },
@@ -35,7 +39,12 @@ async function setup() {
     clock.current = new Date(clock.now().getTime() + ms)
     await radio.refresh()
   }
-  const games = () => sink.events.flatMap((event) => (event.type === 'game' ? [event.event] : []))
+  // Everything published so far, in order
+  const published: GameEvent[] = []
+  const games = () => {
+    published.push(...outbox.drain())
+    return published
+  }
   const changes = () => sink.events.flatMap((event) => (event.type === 'radio' ? event.changes : []))
   const move = async (id: string, x: number) => {
     const bot = (await engine.world.bot(id))!
@@ -81,7 +90,9 @@ describe('RadioNetwork', () => {
 
     await t.move('rover', 50)
     await t.tick()
-    expect(t.games()).toEqual([{ type: 'LinkLost', userId: OWNER, botId: 'rover', at: expect.any(Number) }])
+    expect(t.games()).toEqual([
+      { type: 'LinkLost', at: expect.any(Number), parties: [{ userId: OWNER, botId: 'rover' }] }
+    ])
     expect(t.changes()).toEqual([{ botId: 'rover', isConnected: false, bars: 0, hops: 0 }])
     const status = await t.radio.statusOf(OWNER, 'rover')
     expect(status).toMatchObject({ isConnected: false, signal: 0, lostSince: expect.any(Number) })
@@ -97,13 +108,13 @@ describe('RadioNetwork', () => {
       resource: null,
       seenAt: 1234
     })
-    t.buffers.keepEvent('rover', { type: 'LinkWeak', userId: OWNER, botId: 'rover', at: 1, bars: 1 })
+    t.buffers.keepEvent('rover', { type: 'LinkWeak', at: 1, parties: [{ userId: OWNER, botId: 'rover' }], bars: 1 })
     await t.move('rover', 6)
     await t.tick()
 
     expect(t.games()[1]).toMatchObject({
       type: 'LinkRestored',
-      botId: 'rover',
+      parties: [{ userId: OWNER, botId: 'rover' }],
       missed: { scans: 1, events: 1, byType: { LinkWeak: 1 } }
     })
     expect(t.learned).toEqual([{ userId: OWNER, points: [expect.objectContaining({ seenAt: 1234 })] }])
@@ -123,7 +134,7 @@ describe('RadioNetwork', () => {
     await t.move('rover', 19)
     await t.tick()
     expect(t.changes()[1]).toMatchObject({ bars: 1 })
-    expect(t.games()).toEqual([expect.objectContaining({ type: 'LinkWeak', botId: 'rover', bars: 1 })])
+    expect(t.games()).toEqual([expect.objectContaining({ type: 'LinkWeak', bars: 1 })])
 
     await t.move('rover', 18)
     await t.tick()
@@ -139,7 +150,7 @@ describe('RadioNetwork', () => {
     await t.breakAdapter('relay')
     await t.tick()
 
-    expect(t.games().map((e) => `${e.type}:${e.botId}`)).toEqual(['LinkLost:relay', 'LinkLost:behind'])
+    expect(t.games().map((e) => `${e.type}:${e.parties[0].botId}`)).toEqual(['LinkLost:relay', 'LinkLost:behind'])
   })
 
   it('treats a bot without energy as switched off', async () => {
@@ -152,7 +163,9 @@ describe('RadioNetwork', () => {
     t.world.updateModules(bot, [{ ...battery, props: { ...battery.props, value: 0 } }])
     await t.tick()
 
-    expect(t.games()).toEqual([expect.objectContaining({ type: 'LinkLost', botId: 'rover' })])
+    expect(t.games()).toEqual([
+      expect.objectContaining({ type: 'LinkLost', parties: [{ userId: OWNER, botId: 'rover' }] })
+    ])
   })
 
   it('counts only the bots of the base, and nothing connects without a living base', async () => {
@@ -190,6 +203,7 @@ describe('RadioNetwork', () => {
     await t.tick()
 
     expect(t.sink.events).toEqual([])
+    expect(t.games()).toEqual([])
     expect((await t.radio.statusOf(OWNER, 'rover')).isConnected).toBe(true)
   })
 })

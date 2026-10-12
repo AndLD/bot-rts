@@ -6,8 +6,10 @@ import { ArmorModule } from '../../../modules/domain/game-module'
 import { CombatBalance, WeaponModule } from '../../../modules/domain/weapon-module'
 import { Clock } from '../../../shared/application/clock'
 import { BotState } from '../../domain/bot-state'
+import { EventParty } from '../../domain/game-event'
 import { isNeighbour } from '../../domain/heading'
 import { JsonValue } from '../../domain/json-value'
+import { EventOutbox } from '../event-outbox'
 import { CallOutcome, ScriptFunctionHandler } from '../script-api'
 import { World, WorldBot } from '../world/world'
 import { actingPlaced, isFailure } from './acting'
@@ -54,7 +56,8 @@ export class CombatHandler implements ScriptFunctionHandler {
   constructor(
     private readonly world: World,
     private readonly clock: Clock,
-    private readonly balance: CombatBalance
+    private readonly balance: CombatBalance,
+    private readonly outbox: EventOutbox
   ) {}
 
   async handle(state: BotState, fn: string, args: readonly JsonValue[]): Promise<CallOutcome> {
@@ -90,7 +93,26 @@ export class CombatHandler implements ScriptFunctionHandler {
 
     const hits = weapon.resolve(shot.data, () => this.world.random())
     const struck = hits > 0 ? await this.victimOn(from, target, weapon) : null
-    if (struck) {
+    const shooter = { userId: bot.state.ownerId, botId: bot.state.bot.id }
+    this.outbox.publish({
+      type: 'ShotFired',
+      at: this.outbox.now(),
+      parties: [shooter],
+      location: from,
+      target,
+      rounds: shot.data.rounds
+    })
+    // A cell may name a bot that is gone; nobody is hurt then
+    const victim = struck ? await this.world.bot(struck.botId) : null
+    if (struck && victim) {
+      this.outbox.publish({
+        type: 'ShotHit',
+        at: this.outbox.now(),
+        parties: [shooter, { userId: victim.state.ownerId, botId: struck.botId }],
+        location: struck.location,
+        hits,
+        victimBotId: struck.botId
+      })
       for (let hit = 0; hit < hits; hit++) {
         await this.damage(struck.botId, weapon.damage)
       }
@@ -144,7 +166,17 @@ export class CombatHandler implements ScriptFunctionHandler {
       .reduce((sum, armor) => sum + armor.protection, 0)
     const struck = victim.state.modules[Math.floor(this.world.random() * victim.state.modules.length)]
     const taken = Math.max(this.balance.minDamage, force - protection)
-    this.world.updateModules(victim, [{ ...struck, condition: Math.max(struck.condition - taken, 0) }])
+    const condition = Math.max(struck.condition - taken, 0)
+    this.world.updateModules(victim, [{ ...struck, condition }])
+    const about = {
+      at: this.outbox.now(),
+      parties: [{ userId: victim.state.ownerId, botId }] as [EventParty],
+      ...(victim.position ? { location: victim.position } : {})
+    }
+    this.outbox.publish({ ...about, type: 'ModuleDamaged', moduleId: struck.id, condition })
+    if (condition === 0 && struck.condition > 0) {
+      this.outbox.publish({ ...about, type: 'ModuleBroken', moduleId: struck.id })
+    }
   }
 
   private async reload(bot: WorldBot, weapon: WeaponModule): Promise<CallOutcome> {

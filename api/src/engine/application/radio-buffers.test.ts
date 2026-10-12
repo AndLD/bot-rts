@@ -11,7 +11,7 @@ const sighting = (x: number, seenAt: number) => ({
   resource: null,
   seenAt
 })
-const event = (botId: string): GameEvent => ({ type: 'LinkWeak', userId: 'u', botId, at: 1, bars: 1 })
+const event = (botId: string): GameEvent => ({ type: 'LinkWeak', at: 1, parties: [{ userId: 'u', botId }], bars: 1 })
 
 describe('RadioBuffers', () => {
   it('keeps the newest sighting of each cell and hands everything over once', () => {
@@ -40,7 +40,7 @@ describe('RadioBuffers', () => {
     const { scans, events } = buffers.take('b1')
 
     expect(scans.map((s) => s.location.x)).toEqual([3, 4])
-    expect(events.map((e) => (e as { botId: string }).botId)).toEqual(['b', 'c'])
+    expect(events.map((e) => e.parties[0].botId)).toEqual(['b', 'c'])
   })
 
   it('keeps the buffers of different bots apart', () => {

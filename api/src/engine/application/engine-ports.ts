@@ -33,7 +33,7 @@ export type EngineEvent =
     }
   | { type: 'execution'; userId: string; execution: ExecutionView }
   // Something that happened in the game; who may hear of it is decided by the event bus (design §24.1)
-  | { type: 'game'; event: GameEvent }
+  | { type: 'game'; userId: string; event: GameEvent }
   // The signal of bots that changed, only the changes (design §11.2.1)
   | { type: 'radio'; userId: string; changes: RadioChange[] }
   // The cells that changed in a live area since its last batch (design §4.4)

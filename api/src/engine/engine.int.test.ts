@@ -1,4 +1,5 @@
 import request from 'supertest'
+import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { signUpVerified, startTestApp, TestApp } from '../../tests/integration/test-app'
 import { ENGINE_PORT, EnginePort } from './application/engine-port'
@@ -97,6 +98,39 @@ describe('the engine as the single writer (design §14.2)', () => {
     const listed = await request(testApp.url).get(`${base}/files`).set(bearer(accessToken)).expect(200)
 
     expect(listed.body.map((f: { path: string }) => f.path)).toContain('scripts')
+  })
+})
+
+describe("the engine to the player's sockets", () => {
+  const open = (token: string) =>
+    new Promise<Socket>((resolve, reject) => {
+      const socket = connect(testApp.url, { auth: { token }, reconnection: false, transports: ['websocket'] })
+      socket.on('connect', () => resolve(socket))
+      socket.on('connect_error', reject)
+    })
+
+  it("pushes the log of a script, its state and the game events to the player's connections only", async () => {
+    const { userId, botId, accessToken } = await deployWithScript(
+      'export async function main(bot) { bot.log("to you") }'
+    )
+    const stranger = await deployWithScript('export async function main() {}')
+    const mine = await open(accessToken)
+    const theirs = await open(stranger.accessToken)
+    const heard: Record<string, Array<[string, unknown]>> = { mine: [], theirs: [] }
+    mine.onAny((event, payload) => heard.mine.push([event, payload]))
+    theirs.onAny((event, payload) => heard.theirs.push([event, payload]))
+
+    await port.start({ userId, botId, file: '/memory-class1/main.js', args: [] })
+    await until(() => heard.mine.some(([event]) => event === 'game-event'), 'the game event')
+
+    expect(heard.mine.map(([event]) => event)).toEqual(
+      expect.arrayContaining(['execution', 'script-log', 'game-event'])
+    )
+    expect(heard.mine.find(([event]) => event === 'script-log')?.[1]).toMatchObject({ text: 'to you', botId })
+    expect(heard.mine.find(([event]) => event === 'game-event')?.[1]).toMatchObject({ type: 'ExecutionFinished' })
+    expect(heard.theirs).toEqual([])
+    mine.close()
+    theirs.close()
   })
 })
 

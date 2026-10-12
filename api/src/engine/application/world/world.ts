@@ -3,7 +3,7 @@ import { Heading, MapPointType } from '../../../../../lib/utils/interfaces/map'
 import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
 import { Result } from '../../../../../lib/utils/result'
 import { Item } from '../../../crafting/domain/item.entity'
-import { chunkOf, locationKey } from '../../../map/domain/location'
+import { chunkKeyOf, chunkOf, locationKey } from '../../../map/domain/location'
 import { Location, MapPoint } from '../../../map/domain/map-point.entity'
 import { EnergyModel } from '../../../modules/domain/energy-model'
 import { GameModule } from '../../../modules/domain/game-module'
@@ -33,6 +33,13 @@ export class World {
   private cells = new Map<string, MapPoint>()
   private items = new Map<string, Item>()
   private loadedChunks = new Set<string>()
+  // When each loaded chunk was last used (a tick), the cells it holds, and which chunks have changes the database lacks
+  private readonly chunkUse = new Map<string, number>()
+  private chunkCells = new Map<string, Set<string>>()
+  private readonly dirtyChunks = new Set<string>()
+  // The cells that changed since the live views last asked, newest content per cell
+  private changed = new Map<string, MapPoint>()
+  private readonly evictionListeners: Array<() => void> = []
   // Bots that are still moving, by the tick they are free again; kept across evictions
   private readonly busyUntil = new Map<string, number>()
   private rng: Rng | null = null
@@ -45,7 +52,9 @@ export class World {
     private readonly energy: EnergyModel,
     private readonly chunkSize: number,
     private readonly createRng: (seed: number) => Rng,
-    private readonly seed: number
+    private readonly seed: number,
+    // How many chunks of cells stay in memory; the least recently used go first (design §4.4)
+    private readonly maxChunks: number
   ) {}
 
   get tick(): number {
@@ -90,6 +99,8 @@ export class World {
   // The cell at a location; one that was never generated is rolled now
   async cell(location: Location): Promise<MapPoint> {
     const key = locationKey(location)
+    const chunk = chunkKeyOf(location, this.chunkSize)
+    this.chunkUse.set(chunk, this.currentTick)
     if (!this.cells.has(key)) {
       await this.loadChunk(location)
     }
@@ -98,8 +109,9 @@ export class World {
       return existing
     }
     const { point, item } = this.source.generate(location)
-    this.cells.set(key, point)
+    this.holdCell(point, chunk)
     this.writeBehind.stageMapPoint(point)
+    this.dirtyChunks.add(chunk)
     if (item) {
       this.items.set(item.id, item)
       this.writeBehind.stageItem(item)
@@ -117,8 +129,19 @@ export class World {
 
   // Puts new content on a cell
   setCell(point: MapPoint): void {
-    this.cells.set(locationKey(point.location), point)
+    const key = locationKey(point.location)
+    const chunk = chunkKeyOf(point.location, this.chunkSize)
+    this.holdCell(point, chunk)
+    this.changed.set(key, point)
+    this.dirtyChunks.add(chunk)
     this.writeBehind.stageMapPoint(point)
+  }
+
+  // The cells that changed since the last call, for the live views (design §4.4)
+  drainChanged(): MapPoint[] {
+    const points = [...this.changed.values()]
+    this.changed = new Map()
+    return points
   }
 
   emptyCell(point: MapPoint): void {
@@ -219,11 +242,42 @@ export class World {
     this.cells = new Map()
     this.items = new Map()
     this.loadedChunks = new Set()
+    this.chunkCells = new Map()
+    this.chunkUse.clear()
+    this.dirtyChunks.clear()
+    this.evictionListeners.forEach((listener) => listener())
+  }
+
+  // Told when everything loaded is forgotten, so that a cache built on it can start afresh too
+  onEvict(listener: () => void): void {
+    this.evictionListeners.push(listener)
+  }
+
+  // Keeps at most `maxChunks` chunks of cells: the least recently used go, but never one with changes that are not written
+  evictCold(): void {
+    if (!this.writeBehind.pending) {
+      this.dirtyChunks.clear()
+    }
+    const candidates = [...this.loadedChunks]
+      .filter((chunk) => !this.dirtyChunks.has(chunk))
+      .sort((a, b) => (this.chunkUse.get(a) as number) - (this.chunkUse.get(b) as number))
+    for (const chunk of candidates.slice(0, Math.max(this.loadedChunks.size - this.maxChunks, 0))) {
+      for (const key of this.chunkCells.get(chunk) as Set<string>) {
+        this.cells.delete(key)
+      }
+      this.chunkCells.delete(chunk)
+      this.chunkUse.delete(chunk)
+      this.loadedChunks.delete(chunk)
+    }
+  }
+
+  get loadedChunkCount(): number {
+    return this.loadedChunks.size
   }
 
   private async loadChunk(location: Location): Promise<void> {
     const { cx, cy } = chunkOf(location, this.chunkSize)
-    const key = `${cx}:${cy}:${location.z}`
+    const key = chunkKeyOf(location, this.chunkSize)
     if (this.loadedChunks.has(key)) {
       return
     }
@@ -233,11 +287,19 @@ export class World {
     })
     for (const point of points) {
       // A change made in memory since the chunk was read is newer than the row
-      this.cells.set(locationKey(point.location), this.cells.get(locationKey(point.location)) ?? point)
+      this.holdCell(this.cells.get(locationKey(point.location)) ?? point, key)
     }
     for (const item of items) {
       this.items.set(item.id, this.items.get(item.id) ?? item)
     }
     this.loadedChunks.add(key)
+    this.chunkCells.set(key, this.chunkCells.get(key) ?? new Set<string>())
+  }
+
+  private holdCell(point: MapPoint, chunk: string): void {
+    const key = locationKey(point.location)
+    this.cells.set(key, point)
+    const held = this.chunkCells.get(chunk) ?? new Set<string>()
+    this.chunkCells.set(chunk, held.add(key))
   }
 }

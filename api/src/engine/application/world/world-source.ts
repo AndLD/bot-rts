@@ -1,7 +1,7 @@
 import { Heading } from '../../../../../lib/utils/interfaces/map'
 import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
 import { Item } from '../../../crafting/domain/item.entity'
-import { Location, LocationRange, MapPoint } from '../../../map/domain/map-point.entity'
+import { KnownPoint, Location, LocationRange, MapPoint } from '../../../map/domain/map-point.entity'
 import { BotState } from '../../domain/bot-state'
 
 // A bot as stored: what it is made of, where it stands and what it carries
@@ -23,6 +23,10 @@ export interface WorldSource {
   loadBot(botId: string): Promise<StoredBot | null>
   // The stored cells of a range with the items lying on them
   loadCells(range: LocationRange): Promise<{ points: MapPoint[]; items: Item[] }>
+  // What a player knows of the cells in a range
+  loadKnown(userId: string, range: LocationRange): Promise<KnownPoint[]>
+  // The bots whose scanner is in live mode, to resume their vision after a restart
+  liveScannerBotIds(): Promise<string[]>
   // Rolls the content of a cell that does not exist yet
   generate(location: Location): NewCell
   // How hard a resource is to mine (design §9.1)

@@ -90,7 +90,9 @@ on the cell ahead, `drop()` puts the last carried item on the free cell ahead an
 resources go to the first storage module with room, a carried item counts against the manipulator's `loadCapacity`. `aim`,
 `shoot` and `reload` follow §12.6 (a shot hits the first bot on its line unless the weapon is artillery; `reload` consumes
 carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator or connect a battery.
-A bot that is moving answers `BUSY` to every action that needs its body.
+A bot that is moving answers `BUSY` to every action that needs its body. The `bot` object lists the bot's modules
+(`bot.modules`: `id`, `type`, `name`) so that `enable(moduleId)` / `disable(moduleId)` can name the module to switch; a scanner
+that is switched on keeps its area live (§4.4) and `view(since?)` reads the live view (`{ tick, cells }`).
 
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
 `enable()`/`disable()` (battery, generator, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅

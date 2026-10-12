@@ -1,5 +1,6 @@
 import { BotState } from '../domain/bot-state'
 import { ExecutionView } from '../domain/execution'
+import type { VisionCell } from './live-vision'
 
 export const BOT_STATE_SOURCE = Symbol('BotStateSource')
 export const SCRIPT_SOURCE = Symbol('ScriptSource')
@@ -29,6 +30,15 @@ export type EngineEvent =
       text: string
     }
   | { type: 'execution'; userId: string; execution: ExecutionView }
+  // The cells that changed in a live area since its last batch (design §4.4)
+  | {
+      type: 'vision'
+      userId: string
+      botId: string
+      scannerId: string
+      tick: number
+      cells: VisionCell[]
+    }
 
 export interface EngineSink {
   emit(event: EngineEvent): void

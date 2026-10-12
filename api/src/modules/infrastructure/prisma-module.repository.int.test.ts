@@ -48,6 +48,21 @@ describe('PrismaModuleRepository', () => {
     expect(await modules.listOfBot(baseId)).toEqual([{ ...battery, condition: 40, props: { value: 3 } }])
   })
 
+  it('lists the bots with a scanner in live mode, each once', async () => {
+    const user = buildUser()
+    await new PrismaUserRepository(database.client).add(user)
+    const other = buildBase(user.id)
+    await new PrismaBotRepository(database.client).add(other)
+    await modules.addMany([
+      buildModule(baseId, { type: 'scanner', props: { isLive: true } }),
+      buildModule(baseId, { type: 'scanner', props: { isLive: true } }),
+      buildModule(other.id, { type: 'scanner', props: { isLive: false } }),
+      buildModule(other.id, { type: 'weapon', props: { isLive: true } })
+    ])
+
+    expect(await modules.listBotIdsWithLiveScanner()).toEqual([baseId])
+  })
+
   it('lists nothing for an unknown bot', async () => {
     expect(await modules.listOfBot(randomUUID())).toEqual([])
   })

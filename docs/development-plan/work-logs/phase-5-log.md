@@ -71,3 +71,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Known gap:** deleting an account removes its bases from the API process.
 - **Next step:** task 5.12 (live vision), then 5.13 (radio), 5.10 (events), 5.6, 5.8, 5.9, 5.11, 5.7.
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.12: live vision
+- **Tasks:** 5.12
+- **Branch:** `feature/5.12-live-vision` — done
+- **Decisions / deviations from the plan:** `LiveVision` (`engine/application/live-vision.ts`, rules in design §4.4 and in `docs/game-design/04-…`) is a subscription, not polling: `World` records the cells that changed in a tick (`drainChanged`), the index of live areas by chunk hands each one to the areas that cover it. The player's knowledge of a cell is kept in memory per player (loaded per chunk from `known_points`); a change is staged in the write-behind buffer at once, an unchanged live cell writes nothing, a cell that leaves the area or whose scanner stops is written stamped with that tick's time, and a cell still covered by another area of the same player stays live. Batches go out as `vision` engine events every scanner `delay`; `audienceAt(location)` is the lookup the event bus (5.10) will use. `enable(moduleId)` / `disable(moduleId)` now also switch scanners, `view(since?)` reads the live view (`NOT_LIVE` when the scanner is not live). Scripts can name modules: `bot.modules` lists `{ id, type, name }`. After the world is evicted (a database-backed use case ran) the knowledge cache is dropped and the live areas are looked at again on the next tick. `World` keeps at most `ENGINE_MAX_CHUNKS` chunks (LRU), never dropping one with unwritten changes. The bots with a live scanner are found again after a restart (`ModuleRepository.listBotIdsWithLiveScanner`).
+- **Open points:** the per-tick refresh cost of an area is the cost of the energy tick (design §12.5: every tick), which drains a battery fast; tuning is a playtest topic. Pushing `vision` events to the client's socket comes with 5.6 / 5.10.
+- **Next step:** task 5.13 (radio network).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

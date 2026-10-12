@@ -19,6 +19,8 @@ export interface EngineConfig {
   maxRestarts: number
   // An execution that has run this many ticks since its relaunch is healthy: its restart count is forgotten
   healthyTicks: number
+  // Chunks of the map kept in memory; the least recently used are dropped (design §4.4)
+  maxChunks: number
   // Game rules whose numbers the engine applies (design §8.5, §12.6)
   movement: MovementBalance
   combat: CombatBalance
@@ -33,6 +35,7 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   stackBytes: 256 * 1024,
   maxRestarts: 3,
   healthyTicks: 6000,
+  maxChunks: 512,
   movement: DEFAULT_MOVEMENT_BALANCE,
   combat: DEFAULT_COMBAT_BALANCE
 }

@@ -23,7 +23,7 @@ implemented and measured carefully.
 | 5.9 | Bot security per design §11.2.2: `passwd`, foreign `connect` authentication, brute-force cost and lockout, failed-attempt logs, and `adopt` (not for bases) | 5 | ⬜ |
 | 5.10 | Game event bus per design §24.1: typed engine events after each tick's commands, audience filter (a player receives events about their own entities, the direct results of their own actions, and everything inside their live areas, design §24.1), delivery to animations, achievements and notifications outside the tick path; events about a player's own bots reach them only while the bot is connected, with a summary on reconnection (5.13) | 5 | ⬜ |
 | 5.11 | E2E (Cypress) for the script lifecycle: write a script with `edit`, `run` it, watch its log, `top` and `kill`, shell mode, a failing script, engine restart relaunching a running script with the "rebooted" note; also script arguments, `<file>` shorthand, imports across files, a TypeScript script, import cycle and size limits, queued executions and the ops budget, sandbox denial (`process`, `require`, network), and offline play (log out, scripts keep running, log in and see results) | 8 | ⬜ |
-| 5.12 | Live vision (design §4.4): chunk index of live scan areas, batched diff delivery per scanner `delay`, edge updates when a scanning bot moves, in-memory `seenAt` for live cells with lazy persistence, event-audience lookup for the live areas, map chunks with an LRU cache over the database | 8 | ⬜ |
+| 5.12 | Live vision (design §4.4): chunk index of live scan areas, batched diff delivery per scanner `delay`, edge updates when a scanning bot moves, in-memory `seenAt` for live cells with lazy persistence, event-audience lookup for the live areas, map chunks with an LRU cache over the database | 8 | ✅ |
 | 5.13 | Radio network (design §11.2.1): connectivity graph from each base (links at the smaller of two ranges, relays, powered adapters), incremental recompute around changes, `LinkLost` / `LinkRestored` events, `NO_SIGNAL` for control of disconnected bots, `getLinkStatus()`, per-bot buffers of scans and events delivered on reconnection with original `seenAt`; signal strength (0–4 bars from the weakest link on the path, `LinkWeak` event, bar changes as diffs) | 6 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
@@ -46,3 +46,4 @@ AGENTS.md §7.1).
 | `feature/5.4-fair-scheduler` | 5.4 | #76 | merged |
 | `feature/5.5a-world-commands` | 5.5 (in-memory world, world functions, deterministic apply) | #77 | merged |
 | `feature/5.5b-single-writer` | 5.5 (single-writer routing of API requests) | #78 | merged |
+| `feature/5.12-live-vision` | 5.12 | #79 | merged |

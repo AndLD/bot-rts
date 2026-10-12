@@ -48,6 +48,9 @@ describe('the files of the base in the terminal', () => {
     command('rm mine.js')
     command('cd ..')
     command('rm scripts')
+    // The commands are served one after the other and the engine answers at its next tick: wait until the last reply is there
+    command('ls')
+    cy.contains('/memory-class1> ls')
     command('clear')
     command('ls')
     cy.contains('/memory-class1> ls')

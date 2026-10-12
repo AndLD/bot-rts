@@ -7,7 +7,7 @@ import { NewCell, StoredBot, WorldSource } from '../../src/engine/application/wo
 import { WriteBehind } from '../../src/engine/application/write-behind'
 import { Item } from '../../src/crafting/domain/item.entity'
 import { locationKey } from '../../src/map/domain/location'
-import { Location, LocationRange, MapPoint } from '../../src/map/domain/map-point.entity'
+import { KnownPoint, Location, LocationRange, MapPoint } from '../../src/map/domain/map-point.entity'
 import { ModuleFactory } from '../../src/modules/application/module.factory'
 import { EnergyModel } from '../../src/modules/domain/energy-model'
 import { createModuleRegistry } from '../../src/modules/domain/module-registry'
@@ -23,6 +23,7 @@ export class FakeWorldSource implements WorldSource {
 
   readonly cells = new Map<string, MapPoint>()
   readonly items = new Map<string, Item>()
+  readonly known: KnownPoint[] = []
   loads = 0
 
   async loadBot(botId: string) {
@@ -37,6 +38,19 @@ export class FakeWorldSource implements WorldSource {
     )
     const items = points.flatMap((p) => (p.contentId ? (this.items.get(p.contentId) ?? []) : []))
     return { points, items }
+  }
+
+  async loadKnown(userId: string, { from, to }: LocationRange) {
+    return this.known.filter(
+      ({ userId: owner, location: l }) =>
+        owner === userId && l.x >= from.x && l.x <= to.x && l.y >= from.y && l.y <= to.y && l.z === from.z
+    )
+  }
+
+  async liveScannerBotIds() {
+    return [...this.bots.values()]
+      .filter(({ state }) => state.modules.some((m) => m.type === 'scanner' && m.props.isLive === true))
+      .map(({ state }) => state.bot.id)
   }
 
   generate(location: Location): NewCell {
@@ -66,14 +80,23 @@ export const FULL_KIT = [
 ]
 
 export function createEngineWorld(
-  options: { seed?: number; states?: Map<string, BotState>; writeBehind?: WriteBehind } = {}
+  options: { seed?: number; states?: Map<string, BotState>; writeBehind?: WriteBehind; maxChunks?: number } = {}
 ) {
   const source = new FakeWorldSource(options.states)
   const batches: WorldStateBatch[] = []
   const writeBehind = options.writeBehind ?? new WriteBehind({ flush: async (batch) => void batches.push(batch) }, 10)
   const registry = createModuleRegistry()
   const energy = new EnergyModel(registry)
-  const world = new World(source, writeBehind, registry, energy, 16, (seed) => new SeededRng(seed), options.seed ?? 1)
+  const world = new World(
+    source,
+    writeBehind,
+    registry,
+    energy,
+    16,
+    (seed) => new SeededRng(seed),
+    options.seed ?? 1,
+    options.maxChunks ?? 512
+  )
   const ids = new SequentialIdGenerator()
   const modules = new ModuleFactory(ids)
   world.beginTick(1)

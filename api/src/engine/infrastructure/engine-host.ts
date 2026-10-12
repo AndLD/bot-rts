@@ -77,6 +77,8 @@ export class EngineHost {
         return this.core.list(request.userId)
       case 'link':
         return this.core.link(request.userId, request.botId)
+      case 'manual':
+        return this.core.manual(request.userId, request.botId, request.fn, request.args)
       case 'act':
         return this.core.act(request.name, request.args)
       default:

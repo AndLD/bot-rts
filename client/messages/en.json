@@ -253,5 +253,17 @@
       "settings": "Settings",
       "editor": "Editor"
     }
+  },
+  "storage": {
+    "loading": "Loading...",
+    "loadFailed": "Could not load the storage",
+    "used": "Storage: {used} of {capacity}",
+    "resources": "Resources",
+    "noResources": "No resources",
+    "items": "Items in hands",
+    "load": "Carried {carried} kg of {capacity} kg",
+    "noItems": "Nothing in hands",
+    "take": "Take the item ahead",
+    "drop": "Drop the last item ahead"
   }
 }

@@ -1,3 +1,4 @@
+import { JsonValue } from '../domain/json-value'
 import { ExecutionView } from '../domain/execution'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { LinkStatus } from './radio-network'
@@ -15,6 +16,8 @@ export interface EnginePort {
   list(userId: string): Promise<ExecutionView[]>
   // Runs a use case that changes the world in the engine, between its ticks (design §14.2), and returns what it returns
   act<K extends WorldActionName>(name: K, args: Parameters<WorldActions[K]>): ReturnType<WorldActions[K]>
+  // A call of the script API made by hand (design §15.1), with the rules and the answer of a script's call
+  manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue>
   // Whether a bot reaches its base through the radio network, and how well
   linkStatus(userId: string, botId: string): Promise<LinkStatus>
   metrics(): Promise<EngineMetricsSnapshot>

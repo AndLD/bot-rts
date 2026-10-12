@@ -2,6 +2,7 @@ import { ExecutionView } from '../domain/execution'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { StartRequest } from './engine-core'
 import { EngineEvent } from './engine-ports'
+import { JsonValue } from '../domain/json-value'
 import { LinkStatus } from './radio-network'
 import { WorldActionName } from './world-actions'
 
@@ -14,6 +15,7 @@ export type EngineRequest =
   | { op: 'list'; userId: string }
   | { op: 'act'; name: WorldActionName; args: unknown[] }
   | { op: 'link'; userId: string; botId: string }
+  | { op: 'manual'; userId: string; botId: string; fn: string; args: JsonValue[] }
   | { op: 'metrics' }
 
 // What an action returns is plain data too (structured clone keeps dates)

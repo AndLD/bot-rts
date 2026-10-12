@@ -12,7 +12,7 @@ Surface the game state in the browser.
 | --- | --------------------------------------------------------------------------------------------------------- | -- | --- |
 | 6.1 | Canvas 2D map renderer with sprites per design §4.3: sprite atlas + JSON index loader, chassis-based bot sprites with module overlays and ownership tint, variants (corpse, stale, damaged), dimming, level of detail and colour fallback, fog of war, pan/zoom; framework-free so the ambient scene can reuse it; free tileset with its licence recorded; known cells fade with age since `seenAt` with a "seen N s ago" tooltip and last-seen ghosts for bots and items; cells in the live area are drawn at full strength with a live outline; hatched grey bots without a radio link and an optional link overlay (design §11.2.1); live signal-strength bars on connected bots | 16 | ✅ |
 | 6.2 | Map state streaming over sockets (incremental updates, fog-of-war per user) | 5 | ✅ |
-| 6.3 | Physical storage GUI (items list, take/drop) | 5 | ⬜ |
+| 6.3 | Physical storage GUI (items list, take/drop) | 5 | ✅ |
 | 6.4 | Factory GUI → craft table → assemble (blueprint picker, resource cost, assemble button) | 8 | ⬜ |
 | 6.5 | Terminal `connect <botId>` + draggable bot terminal with wirelessAdapter gating, range check with relay-chain pathfinding through own bots, and "Connection interrupted" handling; the connected / disconnected state, automatic terminal resume and the reconnection summary | 5 | ⬜ |
 | 6.6 | E2E (Cypress) for every Phase 6 screen: map (fog of war, pan/zoom, cell inspection, opening a bot), storage take/drop, factory craft and assemble, windows, `connect` with range / relay / password / lockout, `adopt` of a stale bot, control panel and the global/personal category switches, animation smoke test; also relay chains, `sendMessage` / `ping`, world consistency across players and negative coordinates, page reload / socket reconnect / token expiry mid-session, two tabs on one account, the ops budget on manual actions, and an admin changing the global category switches; also link loss and recovery: a bot leaving range, a relay destroyed and repaired, a tower out of oil, the terminal resuming, buffered scans appearing with their real times; also the signal bars changing as a bot walks away from its base | 13 | ⬜ |
@@ -37,4 +37,4 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/6.1-map-renderer` | 6.1 | [#88](https://github.com/AndLD/bot-rts/pull/88) | merged |
 | `feature/6.2-map-streaming` | 6.2 | [#89](https://github.com/AndLD/bot-rts/pull/89) | merged |
-| `feature/6.10-window-manager` | 6.10 | pending | open |
+| `feature/6.10-window-manager` | 6.10 | [#90](https://github.com/AndLD/bot-rts/pull/90) | merged |

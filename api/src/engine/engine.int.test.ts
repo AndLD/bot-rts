@@ -90,6 +90,33 @@ describe('the engine as the single writer (design §14.2)', () => {
     act.mockRestore()
   })
 
+  it('does a manual action by the rules of a script call, and shows what the bot carries', async () => {
+    const { accessToken, botId } = await deployWithScript('export async function main() {}')
+    const stranger = await signUpVerified(testApp, database, 'stranger-of-manual@example.com')
+    const act = (token: string, body: object) =>
+      request(testApp.url).post(`/api/v1/bots/${botId}/actions`).set(bearer(token)).send(body)
+
+    const storage = await request(testApp.url).get(`/api/v1/bots/${botId}/storage`).set(bearer(accessToken)).expect(200)
+    expect(storage.body).toMatchObject({
+      capacity: 200,
+      used: 50,
+      resources: [{ resource: 'oil', amount: 50 }],
+      items: [],
+      carriedWeight: 0
+    })
+    await request(testApp.url).get(`/api/v1/bots/${botId}/storage`).set(bearer(stranger.accessToken)).expect(403)
+    await request(testApp.url).get('/api/v1/bots/nope/storage').set(bearer(accessToken)).expect(400)
+
+    expect((await act(accessToken, { fn: 'view' }).expect(200)).body).toMatchObject({ ok: false, code: 'NOT_LIVE' })
+    expect((await act(accessToken, { fn: 'scan' }).expect(200)).body).toMatchObject({ ok: true })
+    // A base has no engine, no movement and no manipulator
+    await act(accessToken, { fn: 'move', args: [1] }).expect(400)
+    await act(accessToken, { fn: 'drop' }).expect(400)
+    await act(accessToken, { fn: 'fly' }).expect(400)
+    await act(accessToken, { fn: 'drop; rm' }).expect(400)
+    await act(stranger.accessToken, { fn: 'scan' }).expect(403)
+  })
+
   it('makes a directory and lists it again', async () => {
     const { accessToken, botId } = await deployWithScript('export async function main() {}')
     const drive = await database.client.module.findFirstOrThrow({ where: { botId, type: 'drive' } })

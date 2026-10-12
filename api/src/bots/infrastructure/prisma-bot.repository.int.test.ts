@@ -30,6 +30,24 @@ const worker = (baseId: string): Bot => ({
 })
 
 describe('PrismaBotRepository', () => {
+  it('changes the password hash of a bot and moves a bot to another base', async () => {
+    const user = buildUser()
+    const other = buildUser()
+    await users.add(user)
+    await users.add(other)
+    const base = buildBase(user.id)
+    const otherBase = buildBase(other.id)
+    await bots.add(base)
+    await bots.add(otherBase)
+    const ordinary = worker(base.id)
+    await bots.add(ordinary)
+
+    await bots.setPasswordHash(ordinary.id, 'new-hash')
+    await bots.setBase(ordinary.id, otherBase.id)
+
+    expect(await bots.findById(ordinary.id)).toMatchObject({ passwordHash: 'new-hash', baseId: otherBase.id })
+  })
+
   it('stores and finds a base', async () => {
     const user = buildUser()
     await users.add(user)

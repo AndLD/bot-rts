@@ -84,6 +84,17 @@ describe('BotAccessService connect', () => {
     await expect(t.connect(undefined, open.id)).resolves.toMatchObject({ isForeign: true })
   })
 
+  it('notes a connection to a bot that belongs to nobody under the player who connected', async () => {
+    const t = await setup()
+    const orphan = await t.worker(bob, t.theirs.id)
+    t.repositories.bots.items.set(orphan.id, { ...orphan, baseId: null, passwordHash: null })
+
+    await expect(t.connect(undefined, orphan.id)).resolves.toMatchObject({ isForeign: true })
+
+    expect(t.terminalSessions.sessions.size).toBe(1)
+    expect([...t.terminalSessions.sessions.values()][0].userId).toBe(alice.id)
+  })
+
   it('refuses a wrong or missing password, charges for the try and logs it on the target', async () => {
     const t = await setup()
     const before = await t.energyOf(t.mine.id)

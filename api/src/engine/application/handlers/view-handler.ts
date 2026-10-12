@@ -20,7 +20,9 @@ export class ViewHandler implements ScriptFunctionHandler {
   async handle({ bot }: BotState, _fn: string, args: readonly JsonValue[]): Promise<CallOutcome> {
     // The calling bot is in memory: the engine has just served its script
     const acting = (await this.world.bot(bot.id)) as WorldBot
-    const scanners = this.world.modulesOf(acting).filter((module): module is ScannerModule => module instanceof ScannerModule)
+    const scanners = this.world
+      .modulesOf(acting)
+      .filter((module): module is ScannerModule => module instanceof ScannerModule)
     const scanner = scanners.find((candidate) => candidate.isLive) ?? scanners[0]
     const viewable = scanner.view()
     if (!viewable.ok) {

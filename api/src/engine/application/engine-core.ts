@@ -20,6 +20,7 @@ import { ScriptMisuseError } from '../domain/script-misuse'
 import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
 import { BotStateSource, EngineSink } from './engine-ports'
+import type { StepWatch } from '../infrastructure/step-watch'
 import { ModuleLoader } from './module-loader'
 import { ExecutionRepository } from './execution.repository'
 import { CallAnswer, EngineCommand, LiveExecution } from './live-execution'
@@ -58,6 +59,8 @@ export interface EngineDependencies {
   executions: ExecutionRepository
   bots: BotStateSource
   modules: ModuleLoader
+  // Tells the supervising thread which execution is being stepped, so that it can tell when one has stalled the engine
+  watch?: StepWatch
   runtime: ScriptRuntime
   api: ScriptApi
   scheduler: Scheduler
@@ -288,10 +291,22 @@ export class EngineCore {
         ? { source: shellSource(String(record.args[0])), modules: new Map<string, string>() }
         : await this.deps.modules.load(record.userId, record.botId, record.file)
     const rng = this.deps.createRng(this.deps.worldSeed ^ hash(record.id))
+    // A script may write as much as its slice allows; what reaches the player and the database is limited per tick
+    const { maxLinesPerTick, maxChars } = this.deps.config.log
+    let writtenIn = { tick: -1, lines: 0 }
     const host: ScriptHost = {
       random: () => rng.next(),
       time: () => this.tickNumber * this.deps.config.tickIntervalMs,
-      log: (args) => this.log(record, 'output', args.map(format).join(' '))
+      log: (args) => {
+        writtenIn = writtenIn.tick === this.tickNumber ? writtenIn : { tick: this.tickNumber, lines: 0 }
+        writtenIn.lines += 1
+        if (writtenIn.lines <= maxLinesPerTick) {
+          const text = args.map(format).join(' ')
+          this.log(record, 'output', text.length > maxChars ? `${text.slice(0, maxChars)}… (cut)` : text)
+        } else if (writtenIn.lines === maxLinesPerTick + 1) {
+          this.log(record, 'system', `output cut: more than ${maxLinesPerTick} lines in one tick`)
+        }
+      }
     }
     this.learn(state)
     const execution = this.deps.runtime.createExecution({
@@ -322,7 +337,14 @@ export class EngineCore {
     if (!live.isRunnable) {
       return []
     }
-    const { outcome, commands } = live.step(tick, this.deps.config.sliceMs, this.deps.config.tickIntervalMs)
+    this.deps.watch?.begin(live.record.id)
+    let stepped
+    try {
+      stepped = live.step(tick, this.deps.config.sliceMs, this.deps.config.tickIntervalMs)
+    } finally {
+      this.deps.watch?.end()
+    }
+    const { outcome, commands } = stepped
     if (outcome.status === 'finished') {
       if (live.record.file === SHELL_FILE && outcome.value !== undefined) {
         this.log(live.record, 'output', format(outcome.value))

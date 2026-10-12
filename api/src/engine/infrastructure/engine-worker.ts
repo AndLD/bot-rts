@@ -17,7 +17,11 @@ async function main() {
     onMessage: (handler) => void port.on('message', handler)
   }
   const app = await NestFactory.createApplicationContext(
-    EngineWorkerModule.register(workerData as AppConfig, channel),
+    EngineWorkerModule.register(
+      workerData as AppConfig,
+      channel,
+      (workerData as { stepWatch?: SharedArrayBuffer }).stepWatch
+    ),
     { logger: ['error', 'warn'] }
   )
   await app.get(EngineHost).start()

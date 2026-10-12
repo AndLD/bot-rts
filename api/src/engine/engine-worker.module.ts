@@ -37,6 +37,7 @@ import { UsersModule } from '../users/users.module'
 import { EngineCore } from './application/engine-core'
 import { ModuleLoader } from './application/module-loader'
 import { TRANSPILER, Transpiler } from './application/transpiler'
+import { StepWatch, StepWatchWriter } from './infrastructure/step-watch'
 import { SucraseTranspiler } from './infrastructure/sucrase-transpiler'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
@@ -80,13 +81,18 @@ import { SYSTEM_TIMERS } from './infrastructure/tick-loop'
 const ENGINE_CHANNEL = Symbol('EngineChannel')
 const ENGINE_SINK = Symbol('EngineSink')
 const SCRIPT_RUNTIME = Symbol('ScriptRuntime')
+const STEP_WATCH = Symbol('StepWatch')
 const WORLD_SOURCE = Symbol('WorldSource')
 
 // The modules the engine thread needs: the use cases the scripts call, without any transport (design §12.2.2). The engine
 // thread has its own application context and its own database connections.
 @Module({})
 export class EngineWorkerModule {
-  static register(config: AppConfig, channel: MessageChannel<ControlMessage, EngineMessage>): DynamicModule {
+  static register(
+    config: AppConfig,
+    channel: MessageChannel<ControlMessage, EngineMessage>,
+    stepWatch?: SharedArrayBuffer
+  ): DynamicModule {
     return {
       module: EngineWorkerModule,
       imports: [
@@ -300,6 +306,7 @@ export class EngineWorkerModule {
           useFactory: (store: WorldStateStore, app: AppConfig) =>
             new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures)
         },
+        { provide: STEP_WATCH, useValue: stepWatch ? new StepWatchWriter(stepWatch) : undefined },
         { provide: ENGINE_SINK, inject: [ENGINE_CHANNEL], useFactory: (c: typeof channel) => new ChannelSink(c) },
         {
           provide: EngineCore,
@@ -320,6 +327,7 @@ export class EngineWorkerModule {
             EventOutbox,
             GameEventBus,
             WorldActionExecutor,
+            STEP_WATCH,
             ENGINE_SINK,
             ID_GENERATOR,
             CLOCK,
@@ -342,6 +350,7 @@ export class EngineWorkerModule {
             outbox: EventOutbox,
             bus: GameEventBus,
             actions: WorldActionExecutor,
+            watch: StepWatch | undefined,
             sink: EngineSink,
             ids: IdGenerator,
             clock: Clock,
@@ -354,6 +363,7 @@ export class EngineWorkerModule {
               executions,
               bots,
               modules,
+              watch,
               runtime,
               api,
               scheduler,

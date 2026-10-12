@@ -1,11 +1,14 @@
 import { AppConfig } from '../../config/app-config'
 import { spawnEngineWorker } from './engine-worker-launcher'
 
-const constructed: Array<{ filename: string; options: { eval?: boolean; workerData: unknown } }> = []
+const constructed: Array<{
+  filename: string
+  options: { eval?: boolean; workerData: unknown; resourceLimits?: unknown }
+}> = []
 
 jest.mock('worker_threads', () => ({
   Worker: class {
-    constructor(filename: string, options: { eval?: boolean; workerData: unknown }) {
+    constructor(filename: string, options: { eval?: boolean; workerData: unknown; resourceLimits?: unknown }) {
       constructed.push({ filename, options })
     }
   }
@@ -28,7 +31,8 @@ describe('spawnEngineWorker', () => {
     expect(constructed[0].filename).toContain('engine-worker.ts')
     expect(constructed[0].options).toEqual({
       eval: true,
-      workerData: { databaseUrl: 'postgresql://x', engine: { isEnabled: false } }
+      workerData: { databaseUrl: 'postgresql://x', engine: { isEnabled: false } },
+      resourceLimits: { stackSizeMb: 8 }
     })
   })
 
@@ -37,7 +41,8 @@ describe('spawnEngineWorker', () => {
 
     expect(constructed[0].filename).toMatch(/engine-worker\.js$/)
     expect(constructed[0].options).toEqual({
-      workerData: { databaseUrl: 'postgresql://x', engine: { isEnabled: false } }
+      workerData: { databaseUrl: 'postgresql://x', engine: { isEnabled: false } },
+      resourceLimits: { stackSizeMb: 8 }
     })
   })
 })

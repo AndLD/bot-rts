@@ -8,6 +8,7 @@ import { FilesService } from '../files/application/files.service'
 import { ModuleFactory } from '../modules/application/module.factory'
 import { PrismaUserRepository } from '../users/infrastructure/prisma-user.repository'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
+import { createStepWatchBuffer, StepWatchReader } from './infrastructure/step-watch'
 import { EngineWorkerModule } from './engine-worker.module'
 import { EngineHost } from './infrastructure/engine-host'
 
@@ -52,7 +53,10 @@ describe('EngineWorkerModule', () => {
     const [{ db }] = await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`
     const config = loadConfig({ DATABASE_URL: urlForDatabase(db), NODE_ENV: 'test', ENGINE_TICK_INTERVAL_MS: '10' })
     const { link, fromEngine, send } = channel()
-    const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    const stepWatch = createStepWatchBuffer()
+    const app = await Test.createTestingModule({
+      imports: [EngineWorkerModule.register(config, link, stepWatch)]
+    }).compile()
     running.push(async () => {
       send({ kind: 'stop' })
       await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
@@ -88,6 +92,9 @@ describe('EngineWorkerModule', () => {
     const lines = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'log' ? [m.event.text] : []))
     expect(lines).toEqual(['true 9 7', 'true'])
     await until(async () => (await database.client.execution.count({ where: { status: 'finished' } })) === 1, 'the end')
+    // The engine told the watch about its steps, and is between steps now
+    expect(new StepWatchReader(stepWatch).read()).toMatchObject({ executionId: null, sequence: expect.any(Number) })
+    expect(new StepWatchReader(stepWatch).read().sequence).toBeGreaterThan(0)
   })
 
   it('moves a bot in memory and writes the new place and heading to the database behind', async () => {

@@ -18,7 +18,7 @@ implemented and measured carefully.
 | 5.4 | **Fair scheduler** per design §12.2: per-bot op budget, seeded player shuffle, global tick cap with round-robin resume, parallelism and `queued` state, time-slice enforcement; offline players' executions run too | 13 | ✅ |
 | 5.5 | **Race-condition prevention** per design §14.2: deterministic collect-then-apply, in-memory reservations, no clock or `Math.random` in scripts, and the single-writer rule (all world-mutating API requests go through engine commands); determinism tests: the same seed and commands give an identical tick result, independent of command arrival order | 9 | ✅ |
 | 5.6 | `run <file>` / `shell` execution wired through the scheduler; `top`/`kill` manage running scripts; results streamed over sockets | 5 | ✅ |
-| 5.7 | Security & load tests: sandbox escape attempts, infinite loops, heavy allocations, many-bot fairness | 3 | ⬜ |
+| 5.7 | Security & load tests: sandbox escape attempts, infinite loops, heavy allocations, many-bot fairness | 3 | ✅ |
 | 5.8 | Script languages and imports per design §10.1.1: TypeScript transpile behind a `Transpiler` interface, engine-side module loader with limits and cache, editor typings for the `bot` API via a `.d.ts` in `lib` | 10 | ✅ |
 | 5.9 | Bot security per design §11.2.2: `passwd`, foreign `connect` authentication, brute-force cost and lockout, failed-attempt logs, and `adopt` (not for bases) | 5 | ✅ |
 | 5.10 | Game event bus per design §24.1: typed engine events after each tick's commands, audience filter (a player receives events about their own entities, the direct results of their own actions, and everything inside their live areas, design §24.1), delivery to animations, achievements and notifications outside the tick path; events about a player's own bots reach them only while the bot is connected, with a summary on reconnection (5.13) | 5 | ✅ |
@@ -54,3 +54,5 @@ AGENTS.md §7.1).
 | `feature/5.9-bot-security` | 5.9 | #84 | merged |
 | `feature/5.9-bot-security` | 5.9 | PR_5_9 | merged |
 | `feature/5.11-script-e2e` | 5.11 | #85 | merged |
+| `feature/5.11-script-e2e` | 5.11 | PR_5_11 | merged |
+| `feature/5.7-security-load-tests` | 5.7 | PR_5_7 | merged |

@@ -131,3 +131,97 @@ describe('EngineProcess', () => {
     expect(logger.warn).not.toHaveBeenCalled()
   })
 })
+
+describe('EngineProcess watchdog', () => {
+  async function watched(onStall: (id: string) => Promise<void> = async () => undefined) {
+    let state: { sequence: number; executionId: string | null } = { sequence: 0, executionId: null }
+    let time = 0
+    const workers: FakeWorker[] = []
+    const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
+    const stall = jest.fn(onStall)
+    const engine = new EngineProcess({
+      spawn: () => {
+        const worker = new FakeWorker()
+        workers.push(worker)
+        return worker
+      },
+      logger,
+      readyTimeoutMs: 1000,
+      stopTimeoutMs: 1000,
+      respawnDelayMs: 5,
+      watchdog: {
+        reader: {
+          read: () => state,
+          clear: () => {
+            state = { sequence: state.sequence + 1, executionId: null }
+          }
+        },
+        stallMs: 1000,
+        pollMs: 10,
+        onStall: stall,
+        now: () => time
+      }
+    })
+    const started = engine.start()
+    workers[0].emit('message', ready)
+    await started
+    const poll = async (set: Partial<typeof state> = {}, advance = 0) => {
+      state = { ...state, ...set }
+      time += advance
+      await new Promise((resolve) => setTimeout(resolve, 25))
+    }
+    return { engine, workers, logger, stall, poll }
+  }
+
+  it('ends the thread and names the script when one step lasts longer than the allowed time', async () => {
+    const { engine, workers, stall, poll } = await watched()
+
+    await poll({ sequence: 1, executionId: 'exec-1' })
+    await poll({}, 1500)
+
+    expect(workers[0].terminated).toBe(true)
+    expect(stall).toHaveBeenCalledWith('exec-1')
+    await engine.close()
+  })
+
+  it('leaves an engine alone that goes on stepping, that is between steps, or whose step is still young', async () => {
+    const { engine, workers, stall, poll } = await watched()
+
+    await poll({ sequence: 1, executionId: 'exec-1' })
+    await poll({ sequence: 2, executionId: null }, 5000)
+    await poll({ sequence: 3, executionId: 'exec-2' }, 5000)
+    await poll({}, 500)
+
+    expect(workers[0].terminated).toBe(false)
+    expect(stall).not.toHaveBeenCalled()
+    await engine.close()
+  })
+
+  it('does not judge a stall twice, and logs a failure to deal with it', async () => {
+    const { engine, stall, poll, logger } = await watched(async () => {
+      throw new Error('db down')
+    })
+
+    await poll({ sequence: 1, executionId: 'exec-1' })
+    await poll({}, 1500)
+    await poll({}, 1500)
+
+    expect(stall).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalled()
+    await engine.close()
+  })
+
+  it('passes on an event as if the engine had sent it, and runs without a watchdog', async () => {
+    const { engine, workers } = setup()
+    const started = engine.start()
+    workers[0].emit('message', ready)
+    await started
+    const heard: unknown[] = []
+    engine.port.onEvent((event) => heard.push(event))
+
+    engine.announce({ type: 'log', executionId: 'e', botId: 'b', userId: 'u', kind: 'error', text: 'x' })
+
+    expect(heard).toHaveLength(1)
+    await engine.close()
+  })
+})

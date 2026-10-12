@@ -35,6 +35,11 @@ export interface EngineConfig {
   // An execution that has run this many ticks since its relaunch is healthy: its restart count is forgotten
   healthyTicks: number
   modules: ModuleLimits
+  // The supervising thread ends an engine thread that has been inside one step of a script this long, and kills that script
+  // (a script made of heavy builtins can overrun its slice by many seconds; plan 5.7)
+  watchdog: { stallMs: number; pollMs: number }
+  // What a script's log may carry to the player and the database: lines per tick and characters per line
+  log: { maxLinesPerTick: number; maxChars: number }
   // Chunks of the map kept in memory; the least recently used are dropped (design §4.4)
   maxChunks: number
   // Game rules whose numbers the engine applies (design §8.5, §12.6)
@@ -51,10 +56,14 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   flushEveryTicks: 10,
   flushMaxFailures: 3,
   memoryBytes: 4 * 1024 * 1024,
-  stackBytes: 256 * 1024,
+  // Small on purpose: the sandbox's own limit must trip before the native stack of the thread does, or a deeply nested value
+  // would overflow the host's stack inside a builtin such as JSON.stringify; this allows a recursion about 370 calls deep
+  stackBytes: 64 * 1024,
   maxRestarts: 3,
   healthyTicks: 6000,
   modules: { maxFileBytes: 32 * 1024, maxFiles: 20, maxDepth: 5, cacheEntries: 200 },
+  watchdog: { stallMs: 2000, pollMs: 250 },
+  log: { maxLinesPerTick: 20, maxChars: 1000 },
   maxChunks: 512,
   movement: DEFAULT_MOVEMENT_BALANCE,
   combat: DEFAULT_COMBAT_BALANCE,

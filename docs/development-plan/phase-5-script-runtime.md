@@ -44,4 +44,4 @@ AGENTS.md §7.1).
 | `feature/5.3-script-api-layer` | 5.3 | #74 | merged |
 | `feature/5.4a-engine-thread` | 5.4a | #75 | merged |
 | `feature/5.4-fair-scheduler` | 5.4 | #76 | merged |
-| `feature/5.5a-world-commands` | 5.5 (in-memory world, world functions, deterministic apply) | PR_5_5A | merged |
+| `feature/5.5a-world-commands` | 5.5 (in-memory world, world functions, deterministic apply) | #77 | merged |

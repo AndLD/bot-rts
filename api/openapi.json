@@ -1889,6 +1889,166 @@
         ]
       }
     },
+    "/api/v1/settings": {
+      "get": {
+        "operationId": "settingsGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "settings"
+        ]
+      },
+      "patch": {
+        "operationId": "settingsUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "operationId": "adminSettingsGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameSettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "adminSettingsUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGameSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameSettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -1981,6 +2141,7 @@
               "ALREADY_EXISTS",
               "TERMINAL_SESSION_CLOSED",
               "TOO_MANY_REQUESTS",
+              "MANUAL_CATEGORY_DISABLED",
               "INTERNAL_ERROR",
               "BLOCKED",
               "EMPTY",
@@ -3323,6 +3484,149 @@
         "required": [
           "x",
           "y"
+        ]
+      },
+      "CategorySwitchesModel": {
+        "type": "object",
+        "properties": {
+          "movement": {
+            "type": "boolean"
+          },
+          "combat": {
+            "type": "boolean"
+          },
+          "extraction": {
+            "type": "boolean"
+          },
+          "logistics": {
+            "type": "boolean"
+          },
+          "fabrication": {
+            "type": "boolean"
+          },
+          "maintenance": {
+            "type": "boolean"
+          },
+          "communication": {
+            "type": "boolean"
+          },
+          "trade": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "movement",
+          "combat",
+          "extraction",
+          "logistics",
+          "fabrication",
+          "maintenance",
+          "communication",
+          "trade"
+        ]
+      },
+      "GameSettingsResponse": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "$ref": "#/components/schemas/CategorySwitchesModel"
+          }
+        },
+        "required": [
+          "categories"
+        ]
+      },
+      "UserSettingsModel": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "$ref": "#/components/schemas/CategorySwitchesModel"
+          },
+          "reducedMotion": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": [
+          "categories",
+          "reducedMotion"
+        ]
+      },
+      "SettingsResponse": {
+        "type": "object",
+        "properties": {
+          "global": {
+            "$ref": "#/components/schemas/GameSettingsResponse"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSettingsModel"
+          },
+          "effective": {
+            "description": "What the player can use: the game and the player switches together",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CategorySwitchesModel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "global",
+          "user",
+          "effective"
+        ]
+      },
+      "CategorySwitchesPatchModel": {
+        "type": "object",
+        "properties": {
+          "movement": {
+            "type": "boolean"
+          },
+          "combat": {
+            "type": "boolean"
+          },
+          "extraction": {
+            "type": "boolean"
+          },
+          "logistics": {
+            "type": "boolean"
+          },
+          "fabrication": {
+            "type": "boolean"
+          },
+          "maintenance": {
+            "type": "boolean"
+          },
+          "communication": {
+            "type": "boolean"
+          },
+          "trade": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateUserSettingsDto": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "$ref": "#/components/schemas/CategorySwitchesPatchModel"
+          },
+          "reducedMotion": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Reduce motion; null follows the system"
+          }
+        }
+      },
+      "UpdateGameSettingsDto": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "$ref": "#/components/schemas/CategorySwitchesPatchModel"
+          }
+        },
+        "required": [
+          "categories"
         ]
       },
       "HealthResponse": {

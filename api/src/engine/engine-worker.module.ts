@@ -33,6 +33,8 @@ import { SeededRng } from '../shared/infrastructure/seeded-rng'
 import { SharedModule } from '../shared/shared.module'
 import { BotAccessService } from '../terminal/application/bot-access.service'
 import { TerminalCoreModule } from '../terminal/terminal-core.module'
+import { SettingsService } from '../settings/application/settings.service'
+import { SettingsModule } from '../settings/settings.module'
 import { UsersModule } from '../users/users.module'
 import { EngineCore } from './application/engine-core'
 import { ModuleLoader } from './application/module-loader'
@@ -103,6 +105,7 @@ export class EngineWorkerModule {
         UsersModule,
         AuthModule,
         ModulesModule,
+        SettingsModule,
         CraftingModule,
         FilesModule,
         MapModule,
@@ -327,6 +330,7 @@ export class EngineWorkerModule {
             EventOutbox,
             GameEventBus,
             WorldActionExecutor,
+            SettingsService,
             STEP_WATCH,
             ENGINE_SINK,
             ID_GENERATOR,
@@ -350,6 +354,7 @@ export class EngineWorkerModule {
             outbox: EventOutbox,
             bus: GameEventBus,
             actions: WorldActionExecutor,
+            settings: SettingsService,
             watch: StepWatch | undefined,
             sink: EngineSink,
             ids: IdGenerator,
@@ -376,6 +381,7 @@ export class EngineWorkerModule {
               outbox,
               bus,
               actions,
+              manualPolicy: settings,
               sink,
               ids,
               clock,

@@ -29,6 +29,7 @@ export const ErrorCode = {
   ALREADY_EXISTS: 'ALREADY_EXISTS',
   TERMINAL_SESSION_CLOSED: 'TERMINAL_SESSION_CLOSED',
   TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
+  MANUAL_CATEGORY_DISABLED: 'MANUAL_CATEGORY_DISABLED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   // A game action that failed as an expected outcome keeps the code of its result (design §10.3)
   ...ResultCode

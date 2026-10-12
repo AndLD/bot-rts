@@ -213,7 +213,8 @@
     "COOLDOWN": "The module is cooling down",
     "NO_AMMO": "No ammunition",
     "NO_SIGNAL": "No signal",
-    "NO_SPACE": "There is not enough space"
+    "NO_SPACE": "There is not enough space",
+    "MANUAL_CATEGORY_DISABLED": "This kind of manual control is switched off"
   },
   "map": {
     "cell": "Cell {x}, {y}",
@@ -318,5 +319,31 @@
       "repair": "Repair",
       "factory": "Factory"
     }
+  },
+  "settings": {
+    "loading": "Loading...",
+    "loadFailed": "Could not load the settings",
+    "manualControl": "Manual control",
+    "manualControlHelp": "Switch off what you want to do only with scripts. Scripts are never held back by these switches.",
+    "categories": {
+      "movement": "Movement",
+      "combat": "Combat",
+      "extraction": "Extraction",
+      "logistics": "Logistics",
+      "fabrication": "Fabrication",
+      "maintenance": "Maintenance",
+      "communication": "Communication",
+      "trade": "Trade"
+    },
+    "offInGame": "off in the game",
+    "motion": "Motion",
+    "motionChoices": {
+      "system": "As in the system",
+      "reduced": "Reduced",
+      "full": "Full"
+    },
+    "gameSettings": "Game settings",
+    "gameSettingsHelp": "What is off here is off for every player.",
+    "gamePrefix": "Game: "
   }
 }

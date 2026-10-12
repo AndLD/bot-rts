@@ -13,12 +13,20 @@ export const api = generated.enhanceEndpoints({
     factoryResearch: { invalidatesTags: ['Factory', 'Storage'] },
     factoryLearn: { invalidatesTags: ['Factory'] },
     factoryAssemble: { invalidatesTags: ['Factory', 'Bases'] },
+    // The settings of the player depend on those of the game, so a change of either makes both stale
+    settingsGet: { providesTags: ['Settings'] },
+    settingsUpdate: { invalidatesTags: ['Settings'] },
+    adminSettingsGet: { providesTags: ['Settings'] },
+    adminSettingsUpdate: { invalidatesTags: ['Settings'] },
     botControlGetStorage: { providesTags: ['Storage'] },
     botControlPerform: { invalidatesTags: ['Storage'] }
   }
 })
 
 export const {
+  useAdminSettingsUpdateMutation,
+  useSettingsGetQuery,
+  useSettingsUpdateMutation,
   useBotControlGetStorageQuery,
   useBotControlPerformMutation,
   useBotsDeployBaseMutation,

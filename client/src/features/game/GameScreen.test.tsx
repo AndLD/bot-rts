@@ -12,6 +12,7 @@ jest.mock('../factory/FactoryPanel', () => ({
   __esModule: true,
   default: ({ baseId }: { baseId: string }) => <div>the factory of {baseId}</div>
 }))
+jest.mock('../settings/SettingsPanel', () => ({ __esModule: true, default: () => <div>the settings</div> }))
 jest.mock('../storage/StoragePanel', () => ({
   __esModule: true,
   default: ({ botId }: { botId: string }) => <div>the storage of {botId}</div>
@@ -64,6 +65,14 @@ describe('GameScreen', () => {
     expect(screen.getByText('the storage of b1')).toBeInTheDocument()
   })
 
+  it('opens the settings from the toolbar', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(screen.getByText('the settings')).toBeInTheDocument()
+  })
+
   it('opens the factory of the base from the toolbar', () => {
     renderApp(<GameScreen baseId="b1" />)
 
@@ -76,9 +85,9 @@ describe('GameScreen', () => {
     const store = setupStore()
     renderApp(<GameScreen baseId="b1" />, { store })
 
-    act(() => void store.dispatch(openWindow({ id: 'settings', kind: 'settings' })))
+    act(() => void store.dispatch(openWindow({ id: 'control', kind: 'control' })))
 
-    expect(screen.getByText('Settings', { selector: 'header span' })).toBeInTheDocument()
+    expect(screen.getByText('Control panel', { selector: 'header span' })).toBeInTheDocument()
   })
 
   it('opens a window of its own for a bot that connect reached, and closes it on exit', () => {

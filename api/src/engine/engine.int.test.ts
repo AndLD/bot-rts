@@ -117,6 +117,33 @@ describe('the engine as the single writer (design §14.2)', () => {
     await act(stranger.accessToken, { fn: 'scan' }).expect(403)
   })
 
+  it('refuses a manual action of a category that is switched off, in the game or by the player', async () => {
+    const { accessToken, botId } = await deployWithScript('export async function main() {}')
+    const craft = () =>
+      request(testApp.url)
+        .post(`/api/v1/bots/${botId}/factory/craft`)
+        .set(bearer(accessToken))
+        .send({ module: 'no-such-module' })
+    const setting = (body: object) => request(testApp.url).patch('/api/v1/settings').set(bearer(accessToken)).send(body)
+
+    // Fabrication is on: the request gets as far as the use case, which does not know the module
+    await craft().expect(404)
+
+    await setting({ categories: { fabrication: false } }).expect(200)
+    expect((await craft().expect(403)).body.code).toBe('MANUAL_CATEGORY_DISABLED')
+
+    await setting({ categories: { fabrication: true } }).expect(200)
+    await craft().expect(404)
+
+    // Observation has no category
+    await setting({ categories: { movement: false, combat: false } }).expect(200)
+    await request(testApp.url)
+      .post(`/api/v1/bots/${botId}/actions`)
+      .set(bearer(accessToken))
+      .send({ fn: 'scan' })
+      .expect(200)
+  })
+
   it('makes a directory and lists it again', async () => {
     const { accessToken, botId } = await deployWithScript('export async function main() {}')
     const drive = await database.client.module.findFirstOrThrow({ where: { botId, type: 'drive' } })

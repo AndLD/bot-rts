@@ -99,6 +99,7 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     radio: { refresh: jest.fn() } as unknown as RadioNetwork,
     outbox,
     bus: { deliver: jest.fn() } as unknown as GameEventBus,
+    manualPolicy: { isAllowed: async () => true },
     actions: { execute: jest.fn() } as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),

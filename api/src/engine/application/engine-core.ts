@@ -6,6 +6,7 @@ import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
 import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
+import { ManualCategoryDisabledError } from '../domain/engine.errors'
 import { ENERGY_EVENT, EnergyEvent } from '../../modules/domain/energy-model'
 import { BotState } from '../domain/bot-state'
 import { EventParty } from '../domain/game-event'
@@ -19,7 +20,7 @@ import { SHELL_FILE, shellSource } from '../domain/shell-script'
 import { ScriptMisuseError } from '../domain/script-misuse'
 import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
-import { BotStateSource, EngineSink } from './engine-ports'
+import { BotStateSource, EngineSink, ManualPolicy } from './engine-ports'
 import type { StepWatch } from '../infrastructure/step-watch'
 import { ModuleLoader } from './module-loader'
 import { ExecutionRepository } from './execution.repository'
@@ -34,7 +35,8 @@ import { GameEventBus } from './game-event-bus'
 import { LiveVision } from './live-vision'
 import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
-import { controlledBotOf, WorldActionName } from './world-actions'
+import { ACTION_CATEGORIES, controlledBotOf, WorldActionName } from './world-actions'
+import { categoryOfFunction, ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
 
@@ -80,6 +82,8 @@ export interface EngineDependencies {
   outbox: EventOutbox
   bus: GameEventBus
   actions: WorldActionExecutor
+  // Which categories of manual control a player has switched on; scripts are never held back by it
+  manualPolicy: ManualPolicy
   sink: EngineSink
   ids: IdGenerator
   clock: Clock
@@ -188,6 +192,7 @@ export class EngineCore {
         if (!spec || spec.isScheduled) {
           throw new ValidationError(`Unknown action: ${fn}`)
         }
+        await this.requireCategory(userId, categoryOfFunction(fn))
         await this.deps.radio.ensureControl(userId, botId)
         const state = await this.deps.bots.loadControlled(userId, botId)
         if (!canRunScripts(this.deps.registry.instantiateAll(state.modules))) {
@@ -220,6 +225,7 @@ export class EngineCore {
     return this.submit(async () => {
       const controlled = controlledBotOf(name, args)
       if (controlled) {
+        await this.requireCategory(controlled.userId, ACTION_CATEGORIES[name])
         await this.deps.radio.ensureControl(controlled.userId, controlled.botId)
       }
       await this.deps.world.sync()
@@ -234,6 +240,13 @@ export class EngineCore {
         this.deps.world.evict()
       }
     })
+  }
+
+  // Manual control of a category the game or the player has switched off is refused here, not only hidden in the UI
+  private async requireCategory(userId: string, category: ManualCategory | null): Promise<void> {
+    if (category && !(await this.deps.manualPolicy.isAllowed(userId, category))) {
+      throw new ManualCategoryDisabledError(category)
+    }
   }
 
   private async killAllOf(botId: string): Promise<void> {

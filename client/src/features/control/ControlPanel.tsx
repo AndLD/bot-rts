@@ -1,7 +1,7 @@
 'use client'
 
 import { ModuleType } from '@lib/utils/interfaces/modules'
-import { Tag } from 'antd'
+import { Button, Tag } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useMemo } from 'react'
 import { useBotsModulesQuery, useSettingsGetQuery } from '../../shared/api'
@@ -13,7 +13,13 @@ import { useBotAction } from './useBotAction'
 // The control panel of a bot (design §15.1): everything a script can ask the bot to do, by hand, in the eight categories.
 // The actions are sent as engine commands and follow the rules of a script's call; a category that is switched off in the
 // game or in the player's settings is shown but cannot be used (the engine refuses it too).
-export default function ControlPanel({ botId }: { botId: string }) {
+export default function ControlPanel({
+  botId,
+  onOpenStorage
+}: {
+  botId: string
+  onOpenStorage: (botId: string) => void
+}) {
   const t = useTranslations('control')
   const categoryName = useCategoryNames()
   const { data: modules, isError } = useBotsModulesQuery({ id: botId })
@@ -33,6 +39,9 @@ export default function ControlPanel({ botId }: { botId: string }) {
 
   return (
     <div className="control-panel" style={{ padding: 10 }}>
+      <Button size="small" onClick={() => onOpenStorage(botId)}>
+        {t('openStorage')}
+      </Button>
       {groups.map(({ category, actions }) => {
         const isOn = category === null || settings.effective[category]
 

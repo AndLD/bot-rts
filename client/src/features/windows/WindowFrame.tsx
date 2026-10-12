@@ -1,6 +1,7 @@
 'use client'
 
 import { CloseOutlined } from '@ant-design/icons'
+import { capturePointer } from '../../shared/pointer'
 import { PointerEvent, ReactNode, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { Rect } from './windows.slice'
@@ -41,7 +42,7 @@ export default function WindowFrame({
       event.stopPropagation()
       onFocus()
       gesture.current = { mode, pointerX: event.clientX, pointerY: event.clientY, rect: { x, y, width, height } }
-      event.currentTarget.setPointerCapture?.(event.pointerId)
+      capturePointer(event.currentTarget, event.pointerId)
     }
   }
 

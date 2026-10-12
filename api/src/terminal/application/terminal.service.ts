@@ -46,8 +46,17 @@ export class TerminalService {
     return session
   }
 
-  // A session on a bot of anyone, reached from one of the player's bots after the access checks (design §11.2.2)
-  async openConnection(userId: string, fromBotId: string, targetBotId: string): Promise<TerminalSession> {
+  // A session on a bot of anyone, reached from one of the player's bots after the access checks (design §11.2.2). A bot of the
+  // player's own must reach the base through the radio network, relays included (§11.2.1); a foreign bot is in another network.
+  async openConnection(
+    userId: string,
+    fromBotId: string,
+    targetBotId: string,
+    options: { isForeign: boolean }
+  ): Promise<TerminalSession> {
+    if (!options.isForeign) {
+      await this.links.ensureConnected(userId, targetBotId)
+    }
     await this.dropExpiredLogs()
     const session: TerminalSession = {
       id: this.ids.next(),

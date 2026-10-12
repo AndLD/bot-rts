@@ -106,6 +106,45 @@ describe('TerminalService sessions', () => {
   })
 })
 
+describe('TerminalService connections', () => {
+  it('opens a session on a foreign bot without asking for a link to the base of the player', async () => {
+    const { terminalSessions, botsService, ids, clock, bot } = await setup()
+    const gate = { ensureConnected: jest.fn().mockRejectedValue(new NoSignalError()) }
+    const service = new TerminalService(
+      terminalSessions,
+      botsService,
+      ids,
+      clock,
+      { logDays: 30, maxLinesPerBot: 5000, securityDays: 90 },
+      gate
+    )
+
+    const session = await service.openConnection(alice.id, bot.id, 'foreign-bot', { isForeign: true })
+
+    expect(session).toMatchObject({ botId: 'foreign-bot', fromBotId: bot.id })
+    expect(gate.ensureConnected).not.toHaveBeenCalled()
+  })
+
+  it('does not open a session on an own bot that is out of reach, relays and all', async () => {
+    const { terminalSessions, botsService, ids, clock, bot } = await setup()
+    const gate = { ensureConnected: jest.fn().mockRejectedValue(new NoSignalError()) }
+    const service = new TerminalService(
+      terminalSessions,
+      botsService,
+      ids,
+      clock,
+      { logDays: 30, maxLinesPerBot: 5000, securityDays: 90 },
+      gate
+    )
+
+    await expect(service.openConnection(alice.id, bot.id, 'rover', { isForeign: false })).rejects.toMatchObject({
+      code: 'NO_SIGNAL'
+    })
+    expect(gate.ensureConnected).toHaveBeenCalledWith(alice.id, 'rover')
+    expect(terminalSessions.sessions.size).toBe(0)
+  })
+})
+
 describe('TerminalService retention', () => {
   it('keeps at most the configured number of ordinary lines per bot, security events aside', async () => {
     const { terminalService, bot, clock } = await setup({ maxLinesPerBot: 2 })

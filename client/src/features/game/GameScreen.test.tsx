@@ -24,7 +24,12 @@ jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn
 jest.mock('../tutorial/TutorialOverlay', () => ({ __esModule: true, default: () => <div>the tutorial</div> }))
 jest.mock('../control/ControlPanel', () => ({
   __esModule: true,
-  default: ({ botId }: { botId: string }) => <div>the control of {botId}</div>
+  default: ({ botId, onOpenStorage }: { botId: string; onOpenStorage: (id: string) => void }) => (
+    <div>
+      the control of {botId}
+      <button onClick={() => onOpenStorage(botId)}>open its storage</button>
+    </div>
+  )
 }))
 jest.mock('../settings/SettingsPanel', () => ({ __esModule: true, default: () => <div>the settings</div> }))
 jest.mock('../storage/StoragePanel', () => ({
@@ -163,5 +168,16 @@ describe('GameScreen', () => {
 
     await waitFor(() => expect(screen.getByRole('button', { name: button })).toHaveClass('tutorial-highlight'))
     expect(screen.getAllByRole('button').filter((b) => b.classList.contains('tutorial-highlight'))).toHaveLength(1)
+  })
+
+  it('opens the storage of a bot from its control panel, next to the one of the base', () => {
+    renderApp(<GameScreen baseId="b1" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Storage' }))
+    fireEvent.click(screen.getByText('click a bot'))
+
+    fireEvent.click(screen.getByText('open its storage'))
+
+    expect(screen.getByText('the storage of b1')).toBeInTheDocument()
+    expect(screen.getByText('the storage of bot-9-long-id')).toBeInTheDocument()
   })
 })

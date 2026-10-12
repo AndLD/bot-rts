@@ -109,6 +109,9 @@ try {
       RATE_LIMIT_AUTH_MAX: '200',
       // A spawn seed takes two players, so that a full seed can be shown
       SPAWN_SEED_MAX_PLAYERS: '2',
+      // Guessing a bot password takes a tenth of a second and three wrong tries lock the bot out, so that a spec can show it
+      BOT_ATTEMPT_DELAY_MS: '100',
+      BOT_LOCKOUT_FAILURES: '3',
       WORLD_SEED: '1'
     }
   })

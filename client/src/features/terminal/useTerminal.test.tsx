@@ -433,6 +433,17 @@ describe('useTerminal: the radio link', () => {
     expect(result.current.lines.at(-1)).toBe('Connection interrupted: the bot is out of reach')
   })
 
+  it('does not take the base for lost when a command names a bot that is out of reach', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'error', code: 'NO_SIGNAL', message: 'No signal' })
+    })
+
+    act(() => result.current.run('connect bot-9'))
+
+    expect(result.current.isLinkUp).toBe(true)
+    expect(result.current.lines.at(-1)).toBe('Error: No signal')
+  })
+
   it('lets the player leave a bot that is out of reach', () => {
     const onExit = jest.fn()
     const { socket, result } = linked({ onExit })

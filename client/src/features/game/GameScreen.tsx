@@ -70,6 +70,11 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     dispatch(openWindow({ id: `control:${botId}`, kind: 'control', params: { botId } }))
   }
 
+  // What a bot carries
+  function openStorage(botId: string) {
+    dispatch(openWindow({ id: `storage:${botId}`, kind: 'storage', params: { botId } }))
+  }
+
   function renderWindow(win: GameWindow) {
     switch (win.kind) {
       case 'terminal':
@@ -79,7 +84,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
       case 'control':
         return {
           title: t('kinds.botControl', { botId: win.params.botId.slice(0, SHORT_ID) }),
-          content: <ControlPanel botId={win.params.botId} />
+          content: <ControlPanel botId={win.params.botId} onOpenStorage={openStorage} />
         }
       case 'settings':
         return { title: t('kinds.settings'), content: <SettingsPanel /> }

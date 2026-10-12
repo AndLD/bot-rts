@@ -185,14 +185,16 @@ export function useTerminal({ connection, onConnected, onExit }: TerminalOptions
           setEditor({ path: result.path, content: result.content })
           return print(echo)
         case 'error':
-          if (result.code === ResultCode.NO_SIGNAL) {
+          // In the terminal of a bot a refusal for lack of signal is about that bot's link; in the base's it is about the bot a
+          // command named (connect), and the base itself is fine
+          if (result.code === ResultCode.NO_SIGNAL && connection) {
             setIsLinkUp(false)
             return print(echo, escapeHtml(t('connectionInterrupted')))
           }
           return print(echo, failure(result.message, result.code))
       }
     },
-    [print, failure, logout, t, onConnected, onExit]
+    [print, failure, logout, t, onConnected, onExit, connection]
   )
 
   // Runs one line typed by the player; the promise-free API keeps the UI a plain controlled input

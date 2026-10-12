@@ -47,18 +47,6 @@ const PRELUDE = `(function (call, random, time, log, configJson) {
 
 const INTERRUPTED = 'interrupted'
 
-const UNREADABLE_VALUES = 'The values cannot be passed on (too deeply nested or not plain data)'
-
-// What a script handed to the host, as plain data; undefined for values the host cannot take (a script can nest arrays deeper
-// than the host's own parser goes, and the host must survive that)
-function parseValues(json: string): JsonValue[] | undefined {
-  try {
-    return JSON.parse(json) as JsonValue[]
-  } catch {
-    return undefined
-  }
-}
-
 // The stock variant loads its WASM glue with a dynamic import, which Jest's module system refuses; a plain require of the
 // same file works in Node and in the tests
 const nodeRequire = createRequire(__filename)
@@ -228,11 +216,7 @@ class QuickJsExecution implements ScriptExecution {
     const random = ctx.newFunction('random', () => ctx.newNumber(this.options.host.random()))
     const time = ctx.newFunction('time', () => ctx.newNumber(this.options.host.time()))
     const log = ctx.newFunction('log', (argsHandle) => {
-      const values = parseValues(ctx.getString(argsHandle))
-      if (!values) {
-        return { error: ctx.newError(UNREADABLE_VALUES) }
-      }
-      this.options.host.log(values)
+      this.options.host.log(JSON.parse(ctx.getString(argsHandle)) as JsonValue[])
     })
     const config = ctx.newString(JSON.stringify({ identity: this.options.identity, functions: this.options.functions }))
     const prelude = this.context.unwrapResult(ctx.evalCode(PRELUDE))
@@ -242,15 +226,11 @@ class QuickJsExecution implements ScriptExecution {
   }
 
   // The host side of every game function: records the call and hands the script a promise the engine settles later
-  private enqueue(fn: string, argsJson: string): QuickJSHandle | { error: QuickJSHandle } {
-    const args = parseValues(argsJson)
-    if (!args) {
-      return { error: this.context.newError(UNREADABLE_VALUES) }
-    }
+  private enqueue(fn: string, argsJson: string): QuickJSHandle {
     const deferred = this.context.newPromise()
     const callId = this.nextCallId++
     this.deferred.set(callId, deferred)
-    this.calls.push({ callId, fn, args })
+    this.calls.push({ callId, fn, args: JSON.parse(argsJson) as JsonValue[] })
     return deferred.handle
   }
 

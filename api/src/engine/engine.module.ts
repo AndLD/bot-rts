@@ -4,38 +4,14 @@ import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { ENGINE_PORT } from './application/engine-port'
-import { ExecutionRepository } from './application/execution.repository'
-import { ExecutionStatus } from './domain/execution'
 import { PrismaExecutionRepository } from './infrastructure/prisma-execution.repository'
+import { killStalled } from './infrastructure/kill-stalled'
 import { createStepWatchBuffer, StepWatchReader } from './infrastructure/step-watch'
 import { EngineProcess } from './infrastructure/engine-process'
 import { spawnEngineWorker } from './infrastructure/engine-worker-launcher'
 import { DisabledEnginePort } from './infrastructure/worker-engine-port'
 
 export const ENGINE_PROCESS = Symbol('EngineProcess')
-
-// What the supervisor does for the script that held the engine thread: the record says it was killed, so that the next engine does
-// not start it again, and its player is told why
-async function killStalled(
-  executions: ExecutionRepository,
-  process: EngineProcess,
-  executionId: string
-): Promise<void> {
-  const record = await executions.findById(executionId)
-  if (!record || record.status !== ExecutionStatus.ACTIVE) {
-    return
-  }
-  const reason = 'stalled the engine'
-  await executions.update({ ...record, status: ExecutionStatus.KILLED, reason, endedAt: new Date() })
-  process.announce({
-    type: 'log',
-    executionId,
-    botId: record.botId,
-    userId: record.userId,
-    kind: 'error',
-    text: `killed: the script ${reason}`
-  })
-}
 
 const READY_TIMEOUT_MS = 60_000
 const STOP_TIMEOUT_MS = 10_000

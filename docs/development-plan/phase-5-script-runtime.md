@@ -49,4 +49,4 @@ AGENTS.md §7.1).
 | `feature/5.12-live-vision` | 5.12 | #79 | merged |
 | `feature/5.13-radio-network` | 5.13 | #80 | merged |
 | `feature/5.10-event-bus` | 5.10 | #81 | merged |
-| `feature/5.6-terminal-scripts` | 5.6 | PR_5_6 | merged |
+| `feature/5.6-terminal-scripts` | 5.6 | #82 | merged |

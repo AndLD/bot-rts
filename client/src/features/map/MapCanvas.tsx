@@ -1,6 +1,7 @@
 'use client'
 
 import { PointerEvent, useEffect, useRef, useState } from 'react'
+import { AnimationSystem } from './animation/AnimationSystem'
 import { describeCell } from './describeCell'
 import CellInspector from './CellInspector'
 import './MapCanvas.scss'
@@ -25,9 +26,11 @@ interface Props {
   center?: { x: number; y: number }
   // One of the player's own bots or bases was clicked: its control panel opens (design §4.3)
   onOpenBot?: (botId: string) => void
+  // Movement and effects are replaced by instant changes (design §15.2)
+  isReducedMotion: boolean
 }
 
-export default function MapCanvas({ store, loader, center, onOpenBot }: Props) {
+export default function MapCanvas({ store, loader, center, onOpenBot, isReducedMotion }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<MapRenderer | null>(null)
   // Asks for the part of the map that is on screen, a moment after the view stopped changing
@@ -37,10 +40,18 @@ export default function MapCanvas({ store, loader, center, onOpenBot }: Props) {
   const askForVisible = () => (loadVisibleRef.current as () => void)()
   const [selected, setSelected] = useState<{ x: number; y: number } | null>(null)
   const [, setTick] = useState(0)
+  const isReducedMotionRef = useRef(isReducedMotion)
+  isReducedMotionRef.current = isReducedMotion
 
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement
-    const renderer = new MapRenderer(canvas, { aging: AGING })
+    const animations: AnimationSystem = new AnimationSystem({
+      now: () => performance.now(),
+      isReducedMotion: () => isReducedMotionRef.current,
+      locate: (botId) => store.locate(botId),
+      zoom: (): number => renderer.getCamera().zoom
+    })
+    const renderer: MapRenderer = new MapRenderer(canvas, { aging: AGING, animations })
     rendererRef.current = renderer
     let loadTimer: ReturnType<typeof setTimeout> | undefined
     let isDisposed = false
@@ -65,6 +76,10 @@ export default function MapCanvas({ store, loader, center, onOpenBot }: Props) {
     resize()
     showStore()
     const unsubscribe = store.subscribe(showStore)
+    const unsubscribeEvents = store.subscribeEvents((event) => {
+      animations.handle(event)
+      renderer.requestRender()
+    })
     const unsubscribeLoader = loader.onInvalidate(loadVisible)
     const clock = setInterval(() => {
       renderer.setNow(store.now())
@@ -77,6 +92,7 @@ export default function MapCanvas({ store, loader, center, onOpenBot }: Props) {
       clearTimeout(loadTimer)
       clearInterval(clock)
       unsubscribe()
+      unsubscribeEvents()
       unsubscribeLoader()
       resizeObserver.disconnect()
       renderer.dispose()

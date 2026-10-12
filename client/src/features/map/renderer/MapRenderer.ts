@@ -1,3 +1,4 @@
+import { AnimationSystem } from '../animation/AnimationSystem'
 import { Atlas } from './atlas'
 import { ageAlpha, AgingOptions, DEFAULT_AGING } from './aging'
 import { cellPixels, LOD_ZOOM, panBy, screenToCell, TILE_SIZE, visibleRange, worldToScreen, zoomAt } from './camera'
@@ -7,6 +8,8 @@ import { isGhost, layersOf } from './sprites'
 
 export interface MapRendererOptions {
   atlas?: Atlas | null
+  // The animations to play over the map, driven by game events (design §15.2)
+  animations?: AnimationSystem
   aging?: AgingOptions
   // Draws on a scratch canvas to tint a sprite by ownership
   createScratch?: () => HTMLCanvasElement
@@ -28,6 +31,7 @@ export class MapRenderer {
   private cells = new Map<string, MapCell>()
   private links: MapLink[] = []
   private atlas: Atlas | null
+  private readonly animations: AnimationSystem | null
   private size: Size = { width: 0, height: 0 }
   private camera: Camera = { centerX: 0, centerY: 0, zoom: 1 }
   private now = 0
@@ -47,6 +51,7 @@ export class MapRenderer {
 
     this.context = context
     this.atlas = options.atlas ?? null
+    this.animations = options.animations ?? null
     this.aging = options.aging ?? DEFAULT_AGING
     this.createScratch = options.createScratch ?? (() => document.createElement('canvas'))
     this.schedule = options.schedule ?? ((callback) => requestAnimationFrame(callback))
@@ -173,16 +178,27 @@ export class MapRenderer {
     if (this.isShowingLinks) {
       this.drawLinks()
     }
+    // Effects are not drawn at low zoom, where they could not be seen, but a move already under way finishes
+    const isAnimating = this.animations?.draw({
+      context,
+      cellToScreen: (x, y) => worldToScreen(this.camera, size, x, y),
+      cellSize: cellPixels(this.camera)
+    })
     if (this.selected) {
       this.outline(this.selected.x, this.selected.y, PALETTE.selection, 2)
+    }
+    // Something is still moving: the next frame follows at once
+    if (isAnimating) {
+      this.requestRender()
     }
   }
 
   private drawCell(cell: MapCell, isCoarse: boolean) {
     const { context } = this
     const { content } = cell
-    const { x, y } = worldToScreen(this.camera, this.size, cell.x, cell.y)
     const scale = cellPixels(this.camera)
+    const shift = this.animations?.moveOffset(cell.x, cell.y)
+    const { x, y } = worldToScreen(this.camera, this.size, cell.x + (shift?.dx ?? 0), cell.y + (shift?.dy ?? 0))
     const isLost = content.kind === 'bot' && content.linkLostAt !== undefined
     const ghost = isGhost(cell)
 

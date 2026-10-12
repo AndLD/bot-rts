@@ -46,8 +46,11 @@ describe('useMapStream', () => {
     const invalidate = jest.spyOn(result.current.loader, 'invalidate')
 
     socket.listeners('connect')[0]()
+    const heard = jest.fn()
+    result.current.store.subscribeEvents(heard)
     socket.listeners('game-event')[0]({ type: 'BotMoved' })
     expect(invalidate).toHaveBeenCalledTimes(1)
+    expect(heard).toHaveBeenCalledWith({ type: 'BotMoved' })
 
     socket.listeners('game-event')[0]({ type: 'ScanCompleted' })
     expect(invalidate).toHaveBeenCalledTimes(2)

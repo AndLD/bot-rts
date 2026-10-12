@@ -18,7 +18,11 @@ const METHODS = [
   'moveTo',
   'lineTo',
   'stroke',
-  'setLineDash'
+  'setLineDash',
+  'arc',
+  'fill',
+  'fillText',
+  'closePath'
 ]
 
 export function createFakeContext(): FakeContext {

@@ -1,6 +1,7 @@
 import { RESOURCE } from '@lib/utils/interfaces/resources'
 import { createFakeCanvas, createFakeContext, FakeContext } from '../../../../tests/canvas'
 import { Atlas } from './atlas'
+import { AnimationSystem } from '../animation/AnimationSystem'
 import { MapRenderer } from './MapRenderer'
 import { MapCell } from './model'
 
@@ -227,5 +228,66 @@ describe('MapRenderer', () => {
 
     expect(getContext).toHaveBeenCalledWith('2d')
     getContext.mockRestore()
+  })
+
+  describe('with animations', () => {
+    const movedEvent = {
+      type: 'BotMoved' as const,
+      at: 1,
+      parties: [{ userId: 'u', botId: 'b1' }] as [{ userId: string; botId: string }],
+      from: { x: 0, y: 0, z: 0 },
+      to: { x: 2, y: 0, z: 0 }
+    }
+
+    function animated() {
+      const animations = new AnimationSystem({
+        now: () => 1000,
+        isReducedMotion: () => false,
+        locate: () => null,
+        zoom: () => 1
+      })
+      const setupResult = setup({ animations })
+      setupResult.renderer.setCells([cell(2, 0, { kind: 'item', item: 'part' }, { isLive: true })])
+      setupResult.scheduled.splice(0).forEach((frame) => frame())
+      setupResult.context.calls.length = 0
+
+      return { animations, ...setupResult }
+    }
+
+    it('draws a moving bot between where it was and where it is', () => {
+      const { animations, renderer, context } = animated()
+      animations.handle(movedEvent)
+
+      renderer.render()
+
+      // The cell is two cells to the left of its place at the start of the move
+      const [x] = context.called('fillRect').find((args) => args[2] === 32) as number[]
+      expect(x).toBe((2 - 2 - 0.5) * 32 + 160)
+    })
+
+    it('draws the effects over the cells, and asks for the next frame while something moves', () => {
+      const { animations, renderer, context, scheduled } = animated()
+      animations.handle({
+        type: 'ShotFired',
+        at: 1,
+        parties: movedEvent.parties,
+        location: { x: 0, y: 0, z: 0 },
+        target: { x: 2, y: 0, z: 0 },
+        rounds: 1
+      })
+
+      renderer.render()
+
+      expect(context.called('lineTo')).toHaveLength(1)
+      expect(scheduled.length).toBe(1)
+    })
+
+    it('stops asking for frames once everything has ended', () => {
+      const { renderer, scheduled } = animated()
+
+      renderer.render()
+
+      expect(scheduled).toHaveLength(0)
+    })
   })
 })

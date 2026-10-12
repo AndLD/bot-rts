@@ -257,7 +257,7 @@ describe('the engine thread', () => {
 
   it('ends an engine thread that a script holds for too long, kills that script, and serves the others afterwards', async () => {
     const hog = await deployWithScript(
-      'export async function main() { const big = []; for (let i = 0; i < 20000; i++) big.push((i * 7919) % 10007); for (;;) big.slice().sort() }'
+      'export async function main() { const big = new Array(20000).fill(7); for (;;) big.slice().sort() }'
     )
     const other = await deployWithScript('export async function main(bot) { bot.log("fine after the stall") }')
     const hogView = await port.start({ userId: hog.userId, botId: hog.botId, file: '/memory-class1/main.js', args: [] })

@@ -3,6 +3,7 @@ import type { BotsService } from '../../bots/application/bots.service'
 import type { FactoryService } from '../../bots/application/factory.service'
 import type { MaintenanceService } from '../../bots/application/maintenance.service'
 import type { ScanService } from '../../bots/application/scan.service'
+import type { BotAccessService } from '../../terminal/application/bot-access.service'
 import type { FilesService } from '../../files/application/files.service'
 
 // The use cases that change the world. The API thread never runs them itself: it sends them to the engine, which is the single
@@ -19,6 +20,8 @@ export interface WorldActions {
   'files.write': FilesService['write']
   'files.makeDirectory': FilesService['makeDirectory']
   'files.remove': FilesService['remove']
+  'access.connect': BotAccessService['connect']
+  'access.adopt': BotAccessService['adopt']
 }
 
 export type WorldActionName = keyof WorldActions
@@ -35,7 +38,9 @@ export const WORLD_ACTION_NAMES: Record<WorldActionName, true> = {
   'maintenance.disassemble': true,
   'files.write': true,
   'files.makeDirectory': true,
-  'files.remove': true
+  'files.remove': true,
+  'access.connect': true,
+  'access.adopt': true
 }
 
 export const isWorldAction = (name: unknown): name is WorldActionName =>
@@ -53,7 +58,9 @@ const CONTROLLED_BOT: Record<WorldActionName, (args: readonly unknown[]) => unkn
   'maintenance.disassemble': (args) => (args[1] as { repairerId: string }).repairerId,
   'files.write': (args) => args[1],
   'files.makeDirectory': (args) => args[1],
-  'files.remove': (args) => args[1]
+  'files.remove': (args) => args[1],
+  'access.connect': (args) => args[1],
+  'access.adopt': (args) => args[1]
 }
 
 // The player and the bot a manual action takes control of, or null when it controls none

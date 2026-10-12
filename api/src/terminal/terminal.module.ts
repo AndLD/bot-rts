@@ -18,7 +18,6 @@ import { createTerminalShell } from './application/shell/create-terminal-shell'
 import { TerminalShell } from './application/shell/terminal-shell.service'
 import { TerminalService } from './application/terminal.service'
 import { TERMINAL_RETENTION, TerminalRetention } from './domain/terminal-retention'
-import { PrismaTerminalSessionRepository } from './infrastructure/prisma-terminal-session.repository'
 import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
 import { EngineLinkGate } from '../engine/infrastructure/engine-link-gate'
 import { LINK_GATE, LinkGate, OpenLinkGate } from './application/link-gate'
@@ -26,18 +25,17 @@ import { EngineScriptRunner } from '../engine/infrastructure/engine-script-runne
 import { LOGGER, Logger } from '../shared/application/logger'
 import { ScriptLogRecorder } from './application/script-log-recorder'
 import { SCRIPT_OUTPUT_FEED, SCRIPT_RUNNER, ScriptOutputFeed } from './application/script-runner'
+import { BotAccessService } from './application/bot-access.service'
+import { DELAY, Delay } from './application/delay'
+import { SystemDelay } from './infrastructure/system-delay'
+import { ScriptRunner } from './application/script-runner'
+import { TerminalCoreModule } from './terminal-core.module'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({
-  imports: [BotsModule, FilesModule, CraftingModule],
+  imports: [BotsModule, FilesModule, CraftingModule, TerminalCoreModule],
   providers: [
     TerminalGateway,
-    {
-      provide: TERMINAL_SESSION_REPOSITORY,
-      inject: [PRISMA_CLIENT],
-      useFactory: (client: PrismaClient) => new PrismaTerminalSessionRepository(client)
-    },
-    { provide: TERMINAL_RETENTION, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.terminal },
     {
       provide: LINK_GATE,
       inject: [APP_CONFIG, ENGINE_PORT],
@@ -56,6 +54,7 @@ import { TerminalGateway } from './presentation/terminal.gateway'
         links: LinkGate
       ) => new TerminalService(sessions, bots, ids, clock, retention, links)
     },
+    { provide: DELAY, useClass: SystemDelay },
     {
       provide: SCRIPT_RUNNER,
       inject: [ENGINE_PORT],
@@ -78,9 +77,37 @@ import { TerminalGateway } from './presentation/terminal.gateway'
         AssemblyService,
         RecipeService,
         MaintenanceService,
-        SCRIPT_RUNNER
+        SCRIPT_RUNNER,
+        BotAccessService,
+        DELAY,
+        APP_CONFIG
       ],
-      useFactory: createTerminalShell
+      useFactory: (
+        bots: BotsService,
+        files: FilesService,
+        terminal: TerminalService,
+        factory: FactoryService,
+        assembly: AssemblyService,
+        recipes: RecipeService,
+        maintenance: MaintenanceService,
+        scripts: ScriptRunner,
+        access: BotAccessService,
+        delay: Delay,
+        config: AppConfig
+      ) =>
+        createTerminalShell(
+          bots,
+          files,
+          terminal,
+          factory,
+          assembly,
+          recipes,
+          maintenance,
+          scripts,
+          access,
+          delay,
+          config.botSecurity.attemptDelayMs
+        )
     }
   ],
   exports: [TerminalService]

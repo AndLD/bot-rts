@@ -80,7 +80,7 @@ describe('presentation mappers', () => {
   })
 
   it('maps terminal sessions and lines to timestamps', () => {
-    const session = { id: 's1', botId: 'b1', userId: 'u1', startedAt: new Date(1000), endedAt: null }
+    const session = { id: 's1', botId: 'b1', userId: 'u1', startedAt: new Date(1000), endedAt: null, fromBotId: null }
 
     expect(toSessionDto(session)).toEqual({ _id: 's1', botId: 'b1', startedAt: 1000 })
     expect(toSessionDto({ ...session, endedAt: new Date(2000) }).endedAt).toBe(2000)

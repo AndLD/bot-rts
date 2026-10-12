@@ -189,11 +189,22 @@ export class EngineCore {
       }
       await this.deps.world.sync()
       try {
-        return await this.deps.actions.execute(name, args)
+        const result = await this.deps.actions.execute(name, args)
+        if (name === 'access.adopt') {
+          // The bot has another owner now: what its old owner left running stops with them
+          await this.killAllOf(args[2] as string)
+        }
+        return result
       } finally {
         this.deps.world.evict()
       }
     })
+  }
+
+  private async killAllOf(botId: string): Promise<void> {
+    for (const live of [...this.live.values()].filter((candidate) => candidate.record.botId === botId)) {
+      await this.finish(live, ExecutionStatus.KILLED, 'killed')
+    }
   }
 
   // Whether a bot reaches its base through the radio network, and how well (design §11.2.1)

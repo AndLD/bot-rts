@@ -70,6 +70,10 @@ export class TerminalGateway implements OnGatewayConnection {
         const reply = await inOrder(async () => {
           const outcome = await this.shell.execute(userId(), sessionId, line, this.placeOf(openSessions, sessionId))
           openSessions.set(sessionId, outcome.cwd)
+          // A session `connect` opened is driven through this socket too
+          if (outcome.response.result.type === 'connected') {
+            openSessions.set(outcome.response.result.sessionId, TOP)
+          }
           return outcome
         })
         ack(reply.response)

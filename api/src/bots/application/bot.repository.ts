@@ -12,4 +12,7 @@ export interface BotRepository {
   listOfBase(baseId: string): Promise<Bot[]>
   // Remembers where a bot without modules was, now that its cell is empty
   setLastPosition(botId: string, position: Location): Promise<void>
+  setPasswordHash(botId: string, passwordHash: string): Promise<void>
+  // The bot now belongs to another base (design §11.2.2, adopt)
+  setBase(botId: string, baseId: string): Promise<void>
 }

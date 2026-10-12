@@ -54,6 +54,9 @@ export const TERMINAL_COMMANDS = [
   { name: 'eval', usage: 'eval <code>' },
   { name: 'top', usage: 'top' },
   { name: 'kill', usage: 'kill <execution-id>' },
+  { name: 'passwd', usage: 'passwd <password>' },
+  { name: 'connect', usage: 'connect <bot-id> [password]' },
+  { name: 'adopt', usage: 'adopt' },
   { name: 'clear', usage: 'clear' },
   { name: 'exit', usage: 'exit' }
 ] as const
@@ -69,6 +72,8 @@ export type TerminalCommandResult =
   | { type: 'exit' }
   // The file to edit; the client saves it with 'save-terminal-file'
   | { type: 'edit'; path: string; content: string }
+  // A session on another bot was opened; the client works in it until it leaves with `exit`
+  | { type: 'connected'; sessionId: string; botId: string }
   | { type: 'error'; code: string; message: string }
 
 export interface ITerminalCommandResponse {

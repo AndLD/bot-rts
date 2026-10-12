@@ -6,6 +6,7 @@ import { CraftingConfig } from '../crafting/domain/crafting-config'
 import { readCraftingConfig } from '../crafting/infrastructure/crafting-config.reader'
 import { readSpawnConfig } from '../spawn/infrastructure/spawn-config.reader'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
+import { BotSecurityPolicy, DEFAULT_BOT_SECURITY } from '../terminal/domain/bot-security'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
@@ -42,6 +43,7 @@ export interface AppConfig {
   crafting: CraftingConfig
   engine: EngineSettings
   terminal: TerminalRetention
+  botSecurity: BotSecurityPolicy
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
   emailOutboxDir: string | undefined
@@ -150,6 +152,12 @@ export function loadConfig(env: Env): AppConfig {
       logDays: positiveInt(env.TERMINAL_LOG_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.logDays),
       maxLinesPerBot: positiveInt(env.TERMINAL_LOG_MAX_LINES, DEFAULT_TERMINAL_RETENTION.maxLinesPerBot),
       securityDays: positiveInt(env.TERMINAL_SECURITY_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.securityDays)
+    },
+    botSecurity: {
+      attemptEnergy: positiveInt(env.BOT_ATTEMPT_ENERGY, DEFAULT_BOT_SECURITY.attemptEnergy),
+      attemptDelayMs: positiveInt(env.BOT_ATTEMPT_DELAY_MS, DEFAULT_BOT_SECURITY.attemptDelayMs),
+      maxFailures: positiveInt(env.BOT_LOCKOUT_FAILURES, DEFAULT_BOT_SECURITY.maxFailures),
+      lockoutMs: positiveInt(env.BOT_LOCKOUT_MS, DEFAULT_BOT_SECURITY.lockoutMs)
     },
     smtp: readSmtpConfig(env),
     emailOutboxDir: env.EMAIL_OUTBOX_DIR || undefined,

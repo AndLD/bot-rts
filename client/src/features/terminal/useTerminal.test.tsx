@@ -293,6 +293,44 @@ describe('useTerminal: scripts', () => {
   })
 })
 
+describe('useTerminal: connecting to other bots', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  const connectResult = answering({ type: 'connected', sessionId: 'session-2', botId: 'bot-2' })
+
+  it('works in the new terminal after connect, and returns to the one before with exit', async () => {
+    const { socket, result } = await connected({ 'terminal-command': connectResult })
+
+    act(() => result.current.run('connect bot-2 pw'))
+    expect(result.current.currentBotId).toBe('bot-2')
+    expect(result.current.lines.at(-1)).toBe('Connected to bot-2; exit returns')
+    act(() => result.current.run('help'))
+    expect(socket.emit).toHaveBeenLastCalledWith('terminal-command', 'session-2', 'help', expect.any(Function))
+  })
+
+  it('leaves the connected terminal on exit, closing its session, and signs out only from the first one', async () => {
+    const { socket, result } = await connected({
+      'terminal-command': ((session: string, line: string, ack: (response: ITerminalCommandResponse) => void) =>
+        ack({
+          result: line.startsWith('connect')
+            ? { type: 'connected', sessionId: 'session-2', botId: 'bot-2' }
+            : { type: 'exit' },
+          cwd: top
+        })) as Handler
+    })
+
+    act(() => result.current.run('connect bot-2'))
+    act(() => result.current.run('exit'))
+
+    expect(socket.emit).toHaveBeenCalledWith('close-terminal', 'session-2', expect.any(Function))
+    expect(result.current.currentBotId).toBe('base-1')
+    expect(result.current.lines.at(-1)).toBe('Back on base-1')
+
+    act(() => result.current.run('exit'))
+    expect(auth.signOut).toHaveBeenCalled()
+  })
+})
+
 describe('useTerminal: the editor', () => {
   beforeEach(() => jest.clearAllMocks())
 

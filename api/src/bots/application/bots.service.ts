@@ -173,7 +173,17 @@ export class BotsService {
     return this.modules.listOfBot(botId)
   }
 
-  // The bot, provided it belongs to the user: a base through its `userId`, any other bot through its base
+  // The player a bot belongs to: a base through its `userId`, any other bot through its base
+  async ownerOf(bot: Bot): Promise<string | null> {
+    return bot.userId ?? (bot.baseId ? ((await this.bots.findById(bot.baseId))?.userId ?? null) : null)
+  }
+
+  // Whether the bot can be connected to: its wireless adapter works (design §8.4.1)
+  isReachable(bot: Bot): Promise<boolean> {
+    return this.lifecycle.isReachable(bot, this.reads)
+  }
+
+  // The bot, provided it belongs to the user
   async getOwnedBot(userId: string, botId: string): Promise<Bot> {
     const bot = await this.bots.findById(botId)
 
@@ -181,9 +191,7 @@ export class BotsService {
       throw new NotFoundError('Bot not found')
     }
 
-    const ownerId = bot.userId ?? (bot.baseId ? ((await this.bots.findById(bot.baseId))?.userId ?? null) : null)
-
-    if (ownerId !== userId) {
+    if ((await this.ownerOf(bot)) !== userId) {
       throw new ForbiddenError('The bot belongs to another player')
     }
 
@@ -206,7 +214,7 @@ export class BotsService {
   // The bot, provided the user controls it and it can be connected to: its wireless adapter works
   async getReachableBot(userId: string, botId: string): Promise<Bot> {
     const bot = await this.getControlledBot(userId, botId)
-    if (!(await this.lifecycle.isReachable(bot, this.reads))) {
+    if (!(await this.isReachable(bot))) {
       throw new BotUnreachableError()
     }
     return bot

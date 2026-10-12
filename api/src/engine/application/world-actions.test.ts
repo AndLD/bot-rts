@@ -16,6 +16,8 @@ describe('controlledBotOf', () => {
     })
     expect(controlledBotOf('maintenance.disassemble', ['u', { repairerId: 'r' }])).toEqual({ userId: 'u', botId: 'r' })
     expect(controlledBotOf('files.write', ['u', 'b', 'd', 'a.js', 'x'])).toEqual({ userId: 'u', botId: 'b' })
+    expect(controlledBotOf('access.connect', ['u', 'from', 'target', 'pw'])).toEqual({ userId: 'u', botId: 'from' })
+    expect(controlledBotOf('access.adopt', ['u', 'from', 'target'])).toEqual({ userId: 'u', botId: 'from' })
     expect(controlledBotOf('files.makeDirectory', ['u', 'b', 'd', 'lib'])).toEqual({ userId: 'u', botId: 'b' })
     expect(controlledBotOf('files.remove', ['u', 'b', 'd', 'a.js'])).toEqual({ userId: 'u', botId: 'b' })
   })

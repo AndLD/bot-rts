@@ -48,4 +48,12 @@ export class PrismaBotRepository implements BotRepository {
     const rows = await this.db.bot.findMany({ where: { baseId }, orderBy: { id: 'asc' } })
     return rows.map(toEntity)
   }
+
+  async setPasswordHash(botId: string, passwordHash: string): Promise<void> {
+    await this.db.bot.update({ where: { id: botId }, data: { passwordHash } })
+  }
+
+  async setBase(botId: string, baseId: string): Promise<void> {
+    await this.db.bot.update({ where: { id: botId }, data: { baseId } })
+  }
 }

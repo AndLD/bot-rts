@@ -1,3 +1,6 @@
+import { Delay } from '../../src/terminal/application/delay'
+import { BotAccessRepository } from '../../src/terminal/application/bot-access.repository'
+import { AccessState } from '../../src/terminal/domain/bot-security'
 import { BOT_TYPE } from '../../../lib/utils/interfaces/bots'
 import { Bot } from '../../src/bots/domain/bot.entity'
 import { BotRepository } from '../../src/bots/application/bot.repository'
@@ -338,6 +341,20 @@ export class InMemoryBotRepository implements BotRepository {
       this.items.set(botId, { ...bot, lastPosition: position })
     }
   }
+
+  async setPasswordHash(botId: string, passwordHash: string) {
+    const bot = this.items.get(botId)
+    if (bot) {
+      this.items.set(botId, { ...bot, passwordHash })
+    }
+  }
+
+  async setBase(botId: string, baseId: string) {
+    const bot = this.items.get(botId)
+    if (bot) {
+      this.items.set(botId, { ...bot, baseId })
+    }
+  }
 }
 
 export class InMemoryModuleRepository implements ModuleRepository {
@@ -566,5 +583,25 @@ export class InMemoryItemRepository implements ItemRepository {
 
   async remove(id: string) {
     this.items.delete(id)
+  }
+}
+
+export class InMemoryBotAccessRepository implements BotAccessRepository {
+  readonly states = new Map<string, AccessState>()
+
+  async find(botId: string) {
+    return this.states.get(botId) ?? null
+  }
+
+  async save(botId: string, state: AccessState) {
+    this.states.set(botId, state)
+  }
+}
+
+export class FakeDelay implements Delay {
+  readonly waits: number[] = []
+
+  async wait(ms: number) {
+    this.waits.push(ms)
   }
 }

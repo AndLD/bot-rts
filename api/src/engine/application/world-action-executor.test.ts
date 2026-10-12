@@ -22,7 +22,8 @@ async function setup() {
     factory: world.factoryService,
     assembly: world.assemblyService,
     maintenance: world.maintenanceService,
-    files: world.filesService
+    files: world.filesService,
+    access: world.botAccessService
   })
   return { ...world, executor }
 }
@@ -47,6 +48,24 @@ describe('WorldActionExecutor', () => {
     const { executor } = await setup()
 
     await expect(executor.execute('scan.scan', [alice.id, 'missing'])).rejects.toMatchObject({ statusCode: 404 })
+  })
+
+  it('runs the access rules: a connection, then the takeover of an ordinary bot', async () => {
+    const { executor, botsService, moduleFactory } = await setup()
+    const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
+    const mine = await botsService.deployUserBase(alice, { password: 'secret1', location: { x: 5, y: 5, z: 0 } })
+    const theirs = await botsService.deployUserBase(bob, { password: 'bobpw1', location: { x: 8, y: 5, z: 0 } })
+    const victim = await botsService.createBot(bob.id, {
+      baseId: theirs.bot.id,
+      label: 'V',
+      modules: ['processor-class1', 'wireless-adapter-class1', 'battery-class1'].map((n) => moduleFactory.template(n))
+    })
+
+    const connection = await executor.execute('access.connect', [alice.id, mine.bot.id, victim.bot.id, 'bobpw1'])
+    const adopted = await executor.execute('access.adopt', [alice.id, mine.bot.id, victim.bot.id])
+
+    expect(connection).toMatchObject({ isForeign: true })
+    expect(adopted).toMatchObject({ id: victim.bot.id, baseId: mine.bot.id })
   })
 
   it('refuses a name that is not an action', async () => {

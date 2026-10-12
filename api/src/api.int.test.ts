@@ -279,6 +279,33 @@ describe('authorization', () => {
     await api().patch('/api/v1/admin/settings').set(bearer(admin.accessToken)).send({}).expect(400)
   })
 
+  it('guides a player through the tutorial: steps done by doing them, skip, and start again', async () => {
+    const { accessToken } = await signUp('alice@example.com')
+    const tutorial = () => api().get('/api/v1/tutorial').set(bearer(accessToken))
+    const doneSteps = (body: { steps: Array<{ id: string; isDone: boolean }> }) =>
+      body.steps.filter((step) => step.isDone).map((step) => step.id)
+
+    await api().get('/api/v1/tutorial').expect(401)
+    const deployed = await api()
+      .post('/api/v1/bots/base')
+      .set(bearer(accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
+    const baseId = deployed.body.bot._id
+
+    expect((await tutorial().expect(200)).body).toMatchObject({ status: 'active', current: 'openTerminal' })
+    await api().post(`/api/v1/bots/${baseId}/scan`).set(bearer(accessToken)).expect(200)
+    expect(doneSteps((await tutorial().expect(200)).body)).toEqual(['scan'])
+
+    const skipped = await api().post('/api/v1/tutorial/skip').set(bearer(accessToken)).expect(200)
+    expect(skipped.body).toMatchObject({ status: 'skipped', current: null })
+    expect(doneSteps(skipped.body)).toEqual(['scan'])
+
+    const restarted = await api().post('/api/v1/tutorial/restart').set(bearer(accessToken)).expect(200)
+    expect(restarted.body).toMatchObject({ status: 'active', current: 'openTerminal' })
+    expect(doneSteps(restarted.body)).toEqual(['scan'])
+  })
+
   it('lets an admin list and edit regular users but not change a status', async () => {
     const alice = await signUp('alice@example.com')
     const admin = await signUp('admin@example.com', 'Admin')

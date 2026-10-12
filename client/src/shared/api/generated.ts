@@ -211,6 +211,15 @@ const injectedRtkApi = api.injectEndpoints({
     adminSettingsUpdate: build.mutation<AdminSettingsUpdateApiResponse, AdminSettingsUpdateApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/settings`, method: 'PATCH', body: queryArg.updateGameSettingsDto })
     }),
+    tutorialGet: build.query<TutorialGetApiResponse, TutorialGetApiArg>({
+      query: () => ({ url: `/api/v1/tutorial` })
+    }),
+    tutorialSkip: build.mutation<TutorialSkipApiResponse, TutorialSkipApiArg>({
+      query: () => ({ url: `/api/v1/tutorial/skip`, method: 'POST' })
+    }),
+    tutorialRestart: build.mutation<TutorialRestartApiResponse, TutorialRestartApiArg>({
+      query: () => ({ url: `/api/v1/tutorial/restart`, method: 'POST' })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -406,6 +415,12 @@ export type AdminSettingsUpdateApiResponse = /** status 200  */ GameSettingsResp
 export type AdminSettingsUpdateApiArg = {
   updateGameSettingsDto: UpdateGameSettingsDto
 }
+export type TutorialGetApiResponse = /** status 200  */ TutorialResponse
+export type TutorialGetApiArg = void
+export type TutorialSkipApiResponse = /** status 200  */ TutorialResponse
+export type TutorialSkipApiArg = void
+export type TutorialRestartApiResponse = /** status 200  */ TutorialResponse
+export type TutorialRestartApiArg = void
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
 export type UserInfoResponse = {
@@ -847,6 +862,16 @@ export type UpdateUserSettingsDto = {
 export type UpdateGameSettingsDto = {
   categories: CategorySwitchesPatchModel
 }
+export type TutorialStepResponse = {
+  id: 'openTerminal' | 'listModules' | 'scan' | 'writeScript' | 'runScript' | 'craft' | 'assemble'
+  isDone: boolean
+}
+export type TutorialResponse = {
+  status: 'active' | 'skipped' | 'completed'
+  steps: TutorialStepResponse[]
+  /** The first step not done, while the tutorial is active */
+  current: ('openTerminal' | 'listModules' | 'scan' | 'writeScript' | 'runScript' | 'craft' | 'assemble') | null
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -896,5 +921,8 @@ export const {
   useSettingsUpdateMutation,
   useAdminSettingsGetQuery,
   useAdminSettingsUpdateMutation,
+  useTutorialGetQuery,
+  useTutorialSkipMutation,
+  useTutorialRestartMutation,
   useHealthCheckQuery
 } = injectedRtkApi

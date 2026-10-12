@@ -1,7 +1,10 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderApp } from '../../../tests/render'
 import { setupStore } from '../../shared/store'
 import { openWindow } from '../windows/windows.slice'
+import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
+import { makeJwt } from '../../../tests/jwt'
+import { storeWithToken } from '../../../tests/render'
 import GameScreen from './GameScreen'
 
 jest.mock('../map/GameMap', () => ({
@@ -17,6 +20,8 @@ jest.mock('../factory/FactoryPanel', () => ({
   __esModule: true,
   default: ({ baseId }: { baseId: string }) => <div>the factory of {baseId}</div>
 }))
+jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
+jest.mock('../tutorial/TutorialOverlay', () => ({ __esModule: true, default: () => <div>the tutorial</div> }))
 jest.mock('../control/ControlPanel', () => ({
   __esModule: true,
   default: ({ botId }: { botId: string }) => <div>the control of {botId}</div>
@@ -45,7 +50,14 @@ jest.mock('../terminal/Terminal', () => ({
   )
 }))
 
-beforeEach(() => localStorage.clear())
+const query = jest.mocked(baseQueryWithRefresh)
+const tutorialAt = (current: string | null) => ({ data: { status: 'active', steps: [], current } })
+
+beforeEach(() => {
+  localStorage.clear()
+  query.mockReset()
+  query.mockResolvedValue(tutorialAt(null) as never)
+})
 
 describe('GameScreen', () => {
   it('shows the map with the terminal open over it', () => {
@@ -132,5 +144,24 @@ describe('GameScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Control panel' }))
     expect(screen.getByText('the control of b1')).toBeInTheDocument()
+  })
+
+  it('shows the tutorial over the screen', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    expect(screen.getByText('the tutorial')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['openTerminal', 'Terminal'],
+    ['scan', 'Control panel'],
+    ['craft', 'Factory'],
+    ['assemble', 'Factory']
+  ])('points at the button of the %s step', async (step, button) => {
+    query.mockResolvedValue(tutorialAt(step) as never)
+    renderApp(<GameScreen baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
+
+    await waitFor(() => expect(screen.getByRole('button', { name: button })).toHaveClass('tutorial-highlight'))
+    expect(screen.getAllByRole('button').filter((b) => b.classList.contains('tutorial-highlight'))).toHaveLength(1)
   })
 })

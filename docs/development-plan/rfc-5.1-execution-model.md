@@ -49,3 +49,14 @@ under a 5 ms interrupt deadline:
 - 5.12 uses the chunk index (16×16 cells per chunk) measured above.
 - A load test (5.7) re-measures with real scripts and the whole bridge; the numbers above are the baseline, and the tick
   overrun metric (5.4a) alerts when the cap is hit.
+
+## 4. Findings of the runtime (task 5.2)
+
+- **A slice overrun kills the execution** (`TIME_LIMIT`). QuickJS's interrupt raises an error the script cannot catch, so
+  a running loop cannot be suspended and resumed; design §12.2.1 allows "suspends or kills", and kill is what is possible.
+  Long computations must be split with `await sleep(0)`. A 5 ms slice is about 100,000 simple loop iterations.
+- **Memory bombs are throttled by the slice.** Near the heap limit QuickJS spends its time in garbage collection (a
+  growing 4 MiB bomb took ~2.5 s before the heap limit fired), and that is not interruptible. With the 5 ms slice the
+  bomb is stopped in under 300 ms; task 5.7 measures this with a load test and the default `memoryBytes` is lowered if
+  it still threatens the tick cap.
+- Scripts have no `Date`; `Math.random` is the host's seeded RNG and `bot.time()` returns game time.

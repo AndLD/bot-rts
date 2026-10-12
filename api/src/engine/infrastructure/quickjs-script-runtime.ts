@@ -40,6 +40,8 @@ const PRELUDE = `(function (call, random, time, log, configJson) {
   globalThis.time = bot.time
   Math.random = () => random()
   delete globalThis.Date
+  delete globalThis.SharedArrayBuffer
+  delete globalThis.Atomics
   return Object.freeze(bot)
 })`
 
@@ -57,7 +59,7 @@ const variant: QuickJSSyncVariant = {
 
 export class QuickJsScriptRuntime implements ScriptRuntime {
   private constructor(
-    private readonly module: QuickJSWASMModule,
+    private module: QuickJSWASMModule,
     private readonly wallClock: () => number
   ) {}
 
@@ -67,7 +69,14 @@ export class QuickJsScriptRuntime implements ScriptRuntime {
   }
 
   createExecution(options: ScriptExecutionOptions): ScriptExecution {
-    return new QuickJsExecution(this.module.newRuntime(), options, this.wallClock)
+    return new QuickJsExecution(this.module.newRuntime(), options, this.wallClock, () => this.replaceModule())
+  }
+
+  // After a fault the WASM module may be left in a state nobody can vouch for: the executions that come next get a fresh one
+  private replaceModule(): void {
+    void newQuickJSWASMModuleFromVariant(variant).then((fresh) => {
+      this.module = fresh
+    })
   }
 }
 
@@ -86,7 +95,8 @@ class QuickJsExecution implements ScriptExecution {
   constructor(
     private readonly runtime: QuickJSRuntime,
     private readonly options: ScriptExecutionOptions,
-    private readonly wallClock: () => number
+    private readonly wallClock: () => number,
+    private readonly onFault: () => void
   ) {
     runtime.setMemoryLimit(options.limits.memoryBytes)
     runtime.setMaxStackSize(options.limits.stackBytes)
@@ -119,7 +129,17 @@ class QuickJsExecution implements ScriptExecution {
       this.isInterrupted = this.wallClock() > deadline
       return this.isInterrupted
     })
-    this.outcome = this.mainPromise ? this.advance() : this.start()
+    try {
+      this.outcome = this.mainPromise ? this.advance() : this.start()
+    } catch (error) {
+      // Something under the script failed in the host (the native stack ran out inside the sandbox, say): this execution ends,
+      // and the engine goes on without it
+      this.outcome = {
+        status: 'failed',
+        failure: { code: ScriptFailureCode.SANDBOX_FAULT, message: (error as Error).message }
+      }
+      this.onFault()
+    }
     return this.outcome ?? { status: 'waiting' }
   }
 
@@ -165,6 +185,14 @@ class QuickJsExecution implements ScriptExecution {
   dispose(): void {
     if (this.isDisposed) return
     this.isDisposed = true
+    try {
+      this.release()
+    } catch {
+      // A sandbox that faulted cannot always be taken apart cleanly; its module is replaced and the leftovers go with it
+    }
+  }
+
+  private release(): void {
     for (const deferred of this.deferred.values()) deferred.dispose()
     this.deferred.clear()
     this.mainPromise?.dispose()

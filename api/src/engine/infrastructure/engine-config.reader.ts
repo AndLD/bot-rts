@@ -67,6 +67,16 @@ export function readEngineSettings(env: Env, isTest: boolean, problems: string[]
       maxDepth: Math.floor(positive(env, 'ENGINE_MODULE_MAX_DEPTH', defaults.modules.maxDepth, problems)),
       cacheEntries: Math.floor(positive(env, 'ENGINE_MODULE_CACHE_ENTRIES', defaults.modules.cacheEntries, problems))
     },
+    watchdog: {
+      stallMs: Math.floor(positive(env, 'ENGINE_WATCHDOG_STALL_MS', defaults.watchdog.stallMs, problems)),
+      pollMs: Math.floor(positive(env, 'ENGINE_WATCHDOG_POLL_MS', defaults.watchdog.pollMs, problems))
+    },
+    log: {
+      maxLinesPerTick: Math.floor(
+        positive(env, 'ENGINE_LOG_MAX_LINES_PER_TICK', defaults.log.maxLinesPerTick, problems)
+      ),
+      maxChars: Math.floor(positive(env, 'ENGINE_LOG_MAX_CHARS', defaults.log.maxChars, problems))
+    },
     maxChunks: Math.floor(positive(env, 'ENGINE_MAX_CHUNKS', defaults.maxChunks, problems)),
     movement: {
       maxTicksPerCell: Math.floor(

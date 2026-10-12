@@ -131,6 +131,14 @@ metrics.
 - **Crash-loop guard:** an execution that was running during several consecutive engine crashes is marked `killed`
   instead of being relaunched again (threshold: tunable config).
 
+**Watchdog (Phase 5).** The engine thread writes the id of the execution it is about to step into a shared buffer and clears it
+afterwards. The thread that supervises it looks at the buffer every `ENGINE_WATCHDOG_POLL_MS`; a step that has not moved for
+`ENGINE_WATCHDOG_STALL_MS` (default 2 s, against a 5 ms slice) means the sandbox is stuck inside a builtin it cannot interrupt. The supervisor ends
+the engine thread, marks that execution `killed` with the reason `stalled the engine` (the record is written while no engine is
+alive, so the single-writer rule holds), tells the player in the script's log, and starts the next engine, which relaunches
+the other executions as after any crash (§12.3.1). Load tests (`engine-load.test.ts`) keep ticks within their budget and serve
+150 bots about equally, also with 20 scripts that never stop among 60 honest ones.
+
 ## 12.4 Determinism & ordering ✅
 
 - All bots' commands for a tick are **collected first**, then applied in a deterministic order (a stable per-tick

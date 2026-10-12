@@ -1,7 +1,12 @@
 import { Global, Inject, Module, OnApplicationShutdown } from '@nestjs/common'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
+import { PrismaClient } from '@prisma/client'
+import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { ENGINE_PORT } from './application/engine-port'
+import { PrismaExecutionRepository } from './infrastructure/prisma-execution.repository'
+import { killStalled } from './infrastructure/kill-stalled'
+import { createStepWatchBuffer, StepWatchReader } from './infrastructure/step-watch'
 import { EngineProcess } from './infrastructure/engine-process'
 import { spawnEngineWorker } from './infrastructure/engine-worker-launcher'
 import { DisabledEnginePort } from './infrastructure/worker-engine-port'
@@ -19,15 +24,23 @@ const RESPAWN_DELAY_MS = 1_000
   providers: [
     {
       provide: ENGINE_PROCESS,
-      inject: [APP_CONFIG, LOGGER],
-      useFactory: async (config: AppConfig, logger: Logger) => {
+      inject: [APP_CONFIG, LOGGER, PRISMA_CLIENT],
+      useFactory: async (config: AppConfig, logger: Logger, client: PrismaClient) => {
         if (!config.engine.isEnabled) {
           return null
         }
         // The engine thread must not start an engine of its own
         const workerConfig = { ...config, engine: { ...config.engine, isEnabled: false }, smtp: undefined }
-        const process = new EngineProcess({
-          spawn: () => spawnEngineWorker(workerConfig, __filename.endsWith('.ts')),
+        const stepWatch = createStepWatchBuffer()
+        const executions = new PrismaExecutionRepository(client)
+        const process: EngineProcess = new EngineProcess({
+          spawn: () => spawnEngineWorker(workerConfig, __filename.endsWith('.ts'), stepWatch),
+          watchdog: {
+            reader: new StepWatchReader(stepWatch),
+            stallMs: config.engine.watchdog.stallMs,
+            pollMs: config.engine.watchdog.pollMs,
+            onStall: (executionId) => killStalled(executions, process, executionId)
+          },
           logger,
           readyTimeoutMs: READY_TIMEOUT_MS,
           stopTimeoutMs: STOP_TIMEOUT_MS,

@@ -4,7 +4,8 @@ export const ScriptFailureCode = {
   SYNTAX_ERROR: 'SYNTAX_ERROR', // the source does not parse
   NO_MAIN: 'NO_MAIN', // the entry file does not export a main function
   TIME_LIMIT: 'TIME_LIMIT', // the wall-clock slice of a tick was exceeded
-  MEMORY_LIMIT: 'MEMORY_LIMIT' // the heap limit was exceeded
+  MEMORY_LIMIT: 'MEMORY_LIMIT', // the heap limit was exceeded
+  SANDBOX_FAULT: 'SANDBOX_FAULT' // the sandbox itself failed under the script (a bug or an attack): the engine contained it
 } as const
 
 export type ScriptFailureCode = (typeof ScriptFailureCode)[keyof typeof ScriptFailureCode]

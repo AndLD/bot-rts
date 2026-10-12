@@ -44,7 +44,7 @@ class StubHandler implements ScriptFunctionHandler {
   }
 }
 
-async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () => number } = {}) {
+async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () => number; withWatch?: boolean } = {}) {
   const runtime = await QuickJsScriptRuntime.create()
   const executions = new InMemoryExecutionRepository()
   const bots = new FakeBotStateSource()
@@ -77,8 +77,18 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
   const writeBehind = new WriteBehind(store, config.flushEveryTicks, 3)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
+  const watch = {
+    calls: [] as string[],
+    begin(id: string) {
+      this.calls.push(`begin ${id}`)
+    },
+    end() {
+      this.calls.push('end')
+    }
+  }
   const core = new EngineCore({
     config,
+    watch: options.withWatch ? watch : undefined,
     worldSeed: 7,
     createRng: (seed) => new SeededRng(seed),
     executions,
@@ -115,6 +125,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   }
   return {
     core,
+    watch,
     executions,
     bots,
     sources,
@@ -201,6 +212,50 @@ describe('EngineCore', () => {
       await ticks(1)
 
       expect(sink.logs()).toEqual(['hi'])
+    })
+
+    it('tells the step watch which execution is being stepped, and that the step is over', async () => {
+      const { start, ticks, watch } = await setup({ withWatch: true })
+
+      const view = await start('export async function main(bot) { bot.log("x") }')
+      await ticks(1)
+
+      expect(watch.calls.slice(0, 2)).toEqual([`begin ${view.id}`, 'end'])
+    })
+
+    it('ends the step in the watch even when the step throws', async () => {
+      const { core, start, watch } = await setup({ withWatch: true })
+      await start('export async function main(bot) { for (;;) await sleep(0) }')
+      const live = [...(core as unknown as { live: Map<string, { step: () => never }> }).live.values()][0]
+      live.step = () => {
+        throw new Error('broken')
+      }
+
+      await expect(core.runTick()).rejects.toThrow('broken')
+
+      expect(watch.calls[watch.calls.length - 1]).toBe('end')
+    })
+
+    it('cuts the log of a script that writes too much: lines per tick, and characters per line', async () => {
+      const { start, ticks, sink } = await setup({ config: { log: { maxLinesPerTick: 3, maxChars: 10 } } })
+
+      await start(
+        'export async function main(bot) { for (let i = 0; i < 100; i++) bot.log("line " + i); bot.log("x".repeat(500)) }'
+      )
+      await ticks(1)
+
+      expect(sink.logs()).toEqual(['line 0', 'line 1', 'line 2', 'output cut: more than 3 lines in one tick'])
+    })
+
+    it('lets the script write again in the next tick', async () => {
+      const { start, ticks, sink } = await setup({ config: { log: { maxLinesPerTick: 1, maxChars: 8 } } })
+
+      await start(
+        'export async function main(bot) { bot.log("a".repeat(30)); await sleep(1); bot.log("second"); bot.log("dropped") }'
+      )
+      await ticks(3)
+
+      expect(sink.logs().filter((line) => !line.startsWith('output cut'))).toEqual(['aaaaaaaa… (cut)', 'second'])
     })
 
     it('applies a game call in the tick it was made and resolves it in the next one', async () => {

@@ -16,7 +16,12 @@ let events: EngineEvent[]
 
 beforeAll(async () => {
   database = await createTestDatabase()
-  testApp = await startTestApp(database, { ENGINE_ENABLED: 'true', ENGINE_TICK_INTERVAL_MS: '20' })
+  testApp = await startTestApp(database, {
+    ENGINE_ENABLED: 'true',
+    ENGINE_TICK_INTERVAL_MS: '20',
+    ENGINE_WATCHDOG_STALL_MS: '700',
+    ENGINE_WATCHDOG_POLL_MS: '100'
+  })
   port = testApp.app.get<EnginePort>(ENGINE_PORT)
   events = []
   port.onEvent((event) => events.push(event))
@@ -249,4 +254,38 @@ describe('the engine thread', () => {
     })
     await port.kill(userId, view.id)
   }, 90000)
+
+  it('ends an engine thread that a script holds for too long, kills that script, and serves the others afterwards', async () => {
+    const hog = await deployWithScript(
+      'export async function main() { const big = new Array(20000).fill(7); for (;;) big.slice().sort() }'
+    )
+    const other = await deployWithScript('export async function main(bot) { bot.log("fine after the stall") }')
+    const hogView = await port.start({ userId: hog.userId, botId: hog.botId, file: '/memory-class1/main.js', args: [] })
+
+    await until(() => logsOf().some((line) => line.includes('stalled the engine')), 'the watchdog', 40000)
+
+    expect(await database.client.execution.findUniqueOrThrow({ where: { id: hogView.id } })).toMatchObject({
+      status: 'killed',
+      reason: 'stalled the engine'
+    })
+    // The next engine thread does not start the script again, and serves a script of someone else
+    const start = async () => {
+      for (let attempt = 0; attempt < 60; attempt++) {
+        try {
+          return await port.start({
+            userId: other.userId,
+            botId: other.botId,
+            file: '/memory-class1/main.js',
+            args: []
+          })
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 500))
+        }
+      }
+      throw new Error('The engine did not come back')
+    }
+    await start()
+    await until(() => logsOf().includes('fine after the stall'), 'the other script', 40000)
+    expect(await port.list(hog.userId)).toEqual([])
+  }, 120000)
 })

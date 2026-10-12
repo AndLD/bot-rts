@@ -63,6 +63,26 @@ export class TerminalService {
     return entry
   }
 
+  // Keeps what a script wrote in the log of its bot, whether or not a terminal is open on it (design §11.2.3): in the newest
+  // session of the bot, or in one of its own when the bot never had a terminal
+  async recordScriptOutput(userId: string, botId: string, kind: TERMINAL_LOG_KIND, text: string): Promise<void> {
+    let session = await this.sessions.findLatestOfBot(botId)
+    if (!session) {
+      const now = this.clock.now()
+      session = { id: this.ids.next(), botId, userId, startedAt: now, endedAt: now }
+      await this.sessions.add(session)
+    }
+    await this.sessions.appendLog({
+      id: this.ids.next(),
+      sessionId: session.id,
+      botId,
+      at: this.clock.now(),
+      kind,
+      text
+    })
+    await this.sessions.deleteOldestOrdinaryLogs(botId, this.retention.maxLinesPerBot)
+  }
+
   async history(userId: string, botId: string, limit: number): Promise<TerminalLogEntry[]> {
     await this.bots.getOwnedBot(userId, botId)
     return this.sessions.listLogsOfBot(botId, limit)

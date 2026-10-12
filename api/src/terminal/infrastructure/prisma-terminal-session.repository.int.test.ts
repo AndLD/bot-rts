@@ -45,6 +45,14 @@ beforeEach(async () => {
 afterAll(() => database.drop())
 
 describe('PrismaTerminalSessionRepository', () => {
+  it('finds the session of a bot that started last', async () => {
+    const newer = { ...session, id: randomUUID(), startedAt: at(5) }
+    await repository.add(newer)
+
+    expect(await repository.findLatestOfBot(botId)).toEqual(newer)
+    expect(await repository.findLatestOfBot(randomUUID())).toBeNull()
+  })
+
   it('stores, finds and closes a session', async () => {
     expect(await repository.findById(session.id)).toEqual(session)
     expect(await repository.findById(randomUUID())).toBeNull()

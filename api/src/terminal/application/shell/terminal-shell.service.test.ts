@@ -421,3 +421,79 @@ describe('the factory commands', () => {
     expect((await run('disassemble a b c')).result).toMatchObject({ code: 'COMMAND_USAGE' })
   })
 })
+
+describe('the script commands', () => {
+  async function withDrive() {
+    const t = await setup()
+    await t.run('cd memory-class1')
+    return t
+  }
+
+  it('runs a file of the current directory with typed arguments', async () => {
+    const t = await withDrive()
+    const drives = await t.filesService.listDrives(alice.id, t.bot.id)
+    const name = drives.find((drive) => drive.id === t.drive.id)?.name
+
+    expect(await t.lines('run main.js 5 true go "two words"')).toEqual(['started exec-1'])
+    expect(t.scriptRunner.started).toEqual([
+      { userId: alice.id, botId: t.bot.id, file: `/${name}/main.js`, args: [5, true, 'go', 'two words'] }
+    ])
+  })
+
+  it('runs a file by its absolute path from anywhere', async () => {
+    const { lines, scriptRunner } = await setup()
+
+    await lines('run /memory-class1/lib/tool.js')
+
+    expect(scriptRunner.started[0]).toMatchObject({ file: '/memory-class1/lib/tool.js', args: [] })
+  })
+
+  it('runs a script by typing its name, and says unknown for a name that is no file', async () => {
+    const t = await withDrive()
+    t.scriptRunner.missingFiles.add(`/${(await t.filesService.listDrives(alice.id, t.bot.id))[0].name}/nothing`)
+
+    expect(await t.lines('main.js 1')).toEqual(['started exec-1'])
+    expect(await t.lines('nothing')).toMatchObject({ code: 'UNKNOWN_COMMAND' })
+  })
+
+  it('says unknown for a name when no drive is selected, and passes on other failures', async () => {
+    const t = await setup()
+
+    expect(await t.lines('frob')).toMatchObject({ code: 'UNKNOWN_COMMAND' })
+    await t.run('cd memory-class1')
+    t.scriptRunner.start = jest.fn().mockRejectedValue(new ForbiddenError('no'))
+    await expect(t.run('main.js')).resolves.toMatchObject({ result: { type: 'error' } })
+  })
+
+  it('needs a file to run and a drive for a relative one', async () => {
+    const { lines } = await setup()
+
+    expect(await lines('run')).toMatchObject({ code: 'COMMAND_USAGE' })
+    expect(await lines('run main.js')).toMatchObject({ code: 'NO_DRIVE_SELECTED' })
+  })
+
+  it('evaluates the code after eval as typed', async () => {
+    const { lines, scriptRunner } = await setup()
+
+    expect(await lines('eval  bot.log("a  b")')).toEqual(['started exec-2'])
+    expect(scriptRunner.evaluated).toEqual(['bot.log("a  b")'])
+    expect(await lines('eval')).toMatchObject({ code: 'COMMAND_USAGE' })
+  })
+
+  it('lists the running executions with top and stops one with kill', async () => {
+    const { lines, scriptRunner } = await setup()
+    scriptRunner.running = [
+      { id: 'e1', botId: 'b1', file: '/m/main.js', args: [], state: 'running', reason: null, restarts: 0 },
+      { id: 'e2', botId: 'b1', file: '/m/x.js', args: [], state: 'awaiting', reason: null, restarts: 2 }
+    ]
+
+    expect(await lines('top')).toEqual([
+      '- id="e1" bot="b1" file="/m/main.js" state="running"',
+      '- id="e2" bot="b1" file="/m/x.js" state="awaiting" restarts=2'
+    ])
+    expect(await lines('kill e1')).toEqual(['killed e1'])
+    expect(await lines('kill e')).toMatchObject({ code: 'NOT_FOUND', message: 'More than one execution has this id' })
+    expect(await lines('kill zz')).toMatchObject({ code: 'NOT_FOUND', message: 'No such running execution' })
+    expect(await lines('kill')).toMatchObject({ code: 'COMMAND_USAGE' })
+  })
+})

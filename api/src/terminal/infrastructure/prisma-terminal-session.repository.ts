@@ -19,6 +19,14 @@ export class PrismaTerminalSessionRepository implements TerminalSessionRepositor
     return row && toSession(row)
   }
 
+  async findLatestOfBot(botId: string): Promise<TerminalSession | null> {
+    const row = await this.db.terminalSession.findFirst({
+      where: { botId },
+      orderBy: [{ startedAt: 'desc' }, { id: 'desc' }]
+    })
+    return row && toSession(row)
+  }
+
   async close(id: string, endedAt: Date): Promise<void> {
     await this.db.terminalSession.update({ where: { id }, data: { endedAt } })
   }

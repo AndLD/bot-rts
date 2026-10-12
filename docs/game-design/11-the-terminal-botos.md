@@ -25,10 +25,11 @@ The unified command set:
 | `cat` | `cat <file>` | Print a file's contents. | ✅ |
 | `edit` | `edit <file>` | Open a **draggable code editor**. New files are validated to `*.js`, `*.ts`, `*.json`, `*.txt` only. | 🟡 |
 | `rm` | `rm <file>` | Delete a file or an empty directory. | ✅ |
-| `run` | `run <file> [args…]` | Run a script file; its exported `main(bot, …args)` is invoked. | 🔴 |
-| `shell` | `shell` | Enter shell mode: each input line is executed as code with `bot` in scope. `exit` leaves shell mode. | 🟡 |
-| `top` | `top` | List currently running script executions. | 🔴 |
-| `kill` | `kill <execId>` | Stop a running execution. | 🔴 |
+| `run` | `run <file> [args…]` | Run a script file; its exported `main(bot, …args)` is invoked. Arguments become numbers or booleans when they look like them. A file name typed alone (`<file> [args…]`) runs it too. The command answers `started <id>` at once; the output arrives as the script writes it (a `script-log` socket event) and is kept in the bot's terminal log as `[<id>] <text>`, also when no terminal is open. | ✅ |
+| `shell` | `shell` | Enter shell mode: each input line is executed as code with `bot` in scope. `exit` leaves shell mode. In shell mode the client sends each line as `eval <code>`; every line is an execution of its own (variables do not persist between lines), an expression's value is printed, and a line starting with a statement keyword (`const`, `if`, `for`, …) is run as statements. | ✅ |
+| `eval` | `eval <code>` | Run one line of code with `bot` in scope (what the shell mode sends). | ✅ |
+| `top` | `top` | List the running script executions of the player: id, bot, file, state (`queued`, `running`, `suspended`, `awaiting`) and restarts. | ✅ |
+| `kill` | `kill <execId>` | Stop a running execution; the id may be shortened to the 8 characters the terminal shows. | ✅ |
 | `connect` | `connect <botId>` | Open a new draggable terminal for another bot — **only if that bot has an enabled wireless adapter**, otherwise show an error. | 🟡 |
 | `list` | `list` | List the player's bots. | ✅ |
 | `modules` | `modules` | List the current bot's modules. | ✅ |

@@ -1,3 +1,5 @@
+import { IExecution } from '../../../lib/utils/interfaces/executions'
+import { ScriptArgument, ScriptRunner } from '../../src/terminal/application/script-runner'
 import { Execution, ExecutionStatus } from '../../src/engine/domain/execution'
 import { BotState } from '../../src/engine/domain/bot-state'
 import { BotStateSource, EngineEvent, EngineSink, ScriptSource } from '../../src/engine/application/engine-ports'
@@ -94,5 +96,38 @@ export class FakeScript implements ScriptExecution {
   }
   dispose() {
     this.settled.push('disposed')
+  }
+}
+
+// A script runner that remembers what the terminal asked of it
+export class FakeScriptRunner implements ScriptRunner {
+  readonly started: Array<{ userId: string; botId: string; file: string; args: readonly ScriptArgument[] }> = []
+  readonly evaluated: string[] = []
+  running: IExecution[] = []
+  missingFiles = new Set<string>()
+
+  async start(userId: string, botId: string, file: string, args: readonly ScriptArgument[]) {
+    if (this.missingFiles.has(file)) {
+      throw new NotFoundError('File not found')
+    }
+    this.started.push({ userId, botId, file, args })
+    return this.execution('exec-1', file)
+  }
+
+  async evaluate(_userId: string, _botId: string, code: string) {
+    this.evaluated.push(code)
+    return this.execution('exec-2', '<shell>')
+  }
+
+  async list() {
+    return this.running
+  }
+
+  async kill(_userId: string, executionId: string) {
+    return { ...this.execution(executionId, '/memory/main.js'), state: 'killed' as const }
+  }
+
+  private execution(id: string, file: string): IExecution {
+    return { id, botId: 'bot-1', file, args: [], state: 'queued', reason: null, restarts: 0 }
   }
 }

@@ -44,8 +44,8 @@ export function interpret(input: string, session: TerminalSession): TerminalActi
     return { type: 'clear' }
   }
   if (session.isShellMode) {
-    // Anything but `exit` would be executed as a line of code once the script runtime exists
-    return command === 'exit' ? { type: 'exit-shell' } : { type: 'none' }
+    // Anything but `exit` is a line of code, run by the server with the bot in scope
+    return command === 'exit' ? { type: 'exit-shell' } : { type: 'send', line: `eval ${command}` }
   }
 
   return command === 'shell' ? { type: 'enter-shell' } : { type: 'send', line: command }

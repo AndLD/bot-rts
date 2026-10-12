@@ -466,6 +466,11 @@ export class InMemoryTerminalSessionRepository implements TerminalSessionReposit
     return this.sessions.get(id) ?? null
   }
 
+  async findLatestOfBot(botId: string) {
+    const sessions = [...this.sessions.values()].filter((session) => session.botId === botId)
+    return sessions.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0] ?? null
+  }
+
   async close(id: string, endedAt: Date) {
     const session = this.sessions.get(id)
     if (session) {

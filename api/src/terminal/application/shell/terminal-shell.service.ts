@@ -24,7 +24,9 @@ export class TerminalShell {
   constructor(
     commands: readonly TerminalCommand[],
     private readonly terminal: TerminalService,
-    private readonly files: FilesService
+    private readonly files: FilesService,
+    // Runs a line that names no command (`<file>` runs a script)
+    private readonly fallback?: TerminalCommand
   ) {
     for (const command of commands) {
       for (const name of command.names) {
@@ -45,11 +47,18 @@ export class TerminalShell {
     let result: TerminalCommandResult
     let place = cwd
     try {
-      const command = this.commands.get(parsed.name)
+      const command = this.commands.get(parsed.name) ?? this.fallback
       if (!command) {
         throw new UnknownCommandError(parsed.name)
       }
-      const outcome = await command.execute({ userId, session, cwd, args: parsed.args })
+      const outcome = await command.execute({
+        userId,
+        session,
+        cwd,
+        args: parsed.args,
+        name: parsed.name,
+        rest: parsed.rest
+      })
       result = outcome.result
       place = outcome.cwd ?? cwd
     } catch (error) {

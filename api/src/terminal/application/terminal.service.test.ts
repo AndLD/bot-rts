@@ -139,3 +139,19 @@ describe('TerminalService retention', () => {
     expect(await terminalService.history(alice.id, bot.id, 10)).toEqual([])
   })
 })
+
+describe('TerminalService script output', () => {
+  it('stores a script line in the newest session of the bot and keeps to the line cap', async () => {
+    const { terminalService, bot, terminalSessions } = await setup({ maxLinesPerBot: 2 })
+    const session = await terminalService.open(alice.id, bot.id)
+
+    await terminalService.recordScriptOutput(alice.id, bot.id, TERMINAL_LOG_KIND.OUTPUT, 'one')
+    await terminalService.recordScriptOutput(alice.id, bot.id, TERMINAL_LOG_KIND.OUTPUT, 'two')
+    await terminalService.recordScriptOutput(alice.id, bot.id, TERMINAL_LOG_KIND.ERROR, 'three')
+
+    expect(terminalSessions.logs.map((entry) => [entry.sessionId, entry.text])).toEqual([
+      [session.id, 'two'],
+      [session.id, 'three']
+    ])
+  })
+})

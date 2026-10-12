@@ -6,6 +6,8 @@ export const TERMINAL_SESSION_REPOSITORY = Symbol('TerminalSessionRepository')
 export interface TerminalSessionRepository {
   add(session: TerminalSession): Promise<void>
   findById(id: string): Promise<TerminalSession | null>
+  // The bot's session that started last, open or not
+  findLatestOfBot(botId: string): Promise<TerminalSession | null>
   close(id: string, endedAt: Date): Promise<void>
   appendLog(entry: TerminalLogEntry): Promise<void>
   // The newest `limit` lines of a bot over all its sessions, oldest first

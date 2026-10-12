@@ -17,7 +17,7 @@ implemented and measured carefully.
 | 5.4a | Engine thread per design §12.2.2 and §12.3.1: `worker_threads` engine owning the tick loop, world state and QuickJS contexts; command/result protocol; batched write-behind; tick-overrun guard and metrics; durable execution records and relaunch after restart | 8 | ✅ |
 | 5.4 | **Fair scheduler** per design §12.2: per-bot op budget, seeded player shuffle, global tick cap with round-robin resume, parallelism and `queued` state, time-slice enforcement; offline players' executions run too | 13 | ✅ |
 | 5.5 | **Race-condition prevention** per design §14.2: deterministic collect-then-apply, in-memory reservations, no clock or `Math.random` in scripts, and the single-writer rule (all world-mutating API requests go through engine commands); determinism tests: the same seed and commands give an identical tick result, independent of command arrival order | 9 | ✅ |
-| 5.6 | `run <file>` / `shell` execution wired through the scheduler; `top`/`kill` manage running scripts; results streamed over sockets | 5 | ⬜ |
+| 5.6 | `run <file>` / `shell` execution wired through the scheduler; `top`/`kill` manage running scripts; results streamed over sockets | 5 | ✅ |
 | 5.7 | Security & load tests: sandbox escape attempts, infinite loops, heavy allocations, many-bot fairness | 3 | ⬜ |
 | 5.8 | Script languages and imports per design §10.1.1: TypeScript transpile behind a `Transpiler` interface, engine-side module loader with limits and cache, editor typings for the `bot` API via a `.d.ts` in `lib` | 10 | ⬜ |
 | 5.9 | Bot security per design §11.2.2: `passwd`, foreign `connect` authentication, brute-force cost and lockout, failed-attempt logs, and `adopt` (not for bases) | 5 | ⬜ |
@@ -49,3 +49,4 @@ AGENTS.md §7.1).
 | `feature/5.12-live-vision` | 5.12 | #79 | merged |
 | `feature/5.13-radio-network` | 5.13 | #80 | merged |
 | `feature/5.10-event-bus` | 5.10 | #81 | merged |
+| `feature/5.6-terminal-scripts` | 5.6 | PR_5_6 | merged |

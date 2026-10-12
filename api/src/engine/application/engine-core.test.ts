@@ -15,6 +15,7 @@ import { WorldStateStore } from '../../persistence/application/world-state-store
 import { SeededRng } from '../../shared/infrastructure/seeded-rng'
 import { DEFAULT_ENGINE_CONFIG, EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionStatus } from '../domain/execution'
+import { SHELL_FILE } from '../domain/shell-script'
 import { QuickJsScriptRuntime } from '../infrastructure/quickjs-script-runtime'
 import { EngineCore } from './engine-core'
 import { BotCapacities } from './bot-capacities'
@@ -146,6 +147,29 @@ describe('EngineCore', () => {
       expect(sink.logs()).toEqual(['hello 2 {"x":1}'])
       expect([...executions.items.values()][0]).toMatchObject({ status: 'finished', reason: null })
       expect(await listNow(core)).toEqual([])
+    })
+
+    it('runs a line of the shell as a script of its own and shows the value it returns', async () => {
+      const { core, base, ticks, sink } = await setup()
+
+      const started = core.start({ userId: OWNER, botId: base.id, file: SHELL_FILE, args: ['bot.modules.length'] })
+      await core.runTick()
+      const view = await started
+      await ticks(1)
+
+      expect(view).toMatchObject({ file: SHELL_FILE, args: ['bot.modules.length'] })
+      expect(sink.logs()).toEqual(['3'])
+    })
+
+    it('runs statements of the shell without showing a value', async () => {
+      const { core, base, ticks, sink } = await setup()
+
+      const started = core.start({ userId: OWNER, botId: base.id, file: SHELL_FILE, args: ['bot.log("hi")'] })
+      await core.runTick()
+      await started
+      await ticks(1)
+
+      expect(sink.logs()).toEqual(['hi'])
     })
 
     it('applies a game call in the tick it was made and resolves it in the next one', async () => {

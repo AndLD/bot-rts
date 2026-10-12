@@ -152,11 +152,10 @@ export default defineConfig({
         // A bot is put on a free cell: whatever empty point lay there is replaced by it. The engine reads the world from the
         // database when it next needs it, so this is done between two actions of the player.
         async placeBotAt({ botId, x, y }: { botId: string; x: number; y: number }) {
-          await sql(`DELETE FROM map_points WHERE x = $2 AND y = $3 AND z = 0 AND content_id IS DISTINCT FROM $1::uuid`, [
-            botId,
-            x,
-            y
-          ])
+          await sql(
+            `DELETE FROM map_points WHERE x = $2 AND y = $3 AND z = 0 AND content_id IS DISTINCT FROM $1::uuid`,
+            [botId, x, y]
+          )
           await sql(`UPDATE map_points SET x = $2, y = $3 WHERE content_id = $1::uuid`, [botId, x, y])
 
           return null

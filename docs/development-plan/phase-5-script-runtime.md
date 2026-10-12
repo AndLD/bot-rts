@@ -50,4 +50,4 @@ AGENTS.md §7.1).
 | `feature/5.13-radio-network` | 5.13 | #80 | merged |
 | `feature/5.10-event-bus` | 5.10 | #81 | merged |
 | `feature/5.6-terminal-scripts` | 5.6 | #82 | merged |
-| `feature/5.8-languages-imports` | 5.8 | PR_5_8 | merged |
+| `feature/5.8-languages-imports` | 5.8 | #83 | merged |

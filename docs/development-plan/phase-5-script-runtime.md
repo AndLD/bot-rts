@@ -53,4 +53,4 @@ AGENTS.md §7.1).
 | `feature/5.8-languages-imports` | 5.8 | #83 | merged |
 | `feature/5.9-bot-security` | 5.9 | #84 | merged |
 | `feature/5.9-bot-security` | 5.9 | PR_5_9 | merged |
-| `feature/5.11-script-e2e` | 5.11 | PR_5_11 | merged |
+| `feature/5.11-script-e2e` | 5.11 | #85 | merged |

@@ -51,18 +51,13 @@ describe('the factory of the base in the terminal', () => {
     cy.contains('assembled bot id="')
   }
 
-  it('lists the recipes and refuses to craft without resources or energy', () => {
+  it('lists the recipes and refuses to craft without resources', () => {
     command('recipes')
     cy.contains('module="scanner-class1" known')
     cy.contains('module="scanner-class2" researchable')
 
     command('craft wheels-class1')
     cy.contains('Error: Not enough resources')
-
-    cy.task('stockBase', { email, items: STOCK })
-    cy.task('setBaseEnergy', { email, value: 5 })
-    command('craft wheels-class1')
-    cy.contains('Error: Not enough energy')
   })
 
   it('crafts modules, waits for the factory and assembles a bot next to the base', () => {

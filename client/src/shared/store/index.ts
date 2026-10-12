@@ -1,9 +1,11 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { emptyApi } from '../api/empty-api'
+import { windowsSlice } from '../../features/windows/windows.slice'
 import { sessionSlice } from './session.slice'
 
 const rootReducer = combineReducers({
   session: sessionSlice.reducer,
+  windows: windowsSlice.reducer,
   [emptyApi.reducerPath]: emptyApi.reducer
 })
 

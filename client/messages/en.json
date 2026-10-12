@@ -242,5 +242,16 @@
       "part": "Part",
       "generic": "Item"
     }
+  },
+  "windows": {
+    "close": "Close window",
+    "kinds": {
+      "terminal": "Terminal",
+      "storage": "Storage",
+      "factory": "Factory",
+      "control": "Control panel",
+      "settings": "Settings",
+      "editor": "Editor"
+    }
   }
 }

@@ -19,7 +19,7 @@ Surface the game state in the browser.
 | 6.7 | Bot control panel per design §15.1: manual control of every script-API action in eight switchable categories, sent as engine commands that obey the same rules as scripts | 8 | ⬜ |
 | 6.8 | Settings: global game settings and per-user profile settings for micromanagement category switches (effective availability = global AND personal, enforced by the engine); settings storage and API | 5 | ⬜ |
 | 6.9 | Skippable tutorial per design §16.1: overlay checklist with steps completed by real game events, progress in the user profile; Cypress spec | 5 | ⬜ |
-| 6.10 | Window manager: layered, draggable, focus-managed windows for terminals, editor and panels (multiple bot terminals at once), position persistence; used by 6.5 and 6.7 | 5 | ⬜ |
+| 6.10 | Window manager: layered, draggable, focus-managed windows for terminals, editor and panels (multiple bot terminals at once), position persistence; used by 6.5 and 6.7 | 5 | ✅ |
 | 6.11 | Map animation system per design §15.2, driven by the game event bus, with effect cap, level of detail and reduced-motion setting | 8 | ⬜ |
 | 6.12 | E2E (Cypress) for the core gameplay journeys: assemble a miner, script a mining loop, resources arrive in storage; two bots fight until a module breaks; a bot runs out of energy and stops; a corpse base is restored by a repair bot; also deposit depletion and contest (`EMPTY`), combat details (ammo, armor, cooldown, artillery splash, friendly fire), items and blueprint items; also a script acting on a stale scan (the target moved or the deposit is gone) and handling `BLOCKED` / `EMPTY` / `GONE` by re-scanning; also scanning: `scan()` is refused with `BUSY` while the scanner is live; a scanner in live mode reveals an approaching bot, its movement animates, and switching the scanner off turns the area into ageing snapshots | 13 | ⬜ |
 
@@ -36,4 +36,5 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/6.1-map-renderer` | 6.1 | [#88](https://github.com/AndLD/bot-rts/pull/88) | merged |
-| `feature/6.2-map-streaming` | 6.2 | pending | open |
+| `feature/6.2-map-streaming` | 6.2 | [#89](https://github.com/AndLD/bot-rts/pull/89) | merged |
+| `feature/6.10-window-manager` | 6.10 | pending | open |

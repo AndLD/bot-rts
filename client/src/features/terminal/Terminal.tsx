@@ -5,7 +5,7 @@ import { useRef, useState } from 'react'
 import './Terminal.scss'
 import { useTerminal } from './useTerminal'
 
-const FONT_SIZE = 30
+const FONT_SIZE = 18
 
 export default function Terminal() {
   const t = useTranslations('terminal')

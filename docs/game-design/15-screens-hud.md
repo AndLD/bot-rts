@@ -9,7 +9,7 @@
 | **Verification** | ✅ | Landing page for the email-verification link; redirects on success/failure. |
 | **Inactive** | ✅ | "Check your email. We have sent verification letter." |
 | **Deploy base** | 🟡 | Red **"Deploy your base to start"** button for players without a base. |
-| **Monitor (map)** | 🔴 | Canvas map with sprites (§4.3), fog of war, pan/zoom. |
+| **Monitor (map)** | 🟡 | Canvas map with sprites (§4.3), fog of war, pan/zoom, cell inspection, streamed from the server (Plan 6.1–6.2). |
 | **Base terminal** | 🟡 | BotOS terminal + bot list + `connect`. |
 | **Bot terminal** | 🟡 | Draggable terminal window per connected bot; "Connection interrupted" on drop. |
 | **Code editor** | 🟡 | Draggable CodeMirror editor, save/close, format; filename validation on create. |

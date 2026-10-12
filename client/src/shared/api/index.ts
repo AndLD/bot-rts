@@ -9,4 +9,4 @@ export const api = generated.enhanceEndpoints({
   }
 })
 
-export const { useBotsDeployBaseMutation, useBotsListQuery, useUsersMeQuery } = api
+export const { useBotsDeployBaseMutation, useBotsListQuery, useMapPositionQuery, useUsersMeQuery } = api

@@ -4,7 +4,7 @@ import { chunkKeyOf, locationKey } from '../../map/domain/location'
 import { ScannerModule } from '../../modules/domain/scanner-module'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { areaCells, areaChunks, areaContains, LiveArea } from '../domain/live-area'
-import { EngineSink } from './engine-ports'
+import { EngineSink, LiveAreaView } from './engine-ports'
 import { World } from './world/world'
 import { WorldSource } from './world/world-source'
 import { WriteBehind } from './write-behind'
@@ -63,6 +63,8 @@ export class LiveVision {
   private lastNow = 0
   private mustLookAgain = false
   private readonly loadedKnown = new Set<string>()
+  // What each player was last told about their live areas, to tell only when it changes
+  private readonly announced = new Map<string, string>()
 
   constructor(
     private readonly world: World,
@@ -136,6 +138,7 @@ export class LiveVision {
   async refresh(tick: number, now: number): Promise<void> {
     this.lastNow = now
     await this.syncAreas(tick, now)
+    this.announceAreas()
     if (this.mustLookAgain) {
       this.mustLookAgain = false
       for (const area of this.areas.values()) {
@@ -155,6 +158,38 @@ export class LiveVision {
     for (const area of this.areas.values()) {
       if (tick >= area.nextDelivery) {
         this.deliver(area, tick)
+      }
+    }
+  }
+
+  // Tells a player where their live areas are now, once per change (and an empty list when the last one is gone)
+  private announceAreas(): void {
+    const byUser = new Map<string, LiveAreaView[]>()
+    for (const area of [...this.areas.values()].sort((a, b) => (a.scannerId < b.scannerId ? -1 : 1))) {
+      const views = byUser.get(area.userId) ?? []
+      views.push({
+        scannerId: area.scannerId,
+        botId: area.botId,
+        x: area.center.x,
+        y: area.center.y,
+        radius: area.radius
+      })
+      byUser.set(area.userId, views)
+    }
+    for (const userId of this.announced.keys()) {
+      if (!byUser.has(userId)) {
+        byUser.set(userId, [])
+      }
+    }
+    for (const [userId, areas] of byUser) {
+      const signature = JSON.stringify(areas)
+      if ((this.announced.get(userId) ?? '[]') !== signature) {
+        this.sink.emit({ type: 'live-areas', userId, areas })
+      }
+      if (areas.length) {
+        this.announced.set(userId, signature)
+      } else {
+        this.announced.delete(userId)
       }
     }
   }

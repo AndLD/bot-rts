@@ -1675,6 +1675,120 @@
         ]
       }
     },
+    "/api/v1/map": {
+      "get": {
+        "operationId": "mapGet",
+        "parameters": [
+          {
+            "name": "minX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapViewResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "map"
+        ]
+      }
+    },
+    "/api/v1/map/bots/{botId}": {
+      "get": {
+        "operationId": "mapPosition",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotPositionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "map"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -2827,6 +2941,180 @@
         "required": [
           "scrap",
           "blueprint"
+        ]
+      },
+      "ResourceModel": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "iron",
+              "stone",
+              "wood",
+              "oil",
+              "crystal",
+              "gold"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "MapCellResponse": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "resource",
+              "bot",
+              "item",
+              "base",
+              "corpse_base"
+            ],
+            "nullable": true
+          },
+          "contentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "seenAt": {
+            "type": "number",
+            "description": "Game time of the snapshot, in ms"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/ResourceModel"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "What the deposit held when it was generated"
+          },
+          "isOwn": {
+            "type": "boolean",
+            "description": "On bots and bases: whether they are the requesting player’s"
+          },
+          "chassis": {
+            "type": "string",
+            "enum": [
+              "wheels",
+              "tracks",
+              "immobile"
+            ]
+          },
+          "icons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "drill",
+                "scanner",
+                "antenna"
+              ]
+            }
+          },
+          "isDamaged": {
+            "type": "boolean"
+          },
+          "item": {
+            "type": "string",
+            "enum": [
+              "blueprint",
+              "ammunition",
+              "part",
+              "generic"
+            ]
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "type",
+          "contentId",
+          "seenAt"
+        ]
+      },
+      "LiveAreaResponse": {
+        "type": "object",
+        "properties": {
+          "scannerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "scannerId",
+          "botId",
+          "x",
+          "y",
+          "radius"
+        ]
+      },
+      "MapViewResponse": {
+        "type": "object",
+        "properties": {
+          "now": {
+            "type": "number",
+            "description": "Game time of the server, in ms"
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapCellResponse"
+            }
+          },
+          "liveAreas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiveAreaResponse"
+            }
+          }
+        },
+        "required": [
+          "now",
+          "cells",
+          "liveAreas"
+        ]
+      },
+      "BotPositionResponse": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
         ]
       },
       "HealthResponse": {

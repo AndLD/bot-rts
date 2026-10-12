@@ -175,6 +175,20 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.maintenanceDto
       })
     }),
+    mapGet: build.query<MapGetApiResponse, MapGetApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/map`,
+        params: {
+          minX: queryArg.minX,
+          minY: queryArg.minY,
+          maxX: queryArg.maxX,
+          maxY: queryArg.maxY
+        }
+      })
+    }),
+    mapPosition: build.query<MapPositionApiResponse, MapPositionApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/map/bots/${queryArg.botId}` })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -337,6 +351,17 @@ export type MaintenanceDisassembleApiResponse = /** status 200  */ DisassemblyRe
 export type MaintenanceDisassembleApiArg = {
   botId: string
   maintenanceDto: MaintenanceDto
+}
+export type MapGetApiResponse = /** status 200  */ MapViewResponse
+export type MapGetApiArg = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
+export type MapPositionApiResponse = /** status 200  */ BotPositionResponse
+export type MapPositionApiArg = {
+  botId: string
 }
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
@@ -671,6 +696,44 @@ export type DisassemblyResponse = {
   /** A blueprint item of the module, by chance */
   blueprint: ItemResponse | null
 }
+export type ResourceModel = {
+  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
+  amount: number
+}
+export type MapCellResponse = {
+  x: number
+  y: number
+  type: ('resource' | 'bot' | 'item' | 'base' | 'corpse_base') | null
+  contentId: string | null
+  /** Game time of the snapshot, in ms */
+  seenAt: number
+  resource?: ResourceModel
+  /** What the deposit held when it was generated */
+  capacity?: number
+  /** On bots and bases: whether they are the requesting player’s */
+  isOwn?: boolean
+  chassis?: 'wheels' | 'tracks' | 'immobile'
+  icons?: ('weapon' | 'drill' | 'scanner' | 'antenna')[]
+  isDamaged?: boolean
+  item?: 'blueprint' | 'ammunition' | 'part' | 'generic'
+}
+export type LiveAreaResponse = {
+  scannerId: string
+  botId: string
+  x: number
+  y: number
+  radius: number
+}
+export type MapViewResponse = {
+  /** Game time of the server, in ms */
+  now: number
+  cells: MapCellResponse[]
+  liveAreas: LiveAreaResponse[]
+}
+export type BotPositionResponse = {
+  x: number
+  y: number
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -712,5 +775,7 @@ export const {
   useFactoryAssembleMutation,
   useMaintenanceRepairMutation,
   useMaintenanceDisassembleMutation,
+  useMapGetQuery,
+  useMapPositionQuery,
   useHealthCheckQuery
 } = injectedRtkApi

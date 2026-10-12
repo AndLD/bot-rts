@@ -777,6 +777,46 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(2)
   })
 
+  it("serves the player's own map with fog of war over HTTP", async () => {
+    const alice = await signUp('alice@example.com')
+    const bob = await signUp('bob@example.com', 'Bob')
+    const deploy = async (accessToken: string) =>
+      (await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)).body
+    const base = await deploy(alice.accessToken)
+    await deploy(bob.accessToken)
+    const { x, y } = base.mapPoint.location
+    const range = `minX=${x - 20}&minY=${y - 20}&maxX=${x + 20}&maxY=${y + 20}`
+    const mapOf = (token: string, query = range) => api().get(`/api/v1/map?${query}`).set(bearer(token))
+
+    await api().get(`/api/v1/map?${range}`).expect(401)
+    expect((await mapOf(alice.accessToken).expect(200)).body.cells).toEqual([
+      expect.objectContaining({ x, y, type: 'base', contentId: base.bot._id, isOwn: true })
+    ])
+
+    await api().post(`/api/v1/bots/${base.bot._id}/scan`).set(bearer(alice.accessToken)).expect(200)
+    const view = (await mapOf(alice.accessToken).expect(200)).body
+    expect(view.cells).toHaveLength(9)
+    expect(view.liveAreas).toEqual([])
+    expect(view.now).toEqual(expect.any(Number))
+    expect(view.cells.find((cell: { x: number; y: number }) => cell.x === x && cell.y === y)).toMatchObject({
+      isOwn: true
+    })
+    expect(
+      (await mapOf(bob.accessToken).expect(200)).body.cells.every(
+        (cell: { contentId: string }) => cell.contentId !== base.bot._id
+      )
+    ).toBe(true)
+
+    const position = (token: string, id: string) => api().get(`/api/v1/map/bots/${id}`).set(bearer(token))
+    expect((await position(alice.accessToken, base.bot._id).expect(200)).body).toEqual({ x, y })
+    await position(bob.accessToken, base.bot._id).expect(404)
+    await position(alice.accessToken, 'not-an-id').expect(400)
+
+    await mapOf(alice.accessToken, 'minX=0&minY=0&maxX=500&maxY=5').expect(400)
+    await mapOf(alice.accessToken, 'minX=a&minY=0&maxX=5&maxY=5').expect(400)
+    await mapOf(alice.accessToken, 'minX=5&minY=0&maxX=1&maxY=5').expect(400)
+  })
+
   describe('Socket.IO', () => {
     const open = (token: unknown) =>
       new Promise<Socket>((resolve, reject) => {
@@ -809,6 +849,30 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
         expect(await emit(bob, 'get-user-bots')).toEqual([[]])
         expect((await emit(bob, 'get-bot-modules', botId))[1]).toMatchObject({ code: 403 })
         expect((await emit(alice, 'get-bot-modules', { $ne: 1 }))[1]).toMatchObject({ code: 400 })
+      } finally {
+        alice.close()
+        bob.close()
+      }
+    })
+
+    it('serves get-map to the owner, with the same fog of war', async () => {
+      const { accessToken } = await signUp('alice@example.com')
+      const deployed = await api()
+        .post('/api/v1/bots/base')
+        .set(bearer(accessToken))
+        .send({ password: 'secret1' })
+        .expect(201)
+      const { x, y } = deployed.body.mapPoint.location
+      const stranger = await signUp('bob@example.com', 'Bob')
+      const [alice, bob] = [await open(accessToken), await open(stranger.accessToken)]
+      const range = { minX: x - 5, minY: y - 5, maxX: x + 5, maxY: y + 5 }
+
+      try {
+        const [view] = (await emit(alice, 'get-map', range)) as [{ cells: unknown[] }]
+        expect(view.cells).toEqual([expect.objectContaining({ x, y, isOwn: true })])
+        expect(((await emit(bob, 'get-map', range))[0] as { cells: unknown[] }).cells).toEqual([])
+        expect((await emit(alice, 'get-map', { ...range, maxX: x + 500 }))[1]).toMatchObject({ code: 400 })
+        expect((await emit(alice, 'get-map', 'nope'))[1]).toMatchObject({ code: 400 })
       } finally {
         alice.close()
         bob.close()

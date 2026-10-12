@@ -212,5 +212,35 @@
     "NO_AMMO": "No ammunition",
     "NO_SIGNAL": "No signal",
     "NO_SPACE": "There is not enough space"
+  },
+  "map": {
+    "cell": "Cell {x}, {y}",
+    "unknown": "Unknown: never scanned",
+    "empty": "Empty ground",
+    "deposit": "{amount} left in the deposit",
+    "damaged": "Damaged modules",
+    "signal": "Signal: {bars} of 4",
+    "linkLost": "Connection lost {seconds} s ago",
+    "live": "Live now",
+    "seenAgo": "Seen {seconds} s ago",
+    "ownBot": "Your bot",
+    "enemyBot": "Another player's bot",
+    "ownBase": "Your base",
+    "enemyBase": "Another player's base",
+    "corpseBase": "Destroyed base",
+    "resources": {
+      "gold": "Gold",
+      "iron": "Iron",
+      "stone": "Stone",
+      "wood": "Wood",
+      "oil": "Oil",
+      "crystal": "Crystal"
+    },
+    "items": {
+      "blueprint": "Blueprint",
+      "ammunition": "Ammunition",
+      "part": "Part",
+      "generic": "Item"
+    }
   }
 }

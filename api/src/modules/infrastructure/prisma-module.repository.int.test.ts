@@ -39,6 +39,20 @@ describe('PrismaModuleRepository', () => {
     expect(stored).toEqual(expect.arrayContaining([gun, battery]))
   })
 
+  it('lists the modules of several bots at once', async () => {
+    const user = buildUser()
+    await new PrismaUserRepository(database.client).add(user)
+    const other = buildBase(user.id)
+    await new PrismaBotRepository(database.client).add(other)
+    const mine = buildModule(baseId)
+    const theirs = buildModule(other.id)
+    await modules.addMany([mine, theirs])
+
+    expect(await modules.listOfBots([baseId, other.id])).toEqual(expect.arrayContaining([mine, theirs]))
+    expect(await modules.listOfBots([other.id])).toEqual([theirs])
+    expect(await modules.listOfBots([])).toEqual([])
+  })
+
   it('writes the changed state of a module', async () => {
     const battery = buildModule(baseId, { type: 'battery', props: { value: 10 } })
     await modules.addMany([battery])

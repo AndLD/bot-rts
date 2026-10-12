@@ -93,7 +93,9 @@ describe('the files of the base in the terminal', () => {
     command('cd memory-class1')
     command('mkdir scripts')
     command('ls')
-    cy.contains('scripts/')
+    // `mkdir` already printed 'scripts/', so the listing is only known to be stored once the next command has answered
+    command('cd ..')
+    cy.contains('/>')
 
     cy.task<string[]>('terminalLines', { email }).should((lines) => {
       expect(lines).to.include('input: cd memory-class1')

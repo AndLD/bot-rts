@@ -17,7 +17,9 @@ import { DEFAULT_ENGINE_CONFIG, EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionStatus } from '../domain/execution'
 import { SHELL_FILE } from '../domain/shell-script'
 import { QuickJsScriptRuntime } from '../infrastructure/quickjs-script-runtime'
+import { SucraseTranspiler } from '../infrastructure/sucrase-transpiler'
 import { EngineCore } from './engine-core'
+import { ModuleLoader } from './module-loader'
 import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
@@ -81,7 +83,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     createRng: (seed) => new SeededRng(seed),
     executions,
     bots,
-    sources,
+    modules: new ModuleLoader(sources, new SucraseTranspiler(), config.modules),
     runtime,
     api: new ScriptApi([handler]),
     scheduler: new FairScheduler(capacities, (seed) => new SeededRng(seed), 7),
@@ -147,6 +149,35 @@ describe('EngineCore', () => {
       expect(sink.logs()).toEqual(['hello 2 {"x":1}'])
       expect([...executions.items.values()][0]).toMatchObject({ status: 'finished', reason: null })
       expect(await listNow(core)).toEqual([])
+    })
+
+    it('runs a TypeScript file that imports a library and a JSON file', async () => {
+      const { core, base, sources, ticks, sink } = await setup()
+      sources.files.set(
+        '/memory/main.ts',
+        "import { twice } from './lib'\nimport cfg from './cfg.json'\nexport async function main(bot: unknown, n: number): Promise<void> { (bot as any).log(twice(n), cfg.name) }"
+      )
+      sources.files.set('/memory/lib.ts', 'export const twice = (n: number): number => n * 2')
+      sources.files.set('/memory/cfg.json', '{"name": "cfg"}')
+
+      const started = core.start({ userId: OWNER, botId: base.id, file: '/memory/main.ts', args: [21] })
+      await core.runTick()
+      await started
+      await ticks(1)
+
+      expect(sink.logs()).toEqual(['42 cfg'])
+    })
+
+    it('refuses to start a script whose imports cannot be loaded, and records nothing', async () => {
+      const { core, base, sources, executions } = await setup()
+      sources.files.set('/memory/main.js', "import './missing'\nexport async function main() {}")
+
+      const started = core.start({ userId: OWNER, botId: base.id, file: '/memory/main.js', args: [] })
+      const assertion = expect(started).rejects.toMatchObject({ code: 'SCRIPT_LOAD_FAILED' })
+      await core.runTick()
+      await assertion
+
+      expect(executions.items.size).toBe(0)
     })
 
     it('runs a line of the shell as a script of its own and shows the value it returns', async () => {

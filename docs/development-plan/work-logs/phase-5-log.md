@@ -103,3 +103,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** `top` lists all running scripts of the player, not only those of the current bot; the client does not yet show a list of executions in a window of its own.
 - **Next step:** task 5.8 (TypeScript and local imports).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.8: TypeScript and local imports
+- **Tasks:** 5.8
+- **Branch:** `feature/5.8-languages-imports` — done
+- **Decisions / deviations from the plan:** sucrase was chosen as the transpiler (design §10.1.1): types are stripped, ES modules stay (QuickJS runs them natively), there is no type check. `ModuleLoader` resolves the whole graph before the execution starts (so a missing file or a limit breach fails `run` at once with `SCRIPT_LOAD_FAILED`, and nothing is recorded), with the limits as `ENGINE_MODULE_*` settings; imports are found by a scan of the compiled code for `import` / `export … from` statements (a statement-looking text inside a string would also be followed, which can only cause a load error, never an extra permission). The runtime gets the loaded set as `modules` and serves nothing else, so `import()` of an unloaded file fails inside the script. A script that is relaunched after an engine restart is loaded again, so edits to its libraries apply. Shell lines (`<shell>`) have no imports. The editor typings are generated from the function catalog instead of being written by hand (`scriptTypings()`), a test keeps them valid.
+- **Open points:** the in-game editor is a plain text area, so the typings are not wired in yet (CodeMirror 6 is on the client list); `esbuild-wasm` was not needed.
+- **Next step:** task 5.9 (bot security).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

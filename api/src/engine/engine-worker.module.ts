@@ -33,6 +33,9 @@ import { SeededRng } from '../shared/infrastructure/seeded-rng'
 import { SharedModule } from '../shared/shared.module'
 import { UsersModule } from '../users/users.module'
 import { EngineCore } from './application/engine-core'
+import { ModuleLoader } from './application/module-loader'
+import { TRANSPILER, Transpiler } from './application/transpiler'
+import { SucraseTranspiler } from './infrastructure/sucrase-transpiler'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
@@ -116,6 +119,13 @@ export class EngineWorkerModule {
           provide: SCRIPT_SOURCE,
           inject: [FilesService],
           useFactory: (files: FilesService) => new FilesScriptSource(files)
+        },
+        { provide: TRANSPILER, useFactory: () => new SucraseTranspiler() },
+        {
+          provide: ModuleLoader,
+          inject: [SCRIPT_SOURCE, TRANSPILER, APP_CONFIG],
+          useFactory: (source: ScriptSource, transpiler: Transpiler, app: AppConfig) =>
+            new ModuleLoader(source, transpiler, app.engine.modules)
         },
         { provide: SCRIPT_RUNTIME, useFactory: () => QuickJsScriptRuntime.create() },
         BotCapacities,
@@ -285,7 +295,7 @@ export class EngineWorkerModule {
             APP_CONFIG,
             EXECUTION_REPOSITORY,
             BOT_STATE_SOURCE,
-            SCRIPT_SOURCE,
+            ModuleLoader,
             SCRIPT_RUNTIME,
             ScriptApi,
             SCHEDULER,
@@ -307,7 +317,7 @@ export class EngineWorkerModule {
             app: AppConfig,
             executions: ExecutionRepository,
             bots: BotStateSource,
-            sources: ScriptSource,
+            modules: ModuleLoader,
             runtime: ScriptRuntime,
             api: ScriptApi,
             scheduler: Scheduler,
@@ -331,7 +341,7 @@ export class EngineWorkerModule {
               createRng: (seed) => new SeededRng(seed),
               executions,
               bots,
-              sources,
+              modules,
               runtime,
               api,
               scheduler,

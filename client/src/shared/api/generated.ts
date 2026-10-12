@@ -373,6 +373,7 @@ export type ErrorResponseModel = {
     | 'BASE_ALREADY_EXISTS'
     | 'NO_FREE_LOCATION'
     | 'UNKNOWN_COMMAND'
+    | 'SCRIPT_LOAD_FAILED'
     | 'COMMAND_USAGE'
     | 'NO_DRIVE_SELECTED'
     | 'DRIVE_FULL'

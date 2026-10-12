@@ -19,7 +19,8 @@ import { SHELL_FILE, shellSource } from '../domain/shell-script'
 import { ScriptMisuseError } from '../domain/script-misuse'
 import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
-import { BotStateSource, EngineSink, ScriptSource } from './engine-ports'
+import { BotStateSource, EngineSink } from './engine-ports'
+import { ModuleLoader } from './module-loader'
 import { ExecutionRepository } from './execution.repository'
 import { CallAnswer, EngineCommand, LiveExecution } from './live-execution'
 import { Scheduler } from './scheduler'
@@ -56,7 +57,7 @@ export interface EngineDependencies {
   createRng: (seed: number) => Rng
   executions: ExecutionRepository
   bots: BotStateSource
-  sources: ScriptSource
+  modules: ModuleLoader
   runtime: ScriptRuntime
   api: ScriptApi
   scheduler: Scheduler
@@ -271,10 +272,10 @@ export class EngineCore {
 
   // Reads the script and prepares its sandbox; nothing is stored or registered yet
   private async build(record: Execution, state: BotState): Promise<LiveExecution> {
-    const source =
+    const script =
       record.file === SHELL_FILE
-        ? shellSource(String(record.args[0]))
-        : await this.deps.sources.read(record.userId, record.botId, record.file)
+        ? { source: shellSource(String(record.args[0])), modules: new Map<string, string>() }
+        : await this.deps.modules.load(record.userId, record.botId, record.file)
     const rng = this.deps.createRng(this.deps.worldSeed ^ hash(record.id))
     const host: ScriptHost = {
       random: () => rng.next(),
@@ -282,9 +283,10 @@ export class EngineCore {
       log: (args) => this.log(record, 'output', args.map(format).join(' '))
     }
     this.learn(state)
-    const script = this.deps.runtime.createExecution({
-      source,
+    const execution = this.deps.runtime.createExecution({
+      source: script.source,
       fileName: record.file,
+      modules: script.modules,
       args: record.file === SHELL_FILE ? [] : [...record.args],
       // The modules are listed so that a script can name the one it switches (`bot.enable(id)`)
       identity: { id: record.botId, modules: state.modules.map(({ id, type, name }) => ({ id, type, name })) },
@@ -292,7 +294,7 @@ export class EngineCore {
       host,
       limits: { memoryBytes: this.deps.config.memoryBytes, stackBytes: this.deps.config.stackBytes }
     })
-    return new LiveExecution(record, script, this.tickNumber)
+    return new LiveExecution(record, execution, this.tickNumber)
   }
 
   private register(live: LiveExecution): void {

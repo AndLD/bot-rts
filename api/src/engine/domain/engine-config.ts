@@ -2,6 +2,18 @@ import { DEFAULT_MOVEMENT_BALANCE, MovementBalance } from '../../bots/domain/mov
 import { CombatBalance, DEFAULT_COMBAT_BALANCE } from '../../modules/domain/weapon-module'
 import { DEFAULT_RADIO_BALANCE, RadioBalance } from './radio'
 
+// What a script may import (design §10.1.1)
+export interface ModuleLimits {
+  // Bytes of one source file
+  maxFileBytes: number
+  // Files in one execution, the entry included
+  maxFiles: number
+  // Longest chain of imports, counted from the entry file
+  maxDepth: number
+  // Transpiled files kept by content hash
+  cacheEntries: number
+}
+
 // The tunable numbers of the engine (design §12.2, §12.2.1, §12.3.1); the deployment may override them from the
 // environment, nothing in the game logic hard-codes them (AGENTS.md §9)
 export interface EngineConfig {
@@ -22,6 +34,7 @@ export interface EngineConfig {
   maxRestarts: number
   // An execution that has run this many ticks since its relaunch is healthy: its restart count is forgotten
   healthyTicks: number
+  modules: ModuleLimits
   // Chunks of the map kept in memory; the least recently used are dropped (design §4.4)
   maxChunks: number
   // Game rules whose numbers the engine applies (design §8.5, §12.6)
@@ -41,6 +54,7 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   stackBytes: 256 * 1024,
   maxRestarts: 3,
   healthyTicks: 6000,
+  modules: { maxFileBytes: 32 * 1024, maxFiles: 20, maxDepth: 5, cacheEntries: 200 },
   maxChunks: 512,
   movement: DEFAULT_MOVEMENT_BALANCE,
   combat: DEFAULT_COMBAT_BALANCE,

@@ -1,4 +1,5 @@
 import { createRequire } from 'module'
+import { importCandidates } from '../domain/module-path'
 import releaseSyncVariant from '@jitl/quickjs-wasmfile-release-sync'
 import {
   newQuickJSWASMModuleFromVariant,
@@ -89,9 +90,25 @@ class QuickJsExecution implements ScriptExecution {
   ) {
     runtime.setMemoryLimit(options.limits.memoryBytes)
     runtime.setMaxStackSize(options.limits.stackBytes)
+    runtime.setModuleLoader(
+      (name) => options.modules.get(name) ?? { error: new Error(`Cannot find module "${name}"`) },
+      (importer, requested) => {
+        const found = this.resolveImport(importer, requested)
+        return found ?? { error: new Error(`Cannot find module "${requested}"`) }
+      }
+    )
     this.context = runtime.newContext()
     this.parseJson = this.context.unwrapResult(this.context.evalCode('JSON.parse'))
     this.bot = this.buildBot()
+  }
+
+  // The loaded file an import names: the first of its candidates the loader brought
+  private resolveImport(importer: string, requested: string): string | undefined {
+    try {
+      return importCandidates(importer, requested).find((path) => this.options.modules.has(path))
+    } catch {
+      return undefined
+    }
   }
 
   step(sliceMs: number): StepOutcome {

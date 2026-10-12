@@ -11,6 +11,7 @@ describe('QuickJsScriptRuntime', () => {
     const execution = runtime.createExecution({
       source,
       fileName: 'main.js',
+      modules: new Map(),
       args: [],
       identity: { id: 'bot-1' },
       functions: ['scan', 'sleep'],
@@ -248,5 +249,48 @@ describe('QuickJsScriptRuntime', () => {
     const execution = run('export async function main(bot) { await bot.scan() }')
     execution.step(50)
     expect(() => execution.dispose()).not.toThrow()
+  })
+
+  describe('imports', () => {
+    const modules = new Map([
+      [
+        '/m/main.js',
+        "import { double } from './lib/math'\nimport data from './data.json'\nexport async function main() { return double(data.n) }"
+      ],
+      ['/m/lib/math.js', 'export const double = (n) => n * 2'],
+      ['/m/data.json', 'export default {"n": 21}']
+    ])
+
+    it('serves the files of the module map, with or without extension', () => {
+      const execution = run(modules.get('/m/main.js') as string, { fileName: '/m/main.js', modules })
+
+      expect(finishedValue(execution.step(50))).toBe(42)
+    })
+
+    it('fails the script, not the engine, for an import that is not in the map', () => {
+      const source = "import { x } from './nothing'\nexport async function main() { return x }"
+
+      const outcome = run(source, { fileName: '/m/main.js', modules: new Map([['/m/main.js', source]]) }).step(50)
+
+      expect(outcome).toMatchObject({ status: 'failed' })
+    })
+
+    it('refuses bare names, absolute paths and other drives', () => {
+      for (const specifier of ['left-pad', '/other/x.js', '../../x.js']) {
+        const source = `import '${specifier}'\nexport async function main() {}`
+
+        const outcome = run(source, { fileName: '/m/main.js', modules: new Map([['/m/main.js', source]]) }).step(50)
+
+        expect(outcome).toMatchObject({ status: 'failed' })
+      }
+    })
+
+    it('does not let a script import dynamically what the loader did not bring', () => {
+      const source = "export async function main() { return await import('./late.js') }"
+
+      const outcome = run(source, { fileName: '/m/main.js', modules: new Map([['/m/main.js', source]]) }).step(50)
+
+      expect(outcome).toMatchObject({ status: 'failed' })
+    })
   })
 })

@@ -61,6 +61,12 @@ export function readEngineSettings(env: Env, isTest: boolean, problems: string[]
     stackBytes: Math.floor(positive(env, 'ENGINE_SCRIPT_STACK_BYTES', defaults.stackBytes, problems)),
     maxRestarts: Math.floor(positive(env, 'ENGINE_MAX_RESTARTS', defaults.maxRestarts, problems)),
     healthyTicks: Math.floor(positive(env, 'ENGINE_HEALTHY_TICKS', defaults.healthyTicks, problems)),
+    modules: {
+      maxFileBytes: Math.floor(positive(env, 'ENGINE_MODULE_MAX_FILE_BYTES', defaults.modules.maxFileBytes, problems)),
+      maxFiles: Math.floor(positive(env, 'ENGINE_MODULE_MAX_FILES', defaults.modules.maxFiles, problems)),
+      maxDepth: Math.floor(positive(env, 'ENGINE_MODULE_MAX_DEPTH', defaults.modules.maxDepth, problems)),
+      cacheEntries: Math.floor(positive(env, 'ENGINE_MODULE_CACHE_ENTRIES', defaults.modules.cacheEntries, problems))
+    },
     maxChunks: Math.floor(positive(env, 'ENGINE_MAX_CHUNKS', defaults.maxChunks, problems)),
     movement: {
       maxTicksPerCell: Math.floor(

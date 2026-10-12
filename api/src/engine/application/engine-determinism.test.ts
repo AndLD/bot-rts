@@ -17,7 +17,9 @@ import { SeededRng } from '../../shared/infrastructure/seeded-rng'
 import { DEFAULT_ENGINE_CONFIG } from '../domain/engine-config'
 import { QuickJsScriptRuntime } from '../infrastructure/quickjs-script-runtime'
 import { BotCapacities } from './bot-capacities'
+import { SucraseTranspiler } from '../infrastructure/sucrase-transpiler'
 import { EngineCore } from './engine-core'
+import { ModuleLoader } from './module-loader'
 import { ManipulatorHandler } from './handlers/manipulator-handler'
 import { MiningHandler } from './handlers/mining-handler'
 import { MovementHandler } from './handlers/movement-handler'
@@ -85,7 +87,7 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     createRng: (s) => new SeededRng(s),
     executions: new InMemoryExecutionRepository(),
     bots: states,
-    sources,
+    modules: new ModuleLoader(sources, new SucraseTranspiler(), config.modules),
     runtime,
     api: new ScriptApi([...worldHandlers, { functions: others, handle: async () => ok(undefined) }]),
     scheduler: isReversed ? new ReversingScheduler(scheduler) : scheduler,

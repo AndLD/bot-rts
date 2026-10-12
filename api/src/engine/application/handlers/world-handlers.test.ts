@@ -15,7 +15,11 @@ import { GpsHandler } from './gps-handler'
 import { ManipulatorHandler } from './manipulator-handler'
 import { MiningHandler } from './mining-handler'
 import { MovementHandler } from './movement-handler'
+import { LiveVision } from '../live-vision'
+import { RecordingSink } from '../../../../tests/fakes/engine'
+import { SequentialIdGenerator } from '../../../../tests/fakes/fakes'
 import { PowerHandler } from './power-handler'
+import { ViewHandler } from './view-handler'
 import { SyncedHandler } from './synced-handler'
 import { ok } from '../../../../../lib/utils/result'
 
@@ -24,12 +28,22 @@ const at = (x: number, y: number) => ({ x, y, z: 0 })
 async function setup() {
   const engine = createEngineWorld()
   const clock = new FakeClock()
+  const vision = new LiveVision(
+    engine.world,
+    engine.source,
+    engine.writeBehind,
+    new SequentialIdGenerator(),
+    new RecordingSink(),
+    100,
+    16
+  )
   const handlers = {
     movement: new MovementHandler(engine.world, DEFAULT_MOVEMENT_BALANCE),
     mining: new MiningHandler(engine.world),
     manipulator: new ManipulatorHandler(engine.world),
     combat: new CombatHandler(engine.world, clock, DEFAULT_COMBAT_BALANCE),
-    power: new PowerHandler(engine.world, clock),
+    power: new PowerHandler(engine.world, clock, vision),
+    view: new ViewHandler(engine.world, vision),
     gps: new GpsHandler(engine.world)
   }
   // The bot as the engine hands it to a handler
@@ -41,7 +55,7 @@ async function setup() {
     const bot = await worldBot(id)
     engine.world.updateModules(bot, [module])
   }
-  return { ...engine, ...handlers, clock, stateOf, worldBot, modulesOf, typeOf, replace }
+  return { ...engine, ...handlers, vision, clock, stateOf, worldBot, modulesOf, typeOf, replace }
 }
 
 describe('MovementHandler', () => {
@@ -546,6 +560,66 @@ describe('PowerHandler', () => {
     ).toMatchObject({
       code: 'NOT_FOUND'
     })
+  })
+})
+
+describe('live scanning through enable and view', () => {
+  const KIT = [...FULL_KIT, 'scanner-class1']
+
+  it('puts a scanner into live mode and out of it, and tells the live vision', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), KIT)
+    const state = await t.stateOf('b1')
+    const scanner = await t.typeOf('b1', 'scanner')
+    const track = jest.spyOn(t.vision, 'track')
+
+    expect(await t.power.handle(state, 'enable', [scanner.id])).toEqual({
+      ok: true,
+      data: { moduleId: scanner.id, isOn: true }
+    })
+    expect((await t.typeOf('b1', 'scanner')).props.isLive).toBe(true)
+    expect(track).toHaveBeenCalledWith('b1')
+
+    await t.power.handle(state, 'disable', [scanner.id])
+    expect((await t.typeOf('b1', 'scanner')).props.isLive).toBe(false)
+    expect(track).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses to switch a broken scanner on', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), KIT)
+    const scanner = await t.typeOf('b1', 'scanner')
+    await t.replace('b1', { ...scanner, condition: 0 })
+
+    expect(await t.power.handle(await t.stateOf('b1'), 'enable', [scanner.id])).toMatchObject({ code: 'BROKEN_MODULE' })
+  })
+
+  it('shows the live view only while the scanner is live', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), KIT)
+    const state = await t.stateOf('b1')
+    const scanner = await t.typeOf('b1', 'scanner')
+
+    expect(await t.view.handle(state, 'view', [])).toMatchObject({ ok: false, code: 'NOT_LIVE' })
+
+    await t.power.handle(state, 'enable', [scanner.id])
+    await t.vision.refresh(1, 100)
+    const live = await t.view.handle(await t.stateOf('b1'), 'view', [])
+    expect(live).toMatchObject({ ok: true, data: { tick: 1 } })
+    expect((live as unknown as { data: { cells: unknown[] } }).data.cells).toHaveLength(9)
+    expect(await t.view.handle(await t.stateOf('b1'), 'view', [1, undefined as never])).toMatchObject({
+      data: { cells: [] }
+    })
+    expect(await t.view.handle(await t.stateOf('b1'), 'view', [null])).toMatchObject({ ok: true })
+  })
+
+  it('cannot view with a broken scanner', async () => {
+    const t = await setup()
+    t.addBot('b1', at(5, 5), KIT)
+    const scanner = await t.typeOf('b1', 'scanner')
+    await t.replace('b1', { ...scanner, condition: 0 })
+
+    expect(await t.view.handle(await t.stateOf('b1'), 'view', [])).toMatchObject({ code: 'BROKEN_MODULE' })
   })
 })
 

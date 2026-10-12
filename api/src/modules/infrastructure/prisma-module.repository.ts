@@ -31,4 +31,14 @@ export class PrismaModuleRepository implements ModuleRepository {
     const rows = await this.db.module.findMany({ where: { botId }, orderBy: { id: 'asc' } })
     return rows.map(toModuleEntity)
   }
+
+  async listBotIdsWithLiveScanner(): Promise<string[]> {
+    const rows = await this.db.module.findMany({
+      where: { type: 'scanner', props: { path: ['isLive'], equals: true } },
+      select: { botId: true },
+      distinct: ['botId'],
+      orderBy: { botId: 'asc' }
+    })
+    return rows.map((row) => row.botId)
+  }
 }

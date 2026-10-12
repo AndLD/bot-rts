@@ -36,6 +36,8 @@ import { EngineCore } from './application/engine-core'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
+import { LiveVision } from './application/live-vision'
+import { ViewHandler } from './application/handlers/view-handler'
 import { World } from './application/world/world'
 import { WorldActionExecutor } from './application/world-action-executor'
 import { EngineModule } from './engine.module'
@@ -119,15 +121,24 @@ export class EngineWorkerModule {
         },
         {
           provide: WORLD_SOURCE,
-          inject: [BOT_STATE_SOURCE, MAP_REPOSITORY, ITEM_REPOSITORY, MapGenerator, ID_GENERATOR, WORLD_CONFIG],
+          inject: [
+            BOT_STATE_SOURCE,
+            MODULE_REPOSITORY,
+            MAP_REPOSITORY,
+            ITEM_REPOSITORY,
+            MapGenerator,
+            ID_GENERATOR,
+            WORLD_CONFIG
+          ],
           useFactory: (
             states: BotStateSource,
+            modules: ModuleRepository,
             map: MapRepository,
             items: ItemRepository,
             generator: MapGenerator,
             ids: IdGenerator,
             world: WorldConfig
-          ) => new RepositoryWorldSource(states, map, items, generator, ids, world.resources)
+          ) => new RepositoryWorldSource(states, modules, map, items, generator, ids, world.resources)
         },
         {
           provide: World,
@@ -147,13 +158,28 @@ export class EngineWorkerModule {
               energy,
               world.chunkSize,
               (seed) => new SeededRng(seed),
-              app.worldSeed ?? 0
+              app.worldSeed ?? 0,
+              app.engine.maxChunks
             )
+        },
+        {
+          provide: LiveVision,
+          inject: [World, WORLD_SOURCE, WriteBehind, ID_GENERATOR, ENGINE_SINK, APP_CONFIG, WORLD_CONFIG],
+          useFactory: (
+            world: World,
+            source: WorldSource,
+            writeBehind: WriteBehind,
+            ids: IdGenerator,
+            sink: EngineSink,
+            app: AppConfig,
+            worldConfig: WorldConfig
+          ) => new LiveVision(world, source, writeBehind, ids, sink, app.engine.tickIntervalMs, worldConfig.chunkSize)
         },
         {
           provide: ScriptApi,
           inject: [
             World,
+            LiveVision,
             CLOCK,
             APP_CONFIG,
             ScanService,
@@ -164,6 +190,7 @@ export class EngineWorkerModule {
           ],
           useFactory: (
             world: World,
+            vision: LiveVision,
             clock: Clock,
             app: AppConfig,
             scans: ScanService,
@@ -178,7 +205,8 @@ export class EngineWorkerModule {
               new MiningHandler(world),
               new ManipulatorHandler(world),
               new CombatHandler(world, clock, app.engine.combat),
-              new PowerHandler(world, clock),
+              new PowerHandler(world, clock, vision),
+              new ViewHandler(world, vision),
               new SyncedHandler(world, new ScannerHandler(scans)),
               new SyncedHandler(world, new FactoryHandler(factory, assembly)),
               new SyncedHandler(world, new MaintenanceHandler(maintenance)),
@@ -217,6 +245,7 @@ export class EngineWorkerModule {
             ModuleRegistry,
             WriteBehind,
             World,
+            LiveVision,
             WorldActionExecutor,
             ENGINE_SINK,
             ID_GENERATOR,
@@ -235,6 +264,7 @@ export class EngineWorkerModule {
             registry: ModuleRegistry,
             writeBehind: WriteBehind,
             world: World,
+            vision: LiveVision,
             actions: WorldActionExecutor,
             sink: EngineSink,
             ids: IdGenerator,
@@ -255,6 +285,7 @@ export class EngineWorkerModule {
               registry,
               writeBehind,
               world,
+              vision,
               actions,
               sink,
               ids,

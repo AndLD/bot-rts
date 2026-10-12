@@ -3,7 +3,8 @@ import { BotStateSource } from '../engine-ports'
 import { ItemRepository } from '../../../crafting/application/item.repository'
 import { MapRepository } from '../../../map/application/map.repository'
 import { MapGenerator } from '../../../map/domain/map-generator'
-import { Location, LocationRange } from '../../../map/domain/map-point.entity'
+import { KnownPoint, Location, LocationRange } from '../../../map/domain/map-point.entity'
+import { ModuleRepository } from '../../../modules/application/module.repository'
 import { ResourceBalance } from '../../../../../lib/utils/interfaces/resources'
 import { MapPointType } from '../../../../../lib/utils/interfaces/map'
 import { IdGenerator } from '../../../shared/application/id-generator'
@@ -13,6 +14,7 @@ import { NewCell, StoredBot, WorldSource } from './world-source'
 export class RepositoryWorldSource implements WorldSource {
   constructor(
     private readonly states: BotStateSource,
+    private readonly modules: ModuleRepository,
     private readonly map: MapRepository,
     private readonly items: ItemRepository,
     private readonly generator: MapGenerator,
@@ -38,6 +40,14 @@ export class RepositoryWorldSource implements WorldSource {
     const points = await this.map.findPointsInRange(range)
     const itemIds = points.filter((p) => p.type === MapPointType.ITEM && p.contentId).map((p) => p.contentId as string)
     return { points, items: await this.items.listByIds(itemIds) }
+  }
+
+  loadKnown(userId: string, range: LocationRange): Promise<KnownPoint[]> {
+    return this.map.findKnownPointsInRange(userId, range)
+  }
+
+  liveScannerBotIds(): Promise<string[]> {
+    return this.modules.listBotIdsWithLiveScanner()
   }
 
   generate(location: Location): NewCell {

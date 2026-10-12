@@ -169,4 +169,63 @@ describe('World', () => {
 
     expect((await world.cell({ x: 1, y: 1, z: 0 })).type).toBe(MapPointType.RESOURCE)
   })
+
+  it('hands out the cells that changed since the last time, newest content first', async () => {
+    const { world } = createEngineWorld()
+    const cell = await world.cell({ x: 1, y: 1, z: 0 })
+
+    world.setCell({ ...cell, type: MapPointType.RESOURCE })
+    world.emptyCell(cell)
+    world.setCell({ ...(await world.cell({ x: 2, y: 2, z: 0 })), type: MapPointType.RESOURCE })
+
+    const changed = world.drainChanged()
+    expect(changed.map((p) => `${p.location.x},${p.location.y},${p.type}`)).toEqual(['1,1,null', '2,2,resource'])
+    expect(world.drainChanged()).toEqual([])
+  })
+
+  it('keeps at most the configured number of chunks, dropping the least recently used that are written', async () => {
+    const { world, source, writeBehind } = createEngineWorld({ maxChunks: 2 })
+    const chunk = (n: number) => ({ x: n * 16, y: 0, z: 0 })
+    source.cells.set('0:0:0', {
+      id: 'old',
+      location: chunk(0),
+      type: MapPointType.RESOURCE,
+      contentId: null,
+      resource: null
+    })
+
+    await world.cell(chunk(0))
+    world.beginTick(2)
+    await world.cell(chunk(1))
+    world.beginTick(3)
+    await world.cell(chunk(2))
+    // Chunks 1 and 2 hold cells that were rolled and are not written yet: only the old, written chunk can go
+    world.evictCold()
+    expect(world.loadedChunkCount).toBe(2)
+
+    await writeBehind.flush(3)
+    world.beginTick(4)
+    await world.cell(chunk(1))
+    world.evictCold()
+
+    expect(world.loadedChunkCount).toBe(2)
+    expect(source.loads).toBe(3)
+    await world.cell(chunk(0))
+    expect(source.loads).toBe(4)
+  })
+
+  it('keeps every chunk when there is room, and tells the listeners when everything is forgotten', async () => {
+    const { world } = createEngineWorld({ maxChunks: 8 })
+    const forgotten = jest.fn()
+    world.onEvict(forgotten)
+    await world.cell({ x: 0, y: 0, z: 0 })
+    await world.cell({ x: 40, y: 0, z: 0 })
+
+    world.evictCold()
+    expect(world.loadedChunkCount).toBe(2)
+
+    world.evict()
+    expect(forgotten).toHaveBeenCalledTimes(1)
+    expect(world.loadedChunkCount).toBe(0)
+  })
 })

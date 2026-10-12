@@ -7,6 +7,12 @@ export interface ChunkCoord {
   readonly cy: number
 }
 
+// The key of the chunk a cell is in, as `cx:cy:z`
+export function chunkKeyOf(location: Location, chunkSize: number): string {
+  const { cx, cy } = chunkOf(location, chunkSize)
+  return `${cx}:${cy}:${location.z}`
+}
+
 export function locationKey({ x, y, z }: Location): string {
   return `${x}:${y}:${z}`
 }

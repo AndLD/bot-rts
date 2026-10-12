@@ -18,7 +18,14 @@ describe('script function catalog', () => {
 
   it('grants a function by any of its modules, and sleep to every bot', () => {
     expect(scriptFunctionsFor([])).toEqual(['sleep'])
-    expect(scriptFunctionsFor(['scanner', 'gps'])).toEqual(['sleep', 'scan', 'getLocation'])
+    expect(scriptFunctionsFor(['scanner', 'gps'])).toEqual([
+      'sleep',
+      'scan',
+      'view',
+      'enable',
+      'disable',
+      'getLocation'
+    ])
     expect(isGranted(spec('scan'), new Set(['drive']))).toBe(false)
     expect(isGranted(spec('scan'), new Set(['scanner']))).toBe(true)
   })

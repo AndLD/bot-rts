@@ -42,6 +42,7 @@ export function readEngineSettings(env: Env, isTest: boolean, problems: string[]
     stackBytes: Math.floor(positive(env, 'ENGINE_SCRIPT_STACK_BYTES', defaults.stackBytes, problems)),
     maxRestarts: Math.floor(positive(env, 'ENGINE_MAX_RESTARTS', defaults.maxRestarts, problems)),
     healthyTicks: Math.floor(positive(env, 'ENGINE_HEALTHY_TICKS', defaults.healthyTicks, problems)),
+    maxChunks: Math.floor(positive(env, 'ENGINE_MAX_CHUNKS', defaults.maxChunks, problems)),
     movement: {
       maxTicksPerCell: Math.floor(
         positive(env, 'ENGINE_MAX_TICKS_PER_CELL', defaults.movement.maxTicksPerCell, problems)

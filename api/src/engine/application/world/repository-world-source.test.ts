@@ -19,6 +19,7 @@ async function setup() {
   const states = new ServiceBotStateSource(world.botsService, world.repositories.bots, world.repositories.modules)
   const source = new RepositoryWorldSource(
     states,
+    world.repositories.modules,
     world.repositories.map,
     world.repositories.items,
     new MapGenerator(new FixedRng([0.99]), DEFAULT_WORLD_CONFIG),
@@ -65,10 +66,38 @@ describe('RepositoryWorldSource', () => {
     expect(items).toEqual([item])
   })
 
+  it('loads what a player knows of a range and lists the bots with a live scanner', async () => {
+    const { source, base, repositories, ids } = await setup()
+    await repositories.map.upsertKnownPoints([
+      {
+        id: ids.next(),
+        userId: alice.id,
+        location: { x: 5, y: 5, z: 0 },
+        type: MapPointType.BASE,
+        contentId: base.id,
+        resource: null,
+        seenAt: 7
+      }
+    ])
+
+    const known = await source.loadKnown(alice.id, { from: { x: 0, y: 0, z: 0 }, to: { x: 9, y: 9, z: 0 } })
+    expect(known).toEqual([expect.objectContaining({ userId: alice.id, seenAt: 7 })])
+    expect(await source.loadKnown('someone', { from: { x: 0, y: 0, z: 0 }, to: { x: 9, y: 9, z: 0 } })).toEqual([])
+
+    expect(await source.liveScannerBotIds()).toEqual([])
+    const index = repositories.modules.items.findIndex((m) => m.botId === base.id && m.type === 'scanner')
+    repositories.modules.items[index] = {
+      ...repositories.modules.items[index],
+      props: { ...repositories.modules.items[index].props, isLive: true }
+    }
+    expect(await source.liveScannerBotIds()).toEqual([base.id])
+  })
+
   it('rolls the blueprint item that a new cell may hold with a fresh id', async () => {
     const { ids, botsService, repositories } = await setup()
     const withBlueprints = new RepositoryWorldSource(
       new ServiceBotStateSource(botsService, repositories.bots, repositories.modules),
+      repositories.modules,
       repositories.map,
       repositories.items,
       new MapGenerator(new FixedRng([0.99, 0]), DEFAULT_WORLD_CONFIG, { chance: 1, modules: ['gun-class2'] }),

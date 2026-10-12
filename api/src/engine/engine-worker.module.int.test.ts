@@ -157,4 +157,69 @@ describe('EngineWorkerModule', () => {
       await database.client.mapPoint.findFirst({ where: { x: before.x, y: before.y, contentId: rover.id } })
     ).toBeNull()
   })
+
+  it('keeps the area of a live scanner current for the player, tells them in batches and writes what they saw', async () => {
+    const [{ db }] = await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`
+    const config = loadConfig({
+      DATABASE_URL: urlForDatabase(db),
+      NODE_ENV: 'test',
+      ENGINE_TICK_INTERVAL_MS: '10',
+      ENGINE_FLUSH_EVERY_TICKS: '2',
+      WORLD_RESOURCE_CHANCE: '0'
+    })
+    const { link, fromEngine, send } = channel()
+    const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    running.push(async () => {
+      send({ kind: 'stop' })
+      await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
+      await app.close()
+    })
+    const user = buildUser()
+    await new PrismaUserRepository(database.client).add(user)
+    const bots = app.get(BotsService)
+    const { bot: base } = await bots.deployUserBase(user, { password: 'secret1', location: { x: 20, y: 20, z: 0 } })
+    const factory = app.get(ModuleFactory)
+    const { bot: watcher } = await bots.createBot(user.id, {
+      baseId: base.id,
+      label: 'Watcher',
+      modules: ['processor-class1', 'wireless-adapter-class1', 'battery-class1', 'memory-class1', 'scanner-class1'].map(
+        (name) => factory.template(name)
+      )
+    })
+    await database.client.mapPoint.updateMany({ where: { contentId: watcher.id }, data: { x: 60, y: 60 } })
+    const files = app.get(FilesService)
+    const [drive] = await files.listDrives(user.id, watcher.id)
+    await files.write(
+      user.id,
+      watcher.id,
+      drive.id,
+      'watch.js',
+      'export async function main(bot) { const s = bot.modules.find((m) => m.type === "scanner"); const e = await bot.enable(s.id); await sleep(400); const v = await bot.view(); bot.log(e.ok, v.ok, v.data.cells.length) }'
+    )
+
+    await app.get(EngineHost).start()
+    send({
+      kind: 'request',
+      id: 1,
+      request: {
+        op: 'start',
+        request: { userId: user.id, botId: watcher.id, file: '/memory-class1/watch.js', args: [] }
+      }
+    })
+    await until(() => fromEngine.some((m) => m.kind === 'event' && m.event.type === 'log'), 'the view')
+    await until(
+      async () => (await database.client.knownPoint.count({ where: { userId: user.id } })) >= 9,
+      'the knowledge'
+    )
+
+    const log = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'log' ? [m.event.text] : []))
+    expect(log).toEqual(['true true 9'])
+    const batches = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'vision' ? [m.event] : []))
+    expect(batches[0]).toMatchObject({ userId: user.id, botId: watcher.id })
+    expect(batches[0].cells).toHaveLength(9)
+    expect(await database.client.knownPoint.count({ where: { userId: user.id, x: { gte: 59, lte: 61 } } })).toBe(9)
+    expect(
+      (await database.client.module.findMany({ where: { botId: watcher.id, type: 'scanner' } }))[0].props
+    ).toMatchObject({ isLive: true })
+  })
 })

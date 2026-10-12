@@ -95,6 +95,16 @@ Rules:
   scanner's bot moves, only the cells at the edge of its area are updated. The engine keeps the map in chunks with an LRU
   cache and loads cold chunks from the database on demand.
 
+✅ **Implementation (Plan 5.12):** `LiveVision` in the engine keeps an index of the live areas by chunk; the cells that change in
+a tick (`World.drainChanged`) are handed to the areas that cover them, the player's knowledge of those cells is updated at once,
+and each area sends its changes as one `vision` event every scanner `delay` (rounded up to ticks). A new area looks at all its
+cells, a moved one only at the cells that entered; a cell that leaves the live area, or whose scanner stops, is written as a
+snapshot stamped with that moment, and another area of the same player that still covers it keeps it live. A live cell's
+`seenAt` is the moment of the view, and it is written to the database only when the content changes or when the cell leaves
+(`known_points` are staged in the write-behind buffer). The scanner pays its refresh through the energy tick (§12.5). After a
+restart the bots with `isLive` scanners resume their vision. The map is held in memory in chunks, at most `ENGINE_MAX_CHUNKS`;
+the least recently used chunk without unwritten changes is dropped first.
+
 ## 4.3 Map rendering (monitor / canvas)
 
 ✅ The map is drawn on a canvas with **sprites**, one per cell, not flat coloured squares.

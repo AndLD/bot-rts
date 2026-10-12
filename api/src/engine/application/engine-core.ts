@@ -24,6 +24,7 @@ import { CallOutcome, ScriptApi } from './script-api'
 import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
 import { World } from './world/world'
+import { LiveVision } from './live-vision'
 import { WorldActionExecutor } from './world-action-executor'
 import { WorldActionName } from './world-actions'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
@@ -58,6 +59,7 @@ export interface EngineDependencies {
   registry: ModuleRegistry
   writeBehind: WriteBehind
   world: World
+  vision: LiveVision
   actions: WorldActionExecutor
   sink: EngineSink
   ids: IdGenerator
@@ -93,6 +95,7 @@ export class EngineCore {
   // After a restart: relaunches the executions that were active from the beginning of `main` (design §12.3.1), or
   // kills the ones that keep dying with the engine
   async recover(): Promise<void> {
+    await this.deps.vision.restore()
     for (const record of await this.deps.executions.listActive()) {
       if (record.restarts >= this.deps.config.maxRestarts) {
         await this.end(record, ExecutionStatus.KILLED, 'crash-loop: the engine restarted too often while it ran')
@@ -214,8 +217,11 @@ export class EngineCore {
     this.deps.scheduler.deferred(planned.slice(reached))
 
     const isCut = await this.apply(commands, tick, hasTime)
-    this.deps.world.tickEnergy(this.deps.clock.now().getTime())
+    const now = this.deps.clock.now().getTime()
+    this.deps.world.tickEnergy(now)
+    await this.deps.vision.refresh(tick, now)
     await this.deps.writeBehind.flushIfDue(tick)
+    this.deps.world.evictCold()
 
     this.metrics.record({
       tick,
@@ -255,7 +261,8 @@ export class EngineCore {
       source,
       fileName: record.file,
       args: [...record.args],
-      identity: { id: record.botId },
+      // The modules are listed so that a script can name the one it switches (`bot.enable(id)`)
+      identity: { id: record.botId, modules: state.modules.map(({ id, type, name }) => ({ id, type, name })) },
       functions: scriptFunctionsFor(state.modules.map((module) => module.type)),
       host,
       limits: { memoryBytes: this.deps.config.memoryBytes, stackBytes: this.deps.config.stackBytes }

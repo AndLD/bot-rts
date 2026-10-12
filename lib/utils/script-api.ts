@@ -28,6 +28,7 @@ export const SCRIPT_MAX_LIST_LENGTH = 64
 export const SCRIPT_FUNCTIONS: readonly ScriptFunctionSpec[] = [
   { name: 'sleep', modules: [], args: [{ name: 'ms', kind: 'integer' }], ops: 0, isScheduled: true },
   { name: 'scan', modules: ['scanner'], args: [], ops: 1 },
+  { name: 'view', modules: ['scanner'], args: [{ name: 'since', kind: 'integer', isOptional: true }], ops: 1 },
   { name: 'move', modules: ['engine', 'movement'], args: [{ name: 'cells', kind: 'integer' }], ops: 1 },
   { name: 'turn', modules: ['engine', 'movement'], args: [{ name: 'direction', kind: 'direction' }], ops: 1 },
   { name: 'dig', modules: ['mining'], args: [], ops: 1 },
@@ -70,8 +71,8 @@ export const SCRIPT_FUNCTIONS: readonly ScriptFunctionSpec[] = [
     ops: 1
   },
   { name: 'reload', modules: ['weapon'], args: [], ops: 1 },
-  { name: 'enable', modules: ['generator', 'battery'], args: [{ name: 'moduleId', kind: 'string' }], ops: 1 },
-  { name: 'disable', modules: ['generator', 'battery'], args: [{ name: 'moduleId', kind: 'string' }], ops: 1 },
+  { name: 'enable', modules: ['scanner', 'generator', 'battery'], args: [{ name: 'moduleId', kind: 'string' }], ops: 1 },
+  { name: 'disable', modules: ['scanner', 'generator', 'battery'], args: [{ name: 'moduleId', kind: 'string' }], ops: 1 },
   { name: 'getLocation', modules: ['gps'], args: [], ops: 1 },
   {
     name: 'craft',

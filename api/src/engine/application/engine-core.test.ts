@@ -20,6 +20,7 @@ import { EngineCore } from './engine-core'
 import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
+import { LiveVision } from './live-vision'
 import { WorldActionExecutor } from './world-action-executor'
 import { WriteBehind } from './write-behind'
 
@@ -59,6 +60,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
   const capacities = new BotCapacities()
+  const vision = { restore: jest.fn(async () => undefined), refresh: jest.fn(async () => undefined) }
   const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
   const writeBehind = new WriteBehind(store, config.flushEveryTicks)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
@@ -76,6 +78,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     registry: createModuleRegistry(),
     writeBehind,
     world,
+    vision: vision as unknown as LiveVision,
     actions: actions as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
@@ -110,7 +113,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     config,
     writeBehind,
     actions,
-    world
+    world,
+    vision
   }
 }
 
@@ -198,6 +202,15 @@ describe('EngineCore', () => {
       await start('export async function main(bot) { await bot.scan() }')
 
       expect((await listNow(core))[0].state).toBe('awaiting')
+    })
+
+    it('lists the modules of the bot on the bot object, so that a script can name one', async () => {
+      const { start, ticks, sink, modules } = await setup()
+
+      await start('export async function main(bot) { bot.log(bot.modules.map((m) => m.type).join(",")) }')
+      await ticks(1)
+
+      expect(sink.logs()).toEqual([modules.map((module) => module.type).join(',')])
     })
 
     it('gives each execution its own seeded random numbers and the game time', async () => {
@@ -549,6 +562,19 @@ describe('EngineCore', () => {
       expect(core.snapshot().cutTicks).toBeGreaterThan(0)
       expect(Math.min(...steps)).toBeGreaterThan(5)
       expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(2)
+    })
+  })
+
+  describe('live vision', () => {
+    it('brings the live views up to date every tick and resumes them after a restart', async () => {
+      const { core, vision, ticks } = await setup()
+
+      await core.recover()
+      await ticks(2)
+
+      expect(vision.restore).toHaveBeenCalledTimes(1)
+      expect(vision.refresh).toHaveBeenCalledTimes(2)
+      expect(vision.refresh).toHaveBeenLastCalledWith(2, expect.any(Number))
     })
   })
 

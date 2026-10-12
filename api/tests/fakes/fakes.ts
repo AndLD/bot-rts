@@ -362,6 +362,11 @@ export class InMemoryModuleRepository implements ModuleRepository {
   async listOfBot(botId: string) {
     return this.items.filter((module) => module.botId === botId)
   }
+
+  async listBotIdsWithLiveScanner() {
+    const live = this.items.filter((module) => module.type === 'scanner' && module.props.isLive === true)
+    return [...new Set(live.map((module) => module.botId))].sort()
+  }
 }
 
 export class InMemoryFileRepository implements FileRepository {

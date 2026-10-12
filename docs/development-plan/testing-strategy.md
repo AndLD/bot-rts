@@ -52,7 +52,7 @@ about 15 minutes it is sharded and run in parallel.
 | Terminal: filesystem (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`), `help`, stored session lines | 3.13 (`terminal-files.cy.ts`) |
 | Craft, assemble, research, `learn`; repair, disassemble; battery exhaustion | 4.7 (`factory.cy.ts`) |
 | Restore a corpse base by repairing its wireless adapter | 4.7 (HTTP integration test `api.int.test.ts`: driving a repairer to a lost base from the UI needs the movement of phase 5) |
-| Script lifecycle: edit, run, log, `top`, `kill`, shell mode, failing script, restart relaunch | 5.11 |
+| Script lifecycle: edit, run, log, `top`, `kill`, shell mode, failing script | 5.11 (`scripts.cy.ts`); restart relaunch with the "rebooted" note: `engine.int.test.ts` (an e2e stack cannot kill the engine thread) |
 | Map: fog of war, pan/zoom, cell inspection, opening a bot; animation smoke test | 6.6 |
 | Storage GUI; factory GUI; windows | 6.6 |
 | `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a stale bot | 6.6 |
@@ -67,7 +67,7 @@ about 15 minutes it is sharded and run in parallel.
 | Signup validation, expired or reused verification link, login lockout, banned user mid-session | 2.7 |
 | Spawn seeds: same code spawns nearby, full seed, expired seed | 3.13 (`spawn-seeds.cy.ts`) |
 | Weight / speed / capacity, assembly rejections, broken-module effects, disassembly permissions | 4.7 (unit: `movement`, `assembly`, `capabilities`, `repair-module`; integration: `api.int.test.ts`, `energy.service.int.test.ts`; terminal: `factory.cy.ts`) |
-| Script arguments, imports, TypeScript, limits, queued executions and ops budget, sandbox denial, offline play | 5.11 |
+| Script arguments, imports, TypeScript, limits, queued executions, sandbox denial, offline play | 5.11 (`scripts.cy.ts`); the ops budget: `engine-core.test.ts`, `scheduler.test.ts` |
 | Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 |
 | Deposit depletion and contest, combat details, items and blueprint items | 6.12 |
 | Notification coalescing, translated terminal responses | 7.9 |

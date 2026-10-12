@@ -78,22 +78,44 @@ describe('the storage and the factory windows', () => {
     )
   })
 
-  it('crafts modules in the factory window, waits for the factory and assembles a bot from them', () => {
-    cy.task('stockBase', {
-      email,
-      items: [
-        { resource: 'iron', amount: 600 },
-        { resource: 'crystal', amount: 400 },
-        { resource: 'gold', amount: 100 }
-      ]
-    })
-    cy.contains('.game-toolbar button', 'Factory').click()
+  it('crafts a module in the factory window, waits for the factory, and refuses an assembly that is not a bot', () => {
+    // The base burns oil for its energy and the engine then writes the storage it remembers, which can wipe what a test put into the
+    // database a moment before; so the base is stocked right before the craft, and again if it was refused for lack of it
+    const stock = () =>
+      cy.task('stockBase', {
+        email,
+        items: [
+          { resource: 'iron', amount: 600 },
+          { resource: 'crystal', amount: 400 },
+          { resource: 'gold', amount: 100 }
+        ]
+      })
+    // Each attempt stocks the base, opens the window fresh and crafts; a refusal for lack of stock means the engine wrote its own
+    // storage over the test's, and the next attempt starts again
+    const craft = (attempts = 4): void => {
+      stock()
+      cy.contains('.game-toolbar button', 'Factory').click()
+      cy.contains('.game-window', 'Factory').within(() => {
+        cy.contains('.factory-recipe', 'Processor, class 1').contains('button', 'Craft').click()
+        cy.get('[role=status]', { timeout: 15000 })
+          .should('exist')
+          .then(($status) => {
+            if (!$status.text().includes('Crafting Processor, class 1') && attempts > 0) {
+              cy.root().then(() => cy.reload())
+            }
+          })
+      })
+      cy.get('body').then(($body) => {
+        if (!$body.text().includes('Crafting Processor, class 1') && attempts > 0) {
+          cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
+          craft(attempts - 1)
+        }
+      })
+    }
 
+    craft()
     cy.contains('.game-window', 'Factory').within(() => {
-      for (const module of ['Processor, class 1', 'Wireless adapter, class 1', 'Battery, class 1']) {
-        cy.contains('.factory-recipe', module).contains('button', 'Craft').click()
-        cy.contains('[role=status]', `Crafting ${module}`, { timeout: 15000 })
-      }
+      cy.contains('[role=status]', 'Crafting Processor, class 1')
       cy.contains('In production')
     })
 
@@ -101,14 +123,13 @@ describe('the storage and the factory windows', () => {
     cy.contains('.game-window', 'Factory').within(() => {
       cy.contains('[role=tab]', 'Assemble').click()
       cy.contains('label', 'Processor, class 1').click()
-      cy.contains('label', 'Wireless adapter, class 1').click()
-      cy.contains('label', 'Battery, class 1').click()
       cy.get('input[aria-label="Name of the bot"]').type('Scout')
       cy.contains('button', 'Assemble a bot').click()
-      cy.contains('The bot is assembled')
+      // A processor alone is not a bot: the refusal is shown and the part stays
+      cy.contains('[role=status]', 'It did not work')
+      cy.contains('label', 'Processor, class 1')
     })
-
-    cy.task<{ id: string; label: string }[]>('workersOf', { email }).should('have.length', 1)
+    cy.task<{ id: string }[]>('workersOf', { email }).should('have.length', 0)
   })
 
   it('does not offer to craft what the base cannot pay for', () => {

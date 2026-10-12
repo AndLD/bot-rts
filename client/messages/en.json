@@ -125,8 +125,7 @@
     "error": "Error: {message}",
     "notConnected": "The terminal is not connected yet",
     "saved": "Saved {path}",
-    "connectedTo": "Connected to {botId}; exit returns",
-    "backTo": "Back on {botId}",
+    "connectedTo": "Connected to {botId}: a terminal window of its own is open",
     "scriptEnded": "[{id}] {state}",
     "editing": "Editing {path}",
     "editorLabel": "File content",
@@ -159,7 +158,10 @@
       "adopt": "take the foreign bot of this terminal into your base",
       "clear": "clear the screen",
       "exit": "sign out"
-    }
+    },
+    "connectionInterrupted": "Connection interrupted: the bot is out of reach",
+    "connectionRestored": "Connection restored",
+    "missedSummary": "While the bot was out of reach: {scans} scans, {events} events"
   },
   "errors": {
     "generic": "Something went wrong",
@@ -251,7 +253,8 @@
       "factory": "Factory",
       "control": "Control panel",
       "settings": "Settings",
-      "editor": "Editor"
+      "editor": "Editor",
+      "botTerminal": "Terminal {botId}"
     }
   },
   "storage": {

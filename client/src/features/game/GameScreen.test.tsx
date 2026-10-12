@@ -16,7 +16,24 @@ jest.mock('../storage/StoragePanel', () => ({
   __esModule: true,
   default: ({ botId }: { botId: string }) => <div>the storage of {botId}</div>
 }))
-jest.mock('../terminal/Terminal', () => ({ __esModule: true, default: () => <div>the terminal</div> }))
+jest.mock('../terminal/Terminal', () => ({
+  __esModule: true,
+  default: ({
+    connection,
+    onConnected,
+    onExit
+  }: {
+    connection?: { botId: string }
+    onConnected?: (c: { botId: string; sessionId: string }) => void
+    onExit?: () => void
+  }) => (
+    <div>
+      {connection ? `the terminal of ${connection.botId}` : 'the terminal'}
+      <button onClick={() => onConnected?.({ botId: 'bot-2-long-id', sessionId: 's2' })}>connect</button>
+      <button onClick={onExit}>leave</button>
+    </div>
+  )
+}))
 
 beforeEach(() => localStorage.clear())
 
@@ -62,5 +79,29 @@ describe('GameScreen', () => {
     act(() => void store.dispatch(openWindow({ id: 'settings', kind: 'settings' })))
 
     expect(screen.getByText('Settings', { selector: 'header span' })).toBeInTheDocument()
+  })
+
+  it('opens a window of its own for a bot that connect reached, and closes it on exit', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByText('connect'))
+
+    expect(screen.getByText('the terminal of bot-2-long-id')).toBeInTheDocument()
+    expect(screen.getByText('Terminal bot-2-lo', { selector: 'header span' })).toBeInTheDocument()
+
+    // The terminal of the connected bot can connect on, and leaves with exit
+    const connected = screen.getByText('the terminal of bot-2-long-id')
+    fireEvent.click(connected.querySelector('button:last-child') as HTMLElement)
+    expect(screen.queryByText('the terminal of bot-2-long-id')).not.toBeInTheDocument()
+  })
+
+  it('lets a connected terminal connect on to another bot', () => {
+    renderApp(<GameScreen baseId="b1" />)
+    fireEvent.click(screen.getByText('connect'))
+
+    const connected = screen.getByText('the terminal of bot-2-long-id')
+    fireEvent.click(connected.querySelector('button:first-of-type') as HTMLElement)
+
+    expect(screen.getAllByText('the terminal of bot-2-long-id')).toHaveLength(1)
   })
 })

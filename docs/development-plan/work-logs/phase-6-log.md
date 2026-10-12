@@ -57,3 +57,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.5 (`connect` with draggable bot terminals).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w client`
 
+### 2026-10-12 — task 6.5: bot terminals in windows
+- **Tasks:** 6.5
+- **Branch:** `feature/6.5-bot-terminals` — done
+- **Decisions / deviations from the plan:** `connect` (server side done in 5.9 / 5.13: password, lockout, wireless adapter, range and relay chain through the radio network) now opens a **terminal window of its own** (`terminal:<botId>`, the stored session `connect` created is passed in the window's params) instead of replacing the base terminal in place; the old stack of terminals and the "Back on …" line are gone. `exit` in a connected terminal closes its window and ends its session (so does closing the window by its button); `exit` in the base terminal still signs out. `useTerminal` takes `{ connection, onConnected, onExit }`; without `connection` it is the base terminal. Link state: the typed game events (`LinkLost`, `LinkRestored` with `missed`) now come to the client as `game-event` (the event union moved to `lib/utils/interfaces/events.ts` and the API re-exports it, so both sides share one definition); when the link drops the terminal shows "Connection interrupted", disables its input and refuses to send anything but `exit`; when it returns it says so, with a summary of the scans and events missed, and the same session goes on (that is the automatic resume: nothing is reopened). A command refused with `NO_SIGNAL` also marks the link down, in case the event was missed.
+- **Open points:** a client that connects while a bot is already out of reach does not know it (only changes are pushed) until a command is refused; terminals are not reopened after a page reload (the sessions stay stored on the server, the history is in the log).
+- **Next step:** task 6.7 (bot control panel), then 6.8, 6.9, 6.11, 6.6, 6.12.
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`
+

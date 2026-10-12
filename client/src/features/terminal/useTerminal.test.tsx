@@ -7,7 +7,7 @@ import messages from '../../../messages/en.json'
 import { createFakeAuth } from '../../../tests/render'
 import { AuthClientContext } from '../auth/auth-client-context'
 import { GameSocket, SocketContext } from '../../shared/socket/socket-context'
-import { useTerminal } from './useTerminal'
+import { TerminalOptions, useTerminal } from './useTerminal'
 
 type Handler = (...args: never[]) => void
 
@@ -29,7 +29,7 @@ const base = { _id: 'base-1', type: BOT_TYPE.BASE }
 const auth = createFakeAuth()
 const top: ITerminalCwd = { drive: null, directory: null }
 
-function setup(socket: GameSocket | null) {
+function setup(socket: GameSocket | null, options: TerminalOptions = {}) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
       <AuthClientContext.Provider value={auth}>
@@ -38,7 +38,7 @@ function setup(socket: GameSocket | null) {
     </NextIntlClientProvider>
   )
 
-  return renderHook(() => useTerminal(), { wrapper })
+  return renderHook(() => useTerminal(options), { wrapper })
 }
 
 // The server answers every command with the given result and place
@@ -298,37 +298,157 @@ describe('useTerminal: connecting to other bots', () => {
 
   const connectResult = answering({ type: 'connected', sessionId: 'session-2', botId: 'bot-2' })
 
-  it('works in the new terminal after connect, and returns to the one before with exit', async () => {
-    const { socket, result } = await connected({ 'terminal-command': connectResult })
+  it('hands the new session to a window of its own after connect, and stays on its own bot', async () => {
+    const onConnected = jest.fn()
+    const socket = createSocket(handlers({ 'terminal-command': connectResult }))
+    const { result } = setup(socket, { onConnected })
+    await waitFor(() => expect(result.current.currentBotId).toBe('base-1'))
 
     act(() => result.current.run('connect bot-2 pw'))
-    expect(result.current.currentBotId).toBe('bot-2')
-    expect(result.current.lines.at(-1)).toBe('Connected to bot-2; exit returns')
-    act(() => result.current.run('help'))
-    expect(socket.emit).toHaveBeenLastCalledWith('terminal-command', 'session-2', 'help', expect.any(Function))
+
+    expect(onConnected).toHaveBeenCalledWith({ botId: 'bot-2', sessionId: 'session-2' })
+    expect(result.current.currentBotId).toBe('base-1')
+    expect(result.current.lines.at(-1)).toBe('Connected to bot-2: a terminal window of its own is open')
   })
 
-  it('leaves the connected terminal on exit, closing its session, and signs out only from the first one', async () => {
-    const { socket, result } = await connected({
-      'close-terminal': ((_id: string, ack: () => void) => ack()) as Handler,
-      'terminal-command': ((_session: string, line: string, ack: (response: ITerminalCommandResponse) => void) =>
-        ack({
-          result: line.startsWith('connect')
-            ? { type: 'connected', sessionId: 'session-2', botId: 'bot-2' }
-            : { type: 'exit' },
-          cwd: top
-        })) as Handler
-    })
+  it('connects without a window to open when nobody listens', async () => {
+    const { result } = await connected({ 'terminal-command': connectResult })
 
     act(() => result.current.run('connect bot-2'))
+
+    expect(result.current.lines.at(-1)).toContain('Connected to bot-2')
+  })
+
+  describe('the terminal of a connected bot', () => {
+    const connection = { botId: 'bot-2', sessionId: 'session-2' }
+
+    it('works in the given session without opening one', async () => {
+      const socket = createSocket(handlers())
+      const { result } = setup(socket, { connection })
+
+      expect(result.current).toMatchObject({ currentBotId: 'bot-2', isLoading: false })
+      expect(socket.emit).not.toHaveBeenCalledWith('get-user-bases', expect.anything())
+      act(() => result.current.run('help'))
+      expect(socket.emit).toHaveBeenLastCalledWith('terminal-command', 'session-2', 'help', expect.any(Function))
+    })
+
+    it('closes its window on exit instead of signing out', async () => {
+      const onExit = jest.fn()
+      const socket = createSocket(handlers({ 'terminal-command': answering({ type: 'exit' }) }))
+      const { result } = setup(socket, { connection, onExit })
+
+      act(() => result.current.run('exit'))
+
+      expect(onExit).toHaveBeenCalled()
+      expect(auth.signOut).not.toHaveBeenCalled()
+    })
+
+    it('ends its session when it goes away', async () => {
+      const socket = createSocket(handlers({ 'close-terminal': ((_id: string, ack: () => void) => ack()) as Handler }))
+      const { unmount } = setup(socket, { connection })
+
+      unmount()
+
+      expect(socket.emit).toHaveBeenCalledWith('close-terminal', 'session-2', expect.any(Function))
+    })
+
+    it('has no session to end without a socket', () => {
+      expect(() => setup(null, { connection }).unmount()).not.toThrow()
+    })
+  })
+})
+
+describe('useTerminal: the radio link', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  const event = (type: string, extra: object = {}, botId = 'bot-2') =>
+    ({ type, at: 1, parties: [{ userId: 'u', botId }], ...extra }) as never
+  const connection = { botId: 'bot-2', sessionId: 'session-2' }
+
+  function linked(options: TerminalOptions = {}) {
+    const socket = createSocket(handlers())
+    const hook = setup(socket, { connection, ...options })
+    return { socket, ...hook }
+  }
+
+  it('stops sending when the link is lost, and says so', () => {
+    const { socket, result } = linked()
+    expect(result.current.isLinkUp).toBe(true)
+
+    act(() => socket.push('game-event', event('LinkLost')))
+    act(() => result.current.run('ls'))
+
+    expect(result.current.isLinkUp).toBe(false)
+    expect(result.current.lines).toEqual([
+      'Connection interrupted: the bot is out of reach',
+      '/&gt; ls',
+      'Connection interrupted: the bot is out of reach'
+    ])
+    expect(socket.emit).not.toHaveBeenCalledWith('terminal-command', expect.anything(), 'ls', expect.anything())
+  })
+
+  it('resumes when the link is back, with a summary of what was missed', () => {
+    const { socket, result } = linked()
+
+    act(() => socket.push('game-event', event('LinkLost')))
+    act(() =>
+      socket.push('game-event', event('LinkRestored', { missed: { scans: 3, events: 5, byType: { ShotFired: 5 } } }))
+    )
+    act(() => result.current.run('ls'))
+
+    expect(result.current.isLinkUp).toBe(true)
+    expect(result.current.lines).toContain('Connection restored')
+    expect(result.current.lines).toContain('While the bot was out of reach: 3 scans, 5 events')
+    expect(socket.emit).toHaveBeenCalledWith('terminal-command', 'session-2', 'ls', expect.any(Function))
+  })
+
+  it('says nothing about the summary when nothing happened', () => {
+    const { socket, result } = linked()
+
+    act(() => socket.push('game-event', event('LinkLost')))
+    act(() => socket.push('game-event', event('LinkRestored', { missed: { scans: 0, events: 0, byType: {} } })))
+
+    expect(result.current.lines.at(-1)).toBe('Connection restored')
+  })
+
+  it('ignores the events of other bots and other kinds of event', () => {
+    const { socket, result } = linked()
+
+    act(() => socket.push('game-event', event('LinkLost', {}, 'bot-3')))
+    act(() => socket.push('game-event', event('EnergyLow')))
+
+    expect(result.current.isLinkUp).toBe(true)
+    expect(result.current.lines).toEqual([])
+  })
+
+  it('notices a lost link from a refused command too', () => {
+    const socket = createSocket(
+      handlers({ 'terminal-command': answering({ type: 'error', code: 'NO_SIGNAL', message: 'No signal' }) })
+    )
+    const { result } = setup(socket, { connection })
+
+    act(() => result.current.run('craft x'))
+
+    expect(result.current.isLinkUp).toBe(false)
+    expect(result.current.lines.at(-1)).toBe('Connection interrupted: the bot is out of reach')
+  })
+
+  it('lets the player leave a bot that is out of reach', () => {
+    const onExit = jest.fn()
+    const { socket, result } = linked({ onExit })
+
+    act(() => socket.push('game-event', event('LinkLost')))
     act(() => result.current.run('exit'))
 
-    expect(socket.emit).toHaveBeenCalledWith('close-terminal', 'session-2', expect.any(Function))
-    expect(result.current.currentBotId).toBe('base-1')
-    expect(result.current.lines.at(-1)).toBe('Back on base-1')
+    expect(onExit).toHaveBeenCalled()
+  })
 
-    act(() => result.current.run('exit'))
-    expect(auth.signOut).toHaveBeenCalled()
+  it('stops listening when the terminal goes away', () => {
+    const { socket, unmount } = linked()
+
+    unmount()
+
+    expect(socket.off).toHaveBeenCalledWith('game-event', expect.any(Function))
   })
 })
 

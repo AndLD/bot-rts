@@ -2,6 +2,7 @@ import { IBlueprint, IFactoryJob, IFactoryStatus } from './interfaces/crafting'
 import { IBot, IBotWithModules } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
 import { IExecution, IScriptLog } from './interfaces/executions'
+import { GameEvent } from './interfaces/events'
 import { IFile } from './interfaces/files'
 import { ILiveArea, IMapRange, IMapUpdate, IMapView, IRadioChange } from './interfaces/map'
 import { ITerminalCommandResponse, ITerminalLogEntry, ITerminalSession } from './interfaces/terminal'
@@ -48,7 +49,7 @@ export interface ServerToClientEvents {
   // Only the bots whose link to the base changed, or whose signal strength did
   'radio-changes': (changes: IRadioChange[]) => void
   // Something that happened in the game and the player may see (design §24.1); the typed events come with the animations
-  'game-event': (event: { type: string; at: number }) => void
+  'game-event': (event: GameEvent) => void
   // Cells of the player's map that changed
   'map-cells': (update: IMapUpdate) => void
   // The squares the player's scanners keep live now (all of them, every time they change)

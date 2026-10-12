@@ -1,5 +1,5 @@
 import { BOT_TYPE } from '@lib/utils/interfaces/bots'
-import { screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '../../../tests/render'
 import { GameSocket, SocketContext } from '../../shared/socket/socket-context'
@@ -135,5 +135,28 @@ describe('Terminal', () => {
     await userEvent.click(screen.getByText('Editing a.js'))
 
     expect(screen.getByRole('textbox', { name: 'File content' })).toBeInTheDocument()
+  })
+
+  it('shows a warning and takes no input while the bot is out of reach, and resumes when it is back', () => {
+    const listeners: Array<(event: unknown) => void> = []
+    const socket = socketWith(base)
+    ;(socket.on as jest.Mock).mockImplementation((event: string, listener: (event: unknown) => void) => {
+      if (event === 'game-event') listeners.push(listener)
+    })
+    renderApp(
+      <SocketContext.Provider value={socket}>
+        <Terminal connection={{ botId: 'bot-2', sessionId: 's2' }} />
+      </SocketContext.Provider>
+    )
+    const push = (event: object) => act(() => listeners.forEach((listener) => listener(event)))
+    const about = { at: 1, parties: [{ userId: 'u', botId: 'bot-2' }] }
+
+    push({ ...about, type: 'LinkLost' })
+    expect(screen.getByRole('alert')).toHaveTextContent('Connection interrupted')
+    expect(screen.getByRole('textbox')).toBeDisabled()
+
+    push({ ...about, type: 'LinkRestored', missed: { scans: 0, events: 0, byType: {} } })
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeEnabled()
   })
 })

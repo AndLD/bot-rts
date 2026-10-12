@@ -7,6 +7,12 @@ export const api = generated.enhanceEndpoints({
     botsList: { providesTags: ['Bases'] },
     botsDeployBase: { invalidatesTags: ['Bases'] },
     // A manual action may change what a bot carries
+    // Crafting spends the resources of the base and changes the jobs; assembling also adds a bot
+    factoryStatus: { providesTags: ['Factory'] },
+    factoryCraft: { invalidatesTags: ['Factory', 'Storage'] },
+    factoryResearch: { invalidatesTags: ['Factory', 'Storage'] },
+    factoryLearn: { invalidatesTags: ['Factory'] },
+    factoryAssemble: { invalidatesTags: ['Factory', 'Bases'] },
     botControlGetStorage: { providesTags: ['Storage'] },
     botControlPerform: { invalidatesTags: ['Storage'] }
   }
@@ -17,6 +23,12 @@ export const {
   useBotControlPerformMutation,
   useBotsDeployBaseMutation,
   useBotsListQuery,
+  useCraftingRecipeListQuery,
+  useFactoryAssembleMutation,
+  useFactoryCraftMutation,
+  useFactoryLearnMutation,
+  useFactoryResearchMutation,
+  useFactoryStatusQuery,
   useMapPositionQuery,
   useUsersMeQuery
 } = api

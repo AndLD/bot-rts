@@ -265,5 +265,55 @@
     "noItems": "Nothing in hands",
     "take": "Take the item ahead",
     "drop": "Drop the last item ahead"
+  },
+  "factory": {
+    "loading": "Loading...",
+    "jobs": "In production",
+    "jobKinds": {
+      "craft": "Crafting",
+      "research": "Researching"
+    },
+    "readyIn": "ready in {seconds} s",
+    "ready": "ready",
+    "blueprints": "Blueprints found",
+    "learn": "Learn",
+    "learned": "{module} learned",
+    "recipes": "Recipes",
+    "time": "{seconds} s",
+    "research": "Research",
+    "count": "How many {module}",
+    "craft": "Craft",
+    "crafting": "Crafting {module}",
+    "researching": "Researching {module}",
+    "craftTab": "Craft",
+    "assembleTab": "Assemble",
+    "parts": "Finished modules",
+    "noParts": "No finished modules yet: craft some first",
+    "label": "Name of the bot",
+    "assemble": "Assemble a bot",
+    "assembled": "The bot is assembled",
+    "failed": "It did not work ({code})"
+  },
+  "modules": {
+    "named": "{type}, class {level}",
+    "types": {
+      "scanner": "Scanner",
+      "gun": "Gun",
+      "engine": "Engine",
+      "wheels": "Wheels",
+      "tracks": "Tracks",
+      "drill": "Drill",
+      "battery": "Battery",
+      "storage": "Storage",
+      "memory": "Memory",
+      "processor": "Processor",
+      "wireless-adapter": "Wireless adapter",
+      "armor": "Armor",
+      "generator": "Generator",
+      "manipulator": "Manipulator",
+      "gps": "GPS",
+      "repair": "Repair",
+      "factory": "Factory"
+    }
   }
 }

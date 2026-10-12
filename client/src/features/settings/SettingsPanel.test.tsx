@@ -75,14 +75,19 @@ describe('SettingsPanel', () => {
     )
   })
 
-  it('chooses how much motion there is', async () => {
-    const patches = setup({ reducedMotion: true })
-    await screen.findByText('Reduced')
+  it.each([
+    ['As in the system', null],
+    ['Reduced', true],
+    ['Full', false]
+  ])('chooses %s motion', async (label, reducedMotion) => {
+    // Starts with a setting that differs from the choice, so that choosing it is a change
+    const patches = setup({ reducedMotion: reducedMotion === null ? true : null })
+    await screen.findByRole('combobox', { name: 'Motion' })
 
     fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Motion' }))
-    fireEvent.click(await screen.findByText('As in the system', { selector: '.ant-select-item-option-content' }))
+    fireEvent.click(await screen.findByText(label, { selector: '.ant-select-item-option-content' }))
 
-    await waitFor(() => expect(patches).toContainEqual({ url: '/api/v1/settings', body: { reducedMotion: null } }))
+    await waitFor(() => expect(patches).toContainEqual({ url: '/api/v1/settings', body: { reducedMotion } }))
   })
 
   it.each([

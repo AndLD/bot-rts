@@ -30,7 +30,7 @@ The unified command set:
 | `eval` | `eval <code>` | Run one line of code with `bot` in scope (what the shell mode sends). | ✅ |
 | `top` | `top` | List the running script executions of the player: id, bot, file, state (`queued`, `running`, `suspended`, `awaiting`) and restarts. | ✅ |
 | `kill` | `kill <execId>` | Stop a running execution; the id may be shortened to the 8 characters the terminal shows. | ✅ |
-| `connect` | `connect <botId>` | Open a new draggable terminal for another bot — **only if that bot has an enabled wireless adapter**, otherwise show an error. | 🟡 |
+| `connect` | `connect <botId> [password]` | Open a terminal on another bot — **only if that bot has an enabled wireless adapter** (and, for a bot of another player, is within radio range of the one you connect from); a foreign bot asks for its password (§11.2.2). The client works in the new terminal until `exit`, which goes back. Terminals as separate draggable windows are still to do. | ✅ |
 | `list` | `list` | List the player's bots. | ✅ |
 | `modules` | `modules` | List the current bot's modules. | ✅ |
 | `ping` | `ping <botId>` | Check link latency/reachability to another bot. | 🔴 |
@@ -39,11 +39,11 @@ The unified command set:
 | `assemble` | `assemble <label> <moduleId…>` | At the base factory: assemble a new bot from modules; spawns adjacent to the base (§8.3). | 🔴 |
 | `research` | `research <module>` | At the base factory: research a higher class (§9.3). | 🔴 |
 | `learn` | `learn <itemId>` | Consume a blueprint item and learn its blueprint permanently. | 🔴 |
-| `passwd` | `passwd` | Set or change the bot's access password (§11.2.2). | 🔴 |
-| `adopt` | `adopt` | After authenticating on a foreign or stale bot: assign it to the base the connection came from (§11.2.2). | 🔴 |
+| `passwd` | `passwd` | Set or change the bot's access password (§11.2.2); 6–64 characters. | ✅ |
+| `adopt` | `adopt` | After authenticating on a foreign or stale bot: assign it to the base the connection came from (§11.2.2). Only in a terminal opened by `connect` on an ordinary bot of another player. | ✅ |
 | `clear` | `clear` | Clear the terminal. | ✅ |
 | `exit` | `exit` | Leave shell mode, or log out of the base terminal. | ✅ |
-| `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. | 🔴 |
+| `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. | ✅ |
 
 ## 11.2 Connection lifecycle
 
@@ -126,6 +126,18 @@ settings.
 - **Bases cannot be adopted.** `adopt` works on ordinary bots only. A base's owner never changes; a base only changes
   through damage and repair (corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
   sabotage) but cannot take it. Every base gets a **mandatory owner-set password at deploy**.
+
+**Implementation (Phase 5).** `BotAccessService` holds the rules; `connect` and `adopt` run in the engine as world actions
+(`access.connect`, `access.adopt`), because a try costs the source bot energy and a takeover changes who owns a bot. An own bot
+needs only a working adapter. A foreign bot must have a working adapter within radio range of the source bot (the link rule of
+§11.2.1: the smaller of the two ranges), must not be locked out, and the password must match (a bot without a password lets
+anyone in). Every try on a foreign bot costs the source bot `BOT_ATTEMPT_ENERGY`, the answer comes after `BOT_ATTEMPT_DELAY_MS`,
+a wrong password is written to the target's log as a security line (kept 90 days, §11.2.3) and counts toward the lockout:
+`BOT_LOCKOUT_FAILURES` wrong passwords in a row lock the bot for `BOT_LOCKOUT_MS` (a right password and the end of a lockout
+start the count again). The session opened by `connect` remembers the bot it came from (`fromBotId`); `adopt` moves the
+target to the base of that bot, kills the scripts the previous owner had running on it, and leaves a security line. A base is
+refused (`CANNOT_ADOPT_BASE`). Not done yet: the `BotAdopted` game event, and a 4-attempts-per-minute style rate limit above the
+energy cost.
 
 ## 11.2.3 Session log retention ✅
 

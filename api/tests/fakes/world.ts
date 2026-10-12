@@ -18,6 +18,9 @@ import { BlueprintSpawn, MapGenerator } from '../../src/map/domain/map-generator
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
 import { FakeScriptRunner } from './engine'
+import { BotAccessService } from '../../src/terminal/application/bot-access.service'
+import { SessionLogWriter, SessionSecurityLog } from '../../src/terminal/application/session-log-writer'
+import { BotSecurityPolicy, DEFAULT_BOT_SECURITY } from '../../src/terminal/domain/bot-security'
 import { createTerminalShell } from '../../src/terminal/application/shell/create-terminal-shell'
 import { OpenLinkGate } from '../../src/terminal/application/link-gate'
 import { TerminalService } from '../../src/terminal/application/terminal.service'
@@ -25,10 +28,12 @@ import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../../src/termina
 import { Rng } from '../../src/shared/application/rng'
 import {
   FakeClock,
+  FakeDelay,
   FakeHasher,
   FakeUnitOfWork,
   FixedRng,
   InMemoryAuthTokenRepository,
+  InMemoryBotAccessRepository,
   InMemoryBotRepository,
   InMemoryCredentialRepository,
   InMemoryIdentityRepository,
@@ -51,6 +56,7 @@ export function createWorld(
     config?: Partial<WorldConfig>
     spawn?: Partial<SpawnConfig>
     retention?: Partial<TerminalRetention>
+    security?: Partial<BotSecurityPolicy>
     blueprints?: BlueprintSpawn
   } = {}
 ) {
@@ -93,13 +99,24 @@ export function createWorld(
   )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids, moduleRegistry)
   const scriptRunner = new FakeScriptRunner()
-  const terminalService = new TerminalService(
-    terminalSessions,
+  const retention = { ...DEFAULT_TERMINAL_RETENTION, ...options.retention }
+  const botAccess = new InMemoryBotAccessRepository()
+  const delay = new FakeDelay()
+  const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, retention, new OpenLinkGate())
+  const energyService = new EnergyService(repositories.modules, new EnergyModel(moduleRegistry))
+  const securityPolicy = { ...DEFAULT_BOT_SECURITY, ...options.security }
+  const botAccessService = new BotAccessService(
     botsService,
-    ids,
+    repositories.bots,
+    repositories.modules,
+    repositories.map,
+    moduleRegistry,
+    energyService,
+    new FakeHasher(),
+    botAccess,
+    new SessionSecurityLog(new SessionLogWriter(terminalSessions, ids, clock, retention)),
     clock,
-    { ...DEFAULT_TERMINAL_RETENTION, ...options.retention },
-    new OpenLinkGate()
+    securityPolicy
   )
   const factorySettler = new FactorySettler(unitOfWork, moduleRegistry, ids, clock, moduleFactory)
   const factoryService = new FactoryService(
@@ -150,7 +167,7 @@ export function createWorld(
     botsService,
     moduleFactory,
     moduleRegistry,
-    energyService: new EnergyService(repositories.modules, new EnergyModel(moduleRegistry)),
+    energyService,
     recipeBook,
     factoryService,
     factorySettler,
@@ -167,8 +184,15 @@ export function createWorld(
       assemblyService,
       recipeService,
       maintenanceService,
-      scriptRunner
+      scriptRunner,
+      botAccessService,
+      delay,
+      securityPolicy.attemptDelayMs
     ),
-    scriptRunner
+    scriptRunner,
+    botAccessService,
+    botAccess,
+    delay,
+    securityPolicy
   }
 }

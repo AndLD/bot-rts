@@ -135,6 +135,24 @@ describe('TerminalGateway', () => {
     expect(listing.result.lines).toEqual(['scripts/'])
   })
 
+  it('drives the session that connect opened through the same socket', async () => {
+    const { call, sessionId, bot, botsService, moduleFactory } = await withDrive()
+    const worker = await botsService.createBot(alice.id, {
+      baseId: bot.id,
+      label: 'W',
+      modules: ['processor-class1', 'wireless-adapter-class1', 'battery-class1'].map((n) => moduleFactory.template(n))
+    })
+
+    const [connected] = (await call('terminal-command', sessionId, `connect ${worker.bot.id}`)) as [
+      { result: { sessionId: string } }
+    ]
+    const [reply] = (await call('terminal-command', connected.result.sessionId, 'help')) as [
+      { result: { type: string } }
+    ]
+
+    expect(reply.result.type).toBe('help')
+  })
+
   it('saves the file of the editor into the place the session is in', async () => {
     const { call, sessionId } = await withDrive()
     await call('terminal-command', sessionId, 'cd memory-class1')

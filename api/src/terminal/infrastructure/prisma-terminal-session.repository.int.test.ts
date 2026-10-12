@@ -39,12 +39,22 @@ beforeEach(async () => {
   await new PrismaBotRepository(database.client).add(base)
   userId = user.id
   botId = base.id
-  session = { id: randomUUID(), botId, userId, startedAt: at(0), endedAt: null }
+  session = { id: randomUUID(), botId, userId, startedAt: at(0), endedAt: null, fromBotId: null }
   await repository.add(session)
 })
 afterAll(() => database.drop())
 
 describe('PrismaTerminalSessionRepository', () => {
+  it('keeps the bot a session was opened from', async () => {
+    const other = buildBase(userId)
+    await new PrismaBotRepository(database.client).add(other)
+    const connected = { ...session, id: randomUUID(), fromBotId: other.id }
+
+    await repository.add(connected)
+
+    expect(await repository.findById(connected.id)).toEqual(connected)
+  })
+
   it('finds the session of a bot that started last', async () => {
     const newer = { ...session, id: randomUUID(), startedAt: at(5) }
     await repository.add(newer)

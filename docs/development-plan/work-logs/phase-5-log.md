@@ -111,3 +111,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the in-game editor is a plain text area, so the typings are not wired in yet (CodeMirror 6 is on the client list); `esbuild-wasm` was not needed.
 - **Next step:** task 5.9 (bot security).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.9: bot security
+- **Tasks:** 5.9
+- **Branch:** `feature/5.9-bot-security` — done
+- **Decisions / deviations from the plan:** the rules live in `BotAccessService` (terminal slice) over ports: `BotAccessRepository` (new table `bot_access`: failures in a row and `lockedUntil` per bot), `SecurityLog` (a line of kind `security` in the newest session of the bot, written by `SessionLogWriter`, which also serves the script output of 5.6), and the existing bot, module, map and energy repositories. `connect` and `adopt` are routed through the engine as world actions because they pay energy and change ownership; the wait of a try (`BOT_ATTEMPT_DELAY_MS`) happens in the API thread after the action, so it never blocks the engine's inbox. After an adoption the engine kills the executions the previous owner had on the bot. `TerminalSession` got `fromBotId` (the bot the connection came from; `adopt` needs it), and a new result type `connected` makes the client work in the new session until `exit` goes back (a stack of terminals). The wiring that both the API and the engine thread need moved into `TerminalCoreModule`. The `BotAdopted` game event and separate draggable terminal windows are not done.
+- **Findings:** the factory e2e flake of the PR before was real: a battery written straight into the database is overwritten by the engine (see 5.10); the access rules therefore never write energy outside the engine.
+- **Next step:** task 5.11 (Cypress e2e for the script lifecycle), then 5.7.
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

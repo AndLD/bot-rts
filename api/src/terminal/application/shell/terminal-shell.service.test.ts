@@ -497,3 +497,91 @@ describe('the script commands', () => {
     expect(await lines('kill')).toMatchObject({ code: 'COMMAND_USAGE' })
   })
 })
+
+describe('the security commands', () => {
+  const bob = { id: '22222222-2222-4222-8222-222222222222', name: 'Bob' }
+
+  async function withNeighbour() {
+    const t = await setup()
+    const neighbour = await t.botsService.deployUserBase(bob, { password: 'bobpw1', location: { x: 8, y: 5, z: 0 } })
+    const placed = await t.repositories.map.findPointByContentId(t.bot.id)
+    return { ...t, neighbour: neighbour.bot, placed }
+  }
+
+  it('passwd sets the password of the bot of the terminal', async () => {
+    const { lines, repositories, bot } = await setup()
+
+    expect(await lines('passwd newsecret')).toEqual(['password changed'])
+    expect((await repositories.bots.findById(bot.id))?.passwordHash).toBe('hashed:newsecret')
+    expect(await lines('passwd')).toMatchObject({ code: 'COMMAND_USAGE' })
+  })
+
+  it('connect opens a session on a foreign bot after the password, and waits for the try', async () => {
+    const t = await withNeighbour()
+
+    const reply = await t.run(`connect ${t.neighbour.id} bobpw1`)
+
+    expect(reply.result).toMatchObject({ type: 'connected', botId: t.neighbour.id })
+    const sessionId = (reply.result as { sessionId: string }).sessionId
+    expect(t.terminalSessions.sessions.get(sessionId)).toMatchObject({
+      botId: t.neighbour.id,
+      userId: alice.id,
+      fromBotId: t.bot.id,
+      endedAt: null
+    })
+    expect(t.delay.waits).toEqual([t.securityPolicy.attemptDelayMs])
+  })
+
+  it('connect waits also for a wrong password, answers with the error, and does not wait for a lockout', async () => {
+    const t = await withNeighbour()
+
+    expect(await t.lines(`connect ${t.neighbour.id} nope`)).toMatchObject({ code: 'BOT_PASSWORD_WRONG' })
+    expect(t.delay.waits).toHaveLength(1)
+
+    const locked = await withNeighbour()
+    for (let i = 0; i < locked.securityPolicy.maxFailures; i++)
+      await locked.lines(`connect ${locked.neighbour.id} nope`)
+    locked.delay.waits.length = 0
+    expect(await locked.lines(`connect ${locked.neighbour.id} bobpw1`)).toMatchObject({ code: 'BOT_LOCKED' })
+    expect(locked.delay.waits).toEqual([])
+  })
+
+  it('connect to an own bot does not wait, and needs a bot id', async () => {
+    const t = await setup()
+    const worker = await t.botsService.createBot(alice.id, {
+      baseId: t.bot.id,
+      label: 'W',
+      modules: ['processor-class1', 'wireless-adapter-class1', 'battery-class1'].map((n) => t.moduleFactory.template(n))
+    })
+
+    expect((await t.run(`connect ${worker.bot.id}`)).result).toMatchObject({ type: 'connected', botId: worker.bot.id })
+    expect(t.delay.waits).toEqual([])
+    expect(await t.lines('connect')).toMatchObject({ code: 'COMMAND_USAGE' })
+    expect(await t.lines('connect a b c')).toMatchObject({ code: 'COMMAND_USAGE' })
+  })
+
+  it('adopt takes an ordinary foreign bot in the session opened by connect, and only there', async () => {
+    const t = await withNeighbour()
+    const victim = await t.botsService.createBot(bob.id, {
+      baseId: t.neighbour.id,
+      label: 'Victim',
+      modules: ['processor-class1', 'wireless-adapter-class1', 'battery-class1'].map((n) => t.moduleFactory.template(n))
+    })
+    expect(await t.lines('adopt')).toMatchObject({ code: 'COMMAND_USAGE' })
+
+    const { sessionId } = (await t.run(`connect ${victim.bot.id} bobpw1`)).result as { sessionId: string }
+    const reply = await t.terminalShell.execute(alice.id, sessionId, 'adopt', TOP)
+
+    expect(reply.response.result).toEqual({ type: 'output', lines: ['the bot is yours now'] })
+    expect((await t.repositories.bots.findById(victim.bot.id))?.baseId).toBe(t.bot.id)
+  })
+
+  it('adopt refuses a base', async () => {
+    const t = await withNeighbour()
+    const { sessionId } = (await t.run(`connect ${t.neighbour.id} bobpw1`)).result as { sessionId: string }
+
+    const reply = await t.terminalShell.execute(alice.id, sessionId, 'adopt', TOP)
+
+    expect(reply.response.result).toMatchObject({ type: 'error', code: 'CANNOT_ADOPT_BASE' })
+  })
+})

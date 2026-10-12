@@ -30,6 +30,8 @@ export function useTerminal() {
   const [isShellMode, setIsShellMode] = useState(false)
   const [cwd, setCwd] = useState<ITerminalCwd>(TOP)
   const [editor, setEditor] = useState<EditorState | null>(null)
+  // The terminals `connect` was typed in, innermost last; `exit` goes back to the one before (design §11.2)
+  const [outer, setOuter] = useState<Array<{ sessionId: string; botId: string }>>([])
 
   const prefix = getPrefix({ isShellMode, cwd })
 
@@ -112,9 +114,25 @@ export function useTerminal() {
           )
         case 'clear':
           return setLines([])
-        case 'exit':
-          void logout()
-          return
+        case 'exit': {
+          const previous = outer[outer.length - 1]
+          if (!previous || !sessionId) {
+            void logout()
+            return
+          }
+          socket?.emit('close-terminal', sessionId, () => undefined)
+          setOuter(outer.slice(0, -1))
+          setSessionId(previous.sessionId)
+          setCurrentBotId(previous.botId)
+          setCwd(TOP)
+          return print(echo, escapeHtml(t('backTo', { botId: previous.botId })))
+        }
+        case 'connected':
+          setOuter([...outer, { sessionId: sessionId as string, botId: currentBotId as string }])
+          setSessionId(result.sessionId)
+          setCurrentBotId(result.botId)
+          setCwd(TOP)
+          return print(echo, escapeHtml(t('connectedTo', { botId: result.botId })))
         case 'edit':
           setEditor({ path: result.path, content: result.content })
           return print(echo)
@@ -122,7 +140,7 @@ export function useTerminal() {
           return print(echo, failure(result.message, result.code))
       }
     },
-    [print, failure, logout, t]
+    [print, failure, logout, t, outer, sessionId, currentBotId, socket]
   )
 
   // Runs one line typed by the player; the promise-free API keeps the UI a plain controlled input

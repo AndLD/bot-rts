@@ -6,6 +6,7 @@ import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { TerminalRetention } from '../domain/terminal-retention'
 import { TerminalSession, TerminalLogEntry } from '../domain/terminal-session'
 import { TerminalSessionClosedError } from '../domain/terminal.errors'
+import { SessionLogWriter } from './session-log-writer'
 import { LinkGate } from './link-gate'
 import { TerminalSessionRepository } from './terminal-session.repository'
 
@@ -21,7 +22,11 @@ export class TerminalService {
     private readonly clock: Clock,
     private readonly retention: TerminalRetention,
     private readonly links: LinkGate
-  ) {}
+  ) {
+    this.writer = new SessionLogWriter(sessions, ids, clock, retention)
+  }
+
+  private readonly writer: SessionLogWriter
 
   // Starts a session on one of the player's bots; this is also when expired lines are dropped
   async open(userId: string, botId: string): Promise<TerminalSession> {
@@ -34,7 +39,23 @@ export class TerminalService {
       botId,
       userId,
       startedAt: this.clock.now(),
-      endedAt: null
+      endedAt: null,
+      fromBotId: null
+    }
+    await this.sessions.add(session)
+    return session
+  }
+
+  // A session on a bot of anyone, reached from one of the player's bots after the access checks (design §11.2.2)
+  async openConnection(userId: string, fromBotId: string, targetBotId: string): Promise<TerminalSession> {
+    await this.dropExpiredLogs()
+    const session: TerminalSession = {
+      id: this.ids.next(),
+      botId: targetBotId,
+      userId,
+      startedAt: this.clock.now(),
+      endedAt: null,
+      fromBotId
     }
     await this.sessions.add(session)
     return session
@@ -66,21 +87,7 @@ export class TerminalService {
   // Keeps what a script wrote in the log of its bot, whether or not a terminal is open on it (design §11.2.3): in the newest
   // session of the bot, or in one of its own when the bot never had a terminal
   async recordScriptOutput(userId: string, botId: string, kind: TERMINAL_LOG_KIND, text: string): Promise<void> {
-    let session = await this.sessions.findLatestOfBot(botId)
-    if (!session) {
-      const now = this.clock.now()
-      session = { id: this.ids.next(), botId, userId, startedAt: now, endedAt: now }
-      await this.sessions.add(session)
-    }
-    await this.sessions.appendLog({
-      id: this.ids.next(),
-      sessionId: session.id,
-      botId,
-      at: this.clock.now(),
-      kind,
-      text
-    })
-    await this.sessions.deleteOldestOrdinaryLogs(botId, this.retention.maxLinesPerBot)
+    await this.writer.write(botId, userId, kind, text)
   }
 
   async history(userId: string, botId: string, limit: number): Promise<TerminalLogEntry[]> {

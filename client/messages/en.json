@@ -125,6 +125,8 @@
     "error": "Error: {message}",
     "notConnected": "The terminal is not connected yet",
     "saved": "Saved {path}",
+    "connectedTo": "Connected to {botId}; exit returns",
+    "backTo": "Back on {botId}",
     "scriptEnded": "[{id}] {state}",
     "editing": "Editing {path}",
     "editorLabel": "File content",
@@ -152,6 +154,9 @@
       "eval": "run a line of code with the bot in scope",
       "top": "list the running scripts",
       "kill": "stop a running script",
+      "passwd": "set the access password of this bot",
+      "connect": "open a terminal on another bot (a foreign bot asks for its password)",
+      "adopt": "take the foreign bot of this terminal into your base",
       "clear": "clear the screen",
       "exit": "sign out"
     }
@@ -183,6 +188,9 @@
     "INTERNAL_ERROR": "Something went wrong on our side",
     "UNKNOWN_COMMAND": "Unknown command",
     "SCRIPT_LOAD_FAILED": "The script could not be loaded",
+    "BOT_PASSWORD_WRONG": "The password is wrong",
+    "BOT_LOCKED": "The bot refuses connections for now: too many wrong passwords",
+    "CANNOT_ADOPT_BASE": "A base cannot be adopted",
     "NO_DRIVE_SELECTED": "No drive selected: use cd with a drive name",
     "COMMAND_USAGE": "The command was used wrongly",
     "BLOCKED": "The way is blocked",

@@ -429,6 +429,26 @@ describe('EngineCore', () => {
       expect(flushes).toEqual([])
     })
 
+    it('stops what a bot was running when someone else adopts it, and leaves other bots alone', async () => {
+      const { core, base, start, ticks, executions, actions, sink } = await setup()
+      await start('export async function main(bot) { await sleep(100000) }')
+      expect(await listNow(core)).toHaveLength(1)
+
+      const unrelated = core.act('access.adopt', ['thief', 'thief-base', 'someone-else'])
+      await ticks(1)
+      await unrelated
+      expect(await listNow(core)).toHaveLength(1)
+
+      const adoption = core.act('access.adopt', ['thief', 'thief-base', base.id])
+      await ticks(1)
+      await adoption
+
+      expect(actions.execute).toHaveBeenCalledWith('access.adopt', ['thief', 'thief-base', base.id])
+      expect(await listNow(core)).toEqual([])
+      expect([...executions.items.values()][0]).toMatchObject({ status: 'killed', reason: 'killed' })
+      expect(sink.events.some((event) => event.type === 'execution')).toBe(true)
+    })
+
     it('forgets the memory and passes on the error when the use case fails', async () => {
       const { core, actions, world } = await setup()
       const evict = jest.spyOn(world, 'evict')

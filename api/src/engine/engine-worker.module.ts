@@ -31,6 +31,8 @@ import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { SeededRng } from '../shared/infrastructure/seeded-rng'
 import { SharedModule } from '../shared/shared.module'
+import { BotAccessService } from '../terminal/application/bot-access.service'
+import { TerminalCoreModule } from '../terminal/terminal-core.module'
 import { UsersModule } from '../users/users.module'
 import { EngineCore } from './application/engine-core'
 import { ModuleLoader } from './application/module-loader'
@@ -99,6 +101,7 @@ export class EngineWorkerModule {
         FilesModule,
         MapModule,
         BotsModule,
+        TerminalCoreModule,
         // Provides the port that the services are told to use, which here answers that there is no other engine
         EngineModule
       ],
@@ -272,15 +275,24 @@ export class EngineWorkerModule {
         },
         {
           provide: WorldActionExecutor,
-          inject: [BotsService, ScanService, FactoryService, AssemblyService, MaintenanceService, FilesService],
+          inject: [
+            BotsService,
+            ScanService,
+            FactoryService,
+            AssemblyService,
+            MaintenanceService,
+            FilesService,
+            BotAccessService
+          ],
           useFactory: (
             bots: BotsService,
             scans: ScanService,
             factory: FactoryService,
             assembly: AssemblyService,
             maintenance: MaintenanceService,
-            files: FilesService
-          ) => new WorldActionExecutor({ bots, scans, factory, assembly, maintenance, files })
+            files: FilesService,
+            access: BotAccessService
+          ) => new WorldActionExecutor({ bots, scans, factory, assembly, maintenance, files, access })
         },
         {
           provide: WriteBehind,

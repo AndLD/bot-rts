@@ -189,6 +189,8 @@ model Bot {
   bots                 Bot[]             @relation("BaseBots")
   modules              Module[]
   terminalSessions     TerminalSession[]
+  connectedSessions    TerminalSession[] @relation("ConnectedFrom")
+  access               BotAccess?
   terminalLogs         TerminalLog[]
   spawnSeedMemberships SpawnSeedMember[]
   items                Item[]
@@ -285,10 +287,13 @@ model TerminalSession {
   userId    String    @map("user_id") @db.Uuid
   startedAt DateTime  @map("started_at") @db.Timestamptz(3)
   endedAt   DateTime? @map("ended_at") @db.Timestamptz(3)
+  // The bot the player connected from when the session is on another bot (design §11.2.2); `adopt` assigns the bot to its base
+  fromBotId String?   @map("from_bot_id") @db.Uuid
 
-  bot  Bot           @relation(fields: [botId], references: [id], onDelete: Cascade)
-  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logs TerminalLog[]
+  bot     Bot           @relation(fields: [botId], references: [id], onDelete: Cascade)
+  fromBot Bot?          @relation("ConnectedFrom", fields: [fromBotId], references: [id], onDelete: SetNull)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs    TerminalLog[]
 
   @@index([botId, startedAt])
   @@index([userId])
@@ -413,4 +418,15 @@ model Execution {
   @@index([status, createdAt])
   @@index([userId, status])
   @@map("executions")
+}
+
+// The failed password attempts on a bot and the lockout they led to (design §11.2.2)
+model BotAccess {
+  botId       String    @id @map("bot_id") @db.Uuid
+  failures    Int       @default(0)
+  lockedUntil DateTime? @map("locked_until") @db.Timestamptz(3)
+
+  bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@map("bot_access")
 }

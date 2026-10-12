@@ -4,6 +4,8 @@ import { FactoryService } from '../../../bots/application/factory.service'
 import { RecipeService } from '../../../crafting/application/recipe.service'
 import { BotsService } from '../../../bots/application/bots.service'
 import { FilesService } from '../../../files/application/files.service'
+import { BotAccessService } from '../bot-access.service'
+import { Delay } from '../delay'
 import { ScriptRunner } from '../script-runner'
 import { TerminalService } from '../terminal.service'
 import { CatCommand, CdCommand, EditCommand, LsCommand, MkdirCommand, RmCommand } from './commands/file-commands'
@@ -16,6 +18,7 @@ import {
   RecipesCommand,
   ResearchCommand
 } from './commands/factory-commands'
+import { AdoptCommand, ConnectCommand, PasswdCommand } from './commands/security-commands'
 import { DisassembleCommand, RepairCommand } from './commands/maintenance-commands'
 import { EvalCommand, KillCommand, RunCommand, ScriptFileCommand, TopCommand } from './commands/script-commands'
 import { TerminalShell } from './terminal-shell.service'
@@ -29,7 +32,10 @@ export function createTerminalShell(
   assembly: AssemblyService,
   recipes: RecipeService,
   maintenance: MaintenanceService,
-  scripts: ScriptRunner
+  scripts: ScriptRunner,
+  access: BotAccessService,
+  delay: Delay,
+  attemptDelayMs: number
 ): TerminalShell {
   return new TerminalShell(
     [
@@ -55,7 +61,10 @@ export function createTerminalShell(
       new RunCommand(scripts, files),
       new EvalCommand(scripts),
       new TopCommand(scripts),
-      new KillCommand(scripts)
+      new KillCommand(scripts),
+      new PasswdCommand(access),
+      new ConnectCommand(access, terminal, delay, attemptDelayMs),
+      new AdoptCommand(access)
     ],
     terminal,
     files,

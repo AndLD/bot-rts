@@ -6,6 +6,8 @@ export interface TerminalSession {
   readonly userId: string
   readonly startedAt: Date
   readonly endedAt: Date | null
+  // The bot the player connected from, when the session is on another bot (design §11.2.2)
+  readonly fromBotId: string | null
 }
 
 export interface TerminalLogEntry {

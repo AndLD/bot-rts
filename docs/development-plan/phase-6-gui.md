@@ -40,3 +40,12 @@ AGENTS.md §7.1).
 | `feature/6.1-map-renderer` | 6.1 | [#88](https://github.com/AndLD/bot-rts/pull/88) | merged |
 | `feature/6.2-map-streaming` | 6.2 | [#89](https://github.com/AndLD/bot-rts/pull/89) | merged |
 | `feature/6.10-window-manager` | 6.10 | [#90](https://github.com/AndLD/bot-rts/pull/90) | merged |
+| `feature/6.3-storage-gui` | 6.3 | [#92](https://github.com/AndLD/bot-rts/pull/92) | merged |
+| `feature/6.4-factory-gui` | 6.4 | [#93](https://github.com/AndLD/bot-rts/pull/93) | merged |
+| `feature/6.5-bot-terminals` | 6.5 | [#94](https://github.com/AndLD/bot-rts/pull/94) | merged |
+| `feature/6.8-settings` | 6.8 | [#95](https://github.com/AndLD/bot-rts/pull/95) | merged |
+| `feature/6.7-control-panel` | 6.7 | [#96](https://github.com/AndLD/bot-rts/pull/96) | merged |
+| `feature/6.9-tutorial` | 6.9 | [#97](https://github.com/AndLD/bot-rts/pull/97) | merged |
+| `feature/6.11-map-animations` | 6.11 | [#98](https://github.com/AndLD/bot-rts/pull/98) | merged |
+| `feature/6.6-phase6-e2e` | 6.6 | [#99](https://github.com/AndLD/bot-rts/pull/99) | merged |
+| `feature/6.12-gameplay-e2e` | 6.12 | [#100](https://github.com/AndLD/bot-rts/pull/100) | merged |

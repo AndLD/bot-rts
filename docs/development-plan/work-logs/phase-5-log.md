@@ -140,3 +140,9 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the 2 s a stalled script costs every player (a tick budget of 100 ms is gone for 20 ticks) is the price of detection by polling; a smaller `ENGINE_WATCHDOG_STALL_MS` is possible once real playtest data shows the longest honest step. Replacing QuickJS by a build with a smaller interrupt counter (QuickJS-NG) is an alternative to evaluate with the same tests.
 - **Next step:** the exit criteria of Phase 5.
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — Phase 5 done
+- **Tasks:** all of 5.1–5.13 are ✅; the exit criteria are recorded in the phase file.
+- **Known gaps handed on (not blocking the exit criteria):** deleting an account still removes its bases in the API process (a world write outside the engine); bots that are not in memory do not drain or recharge (lazy catch-up of the energy is open); the `BotAdopted` event and separate terminal windows for `connect`; wiring the generated typings into a CodeMirror editor (the editor is still a text area); the 2 s a stalled script costs every player before the watchdog acts; `top` lists the executions of all the player's bots.
+- **For the owner:** `api/.env.test` is a legacy file with committed secrets; it was not touched. Rotate them and move the file out of the repository.
+- **Next step:** Phase 6 (core game GUI and map animations).

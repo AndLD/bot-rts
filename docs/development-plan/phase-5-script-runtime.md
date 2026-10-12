@@ -2,7 +2,7 @@
 
 # Phase 5 — Script runtime, scheduler & sandbox (104 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](./work-logs/phase-5-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](./work-logs/phase-5-log.md)
 
 The heart of the game. The execution model and the sandbox are specified in design §10, §12 and §13; this must be
 implemented and measured carefully.
@@ -31,6 +31,13 @@ Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) 
 **Exit criteria:** a script like the gold-scan example in `notes.txt` runs deterministically across many bots/players,
 is fairly scheduled, cannot reach server internals, and cannot corrupt shared map state — with unit/integration/load
 tests.
+
+**Exit criteria — met.** Determinism: `engine-determinism.test.ts` (the same seed gives the same result whatever the collection
+order, conflicts resolved by a seeded shuffle). Fair scheduling: `scheduler.test.ts` and `engine-load.test.ts` (150 bots served
+about equally on the real clock, also beside 20 scripts that never stop). No reach to the server's internals: the sandbox tests
+(`quickjs-script-runtime.test.ts`, `quickjs-sandbox.test.ts`), the watchdog and the stack, memory and log limits (task 5.7), and
+the browser test of the closed sandbox (`scripts.cy.ts`). No corruption of shared state: the engine is the single writer of the
+world (5.5), checked by the conflict tests, the world-action tests and the integration tests against PostgreSQL.
 
 ## Implementation log
 

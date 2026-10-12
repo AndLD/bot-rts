@@ -95,6 +95,25 @@ describe('BotAccessService connect', () => {
     expect([...t.terminalSessions.sessions.values()][0].userId).toBe(alice.id)
   })
 
+  it('notes a wrong password on a bot that belongs to nobody under the player who tried', async () => {
+    const t = await setup()
+    const orphan = await t.worker(bob, t.theirs.id)
+    t.repositories.bots.items.set(orphan.id, { ...orphan, baseId: null, passwordHash: 'hashed:right-one' })
+
+    await expect(t.connect('wrong', orphan.id)).rejects.toMatchObject({ code: 'BOT_PASSWORD_WRONG' })
+
+    expect([...t.terminalSessions.sessions.values()][0].userId).toBe(alice.id)
+  })
+
+  it('does not reach a bot that has an adapter but stands nowhere on the map', async () => {
+    const t = await setup()
+    const lost = await t.worker(bob, t.theirs.id)
+    const point = await t.repositories.map.findPointByContentId(lost.id)
+    t.repositories.map.points.delete(point!.id)
+
+    await expect(t.connect('x', lost.id)).rejects.toBeInstanceOf(BotUnreachableError)
+  })
+
   it('refuses a wrong or missing password, charges for the try and logs it on the target', async () => {
     const t = await setup()
     const before = await t.energyOf(t.mine.id)

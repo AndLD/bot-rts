@@ -4,6 +4,7 @@ import { Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import GameMap from '../map/GameMap'
+import ControlPanel from '../control/ControlPanel'
 import FactoryPanel from '../factory/FactoryPanel'
 import SettingsPanel from '../settings/SettingsPanel'
 import StoragePanel from '../storage/StoragePanel'
@@ -17,7 +18,7 @@ import { useAppDispatch } from '../../shared/store/hooks'
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
-const LAUNCHABLE: WindowKind[] = ['terminal', 'storage', 'factory', 'settings']
+const LAUNCHABLE: WindowKind[] = ['terminal', 'control', 'storage', 'factory', 'settings']
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
@@ -48,12 +49,22 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     dispatch(openWindow({ id: `terminal:${botId}`, kind: 'terminal', params: { botId, sessionId } }))
   }
 
+  // The control panel of one of the player's bots
+  function openControl(botId: string) {
+    dispatch(openWindow({ id: `control:${botId}`, kind: 'control', params: { botId } }))
+  }
+
   function renderWindow(win: GameWindow) {
     switch (win.kind) {
       case 'terminal':
         return win.params.botId
           ? connectedTerminal(win)
           : { title: t('kinds.terminal'), content: <Terminal onConnected={openConnection} /> }
+      case 'control':
+        return {
+          title: t('kinds.botControl', { botId: win.params.botId.slice(0, SHORT_ID) }),
+          content: <ControlPanel botId={win.params.botId} />
+        }
       case 'settings':
         return { title: t('kinds.settings'), content: <SettingsPanel /> }
       case 'factory':
@@ -67,7 +78,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
-      <GameMap baseId={baseId} />
+      <GameMap baseId={baseId} onOpenBot={openControl} />
       <div className="game-toolbar" role="toolbar">
         {LAUNCHABLE.map((kind) => (
           <Button

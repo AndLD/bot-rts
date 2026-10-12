@@ -255,7 +255,8 @@
       "control": "Control panel",
       "settings": "Settings",
       "editor": "Editor",
-      "botTerminal": "Terminal {botId}"
+      "botTerminal": "Terminal {botId}",
+      "botControl": "Control {botId}"
     }
   },
   "storage": {
@@ -345,5 +346,19 @@
     "gameSettings": "Game settings",
     "gameSettingsHelp": "What is off here is off for every player.",
     "gamePrefix": "Game: "
+  },
+  "control": {
+    "loading": "Loading...",
+    "loadFailed": "Could not load the bot",
+    "observation": "Observation",
+    "switchedOff": "switched off",
+    "run": "Do",
+    "do": "Do {action}",
+    "done": "Done",
+    "doneWith": "Done: {data}",
+    "missingArg": "{arg} is needed",
+    "invalidArg": "{arg} must be a whole number",
+    "left": "left",
+    "right": "right"
   }
 }

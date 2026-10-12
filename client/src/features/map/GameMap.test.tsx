@@ -9,8 +9,8 @@ jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn
 const canvas = jest.fn()
 jest.mock('./MapCanvas', () => ({
   __esModule: true,
-  default: (props: { center?: { x: number; y: number } }) => {
-    canvas(props.center)
+  default: (props: { center?: { x: number; y: number }; onOpenBot?: unknown }) => {
+    canvas(props.center, props.onOpenBot)
     return <div>the map</div>
   }
 }))
@@ -33,7 +33,7 @@ describe('GameMap', () => {
     )
     await jest
       .requireActual('@testing-library/react')
-      .waitFor(() => expect(canvas).toHaveBeenCalledWith({ x: 7, y: 8 }))
+      .waitFor(() => expect(canvas).toHaveBeenCalledWith({ x: 7, y: 8 }, undefined))
   })
 
   it('asks for the map again when the number of bots changes', async () => {

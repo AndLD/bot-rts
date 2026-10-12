@@ -6,7 +6,7 @@ import MapCanvas from './MapCanvas'
 import { useMapStream } from './useMapStream'
 
 // The player's map, opened on their base
-export default function GameMap({ baseId }: { baseId: string }) {
+export default function GameMap({ baseId, onOpenBot }: { baseId: string; onOpenBot?: (botId: string) => void }) {
   const { store, loader } = useMapStream()
   const { data: position } = useMapPositionQuery({ botId: baseId })
   const { data: bots } = useBotsListQuery({})
@@ -17,5 +17,5 @@ export default function GameMap({ baseId }: { baseId: string }) {
     loader.invalidate()
   }, [botCount, loader])
 
-  return <MapCanvas store={store} loader={loader} center={position} />
+  return <MapCanvas store={store} loader={loader} center={position} onOpenBot={onOpenBot} />
 }

@@ -33,6 +33,7 @@ function contentOf(cell: IMapCell, link: BotLink | undefined): CellContent {
     case MapPointType.BOT:
       return {
         kind: 'bot',
+        botId: cell.contentId ?? undefined,
         owner,
         chassis: cell.chassis ?? 'wheels',
         overlays: cell.icons ?? [],
@@ -42,9 +43,9 @@ function contentOf(cell: IMapCell, link: BotLink | undefined): CellContent {
         ...(link && !link.isConnected ? { linkLostAt: link.lostAt ?? 0 } : {})
       }
     case MapPointType.BASE:
-      return { kind: 'base', owner, isCorpse: false }
+      return { kind: 'base', botId: cell.contentId ?? undefined, owner, isCorpse: false }
     case MapPointType.CORPSE_BASE:
-      return { kind: 'base', owner, isCorpse: true }
+      return { kind: 'base', botId: cell.contentId ?? undefined, owner, isCorpse: true }
     default:
       return { kind: 'empty' }
   }

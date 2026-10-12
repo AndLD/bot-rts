@@ -6,11 +6,20 @@ import GameScreen from './GameScreen'
 
 jest.mock('../map/GameMap', () => ({
   __esModule: true,
-  default: ({ baseId }: { baseId: string }) => <div>the map of {baseId}</div>
+  default: ({ baseId, onOpenBot }: { baseId: string; onOpenBot: (id: string) => void }) => (
+    <div>
+      the map of {baseId}
+      <button onClick={() => onOpenBot('bot-9-long-id')}>click a bot</button>
+    </div>
+  )
 }))
 jest.mock('../factory/FactoryPanel', () => ({
   __esModule: true,
   default: ({ baseId }: { baseId: string }) => <div>the factory of {baseId}</div>
+}))
+jest.mock('../control/ControlPanel', () => ({
+  __esModule: true,
+  default: ({ botId }: { botId: string }) => <div>the control of {botId}</div>
 }))
 jest.mock('../settings/SettingsPanel', () => ({ __esModule: true, default: () => <div>the settings</div> }))
 jest.mock('../storage/StoragePanel', () => ({
@@ -85,9 +94,9 @@ describe('GameScreen', () => {
     const store = setupStore()
     renderApp(<GameScreen baseId="b1" />, { store })
 
-    act(() => void store.dispatch(openWindow({ id: 'control', kind: 'control' })))
+    act(() => void store.dispatch(openWindow({ id: 'editor', kind: 'editor' })))
 
-    expect(screen.getByText('Control panel', { selector: 'header span' })).toBeInTheDocument()
+    expect(screen.getByText('Editor', { selector: 'header span' })).toBeInTheDocument()
   })
 
   it('opens a window of its own for a bot that connect reached, and closes it on exit', () => {
@@ -112,5 +121,16 @@ describe('GameScreen', () => {
     fireEvent.click(connected.querySelector('button:first-of-type') as HTMLElement)
 
     expect(screen.getAllByText('the terminal of bot-2-long-id')).toHaveLength(1)
+  })
+
+  it('opens the control panel of a bot clicked on the map, and of the base from the toolbar', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByText('click a bot'))
+    expect(screen.getByText('the control of bot-9-long-id')).toBeInTheDocument()
+    expect(screen.getByText('Control bot-9-lo', { selector: 'header span' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Control panel' }))
+    expect(screen.getByText('the control of b1')).toBeInTheDocument()
   })
 })

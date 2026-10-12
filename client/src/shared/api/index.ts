@@ -31,6 +31,7 @@ export const {
   useBotControlPerformMutation,
   useBotsDeployBaseMutation,
   useBotsListQuery,
+  useBotsModulesQuery,
   useCraftingRecipeListQuery,
   useFactoryAssembleMutation,
   useFactoryCraftMutation,

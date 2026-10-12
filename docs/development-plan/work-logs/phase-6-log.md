@@ -73,3 +73,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.7 (bot control panel).
 - **Verify with:** `npm run typecheck && npm run test:coverage`
 
+### 2026-10-12 — task 6.7: bot control panel
+- **Tasks:** 6.7
+- **Branch:** `feature/6.7-control-panel` — done
+- **Decisions / deviations from the plan:** the panel is generated from the script API's own function catalog (`SCRIPT_FUNCTIONS` in lib), so every action a script can do is there and a new function appears without UI work: `actionGroups(moduleTypes)` takes the functions the bot's modules grant ("no module, no function"), leaves out `sleep`, and groups them by `categoryOfFunction` — observation first (always on, no switch), then the eight categories in order; a category the bot has no action for is not shown. Each action is a row of inputs built from the argument kinds (numbers, text, left/right, a list of the bot's modules for `moduleId`) and a button; `buildArgs` turns the typed text into the arguments of the call and names the argument that is missing or not a whole number before anything is sent. A category switched off in the game or by the player stays visible, marked, with its rows disabled; the engine refuses it too (6.8). The actions go as manual actions of the engine (6.3): same rules as a script's call (ops budget, module, delay, link, category), same answer, shown under the row. Clicking one of the player's own bots or bases on the map opens its panel (the map cells now carry the bot id); the toolbar opens the base's. The factory and storage windows stay the friendly front of the fabrication and logistics actions; connect, ping, sendMessage and adopt are terminal commands (6.5) and are not script-API functions yet, and trade comes with Phase 10.
+- **Next step:** task 6.9 (tutorial), then 6.11, 6.6, 6.12.
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`
+

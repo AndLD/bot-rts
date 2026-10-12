@@ -23,9 +23,11 @@ interface Props {
   loader: TileLoader
   // The cell to look at first
   center?: { x: number; y: number }
+  // One of the player's own bots or bases was clicked: its control panel opens (design §4.3)
+  onOpenBot?: (botId: string) => void
 }
 
-export default function MapCanvas({ store, loader, center }: Props) {
+export default function MapCanvas({ store, loader, center, onOpenBot }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<MapRenderer | null>(null)
   // Asks for the part of the map that is on screen, a moment after the view stopped changing
@@ -117,6 +119,11 @@ export default function MapCanvas({ store, loader, center }: Props) {
     const cell = renderer().cellAt(event.clientX - rect.left, event.clientY - rect.top)
     setSelected(cell)
     renderer().setSelection(cell)
+
+    const { content } = store.getCell(cell.x, cell.y) ?? {}
+    if ((content?.kind === 'bot' || content?.kind === 'base') && content.owner === 'own' && content.botId) {
+      onOpenBot?.(content.botId)
+    }
   }
 
   function onWheel(event: React.WheelEvent<HTMLCanvasElement>) {

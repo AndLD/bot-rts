@@ -18,6 +18,8 @@ export type CellContent =
   | { kind: 'item'; item: ItemKind }
   | {
       kind: 'bot'
+      // The bot's id, to open its control panel
+      botId?: string
       owner: Owner
       chassis: Chassis
       overlays: readonly ModuleOverlay[]
@@ -29,7 +31,7 @@ export type CellContent =
       // The bot has no radio link to its base: hatched grey, drawn where it was last known (design §11.2.1)
       linkLostAt?: number
     }
-  | { kind: 'base'; owner: Owner; isCorpse: boolean }
+  | { kind: 'base'; botId?: string; owner: Owner; isCorpse: boolean }
 
 // A cell as the player knows it
 export interface MapCell {

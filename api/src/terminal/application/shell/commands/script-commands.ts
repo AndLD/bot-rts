@@ -17,10 +17,14 @@ import {
 } from '../terminal-command'
 
 const NUMBER = /^-?\d+(\.\d+)?$/
+const BOOLEANS = new Map([
+  ['true', true],
+  ['false', false]
+])
 
 // What the player typed after the file name, as the values `main` receives: numbers and booleans, otherwise text
 export function toScriptArguments(args: readonly string[]): ScriptArgument[] {
-  return args.map((arg) => (NUMBER.test(arg) ? Number(arg) : arg === 'true' ? true : arg === 'false' ? false : arg))
+  return args.map((arg) => (NUMBER.test(arg) ? Number(arg) : (BOOLEANS.get(arg) ?? arg)))
 }
 
 const summary = ({ id, botId, file, state, restarts }: IExecution) =>

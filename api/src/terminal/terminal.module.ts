@@ -25,7 +25,7 @@ import { LINK_GATE, LinkGate, OpenLinkGate } from './application/link-gate'
 import { EngineScriptRunner } from '../engine/infrastructure/engine-script-runner'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { ScriptLogRecorder } from './application/script-log-recorder'
-import { SCRIPT_OUTPUT_FEED, SCRIPT_RUNNER, ScriptOutputFeed, ScriptRunner } from './application/script-runner'
+import { SCRIPT_OUTPUT_FEED, SCRIPT_RUNNER, ScriptOutputFeed } from './application/script-runner'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({

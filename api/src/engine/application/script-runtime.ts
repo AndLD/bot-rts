@@ -1,8 +1,6 @@
 import { JsonValue } from '../domain/json-value'
 import { ScriptFailure } from '../domain/script-failure'
 
-export const SCRIPT_RUNTIME = Symbol('ScriptRuntime')
-
 // The only functions of the host a script can use besides the game API: they cannot fail and cost no ops
 export interface ScriptHost {
   // A seeded random float in [0, 1) replacing Math.random (design §12.4)

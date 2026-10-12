@@ -214,6 +214,47 @@ describe('World', () => {
     expect(source.loads).toBe(4)
   })
 
+  it('tells the radio when a bot is loaded, moves, or changes its adapter or whether it has energy', async () => {
+    const { world, addBot, placeCell } = createEngineWorld()
+    addBot('b1', { x: 2, y: 2, z: 0 }, undefined, { ownerId: 'alice' })
+    placeCell({ x: 3, y: 2, z: 0 })
+    const heard: string[] = []
+    world.onBotChange((owner) => heard.push(owner))
+
+    const bot = (await world.bot('b1'))!
+    expect(heard).toEqual(['alice'])
+    await world.bot('b1')
+    expect(heard).toHaveLength(1)
+
+    await world.place(bot, { x: 3, y: 2, z: 0 })
+    expect(heard).toHaveLength(2)
+
+    const adapter = bot.state.modules.find((m) => m.type === 'wirelessAdapter')!
+    const battery = bot.state.modules.find((m) => m.type === 'battery')!
+    // Draining a battery that still has energy is not news to the radio
+    world.updateModules(bot, [{ ...battery, props: { ...battery.props, value: 10 } }])
+    expect(heard).toHaveLength(2)
+    world.updateModules(bot, [{ ...battery, props: { ...battery.props, value: 0 } }])
+    expect(heard).toHaveLength(3)
+    world.updateModules(bot, [{ ...adapter, condition: 0 }])
+    expect(heard).toHaveLength(4)
+  })
+
+  it('starts from the database again when a write is given up on', async () => {
+    const { world, writeBehind, source, batches } = createEngineWorld()
+    source.cells.set('1:1:0', { id: 'p', location: { x: 1, y: 1, z: 0 }, type: null, contentId: null, resource: null })
+    ;(writeBehind as unknown as { store: { flush: jest.Mock } }).store.flush = jest
+      .fn()
+      .mockRejectedValue(new Error('gone'))
+    await world.cell({ x: 1, y: 1, z: 0 })
+    world.setCell({ ...(await world.cell({ x: 1, y: 1, z: 0 })), type: MapPointType.RESOURCE })
+
+    for (let i = 0; i < 3; i++) await writeBehind.flush(i).catch(() => undefined)
+
+    expect(world.loadedChunkCount).toBe(0)
+    expect(batches).toEqual([])
+  })
+
   it('keeps every chunk when there is room, and tells the listeners when everything is forgotten', async () => {
     const { world } = createEngineWorld({ maxChunks: 8 })
     const forgotten = jest.fn()

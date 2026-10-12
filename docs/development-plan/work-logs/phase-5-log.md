@@ -79,3 +79,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the per-tick refresh cost of an area is the cost of the energy tick (design §12.5: every tick), which drains a battery fast; tuning is a playtest topic. Pushing `vision` events to the client's socket comes with 5.6 / 5.10.
 - **Next step:** task 5.13 (radio network).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.13: radio network
+- **Tasks:** 5.13
+- **Branch:** `feature/5.13-radio-network` — done
+- **Decisions / deviations from the plan:** pure rules in `engine/domain/radio.ts` (link margin at the smaller range, bars by margin, connectivity as a widest-path search from the base); `RadioNetwork` (engine/application) keeps one network per player with bots in memory and recomputes only the dirty ones: `World.onBotChange` fires when a bot is loaded, moves, or its adapter / has-energy state flips (not on every battery drain). Control: `EngineCore.act` calls `ensureControl` for every action that names a bot (`controlledBotOf`), and the terminal's `open` asks the engine through a `LinkGate` (`EngineLinkGate`, `OpenLinkGate` without an engine). Scripts: `getLinkStatus()`. Scanning while out of reach: `MapService.observe` / `ScanService.scan` got `remember: false`, the sightings go into `RadioBuffers` and are applied by `LiveVision.learn` when the link returns. `GameEvent` (`LinkLost`, `LinkRestored`, `LinkWeak`) is the first piece of the typed event bus (5.10), emitted as engine events `{ type: 'game' }`; the bar changes are `{ type: 'radio' }` diffs. A flush that fails `ENGINE_FLUSH_MAX_FAILURES` times in a row is given up on and the world is reloaded, so one bad row (a bot deleted behind the engine) cannot block every later write. The terminal gateway now runs a socket's lines one after the other: world-changing commands wait for the engine's tick and the next line must see them (found by the e2e of 5.5).
+- **Open points:** the buffer of events is filled by the event bus (5.10); a bot's `connect` / `sendMessage` / `ping` come with 5.9; the signal of the whole fleet is not yet pushed to sockets (5.6).
+- **Next step:** task 5.10 (game event bus).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

@@ -37,6 +37,9 @@ import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSour
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
 import { LiveVision } from './application/live-vision'
+import { LinkHandler } from './application/handlers/link-handler'
+import { RadioBuffers } from './application/radio-buffers'
+import { RadioNetwork } from './application/radio-network'
 import { ViewHandler } from './application/handlers/view-handler'
 import { World } from './application/world/world'
 import { WorldActionExecutor } from './application/world-action-executor'
@@ -123,6 +126,7 @@ export class EngineWorkerModule {
           provide: WORLD_SOURCE,
           inject: [
             BOT_STATE_SOURCE,
+            BOT_REPOSITORY,
             MODULE_REPOSITORY,
             MAP_REPOSITORY,
             ITEM_REPOSITORY,
@@ -132,13 +136,14 @@ export class EngineWorkerModule {
           ],
           useFactory: (
             states: BotStateSource,
+            bots: BotRepository,
             modules: ModuleRepository,
             map: MapRepository,
             items: ItemRepository,
             generator: MapGenerator,
             ids: IdGenerator,
             world: WorldConfig
-          ) => new RepositoryWorldSource(states, modules, map, items, generator, ids, world.resources)
+          ) => new RepositoryWorldSource(states, bots, modules, map, items, generator, ids, world.resources)
         },
         {
           provide: World,
@@ -176,10 +181,31 @@ export class EngineWorkerModule {
           ) => new LiveVision(world, source, writeBehind, ids, sink, app.engine.tickIntervalMs, worldConfig.chunkSize)
         },
         {
+          provide: RadioBuffers,
+          inject: [APP_CONFIG],
+          useFactory: (app: AppConfig) =>
+            new RadioBuffers({ scans: app.engine.radio.bufferScans, events: app.engine.radio.bufferEvents })
+        },
+        {
+          provide: RadioNetwork,
+          inject: [World, WORLD_SOURCE, ENGINE_SINK, RadioBuffers, APP_CONFIG, LiveVision, CLOCK],
+          useFactory: (
+            world: World,
+            source: WorldSource,
+            sink: EngineSink,
+            buffers: RadioBuffers,
+            app: AppConfig,
+            vision: LiveVision,
+            clock: Clock
+          ) => new RadioNetwork(world, source, sink, buffers, app.engine.radio, vision, clock)
+        },
+        {
           provide: ScriptApi,
           inject: [
             World,
             LiveVision,
+            RadioNetwork,
+            RadioBuffers,
             CLOCK,
             APP_CONFIG,
             ScanService,
@@ -191,6 +217,8 @@ export class EngineWorkerModule {
           useFactory: (
             world: World,
             vision: LiveVision,
+            radio: RadioNetwork,
+            buffers: RadioBuffers,
             clock: Clock,
             app: AppConfig,
             scans: ScanService,
@@ -207,7 +235,8 @@ export class EngineWorkerModule {
               new CombatHandler(world, clock, app.engine.combat),
               new PowerHandler(world, clock, vision),
               new ViewHandler(world, vision),
-              new SyncedHandler(world, new ScannerHandler(scans)),
+              new SyncedHandler(world, new ScannerHandler(scans, radio, buffers)),
+              new LinkHandler(radio),
               new SyncedHandler(world, new FactoryHandler(factory, assembly)),
               new SyncedHandler(world, new MaintenanceHandler(maintenance)),
               new DriveHandler(files)
@@ -228,7 +257,8 @@ export class EngineWorkerModule {
         {
           provide: WriteBehind,
           inject: [WORLD_STATE_STORE, APP_CONFIG],
-          useFactory: (store: WorldStateStore, app: AppConfig) => new WriteBehind(store, app.engine.flushEveryTicks)
+          useFactory: (store: WorldStateStore, app: AppConfig) =>
+            new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures)
         },
         { provide: ENGINE_SINK, inject: [ENGINE_CHANNEL], useFactory: (c: typeof channel) => new ChannelSink(c) },
         {
@@ -246,6 +276,7 @@ export class EngineWorkerModule {
             WriteBehind,
             World,
             LiveVision,
+            RadioNetwork,
             WorldActionExecutor,
             ENGINE_SINK,
             ID_GENERATOR,
@@ -265,6 +296,7 @@ export class EngineWorkerModule {
             writeBehind: WriteBehind,
             world: World,
             vision: LiveVision,
+            radio: RadioNetwork,
             actions: WorldActionExecutor,
             sink: EngineSink,
             ids: IdGenerator,
@@ -286,6 +318,7 @@ export class EngineWorkerModule {
               writeBehind,
               world,
               vision,
+              radio,
               actions,
               sink,
               ids,

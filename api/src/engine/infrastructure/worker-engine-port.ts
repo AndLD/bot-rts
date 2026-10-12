@@ -12,6 +12,7 @@ import {
 } from '../application/engine-protocol'
 import { EngineEvent } from '../application/engine-ports'
 import { ServiceUnavailableError } from '../domain/engine.errors'
+import { LinkStatus } from '../application/radio-network'
 import { WorldActionName, WorldActions } from '../application/world-actions'
 
 interface Waiting {
@@ -44,6 +45,10 @@ export class ChannelEnginePort implements EnginePort {
 
   act<K extends WorldActionName>(name: K, args: Parameters<WorldActions[K]>): ReturnType<WorldActions[K]> {
     return this.ask({ op: 'act', name, args: [...args] }) as ReturnType<WorldActions[K]>
+  }
+
+  linkStatus(userId: string, botId: string): Promise<LinkStatus> {
+    return this.ask({ op: 'link', userId, botId }) as Promise<LinkStatus>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {
@@ -110,6 +115,10 @@ export class DisabledEnginePort implements EnginePort {
 
   act<K extends WorldActionName>(): ReturnType<WorldActions[K]> {
     return Promise.reject(new ServiceUnavailableError()) as ReturnType<WorldActions[K]>
+  }
+
+  linkStatus(): Promise<LinkStatus> {
+    return Promise.reject(new ServiceUnavailableError())
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {

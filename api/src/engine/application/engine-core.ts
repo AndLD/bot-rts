@@ -25,8 +25,9 @@ import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
 import { World } from './world/world'
 import { LiveVision } from './live-vision'
+import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
-import { WorldActionName } from './world-actions'
+import { controlledBotOf, WorldActionName } from './world-actions'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
 
@@ -60,6 +61,7 @@ export interface EngineDependencies {
   writeBehind: WriteBehind
   world: World
   vision: LiveVision
+  radio: RadioNetwork
   actions: WorldActionExecutor
   sink: EngineSink
   ids: IdGenerator
@@ -173,6 +175,10 @@ export class EngineCore {
   // forgotten afterwards, since the use case may have changed any of it (design §14.2)
   act(name: WorldActionName, args: unknown[]): Promise<unknown> {
     return this.submit(async () => {
+      const controlled = controlledBotOf(name, args)
+      if (controlled) {
+        await this.deps.radio.ensureControl(controlled.userId, controlled.botId)
+      }
       await this.deps.world.sync()
       try {
         return await this.deps.actions.execute(name, args)
@@ -180,6 +186,11 @@ export class EngineCore {
         this.deps.world.evict()
       }
     })
+  }
+
+  // Whether a bot reaches its base through the radio network, and how well (design §11.2.1)
+  link(userId: string, botId: string): Promise<LinkStatus> {
+    return this.submit(() => this.deps.radio.statusOf(userId, botId))
   }
 
   list(userId: string): Promise<ExecutionView[]> {
@@ -220,6 +231,7 @@ export class EngineCore {
     const now = this.deps.clock.now().getTime()
     this.deps.world.tickEnergy(now)
     await this.deps.vision.refresh(tick, now)
+    await this.deps.radio.refresh()
     await this.deps.writeBehind.flushIfDue(tick)
     this.deps.world.evictCold()
 

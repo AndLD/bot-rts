@@ -1,5 +1,6 @@
 import { DEFAULT_MOVEMENT_BALANCE, MovementBalance } from '../../bots/domain/movement'
 import { CombatBalance, DEFAULT_COMBAT_BALANCE } from '../../modules/domain/weapon-module'
+import { DEFAULT_RADIO_BALANCE, RadioBalance } from './radio'
 
 // The tunable numbers of the engine (design §12.2, §12.2.1, §12.3.1); the deployment may override them from the
 // environment, nothing in the game logic hard-codes them (AGENTS.md §9)
@@ -12,6 +13,8 @@ export interface EngineConfig {
   tickCapRatio: number
   // World state is written to the database every this many ticks (write-behind)
   flushEveryTicks: number
+  // A write that fails this many times in a row is given up on and the memory is reloaded from the database
+  flushMaxFailures: number
   // Limits of one script execution
   memoryBytes: number
   stackBytes: number
@@ -24,6 +27,8 @@ export interface EngineConfig {
   // Game rules whose numbers the engine applies (design §8.5, §12.6)
   movement: MovementBalance
   combat: CombatBalance
+  // The radio network: the margins of the signal bars, and what a bot out of reach keeps (design §11.2.1)
+  radio: RadioBalance & { bufferScans: number; bufferEvents: number }
 }
 
 export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
@@ -31,11 +36,13 @@ export const DEFAULT_ENGINE_CONFIG: EngineConfig = {
   sliceMs: 5,
   tickCapRatio: 0.8,
   flushEveryTicks: 10,
+  flushMaxFailures: 3,
   memoryBytes: 4 * 1024 * 1024,
   stackBytes: 256 * 1024,
   maxRestarts: 3,
   healthyTicks: 6000,
   maxChunks: 512,
   movement: DEFAULT_MOVEMENT_BALANCE,
-  combat: DEFAULT_COMBAT_BALANCE
+  combat: DEFAULT_COMBAT_BALANCE,
+  radio: { ...DEFAULT_RADIO_BALANCE, bufferScans: 1000, bufferEvents: 200 }
 }

@@ -19,6 +19,9 @@ import { TerminalShell } from './application/shell/terminal-shell.service'
 import { TerminalService } from './application/terminal.service'
 import { TERMINAL_RETENTION, TerminalRetention } from './domain/terminal-retention'
 import { PrismaTerminalSessionRepository } from './infrastructure/prisma-terminal-session.repository'
+import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
+import { EngineLinkGate } from '../engine/infrastructure/engine-link-gate'
+import { LINK_GATE, LinkGate, OpenLinkGate } from './application/link-gate'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
 @Module({
@@ -32,15 +35,22 @@ import { TerminalGateway } from './presentation/terminal.gateway'
     },
     { provide: TERMINAL_RETENTION, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.terminal },
     {
+      provide: LINK_GATE,
+      inject: [APP_CONFIG, ENGINE_PORT],
+      useFactory: (config: AppConfig, engine: EnginePort): LinkGate =>
+        config.engine.isEnabled ? new EngineLinkGate(engine) : new OpenLinkGate()
+    },
+    {
       provide: TerminalService,
-      inject: [TERMINAL_SESSION_REPOSITORY, BotsService, ID_GENERATOR, CLOCK, TERMINAL_RETENTION],
+      inject: [TERMINAL_SESSION_REPOSITORY, BotsService, ID_GENERATOR, CLOCK, TERMINAL_RETENTION, LINK_GATE],
       useFactory: (
         sessions: TerminalSessionRepository,
         bots: BotsService,
         ids: IdGenerator,
         clock: Clock,
-        retention: TerminalRetention
-      ) => new TerminalService(sessions, bots, ids, clock, retention)
+        retention: TerminalRetention,
+        links: LinkGate
+      ) => new TerminalService(sessions, bots, ids, clock, retention, links)
     },
     {
       provide: TerminalShell,

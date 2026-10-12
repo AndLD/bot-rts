@@ -18,7 +18,9 @@ export class MapService {
   // A player looks at a range: missing cells of the real map are generated, and the player's knowledge of every cell
   // in the range becomes a fresh snapshot of the real cell. The range is worked chunk by chunk, so no step ever
   // needs more than one chunk of the map.
-  observe(userId: string, range: LocationRange): Promise<KnownPoint[]> {
+  // With `remember: false` the cells are generated and looked at but not written into the player's knowledge: the snapshots
+  // are for the caller to keep, for example a bot out of reach of its base (design §11.2.1).
+  observe(userId: string, range: LocationRange, options: { remember?: boolean } = {}): Promise<KnownPoint[]> {
     return this.unitOfWork.run(async (repositories) => {
       const { map } = repositories
       const seenAt = this.clock.now().getTime()
@@ -55,7 +57,9 @@ export class MapService {
           userId,
           seenAt
         }))
-        await map.upsertKnownPoints(chunkSnapshots)
+        if (options.remember !== false) {
+          await map.upsertKnownPoints(chunkSnapshots)
+        }
         snapshots.push(...chunkSnapshots)
       }
 

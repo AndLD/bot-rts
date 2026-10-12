@@ -142,16 +142,6 @@ export default defineConfig({
           return null
         },
 
-        async setBaseEnergy({ email, value }: { email: string; value: number }) {
-          await sql(
-            `UPDATE modules SET props = jsonb_set(props, '{value}', to_jsonb($2::int))
-             WHERE type = 'battery' AND bot_id = ${BASE_OF_USER}`,
-            [email, value]
-          )
-
-          return null
-        },
-
         // The ordinary bots of the player's base: id and label
         async workersOf({ email }: { email: string }) {
           const { rows } = await sql(`SELECT id, label FROM bots WHERE base_id = ${BASE_OF_USER} ORDER BY id`, [email])

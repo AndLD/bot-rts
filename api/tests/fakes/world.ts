@@ -18,6 +18,7 @@ import { BlueprintSpawn, MapGenerator } from '../../src/map/domain/map-generator
 import { MapService } from '../../src/map/application/map.service'
 import { DEFAULT_WORLD_CONFIG, WorldConfig } from '../../src/map/domain/world-config'
 import { createTerminalShell } from '../../src/terminal/application/shell/create-terminal-shell'
+import { OpenLinkGate } from '../../src/terminal/application/link-gate'
 import { TerminalService } from '../../src/terminal/application/terminal.service'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../../src/terminal/domain/terminal-retention'
 import { Rng } from '../../src/shared/application/rng'
@@ -90,10 +91,14 @@ export function createWorld(
     spawnService
   )
   const filesService = new FilesService(unitOfWork, botsService, repositories.files, ids, moduleRegistry)
-  const terminalService = new TerminalService(terminalSessions, botsService, ids, clock, {
-    ...DEFAULT_TERMINAL_RETENTION,
-    ...options.retention
-  })
+  const terminalService = new TerminalService(
+    terminalSessions,
+    botsService,
+    ids,
+    clock,
+    { ...DEFAULT_TERMINAL_RETENTION, ...options.retention },
+    new OpenLinkGate()
+  )
   const factorySettler = new FactorySettler(unitOfWork, moduleRegistry, ids, clock, moduleFactory)
   const factoryService = new FactoryService(
     unitOfWork,

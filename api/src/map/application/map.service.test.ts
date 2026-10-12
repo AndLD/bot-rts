@@ -77,6 +77,20 @@ describe('MapService.observe', () => {
     })
   })
 
+  it('can look without writing into the knowledge of the player', async () => {
+    const { mapService, repositories } = createWorld()
+    const range = { from: { x: 0, y: 0, z: 0 }, to: { x: 1, y: 1, z: 0 } }
+
+    const looked = await mapService.observe('alice', range, { remember: false })
+
+    expect(looked).toHaveLength(4)
+    expect(await repositories.map.findKnownPointsInRange('alice', range)).toEqual([])
+    expect(await repositories.map.findPointsInRange(range)).toHaveLength(4)
+
+    await mapService.observe('alice', range)
+    expect(await repositories.map.findKnownPointsInRange('alice', range)).toHaveLength(4)
+  })
+
   it('keeps the knowledge of players apart', async () => {
     const { mapService, repositories } = createWorld()
     await mapService.observe(user, range)

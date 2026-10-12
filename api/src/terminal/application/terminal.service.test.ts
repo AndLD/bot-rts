@@ -1,6 +1,8 @@
 import { TERMINAL_LOG_KIND } from '../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../tests/fakes/world'
+import { NoSignalError } from '../../engine/application/radio-network'
 import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
+import { TerminalService } from './terminal.service'
 import { TerminalSessionClosedError } from '../domain/terminal.errors'
 
 const PASSWORD = 'secret1'
@@ -32,6 +34,27 @@ describe('TerminalService sessions', () => {
     const closed = await terminalService.close(alice.id, session.id)
     expect(closed.endedAt).toEqual(clock.current)
     expect(terminalSessions.sessions.get(session.id)?.endedAt).toEqual(clock.current)
+  })
+
+  it('does not open a session on a bot that is out of reach of its base', async () => {
+    const { botsService, ids, clock, terminalSessions, moduleFactory, bot } = await setup()
+    const { bot: rover } = await botsService.createBot(alice.id, {
+      baseId: bot.id,
+      label: 'Rover',
+      modules: [moduleFactory.template('processor-class1'), moduleFactory.template('wireless-adapter-class1')]
+    })
+    const gate = { ensureConnected: jest.fn().mockRejectedValue(new NoSignalError()) }
+    const service = new TerminalService(
+      terminalSessions,
+      botsService,
+      ids,
+      clock,
+      { logDays: 30, maxLinesPerBot: 5000, securityDays: 90 },
+      gate
+    )
+
+    await expect(service.open(alice.id, rover.id)).rejects.toMatchObject({ statusCode: 409, code: 'NO_SIGNAL' })
+    expect(gate.ensureConnected).toHaveBeenCalledWith(alice.id, rover.id)
   })
 
   it('does not open a session on a bot whose wireless adapter is broken', async () => {

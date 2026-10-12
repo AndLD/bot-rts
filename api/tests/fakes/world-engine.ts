@@ -47,6 +47,10 @@ export class FakeWorldSource implements WorldSource {
     )
   }
 
+  async botIdsOfUser(userId: string) {
+    return [...this.bots.values()].filter(({ state }) => state.ownerId === userId).map(({ state }) => state.bot.id)
+  }
+
   async liveScannerBotIds() {
     return [...this.bots.values()]
       .filter(({ state }) => state.modules.some((m) => m.type === 'scanner' && m.props.isLive === true))
@@ -84,7 +88,8 @@ export function createEngineWorld(
 ) {
   const source = new FakeWorldSource(options.states)
   const batches: WorldStateBatch[] = []
-  const writeBehind = options.writeBehind ?? new WriteBehind({ flush: async (batch) => void batches.push(batch) }, 10)
+  const writeBehind =
+    options.writeBehind ?? new WriteBehind({ flush: async (batch) => void batches.push(batch) }, 10, 3)
   const registry = createModuleRegistry()
   const energy = new EnergyModel(registry)
   const world = new World(
@@ -118,7 +123,7 @@ export function createEngineWorld(
     id: string,
     at: Location | null,
     kit: readonly string[] = FULL_KIT,
-    options: { ownerId?: string; type?: BOT_TYPE; heading?: 0 | 1 | 2 | 3 } = {}
+    options: { ownerId?: string; type?: BOT_TYPE; heading?: 0 | 1 | 2 | 3; baseId?: string } = {}
   ) => {
     const ownerId = options.ownerId ?? `owner-${id}`
     const records = kit.map((name) => modules.create(name, id))
@@ -128,8 +133,8 @@ export function createEngineWorld(
           id,
           label: null,
           type: options.type ?? BOT_TYPE.WORKER,
-          userId: null,
-          baseId: null,
+          userId: options.type === BOT_TYPE.BASE ? ownerId : null,
+          baseId: options.baseId ?? null,
           passwordHash: null,
           lastPosition: null,
           heading: options.heading ?? 0

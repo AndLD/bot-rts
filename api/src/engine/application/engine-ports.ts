@@ -1,5 +1,7 @@
 import { BotState } from '../domain/bot-state'
 import { ExecutionView } from '../domain/execution'
+import type { GameEvent } from '../domain/game-event'
+import type { RadioChange } from './radio-network'
 import type { VisionCell } from './live-vision'
 
 export const BOT_STATE_SOURCE = Symbol('BotStateSource')
@@ -30,6 +32,10 @@ export type EngineEvent =
       text: string
     }
   | { type: 'execution'; userId: string; execution: ExecutionView }
+  // Something that happened in the game; who may hear of it is decided by the event bus (design §24.1)
+  | { type: 'game'; event: GameEvent }
+  // The signal of bots that changed, only the changes (design §11.2.1)
+  | { type: 'radio'; userId: string; changes: RadioChange[] }
   // The cells that changed in a live area since its last batch (design §4.4)
   | {
       type: 'vision'

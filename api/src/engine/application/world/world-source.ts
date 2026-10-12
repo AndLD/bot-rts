@@ -25,6 +25,8 @@ export interface WorldSource {
   loadCells(range: LocationRange): Promise<{ points: MapPoint[]; items: Item[] }>
   // What a player knows of the cells in a range
   loadKnown(userId: string, range: LocationRange): Promise<KnownPoint[]>
+  // Every bot of a player, base and workers
+  botIdsOfUser(userId: string): Promise<string[]>
   // The bots whose scanner is in live mode, to resume their vision after a restart
   liveScannerBotIds(): Promise<string[]>
   // Rolls the content of a cell that does not exist yet

@@ -8,7 +8,7 @@ const point = (id: string) => ({ id, location: { x: 0, y: 0, z: 0 }, type: null,
 function setup(every = 10) {
   const batches: WorldStateBatch[] = []
   const store: WorldStateStore = { flush: jest.fn(async (batch: WorldStateBatch) => void batches.push(batch)) }
-  return { writeBehind: new WriteBehind(store, every), batches, store }
+  return { writeBehind: new WriteBehind(store, every, 3), batches, store }
 }
 
 describe('WriteBehind', () => {
@@ -50,6 +50,44 @@ describe('WriteBehind', () => {
     await writeBehind.flush(10)
 
     expect(store.flush).not.toHaveBeenCalled()
+  })
+
+  it('gives a batch up when it keeps failing, and tells the listeners that the memory is not to be trusted', async () => {
+    const { writeBehind, store, batches } = setup()
+    const discarded = jest.fn()
+    writeBehind.onDiscard(discarded)
+    ;(store.flush as jest.Mock).mockRejectedValue(new Error('bot deleted'))
+    writeBehind.stageMapPoint(point('p1'))
+
+    await expect(writeBehind.flush(10)).rejects.toThrow('bot deleted')
+    await expect(writeBehind.flush(20)).rejects.toThrow('bot deleted')
+    expect(discarded).not.toHaveBeenCalled()
+    expect(writeBehind.pending).toBe(1)
+    await expect(writeBehind.flush(30)).rejects.toThrow('bot deleted')
+
+    expect(discarded).toHaveBeenCalledTimes(1)
+    expect(writeBehind.pending).toBe(0)
+    ;(store.flush as jest.Mock).mockResolvedValue(undefined)
+    writeBehind.stageMapPoint(point('p2'))
+    await writeBehind.flush(40)
+    expect(batches).toHaveLength(0)
+    expect(store.flush).toHaveBeenCalledTimes(4)
+  })
+
+  it('counts only failures in a row', async () => {
+    const { writeBehind, store } = setup()
+    const discarded = jest.fn()
+    writeBehind.onDiscard(discarded)
+    const flush = store.flush as jest.Mock
+    for (const outcome of ['fail', 'fail', 'ok', 'fail', 'fail', 'ok']) {
+      writeBehind.stageMapPoint(point('p'))
+      flush.mockImplementationOnce(async () => {
+        if (outcome === 'fail') throw new Error('x')
+      })
+      await writeBehind.flush(10).catch(() => undefined)
+    }
+
+    expect(discarded).not.toHaveBeenCalled()
   })
 
   it('keeps a failed batch for the next try, with newer values winning', async () => {

@@ -16,10 +16,21 @@ export class WriteBehind {
   private headings = new Map<string, Heading>()
   private lastFlushTick = 0
 
+  private failures = 0
+  private readonly discardListeners: Array<() => void> = []
+
   constructor(
     private readonly store: WorldStateStore,
-    private readonly everyTicks: number
+    private readonly everyTicks: number,
+    // A batch that fails this many times in a row is dropped, so that one bad row (a bot deleted behind the engine's back, say)
+    // cannot keep every later write from reaching the database
+    private readonly maxFailures: number
   ) {}
+
+  // Told when a batch is given up on; what the engine holds in memory can no longer be trusted
+  onDiscard(listener: () => void): void {
+    this.discardListeners.push(listener)
+  }
 
   stageModule(module: Module): void {
     this.modules.set(module.id, module)
@@ -67,7 +78,8 @@ export class WriteBehind {
     return true
   }
 
-  // Writes everything staged. When the write fails the batch is kept for the next try, newer values winning.
+  // Writes everything staged. When the write fails the batch is kept for the next try, newer values winning, until it has failed
+  // `maxFailures` times in a row.
   async flush(tick: number): Promise<void> {
     this.lastFlushTick = tick
     if (!this.pending) {
@@ -89,8 +101,15 @@ export class WriteBehind {
     this.headings = new Map()
     try {
       await this.store.flush(batch)
+      this.failures = 0
     } catch (error) {
-      this.restore(batch)
+      this.failures += 1
+      if (this.failures >= this.maxFailures) {
+        this.failures = 0
+        this.discardListeners.forEach((listener) => listener())
+      } else {
+        this.restore(batch)
+      }
       throw error
     }
   }

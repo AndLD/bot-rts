@@ -4,6 +4,7 @@ import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { createWorld } from '../../../../tests/fakes/world'
 import { ScanService } from '../../../bots/application/scan.service'
 import { BotState } from '../../domain/bot-state'
+import { RadioBuffers } from '../radio-buffers'
 import { CallOutcome, ScriptApi } from '../script-api'
 import { DriveHandler } from './drive-handler'
 import { FactoryHandler } from './factory-handler'
@@ -27,6 +28,8 @@ const PASSWORD = 'secret1'
 
 async function setup() {
   const world = createWorld()
+  const buffers = new RadioBuffers({ scans: 100, events: 10 })
+  const radio = { statusOf: jest.fn(async () => ({ isConnected: true, signal: 4, hops: 0 })) }
   const { bot, modules } = await world.botsService.deployUserBase(alice, {
     password: PASSWORD,
     location: { x: 5, y: 5, z: 0 }
@@ -41,7 +44,9 @@ async function setup() {
         world.moduleRegistry,
         world.clock,
         world.energyService
-      )
+      ),
+      radio as never,
+      buffers
     ),
     new FactoryHandler(world.factoryService, world.assemblyService),
     new MaintenanceHandler(world.maintenanceService),
@@ -54,7 +59,7 @@ async function setup() {
   await world.repositories.modules.addMany([gps])
   const state: BotState = { bot, ownerId: alice.id, modules: [...modules, gps] }
   const stored = (type: string) => world.repositories.modules.items.find((m) => m.botId === bot.id && m.type === type)!
-  return { ...world, api, bot, state, stored }
+  return { ...world, api, bot, state, stored, radio, buffers }
 }
 
 describe('script API handlers', () => {
@@ -67,6 +72,20 @@ describe('script API handlers', () => {
     const cells = dataOf<Array<{ x: number; y: number; contentId: string | null }>>(result)
     expect(cells).toHaveLength(9)
     expect(cells.find((cell) => cell.x === 5 && cell.y === 5)?.contentId).toBe(state.bot.id)
+  })
+
+  it("scan of a bot out of reach shows the script the cells but leaves the player's map alone until the link returns", async () => {
+    const { api, state, radio, buffers, repositories, bot } = await setup()
+    radio.statusOf.mockResolvedValue({ isConnected: false, signal: 0, hops: 0 })
+
+    const result = await api.execute(state, 'scan', [])
+
+    expect(dataOf<unknown[]>(result)).toHaveLength(9)
+    // The player knows only the cell of the base, from the deployment
+    expect(
+      await repositories.map.findKnownPointsInRange(alice.id, { from: { x: 0, y: 0, z: 0 }, to: { x: 9, y: 9, z: 0 } })
+    ).toHaveLength(1)
+    expect(buffers.take(bot.id).scans).toHaveLength(9)
   })
 
   it('scan reports a spent scanner as a failure value', async () => {

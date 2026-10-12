@@ -20,9 +20,8 @@ beforeAll(async () => {
   events = []
   port.onEvent((event) => events.push(event))
 }, 90000)
-beforeEach(async () => {
+beforeEach(() => {
   events.length = 0
-  await database.reset()
 })
 afterAll(async () => {
   await testApp.close()
@@ -31,8 +30,12 @@ afterAll(async () => {
 
 const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
 
+// The tests share the running engine, so each one has players of its own instead of a database wiped behind its back
+let players = 0
+
 async function deployWithScript(source: string) {
-  const player = await signUpVerified(testApp, database, 'alice@example.com')
+  players += 1
+  const player = await signUpVerified(testApp, database, `player${players}@example.com`)
   const deployed = await request(testApp.url)
     .post('/api/v1/bots/base')
     .set(bearer(player.accessToken))
@@ -79,6 +82,21 @@ describe('the engine as the single writer (design §14.2)', () => {
       'factory.craft'
     ])
     act.mockRestore()
+  })
+
+  it('makes a directory and lists it again', async () => {
+    const { accessToken, botId } = await deployWithScript('export async function main() {}')
+    const drive = await database.client.module.findFirstOrThrow({ where: { botId, type: 'drive' } })
+    const base = `/api/v1/bots/${botId}/drives/${drive.id}`
+
+    await request(testApp.url)
+      .post(`${base}/directories`)
+      .set(bearer(accessToken))
+      .send({ path: 'scripts' })
+      .expect(201)
+    const listed = await request(testApp.url).get(`${base}/files`).set(bearer(accessToken)).expect(200)
+
+    expect(listed.body.map((f: { path: string }) => f.path)).toContain('scripts')
   })
 })
 

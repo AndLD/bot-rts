@@ -345,7 +345,9 @@
     },
     "gameSettings": "Game settings",
     "gameSettingsHelp": "What is off here is off for every player.",
-    "gamePrefix": "Game: "
+    "gamePrefix": "Game: ",
+    "tutorial": "Tutorial",
+    "restartTutorial": "Show the tutorial again"
   },
   "control": {
     "loading": "Loading...",
@@ -360,5 +362,41 @@
     "invalidArg": "{arg} must be a whole number",
     "left": "left",
     "right": "right"
+  },
+  "tutorial": {
+    "title": "Getting started",
+    "skip": "Skip the tutorial",
+    "completed": "Tutorial completed. The world is yours.",
+    "close": "Close",
+    "steps": {
+      "openTerminal": {
+        "title": "Open the terminal",
+        "hint": "The terminal window of your base opens by itself: click into it."
+      },
+      "listModules": {
+        "title": "List the modules of the base",
+        "hint": "Type modules in the terminal."
+      },
+      "scan": {
+        "title": "Scan the surroundings",
+        "hint": "Open the control panel of the base and press Do next to scan."
+      },
+      "writeScript": {
+        "title": "Write your first script",
+        "hint": "In the terminal: cd memory-class1, then edit main.js and save it."
+      },
+      "runScript": {
+        "title": "Run it",
+        "hint": "In the terminal: run main.js"
+      },
+      "craft": {
+        "title": "Craft a module",
+        "hint": "Open the factory and craft a module, for example wheels or an engine."
+      },
+      "assemble": {
+        "title": "Assemble a bot",
+        "hint": "In the factory, choose finished modules on the Assemble tab and assemble a bot."
+      }
+    }
   }
 }

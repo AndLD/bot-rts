@@ -2049,6 +2049,114 @@
         ]
       }
     },
+    "/api/v1/tutorial": {
+      "get": {
+        "operationId": "tutorialGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ]
+      }
+    },
+    "/api/v1/tutorial/skip": {
+      "post": {
+        "operationId": "tutorialSkip",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ]
+      }
+    },
+    "/api/v1/tutorial/restart": {
+      "post": {
+        "operationId": "tutorialRestart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -3627,6 +3735,68 @@
         },
         "required": [
           "categories"
+        ]
+      },
+      "TutorialStepResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "openTerminal",
+              "listModules",
+              "scan",
+              "writeScript",
+              "runScript",
+              "craft",
+              "assemble"
+            ]
+          },
+          "isDone": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "isDone"
+        ]
+      },
+      "TutorialResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "skipped",
+              "completed"
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TutorialStepResponse"
+            }
+          },
+          "current": {
+            "type": "string",
+            "enum": [
+              "openTerminal",
+              "listModules",
+              "scan",
+              "writeScript",
+              "runScript",
+              "craft",
+              "assemble"
+            ],
+            "nullable": true,
+            "description": "The first step not done, while the tutorial is active"
+          }
+        },
+        "required": [
+          "status",
+          "steps",
+          "current"
         ]
       },
       "HealthResponse": {

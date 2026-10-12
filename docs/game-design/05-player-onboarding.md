@@ -12,7 +12,7 @@
    start near friends (§22.3).
 4. **On click** — a base bot is created on a free cell chosen by the base-spawn rule (§4.1), its module kit is attached,
    its map point is upserted, the player's wallet receives the starter grant (§26.1), and the monitor (canvas map) is shown. ✅ (backend) / 🔴 (canvas map)
-5. **Tutorial** — an optional, skippable guided checklist starts (§16.1). 🔴
+5. **Tutorial** — an optional, skippable guided checklist starts (§16.1). ✅
 
 A player may own exactly **one living base**; attempting to deploy a second while one is alive returns
 `403 User base already exists`. ✅ If the base was destroyed (it became a [corpse base](./06-the-base.md#63-base-destruction-corpse-base)),

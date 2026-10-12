@@ -23,6 +23,8 @@ function renderGame() {
 describe('GamePage', () => {
   beforeEach(() => {
     query.mockReset()
+    // Whatever else the screen asks for (the tutorial) gets an empty answer
+    query.mockResolvedValue({ data: null })
     localStorage.clear()
   })
 

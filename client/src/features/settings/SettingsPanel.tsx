@@ -1,12 +1,13 @@
 'use client'
 
 import { MANUAL_CATEGORIES, ManualCategory } from '@lib/utils/interfaces/settings'
-import { Select, Switch, Tag } from 'antd'
+import { Button, Select, Switch, Tag } from 'antd'
 import { useTranslations } from 'next-intl'
 import {
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,
   useSettingsUpdateMutation,
+  useTutorialRestartMutation,
   useUsersMeQuery
 } from '../../shared/api'
 
@@ -25,6 +26,7 @@ export default function SettingsPanel() {
   const { data: me } = useUsersMeQuery()
   const [updateUser] = useSettingsUpdateMutation()
   const [updateGame] = useAdminSettingsUpdateMutation()
+  const [restartTutorial] = useTutorialRestartMutation()
   const isAdmin = me?.status === 'admin' || me?.status === 'owner'
 
   if (isError) {
@@ -62,6 +64,11 @@ export default function SettingsPanel() {
         ]}
         style={{ minWidth: 200 }}
       />
+
+      <h4>{t('tutorial')}</h4>
+      <Button size="small" onClick={() => restartTutorial()}>
+        {t('restartTutorial')}
+      </Button>
 
       {isAdmin && (
         <>

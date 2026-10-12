@@ -15,6 +15,7 @@ import { NotificationsModule } from './notifications/notifications.module'
 import { PersistenceModule } from './persistence/persistence.module'
 import { TerminalModule } from './terminal/terminal.module'
 import { SettingsModule } from './settings/settings.module'
+import { TutorialModule } from './tutorial/tutorial.module'
 import { SharedModule } from './shared/shared.module'
 import { UsersModule } from './users/users.module'
 
@@ -37,6 +38,7 @@ export class AppModule {
         BotsModule,
         MapViewModule,
         SettingsModule,
+        TutorialModule,
         TerminalModule,
         EngineModule,
         RealtimeModule,

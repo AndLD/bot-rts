@@ -80,3 +80,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.9 (tutorial), then 6.11, 6.6, 6.12.
 - **Verify with:** `npm run typecheck && npm run test:coverage -w client`
 
+### 2026-10-12 — task 6.9: tutorial
+- **Tasks:** 6.9
+- **Branch:** `feature/6.9-tutorial` — done
+- **Decisions / deviations from the plan:** seven steps (lib `TUTORIAL_STEPS`): open the terminal, list the modules, scan, write a script, run it, craft a module, assemble a bot. A step is not ticked by a click but by **what the player has really done**, read from what the game keeps (`PrismaTutorialFacts`: a terminal session exists; a `modules` input in the terminal log; more known cells than the base; a `.js` / `.ts` file on a drive of their bots; an execution; a part, a factory job or a bot assembled; a bot of their base), so it works the same whether they did it by terminal, GUI or script, and a step once done stays done (`TutorialService`). Progress (`status`: active / skipped / completed, and the steps done) lives in the user's profile: a `tutorial` JSON column on `user_settings`. API: `GET /api/v1/tutorial` (also records what is newly done), `POST /tutorial/skip`, `POST /tutorial/restart` (from the settings window: starts over and notices at once what was already done). Engine events were not used for this: the facts are durable and a missed event would lose a step. The overlay (`TutorialOverlay`) is a checklist at the bottom right that asks every 4 s; the toolbar button for the step is outlined; skipped / completed tutorials show nothing (a completed one shows a short note to a player who has just finished it). Cypress `tutorial.cy.ts`: steps ticking as the player types `modules` and scans from the control panel; skip, reload, restart.
+- **Next step:** task 6.11 (map animations), then 6.6, 6.12 (the Cypress specs).
+- **Verify with:** `npm run typecheck && npm run test:coverage`; `node scripts/e2e.mjs -- --spec cypress/e2e/tutorial.cy.ts`
+

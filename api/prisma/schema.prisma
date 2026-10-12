@@ -447,6 +447,8 @@ model UserSetting {
   // The switches of the categories of manual control, by category; one that is not there is on
   manualCategories Json      @default("{}") @map("manual_categories")
   reducedMotion    Boolean?  @map("reduced_motion")
+  // How far the player is in the tutorial: its status and the steps done (design §16.1)
+  tutorial         Json      @default("{}")
   updatedAt        DateTime  @map("updated_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

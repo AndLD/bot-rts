@@ -18,6 +18,9 @@ export const api = generated.enhanceEndpoints({
     settingsUpdate: { invalidatesTags: ['Settings'] },
     adminSettingsGet: { providesTags: ['Settings'] },
     adminSettingsUpdate: { invalidatesTags: ['Settings'] },
+    tutorialGet: { providesTags: ['Tutorial'] },
+    tutorialSkip: { invalidatesTags: ['Tutorial'] },
+    tutorialRestart: { invalidatesTags: ['Tutorial'] },
     botControlGetStorage: { providesTags: ['Storage'] },
     botControlPerform: { invalidatesTags: ['Storage'] }
   }
@@ -26,6 +29,9 @@ export const api = generated.enhanceEndpoints({
 export const {
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,
+  useTutorialGetQuery,
+  useTutorialRestartMutation,
+  useTutorialSkipMutation,
   useSettingsUpdateMutation,
   useBotControlGetStorageQuery,
   useBotControlPerformMutation,

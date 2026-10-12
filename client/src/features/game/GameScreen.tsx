@@ -7,14 +7,28 @@ import GameMap from '../map/GameMap'
 import ControlPanel from '../control/ControlPanel'
 import FactoryPanel from '../factory/FactoryPanel'
 import SettingsPanel from '../settings/SettingsPanel'
+import TutorialOverlay from '../tutorial/TutorialOverlay'
 import StoragePanel from '../storage/StoragePanel'
 import Terminal from '../terminal/Terminal'
 import { TerminalConnection } from '../terminal/useTerminal'
 import WindowManager from '../windows/WindowManager'
 import { closeWindow, GameWindow, openWindow, WindowKind } from '../windows/windows.slice'
+import { useTutorialGetQuery } from '../../shared/api'
 import { useAppDispatch } from '../../shared/store/hooks'
+import { TutorialStep } from '@lib/utils/interfaces/tutorial'
 
 // The windows a player can open from the toolbar, for the base; more kinds are added here as their panels are built
+// The toolbar button the tutorial points at for each step
+const TUTORIAL_TARGET: Record<TutorialStep, WindowKind> = {
+  openTerminal: 'terminal',
+  listModules: 'terminal',
+  scan: 'control',
+  writeScript: 'terminal',
+  runScript: 'terminal',
+  craft: 'factory',
+  assemble: 'factory'
+}
+
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
@@ -24,6 +38,8 @@ const LAUNCHABLE: WindowKind[] = ['terminal', 'control', 'storage', 'factory', '
 export default function GameScreen({ baseId }: { baseId: string }) {
   const t = useTranslations('windows')
   const dispatch = useAppDispatch()
+  const { data: tutorial } = useTutorialGetQuery()
+  const highlighted = tutorial?.current ? TUTORIAL_TARGET[tutorial.current] : null
 
   useEffect(() => {
     dispatch(openWindow({ id: 'terminal', kind: 'terminal' }))
@@ -84,6 +100,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
           <Button
             key={kind}
             size="small"
+            className={kind === highlighted ? 'tutorial-highlight' : undefined}
             onClick={() =>
               dispatch(openWindow({ id: kind, kind, params: kind === 'terminal' ? {} : { botId: baseId } }))
             }
@@ -93,6 +110,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         ))}
       </div>
       <WindowManager renderWindow={renderWindow} />
+      <TutorialOverlay />
     </div>
   )
 }

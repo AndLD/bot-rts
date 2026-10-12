@@ -22,7 +22,7 @@ function setup(options: { status?: string; global?: object; user?: object; reduc
   const patches: Array<{ url: string; body: unknown }> = []
   query.mockReset()
   query.mockImplementation((async (args: { url: string; method?: string; body?: unknown }) => {
-    if (args.method === 'PATCH') {
+    if (args.method === 'PATCH' || args.method === 'POST') {
       patches.push({ url: args.url, body: args.body })
       return { data: {} }
     }
@@ -111,6 +111,14 @@ describe('SettingsPanel', () => {
     await waitFor(() =>
       expect(patches).toContainEqual({ url: '/api/v1/admin/settings', body: { categories: { combat: false } } })
     )
+  })
+
+  it('starts the tutorial again', async () => {
+    const patches = setup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Show the tutorial again' }))
+
+    await waitFor(() => expect(patches).toContainEqual({ url: '/api/v1/tutorial/restart', body: undefined }))
   })
 
   it('keeps the game settings from a regular player', async () => {

@@ -28,6 +28,14 @@ export class TerminalGateway implements OnGatewayConnection {
     const userId = () => (socket.principal as NonNullable<typeof socket.principal>).user.id
     // The sessions this socket opened, each with the place its terminal is in
     const openSessions = new Map<string, Cwd>()
+    // Commands run one after the other: a command that changes the world waits for the engine's next tick, and the line typed
+    // after it must see its result
+    let busy: Promise<unknown> = Promise.resolve()
+    const inOrder = <T>(work: () => Promise<T>): Promise<T> => {
+      const result = busy.then(work, work)
+      busy = result.catch(() => undefined)
+      return result
+    }
 
     socket.on(
       'open-terminal',
@@ -59,8 +67,11 @@ export class TerminalGateway implements OnGatewayConnection {
         if (!isValidId(sessionId) || typeof line !== 'string' || line.length > MAX_LINE_LENGTH) {
           throw new ValidationError('Invalid command')
         }
-        const reply = await this.shell.execute(userId(), sessionId, line, this.placeOf(openSessions, sessionId))
-        openSessions.set(sessionId, reply.cwd)
+        const reply = await inOrder(async () => {
+          const outcome = await this.shell.execute(userId(), sessionId, line, this.placeOf(openSessions, sessionId))
+          openSessions.set(sessionId, outcome.cwd)
+          return outcome
+        })
         ack(reply.response)
       })
     )
@@ -71,8 +82,13 @@ export class TerminalGateway implements OnGatewayConnection {
         if (!isValidId(sessionId) || typeof path !== 'string' || typeof content !== 'string') {
           throw new ValidationError('Invalid file')
         }
-        const cwd = this.placeOf(openSessions, sessionId)
-        ack(toFileDto(await this.shell.saveFile(userId(), sessionId, cwd, path, content)))
+        ack(
+          toFileDto(
+            await inOrder(() =>
+              this.shell.saveFile(userId(), sessionId, this.placeOf(openSessions, sessionId), path, content)
+            )
+          )
+        )
       })
     )
 

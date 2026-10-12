@@ -35,6 +35,34 @@ async function withDrive() {
 }
 
 describe('TerminalGateway', () => {
+  it('runs the lines of a session one after the other, even when the first is slow', async () => {
+    const { socket, sessionId, terminalShell } = await withDrive()
+    const order: string[] = []
+    const execute = terminalShell.execute.bind(terminalShell)
+    jest.spyOn(terminalShell, 'execute').mockImplementation(async (userId, id, line, cwd) => {
+      if (line === 'mkdir scripts') await new Promise((resolve) => setTimeout(resolve, 30))
+      order.push(`start ${line}`)
+      const reply = await execute(userId, id, line, cwd)
+      order.push(`end ${line}`)
+      return reply
+    })
+    const send = (line: string) => new Promise((resolve) => socket.emit('terminal-command', sessionId, line, resolve))
+
+    const first = send('cd memory-class1')
+    const second = send('mkdir scripts')
+    const third = send('cd scripts')
+    await Promise.all([first, second, third])
+
+    expect(order).toEqual([
+      'start cd memory-class1',
+      'end cd memory-class1',
+      'start mkdir scripts',
+      'end mkdir scripts',
+      'start cd scripts',
+      'end cd scripts'
+    ])
+  })
+
   it('opens and closes a session and serves the history', async () => {
     const { bot, call, terminalService } = await setup()
 

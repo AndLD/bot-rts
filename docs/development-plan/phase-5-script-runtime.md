@@ -40,4 +40,4 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/5.1-execution-model-rfc` | 5.1 | #72 | merged |
-| `feature/5.2-quickjs-script-runtime` | 5.2 | PR_5_2 | merged |
+| `feature/5.2-quickjs-script-runtime` | 5.2 | #73 | merged |

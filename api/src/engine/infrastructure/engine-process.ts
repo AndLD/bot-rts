@@ -31,7 +31,8 @@ export class EngineProcess {
   private isClosing = false
   private ready: (() => void) | null = null
   private stopped: (() => void) | null = null
-  private incoming: (message: EngineMessage) => void = () => undefined
+  // Set by the port as soon as it is created
+  private incoming!: (message: EngineMessage) => void
 
   constructor(private readonly options: EngineProcessOptions) {
     const channel: MessageChannel<EngineMessage, ControlMessage> = {

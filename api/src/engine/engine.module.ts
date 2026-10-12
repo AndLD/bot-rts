@@ -27,7 +27,7 @@ const RESPAWN_DELAY_MS = 1_000
         // The engine thread must not start an engine of its own
         const workerConfig = { ...config, engine: { ...config.engine, isEnabled: false }, smtp: undefined }
         const process = new EngineProcess({
-          spawn: () => spawnEngineWorker(workerConfig),
+          spawn: () => spawnEngineWorker(workerConfig, __filename.endsWith('.ts')),
           logger,
           readyTimeoutMs: READY_TIMEOUT_MS,
           stopTimeoutMs: STOP_TIMEOUT_MS,

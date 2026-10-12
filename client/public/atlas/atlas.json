@@ -1,0 +1,204 @@
+{
+  "image": "atlas.svg",
+  "tileSize": 32,
+  "frames": {
+    "ground": {
+      "x": 0,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "item_generic": {
+      "x": 32,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "item_blueprint": {
+      "x": 64,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "item_ammunition": {
+      "x": 96,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "item_part": {
+      "x": 128,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "chassis_wheels": {
+      "x": 160,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "chassis_tracks": {
+      "x": 192,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "chassis_immobile": {
+      "x": 224,
+      "y": 0,
+      "w": 32,
+      "h": 32
+    },
+    "base": {
+      "x": 0,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "base_corpse": {
+      "x": 32,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_weapon": {
+      "x": 64,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_drill": {
+      "x": 96,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_scanner": {
+      "x": 128,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_antenna": {
+      "x": 160,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_cracked": {
+      "x": 192,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "resource_gold_full": {
+      "x": 224,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "resource_gold_half": {
+      "x": 0,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_gold_low": {
+      "x": 32,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_iron_full": {
+      "x": 64,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_iron_half": {
+      "x": 96,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_iron_low": {
+      "x": 128,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_stone_full": {
+      "x": 160,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_stone_half": {
+      "x": 192,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_stone_low": {
+      "x": 224,
+      "y": 64,
+      "w": 32,
+      "h": 32
+    },
+    "resource_wood_full": {
+      "x": 0,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_wood_half": {
+      "x": 32,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_wood_low": {
+      "x": 64,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_oil_full": {
+      "x": 96,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_oil_half": {
+      "x": 128,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_oil_low": {
+      "x": 160,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_crystal_full": {
+      "x": 192,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_crystal_half": {
+      "x": 224,
+      "y": 96,
+      "w": 32,
+      "h": 32
+    },
+    "resource_crystal_low": {
+      "x": 0,
+      "y": 128,
+      "w": 32,
+      "h": 32
+    }
+  }
+}

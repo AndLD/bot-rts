@@ -49,3 +49,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.4 (factory GUI).
 - **Verify with:** `npm run typecheck && npm run test:coverage`
 
+### 2026-10-12 — task 6.4: factory GUI
+- **Tasks:** 6.4
+- **Branch:** `feature/6.4-factory-gui` — done
+- **Decisions / deviations from the plan:** client only, over the factory API that existed (`/bots/:baseId/factory`, `/crafting/recipes`). `FactoryPanel` (window kind `factory`, opened for the base from the toolbar) has two tabs: **Craft** (jobs in production with the time left on the server's clock — `useServerClock`; blueprints found, with "Learn"; every recipe with its resource cost, craft time, a count and "Craft", or for an unknown blueprint the research cost and "Research"; a cost is marked in red where the base's storage lacks a resource, and the button is disabled when it cannot pay) and **Assemble** (finished modules as check boxes, the bot's name, "Assemble a bot"). It polls every 2 s because jobs finish over time. Module names are shown as "Scanner, class 2" (`useModuleName`, `modules.*` messages; a module without a translation shows its own name). Crafting and research invalidate the storage query, assembling invalidates the bot list; the map asks for its tiles again when the number of bots changes, because a new bot's cell is not streamed.
+- **Findings:** `getByRole` is very slow on a page with Ant Design tabs (a test took 28 s); the tests find buttons and boxes by text. The i18n check allows one translation namespace per file, hence the small hooks `useGameNames` and `useModuleName`.
+- **Next step:** task 6.5 (`connect` with draggable bot terminals).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`
+

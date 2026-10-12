@@ -51,5 +51,55 @@
     "noItems": "В манипуляторе пусто",
     "take": "Взять предмет впереди",
     "drop": "Бросить последний предмет вперёд"
+  },
+  "factory": {
+    "loading": "Загрузка...",
+    "jobs": "В производстве",
+    "jobKinds": {
+      "craft": "Изготовление",
+      "research": "Исследование"
+    },
+    "readyIn": "готово через {seconds} с",
+    "ready": "готово",
+    "blueprints": "Найденные чертежи",
+    "learn": "Изучить",
+    "learned": "{module}: чертёж изучен",
+    "recipes": "Рецепты",
+    "time": "{seconds} с",
+    "research": "Исследовать",
+    "count": "Сколько: {module}",
+    "craft": "Изготовить",
+    "crafting": "Изготовление: {module}",
+    "researching": "Исследование: {module}",
+    "craftTab": "Изготовление",
+    "assembleTab": "Сборка",
+    "parts": "Готовые модули",
+    "noParts": "Готовых модулей пока нет: сначала изготовьте",
+    "label": "Название бота",
+    "assemble": "Собрать бота",
+    "assembled": "Бот собран",
+    "failed": "Не получилось ({code})"
+  },
+  "modules": {
+    "named": "{type}, класс {level}",
+    "types": {
+      "scanner": "Сканер",
+      "gun": "Пушка",
+      "engine": "Двигатель",
+      "wheels": "Колёса",
+      "tracks": "Гусеницы",
+      "drill": "Бур",
+      "battery": "Батарея",
+      "storage": "Хранилище",
+      "memory": "Память",
+      "processor": "Процессор",
+      "wireless-adapter": "Беспроводной адаптер",
+      "armor": "Броня",
+      "generator": "Генератор",
+      "manipulator": "Манипулятор",
+      "gps": "GPS",
+      "repair": "Ремонт",
+      "factory": "Фабрика"
+    }
   }
 }

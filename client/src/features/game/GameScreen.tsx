@@ -4,6 +4,7 @@ import { Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import GameMap from '../map/GameMap'
+import FactoryPanel from '../factory/FactoryPanel'
 import StoragePanel from '../storage/StoragePanel'
 import Terminal from '../terminal/Terminal'
 import WindowManager from '../windows/WindowManager'
@@ -11,7 +12,7 @@ import { GameWindow, openWindow, WindowKind } from '../windows/windows.slice'
 import { useAppDispatch } from '../../shared/store/hooks'
 
 // The windows a player can open from the toolbar, for the base; more kinds are added here as their panels are built
-const LAUNCHABLE: WindowKind[] = ['terminal', 'storage']
+const LAUNCHABLE: WindowKind[] = ['terminal', 'storage', 'factory']
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
@@ -26,6 +27,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     switch (win.kind) {
       case 'terminal':
         return { title: t('kinds.terminal'), content: <Terminal /> }
+      case 'factory':
+        return { title: t('kinds.factory'), content: <FactoryPanel baseId={win.params.botId} /> }
       case 'storage':
         return { title: t('kinds.storage'), content: <StoragePanel botId={win.params.botId} /> }
       default:

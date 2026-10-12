@@ -1,3 +1,4 @@
+import { GameEvent } from '@lib/utils/interfaces/events'
 import { IMapCell, MapPointType } from '@lib/utils/interfaces/map'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
@@ -17,9 +18,15 @@ const renderer = {
   zoomAt: jest.fn(),
   cellAt: jest.fn(() => ({ x: 2, y: 3 })),
   visibleRange: jest.fn(() => ({ minX: 0, minY: 0, maxX: 5, maxY: 5 })),
-  dispose: jest.fn()
+  dispose: jest.fn(),
+  requestRender: jest.fn(),
+  getCamera: jest.fn(() => ({ centerX: 0, centerY: 0, zoom: 1 }))
 }
+const animations = { handle: jest.fn() }
 jest.mock('./renderer/MapRenderer', () => ({ MapRenderer: jest.fn(() => renderer) }))
+jest.mock('./animation/AnimationSystem', () => ({
+  AnimationSystem: jest.fn((options: unknown) => Object.assign(animations, { options }))
+}))
 const loadAtlas = jest.fn()
 jest.mock('./renderer/atlas', () => ({ loadAtlas: (...args: unknown[]) => loadAtlas(...args) }))
 
@@ -32,13 +39,19 @@ class FakeResizeObserver {
   disconnect() {}
 }
 
-function setup(center?: { x: number; y: number }, onOpenBot?: (id: string) => void) {
+function setup(center?: { x: number; y: number }, onOpenBot?: (id: string) => void, isReducedMotion = false) {
   const store = new MapStore()
   const loader = new TileLoader(jest.fn().mockResolvedValue({ now: 1, cells: [], liveAreas: [] }), store)
   const ensure = jest.spyOn(loader, 'ensure').mockResolvedValue()
   const view = (
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
-      <MapCanvas store={store} loader={loader} center={center} onOpenBot={onOpenBot} />
+      <MapCanvas
+        store={store}
+        loader={loader}
+        center={center}
+        onOpenBot={onOpenBot}
+        isReducedMotion={isReducedMotion}
+      />
     </NextIntlClientProvider>
   )
 
@@ -214,6 +227,29 @@ describe('MapCanvas', () => {
 
     expect(renderer.dispose).toHaveBeenCalled()
     expect(renderer.setAtlas).not.toHaveBeenCalled()
+  })
+
+  it('plays the game events of the store as animations, and draws again', () => {
+    const { store } = setup()
+    const event: GameEvent = { type: 'EnergyLow', at: 1, parties: [{ userId: 'u', botId: 'b1' }] }
+
+    store.publishEvent(event)
+
+    expect(animations.handle).toHaveBeenCalledWith(event)
+    expect(renderer.requestRender).toHaveBeenCalled()
+  })
+
+  it('gives the animations what they need: the time, the bots, the zoom and the motion setting', () => {
+    const { store, rerender, view } = setup(undefined, undefined, true)
+    const options = (animations as unknown as { options: Record<string, () => unknown> }).options
+    store.apply({ now: 1, cells: [{ x: 4, y: 5, type: MapPointType.BOT, contentId: 'b9', seenAt: 1 }] })
+
+    expect(typeof options.now()).toBe('number')
+    expect(options.locate).toBeDefined()
+    expect((options.locate as unknown as (id: string) => unknown)('b9')).toEqual({ x: 4, y: 5 })
+    expect(options.zoom()).toBe(1)
+    expect(options.isReducedMotion()).toBe(true)
+    rerender(view)
   })
 
   it('resizes with its container', () => {

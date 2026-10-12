@@ -7,10 +7,12 @@ import { TileLoader } from './TileLoader'
 
 jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
 const canvas = jest.fn()
+const reduced = jest.fn()
 jest.mock('./MapCanvas', () => ({
   __esModule: true,
-  default: (props: { center?: { x: number; y: number }; onOpenBot?: unknown }) => {
+  default: (props: { center?: { x: number; y: number }; onOpenBot?: unknown; isReducedMotion?: boolean }) => {
     canvas(props.center, props.onOpenBot)
+    reduced(props.isReducedMotion)
     return <div>the map</div>
   }
 }))
@@ -20,7 +22,11 @@ describe('GameMap', () => {
     jest
       .mocked(baseQueryWithRefresh)
       .mockImplementation((async (args: { url: string }) =>
-        args.url.includes('/map/bots/') ? { data: { x: 7, y: 8 } } : { data: [{ _id: 'b1' }] }) as never)
+        args.url.includes('/map/bots/')
+          ? { data: { x: 7, y: 8 } }
+          : args.url.endsWith('/settings')
+            ? { data: { user: { reducedMotion: null } } }
+            : { data: [{ _id: 'b1' }] }) as never)
 
     renderApp(<GameMap baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
 
@@ -41,11 +47,33 @@ describe('GameMap', () => {
     jest
       .mocked(baseQueryWithRefresh)
       .mockImplementation((async (args: { url: string }) =>
-        args.url.includes('/map/bots/') ? { data: { x: 1, y: 1 } } : { data: [{ _id: 'b1' }, { _id: 'b2' }] }) as never)
+        args.url.includes('/map/bots/')
+          ? { data: { x: 1, y: 1 } }
+          : args.url.endsWith('/settings')
+            ? { data: { user: { reducedMotion: null } } }
+            : { data: [{ _id: 'b1' }, { _id: 'b2' }] }) as never)
 
     renderApp(<GameMap baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
 
     await jest.requireActual('@testing-library/react').waitFor(() => expect(invalidate).toHaveBeenCalledTimes(2))
     invalidate.mockRestore()
+  })
+
+  it.each([
+    [true, true],
+    [false, false]
+  ])('tells the map whether motion is reduced (setting %p)', async (reducedMotion, expected) => {
+    jest
+      .mocked(baseQueryWithRefresh)
+      .mockImplementation((async (args: { url: string }) =>
+        args.url.endsWith('/settings')
+          ? { data: { user: { reducedMotion } } }
+          : args.url.includes('/map/bots/')
+            ? { data: { x: 1, y: 1 } }
+            : { data: [] }) as never)
+
+    renderApp(<GameMap baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
+
+    await jest.requireActual('@testing-library/react').waitFor(() => expect(reduced).toHaveBeenLastCalledWith(expected))
   })
 })

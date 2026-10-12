@@ -1,3 +1,4 @@
+import { GameEvent } from '@lib/utils/interfaces/events'
 import { IMapCell, MapPointType } from '@lib/utils/interfaces/map'
 import { MapStore } from './MapStore'
 
@@ -96,5 +97,27 @@ describe('MapStore', () => {
     store.clear()
 
     expect(store.getCells().size).toBe(0)
+  })
+
+  it('hands the game events to those who listen, until they stop', () => {
+    const store = new MapStore()
+    const listener = jest.fn()
+    const off = store.subscribeEvents(listener)
+    const event: GameEvent = { type: 'EnergyLow', at: 1, parties: [{ userId: 'u', botId: 'b1' }] }
+
+    store.publishEvent(event)
+    off()
+    store.publishEvent(event)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(listener).toHaveBeenCalledWith(event)
+  })
+
+  it('finds where a bot is', () => {
+    const store = new MapStore()
+    store.apply({ now: 1, cells: [bot(3, 'b7')] })
+
+    expect(store.locate('b7')).toEqual({ x: 3, y: 0 })
+    expect(store.locate('nobody')).toBeNull()
   })
 })

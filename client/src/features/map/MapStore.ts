@@ -1,8 +1,10 @@
+import { GameEvent } from '@lib/utils/interfaces/events'
 import { ILiveArea, IMapCell, IMapUpdate, IMapView, IRadioChange } from '@lib/utils/interfaces/map'
 import { BotLink, toMapCell } from './mapper'
 import { cellKey, MapCell } from './renderer/model'
 
 type Listener = () => void
+type EventListener = (event: GameEvent) => void
 
 // The map the player has on screen: the cells received so far, which areas are live, and what the radio said. It is not in
 // Redux because batches of cells arrive many times a second and only the canvas reads them. The renderer is told through
@@ -13,6 +15,7 @@ export class MapStore {
   private links = new Map<string, BotLink>()
   private cells = new Map<string, MapCell>()
   private listeners = new Set<Listener>()
+  private eventListeners = new Set<EventListener>()
   // Server time minus local time, so ages are counted in the server's clock
   private offset = 0
 
@@ -20,6 +23,30 @@ export class MapStore {
     this.listeners.add(listener)
 
     return () => this.listeners.delete(listener)
+  }
+
+  // The game events the player may see, for the animations
+  subscribeEvents(listener: EventListener): () => void {
+    this.eventListeners.add(listener)
+
+    return () => this.eventListeners.delete(listener)
+  }
+
+  publishEvent(event: GameEvent) {
+    for (const listener of this.eventListeners) {
+      listener(event)
+    }
+  }
+
+  // Where one of the bots on the map is
+  locate(botId: string): { x: number; y: number } | null {
+    for (const cell of this.raw.values()) {
+      if (cell.contentId === botId) {
+        return { x: cell.x, y: cell.y }
+      }
+    }
+
+    return null
   }
 
   // The current time of the game, in ms

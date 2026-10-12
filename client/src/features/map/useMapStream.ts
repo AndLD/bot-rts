@@ -1,3 +1,4 @@
+import { GameEvent } from '@lib/utils/interfaces/events'
 import { useEffect, useMemo } from 'react'
 import { useSocket } from '../../shared/socket/socket-context'
 import { MapStore } from './MapStore'
@@ -22,7 +23,12 @@ export function useMapStream() {
     const onAreas = (areas: Parameters<typeof store.setLiveAreas>[0]) => store.setLiveAreas(areas)
     const onRadio = (changes: Parameters<typeof store.setRadio>[0]) => store.setRadio(changes)
     // A scan adds knowledge the stream does not carry, and a reconnect may have missed pushes
-    const onGameEvent = (event: { type: string }) => event.type === 'ScanCompleted' && loader.invalidate()
+    const onGameEvent = (event: GameEvent) => {
+      store.publishEvent(event)
+      if (event.type === 'ScanCompleted') {
+        loader.invalidate()
+      }
+    }
     const reload = () => loader.invalidate()
 
     socket.on('map-cells', onCells)

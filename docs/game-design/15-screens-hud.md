@@ -61,6 +61,8 @@
 
 ## 15.2 Map animations ✅
 
+_Implemented (Plan 6.11): move tween, shot, hit, mine, deposit depleted, scan, module damaged / broken, link lost / restored, low energy, with the effect cap, level of detail and reduced motion. Still to come with their events: craft / assemble, repair, disassemble, adopt._
+
 The map renderer (§4.3) plays short **animations driven by game events** (§24.1), only for events the player can see:
 
 | Event | Animation |

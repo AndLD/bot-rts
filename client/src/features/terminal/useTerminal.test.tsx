@@ -332,6 +332,18 @@ describe('useTerminal: connecting to other bots', () => {
   })
 })
 
+describe('useTerminal: failing commands', () => {
+  it('shows what is wrong with a script that cannot be loaded, in the server words', async () => {
+    const { result } = await connected({
+      'terminal-command': answering({ type: 'error', code: 'SCRIPT_LOAD_FAILED', message: 'Cyclic import: /a -> /b' })
+    })
+
+    act(() => result.current.run('run a.js'))
+
+    expect(result.current.lines.at(-1)).toBe('Error: Cyclic import: /a -&gt; /b')
+  })
+})
+
 describe('useTerminal: the editor', () => {
   beforeEach(() => jest.clearAllMocks())
 

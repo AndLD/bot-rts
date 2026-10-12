@@ -1,0 +1,44 @@
+.game-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  border: 1px solid #666;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  color: #fff;
+}
+
+.game-window-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #222;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.game-window-close {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.game-window-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.game-window-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(135deg, transparent 50%, #888 50%);
+}

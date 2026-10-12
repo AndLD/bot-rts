@@ -34,3 +34,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.10 (window manager), then 6.3, 6.4, 6.5, 6.7, 6.8.
 - **Verify with:** `npm run typecheck && npm run test:coverage`
 
+### 2026-10-12 — task 6.10: window manager
+- **Tasks:** 6.10
+- **Branch:** `feature/6.10-window-manager` — done
+- **Decisions / deviations from the plan:** windows are a Redux slice (`windows.slice.ts`: open, close, focus by raising a z counter, place = move/resize with a minimum size) so any feature can open one with `openWindow({ id, kind, params })`; the id decides identity (one window per id, a second open only raises it) and the place memory (`localStorage` key `windows-layout`, per id), so several bot terminals are `terminal:<botId>` windows. `WindowFrame` does the dragging (title bar, pointer capture, kept grabbable on screen) and resizing (corner handle); `WindowManager` renders the open windows and takes a `renderWindow` function from the screen, so new kinds need no change there (open/closed). `GameScreen` replaces the side-by-side layout of 6.2: the map fills the screen, a toolbar opens windows, the terminal opens by default. The terminal's font went from 30 to 18 px to fit a window. Kinds `storage`, `factory`, `control`, `settings`, `editor` are reserved and get content with 6.3, 6.4, 6.7, 6.8 and the editor.
+- **Next step:** task 6.3 (physical storage GUI), then 6.4, 6.5, 6.7, 6.8, 6.9, 6.11, 6.6, 6.12.
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`
+

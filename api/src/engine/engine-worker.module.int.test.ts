@@ -19,7 +19,15 @@ beforeAll(async () => {
   database = await createTestDatabase()
 })
 beforeEach(() => database.reset())
+afterEach(async () => {
+  // Whatever a test left running is stopped, so that nothing keeps writing to a database that is about to go
+  for (const stop of running.splice(0)) {
+    await stop()
+  }
+})
 afterAll(() => database.drop())
+
+const running: Array<() => Promise<void>> = []
 
 function channel() {
   const toEngine: Array<(message: ControlMessage) => void> = []
@@ -45,6 +53,11 @@ describe('EngineWorkerModule', () => {
     const config = loadConfig({ DATABASE_URL: urlForDatabase(db), NODE_ENV: 'test', ENGINE_TICK_INTERVAL_MS: '10' })
     const { link, fromEngine, send } = channel()
     const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    running.push(async () => {
+      send({ kind: 'stop' })
+      await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
+      await app.close()
+    })
     const user = buildUser()
     await new PrismaUserRepository(database.client).add(user)
     const { bot } = await app.get(BotsService).deployUserBase(user, { password: 'secret1' })
@@ -74,11 +87,7 @@ describe('EngineWorkerModule', () => {
     expect(fromEngine[0]).toEqual({ kind: 'ready' })
     const lines = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'log' ? [m.event.text] : []))
     expect(lines).toEqual(['true 9 7', 'true'])
-    expect(await database.client.execution.count({ where: { status: 'finished' } })).toBe(1)
-
-    send({ kind: 'stop' })
-    await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
-    await app.close()
+    await until(async () => (await database.client.execution.count({ where: { status: 'finished' } })) === 1, 'the end')
   })
 
   it('moves a bot in memory and writes the new place and heading to the database behind', async () => {
@@ -93,6 +102,11 @@ describe('EngineWorkerModule', () => {
     })
     const { link, fromEngine, send } = channel()
     const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    running.push(async () => {
+      send({ kind: 'stop' })
+      await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
+      await app.close()
+    })
     const user = buildUser()
     await new PrismaUserRepository(database.client).add(user)
     const bots = app.get(BotsService)
@@ -142,9 +156,5 @@ describe('EngineWorkerModule', () => {
     expect(
       await database.client.mapPoint.findFirst({ where: { x: before.x, y: before.y, contentId: rover.id } })
     ).toBeNull()
-
-    send({ kind: 'stop' })
-    await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
-    await app.close()
   })
 })

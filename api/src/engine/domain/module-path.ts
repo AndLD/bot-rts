@@ -30,7 +30,7 @@ export function importCandidates(importer: string, specifier: string): string[] 
   const exact = `/${drive}/${parts.join('/')}`
   return SCRIPT_EXTENSIONS.some((extension) => exact.endsWith(extension))
     ? [exact]
-    : [exact, ...SCRIPT_EXTENSIONS.map((extension) => `${exact}${extension}`)]
+    : SCRIPT_EXTENSIONS.map((extension) => `${exact}${extension}`)
 }
 
 // The module specifiers a compiled (JavaScript) file imports or re-exports

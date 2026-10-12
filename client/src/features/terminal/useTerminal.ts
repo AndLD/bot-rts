@@ -89,11 +89,16 @@ export function useTerminal() {
   }, [socket, currentBotId, t])
 
   // The error as a line: translated by its code when we have a text for it, otherwise the server's own message. A usage
-  // error is the message itself, which says how the command is used.
+  // error and a script that cannot be loaded are the message itself, which says how the command is used or what is wrong.
   const failure = useCallback(
     (message?: string, code?: string) =>
       escapeHtml(
-        t('error', { message: errorMessage({ code: code === ErrorCode.COMMAND_USAGE ? undefined : code, message }) })
+        t('error', {
+          message: errorMessage({
+            code: code === ErrorCode.COMMAND_USAGE || code === ErrorCode.SCRIPT_LOAD_FAILED ? undefined : code,
+            message
+          })
+        })
       ),
     [t, errorMessage]
   )

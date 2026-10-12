@@ -119,3 +119,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Findings:** the factory e2e flake of the PR before was real: a battery written straight into the database is overwritten by the engine (see 5.10); the access rules therefore never write energy outside the engine.
 - **Next step:** task 5.11 (Cypress e2e for the script lifecycle), then 5.7.
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api`
+
+### 2026-10-12 — task 5.11: end-to-end tests of the script lifecycle
+- **Tasks:** 5.11
+- **Branch:** `feature/5.11-script-e2e` — done
+- **Decisions / deviations from the plan:** `scripts.cy.ts` has ten tests: run with arguments and the live log, a file name typed alone, `top` / `kill` (by the short id), a second script queued behind the first (the starter processor runs one execution at a time), a failing script, shell mode, TypeScript with imports of a library and JSON, an import cycle and a missing import (the terminal shows the server's own words for `SCRIPT_LOAD_FAILED`), a closed sandbox (`process`, `require`, `Date`, `fetch` are not there), and a script that writes its output while the player is away from the game page (the stored log has it). Two cases of the plan are covered below the browser: the relaunch after an engine restart (`engine.int.test.ts` kills the engine thread; an e2e stack cannot) and the ops budget (unit tests of the scheduler and the engine core). The spec found two bugs: an import without an extension tried the bare path first, which the drives refuse as an invalid name (now only the names with `.js` / `.ts` / `.json` are tried, and a refused name counts as a missing file), and the typed file name `nothing` was reported as a validation error instead of an unknown command.
+- **Next step:** task 5.7 (security and load tests), then the exit criteria of Phase 5.
+- **Verify with:** `npm run e2e` (or `node scripts/e2e.mjs -- --spec cypress/e2e/scripts.cy.ts`)

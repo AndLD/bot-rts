@@ -108,8 +108,9 @@ describe('BotAccessService connect', () => {
   it('does not reach a bot that has an adapter but stands nowhere on the map', async () => {
     const t = await setup()
     const lost = await t.worker(bob, t.theirs.id)
-    const point = await t.repositories.map.findPointByContentId(lost.id)
-    t.repositories.map.points.delete(point!.id)
+    for (const [id, point] of t.repositories.map.points) {
+      if (point.contentId === lost.id) t.repositories.map.points.delete(id)
+    }
 
     await expect(t.connect('x', lost.id)).rejects.toBeInstanceOf(BotUnreachableError)
   })

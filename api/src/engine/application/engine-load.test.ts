@@ -104,7 +104,8 @@ describe('the engine under load', () => {
     // Ticks may run over the interval a little (the cap defers the rest), but not by multiples of it
     expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * 2.5)
     const counts = [...progress.values()]
-    expect(Math.min(...counts)).toBeGreaterThan(5)
+    // How many steps each bot gets depends on the speed of the machine; that every bot gets some and none gets far more is not
+    expect(Math.min(...counts)).toBeGreaterThan(0)
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(Math.ceil(Math.max(...counts) / 2))
   })
 

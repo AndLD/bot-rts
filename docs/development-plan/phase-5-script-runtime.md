@@ -41,4 +41,4 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/5.1-execution-model-rfc` | 5.1 | #72 | merged |
 | `feature/5.2-quickjs-script-runtime` | 5.2 | #73 | merged |
-| `feature/5.3-script-api-layer` | 5.3 | PR_5_3 | merged |
+| `feature/5.3-script-api-layer` | 5.3 | #74 | merged |

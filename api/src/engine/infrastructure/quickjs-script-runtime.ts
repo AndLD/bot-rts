@@ -1,3 +1,4 @@
+import { createRequire } from 'module'
 import releaseSyncVariant from '@jitl/quickjs-wasmfile-release-sync'
 import {
   newQuickJSWASMModuleFromVariant,
@@ -45,9 +46,12 @@ const INTERRUPTED = 'interrupted'
 
 // The stock variant loads its WASM glue with a dynamic import, which Jest's module system refuses; a plain require of the
 // same file works in Node and in the tests
+const nodeRequire = createRequire(__filename)
+
 const variant: QuickJSSyncVariant = {
   ...releaseSyncVariant,
-  importModuleLoader: () => Promise.resolve(require('@jitl/quickjs-wasmfile-release-sync/emscripten-module').default)
+  importModuleLoader: () =>
+    Promise.resolve(nodeRequire('@jitl/quickjs-wasmfile-release-sync/emscripten-module').default)
 }
 
 export class QuickJsScriptRuntime implements ScriptRuntime {

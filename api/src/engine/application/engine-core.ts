@@ -7,11 +7,13 @@ import { Logger } from '../../shared/application/logger'
 import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { BotState } from '../domain/bot-state'
+import { capacityOf } from '../domain/bot-capacity'
 import { EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionState, ExecutionStatus, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { ScriptFailure } from '../domain/script-failure'
 import { ScriptMisuseError } from '../domain/script-misuse'
+import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
 import { BotStateSource, EngineSink, ScriptSource } from './engine-ports'
 import { ExecutionRepository } from './execution.repository'
@@ -20,7 +22,7 @@ import { Scheduler } from './scheduler'
 import { ScriptApi } from './script-api'
 import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
-import { scriptFunctionsFor } from '../../../../lib/utils/script-api'
+import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
 
 export interface StartRequest {
@@ -47,6 +49,8 @@ export interface EngineDependencies {
   runtime: ScriptRuntime
   api: ScriptApi
   scheduler: Scheduler
+  // Shared with the scheduler, which reads the parallel limits from it
+  capacities: BotCapacities
   registry: ModuleRegistry
   writeBehind: WriteBehind
   sink: EngineSink
@@ -69,6 +73,8 @@ interface InboxItem {
 export class EngineCore {
   private readonly live = new Map<string, LiveExecution>()
   private readonly inbox: InboxItem[] = []
+  // Game calls the bots' op budgets have not let through yet, oldest first
+  private backlog: EngineCommand[] = []
   private readonly metrics = new EngineMetrics()
   private tickNumber = 0
 
@@ -175,24 +181,26 @@ export class EngineCore {
 
     await this.drainInbox()
 
-    const commands: EngineCommand[] = []
-    let isCut = false
+    const planned = this.deps.scheduler.plan([...this.live.values()], tick)
     const cutoff = startedAt + config.tickIntervalMs * config.tickCapRatio
-    for (const live of this.deps.scheduler.order([...this.live.values()], tick)) {
-      if (this.deps.monotonicMs() >= cutoff) {
-        isCut = true
-        break
-      }
-      commands.push(...(await this.runExecution(live, tick)))
+    const hasTime = () => this.deps.monotonicMs() < cutoff
+
+    const commands: EngineCommand[] = []
+    let reached = 0
+    while (reached < planned.length && hasTime()) {
+      commands.push(...(await this.runExecution(planned[reached], tick)))
+      reached += 1
     }
-    await this.apply(commands)
+    this.deps.scheduler.deferred(planned.slice(reached))
+
+    const isCut = await this.apply(commands, hasTime)
     await this.deps.writeBehind.flushIfDue(tick)
 
     this.metrics.record({
       tick,
       durationMs: this.deps.monotonicMs() - startedAt,
       intervalMs: config.tickIntervalMs,
-      isCut
+      isCut: isCut || reached < planned.length
     })
   }
 
@@ -221,6 +229,7 @@ export class EngineCore {
       time: () => this.tickNumber * this.deps.config.tickIntervalMs,
       log: (args) => this.log(record, 'output', args.map(format).join(' '))
     }
+    this.learn(state)
     const script = this.deps.runtime.createExecution({
       source,
       fileName: record.file,
@@ -257,15 +266,37 @@ export class EngineCore {
     return commands
   }
 
-  // Applies the game calls of a tick in the order they were made; the answers reach the scripts at the next tick
-  private async apply(commands: readonly EngineCommand[]): Promise<void> {
-    for (const command of commands) {
+  // Applies the game calls in the order they were made, as far as each bot's ops per tick allow (design §12.2.1); the answers
+  // reach the scripts at the next tick. What does not fit, or does not fit in the time left, waits for the next tick.
+  // Returns whether the time ran out.
+  private async apply(commands: readonly EngineCommand[], hasTime: () => boolean): Promise<boolean> {
+    const spent = new Map<string, number>()
+    const waiting: EngineCommand[] = []
+    let isCut = false
+    for (const command of [...this.backlog, ...commands]) {
       const live = this.live.get(command.executionId)
       if (!live) {
         continue
       }
+      const budget = this.deps.capacities.get(command.botId).opsPerTick
+      // Scripts can only call the functions of the catalog
+      const cost = (findScriptFunction(command.fn) as ScriptFunctionSpec).ops
+      const used = spent.get(command.botId) ?? 0
+      // A call dearer than a whole tick's budget would never run; it takes the budget of a tick alone
+      if (isCut || (used > 0 && used + cost > budget) || budget === 0) {
+        waiting.push(command)
+        continue
+      }
+      if (!hasTime()) {
+        isCut = true
+        waiting.push(command)
+        continue
+      }
+      spent.set(command.botId, used + cost)
       live.answer(command.callId, await this.answerFor(command))
     }
+    this.backlog = waiting
+    return isCut
   }
 
   private async answerFor(command: EngineCommand) {
@@ -274,6 +305,7 @@ export class EngineCore {
       if (!state) {
         return { value: failureValue(ResultCode.NOT_FOUND, 'The bot is gone') }
       }
+      this.learn(state)
       return { value: await this.callApi(state, command) }
     } catch (error) {
       if (error instanceof ScriptMisuseError) {
@@ -282,6 +314,11 @@ export class EngineCore {
       this.deps.logger.error(error)
       return { misuse: 'Internal error' }
     }
+  }
+
+  // Remembers what the bot's processors allow, as of the modules just read
+  private learn(state: BotState): void {
+    this.deps.capacities.set(state.bot.id, capacityOf(this.deps.registry.instantiateAll(state.modules)))
   }
 
   private async callApi(state: BotState, command: EngineCommand): Promise<JsonValue | undefined> {
@@ -295,6 +332,9 @@ export class EngineCore {
   private async finish(live: LiveExecution, status: ExecutionStatus, reason: string | null): Promise<ExecutionView> {
     this.live.delete(live.record.id)
     live.dispose()
+    if (![...this.live.values()].some((other) => other.record.botId === live.record.botId)) {
+      this.deps.capacities.forget(live.record.botId)
+    }
     return this.end(live.record, status, reason)
   }
 

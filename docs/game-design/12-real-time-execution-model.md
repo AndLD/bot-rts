@@ -47,6 +47,12 @@ for each tick:
   player's bots in a stable order, so no player systematically runs first.
 - Each execution has a **wall-clock slice** per tick, and the tick has a **global time cap**. If the cap is hit,
   unprocessed work resumes next tick from a **round-robin resume point**, so nobody is starved.
+- ✅ **How it is scheduled (Plan 5.4):** the players with a live execution take turns **one execution each per round** (not
+  all of one player first), in a seeded shuffle drawn per tick, so a tick cut short by the global cap has served every player
+  alike; the executions the cap kept from running go first next tick. A bot runs at most `parallelExecutions` of its
+  executions; the others stay `queued`. A bot's game calls are let through up to its `opsPerTick` per tick, oldest first
+  (several processors add up); the rest wait for the next tick, and a bot without a working processor runs nothing. The
+  scheduler never looks at whether the player is online.
 - Commands produced during a tick are collected and applied in a deterministic order (§12.4), not by arrival time.
 
 ## 12.2.1 Processor model ✅

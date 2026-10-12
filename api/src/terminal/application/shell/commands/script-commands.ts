@@ -1,3 +1,4 @@
+import { ErrorCode } from '../../../../../../lib/utils/error-codes'
 import { IExecution } from '../../../../../../lib/utils/interfaces/executions'
 import { FilesService } from '../../../../files/application/files.service'
 import { NotFoundError } from '../../../../shared/domain/errors'
@@ -15,6 +16,9 @@ import {
   TerminalCommand,
   UnknownCommandError
 } from '../terminal-command'
+
+// What the files answer for a name that is no file of the drives
+const NO_SUCH_FILE_CODES: ReadonlySet<string> = new Set([ErrorCode.NOT_FOUND, ErrorCode.VALIDATION_FAILED])
 
 const NUMBER = /^-?\d+(\.\d+)?$/
 const BOOLEANS = new Map([
@@ -73,8 +77,8 @@ export class ScriptFileCommand extends RunCommand {
     try {
       return await this.start(context, context.name, context.args)
     } catch (error) {
-      // No file of that name, or nowhere to look for it: the player typed something that is no command
-      if (error instanceof NoDriveSelectedError || (error instanceof AppError && error.statusCode === 404)) {
+      // No file of that name (or a name no file can have), or nowhere to look for it: the player typed something that is no command
+      if (error instanceof NoDriveSelectedError || (error instanceof AppError && NO_SUCH_FILE_CODES.has(error.code))) {
         throw new UnknownCommandError(context.name)
       }
       throw error

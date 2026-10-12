@@ -1,3 +1,4 @@
+import { ValidationError } from '../../shared/domain/errors'
 import { FakeScriptSource } from '../../../tests/fakes/engine'
 import { ScriptLoadError } from '../domain/engine.errors'
 import { ModuleLimits } from '../domain/engine-config'
@@ -83,6 +84,16 @@ describe('ModuleLoader', () => {
     const { load } = setup({ '/m/main.js': "import './nothing'" })
 
     await expect(load()).rejects.toThrow('Cannot find "./nothing" imported by /m/main.js')
+  })
+
+  it('takes a path the drive refuses as a missing file', async () => {
+    const { load, source } = setup({ '/m/main.js': "import './bad'" })
+    jest.spyOn(source, 'read').mockImplementation(async (_u, _b, path) => {
+      if (path === '/m/main.js') return "import './bad'"
+      throw new ValidationError('Invalid path')
+    })
+
+    await expect(load()).rejects.toThrow('Cannot find "./bad"')
   })
 
   it('rejects an import that is not a relative path of the drive', async () => {

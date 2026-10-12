@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { NotFoundError } from '../../shared/domain/errors'
+import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { ModuleLimits } from '../domain/engine-config'
 import { ScriptLoadError } from '../domain/engine.errors'
 import { importCandidates, importsOf } from '../domain/module-path'
@@ -64,7 +64,8 @@ export class ModuleLoader {
       try {
         return { path, text: await this.source.read(owner.userId, owner.botId, path) }
       } catch (error) {
-        if (!(error instanceof NotFoundError)) {
+        // A path no file can have (a name the drive refuses) is as good as a missing file
+        if (!(error instanceof NotFoundError || error instanceof ValidationError)) {
           throw error
         }
       }

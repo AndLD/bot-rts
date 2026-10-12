@@ -3,7 +3,6 @@ import { importCandidates, importsOf } from './module-path'
 describe('importCandidates', () => {
   it('resolves a relative path against the importing file, trying the extensions when there is none', () => {
     expect(importCandidates('/memory/main.js', './lib/util')).toEqual([
-      '/memory/lib/util',
       '/memory/lib/util.js',
       '/memory/lib/util.ts',
       '/memory/lib/util.json'

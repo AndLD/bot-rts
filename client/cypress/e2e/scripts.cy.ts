@@ -153,8 +153,16 @@ describe('the scripts of the base in the terminal', () => {
     cy.contains(/started [0-9a-f-]{36}/)
     cy.visit('/')
 
-    cy.task<string[]>('terminalLines', { email }, { timeout: 10000 }).should((lines) => {
-      expect(lines.some((line) => line.includes('done while away'))).to.equal(true)
-    })
+    // The player is gone: wait until the stored log has what the script wrote
+    const stored = (attempt = 0): Cypress.Chainable<string[]> =>
+      cy.task<string[]>('terminalLines', { email }, { log: false }).then((lines) => {
+        if (lines.some((line) => line.includes('done while away')) || attempt >= 20) {
+          return cy.wrap(lines)
+        }
+
+        return cy.wait(500, { log: false }).then(() => stored(attempt + 1))
+      })
+
+    stored().should((lines) => expect(lines.some((line) => line.includes('done while away'))).to.equal(true))
   })
 })

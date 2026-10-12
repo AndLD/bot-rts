@@ -2,7 +2,7 @@ import { TERMINAL_COMMANDS } from '../../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../../tests/fakes/world'
 import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { customiseDrive } from '../../../../tests/fakes/drives'
-import { ForbiddenError } from '../../../shared/domain/errors'
+import { ForbiddenError, ValidationError } from '../../../shared/domain/errors'
 import { RecipeService } from '../../../crafting/application/recipe.service'
 import { RecipeBook } from '../../../crafting/domain/recipe-book'
 import { InMemoryBlueprintRepository } from '../../../../tests/fakes/fakes'
@@ -454,6 +454,8 @@ describe('the script commands', () => {
 
     expect(await t.lines('main.js 1')).toEqual(['started exec-1'])
     expect(await t.lines('nothing')).toMatchObject({ code: 'UNKNOWN_COMMAND' })
+    t.scriptRunner.start = jest.fn().mockRejectedValue(new ValidationError('Invalid path'))
+    expect(await t.lines('not-a-file-name')).toMatchObject({ code: 'UNKNOWN_COMMAND' })
   })
 
   it('says unknown for a name when no drive is selected, and passes on other failures', async () => {

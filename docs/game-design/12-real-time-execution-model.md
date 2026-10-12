@@ -118,6 +118,10 @@ metrics.
 - **After a restart, executions that were running are automatically relaunched from the beginning of `main`** with their
   original arguments. Script variables and the point where the script was paused are **not** preserved, so scripts
   should be restartable (read the world, then decide again). The relaunched script's log shows a "rebooted" note.
+- ✅ **Implementation (Plan 5.4a):** the database stores an execution as `active`, `finished` or `killed` with a restart
+  counter; the finer states of §12.3 live only in the engine. A deliberate stop (`stop` message, graceful shutdown) resets
+  the counters, an unclean one increments them when the execution is relaunched, and an execution that ran
+  `ENGINE_HEALTHY_TICKS` ticks since its relaunch forgets them.
 - **Crash-loop guard:** an execution that was running during several consecutive engine crashes is marked `killed`
   instead of being relaunched again (threshold: tunable config).
 

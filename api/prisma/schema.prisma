@@ -97,6 +97,7 @@ model User {
   spawnSeedMemberships SpawnSeedMember[]
   terminalSessions     TerminalSession[]
   blueprints           Blueprint[]
+  executions           Execution[]
 
   @@index([createdAt])
   @@map("users")
@@ -188,6 +189,7 @@ model Bot {
   terminalLogs         TerminalLog[]
   spawnSeedMemberships SpawnSeedMember[]
   items                Item[]
+  executions           Execution[]
 
   @@index([userId, type])
   @@index([baseId])
@@ -375,4 +377,37 @@ model Blueprint {
 
   @@id([userId, module])
   @@map("blueprints")
+}
+
+enum ExecutionStatus {
+  active
+  finished
+  killed
+
+  @@map("execution_status")
+}
+
+// A script run on a bot (design §12.3, §12.3.1). The engine is its only writer; an execution that is still active after
+// an engine restart is relaunched from the beginning of `main`.
+model Execution {
+  id        String          @id @db.Uuid
+  botId     String          @map("bot_id") @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  // The script file as `/<drive>/<path>` on the bot's drives
+  file      String
+  args      Json
+  status    ExecutionStatus
+  // How often the engine relaunched it after an unclean stop; reaching the limit kills it (crash-loop guard)
+  restarts  Int             @default(0)
+  reason    String?
+  createdAt DateTime        @map("created_at") @db.Timestamptz(3)
+  endedAt   DateTime?       @map("ended_at") @db.Timestamptz(3)
+
+  bot  Bot  @relation(fields: [botId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // What a restarted engine relaunches, oldest first; `top` of a player
+  @@index([status, createdAt])
+  @@index([userId, status])
+  @@map("executions")
 }

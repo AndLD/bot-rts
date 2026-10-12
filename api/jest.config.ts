@@ -40,6 +40,7 @@ const config: Config = {
     '!jest.config.ts', // config
     '!index.ts', // process entry point (bootstrap only)
     '!src/load-env.ts', // loads the .env file at process start (bootstrap only)
+    '!src/engine/infrastructure/engine-worker.ts', // entry point of the engine thread; Jest cannot instrument a worker thread, the engine integration test runs it
     '!prisma/**', // seed script and migrations
     '!scripts/**' // command line entry points
   ],

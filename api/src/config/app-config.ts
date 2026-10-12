@@ -8,6 +8,7 @@ import { readSpawnConfig } from '../spawn/infrastructure/spawn-config.reader'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
+import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
 
 export const APP_CONFIG = Symbol('AppConfig')
 
@@ -39,6 +40,7 @@ export interface AppConfig {
   world: WorldConfig
   spawn: SpawnConfig
   crafting: CraftingConfig
+  engine: EngineSettings
   terminal: TerminalRetention
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
@@ -123,6 +125,7 @@ export function loadConfig(env: Env): AppConfig {
 
   const world = readWorldConfig(env, problems)
   const crafting = readCraftingConfig(env, problems)
+  const engine = readEngineSettings(env, nodeEnv === 'test', problems)
 
   if (problems.length) {
     throw new ConfigError(problems)
@@ -142,6 +145,7 @@ export function loadConfig(env: Env): AppConfig {
     world,
     spawn: readSpawnConfig(env),
     crafting,
+    engine,
     terminal: {
       logDays: positiveInt(env.TERMINAL_LOG_RETENTION_DAYS, DEFAULT_TERMINAL_RETENTION.logDays),
       maxLinesPerBot: positiveInt(env.TERMINAL_LOG_MAX_LINES, DEFAULT_TERMINAL_RETENTION.maxLinesPerBot),

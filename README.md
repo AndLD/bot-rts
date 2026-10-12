@@ -96,16 +96,16 @@ enforces the layer rules.
 
 ## Tech stack
 
-| Layer        | Technology                                                                   |
-| ------------ | ---------------------------------------------------------------------------- |
-| Backend      | Node.js, Express 4, TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL (**moving to NestJS on the Express adapter**, see the development plan) |
-| Auth         | `jsonwebtoken`, `bcrypt`, `cookie-parser`, `cors`, `helmet`                   |
-| Email        | `nodemailer` (SMTP)                                                           |
-| Logging      | `log4js`                                                                      |
-| Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5, Next.js (App Router) with React 19, which also hosts the landing page |
-| Code editor  | CodeMirror 6 (planned for the script editor; verified to work with Next 16 / React 19) |
-| Shared       | `lib/` (plain TS interfaces)                                                  |
-| Testing      | Jest (`api` with `ts-jest`, `client` with `next/jest`), integration tests on PostgreSQL in Docker (no in-memory databases), Cypress end-to-end |
+| Layer        | Technology                                                                                                                                                                              |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend      | Node.js, Express 4, TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL (**moving to NestJS on the Express adapter**, see the development plan)                                     |
+| Auth         | `jsonwebtoken`, `bcrypt`, `cookie-parser`, `cors`, `helmet`                                                                                                                             |
+| Email        | `nodemailer` (SMTP)                                                                                                                                                                     |
+| Logging      | `log4js`                                                                                                                                                                                |
+| Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5, Next.js (App Router) with React 19, which also hosts the landing page                                                     |
+| Code editor  | CodeMirror 6 (planned for the script editor; verified to work with Next 16 / React 19)                                                                                                  |
+| Shared       | `lib/` (plain TS interfaces)                                                                                                                                                            |
+| Testing      | Jest (`api` with `ts-jest`, `client` with `next/jest`), integration tests on PostgreSQL in Docker (no in-memory databases), Cypress end-to-end                                          |
 | Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
 
 ---
@@ -219,53 +219,53 @@ pm2 start ecosystem.config.json
 
 ## Environment variables
 
-| Variable                              | Used by      | Purpose                                              | Default (fallback)      |
-| ------------------------------------- | ------------ | ---------------------------------------------------- | ----------------------- |
-| `PORT`                                | api          | HTTP/Socket.IO listen port                           | `8080`                  |
-| `NODE_ENV`                            | api          | `development` / `production` / `test`                | `development`           |
-| `WHITELIST_URLS`                      | api          | Comma-separated CORS origins                         | `FRONTEND_URL`          |
-| `FRONTEND_URL`                        | api          | Base URL used in email links                         | `http://localhost:5173` |
-| `ADMIN_URL`                           | api          | Allowed CORS origin of the Socket.IO server          | `FRONTEND_URL`          |
-| `DATABASE_URL`                        | api          | PostgreSQL connection string (Prisma, integration tests) | `postgresql://botrts:botrts@localhost:5432/botrts` |
-| `WORLD_SEED`                          | api          | Seed of the world-generation random numbers          | random per start        |
-| `CRAFTING_RECIPES_FILE`               | api          | JSON file that overrides recipes (by module name) and the crafting numbers | built-in recipes |
-| `WORLD_RESOURCE_CHANCE`               | api          | Chance that a generated map cell holds a resource    | `0.2`                   |
-| `WORLD_SPAWN_MAX_DISTANCE` / `WORLD_SPAWN_ATTEMPTS` | api | Where a new base may appear / how many cells are tried | `10` / `20` |
-| `AUTH_PROVIDER`                       | api          | Identity adapter (`local` = email + password)        | `local`                 |
-| `JWT_ACCESS_SECRET`                   | api          | Signs access tokens; **required in production**      | dev-only value          |
-| `JWT_ACCESS_EXPIRES_IN`               | api          | Access-token lifetime                                | `10m`                   |
-| `JWT_REFRESH_EXPIRES_IN`              | api          | Session lifetime without use (the refresh cookie)    | `30d`                   |
-| `TRUST_PROXY`                         | api          | `true` behind a reverse proxy (client IPs for rate limits) | `false`           |
-| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_AUTH_MAX` | api | Rate limit of the auth routes (per IP, in memory) | `900000` / `20` |
-| `SMTP_HOST`                           | api          | SMTP host (required in production)                   | `smtp.gmail.com` outside production |
-| `SMTP_PORT` / `SMTP_SECURE`           | api          | SMTP port / implicit TLS flag                        | `465` / `true` when the port is 465 |
-| `SMTP_USER` / `SMTP_PASS`             | api          | SMTP credentials; without them the email service is a no-op | — |
-| `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD` | api       | Auto-created root/admin user                         | `root@root.root` / none |
-| `NEXT_PUBLIC_API_URL`                 | client       | Backend base URL (read in the browser)               | `http://localhost:8080` |
+| Variable                                            | Used by | Purpose                                                                                                                                                        | Default (fallback)                                 |
+| --------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `PORT`                                              | api     | HTTP/Socket.IO listen port                                                                                                                                     | `8080`                                             |
+| `NODE_ENV`                                          | api     | `development` / `production` / `test`                                                                                                                          | `development`                                      |
+| `WHITELIST_URLS`                                    | api     | Comma-separated CORS origins                                                                                                                                   | `FRONTEND_URL`                                     |
+| `FRONTEND_URL`                                      | api     | Base URL used in email links                                                                                                                                   | `http://localhost:5173`                            |
+| `ADMIN_URL`                                         | api     | Allowed CORS origin of the Socket.IO server                                                                                                                    | `FRONTEND_URL`                                     |
+| `DATABASE_URL`                                      | api     | PostgreSQL connection string (Prisma, integration tests)                                                                                                       | `postgresql://botrts:botrts@localhost:5432/botrts` |
+| `WORLD_SEED`                                        | api     | Seed of the world-generation random numbers                                                                                                                    | random per start                                   |
+| `CRAFTING_RECIPES_FILE`                             | api     | JSON file that overrides recipes (by module name) and the crafting numbers                                                                                     | built-in recipes                                   |
+| `WORLD_RESOURCE_CHANCE`                             | api     | Chance that a generated map cell holds a resource                                                                                                              | `0.2`                                              |
+| `WORLD_SPAWN_MAX_DISTANCE` / `WORLD_SPAWN_ATTEMPTS` | api     | Where a new base may appear / how many cells are tried                                                                                                         | `10` / `20`                                        |
+| `ENGINE_ENABLED` and the other `ENGINE_*`           | api     | The game engine thread (tick interval, script slice and memory, restart limits), see `api/.env.example`; the engine is off when `NODE_ENV=test` unless enabled | on                                                 |
+| `AUTH_PROVIDER`                                     | api     | Identity adapter (`local` = email + password)                                                                                                                  | `local`                                            |
+| `JWT_ACCESS_SECRET`                                 | api     | Signs access tokens; **required in production**                                                                                                                | dev-only value                                     |
+| `JWT_ACCESS_EXPIRES_IN`                             | api     | Access-token lifetime                                                                                                                                          | `10m`                                              |
+| `JWT_REFRESH_EXPIRES_IN`                            | api     | Session lifetime without use (the refresh cookie)                                                                                                              | `30d`                                              |
+| `TRUST_PROXY`                                       | api     | `true` behind a reverse proxy (client IPs for rate limits)                                                                                                     | `false`                                            |
+| `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_AUTH_MAX`      | api     | Rate limit of the auth routes (per IP, in memory)                                                                                                              | `900000` / `20`                                    |
+| `SMTP_HOST`                                         | api     | SMTP host (required in production)                                                                                                                             | `smtp.gmail.com` outside production                |
+| `SMTP_PORT` / `SMTP_SECURE`                         | api     | SMTP port / implicit TLS flag                                                                                                                                  | `465` / `true` when the port is 465                |
+| `SMTP_USER` / `SMTP_PASS`                           | api     | SMTP credentials; without them the email service is a no-op                                                                                                    | —                                                  |
+| `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD`            | api     | Auto-created root/admin user                                                                                                                                   | `root@root.root` / none                            |
+| `NEXT_PUBLIC_API_URL`                               | client  | Backend base URL (read in the browser)                                                                                                                         | `http://localhost:8080`                            |
 
 ---
 
 ## Scripts
 
-| Package | Command                  | Description                                          |
-| ------- | ------------------------ | ---------------------------------------------------- |
-| root    | `npm run lint`           | ESLint of every package and a Prettier check          |
-| root    | `npm run typecheck`      | TypeScript of every package                          |
-| root    | `npm test`               | Jest of `api` (needs `npm run db:up`) and `client`   |
-| root    | `npm run test:coverage`  | The same with coverage; fails below 97 % per package |
-| root    | `npm run e2e`            | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
-| root    | `npm run check:boundaries` | Import-boundary rules of the layered `api/src`     |
-| root    | `npm run docs:check`     | Markdown link check                                  |
-| root    | `npm run format`         | Prettier across the repo                             |
-| api     | `npm run dev`            | nodemon + ts-node                                    |
-| api     | `npm run build`          | `tsc` → `ts-built`                                   |
-| api     | `npm run openapi:generate` | Writes `api/openapi.json` from the controllers and DTOs (a test and CI fail when it is stale) |
-| api     | `npm run prod`           | `node ts-built/api/index`                            |
-| client  | `npm run dev`            | Next.js dev server on port 5173                      |
-| client  | `npm run api:generate`   | Generates the RTK Query client `src/shared/api/generated.ts` from `api/openapi.json` |
-| client  | `npm run build`          | `next build`                                         |
-| client  | `npm run start`          | `next start` on port 5173                            |
-
+| Package | Command                    | Description                                                                                                                 |
+| ------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| root    | `npm run lint`             | ESLint of every package and a Prettier check                                                                                |
+| root    | `npm run typecheck`        | TypeScript of every package                                                                                                 |
+| root    | `npm test`                 | Jest of `api` (needs `npm run db:up`) and `client`                                                                          |
+| root    | `npm run test:coverage`    | The same with coverage; fails below 97 % per package                                                                        |
+| root    | `npm run e2e`              | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
+| root    | `npm run check:boundaries` | Import-boundary rules of the layered `api/src`                                                                              |
+| root    | `npm run docs:check`       | Markdown link check                                                                                                         |
+| root    | `npm run format`           | Prettier across the repo                                                                                                    |
+| api     | `npm run dev`              | nodemon + ts-node                                                                                                           |
+| api     | `npm run build`            | `tsc` → `ts-built`                                                                                                          |
+| api     | `npm run openapi:generate` | Writes `api/openapi.json` from the controllers and DTOs (a test and CI fail when it is stale)                               |
+| api     | `npm run prod`             | `node ts-built/api/index`                                                                                                   |
+| client  | `npm run dev`              | Next.js dev server on port 5173                                                                                             |
+| client  | `npm run api:generate`     | Generates the RTK Query client `src/shared/api/generated.ts` from `api/openapi.json`                                        |
+| client  | `npm run build`            | `next build`                                                                                                                |
+| client  | `npm run start`            | `next start` on port 5173                                                                                                   |
 
 ---
 

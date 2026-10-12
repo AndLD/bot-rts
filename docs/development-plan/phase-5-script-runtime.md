@@ -48,4 +48,4 @@ AGENTS.md §7.1).
 | `feature/5.5b-single-writer` | 5.5 (single-writer routing of API requests) | #78 | merged |
 | `feature/5.12-live-vision` | 5.12 | #79 | merged |
 | `feature/5.13-radio-network` | 5.13 | #80 | merged |
-| `feature/5.10-event-bus` | 5.10 | PR_5_10 | merged |
+| `feature/5.10-event-bus` | 5.10 | #81 | merged |

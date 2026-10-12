@@ -1,3 +1,4 @@
+import { IMapCell, MapPointType } from '@lib/utils/interfaces/map'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import messages from '../../../messages/en.json'
@@ -31,13 +32,13 @@ class FakeResizeObserver {
   disconnect() {}
 }
 
-function setup(center?: { x: number; y: number }) {
+function setup(center?: { x: number; y: number }, onOpenBot?: (id: string) => void) {
   const store = new MapStore()
   const loader = new TileLoader(jest.fn().mockResolvedValue({ now: 1, cells: [], liveAreas: [] }), store)
   const ensure = jest.spyOn(loader, 'ensure').mockResolvedValue()
   const view = (
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
-      <MapCanvas store={store} loader={loader} center={center} />
+      <MapCanvas store={store} loader={loader} center={center} onOpenBot={onOpenBot} />
     </NextIntlClientProvider>
   )
 
@@ -146,6 +147,53 @@ describe('MapCanvas', () => {
     fireEvent.pointerDown(canvas(), { clientX: 10, clientY: 10 })
     fireEvent.pointerUp(canvas(), { clientX: 10, clientY: 10 })
     expect(screen.getByText('Empty ground')).toBeInTheDocument()
+  })
+
+  it('opens the control panel of an own bot or base that is clicked, and of nobody else', () => {
+    const onOpenBot = jest.fn()
+    const { store } = setup(undefined, onOpenBot)
+    const click = () => {
+      fireEvent.pointerDown(canvas(), { clientX: 10, clientY: 10 })
+      fireEvent.pointerUp(canvas(), { clientX: 10, clientY: 10 })
+    }
+    const cell = (extra: { type: MapPointType; contentId: string | null; isOwn?: boolean }): IMapCell => ({
+      x: 2,
+      y: 3,
+      seenAt: 1,
+      ...extra
+    })
+
+    act(() => store.apply({ now: 1, cells: [cell({ type: MapPointType.BOT, contentId: 'bot-1', isOwn: true })] }))
+    click()
+    expect(onOpenBot).toHaveBeenLastCalledWith('bot-1')
+
+    act(() => store.apply({ now: 1, cells: [cell({ type: MapPointType.BASE, contentId: 'base-1', isOwn: true })] }))
+    click()
+    expect(onOpenBot).toHaveBeenLastCalledWith('base-1')
+
+    onOpenBot.mockClear()
+    act(() => store.apply({ now: 1, cells: [cell({ type: MapPointType.BOT, contentId: 'bot-2', isOwn: false })] }))
+    click()
+    act(() => store.apply({ now: 1, cells: [cell({ type: MapPointType.RESOURCE, contentId: null })] }))
+    click()
+    act(() => store.apply({ now: 1, cells: [cell({ type: MapPointType.BOT, contentId: null, isOwn: true })] }))
+    click()
+    expect(onOpenBot).not.toHaveBeenCalled()
+  })
+
+  it('selects a cell without anyone to open when nothing wants to hear of it', () => {
+    const { store } = setup()
+    act(() =>
+      store.apply({
+        now: 1,
+        cells: [{ x: 2, y: 3, seenAt: 1, type: MapPointType.BOT, contentId: 'bot-1', isOwn: true }]
+      })
+    )
+
+    fireEvent.pointerDown(canvas(), { clientX: 10, clientY: 10 })
+    fireEvent.pointerUp(canvas(), { clientX: 10, clientY: 10 })
+
+    expect(screen.getByText('Cell 2, 3')).toBeInTheDocument()
   })
 
   it('ignores a release without a press', () => {

@@ -38,7 +38,8 @@
       "control": "Панель управления",
       "settings": "Настройки",
       "editor": "Редактор",
-      "botTerminal": "Терминал {botId}"
+      "botTerminal": "Терминал {botId}",
+      "botControl": "Управление {botId}"
     }
   },
   "storage": {
@@ -128,5 +129,19 @@
     "gameSettings": "Настройки игры",
     "gameSettingsHelp": "Что выключено здесь, выключено для всех игроков.",
     "gamePrefix": "Игра: "
+  },
+  "control": {
+    "loading": "Загрузка...",
+    "loadFailed": "Не удалось загрузить бота",
+    "observation": "Наблюдение",
+    "switchedOff": "выключено",
+    "run": "Выполнить",
+    "do": "Выполнить {action}",
+    "done": "Готово",
+    "doneWith": "Готово: {data}",
+    "missingArg": "Нужно указать {arg}",
+    "invalidArg": "{arg} должно быть целым числом",
+    "left": "налево",
+    "right": "направо"
   }
 }

@@ -16,7 +16,7 @@
 | **Physical storage GUI** | 🟡 | Resources and carried items of a bot; take/drop by manual actions (Plan 6.3). |
 | **Factory GUI → Craft table → Assemble** | 🟡 | Blueprint list, resource costs, craft button, then module selection and assembly (Plan 6.4). |
 | **Bot list / fleet view** | 🟡 | Simple list of the player's bots with ids, labels, types. |
-| **Bot control panel (manual control)** | 🔴 | Per-bot micromanagement UI split into switchable categories (§15.1). |
+| **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). |
 | **Settings (global + profile)** | 🟡 | Category switches for manual control at game level and per player (§15.1); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
 | **Notification center** | 🔴 | Unread count, list, mark as read, preferences (§24.2). |
 | **Achievements** | 🔴 | Unlocked and locked achievements with progress (§23). |

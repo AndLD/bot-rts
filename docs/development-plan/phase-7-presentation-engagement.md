@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian (47 SP)
+# Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy (50 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
 
@@ -17,13 +17,14 @@ achievements and realtime notification systems built on the game event bus (task
 | 7.6 | Notifications backend per design §24.2: rules from game events, per-category preferences, coalescing and caps, 30-day persistent store, Socket.IO push, `/api/v1` list / mark-read endpoints, login summary | 8 | ⬜ |
 | 7.7 | Notifications UI: toasts, notification center with unread count and mark-as-read, category preferences in the settings | 5 | ⬜ |
 | 7.8 | Russian translation of all UI strings (landing, auth, game screens, tutorial, achievements, notifications, API error codes) and the missing-key CI check on every PR | 3 | ⬜ |
-| 7.9 | E2E (Cypress): landing page calls to action → sign-up, language switch (`/` and `/ru/`), auth page with the ambient scene and the reduced-motion fallback, achievement unlock toast and page (including one earned offline), realtime notifications, notification center, offline summary at login, notification preferences; also notification coalescing, translated terminal responses and error codes, and the failed-password notification | 7 | ⬜ |
+| 7.9 | E2E (Cypress): landing page calls to action → sign-up, language switch (`/` and `/ru/`), auth page with the ambient scene and the reduced-motion fallback, achievement unlock toast and page (including one earned offline), realtime notifications, notification center, offline summary at login, notification preferences; also notification coalescing, translated terminal responses and error codes, the failed-password notification, and the privacy policy page, its links and the sign-up acceptance | 7 | ⬜ |
+| 7.10 | Privacy policy and consent: public `/privacy` page in English and Russian (what is collected: account email, game data, terminal logs, cookies/tokens; purposes, retention, third parties, user rights, contact), linked from the landing footer and the sign-up form; sign-up requires accepting it, and the accepted version and time are stored with the user; account export and deletion (task 2.7) are referenced; the cookie notice declines non-essential cookies by default | 3 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
 **Exit criteria:** the landing and authentication pages ship with the animated ambient scene; achievements unlock from
 real game events, including while the player is offline; notifications arrive in realtime and are kept for offline
-players; the whole UI is available in English and Russian with a missing-key check in CI — all covered by tests.
+players; the whole UI is available in English and Russian with a missing-key check in CI; a privacy policy is published and accepted at sign-up — all covered by tests.
 
 ## Implementation log
 

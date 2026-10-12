@@ -41,6 +41,7 @@ function fakeCore() {
     kill: jest.fn(async () => ({ ...view, state: 'killed' as const })),
     list: jest.fn(async () => [view]),
     link: jest.fn(async () => ({ isConnected: true, signal: 4, hops: 0 })),
+    manual: jest.fn(async () => ({ ok: true })),
     act: jest.fn(async (name: string, args: unknown[]) => ({ ran: name, args })),
     snapshot: jest.fn(() => ({
       tick: 3,
@@ -84,6 +85,7 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(port.list('u')).resolves.toEqual([view])
     await expect(port.metrics()).resolves.toMatchObject({ tick: 3 })
     await expect(port.linkStatus('u', 'b')).resolves.toMatchObject({ isConnected: true, signal: 4 })
+    await expect(port.manual('u', 'b', 'drop', [1])).resolves.toEqual({ ok: true })
     await expect(port.act('files.remove', ['u', 'b', 'd', 'a.js'])).resolves.toEqual({
       ran: 'files.remove',
       args: ['u', 'b', 'd', 'a.js']
@@ -93,6 +95,7 @@ describe('EngineHost and ChannelEnginePort', () => {
     expect(core.kill).toHaveBeenCalledWith('u', 'e1')
     expect(core.list).toHaveBeenCalledWith('u')
     expect(core.link).toHaveBeenCalledWith('u', 'b')
+    expect(core.manual).toHaveBeenCalledWith('u', 'b', 'drop', [1])
     expect(core.act).toHaveBeenCalledWith('files.remove', ['u', 'b', 'd', 'a.js'])
   })
 
@@ -187,6 +190,7 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(off.kill()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.list()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.act()).rejects.toMatchObject({ statusCode: 503 })
+    await expect(off.manual()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.linkStatus()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.metrics()).rejects.toMatchObject({ statusCode: 503 })
     expect(off.onEvent()()).toBeUndefined()

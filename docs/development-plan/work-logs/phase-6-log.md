@@ -41,3 +41,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** task 6.3 (physical storage GUI), then 6.4, 6.5, 6.7, 6.8, 6.9, 6.11, 6.6, 6.12.
 - **Verify with:** `npm run typecheck && npm run test:coverage -w client`
 
+### 2026-10-12 — task 6.3: physical storage GUI
+- **Tasks:** 6.3
+- **Branch:** `feature/6.3-storage-gui` — done
+- **Decisions / deviations from the plan:** the storage window needs manual actions, which 6.7 builds on, so the engine-side pipeline is built here: `EngineCore.manual(userId, botId, fn, args)` (engine port op `manual`, `POST /api/v1/bots/:botId/actions`). A manual action is a call of the script API done by hand and follows the rules of a script's call: control of the bot through the radio network (`ensureControl`), a working processor (else `NO_MODULE`, so a bot without one cannot be controlled by hand), the module the call needs (else a 400), the same per-tick ops budget and turn order (it sits in the same backlog as the scripts' calls), the same delay (the bot is busy for the ticks the action takes, so one bot does one manual action at a time, like a script that waits for each answer), and the answer is the one a script gets (`{ ok, data }` or `{ ok: false, code, msg }`). `sleep` and unknown names are refused. The eight categories and their switches (global AND personal) are 6.7 / 6.8 and will be checked in `EngineCore.manual`. `GET /api/v1/bots/:botId/storage` (`StorageViewService`) gives the working storage capacity and use, the resource stacks, the carried items and the load; the window (`kind: 'storage'`, one per bot) polls it every 3 s because scripts change it too, shows resources and items, and offers "take the item ahead" (`take`) and "drop the last item ahead" (`drop`). The load test of the engine was made independent of the speed of the machine (a virtual clock for the scheduler's cutoff, a generous slice for the honest bots); it had started to fail on CI runners.
+- **Open points:** the Cypress spec for take/drop is part of 6.6; `store` / transfer between storages (category Logistics) do not exist in the script API yet.
+- **Next step:** task 6.4 (factory GUI).
+- **Verify with:** `npm run typecheck && npm run test:coverage`
+

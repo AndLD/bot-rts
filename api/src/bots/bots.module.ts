@@ -32,6 +32,9 @@ import { AssemblyService } from './application/assembly.service'
 import { FactoryService } from './application/factory.service'
 import { MaintenanceService } from './application/maintenance.service'
 import { ScanService } from './application/scan.service'
+import { ManualControlService } from './application/manual-control.service'
+import { StorageViewService } from './application/storage-view.service'
+import { BotControlController } from './presentation/bot-control.controller'
 import { PrismaBotRepository } from './infrastructure/prisma-bot.repository'
 import { MaintenanceController } from './presentation/maintenance.controller'
 import { FactoryController } from './presentation/factory.controller'
@@ -41,9 +44,19 @@ import { BotsGateway } from './presentation/bots.gateway'
 
 @Module({
   imports: [AuthModule, MapModule, ModulesModule, SpawnModule, CraftingModule],
-  controllers: [BotsController, FactoryController, MaintenanceController],
+  controllers: [BotsController, BotControlController, FactoryController, MaintenanceController],
   providers: [
     BotsGateway,
+    {
+      provide: StorageViewService,
+      inject: [BotsService, ITEM_REPOSITORY],
+      useFactory: (bots: BotsService, items: ItemRepository) => new StorageViewService(bots, items)
+    },
+    {
+      provide: ManualControlService,
+      inject: [ENGINE_PORT],
+      useFactory: (engine: EnginePort) => new ManualControlService(engine)
+    },
     FactoryGateway,
     {
       provide: BOT_REPOSITORY,

@@ -8,6 +8,10 @@ jest.mock('../map/GameMap', () => ({
   __esModule: true,
   default: ({ baseId }: { baseId: string }) => <div>the map of {baseId}</div>
 }))
+jest.mock('../storage/StoragePanel', () => ({
+  __esModule: true,
+  default: ({ botId }: { botId: string }) => <div>the storage of {botId}</div>
+}))
 jest.mock('../terminal/Terminal', () => ({ __esModule: true, default: () => <div>the terminal</div> }))
 
 beforeEach(() => localStorage.clear())
@@ -31,12 +35,20 @@ describe('GameScreen', () => {
     expect(screen.getByText('the terminal')).toBeInTheDocument()
   })
 
+  it('opens the storage of the base from the toolbar', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Storage' }))
+
+    expect(screen.getByText('the storage of b1')).toBeInTheDocument()
+  })
+
   it('titles the windows of kinds that have no content yet', () => {
     const store = setupStore()
     renderApp(<GameScreen baseId="b1" />, { store })
 
-    act(() => void store.dispatch(openWindow({ id: 'storage', kind: 'storage' })))
+    act(() => void store.dispatch(openWindow({ id: 'factory', kind: 'factory' })))
 
-    expect(screen.getByText('Storage', { selector: 'header span' })).toBeInTheDocument()
+    expect(screen.getByText('Factory', { selector: 'header span' })).toBeInTheDocument()
   })
 })

@@ -5,7 +5,7 @@ import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
 import { AppError } from '../../shared/domain/app-error'
-import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
+import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { ENERGY_EVENT, EnergyEvent } from '../../modules/domain/energy-model'
 import { BotState } from '../domain/bot-state'
 import { EventParty } from '../domain/game-event'
@@ -43,6 +43,12 @@ export interface StartRequest {
   botId: string
   file: string
   args: JsonValue[]
+}
+
+// A call the player makes by hand (design §15.1): it waits for the bot's ops like a script's call and is answered when applied
+interface ManualCall {
+  resolve(value: JsonValue): void
+  reject(error: unknown): void
 }
 
 export class ExecutionNotRunningError extends AppError {
@@ -94,6 +100,9 @@ interface InboxItem {
 export class EngineCore {
   private readonly live = new Map<string, LiveExecution>()
   private readonly inbox: InboxItem[] = []
+  private readonly manualCalls = new Map<string, ManualCall>()
+  // A manual action that takes time keeps the bot busy: the next one waits, as a script waits for the answer of its call
+  private readonly busyUntil = new Map<string, number>()
   // Game calls the bots' op budgets have not let through yet, oldest first
   private backlog: EngineCommand[] = []
   private readonly metrics = new EngineMetrics()
@@ -166,6 +175,29 @@ export class EngineCore {
       }
       this.register(live)
       return live.view()
+    })
+  }
+
+  // A manual action: any call of the script API done by hand (design §15.1). It follows the rules of a script's call: the bot
+  // needs a working processor and the module the call needs, the call costs ops from the same per-tick budget and is applied
+  // in the same turn order, and it takes the same time. The answer is the one a script would get.
+  manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue> {
+    return new Promise<JsonValue>((resolve, reject) => {
+      this.submit(async () => {
+        const spec = findScriptFunction(fn)
+        if (!spec || spec.isScheduled) {
+          throw new ValidationError(`Unknown action: ${fn}`)
+        }
+        await this.deps.radio.ensureControl(userId, botId)
+        const state = await this.deps.bots.loadControlled(userId, botId)
+        if (!canRunScripts(this.deps.registry.instantiateAll(state.modules))) {
+          throw new AppError(409, ResultCode.NO_MODULE, 'The bot has no working processor')
+        }
+        this.learn(state)
+        const executionId = `manual:${this.deps.ids.next()}`
+        this.manualCalls.set(executionId, { resolve, reject })
+        this.backlog.push({ executionId, botId, callId: 0, fn, args })
+      }).catch(reject)
     })
   }
 
@@ -367,7 +399,7 @@ export class EngineCore {
     const queue = (botId: string) => queues.get(botId) ?? queues.set(botId, []).get(botId)!
     const fresh = [...commands].sort((a, b) => a.executionId.localeCompare(b.executionId) || a.callId - b.callId)
     for (const command of [...this.backlog, ...fresh]) {
-      if (this.live.has(command.executionId)) {
+      if (this.live.has(command.executionId) || this.manualCalls.has(command.executionId)) {
         queue(command.botId).push(command)
       }
     }
@@ -385,8 +417,9 @@ export class EngineCore {
       for (const command of queues.get(botId) as EngineCommand[]) {
         // Scripts can only call the functions of the catalog
         const cost = (findScriptFunction(command.fn) as ScriptFunctionSpec).ops
+        const isBusy = this.manualCalls.has(command.executionId) && (this.busyUntil.get(botId) ?? 0) > tick
         // A call dearer than a whole tick's budget would never run; it takes the budget of a tick alone
-        if (isCut || (used > 0 && used + cost > budget) || budget === 0) {
+        if (isCut || isBusy || (used > 0 && used + cost > budget) || budget === 0) {
           waiting.push(command)
         } else if (!hasTime()) {
           isCut = true
@@ -394,12 +427,28 @@ export class EngineCore {
         } else {
           used += cost
           const { answer, delayTicks } = await this.answerFor(command)
-          ;(this.live.get(command.executionId) as LiveExecution).answer(command.callId, answer, tick + 1 + delayTicks)
+          const manual = this.manualCalls.get(command.executionId)
+          if (manual) {
+            this.manualCalls.delete(command.executionId)
+            this.busyUntil.set(botId, tick + 1 + delayTicks)
+            this.settleManual(manual, answer)
+          } else {
+            const live = this.live.get(command.executionId) as LiveExecution
+            live.answer(command.callId, answer, tick + 1 + delayTicks)
+          }
         }
       }
     }
     this.backlog = waiting
     return isCut
+  }
+
+  private settleManual(call: ManualCall, answer: CallAnswer): void {
+    if ('misuse' in answer) {
+      call.reject(new ValidationError(answer.misuse))
+    } else {
+      call.resolve(answer.value as JsonValue)
+    }
   }
 
   private async answerFor(command: EngineCommand): Promise<{ answer: CallAnswer; delayTicks: number }> {

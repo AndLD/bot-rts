@@ -13,7 +13,7 @@
 | **Base terminal** | 🟡 | BotOS terminal + bot list + `connect`. |
 | **Bot terminal** | 🟡 | Draggable terminal window per connected bot; "Connection interrupted" on drop. |
 | **Code editor** | 🟡 | Draggable CodeMirror editor, save/close, format; filename validation on create. |
-| **Physical storage GUI** | 🔴 | Items in storage; take/drop actions. |
+| **Physical storage GUI** | 🟡 | Resources and carried items of a bot; take/drop by manual actions (Plan 6.3). |
 | **Factory GUI → Craft table → Assemble** | 🔴 | Blueprint list, resource costs, craft button, then module selection and assembly. |
 | **Bot list / fleet view** | 🟡 | Simple list of the player's bots with ids, labels, types. |
 | **Bot control panel (manual control)** | 🔴 | Per-bot micromanagement UI split into switchable categories (§15.1). |

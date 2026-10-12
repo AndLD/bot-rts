@@ -36,7 +36,7 @@ const HOG = 'export async function main() { for (;;) {} }'
 // on the real clock.
 const VIRTUAL_MS_PER_CHECK = 1
 
-async function stage(players: Array<{ id: string; script: string }>, ticks: number) {
+async function stage(players: Array<{ id: string; script: string }>, ticks: number, config = DEFAULT_ENGINE_CONFIG) {
   let virtualMs = 0
   const runtime = await QuickJsScriptRuntime.create()
   const states = new FakeBotStateSource()
@@ -44,7 +44,6 @@ async function stage(players: Array<{ id: string; script: string }>, ticks: numb
   const sources = new FakeScriptSource()
   const sink = new RecordingSink()
   const capacities = new BotCapacities()
-  const config = DEFAULT_ENGINE_CONFIG
   const outbox = new EventOutbox(new FakeClock())
   const names = SCRIPT_FUNCTIONS.filter((spec) => !spec.isScheduled).map((spec) => spec.name)
   const core = new EngineCore({
@@ -105,7 +104,8 @@ describe('the engine under load', () => {
   it('keeps ticks within their budget and serves every one of 150 bots about equally', async () => {
     const players = Array.from({ length: 150 }, (_, i) => ({ id: `bot-${i}`, script: HONEST }))
 
-    const { progress, durations } = await stage(players, 40)
+    // The slice is real time: a generous one keeps a busy machine from ending honest scripts, which would only measure the machine
+    const { progress, durations } = await stage(players, 40, { ...DEFAULT_ENGINE_CONFIG, sliceMs: 1000 })
 
     // Ticks may run over the interval a little (the cap defers the rest), but not by multiples of it
     expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * 2.5)

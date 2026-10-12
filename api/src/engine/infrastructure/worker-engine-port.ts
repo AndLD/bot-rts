@@ -1,5 +1,6 @@
 import { AppError } from '../../shared/domain/app-error'
 import { ExecutionView } from '../domain/execution'
+import { JsonValue } from '../domain/json-value'
 import { StartRequest } from '../application/engine-core'
 import { EngineMetricsSnapshot } from '../application/engine-metrics'
 import { EnginePort } from '../application/engine-port'
@@ -45,6 +46,10 @@ export class ChannelEnginePort implements EnginePort {
 
   act<K extends WorldActionName>(name: K, args: Parameters<WorldActions[K]>): ReturnType<WorldActions[K]> {
     return this.ask({ op: 'act', name, args: [...args] }) as ReturnType<WorldActions[K]>
+  }
+
+  manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue> {
+    return this.ask({ op: 'manual', userId, botId, fn, args }) as Promise<JsonValue>
   }
 
   linkStatus(userId: string, botId: string): Promise<LinkStatus> {
@@ -115,6 +120,10 @@ export class DisabledEnginePort implements EnginePort {
 
   act<K extends WorldActionName>(): ReturnType<WorldActions[K]> {
     return Promise.reject(new ServiceUnavailableError()) as ReturnType<WorldActions[K]>
+  }
+
+  manual(): Promise<JsonValue> {
+    return Promise.reject(new ServiceUnavailableError())
   }
 
   linkStatus(): Promise<LinkStatus> {

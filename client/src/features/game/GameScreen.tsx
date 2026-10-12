@@ -4,13 +4,14 @@ import { Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import GameMap from '../map/GameMap'
+import StoragePanel from '../storage/StoragePanel'
 import Terminal from '../terminal/Terminal'
 import WindowManager from '../windows/WindowManager'
 import { GameWindow, openWindow, WindowKind } from '../windows/windows.slice'
 import { useAppDispatch } from '../../shared/store/hooks'
 
-// The windows a player can open from the toolbar; more kinds are added here as their panels are built
-const LAUNCHABLE: WindowKind[] = ['terminal']
+// The windows a player can open from the toolbar, for the base; more kinds are added here as their panels are built
+const LAUNCHABLE: WindowKind[] = ['terminal', 'storage']
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
@@ -25,6 +26,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     switch (win.kind) {
       case 'terminal':
         return { title: t('kinds.terminal'), content: <Terminal /> }
+      case 'storage':
+        return { title: t('kinds.storage'), content: <StoragePanel botId={win.params.botId} /> }
       default:
         return { title: t(`kinds.${win.kind}`), content: null }
     }
@@ -35,7 +38,11 @@ export default function GameScreen({ baseId }: { baseId: string }) {
       <GameMap baseId={baseId} />
       <div className="game-toolbar" role="toolbar">
         {LAUNCHABLE.map((kind) => (
-          <Button key={kind} size="small" onClick={() => dispatch(openWindow({ id: kind, kind }))}>
+          <Button
+            key={kind}
+            size="small"
+            onClick={() => dispatch(openWindow({ id: kind, kind, params: { botId: baseId } }))}
+          >
             {t(`kinds.${kind}`)}
           </Button>
         ))}

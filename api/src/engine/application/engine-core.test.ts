@@ -754,6 +754,110 @@ describe('EngineCore', () => {
     })
   })
 
+  describe('manual actions', () => {
+    const flushPromises = () => new Promise((resolve) => setImmediate(resolve))
+    const settled = (promise: Promise<unknown>) => {
+      const outcome: { value?: unknown; error?: unknown; done: boolean } = { done: false }
+      promise.then(
+        (value) => Object.assign(outcome, { value, done: true }),
+        (error) => Object.assign(outcome, { error, done: true })
+      )
+      return outcome
+    }
+
+    it('answers like a script call, in the tick it is applied', async () => {
+      const { core, handler, radio, base } = await setup()
+
+      const answer = settled(core.manual(OWNER, base.id, 'scan', []))
+      await core.runTick()
+      await flushPromises()
+
+      expect(answer).toMatchObject({ done: true, value: { ok: true, data: { cells: 3 } } })
+      expect(handler.calls).toEqual([{ fn: 'scan', args: [] }])
+      expect(radio.ensureControl).toHaveBeenCalledWith(OWNER, base.id)
+    })
+
+    it('lets a bot do one action at a time, like a script that waits for each answer', async () => {
+      const { core, ticks, handler, base } = await setup()
+
+      const answers = [1, 2, 3].map(() => settled(core.manual(OWNER, base.id, 'scan', [])))
+      await core.runTick()
+      await flushPromises()
+      expect(answers.map((a) => a.done)).toEqual([true, false, false])
+
+      await ticks(1)
+      await flushPromises()
+      expect(answers.map((a) => a.done)).toEqual([true, true, false])
+      expect(handler.calls).toHaveLength(2)
+
+      await ticks(1)
+      await flushPromises()
+      expect(answers[2].done).toBe(true)
+    })
+
+    it('keeps the bot busy for as long as the action takes', async () => {
+      const { core, ticks, handler, base } = await setup()
+      handler.next = async () => ({ ...ok({ cells: 3 }), delayTicks: 2 })
+
+      const first = settled(core.manual(OWNER, base.id, 'scan', []))
+      const second = settled(core.manual(OWNER, base.id, 'scan', []))
+      await core.runTick()
+      await flushPromises()
+      expect([first.done, second.done]).toEqual([true, false])
+
+      await ticks(2)
+      await flushPromises()
+      expect(second.done).toBe(false)
+
+      await ticks(1)
+      await flushPromises()
+      expect(second.done).toBe(true)
+    })
+
+    it('hands a failure of the action to the player as a value', async () => {
+      const { core, handler, base } = await setup()
+      handler.next = async () => ({ ok: false, code: 'BLOCKED', msg: 'The cell is occupied' }) as CallOutcome
+
+      const answer = settled(core.manual(OWNER, base.id, 'scan', []))
+      await core.runTick()
+      await flushPromises()
+
+      expect(answer.value).toEqual({ ok: false, code: 'BLOCKED', msg: 'The cell is occupied' })
+    })
+
+    it('refuses what is not a manual action, and actions the bot has no module for', async () => {
+      const { core, base } = await setup()
+
+      const unknown = settled(core.manual(OWNER, base.id, 'fly', []))
+      const scheduled = settled(core.manual(OWNER, base.id, 'sleep', [10]))
+      const noModule = settled(core.manual(OWNER, base.id, 'move', [1]))
+      await core.runTick()
+      await core.runTick()
+      await flushPromises()
+
+      expect(unknown.error).toMatchObject({ statusCode: 400 })
+      expect(scheduled.error).toMatchObject({ statusCode: 400 })
+      expect(noModule.error).toMatchObject({ statusCode: 400 })
+    })
+
+    it('refuses a bot without a working processor, a bot out of reach and a bot of someone else', async () => {
+      const { core, radio, bots, base } = await setup()
+      const state = bots.states.get(base.id)!
+
+      radio.ensureControl.mockRejectedValueOnce(new NoSignalError())
+      const outOfReach = settled(core.manual(OWNER, base.id, 'scan', []))
+      const stranger = settled(core.manual('someone-else', base.id, 'scan', []))
+      bots.states.set(base.id, { ...state, modules: state.modules.filter((m) => m.type !== 'processor') })
+      const noProcessor = settled(core.manual(OWNER, base.id, 'scan', []))
+      await core.runTick()
+      await flushPromises()
+
+      expect(outOfReach.error).toMatchObject({ code: 'NO_SIGNAL' })
+      expect(stranger.error).toBeDefined()
+      expect(noProcessor.error).toMatchObject({ statusCode: 409, code: 'NO_MODULE' })
+    })
+  })
+
   describe('the radio link', () => {
     it('refuses manual control of a bot out of reach before running the use case', async () => {
       const { core, radio, actions } = await setup()

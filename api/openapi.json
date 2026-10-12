@@ -1297,6 +1297,106 @@
         ]
       }
     },
+    "/api/v1/bots/{botId}/storage": {
+      "get": {
+        "operationId": "botControlGetStorage",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotStorageResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/api/v1/bots/{botId}/actions": {
+      "post": {
+        "operationId": "botControlPerform",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualActionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "bots"
+        ]
+      }
+    },
     "/api/v1/bots/{baseId}/factory": {
       "get": {
         "operationId": "factoryStatus",
@@ -2670,6 +2770,114 @@
           "bot",
           "modules",
           "mapPoint"
+        ]
+      },
+      "ItemModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "blueprint",
+              "ammunition",
+              "part"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "description": "kg"
+          }
+        },
+        "required": [
+          "_id",
+          "type",
+          "name",
+          "weight"
+        ]
+      },
+      "BotStorageResponse": {
+        "type": "object",
+        "properties": {
+          "capacity": {
+            "type": "number"
+          },
+          "used": {
+            "type": "number"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResourceStackModel"
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemModel"
+            }
+          },
+          "carriedWeight": {
+            "type": "number"
+          },
+          "loadCapacity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "capacity",
+          "used",
+          "resources",
+          "items",
+          "carriedWeight",
+          "loadCapacity"
+        ]
+      },
+      "ManualActionDto": {
+        "type": "object",
+        "properties": {
+          "fn": {
+            "type": "string",
+            "example": "drop"
+          },
+          "args": {
+            "description": "The arguments of the call, as a script would pass them",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "fn"
+        ]
+      },
+      "ManualActionResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "description": "What the call returned"
+          },
+          "code": {
+            "type": "string",
+            "description": "Why the call failed, for example BLOCKED or OUT_OF_RANGE"
+          },
+          "msg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok"
         ]
       },
       "FactoryJobResponse": {

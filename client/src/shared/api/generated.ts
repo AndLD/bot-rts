@@ -130,6 +130,16 @@ const injectedRtkApi = api.injectEndpoints({
     botsScan: build.mutation<BotsScanApiResponse, BotsScanApiArg>({
       query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.id}/scan`, method: 'POST' })
     }),
+    botControlGetStorage: build.query<BotControlGetStorageApiResponse, BotControlGetStorageApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.botId}/storage` })
+    }),
+    botControlPerform: build.mutation<BotControlPerformApiResponse, BotControlPerformApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.botId}/actions`,
+        method: 'POST',
+        body: queryArg.manualActionDto
+      })
+    }),
     factoryStatus: build.query<FactoryStatusApiResponse, FactoryStatusApiArg>({
       query: (queryArg) => ({ url: `/api/v1/bots/${queryArg.baseId}/factory` })
     }),
@@ -317,6 +327,15 @@ export type BotsModulesApiArg = {
 export type BotsScanApiResponse = /** status 200  */ MapPointResponse[]
 export type BotsScanApiArg = {
   id: string
+}
+export type BotControlGetStorageApiResponse = /** status 200  */ BotStorageResponse
+export type BotControlGetStorageApiArg = {
+  botId: string
+}
+export type BotControlPerformApiResponse = /** status 200  */ ManualActionResponse
+export type BotControlPerformApiArg = {
+  botId: string
+  manualActionDto: ManualActionDto
 }
 export type FactoryStatusApiResponse = /** status 200  */ FactoryStatusResponse
 export type FactoryStatusApiArg = {
@@ -629,6 +648,34 @@ export type DeployBaseDto = {
   password: string
   spawnSeed?: string
 }
+export type ItemModel = {
+  _id: string
+  type: 'blueprint' | 'ammunition' | 'part'
+  name: string
+  /** kg */
+  weight: number
+}
+export type BotStorageResponse = {
+  capacity: number
+  used: number
+  resources: ResourceStackModel[]
+  items: ItemModel[]
+  carriedWeight: number
+  loadCapacity: number
+}
+export type ManualActionResponse = {
+  ok: boolean
+  /** What the call returned */
+  data?: object
+  /** Why the call failed, for example BLOCKED or OUT_OF_RANGE */
+  code?: string
+  msg?: string
+}
+export type ManualActionDto = {
+  fn: string
+  /** The arguments of the call, as a script would pass them */
+  args?: object[]
+}
 export type FactoryJobResponse = {
   kind: 'craft' | 'research'
   module: string
@@ -768,6 +815,8 @@ export const {
   useBotsBaseBotsQuery,
   useBotsModulesQuery,
   useBotsScanMutation,
+  useBotControlGetStorageQuery,
+  useBotControlPerformMutation,
   useFactoryStatusQuery,
   useFactoryCraftMutation,
   useFactoryResearchMutation,

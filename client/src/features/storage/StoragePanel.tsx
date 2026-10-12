@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useBotControlGetStorageQuery } from '../../shared/api'
 import { useBotAction } from '../control/useBotAction'
+import { useGameNames } from '../map/useGameNames'
 
 // What the storage shows is refreshed this often, because scripts and other actions change it too
 const REFRESH_MS = 3000
@@ -12,7 +13,7 @@ const REFRESH_MS = 3000
 // What a bot carries: resources in its storage and the items in its hands, with take and drop (design §9, §15.1)
 export default function StoragePanel({ botId }: { botId: string }) {
   const t = useTranslations('storage')
-  const names = useTranslations('map')
+  const names = useGameNames()
   const { data, isError } = useBotControlGetStorageQuery({ botId }, { pollingInterval: REFRESH_MS })
   const act = useBotAction(botId)
   const [message, setMessage] = useState<string | null>(null)
@@ -46,7 +47,7 @@ export default function StoragePanel({ botId }: { botId: string }) {
         <ul>
           {data.resources.map(({ resource, amount }) => (
             <li key={resource}>
-              {names(`resources.${resource}`)}: {amount}
+              {names.resource(resource)}: {amount}
             </li>
           ))}
         </ul>
@@ -60,7 +61,7 @@ export default function StoragePanel({ botId }: { botId: string }) {
         <ul>
           {data.items.map((item) => (
             <li key={item._id}>
-              {names(`items.${item.type}`)} {item.name} ({item.weight} kg)
+              {names.item(item.type)} {item.name} ({item.weight} kg)
             </li>
           ))}
         </ul>

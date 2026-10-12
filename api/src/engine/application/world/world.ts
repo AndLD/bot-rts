@@ -5,7 +5,7 @@ import { Result } from '../../../../../lib/utils/result'
 import { Item } from '../../../crafting/domain/item.entity'
 import { chunkKeyOf, chunkOf, locationKey } from '../../../map/domain/location'
 import { Location, MapPoint } from '../../../map/domain/map-point.entity'
-import { EnergyModel } from '../../../modules/domain/energy-model'
+import { EnergyEvent, EnergyModel } from '../../../modules/domain/energy-model'
 import { GameModule, WirelessAdapterModule } from '../../../modules/domain/game-module'
 import { Module } from '../../../modules/domain/module.entity'
 import { ModuleRegistry } from '../../../modules/domain/module-registry'
@@ -248,14 +248,17 @@ export class World {
   }
 
   // Idle drain, generators and live scanners of every bot in memory, once per tick after the commands (design §12.5)
-  tickEnergy(now: number): void {
+  tickEnergy(now: number): Array<{ bot: WorldBot; event: EnergyEvent }> {
+    const told: Array<{ bot: WorldBot; event: EnergyEvent }> = []
     for (const bot of this.bots.values()) {
-      const { modules } = this.energy.tick(bot.state.modules, now)
+      const { modules, events } = this.energy.tick(bot.state.modules, now)
       this.updateModules(
         bot,
         modules.filter((module) => !bot.state.modules.includes(module))
       )
+      events.forEach((event) => told.push({ bot, event }))
     }
+    return told
   }
 
   // Writes what changed behind, before something else reads the database

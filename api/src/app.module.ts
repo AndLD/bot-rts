@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
 import { CraftingModule } from './crafting/crafting.module'
 import { EngineModule } from './engine/engine.module'
+import { RealtimeModule } from './engine/realtime.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { MapModule } from './map/map.module'
@@ -34,6 +35,7 @@ export class AppModule {
         BotsModule,
         TerminalModule,
         EngineModule,
+        RealtimeModule,
         HealthModule
       ]
     }

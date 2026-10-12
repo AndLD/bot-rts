@@ -20,6 +20,8 @@ import { EngineCore } from './engine-core'
 import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
+import { EventOutbox } from './event-outbox'
+import { GameEventBus } from './game-event-bus'
 import { LiveVision } from './live-vision'
 import { NoSignalError, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
@@ -61,6 +63,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
   const capacities = new BotCapacities()
+  const outbox = new EventOutbox(new FakeClock())
+  const bus = { deliver: jest.fn() }
   const radio = {
     refresh: jest.fn(async () => undefined),
     ensureControl: jest.fn(async () => undefined),
@@ -86,6 +90,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     world,
     vision: vision as unknown as LiveVision,
     radio: radio as unknown as RadioNetwork,
+    outbox,
+    bus: bus as unknown as GameEventBus,
     actions: actions as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
@@ -122,7 +128,9 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     actions,
     world,
     vision,
-    radio
+    radio,
+    outbox,
+    bus
   }
 }
 
@@ -570,6 +578,49 @@ describe('EngineCore', () => {
       expect(core.snapshot().cutTicks).toBeGreaterThan(0)
       expect(Math.min(...steps)).toBeGreaterThan(5)
       expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(2)
+    })
+  })
+
+  describe('game events', () => {
+    it('publishes that a script finished or failed, and hands the events out after the commands of every tick', async () => {
+      const { start, ticks, outbox, bus, base } = await setup()
+
+      await start('export async function main() {}')
+      await ticks(1)
+      await start('export async function main() { throw new Error("boom") }')
+      await ticks(1)
+
+      const events = outbox.drain()
+      expect(events.map((e) => e.type)).toEqual(['ExecutionFinished', 'ExecutionFailed'])
+      expect(events[0]).toMatchObject({ parties: [{ userId: OWNER, botId: base.id }], executionId: expect.any(String) })
+      expect(events[1]).toMatchObject({ reason: 'SCRIPT_ERROR: Error: boom' })
+      expect(bus.deliver).toHaveBeenCalledTimes(4)
+    })
+
+    it('publishes a kill as a failed execution', async () => {
+      const { core, start, ticks, outbox } = await setup()
+      const view = await start('export async function main(bot) { await sleep(100000) }')
+
+      const killed = core.kill(OWNER, view.id)
+      await ticks(1)
+      await killed
+
+      expect(outbox.drain()).toEqual([expect.objectContaining({ type: 'ExecutionFailed', reason: 'killed' })])
+    })
+
+    it('tells a bot about its energy: running low, out of fuel, a live scan that stopped', async () => {
+      const { ticks, outbox, world, base, modules } = await setup()
+      const botState = { bot: base, ownerId: OWNER, modules }
+      const worldBot = { state: botState, position: null, heading: 0 as const, carried: [] }
+      jest.spyOn(world, 'tickEnergy').mockReturnValue([
+        { bot: worldBot, event: { type: 'EnergyLow' } },
+        { bot: worldBot, event: { type: 'OutOfFuel', moduleId: 'gen' } },
+        { bot: worldBot, event: { type: 'LiveScanStopped', moduleId: 'scan' } }
+      ])
+
+      await ticks(1)
+
+      expect(outbox.drain().map((e) => e.type)).toEqual(['EnergyLow', 'OutOfFuel', 'LiveScanStopped'])
     })
   })
 

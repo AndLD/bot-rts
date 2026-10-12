@@ -7,6 +7,7 @@ import { AppError } from '../../shared/domain/app-error'
 import { ResultCode } from '../../../../lib/utils/result'
 import { BotLink, Bars, connectivity, NOT_CONNECTED, RadioBalance, RadioNode } from '../domain/radio'
 import { GameEvent } from '../domain/game-event'
+import { EventOutbox } from './event-outbox'
 import { EngineSink } from './engine-ports'
 import { RadioBuffers } from './radio-buffers'
 import { World, WorldBot } from './world/world'
@@ -54,6 +55,7 @@ export class RadioNetwork {
     private readonly world: World,
     private readonly source: Pick<WorldSource, 'botIdsOfUser'>,
     private readonly sink: EngineSink,
+    private readonly outbox: EventOutbox,
     private readonly buffers: RadioBuffers,
     private readonly balance: RadioBalance,
     // Applies the cells a bot saw while out of reach to the player's knowledge, keeping the newer sighting of each cell
@@ -159,16 +161,13 @@ export class RadioNetwork {
   }
 
   private async report(userId: string, botId: string, before: BotLink, after: BotLink, now: number): Promise<void> {
-    let event: GameEvent | null = null
+    const parties: GameEvent['parties'] = [{ userId, botId }]
     if (before.isConnected && !after.isConnected) {
-      event = { type: 'LinkLost', userId, botId, at: now }
+      this.outbox.publish({ type: 'LinkLost', at: now, parties })
     } else if (!before.isConnected && after.isConnected) {
-      event = await this.restoredEvent(userId, botId, now)
+      this.outbox.publish(await this.restoredEvent(userId, botId, now))
     } else if (after.isConnected && after.bars === 1 && before.bars > 1) {
-      event = { type: 'LinkWeak', userId, botId, at: now, bars: after.bars }
-    }
-    if (event) {
-      this.sink.emit({ type: 'game', event })
+      this.outbox.publish({ type: 'LinkWeak', at: now, parties, bars: after.bars })
     }
   }
 
@@ -183,9 +182,8 @@ export class RadioNetwork {
     }
     return {
       type: 'LinkRestored',
-      userId,
-      botId,
       at: now,
+      parties: [{ userId, botId }],
       missed: { scans: scans.length, events: events.length, byType }
     }
   }

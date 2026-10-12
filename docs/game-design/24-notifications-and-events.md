@@ -17,6 +17,15 @@
   (c) happens inside their **live area** (continuous scanning, §4.4), whoever caused it. Everything else is learned only
   through a later scan.
 
+**Implementation (Phase 5).** Publishers (movement, mining, combat, scans, executions, energy, the radio network) put events
+into an `EventOutbox` during the tick. After the commands and the radio refresh, `GameEventBus.deliver()` picks the audience of
+each event: its `parties` (the players and bots it concerns) while the bot is connected, otherwise the event goes into the
+per-bot buffer of §11.2.1 and arrives as a summary on reconnection; link events are always delivered; players whose live area
+contains the event's `location` get it too. The engine thread hands each delivery to the API thread as `{ type: 'game' }`,
+where `GameEventDispatcher` fans it out to its consumers, and `RealtimeGateway` pushes it to the player's sockets (room
+`user:<id>`) as `game-event`, next to `radio-changes`, `vision`, `execution` and `script-log`. Animations, achievements and
+notifications are such consumers, outside the tick path.
+
 ## 24.2 Notifications ✅
 
 - **Realtime:** notifications are pushed over the player's Socket.IO connection as they happen.

@@ -6,7 +6,9 @@ import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
 import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
+import { ENERGY_EVENT, EnergyEvent } from '../../modules/domain/energy-model'
 import { BotState } from '../domain/bot-state'
+import { EventParty } from '../domain/game-event'
 import { capacityOf } from '../domain/bot-capacity'
 import { shuffled } from '../domain/shuffle'
 import { EngineConfig } from '../domain/engine-config'
@@ -23,7 +25,9 @@ import { Scheduler } from './scheduler'
 import { CallOutcome, ScriptApi } from './script-api'
 import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
-import { World } from './world/world'
+import { World, WorldBot } from './world/world'
+import { EventOutbox } from './event-outbox'
+import { GameEventBus } from './game-event-bus'
 import { LiveVision } from './live-vision'
 import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
@@ -62,6 +66,8 @@ export interface EngineDependencies {
   world: World
   vision: LiveVision
   radio: RadioNetwork
+  outbox: EventOutbox
+  bus: GameEventBus
   actions: WorldActionExecutor
   sink: EngineSink
   ids: IdGenerator
@@ -229,9 +235,12 @@ export class EngineCore {
 
     const isCut = await this.apply(commands, tick, hasTime)
     const now = this.deps.clock.now().getTime()
-    this.deps.world.tickEnergy(now)
+    for (const { bot, event } of this.deps.world.tickEnergy(now)) {
+      this.tellEnergy(bot, event, now)
+    }
     await this.deps.vision.refresh(tick, now)
     await this.deps.radio.refresh()
+    this.deps.bus.deliver()
     await this.deps.writeBehind.flushIfDue(tick)
     this.deps.world.evictCold()
 
@@ -396,7 +405,26 @@ export class EngineCore {
       restarts: ended.restarts
     }
     this.deps.sink.emit({ type: 'execution', userId: ended.userId, execution })
+    const parties: [EventParty] = [{ userId: ended.userId, botId: ended.botId }]
+    const at = this.deps.outbox.now()
+    this.deps.outbox.publish(
+      status === ExecutionStatus.FINISHED
+        ? { type: 'ExecutionFinished', at, parties, executionId: ended.id }
+        : { type: 'ExecutionFailed', at, parties, executionId: ended.id, reason: reason ?? 'killed' }
+    )
     return execution
+  }
+
+  // The energy rules report what a bot should be told (design §12.5)
+  private tellEnergy(bot: WorldBot, { type, moduleId }: EnergyEvent, now: number): void {
+    const about = { at: now, parties: [{ userId: bot.state.ownerId, botId: bot.state.bot.id }] as [EventParty] }
+    if (type === ENERGY_EVENT.LOW) {
+      this.deps.outbox.publish({ ...about, type: 'EnergyLow' })
+    } else if (type === ENERGY_EVENT.OUT_OF_FUEL) {
+      this.deps.outbox.publish({ ...about, type: 'OutOfFuel', moduleId: moduleId as string })
+    } else {
+      this.deps.outbox.publish({ ...about, type: 'LiveScanStopped', moduleId: moduleId as string })
+    }
   }
 
   private log(record: Execution, kind: 'output' | 'error' | 'system', text: string): void {

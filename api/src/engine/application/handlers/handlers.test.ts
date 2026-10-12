@@ -4,6 +4,7 @@ import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { createWorld } from '../../../../tests/fakes/world'
 import { ScanService } from '../../../bots/application/scan.service'
 import { BotState } from '../../domain/bot-state'
+import { EventOutbox } from '../event-outbox'
 import { RadioBuffers } from '../radio-buffers'
 import { CallOutcome, ScriptApi } from '../script-api'
 import { DriveHandler } from './drive-handler'
@@ -29,6 +30,7 @@ const PASSWORD = 'secret1'
 async function setup() {
   const world = createWorld()
   const buffers = new RadioBuffers({ scans: 100, events: 10 })
+  const outbox = new EventOutbox(world.clock)
   const radio = { statusOf: jest.fn(async () => ({ isConnected: true, signal: 4, hops: 0 })) }
   const { bot, modules } = await world.botsService.deployUserBase(alice, {
     password: PASSWORD,
@@ -46,7 +48,8 @@ async function setup() {
         world.energyService
       ),
       radio as never,
-      buffers
+      buffers,
+      outbox
     ),
     new FactoryHandler(world.factoryService, world.assemblyService),
     new MaintenanceHandler(world.maintenanceService),
@@ -59,7 +62,7 @@ async function setup() {
   await world.repositories.modules.addMany([gps])
   const state: BotState = { bot, ownerId: alice.id, modules: [...modules, gps] }
   const stored = (type: string) => world.repositories.modules.items.find((m) => m.botId === bot.id && m.type === type)!
-  return { ...world, api, bot, state, stored, radio, buffers }
+  return { ...world, api, bot, state, stored, radio, buffers, outbox }
 }
 
 describe('script API handlers', () => {
@@ -86,6 +89,16 @@ describe('script API handlers', () => {
       await repositories.map.findKnownPointsInRange(alice.id, { from: { x: 0, y: 0, z: 0 }, to: { x: 9, y: 9, z: 0 } })
     ).toHaveLength(1)
     expect(buffers.take(bot.id).scans).toHaveLength(9)
+  })
+
+  it('scan publishes that it is done', async () => {
+    const { api, state, outbox, bot } = await setup()
+
+    await api.execute(state, 'scan', [])
+
+    expect(outbox.drain()).toEqual([
+      { type: 'ScanCompleted', at: expect.any(Number), parties: [{ userId: alice.id, botId: bot.id }], cells: 9 }
+    ])
   })
 
   it('scan reports a spent scanner as a failure value', async () => {

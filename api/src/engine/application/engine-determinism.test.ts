@@ -23,6 +23,8 @@ import { MiningHandler } from './handlers/mining-handler'
 import { MovementHandler } from './handlers/movement-handler'
 import { FairScheduler, Scheduler } from './scheduler'
 import { ScriptApi } from './script-api'
+import { EventOutbox } from './event-outbox'
+import { GameEventBus } from './game-event-bus'
 import { LiveVision } from './live-vision'
 import { RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
@@ -60,9 +62,10 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
   const sink = new RecordingSink()
   const capacities = new BotCapacities()
   const config = DEFAULT_ENGINE_CONFIG
+  const outbox = new EventOutbox(new FakeClock())
   const worldHandlers = [
-    new MovementHandler(engine.world, DEFAULT_MOVEMENT_BALANCE),
-    new MiningHandler(engine.world),
+    new MovementHandler(engine.world, DEFAULT_MOVEMENT_BALANCE, outbox),
+    new MiningHandler(engine.world, outbox),
     new ManipulatorHandler(engine.world)
   ]
   const served = new Set(worldHandlers.flatMap((handler) => handler.functions))
@@ -92,6 +95,8 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     world: engine.world,
     vision: { restore: jest.fn(), refresh: jest.fn() } as unknown as LiveVision,
     radio: { refresh: jest.fn() } as unknown as RadioNetwork,
+    outbox,
+    bus: { deliver: jest.fn() } as unknown as GameEventBus,
     actions: { execute: jest.fn() } as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),

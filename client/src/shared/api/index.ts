@@ -11,7 +11,9 @@ export const api = generated.enhanceEndpoints({
     factoryStatus: { providesTags: ['Factory'] },
     factoryCraft: { invalidatesTags: ['Factory', 'Storage'] },
     factoryResearch: { invalidatesTags: ['Factory', 'Storage'] },
-    factoryLearn: { invalidatesTags: ['Factory'] },
+    factoryLearn: { invalidatesTags: ['Factory', 'Recipes'] },
+    // What the player knows of the recipes changes when a blueprint is learned or research ends
+    craftingRecipeList: { providesTags: ['Recipes'] },
     factoryAssemble: { invalidatesTags: ['Factory', 'Bases'] },
     // The settings of the player depend on those of the game, so a change of either makes both stale
     settingsGet: { providesTags: ['Settings'] },

@@ -127,6 +127,8 @@ declare global {
       // resolves to the id of the bot, which stands next to the base
       // Puts a bot on a cell. The engine learns of it when it next reads the world, which a scan of the base makes it do.
       teleportBot(options: { token: string; baseId: string; botId: string; x: number; y: number }): Chainable<void>
+      // Writes a file on the first drive of a bot, as a player does in the editor
+      writeScriptFile(options: { token: string; botId: string; path: string; content: string }): Chainable<void>
       assembleWorker(options: {
         email: string
         token: string
@@ -165,11 +167,12 @@ Cypress.Commands.add('assembleWorker', ({ email, token, baseId, modules, label =
   const headers = { Authorization: `Bearer ${token}` }
   const factory = `/api/v1/bots/${baseId}/factory`
 
-  cy.task('stockBase', { email, items: WORKER_STOCK })
+  // The base is stocked by its own id: a player may have more than one
+  cy.task('setModuleProps', { botId: baseId, type: 'storage', props: { capacity: 5000, items: WORKER_STOCK } })
   for (const module of modules) {
     cy.apiRequest({ method: 'POST', path: `${factory}/craft`, headers, body: { module } })
   }
-  cy.task('finishFactoryJobs', { email })
+  cy.task('finishFactoryJobs', { email, botId: baseId })
 
   return cy
     .apiRequest({ path: factory, headers })
@@ -198,3 +201,35 @@ Cypress.Commands.add('teleportBot', ({ token, baseId, botId, x, y }) => {
     failOnStatusCode: false
   })
 })
+
+Cypress.Commands.add('writeScriptFile', ({ token, botId, path, content }) => {
+  const headers = { Authorization: `Bearer ${token}` }
+
+  cy.apiRequest({ path: `/api/v1/bots/${botId}/modules`, headers }).then((modules) => {
+    const drive = (modules.body as Array<{ _id: string; type: string }>).find((module) => module.type === 'drive')
+
+    expect(drive, 'a drive').to.exist
+    cy.apiRequest({
+      method: 'PUT',
+      path: `/api/v1/bots/${botId}/drives/${drive!._id}/file`,
+      headers,
+      body: { path, content }
+    })
+  })
+})
+
+// The engine writes the world to the database a little after it happens, so a task that reads the database asks again until it
+// sees what it waits for (or gives up after about five seconds and yields the last answer)
+export function eventually<T>(
+  read: () => Cypress.Chainable<T>,
+  isDone: (value: T) => boolean,
+  attempts = 20
+): Cypress.Chainable<T> {
+  return read().then((value) => {
+    if (isDone(value) || attempts <= 0) {
+      return cy.wrap(value)
+    }
+
+    return cy.wait(250, { log: false }).then(() => eventually(read, isDone, attempts - 1))
+  })
+}

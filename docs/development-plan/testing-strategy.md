@@ -58,7 +58,7 @@ about 15 minutes it is sharded and run in parallel.
 | `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a bot of another player | 6.6 (`connect.cy.ts`); adopting a stale bot of a lost base: unit tests of `BotAccessService` (the stale bots themselves are Phase 8) |
 | Manual control panel and the global / personal category switches | 6.6 (`control.cy.ts`) |
 | Tutorial: complete, skip, reopen | 6.9 (`tutorial.cy.ts`) |
-| Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 |
+| Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 (`gameplay.cy.ts`) |
 | Landing page, language switch, auth page scene | 7.9 |
 | Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |
@@ -69,12 +69,12 @@ about 15 minutes it is sharded and run in parallel.
 | Weight / speed / capacity, assembly rejections, broken-module effects, disassembly permissions | 4.7 (unit: `movement`, `assembly`, `capabilities`, `repair-module`; integration: `api.int.test.ts`, `energy.service.int.test.ts`; terminal: `factory.cy.ts`) |
 | Script arguments, imports, TypeScript, limits, queued executions, sandbox denial, offline play | 5.11 (`scripts.cy.ts`); the ops budget: `engine-core.test.ts`, `scheduler.test.ts` |
 | Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 (`connect.cy.ts`, `map.cy.ts`, `resilience.cy.ts`, `control.cy.ts`); `sendMessage` / `ping` do not exist yet; the socket reconnect and two tabs are covered by `realtime.gateway.test.ts` and the socket tests of `api.int.test.ts` (Cypress cannot cut a WebSocket); the one-action-at-a-time rule of manual actions: `engine-core.test.ts` |
-| Deposit depletion and contest, combat details, items and blueprint items | 6.12 |
+| Deposit depletion and contest, combat details, items and blueprint items | 6.12 (`gameplay.cy.ts`, `storage-factory.cy.ts`); ammunition, armour and artillery numbers: the unit tests of the combat handler and the weapon module |
 | Notification coalescing, translated terminal responses | 7.9 |
 | Read-only API key, MCP smoke test, corpse base and stale bots seen by other players | 8.13 |
 | Admin console: role-based access, two-factor sign-in, dashboard, ban, inspector, supervision actions, maintenance mode, balance edit, announcements | 9.13 |
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
-| Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 |
+| Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 (`gameplay.cy.ts`) |
 | Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 (`connect.cy.ts`, `radio.cy.ts`: out of range, relay chain, terminal interrupted and resumed, signal bars); relay towers do not exist (relays are the player's own bots); buffered scans and the summary of missed events: `radio-network.test.ts`, `radio-buffers.test.ts`, `useTerminal.test.tsx` |

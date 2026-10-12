@@ -26,7 +26,7 @@ export default function FactoryPanel({ baseId }: { baseId: string }) {
   const t = useTranslations('factory')
   const moduleName = useModuleName()
   const names = useGameNames()
-  const { data: recipes } = useCraftingRecipeListQuery()
+  const { data: recipes } = useCraftingRecipeListQuery(undefined, { pollingInterval: REFRESH_MS })
   const { data: status } = useFactoryStatusQuery({ baseId }, { pollingInterval: REFRESH_MS })
   const { data: storage } = useBotControlGetStorageQuery({ botId: baseId }, { pollingInterval: REFRESH_MS })
   const [craft] = useFactoryCraftMutation()

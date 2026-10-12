@@ -107,13 +107,13 @@ export default defineConfig({
         },
 
         // Every job of the factory of the base is done by now
-        async finishFactoryJobs({ email }: { email: string }) {
+        async finishFactoryJobs({ email, botId }: { email: string; botId?: string }) {
           await sql(
             `UPDATE modules SET props = jsonb_set(props, '{jobs}', COALESCE(
                (SELECT jsonb_agg(jsonb_set(job, '{readyAt}', '1'::jsonb)) FROM jsonb_array_elements(props->'jobs') job),
                '[]'::jsonb))
-             WHERE type = 'factory' AND bot_id = ${BASE_OF_USER}`,
-            [email]
+             WHERE type = 'factory' AND bot_id = ${botId ? '$1::uuid' : BASE_OF_USER}`,
+            botId ? [botId] : [email]
           )
 
           return null
@@ -181,6 +181,97 @@ export default defineConfig({
           )
 
           return { x, y: y - 1 }
+        },
+
+        // A deposit of a resource lies on the cell ahead of a bot that faces north (heading 0)
+        async placeResourceAhead({ botId, resource, amount }: { botId: string; resource: string; amount: number }) {
+          const { rows } = await sql(`SELECT x, y FROM map_points WHERE content_id = $1::uuid`, [botId])
+          const { x, y } = rows[0] as { x: number; y: number }
+          await sql(`DELETE FROM map_points WHERE x = $1 AND y = $2 AND z = 0`, [x, y - 1])
+          await sql(
+            `INSERT INTO map_points (id, x, y, z, type, resource, amount)
+             VALUES (gen_random_uuid(), $1, $2, 0, 'resource', $3::resource_type, $4)`,
+            [x, y - 1, resource, amount]
+          )
+
+          return { x, y: y - 1 }
+        },
+
+        // The type, name and condition of every module of a bot
+        async moduleStates({ botId }: { botId: string }) {
+          const { rows } = await sql(`SELECT type, name, condition FROM modules WHERE bot_id = $1::uuid ORDER BY id`, [
+            botId
+          ])
+
+          return rows as { type: string; name: string; condition: number }[]
+        },
+
+        async damageAllModules({ botId, condition }: { botId: string; condition: number }) {
+          await sql(`UPDATE modules SET condition = $2 WHERE bot_id = $1::uuid`, [botId, condition])
+
+          return null
+        },
+
+        // Properties of the modules of a type are set (merged into what they have)
+        async setModuleProps({ botId, type, props }: { botId: string; type: string; props: object }) {
+          await sql(`UPDATE modules SET props = props || $3::jsonb WHERE bot_id = $1::uuid AND type = $2`, [
+            botId,
+            type,
+            JSON.stringify(props)
+          ])
+
+          return null
+        },
+
+        // What the storage modules of a bot hold, by resource
+        async stockOf({ botId }: { botId: string }) {
+          const { rows } = await sql(
+            `SELECT props->'items' AS items FROM modules WHERE bot_id = $1::uuid AND type = 'storage'`,
+            [botId]
+          )
+          const held: Record<string, number> = {}
+          for (const row of rows) {
+            for (const { resource, amount } of (row.items ?? []) as { resource: string; amount: number }[]) {
+              held[resource] = (held[resource] ?? 0) + amount
+            }
+          }
+
+          return held
+        },
+
+        // The cell of the map where an id stands, and what is there now
+        async cellAt({ x, y }: { x: number; y: number }) {
+          const { rows } = await sql(
+            `SELECT type::text AS type, resource::text AS resource, amount FROM map_points WHERE x = $1 AND y = $2 AND z = 0`,
+            [x, y]
+          )
+
+          return (
+            (rows[0] as { type: string | null; resource: string | null; amount: number | null } | undefined) ?? null
+          )
+        },
+
+        // Whatever lay on a cell is gone
+        async removeCell({ x, y }: { x: number; y: number }) {
+          await sql(`DELETE FROM map_points WHERE x = $1 AND y = $2 AND z = 0`, [x, y])
+
+          return null
+        },
+
+        // The base stops burning its oil: the generator is off and the battery full. The engine writes the storage it remembers
+        // whenever the oil changes, which wipes what a test puts there; once the engine has read the base again, this keeps it
+        // from writing the storage.
+        async quietBase({ botId }: { botId: string }) {
+          await sql(
+            `UPDATE modules SET props = props || '{"isEnabled": false}'::jsonb WHERE bot_id = $1::uuid AND type = 'generator'`,
+            [botId]
+          )
+          await sql(
+            `UPDATE modules SET props = jsonb_set(props, '{value}', props->'capacity') WHERE bot_id = $1::uuid AND type = 'battery'`,
+            [botId]
+          )
+
+          return null
         },
 
         async damageModule({ botId, type, condition }: { botId: string; type: string; condition: number }) {

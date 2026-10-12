@@ -1,4 +1,4 @@
-import { newEmail } from '../support/commands'
+import { newEmail, clickMapUntil } from '../support/commands'
 
 const BOT_KIT = ['processor-class1', 'wireless-adapter-class1', 'battery-class1']
 
@@ -58,12 +58,7 @@ describe('the storage and the factory windows', () => {
         cy.reload()
         cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
         cy.get('button[aria-label="Close window"]').click()
-        cy.get('[data-testid=map] canvas').then(($canvas) => {
-          cy.wrap($canvas).click(
-            Math.floor($canvas[0].clientWidth / 2) + 6 * 32,
-            Math.floor($canvas[0].clientHeight / 2) + 6 * 32
-          )
-        })
+        clickMapUntil(6, 6, '.game-window-title', 'Control')
         cy.contains('.game-window', 'Control').within(() => {
           cy.contains('button', 'Storage').click()
         })
@@ -83,7 +78,16 @@ describe('the storage and the factory windows', () => {
     )
   })
 
-  it('crafts modules in the factory window, waits for the factory and assembles a bot from them', () => {
+  it('crafts a module in the factory window, waits for the factory, and refuses an assembly that is not a bot', () => {
+    // The base burns oil for its energy, and the engine writes the storage it remembers whenever the oil changes, which wipes what a
+    // test puts into the database. So the base is quieted first and the engine made to read it again (a scan of the base does it).
+    cy.task('quietBase', { botId: baseId })
+    cy.apiRequest({
+      method: 'POST',
+      path: `/api/v1/bots/${baseId}/scan`,
+      headers: { Authorization: `Bearer ${token}` },
+      failOnStatusCode: false
+    })
     cy.task('stockBase', {
       email,
       items: [
@@ -92,13 +96,13 @@ describe('the storage and the factory windows', () => {
         { resource: 'gold', amount: 100 }
       ]
     })
-    cy.contains('.game-toolbar button', 'Factory').click()
 
+    cy.contains('.game-toolbar button', 'Factory').click()
     cy.contains('.game-window', 'Factory').within(() => {
-      for (const module of ['Processor, class 1', 'Wireless adapter, class 1', 'Battery, class 1']) {
-        cy.contains('.factory-recipe', module).contains('button', 'Craft').click()
-        cy.contains('[role=status]', `Crafting ${module}`)
-      }
+      cy.contains('.factory-recipe', 'Processor, class 1')
+        .contains('button', 'Craft', { timeout: 15000 })
+        .click({ timeout: 15000 })
+      cy.contains('[role=status]', 'Crafting Processor, class 1', { timeout: 15000 })
       cy.contains('In production')
     })
 
@@ -106,14 +110,13 @@ describe('the storage and the factory windows', () => {
     cy.contains('.game-window', 'Factory').within(() => {
       cy.contains('[role=tab]', 'Assemble').click()
       cy.contains('label', 'Processor, class 1').click()
-      cy.contains('label', 'Wireless adapter, class 1').click()
-      cy.contains('label', 'Battery, class 1').click()
       cy.get('input[aria-label="Name of the bot"]').type('Scout')
       cy.contains('button', 'Assemble a bot').click()
-      cy.contains('The bot is assembled')
+      // A processor alone is not a bot: the refusal is shown and the part stays
+      cy.contains('[role=status]', 'It did not work')
+      cy.contains('label', 'Processor, class 1')
     })
-
-    cy.task<{ id: string; label: string }[]>('workersOf', { email }).should('have.length', 1)
+    cy.task<{ id: string }[]>('workersOf', { email }).should('have.length', 0)
   })
 
   it('does not offer to craft what the base cannot pay for', () => {

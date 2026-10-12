@@ -2,7 +2,7 @@
 
 # Phase 6 — Core game GUI & map animations (96 SP)
 
-**Status:** 🟡 In progress · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
+**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
 
 Surface the game state in the browser.
 
@@ -21,12 +21,14 @@ Surface the game state in the browser.
 | 6.9 | Skippable tutorial per design §16.1: overlay checklist with steps completed by real game events, progress in the user profile; Cypress spec | 5 | ✅ |
 | 6.10 | Window manager: layered, draggable, focus-managed windows for terminals, editor and panels (multiple bot terminals at once), position persistence; used by 6.5 and 6.7 | 5 | ✅ |
 | 6.11 | Map animation system per design §15.2, driven by the game event bus, with effect cap, level of detail and reduced-motion setting | 8 | ✅ |
-| 6.12 | E2E (Cypress) for the core gameplay journeys: assemble a miner, script a mining loop, resources arrive in storage; two bots fight until a module breaks; a bot runs out of energy and stops; a corpse base is restored by a repair bot; also deposit depletion and contest (`EMPTY`), combat details (ammo, armor, cooldown, artillery splash, friendly fire), items and blueprint items; also a script acting on a stale scan (the target moved or the deposit is gone) and handling `BLOCKED` / `EMPTY` / `GONE` by re-scanning; also scanning: `scan()` is refused with `BUSY` while the scanner is live; a scanner in live mode reveals an approaching bot, its movement animates, and switching the scanner off turns the area into ageing snapshots | 13 | ⬜ |
+| 6.12 | E2E (Cypress) for the core gameplay journeys: assemble a miner, script a mining loop, resources arrive in storage; two bots fight until a module breaks; a bot runs out of energy and stops; a corpse base is restored by a repair bot; also deposit depletion and contest (`EMPTY`), combat details (ammo, armor, cooldown, artillery splash, friendly fire), items and blueprint items; also a script acting on a stale scan (the target moved or the deposit is gone) and handling `BLOCKED` / `EMPTY` / `GONE` by re-scanning; also scanning: `scan()` is refused with `BUSY` while the scanner is live; a scanner in live mode reveals an approaching bot, its movement animates, and switching the scanner off turns the area into ageing snapshots | 13 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
 **Exit criteria:** the notes' "Monitor / map GUI + physical storage GUI + factory GUI" are functional, the control panel
-and tutorial work, and map actions are animated from game events — all tested.
+and tutorial work, and map actions are animated from game events — all tested. ✅ Met: the map, storage, factory, control
+panel, settings, tutorial and windows are covered by Jest and by 99 Cypress tests; the animations are covered by unit
+tests and the smoke test of `map.cy.ts`.
 
 ## Implementation log
 

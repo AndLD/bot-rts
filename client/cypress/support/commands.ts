@@ -127,6 +127,8 @@ declare global {
       // resolves to the id of the bot, which stands next to the base
       // Puts a bot on a cell. The engine learns of it when it next reads the world, which a scan of the base makes it do.
       teleportBot(options: { token: string; baseId: string; botId: string; x: number; y: number }): Chainable<void>
+      // Writes a file on the first drive of a bot, as a player does in the editor
+      writeScriptFile(options: { token: string; botId: string; path: string; content: string }): Chainable<void>
       assembleWorker(options: {
         email: string
         token: string
@@ -165,11 +167,12 @@ Cypress.Commands.add('assembleWorker', ({ email, token, baseId, modules, label =
   const headers = { Authorization: `Bearer ${token}` }
   const factory = `/api/v1/bots/${baseId}/factory`
 
-  cy.task('stockBase', { email, items: WORKER_STOCK })
+  // The base is stocked by its own id: a player may have more than one
+  cy.task('setModuleProps', { botId: baseId, type: 'storage', props: { capacity: 5000, items: WORKER_STOCK } })
   for (const module of modules) {
     cy.apiRequest({ method: 'POST', path: `${factory}/craft`, headers, body: { module } })
   }
-  cy.task('finishFactoryJobs', { email })
+  cy.task('finishFactoryJobs', { email, botId: baseId })
 
   return cy
     .apiRequest({ path: factory, headers })
@@ -198,3 +201,68 @@ Cypress.Commands.add('teleportBot', ({ token, baseId, botId, x, y }) => {
     failOnStatusCode: false
   })
 })
+
+Cypress.Commands.add('writeScriptFile', ({ token, botId, path, content }) => {
+  const headers = { Authorization: `Bearer ${token}` }
+
+  cy.apiRequest({ path: `/api/v1/bots/${botId}/modules`, headers }).then((modules) => {
+    const drive = (modules.body as Array<{ _id: string; type: string }>).find((module) => module.type === 'drive')
+
+    expect(drive, 'a drive').to.exist
+    cy.apiRequest({
+      method: 'PUT',
+      path: `/api/v1/bots/${botId}/drives/${drive!._id}/file`,
+      headers,
+      body: { path, content }
+    })
+  })
+})
+
+// The engine writes the world to the database a little after it happens, so a task that reads the database asks again until it
+// sees what it waits for (or gives up after about five seconds and yields the last answer)
+export function eventually<T>(
+  read: () => Cypress.Chainable<T>,
+  isDone: (value: T) => boolean,
+  attempts = 20
+): Cypress.Chainable<T> {
+  return read().then((value) => {
+    if (isDone(value) || attempts <= 0) {
+      return cy.wrap(value)
+    }
+
+    return cy.wait(250, { log: false }).then(() => eventually(read, isDone, attempts - 1))
+  })
+}
+
+// Clicks the cell `dx` cells east and `dy` cells south of the base, which the map shows in its middle, and clicks again until the
+// selector appears: the map learns of a cell a moment after the page opens, and a click on a cell it does not know yet does nothing
+export function clickMapUntil(
+  dx: number,
+  dy: number,
+  selector: string,
+  text?: string | RegExp,
+  attempts = 20
+): Cypress.Chainable<unknown> {
+  return cy.get('[data-testid=map] canvas').then(($canvas) => {
+    cy.wrap($canvas).click(
+      Math.floor($canvas[0].clientWidth / 2) + dx * 32,
+      Math.floor($canvas[0].clientHeight / 2) + dy * 32
+    )
+
+    return cy.get('body').then(($body) => {
+      const found = Array.from($body.find(selector)).some((element) =>
+        text === undefined
+          ? true
+          : typeof text === 'string'
+            ? element.textContent!.includes(text)
+            : text.test(element.textContent!)
+      )
+
+      return (
+        found || attempts <= 0
+          ? cy.wrap(null)
+          : cy.wait(500, { log: false }).then(() => clickMapUntil(dx, dy, selector, text, attempts - 1))
+      ) as Cypress.Chainable<unknown>
+    })
+  })
+}

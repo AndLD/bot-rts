@@ -1,7 +1,6 @@
-import { newEmail } from '../support/commands'
+import { newEmail, clickMapUntil } from '../support/commands'
 
 const BOT_KIT = ['processor-class1', 'wireless-adapter-class1', 'battery-class1']
-const CELL = 32
 
 describe('the radio link of a bot on the map', () => {
   let token: string
@@ -30,13 +29,7 @@ describe('the radio link of a bot on the map', () => {
     cy.get('button[aria-label="Close window"]').click()
   }
 
-  const clickCellEastOfBase = (cells: number) =>
-    cy.get('[data-testid=map] canvas').then(($canvas) => {
-      cy.wrap($canvas).click(
-        Math.floor($canvas[0].clientWidth / 2) + cells * CELL,
-        Math.floor($canvas[0].clientHeight / 2)
-      )
-    })
+  const clickCellEastOfBase = (cells: number) => clickMapUntil(cells, 0, '.map-inspector', 'Your bot')
 
   it('shows weaker signal bars as the bot walks away from the base, and hatches it when the link is lost', () => {
     openGame()

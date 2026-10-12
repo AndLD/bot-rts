@@ -123,6 +123,17 @@ declare global {
         token: string,
         body?: { password?: string; spawnSeed?: string }
       ): Chainable<{ id: string; at: Cell }>
+      // Crafts the modules in the factory of the base (the base is stocked first), lets the factory finish and assembles a bot;
+      // resolves to the id of the bot, which stands next to the base
+      // Puts a bot on a cell. The engine learns of it when it next reads the world, which a scan of the base makes it do.
+      teleportBot(options: { token: string; baseId: string; botId: string; x: number; y: number }): Chainable<void>
+      assembleWorker(options: {
+        email: string
+        token: string
+        baseId: string
+        modules: string[]
+        label?: string
+      }): Chainable<string>
     }
   }
 }
@@ -141,3 +152,49 @@ Cypress.Commands.add('deployBaseViaApi', (token, body = {}) =>
       return { id: bot._id, at: { x: mapPoint.location.x, y: mapPoint.location.y } }
     })
 )
+
+// What a base needs in its storage to build a bot of a few modules
+const WORKER_STOCK = [
+  { resource: 'iron', amount: 900 },
+  { resource: 'crystal', amount: 500 },
+  { resource: 'gold', amount: 150 },
+  { resource: 'oil', amount: 100 }
+]
+
+Cypress.Commands.add('assembleWorker', ({ email, token, baseId, modules, label = 'Worker' }) => {
+  const headers = { Authorization: `Bearer ${token}` }
+  const factory = `/api/v1/bots/${baseId}/factory`
+
+  cy.task('stockBase', { email, items: WORKER_STOCK })
+  for (const module of modules) {
+    cy.apiRequest({ method: 'POST', path: `${factory}/craft`, headers, body: { module } })
+  }
+  cy.task('finishFactoryJobs', { email })
+
+  return cy
+    .apiRequest({ path: factory, headers })
+    .then((status) => {
+      const { parts } = status.body as { parts: Array<{ _id: string }> }
+
+      expect(parts).to.have.length(modules.length)
+
+      return cy.apiRequest({
+        method: 'POST',
+        path: `${factory}/assemble`,
+        headers,
+        body: { label, partIds: parts.map((part) => part._id) }
+      })
+    })
+    .then((assembled) => (assembled.body as { bot: { _id: string } }).bot._id)
+})
+
+Cypress.Commands.add('teleportBot', ({ token, baseId, botId, x, y }) => {
+  cy.task('placeBotAt', { botId, x, y })
+  // The scan may be refused while the scanner cools down; the engine forgets what it knew of the world either way
+  cy.apiRequest({
+    method: 'POST',
+    path: `/api/v1/bots/${baseId}/scan`,
+    headers: { Authorization: `Bearer ${token}` },
+    failOnStatusCode: false
+  })
+})

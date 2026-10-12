@@ -361,7 +361,8 @@
     "missingArg": "{arg} is needed",
     "invalidArg": "{arg} must be a whole number",
     "left": "left",
-    "right": "right"
+    "right": "right",
+    "openStorage": "Storage"
   },
   "tutorial": {
     "title": "Getting started",

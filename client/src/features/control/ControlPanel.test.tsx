@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
@@ -19,7 +19,7 @@ const on = {
 }
 const part = (type: string, name = type) => ({ _id: `m-${type}`, botId: 'b1', type, name })
 
-function setup(modules: object[], effective: object = {}) {
+function setup(modules: object[], effective: object = {}, onOpenStorage = jest.fn()) {
   query.mockReset()
   query.mockImplementation((async (args: { url: string }) =>
     args.url.endsWith('/modules')
@@ -32,20 +32,22 @@ function setup(modules: object[], effective: object = {}) {
           }
         }) as never)
 
-  return renderApp(<ControlPanel botId="b1" />, { store: storeWithToken(makeJwt(60)) })
+  return renderApp(<ControlPanel botId="b1" onOpenStorage={onOpenStorage} />, { store: storeWithToken(makeJwt(60)) })
 }
 
 describe('ControlPanel', () => {
   it('waits for the bot, and says when it cannot be loaded', async () => {
     query.mockReset()
     query.mockReturnValue(new Promise(() => undefined) as never)
-    const { unmount } = renderApp(<ControlPanel botId="b1" />, { store: storeWithToken(makeJwt(60)) })
+    const { unmount } = renderApp(<ControlPanel botId="b1" onOpenStorage={jest.fn()} />, {
+      store: storeWithToken(makeJwt(60))
+    })
     expect(screen.getByText('Loading...')).toBeInTheDocument()
     unmount()
 
     query.mockReset()
     query.mockResolvedValue({ error: { status: 500, data: {} } })
-    renderApp(<ControlPanel botId="b1" />, { store: storeWithToken(makeJwt(60)) })
+    renderApp(<ControlPanel botId="b1" onOpenStorage={jest.fn()} />, { store: storeWithToken(makeJwt(60)) })
     expect(await screen.findByText('Could not load the bot')).toBeInTheDocument()
   })
 
@@ -69,5 +71,14 @@ describe('ControlPanel', () => {
     expect(within(section).getByText('switched off')).toBeInTheDocument()
     expect(within(section).getByRole('button', { name: 'Do move' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Do scan' })).toBeEnabled()
+  })
+
+  it('opens the storage of the bot', async () => {
+    const onOpenStorage = jest.fn()
+    setup([part('scanner')], {}, onOpenStorage)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Storage' }))
+
+    expect(onOpenStorage).toHaveBeenCalledWith('b1')
   })
 })

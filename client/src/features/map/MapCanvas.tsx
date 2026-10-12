@@ -1,5 +1,6 @@
 'use client'
 
+import { capturePointer } from '../../shared/pointer'
 import { PointerEvent, useEffect, useRef, useState } from 'react'
 import { AnimationSystem } from './animation/AnimationSystem'
 import { describeCell } from './describeCell'
@@ -111,7 +112,7 @@ export default function MapCanvas({ store, loader, center, onOpenBot, isReducedM
 
   function onPointerDown(event: PointerEvent<HTMLCanvasElement>) {
     drag.current = { x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY }
-    event.currentTarget.setPointerCapture?.(event.pointerId)
+    capturePointer(event.currentTarget, event.pointerId)
   }
 
   function onPointerMove(event: PointerEvent<HTMLCanvasElement>) {

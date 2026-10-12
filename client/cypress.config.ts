@@ -149,6 +149,40 @@ export default defineConfig({
           return rows as { id: string; label: string | null }[]
         },
 
+        // A bot is put on a free cell: whatever empty point lay there is replaced by it. The engine reads the world from the
+        // database when it next needs it, so this is done between two actions of the player.
+        async placeBotAt({ botId, x, y }: { botId: string; x: number; y: number }) {
+          await sql(
+            `DELETE FROM map_points WHERE x = $2 AND y = $3 AND z = 0 AND content_id IS DISTINCT FROM $1::uuid`,
+            [botId, x, y]
+          )
+          await sql(`UPDATE map_points SET x = $2, y = $3 WHERE content_id = $1::uuid`, [botId, x, y])
+
+          return null
+        },
+
+        // Where a bot stands
+        async positionOf({ botId }: { botId: string }) {
+          const { rows } = await sql(`SELECT x, y FROM map_points WHERE content_id = $1::uuid`, [botId])
+
+          return (rows[0] as { x: number; y: number } | undefined) ?? null
+        },
+
+        // An item of the given kind lies on the cell ahead of a bot that faces north (heading 0), where nothing else is
+        async placeItemAhead({ botId, type, name }: { botId: string; type: string; name: string }) {
+          const { rows } = await sql(`SELECT x, y FROM map_points WHERE content_id = $1::uuid`, [botId])
+          const { x, y } = rows[0] as { x: number; y: number }
+          await sql(`DELETE FROM map_points WHERE x = $1 AND y = $2 AND z = 0`, [x, y - 1])
+          await sql(
+            `WITH item AS (
+               INSERT INTO items (id, type, name, weight, bot_id) VALUES (gen_random_uuid(), $3::item_type, $4, 1, NULL) RETURNING id)
+             INSERT INTO map_points (id, x, y, z, type, content_id) SELECT gen_random_uuid(), $1, $2, 0, 'item', item.id FROM item`,
+            [x, y - 1, type, name]
+          )
+
+          return { x, y: y - 1 }
+        },
+
         async damageModule({ botId, type, condition }: { botId: string; type: string; condition: number }) {
           const { rows } = await sql(
             `UPDATE modules SET condition = $3 WHERE bot_id = $1::uuid AND type = $2 RETURNING id`,

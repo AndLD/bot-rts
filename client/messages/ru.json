@@ -144,7 +144,8 @@
     "missingArg": "Нужно указать {arg}",
     "invalidArg": "{arg} должно быть целым числом",
     "left": "налево",
-    "right": "направо"
+    "right": "направо",
+    "openStorage": "Хранилище"
   },
   "tutorial": {
     "title": "Первые шаги",

@@ -53,11 +53,11 @@ about 15 minutes it is sharded and run in parallel.
 | Craft, assemble, research, `learn`; repair, disassemble; battery exhaustion | 4.7 (`factory.cy.ts`) |
 | Restore a corpse base by repairing its wireless adapter | 4.7 (HTTP integration test `api.int.test.ts`: driving a repairer to a lost base from the UI needs the movement of phase 5) |
 | Script lifecycle: edit, run, log, `top`, `kill`, shell mode, failing script | 5.11 (`scripts.cy.ts`); restart relaunch with the "rebooted" note: `engine.int.test.ts` (an e2e stack cannot kill the engine thread) |
-| Map: fog of war, pan/zoom, cell inspection, opening a bot; animation smoke test | 6.6 |
-| Storage GUI; factory GUI; windows | 6.6 |
-| `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a stale bot | 6.6 |
-| Manual control panel and the global / personal category switches | 6.6 |
-| Tutorial: complete, skip, reopen | 6.9 |
+| Map: fog of war, pan/zoom, cell inspection, opening a bot; animation smoke test | 6.6 (`map.cy.ts`) |
+| Storage GUI; factory GUI; windows | 6.6 (`storage-factory.cy.ts`, `windows.cy.ts`) |
+| `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a bot of another player | 6.6 (`connect.cy.ts`); adopting a stale bot of a lost base: unit tests of `BotAccessService` (the stale bots themselves are Phase 8) |
+| Manual control panel and the global / personal category switches | 6.6 (`control.cy.ts`) |
+| Tutorial: complete, skip, reopen | 6.9 (`tutorial.cy.ts`) |
 | Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 |
 | Landing page, language switch, auth page scene | 7.9 |
 | Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
@@ -68,7 +68,7 @@ about 15 minutes it is sharded and run in parallel.
 | Spawn seeds: same code spawns nearby, full seed, expired seed | 3.13 (`spawn-seeds.cy.ts`) |
 | Weight / speed / capacity, assembly rejections, broken-module effects, disassembly permissions | 4.7 (unit: `movement`, `assembly`, `capabilities`, `repair-module`; integration: `api.int.test.ts`, `energy.service.int.test.ts`; terminal: `factory.cy.ts`) |
 | Script arguments, imports, TypeScript, limits, queued executions, sandbox denial, offline play | 5.11 (`scripts.cy.ts`); the ops budget: `engine-core.test.ts`, `scheduler.test.ts` |
-| Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 |
+| Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 (`connect.cy.ts`, `map.cy.ts`, `resilience.cy.ts`, `control.cy.ts`); `sendMessage` / `ping` do not exist yet; the socket reconnect and two tabs are covered by `realtime.gateway.test.ts` and the socket tests of `api.int.test.ts` (Cypress cannot cut a WebSocket); the one-action-at-a-time rule of manual actions: `engine-core.test.ts` |
 | Deposit depletion and contest, combat details, items and blueprint items | 6.12 |
 | Notification coalescing, translated terminal responses | 7.9 |
 | Read-only API key, MCP smoke test, corpse base and stale bots seen by other players | 8.13 |
@@ -77,4 +77,4 @@ about 15 minutes it is sharded and run in parallel.
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
 | Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 |
-| Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 |
+| Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 (`connect.cy.ts`, `radio.cy.ts`: out of range, relay chain, terminal interrupted and resumed, signal bars); relay towers do not exist (relays are the player's own bots); buffered scans and the summary of missed events: `radio-network.test.ts`, `radio-buffers.test.ts`, `useTerminal.test.tsx` |

@@ -52,7 +52,9 @@ export class ConnectCommand implements TerminalCommand {
     if (connection.isForeign) {
       await this.delay.wait(this.attemptDelayMs)
     }
-    const opened = await this.terminal.openConnection(userId, session.botId, connection.bot.id)
+    const opened = await this.terminal.openConnection(userId, session.botId, connection.bot.id, {
+      isForeign: connection.isForeign
+    })
     return { result: { type: 'connected', sessionId: opened.id, botId: opened.botId } }
   }
 }

@@ -88,6 +88,15 @@ describe('ActionRow', () => {
     expect(perform).not.toHaveBeenCalled()
   })
 
+  it('takes a name as text', async () => {
+    const perform = setup('research')
+
+    fireEvent.change(screen.getByLabelText('research module'), { target: { value: 'gun-class2' } })
+    run('research')
+
+    await waitFor(() => expect(perform).toHaveBeenCalledWith('research', ['gun-class2']))
+  })
+
   it('marks an optional argument', () => {
     setup('drop')
 

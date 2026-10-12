@@ -1,4 +1,4 @@
-import { ITutorial, TUTORIAL_STEPS, TutorialStep } from '../../../../lib/utils/interfaces/tutorial'
+import { ITutorial, TUTORIAL_STEPS } from '../../../../lib/utils/interfaces/tutorial'
 import { TutorialFacts, TutorialProgress, TutorialProgressRepository } from './tutorial.ports'
 
 // The guided checklist (design §16.1): a step is done when the player has really done what it asks, and stays done. The
@@ -42,8 +42,8 @@ export class TutorialService {
 
   private view({ status, done }: TutorialProgress): ITutorial {
     const steps = TUTORIAL_STEPS.map((id) => ({ id, isDone: done.includes(id) }))
-    const next: TutorialStep | undefined = steps.find((step) => !step.isDone)?.id
+    const next = status === 'active' ? steps.find((step) => !step.isDone) : undefined
 
-    return { status, steps, current: status === 'active' ? (next ?? null) : null }
+    return { status, steps, current: next?.id ?? null }
   }
 }

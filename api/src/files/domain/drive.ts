@@ -10,3 +10,14 @@ export function driveNames(drives: readonly { id: string; name: string }[]): Map
   }
   return names
 }
+
+// Splits `/<drive>/<path on the drive>` as a script writes it into the drive and the path on it; null when the path does
+// not start with the name of one of the drives or names no file on it
+export function splitDrivePath<T extends { name: string }>(
+  drives: readonly T[],
+  path: string
+): { drive: T; path: string } | null {
+  const [, name, ...rest] = path.split('/')
+  const drive = path.startsWith('/') ? drives.find((candidate) => candidate.name === name) : undefined
+  return drive && rest.length && rest.every(Boolean) ? { drive, path: rest.join('/') } : null
+}

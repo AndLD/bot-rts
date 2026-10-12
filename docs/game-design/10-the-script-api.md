@@ -75,6 +75,12 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `log(...args)` | processor (always on) | `log(...args): void` | Write to the terminal session log. |
 | `sleep(ms)` | processor (always on) | `sleep(ms): Promise<void>` | Yield for `ms` of game time. |
 
+✅ **Details fixed by the implementation (Plan 5.3):** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
+(the drive is named as in the terminal's `cd`, §11.4); `bot.time()` (also a global `time()`) returns the game time in ms
+and is free; calling a function the bot has no module for, with invalid arguments, or an unknown function throws and ends
+the execution (§10.3), while a module that is broken or a use case that refuses (no energy, cooldown, not found) returns a
+`Result` failure.
+
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
 `enable()`/`disable()` (battery, generator, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
 

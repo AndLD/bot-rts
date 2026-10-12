@@ -39,6 +39,12 @@ describe('atlas', () => {
     expect(await loadAtlas('/atlas/atlas.json', loaders)).toBeNull()
   })
 
+  it('uses the browser loaders by default', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('offline'))
+
+    expect(await loadAtlas('/atlas/atlas.json')).toBeNull()
+  })
+
   describe('browser loaders', () => {
     afterEach(() => jest.restoreAllMocks())
 

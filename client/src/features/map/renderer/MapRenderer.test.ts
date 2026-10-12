@@ -215,4 +215,17 @@ describe('MapRenderer', () => {
     raf.mockRestore()
     caf.mockRestore()
   })
+
+  it('tints through a scratch canvas made by the document by default', () => {
+    const getContext = jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+    const context = createFakeContext()
+    const renderer = new MapRenderer(createFakeCanvas(context), { atlas, schedule: () => 0 })
+    renderer.resize(64, 64)
+    renderer.setCamera({ centerX: 0.5, centerY: 0.5, zoom: 1 })
+    renderer.setCells([cell(0, 0, bot())])
+    renderer.render()
+
+    expect(getContext).toHaveBeenCalledWith('2d')
+    getContext.mockRestore()
+  })
 })

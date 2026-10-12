@@ -23,7 +23,7 @@ export class ScanService {
 
   // A bot with a scanner module looks around itself; the cells it sees become the owner's knowledge. The scanner must
   // be working, not live and off cooldown, and the bot pays its energy cost; a scan starts the cooldown.
-  async scan(userId: string, botId: string): Promise<KnownPoint[]> {
+  async scan(userId: string, botId: string, options: { remember?: boolean } = {}): Promise<KnownPoint[]> {
     await this.bots.getControlledBot(userId, botId)
 
     const [scanner] = this.registry.instancesOf(await this.modules.listOfBot(botId), ScannerModule)
@@ -43,9 +43,10 @@ export class ScanService {
     const { distance } = scanner
     const { x, y, z } = position.location
 
-    return this.mapService.observe(userId, {
-      from: { x: x - distance, y: y - distance, z },
-      to: { x: x + distance, y: y + distance, z }
-    })
+    return this.mapService.observe(
+      userId,
+      { from: { x: x - distance, y: y - distance, z }, to: { x: x + distance, y: y + distance, z } },
+      options
+    )
   }
 }

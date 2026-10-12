@@ -248,4 +248,34 @@ describe('LiveVision', () => {
     await t.advance(1)
     expect((await t.vision.view((await t.scanner('b1')).id)).cells.length).toBeGreaterThan(0)
   })
+
+  it('learns the cells a bot saw while out of reach, keeping the newer sighting of each', async () => {
+    const t = await setup()
+    t.source.known.push({
+      id: 'old',
+      userId: 'alice',
+      location: at(9, 9),
+      type: MapPointType.RESOURCE,
+      contentId: null,
+      resource: { resource: RESOURCE.IRON, amount: 3 },
+      seenAt: 500
+    })
+    const sighting = (x: number, seenAt: number, id: string): KnownPoint => ({
+      id,
+      userId: 'alice',
+      location: at(x, 9),
+      type: null,
+      contentId: null,
+      resource: null,
+      seenAt
+    })
+
+    await t.vision.learn('alice', [sighting(9, 400, 'older'), sighting(9, 600, 'newer'), sighting(10, 300, 'fresh')])
+
+    const written = await t.staged()
+    expect(written.map((p) => [p.id, p.seenAt])).toEqual([
+      ['old', 600],
+      ['fresh', 300]
+    ])
+  })
 })

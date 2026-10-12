@@ -3,6 +3,7 @@ import { BotStateSource } from '../engine-ports'
 import { ItemRepository } from '../../../crafting/application/item.repository'
 import { MapRepository } from '../../../map/application/map.repository'
 import { MapGenerator } from '../../../map/domain/map-generator'
+import { BotRepository } from '../../../bots/application/bot.repository'
 import { KnownPoint, Location, LocationRange } from '../../../map/domain/map-point.entity'
 import { ModuleRepository } from '../../../modules/application/module.repository'
 import { ResourceBalance } from '../../../../../lib/utils/interfaces/resources'
@@ -14,6 +15,7 @@ import { NewCell, StoredBot, WorldSource } from './world-source'
 export class RepositoryWorldSource implements WorldSource {
   constructor(
     private readonly states: BotStateSource,
+    private readonly bots: BotRepository,
     private readonly modules: ModuleRepository,
     private readonly map: MapRepository,
     private readonly items: ItemRepository,
@@ -44,6 +46,10 @@ export class RepositoryWorldSource implements WorldSource {
 
   loadKnown(userId: string, range: LocationRange): Promise<KnownPoint[]> {
     return this.map.findKnownPointsInRange(userId, range)
+  }
+
+  async botIdsOfUser(userId: string): Promise<string[]> {
+    return (await this.bots.listOfUser(userId)).map((bot) => bot.id)
   }
 
   liveScannerBotIds(): Promise<string[]> {

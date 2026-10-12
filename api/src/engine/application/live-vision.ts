@@ -83,6 +83,18 @@ export class LiveVision {
     }
   }
 
+  // Cells the player's bot saw while out of reach reach the knowledge now, each only if it is newer than what the player knows
+  async learn(userId: string, snapshots: KnownPoint[]): Promise<void> {
+    for (const snapshot of snapshots) {
+      const current = await this.knownCell(userId, snapshot.location)
+      if (!current || current.point.seenAt < snapshot.seenAt) {
+        const known: KnownPoint = { ...snapshot, id: current?.point.id ?? snapshot.id, userId }
+        this.known.set(`${userId}|${locationKey(snapshot.location)}`, { point: known, changedAt: this.world.tick })
+        this.writeBehind.stageKnownPoint(known)
+      }
+    }
+  }
+
   // A scanner of the bot was switched on
   track(botId: string): void {
     this.liveBots.add(botId)

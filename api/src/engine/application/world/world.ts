@@ -6,7 +6,7 @@ import { Item } from '../../../crafting/domain/item.entity'
 import { chunkKeyOf, chunkOf, locationKey } from '../../../map/domain/location'
 import { Location, MapPoint } from '../../../map/domain/map-point.entity'
 import { EnergyModel } from '../../../modules/domain/energy-model'
-import { GameModule } from '../../../modules/domain/game-module'
+import { GameModule, WirelessAdapterModule } from '../../../modules/domain/game-module'
 import { Module } from '../../../modules/domain/module.entity'
 import { ModuleRegistry } from '../../../modules/domain/module-registry'
 import { Rng } from '../../../shared/application/rng'
@@ -40,6 +40,7 @@ export class World {
   // The cells that changed since the live views last asked, newest content per cell
   private changed = new Map<string, MapPoint>()
   private readonly evictionListeners: Array<() => void> = []
+  private readonly botChangeListeners: Array<(ownerId: string) => void> = []
   // Bots that are still moving, by the tick they are free again; kept across evictions
   private readonly busyUntil = new Map<string, number>()
   private rng: Rng | null = null
@@ -55,7 +56,10 @@ export class World {
     private readonly seed: number,
     // How many chunks of cells stay in memory; the least recently used go first (design §4.4)
     private readonly maxChunks: number
-  ) {}
+  ) {
+    // A batch the database refused is gone: what is in memory may differ from what is stored, so start from the database
+    writeBehind.onDiscard(() => this.evict())
+  }
 
   get tick(): number {
     return this.currentTick
@@ -81,6 +85,7 @@ export class World {
       return null
     }
     const loaded = { ...stored, carried: [...stored.carried] }
+    this.botChanged(loaded)
     for (const item of loaded.carried) {
       this.items.set(item.id, item)
     }
@@ -161,6 +166,7 @@ export class World {
       resource: null
     })
     bot.position = { ...to }
+    this.botChanged(bot)
   }
 
   turn(bot: WorldBot, heading: Heading): void {
@@ -194,9 +200,30 @@ export class World {
 
   // The bot's modules, changed
   updateModules(bot: WorldBot, changed: readonly Module[]): void {
+    const before = this.radioSignature(bot)
     const byId = new Map(changed.map((module) => [module.id, module]))
     bot.state = { ...bot.state, modules: bot.state.modules.map((module) => byId.get(module.id) ?? module) }
     changed.forEach((module) => this.writeBehind.stageModule(module))
+    if (this.radioSignature(bot) !== before) {
+      this.botChanged(bot)
+    }
+  }
+
+  // Told when a bot is loaded, moves, or changes in a way that matters to the radio network (design §11.2.1): its adapter, or
+  // whether it has energy
+  onBotChange(listener: (ownerId: string) => void): void {
+    this.botChangeListeners.push(listener)
+  }
+
+  private botChanged(bot: WorldBot): void {
+    this.botChangeListeners.forEach((listener) => listener(bot.state.ownerId))
+  }
+
+  private radioSignature(bot: WorldBot): string {
+    const adapter = this.registry
+      .instantiateAll(bot.state.modules)
+      .find((module): module is WirelessAdapterModule => module instanceof WirelessAdapterModule && module.isOnline)
+    return `${adapter ? adapter.range : 'off'}|${this.energy.stored(bot.state.modules) > 0}`
   }
 
   // Pays an operation from the bot's batteries; NO_ENERGY when they cannot

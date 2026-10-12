@@ -131,7 +131,7 @@ describe('EngineWorkerModule', () => {
       rover.id,
       drive.id,
       'go.js',
-      'export async function main(bot) { await bot.turn("right"); const r = await bot.move(1); bot.log(r.ok, r.data.moved) }'
+      'export async function main(bot) { await bot.turn("right"); const r = await bot.move(1); bot.log(r.ok, r.ok ? r.data.moved : r.code) }'
     )
     // Open ground, whatever cell next to the base the rover was given
     await database.client.mapPoint.updateMany({ where: { contentId: rover.id }, data: { x: 40, y: 40 } })
@@ -221,5 +221,71 @@ describe('EngineWorkerModule', () => {
     expect(
       (await database.client.module.findMany({ where: { botId: watcher.id, type: 'scanner' } }))[0].props
     ).toMatchObject({ isLive: true })
+  })
+
+  it("tells a script whether its bot reaches the base over the radio, and keeps the player's map free of what it sees out of reach", async () => {
+    const [{ db }] = await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`
+    const config = loadConfig({
+      DATABASE_URL: urlForDatabase(db),
+      NODE_ENV: 'test',
+      ENGINE_TICK_INTERVAL_MS: '10',
+      ENGINE_FLUSH_EVERY_TICKS: '2',
+      WORLD_RESOURCE_CHANCE: '0'
+    })
+    const { link, fromEngine, send } = channel()
+    const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    running.push(async () => {
+      send({ kind: 'stop' })
+      await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
+      await app.close()
+    })
+    const user = buildUser()
+    await new PrismaUserRepository(database.client).add(user)
+    const bots = app.get(BotsService)
+    const { bot: base } = await bots.deployUserBase(user, { password: 'secret1', location: { x: 20, y: 20, z: 0 } })
+    const factory = app.get(ModuleFactory)
+    const kit = ['processor-class1', 'wireless-adapter-class1', 'battery-class1', 'memory-class1', 'scanner-class1']
+    const { bot: near } = await bots.createBot(user.id, {
+      baseId: base.id,
+      label: 'Near',
+      modules: kit.map((name) => factory.template(name))
+    })
+    const { bot: far } = await bots.createBot(user.id, {
+      baseId: base.id,
+      label: 'Far',
+      modules: kit.map((name) => factory.template(name))
+    })
+    await database.client.mapPoint.updateMany({ where: { contentId: near.id }, data: { x: 28, y: 20 } })
+    await database.client.mapPoint.updateMany({ where: { contentId: far.id }, data: { x: 90, y: 90 } })
+    const files = app.get(FilesService)
+    for (const bot of [near, far]) {
+      const [drive] = await files.listDrives(user.id, bot.id)
+      await files.write(
+        user.id,
+        bot.id,
+        drive.id,
+        'link.js',
+        'export async function main(bot) { const s = await bot.getLinkStatus(); const c = await bot.scan(); bot.log(s.data.isConnected, s.data.signal, s.data.hops, c.data.length) }'
+      )
+    }
+
+    await app.get(EngineHost).start()
+    for (const [id, bot] of [near, far].entries()) {
+      send({
+        kind: 'request',
+        id: id + 1,
+        request: { op: 'start', request: { userId: user.id, botId: bot.id, file: '/memory-class1/link.js', args: [] } }
+      })
+    }
+    await until(() => fromEngine.filter((m) => m.kind === 'event' && m.event.type === 'log').length === 2, 'both logs')
+
+    const lines = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'log' ? [m.event.text] : [])).sort()
+    expect(lines).toEqual(['false 0 0 9', 'true 3 1 9'])
+    // What the far bot scanned does not reach the map of the player: only its neighbours' cells and the base's are known
+    await until(async () => (await database.client.knownPoint.count({ where: { userId: user.id } })) >= 10, 'knowledge')
+    expect(await database.client.knownPoint.count({ where: { userId: user.id, x: { gte: 89 } } })).toBe(0)
+    expect(
+      await database.client.knownPoint.count({ where: { userId: user.id, x: { gte: 27, lte: 29 }, y: { lte: 21 } } })
+    ).toBeGreaterThan(0)
   })
 })

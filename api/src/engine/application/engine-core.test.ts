@@ -21,6 +21,7 @@ import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
 import { LiveVision } from './live-vision'
+import { NoSignalError, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
 import { WriteBehind } from './write-behind'
 
@@ -60,9 +61,14 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
   const capacities = new BotCapacities()
+  const radio = {
+    refresh: jest.fn(async () => undefined),
+    ensureControl: jest.fn(async () => undefined),
+    statusOf: jest.fn(async () => ({ isConnected: true, signal: 4 as const, hops: 0 }))
+  }
   const vision = { restore: jest.fn(async () => undefined), refresh: jest.fn(async () => undefined) }
   const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
-  const writeBehind = new WriteBehind(store, config.flushEveryTicks)
+  const writeBehind = new WriteBehind(store, config.flushEveryTicks, 3)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
   const core = new EngineCore({
     config,
@@ -79,6 +85,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     writeBehind,
     world,
     vision: vision as unknown as LiveVision,
+    radio: radio as unknown as RadioNetwork,
     actions: actions as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
@@ -114,7 +121,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     writeBehind,
     actions,
     world,
-    vision
+    vision,
+    radio
   }
 }
 
@@ -562,6 +570,43 @@ describe('EngineCore', () => {
       expect(core.snapshot().cutTicks).toBeGreaterThan(0)
       expect(Math.min(...steps)).toBeGreaterThan(5)
       expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(2)
+    })
+  })
+
+  describe('the radio link', () => {
+    it('refuses manual control of a bot out of reach before running the use case', async () => {
+      const { core, radio, actions } = await setup()
+      radio.ensureControl.mockRejectedValueOnce(new NoSignalError())
+
+      const result = core.act('factory.craft', ['user-1', 'bot-9', 'scanner-class1'])
+      result.catch(() => undefined)
+      await core.runTick()
+
+      await expect(result).rejects.toMatchObject({ statusCode: 409, code: 'NO_SIGNAL' })
+      expect(radio.ensureControl).toHaveBeenCalledWith('user-1', 'bot-9')
+      expect(actions.execute).not.toHaveBeenCalled()
+    })
+
+    it('does not ask for a link when the action controls no bot', async () => {
+      const { core, radio, actions } = await setup()
+
+      const result = core.act('bots.deployUserBase', [{ id: 'u', name: 'U' }, { password: 'x' }])
+      await core.runTick()
+      await result
+
+      expect(radio.ensureControl).not.toHaveBeenCalled()
+      expect(actions.execute).toHaveBeenCalled()
+    })
+
+    it('tells the link status of a bot, and recomputes the networks that changed every tick', async () => {
+      const { core, radio, ticks } = await setup()
+
+      const status = core.link('user-1', 'bot-1')
+      await ticks(1)
+
+      await expect(status).resolves.toEqual({ isConnected: true, signal: 4, hops: 0 })
+      expect(radio.statusOf).toHaveBeenCalledWith('user-1', 'bot-1')
+      expect(radio.refresh).toHaveBeenCalledTimes(1)
     })
   })
 

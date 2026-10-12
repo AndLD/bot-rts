@@ -19,6 +19,7 @@ async function setup() {
   const states = new ServiceBotStateSource(world.botsService, world.repositories.bots, world.repositories.modules)
   const source = new RepositoryWorldSource(
     states,
+    world.repositories.bots,
     world.repositories.modules,
     world.repositories.map,
     world.repositories.items,
@@ -66,6 +67,18 @@ describe('RepositoryWorldSource', () => {
     expect(items).toEqual([item])
   })
 
+  it('lists the bots of a player', async () => {
+    const { source, base, botsService, moduleFactory } = await setup()
+    const { bot: worker } = await botsService.createBot(alice.id, {
+      baseId: base.id,
+      label: 'Worker',
+      modules: [moduleFactory.template('processor-class1')]
+    })
+
+    expect((await source.botIdsOfUser(alice.id)).sort()).toEqual([base.id, worker.id].sort())
+    expect(await source.botIdsOfUser('someone')).toEqual([])
+  })
+
   it('loads what a player knows of a range and lists the bots with a live scanner', async () => {
     const { source, base, repositories, ids } = await setup()
     await repositories.map.upsertKnownPoints([
@@ -97,6 +110,7 @@ describe('RepositoryWorldSource', () => {
     const { ids, botsService, repositories } = await setup()
     const withBlueprints = new RepositoryWorldSource(
       new ServiceBotStateSource(botsService, repositories.bots, repositories.modules),
+      repositories.bots,
       repositories.modules,
       repositories.map,
       repositories.items,

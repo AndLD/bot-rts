@@ -24,6 +24,7 @@ import { MovementHandler } from './handlers/movement-handler'
 import { FairScheduler, Scheduler } from './scheduler'
 import { ScriptApi } from './script-api'
 import { LiveVision } from './live-vision'
+import { RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
 import { WriteBehind } from './write-behind'
 
@@ -87,9 +88,10 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     scheduler: isReversed ? new ReversingScheduler(scheduler) : scheduler,
     capacities,
     registry: createModuleRegistry(),
-    writeBehind: new WriteBehind({ flush: async () => undefined }, 10),
+    writeBehind: new WriteBehind({ flush: async () => undefined }, 10, 3),
     world: engine.world,
     vision: { restore: jest.fn(), refresh: jest.fn() } as unknown as LiveVision,
+    radio: { refresh: jest.fn() } as unknown as RadioNetwork,
     actions: { execute: jest.fn() } as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),

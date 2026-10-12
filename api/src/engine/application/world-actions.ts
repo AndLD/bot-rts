@@ -40,3 +40,27 @@ export const WORLD_ACTION_NAMES: Record<WorldActionName, true> = {
 
 export const isWorldAction = (name: unknown): name is WorldActionName =>
   typeof name === 'string' && Object.prototype.hasOwnProperty.call(WORLD_ACTION_NAMES, name)
+
+// Which bot a manual action takes control of, from its arguments (design §11.2.1: control needs the radio link)
+const CONTROLLED_BOT: Record<WorldActionName, (args: readonly unknown[]) => unknown> = {
+  'bots.deployUserBase': () => null,
+  'scan.scan': (args) => args[1],
+  'factory.craft': (args) => args[1],
+  'factory.research': (args) => args[1],
+  'factory.learn': (args) => args[1],
+  'assembly.assemble': (args) => (args[1] as { baseId: string }).baseId,
+  'maintenance.repair': (args) => (args[1] as { repairerId: string }).repairerId,
+  'maintenance.disassemble': (args) => (args[1] as { repairerId: string }).repairerId,
+  'files.write': (args) => args[1],
+  'files.makeDirectory': (args) => args[1],
+  'files.remove': (args) => args[1]
+}
+
+// The player and the bot a manual action takes control of, or null when it controls none
+export function controlledBotOf(
+  name: WorldActionName,
+  args: readonly unknown[]
+): { userId: string; botId: string } | null {
+  const botId = CONTROLLED_BOT[name](args)
+  return typeof botId === 'string' ? { userId: args[0] as string, botId } : null
+}

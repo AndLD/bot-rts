@@ -6,6 +6,7 @@ import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { TerminalRetention } from '../domain/terminal-retention'
 import { TerminalSession, TerminalLogEntry } from '../domain/terminal-session'
 import { TerminalSessionClosedError } from '../domain/terminal.errors'
+import { LinkGate } from './link-gate'
 import { TerminalSessionRepository } from './terminal-session.repository'
 
 const DAY_MS = 24 * 3600 * 1000
@@ -18,12 +19,14 @@ export class TerminalService {
     private readonly bots: BotsService,
     private readonly ids: IdGenerator,
     private readonly clock: Clock,
-    private readonly retention: TerminalRetention
+    private readonly retention: TerminalRetention,
+    private readonly links: LinkGate
   ) {}
 
   // Starts a session on one of the player's bots; this is also when expired lines are dropped
   async open(userId: string, botId: string): Promise<TerminalSession> {
     await this.bots.getReachableBot(userId, botId)
+    await this.links.ensureConnected(userId, botId)
     await this.dropExpiredLogs()
 
     const session: TerminalSession = {

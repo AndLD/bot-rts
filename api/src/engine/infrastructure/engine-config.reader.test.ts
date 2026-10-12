@@ -20,6 +20,7 @@ describe('readEngineSettings', () => {
         ENGINE_SLICE_MS: '2.5',
         ENGINE_TICK_CAP_RATIO: '0.5',
         ENGINE_FLUSH_EVERY_TICKS: '20.7',
+        ENGINE_FLUSH_MAX_FAILURES: '5',
         ENGINE_SCRIPT_MEMORY_BYTES: '1048576',
         ENGINE_SCRIPT_STACK_BYTES: '65536',
         ENGINE_MAX_RESTARTS: '5',
@@ -27,7 +28,10 @@ describe('readEngineSettings', () => {
         ENGINE_MAX_CHUNKS: '64',
         ENGINE_MAX_TICKS_PER_CELL: '8',
         ENGINE_MIN_DAMAGE: '2',
-        ENGINE_ACCURACY_FALLOFF: '0.25'
+        ENGINE_ACCURACY_FALLOFF: '0.25',
+        ENGINE_RADIO_BAR_MARGINS: '0.9, 0.6, 0.3',
+        ENGINE_RADIO_BUFFER_SCANS: '10',
+        ENGINE_RADIO_BUFFER_EVENTS: '5'
       },
       true,
       problems
@@ -39,19 +43,31 @@ describe('readEngineSettings', () => {
       sliceMs: 2.5,
       tickCapRatio: 0.5,
       flushEveryTicks: 20,
+      flushMaxFailures: 5,
       memoryBytes: 1048576,
       stackBytes: 65536,
       maxRestarts: 5,
       healthyTicks: 100,
       maxChunks: 64,
       movement: { maxTicksPerCell: 8 },
-      combat: { minDamage: 2, accuracyFalloff: 0.25 }
+      combat: { minDamage: 2, accuracyFalloff: 0.25 },
+      radio: { barMargins: [0.9, 0.6, 0.3], bufferScans: 10, bufferEvents: 5 }
     })
     expect(problems).toEqual([])
   })
 
   it('switches the engine off explicitly', () => {
     expect(readEngineSettings({ ENGINE_ENABLED: 'false' }, false, []).isEnabled).toBe(false)
+  })
+
+  it('rejects margins that are not three falling numbers', () => {
+    for (const bad of ['0.5,0.75,0.25', '0.9,0.5', '1.5,0.5,0.25', 'a,b,c']) {
+      const problems: string[] = []
+      const settings = readEngineSettings({ ENGINE_RADIO_BAR_MARGINS: bad }, false, problems)
+
+      expect(problems).toEqual([expect.stringContaining('ENGINE_RADIO_BAR_MARGINS')])
+      expect(settings.radio.barMargins).toEqual([0.75, 0.5, 0.25])
+    }
   })
 
   it('reports bad values and keeps the defaults', () => {

@@ -97,6 +97,18 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 
 **Display.** Connected bots show their signal bars (map, bot list, terminal header and control panel, with a tooltip giving the bars, hops and the weakest link); disconnected bots are hatched (above); an optional overlay draws the links, so a weak or broken relay is easy to find.
 
+✅ **Implementation (Plan 5.13):** `RadioNetwork` in the engine computes, per player, which bots of the living base reach it
+(widest path: the chain whose weakest link is strongest, then the fewest hops) from the bots in memory — adapter online
+(`isConnected`) and working, battery not empty, position, range. It is recomputed only for players whose bots moved or changed
+their adapter or whether they have energy, on the next tick. A bot out of reach has a `lostSince` time; manual control of it
+(terminal `open`, and every world-changing API action that names it) fails with `NO_SIGNAL`, and `getLinkStatus()` returns
+`{ isConnected, signal, hops, weakestLink?, lostSince? }`. The engine emits `radio` events with only the bots whose bars or
+connection changed and the game events `LinkLost`, `LinkRestored` (with a summary `missed: { scans, events, byType }`) and
+`LinkWeak`. While a bot is out of reach the cells its `scan()` returns are kept in a buffer (newest 1,000, per cell the newest
+sighting) instead of the player's map, and the events about it in another (newest 200); on `LinkRestored` the cells reach the
+map with their original `seenAt` if newer than what the player knows. The bar margins and buffer sizes are `ENGINE_RADIO_*`
+settings.
+
 ## 11.2.2 Bot security and takeover ✅
 
 - **Access password:** a bot may have an access password, set by its owner from the bot's terminal (`passwd`). By

@@ -2,6 +2,7 @@ import { ExecutionView } from '../domain/execution'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { StartRequest } from './engine-core'
 import { EngineEvent } from './engine-ports'
+import { LinkStatus } from './radio-network'
 import { WorldActionName } from './world-actions'
 
 // The messages between the API thread and the engine thread: plain JSON, so the engine can later move to another process
@@ -12,10 +13,11 @@ export type EngineRequest =
   | { op: 'kill'; userId: string; executionId: string }
   | { op: 'list'; userId: string }
   | { op: 'act'; name: WorldActionName; args: unknown[] }
+  | { op: 'link'; userId: string; botId: string }
   | { op: 'metrics' }
 
 // What an action returns is plain data too (structured clone keeps dates)
-export type EngineReplyData = ExecutionView | ExecutionView[] | EngineMetricsSnapshot | unknown
+export type EngineReplyData = ExecutionView | ExecutionView[] | EngineMetricsSnapshot | LinkStatus | unknown
 
 export interface SerializedError {
   statusCode: number

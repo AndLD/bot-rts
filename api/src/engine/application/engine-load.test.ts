@@ -31,7 +31,13 @@ const HONEST =
   'export async function main(bot) { for (let n = 1; ; n++) { let x = 0; for (let i = 0; i < 2000; i++) x += i; bot.log(n); await bot.sleep(1) } }'
 const HOG = 'export async function main() { for (;;) {} }'
 
+// The time the scheduler gives a tick is read from a virtual clock that advances a fixed step per reading, so which bots run in
+// a tick, and therefore the fairness this test checks, is the same on every machine. The durations of the ticks are measured
+// on the real clock.
+const VIRTUAL_MS_PER_CHECK = 1
+
 async function stage(players: Array<{ id: string; script: string }>, ticks: number) {
+  let virtualMs = 0
   const runtime = await QuickJsScriptRuntime.create()
   const states = new FakeBotStateSource()
   const engine = createEngineWorld({ seed: 11, states: states.states })
@@ -64,7 +70,7 @@ async function stage(players: Array<{ id: string; script: string }>, ticks: numb
     ids: new SequentialIdGenerator(),
     clock: new FakeClock(),
     logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
-    monotonicMs: () => performance.now()
+    monotonicMs: () => (virtualMs += VIRTUAL_MS_PER_CHECK)
   })
 
   const started = []
@@ -104,8 +110,7 @@ describe('the engine under load', () => {
     // Ticks may run over the interval a little (the cap defers the rest), but not by multiples of it
     expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * 2.5)
     const counts = [...progress.values()]
-    // How many steps each bot gets depends on the speed of the machine; that every bot gets some and none gets far more is not
-    expect(Math.min(...counts)).toBeGreaterThan(0)
+    expect(Math.min(...counts)).toBeGreaterThan(5)
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(Math.ceil(Math.max(...counts) / 2))
   })
 

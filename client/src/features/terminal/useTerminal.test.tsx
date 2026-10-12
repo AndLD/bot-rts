@@ -311,7 +311,7 @@ describe('useTerminal: connecting to other bots', () => {
   it('leaves the connected terminal on exit, closing its session, and signs out only from the first one', async () => {
     const { socket, result } = await connected({
       'close-terminal': ((_id: string, ack: () => void) => ack()) as Handler,
-      'terminal-command': ((session: string, line: string, ack: (response: ITerminalCommandResponse) => void) =>
+      'terminal-command': ((_session: string, line: string, ack: (response: ITerminalCommandResponse) => void) =>
         ack({
           result: line.startsWith('connect')
             ? { type: 'connected', sessionId: 'session-2', botId: 'bot-2' }

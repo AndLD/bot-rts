@@ -1,3 +1,4 @@
+import { ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import type { AssemblyService } from '../../bots/application/assembly.service'
 import type { BotsService } from '../../bots/application/bots.service'
 import type { FactoryService } from '../../bots/application/factory.service'
@@ -45,6 +46,23 @@ export const WORLD_ACTION_NAMES: Record<WorldActionName, true> = {
 
 export const isWorldAction = (name: unknown): name is WorldActionName =>
   typeof name === 'string' && Object.prototype.hasOwnProperty.call(WORLD_ACTION_NAMES, name)
+
+// The category of manual control each action belongs to (design §15.1), or none for what is not micromanagement
+export const ACTION_CATEGORIES: Record<WorldActionName, ManualCategory | null> = {
+  'bots.deployUserBase': null,
+  'scan.scan': null,
+  'factory.craft': ManualCategory.FABRICATION,
+  'factory.research': ManualCategory.FABRICATION,
+  'factory.learn': ManualCategory.FABRICATION,
+  'assembly.assemble': ManualCategory.FABRICATION,
+  'maintenance.repair': ManualCategory.MAINTENANCE,
+  'maintenance.disassemble': ManualCategory.MAINTENANCE,
+  'files.write': null,
+  'files.makeDirectory': null,
+  'files.remove': null,
+  'access.connect': ManualCategory.COMMUNICATION,
+  'access.adopt': ManualCategory.COMMUNICATION
+}
 
 // Which bot a manual action takes control of, from its arguments (design §11.2.1: control needs the radio link)
 const CONTROLLED_BOT: Record<WorldActionName, (args: readonly unknown[]) => unknown> = {

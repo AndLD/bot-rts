@@ -64,6 +64,7 @@ async function stage(players: Array<{ id: string; script: string }>, ticks: numb
     radio: { refresh: jest.fn() } as unknown as RadioNetwork,
     outbox,
     bus: { deliver: jest.fn() } as unknown as GameEventBus,
+    manualPolicy: { isAllowed: async () => true },
     actions: { execute: jest.fn() } as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),

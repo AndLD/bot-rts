@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import GameMap from '../map/GameMap'
 import FactoryPanel from '../factory/FactoryPanel'
+import SettingsPanel from '../settings/SettingsPanel'
 import StoragePanel from '../storage/StoragePanel'
 import Terminal from '../terminal/Terminal'
 import { TerminalConnection } from '../terminal/useTerminal'
@@ -16,7 +17,7 @@ import { useAppDispatch } from '../../shared/store/hooks'
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
-const LAUNCHABLE: WindowKind[] = ['terminal', 'storage', 'factory']
+const LAUNCHABLE: WindowKind[] = ['terminal', 'storage', 'factory', 'settings']
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
@@ -53,6 +54,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         return win.params.botId
           ? connectedTerminal(win)
           : { title: t('kinds.terminal'), content: <Terminal onConnected={openConnection} /> }
+      case 'settings':
+        return { title: t('kinds.settings'), content: <SettingsPanel /> }
       case 'factory':
         return { title: t('kinds.factory'), content: <FactoryPanel baseId={win.params.botId} /> }
       case 'storage':

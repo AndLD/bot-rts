@@ -13,3 +13,10 @@ export class ScriptLoadError extends AppError {
     super(400, ErrorCode.SCRIPT_LOAD_FAILED, message)
   }
 }
+
+// A manual action of a category that is switched off, in the game or in the player's own settings (design §15.1)
+export class ManualCategoryDisabledError extends AppError {
+  constructor(category: string) {
+    super(403, ErrorCode.MANUAL_CATEGORY_DISABLED, `Manual control of ${category} is switched off`)
+  }
+}

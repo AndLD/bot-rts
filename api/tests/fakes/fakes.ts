@@ -1,3 +1,5 @@
+import { SettingsRepository } from '../../src/settings/application/settings.repository'
+import { CategorySwitches, IUserSettings, withDefaults } from '../../../lib/utils/interfaces/settings'
 import { Delay } from '../../src/terminal/application/delay'
 import { BotAccessRepository } from '../../src/terminal/application/bot-access.repository'
 import { AccessState } from '../../src/terminal/domain/bot-security'
@@ -607,5 +609,26 @@ export class FakeDelay implements Delay {
 
   async wait(ms: number) {
     this.waits.push(ms)
+  }
+}
+
+export class InMemorySettingsRepository implements SettingsRepository {
+  game: CategorySwitches = withDefaults(undefined)
+  readonly users = new Map<string, IUserSettings>()
+
+  async getGameCategories() {
+    return this.game
+  }
+
+  async saveGameCategories(categories: CategorySwitches) {
+    this.game = categories
+  }
+
+  async getUser(userId: string) {
+    return this.users.get(userId) ?? { categories: withDefaults(undefined), reducedMotion: null }
+  }
+
+  async saveUser(userId: string, settings: IUserSettings) {
+    this.users.set(userId, settings)
   }
 }

@@ -98,6 +98,7 @@ model User {
   terminalSessions     TerminalSession[]
   blueprints           Blueprint[]
   executions           Execution[]
+  settings             UserSetting?
 
   @@index([createdAt])
   @@map("users")
@@ -429,4 +430,26 @@ model BotAccess {
   bot Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
 
   @@map("bot_access")
+}
+
+// The settings of the whole game as key/value rows (design §15.1); a key that has no row has its default
+model GameSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @map("updated_at") @db.Timestamptz(3)
+
+  @@map("game_settings")
+}
+
+// The settings of one player, as the player set them (design §15.1, §15.2)
+model UserSetting {
+  userId           String    @id @map("user_id") @db.Uuid
+  // The switches of the categories of manual control, by category; one that is not there is on
+  manualCategories Json      @default("{}") @map("manual_categories")
+  reducedMotion    Boolean?  @map("reduced_motion")
+  updatedAt        DateTime  @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
 }

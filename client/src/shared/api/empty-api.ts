@@ -6,7 +6,7 @@ import { baseQueryWithRefresh } from '../store/baseQuery'
 export const emptyApi = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithRefresh,
-  // 'Bases': the bases of the player; 'Storage': what the bots carry; 'Factory': the jobs and parts of a base
-  tagTypes: ['Bases', 'Storage', 'Factory'],
+  // 'Bases': the bases of the player; 'Storage': what the bots carry; 'Factory': the jobs and parts of a base; 'Settings': the settings of the game and of the player
+  tagTypes: ['Bases', 'Storage', 'Factory', 'Settings'],
   endpoints: () => ({})
 })

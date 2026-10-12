@@ -235,6 +235,50 @@ describe('authorization', () => {
     expect((await database.client.user.findUniqueOrThrow({ where: { id: userId } })).status).toBe('user')
   })
 
+  it('keeps the settings of the game for admins, and the settings of a player for the player', async () => {
+    const alice = await signUp('alice@example.com')
+    const bob = await signUp('bob@example.com', 'Bob')
+    const admin = await signUp('admin@example.com', 'Admin')
+    await database.client.user.update({ where: { id: admin.userId }, data: { status: 'admin' } })
+    const settings = (token: string) => api().get('/api/v1/settings').set(bearer(token))
+    const patch = (token: string, body: object) => api().patch('/api/v1/settings').set(bearer(token)).send(body)
+
+    await api().get('/api/v1/settings').expect(401)
+    expect((await settings(alice.accessToken).expect(200)).body).toMatchObject({
+      global: { categories: { combat: true } },
+      user: { categories: { combat: true }, reducedMotion: null },
+      effective: { combat: true }
+    })
+
+    const changed = await patch(alice.accessToken, { categories: { combat: false }, reducedMotion: true }).expect(200)
+    expect(changed.body.user).toMatchObject({ categories: { combat: false, movement: true }, reducedMotion: true })
+    expect((await settings(bob.accessToken).expect(200)).body.user.categories.combat).toBe(true)
+    await patch(alice.accessToken, { categories: { flying: true } }).expect(400)
+    await patch(alice.accessToken, { categories: { combat: 'no' } }).expect(400)
+    await patch(alice.accessToken, { reducedMotion: 'yes' }).expect(400)
+    await patch(alice.accessToken, { categories: 5 }).expect(400)
+    await patch(alice.accessToken, { reducedMotion: null }).expect(200)
+
+    await api().get('/api/v1/admin/settings').set(bearer(alice.accessToken)).expect(403)
+    await api().patch('/api/v1/admin/settings').set(bearer(alice.accessToken)).send({ categories: {} }).expect(403)
+    await api()
+      .patch('/api/v1/admin/settings')
+      .set(bearer(admin.accessToken))
+      .send({ categories: { movement: false } })
+      .expect(200)
+    expect((await api().get('/api/v1/admin/settings').set(bearer(admin.accessToken)).expect(200)).body).toMatchObject({
+      categories: { movement: false, combat: true }
+    })
+    // The game's switch is a ceiling: Bob switches movement on for himself and still cannot use it
+    const narrowed = await patch(bob.accessToken, { categories: { movement: true } }).expect(200)
+    expect(narrowed.body).toMatchObject({
+      global: { categories: { movement: false } },
+      user: { categories: { movement: true } },
+      effective: { movement: false }
+    })
+    await api().patch('/api/v1/admin/settings').set(bearer(admin.accessToken)).send({}).expect(400)
+  })
+
   it('lets an admin list and edit regular users but not change a status', async () => {
     const alice = await signUp('alice@example.com')
     const admin = await signUp('admin@example.com', 'Admin')

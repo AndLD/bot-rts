@@ -199,6 +199,18 @@ const injectedRtkApi = api.injectEndpoints({
     mapPosition: build.query<MapPositionApiResponse, MapPositionApiArg>({
       query: (queryArg) => ({ url: `/api/v1/map/bots/${queryArg.botId}` })
     }),
+    settingsGet: build.query<SettingsGetApiResponse, SettingsGetApiArg>({
+      query: () => ({ url: `/api/v1/settings` })
+    }),
+    settingsUpdate: build.mutation<SettingsUpdateApiResponse, SettingsUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/settings`, method: 'PATCH', body: queryArg.updateUserSettingsDto })
+    }),
+    adminSettingsGet: build.query<AdminSettingsGetApiResponse, AdminSettingsGetApiArg>({
+      query: () => ({ url: `/api/v1/admin/settings` })
+    }),
+    adminSettingsUpdate: build.mutation<AdminSettingsUpdateApiResponse, AdminSettingsUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/settings`, method: 'PATCH', body: queryArg.updateGameSettingsDto })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -382,6 +394,18 @@ export type MapPositionApiResponse = /** status 200  */ BotPositionResponse
 export type MapPositionApiArg = {
   botId: string
 }
+export type SettingsGetApiResponse = /** status 200  */ SettingsResponse
+export type SettingsGetApiArg = void
+export type SettingsUpdateApiResponse = /** status 200  */ SettingsResponse
+export type SettingsUpdateApiArg = {
+  updateUserSettingsDto: UpdateUserSettingsDto
+}
+export type AdminSettingsGetApiResponse = /** status 200  */ GameSettingsResponse
+export type AdminSettingsGetApiArg = void
+export type AdminSettingsUpdateApiResponse = /** status 200  */ GameSettingsResponse
+export type AdminSettingsUpdateApiArg = {
+  updateGameSettingsDto: UpdateGameSettingsDto
+}
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
 export type UserInfoResponse = {
@@ -428,6 +452,7 @@ export type ErrorResponseModel = {
     | 'ALREADY_EXISTS'
     | 'TERMINAL_SESSION_CLOSED'
     | 'TOO_MANY_REQUESTS'
+    | 'MANUAL_CATEGORY_DISABLED'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'
     | 'EMPTY'
@@ -781,6 +806,47 @@ export type BotPositionResponse = {
   x: number
   y: number
 }
+export type CategorySwitchesModel = {
+  movement: boolean
+  combat: boolean
+  extraction: boolean
+  logistics: boolean
+  fabrication: boolean
+  maintenance: boolean
+  communication: boolean
+  trade: boolean
+}
+export type GameSettingsResponse = {
+  categories: CategorySwitchesModel
+}
+export type UserSettingsModel = {
+  categories: CategorySwitchesModel
+  reducedMotion: boolean | null
+}
+export type SettingsResponse = {
+  global: GameSettingsResponse
+  user: UserSettingsModel
+  /** What the player can use: the game and the player switches together */
+  effective: CategorySwitchesModel
+}
+export type CategorySwitchesPatchModel = {
+  movement?: boolean
+  combat?: boolean
+  extraction?: boolean
+  logistics?: boolean
+  fabrication?: boolean
+  maintenance?: boolean
+  communication?: boolean
+  trade?: boolean
+}
+export type UpdateUserSettingsDto = {
+  categories?: CategorySwitchesPatchModel
+  /** Reduce motion; null follows the system */
+  reducedMotion?: boolean | null
+}
+export type UpdateGameSettingsDto = {
+  categories: CategorySwitchesPatchModel
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -826,5 +892,9 @@ export const {
   useMaintenanceDisassembleMutation,
   useMapGetQuery,
   useMapPositionQuery,
+  useSettingsGetQuery,
+  useSettingsUpdateMutation,
+  useAdminSettingsGetQuery,
+  useAdminSettingsUpdateMutation,
   useHealthCheckQuery
 } = injectedRtkApi

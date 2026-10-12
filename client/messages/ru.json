@@ -102,5 +102,31 @@
       "repair": "Ремонт",
       "factory": "Фабрика"
     }
+  },
+  "settings": {
+    "loading": "Загрузка...",
+    "loadFailed": "Не удалось загрузить настройки",
+    "manualControl": "Ручное управление",
+    "manualControlHelp": "Отключите то, что хотите делать только скриптами. Скрипты эти переключатели не ограничивают.",
+    "categories": {
+      "movement": "Движение",
+      "combat": "Бой",
+      "extraction": "Добыча",
+      "logistics": "Логистика",
+      "fabrication": "Производство",
+      "maintenance": "Обслуживание",
+      "communication": "Связь",
+      "trade": "Торговля"
+    },
+    "offInGame": "выключено в игре",
+    "motion": "Анимация",
+    "motionChoices": {
+      "system": "Как в системе",
+      "reduced": "Уменьшенная",
+      "full": "Полная"
+    },
+    "gameSettings": "Настройки игры",
+    "gameSettingsHelp": "Что выключено здесь, выключено для всех игроков.",
+    "gamePrefix": "Игра: "
   }
 }

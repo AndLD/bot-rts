@@ -77,6 +77,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
   const writeBehind = new WriteBehind(store, config.flushEveryTicks, 3)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
+  const policy = { isAllowed: jest.fn(async (_userId: string, _category: string) => true) }
   const watch = {
     calls: [] as string[],
     begin(id: string) {
@@ -105,6 +106,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     radio: radio as unknown as RadioNetwork,
     outbox,
     bus: bus as unknown as GameEventBus,
+    manualPolicy: policy,
     actions: actions as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
@@ -144,7 +146,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     vision,
     radio,
     outbox,
-    bus
+    bus,
+    policy
   }
 }
 
@@ -825,6 +828,23 @@ describe('EngineCore', () => {
       expect(answer.value).toEqual({ ok: false, code: 'BLOCKED', msg: 'The cell is occupied' })
     })
 
+    it('refuses an action of a category that is switched off, before anything else, and lets observation through', async () => {
+      const { core, policy, handler, radio, base } = await setup()
+      policy.isAllowed.mockImplementation(async (_user, category) => category !== 'movement')
+
+      const refused = settled(core.manual(OWNER, base.id, 'move', [1]))
+      const observed = settled(core.manual(OWNER, base.id, 'scan', []))
+      await core.runTick()
+      await flushPromises()
+
+      expect(refused.error).toMatchObject({ statusCode: 403, code: 'MANUAL_CATEGORY_DISABLED' })
+      expect(observed.value).toMatchObject({ ok: true })
+      expect(policy.isAllowed).toHaveBeenCalledWith(OWNER, 'movement')
+      expect(policy.isAllowed).toHaveBeenCalledTimes(1)
+      expect(handler.calls).toEqual([{ fn: 'scan', args: [] }])
+      expect(radio.ensureControl).toHaveBeenCalledTimes(1)
+    })
+
     it('refuses what is not a manual action, and actions the bot has no module for', async () => {
       const { core, base } = await setup()
 
@@ -870,6 +890,23 @@ describe('EngineCore', () => {
       await expect(result).rejects.toMatchObject({ statusCode: 409, code: 'NO_SIGNAL' })
       expect(radio.ensureControl).toHaveBeenCalledWith('user-1', 'bot-9')
       expect(actions.execute).not.toHaveBeenCalled()
+    })
+
+    it('refuses a use case of a category that is switched off before it runs, and runs the others', async () => {
+      const { core, policy, actions, radio } = await setup()
+      policy.isAllowed.mockImplementation(async (_user, category) => category !== 'fabrication')
+
+      const crafted = core.act('factory.craft', ['user-1', 'bot-1', 'scanner-class1'])
+      crafted.catch(() => undefined)
+      const repaired = core.act('maintenance.repair', ['user-1', { repairerId: 'bot-1' }])
+      await core.runTick()
+
+      await expect(crafted).rejects.toMatchObject({ statusCode: 403, code: 'MANUAL_CATEGORY_DISABLED' })
+      await repaired
+      expect(actions.execute).toHaveBeenCalledTimes(1)
+      expect(actions.execute).toHaveBeenCalledWith('maintenance.repair', expect.anything())
+      expect(radio.ensureControl).toHaveBeenCalledTimes(1)
+      expect(policy.isAllowed).toHaveBeenCalledWith('user-1', 'fabrication')
     })
 
     it('does not ask for a link when the action controls no bot', async () => {

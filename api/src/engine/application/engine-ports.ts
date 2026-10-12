@@ -1,3 +1,4 @@
+import type { ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import { BotState } from '../domain/bot-state'
 import { ExecutionView } from '../domain/execution'
 import type { GameEvent } from '../domain/game-event'
@@ -58,4 +59,9 @@ export interface LiveAreaView {
 
 export interface EngineSink {
   emit(event: EngineEvent): void
+}
+
+// Whether a player may use a category of manual control at the moment (design §15.1): switched on in the game and by the player
+export interface ManualPolicy {
+  isAllowed(userId: string, category: ManualCategory): Promise<boolean>
 }

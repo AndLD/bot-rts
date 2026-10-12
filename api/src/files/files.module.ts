@@ -6,6 +6,9 @@ import { ModuleRegistry } from '../modules/domain/module-registry'
 import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
+import { APP_CONFIG, AppConfig } from '../config/app-config'
+import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
+import { routedThroughEngine } from '../engine/infrastructure/route-through-engine'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { FILE_REPOSITORY, FileRepository } from './application/file.repository'
 import { FilesService } from './application/files.service'
@@ -23,14 +26,21 @@ import { FilesController } from './presentation/files.controller'
     },
     {
       provide: FilesService,
-      inject: [UNIT_OF_WORK, BotsService, FILE_REPOSITORY, ID_GENERATOR, ModuleRegistry],
+      inject: [UNIT_OF_WORK, BotsService, FILE_REPOSITORY, ID_GENERATOR, ModuleRegistry, APP_CONFIG, ENGINE_PORT],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotsService,
         files: FileRepository,
         ids: IdGenerator,
-        registry: ModuleRegistry
-      ) => new FilesService(unitOfWork, bots, files, ids, registry)
+        registry: ModuleRegistry,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(new FilesService(unitOfWork, bots, files, ids, registry), engine, config.engine.isEnabled, {
+          write: 'files.write',
+          makeDirectory: 'files.makeDirectory',
+          remove: 'files.remove'
+        })
     }
   ],
   exports: [FILE_REPOSITORY, FilesService]

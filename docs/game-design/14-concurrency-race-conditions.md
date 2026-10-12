@@ -35,3 +35,9 @@ database transactions, row locks, versioned writes or per-cell queues are needed
   the bots take turns in a shuffle of their sorted ids seeded by `worldSeed` and the tick, and the commands of one bot go in
   the order of their execution and call numbers. Use cases that work on the database (scan, the factory, repairs) are called
   between a flush of the memory and an eviction of it.
+- ✅ **The single writer for API requests (Plan 5.5):** with the engine switched on, the use cases that change the world — deploy
+  a base, scan, craft / research / learn, assemble, repair / disassemble and the writes of files — are not run in the API
+  process: the services the controllers, gateways and terminal commands get send them to the engine (`EnginePort.act`), which
+  runs them between its ticks, after writing its memory and before forgetting it. Reads stay in the API process. With the engine
+  switched off (the unit and integration tests, a build without game logic) the same services run the use cases themselves.
+  Known gap: deleting an account still removes its bases from the API process.

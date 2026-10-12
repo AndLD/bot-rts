@@ -24,6 +24,8 @@ import { CallOutcome, ScriptApi } from './script-api'
 import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
 import { World } from './world/world'
+import { WorldActionExecutor } from './world-action-executor'
+import { WorldActionName } from './world-actions'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
 
@@ -56,6 +58,7 @@ export interface EngineDependencies {
   registry: ModuleRegistry
   writeBehind: WriteBehind
   world: World
+  actions: WorldActionExecutor
   sink: EngineSink
   ids: IdGenerator
   clock: Clock
@@ -160,6 +163,19 @@ export class EngineCore {
         throw new ForbiddenError('The execution belongs to another player')
       }
       return this.finish(live, ExecutionStatus.KILLED, 'killed')
+    })
+  }
+
+  // A use case that changes the world, run between ticks: the memory is written first, so the use case reads the truth, and
+  // forgotten afterwards, since the use case may have changed any of it (design §14.2)
+  act(name: WorldActionName, args: unknown[]): Promise<unknown> {
+    return this.submit(async () => {
+      await this.deps.world.sync()
+      try {
+        return await this.deps.actions.execute(name, args)
+      } finally {
+        this.deps.world.evict()
+      }
     })
   }
 

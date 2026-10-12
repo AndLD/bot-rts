@@ -23,6 +23,7 @@ import { MiningHandler } from './handlers/mining-handler'
 import { MovementHandler } from './handlers/movement-handler'
 import { FairScheduler, Scheduler } from './scheduler'
 import { ScriptApi } from './script-api'
+import { WorldActionExecutor } from './world-action-executor'
 import { WriteBehind } from './write-behind'
 
 const at = (x: number, y: number) => ({ x, y, z: 0 })
@@ -87,6 +88,7 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     registry: createModuleRegistry(),
     writeBehind: new WriteBehind({ flush: async () => undefined }, 10),
     world: engine.world,
+    actions: { execute: jest.fn() } as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
     clock: new FakeClock(),

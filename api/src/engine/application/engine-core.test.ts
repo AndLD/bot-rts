@@ -20,6 +20,7 @@ import { EngineCore } from './engine-core'
 import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
+import { WorldActionExecutor } from './world-action-executor'
 import { WriteBehind } from './write-behind'
 
 const OWNER = 'owner-1'
@@ -58,6 +59,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
   const capacities = new BotCapacities()
+  const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
   const writeBehind = new WriteBehind(store, config.flushEveryTicks)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
   const core = new EngineCore({
@@ -74,6 +76,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     registry: createModuleRegistry(),
     writeBehind,
     world,
+    actions: actions as unknown as WorldActionExecutor,
     sink,
     ids: new SequentialIdGenerator(),
     clock: new FakeClock(),
@@ -105,7 +108,9 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     start,
     ticks,
     config,
-    writeBehind
+    writeBehind,
+    actions,
+    world
   }
 }
 
@@ -316,6 +321,41 @@ describe('EngineCore', () => {
       await ticks(1)
 
       await expect(started).rejects.toThrow('db down')
+    })
+  })
+
+  describe('actions of the API', () => {
+    it('runs a use case between ticks with the memory written first and forgotten afterwards', async () => {
+      const { core, actions, world, flushes } = await setup()
+      const order: string[] = []
+      jest.spyOn(world, 'sync').mockImplementation(async () => void order.push('sync'))
+      jest.spyOn(world, 'evict').mockImplementation(() => void order.push('evict'))
+      actions.execute.mockImplementationOnce(async () => {
+        order.push('run')
+        return 'done'
+      })
+
+      const result = core.act('files.write', ['u', 'b'])
+      expect(order).toEqual([])
+      await core.runTick()
+
+      await expect(result).resolves.toBe('done')
+      expect(order).toEqual(['sync', 'run', 'evict'])
+      expect(actions.execute).toHaveBeenCalledWith('files.write', ['u', 'b'])
+      expect(flushes).toEqual([])
+    })
+
+    it('forgets the memory and passes on the error when the use case fails', async () => {
+      const { core, actions, world } = await setup()
+      const evict = jest.spyOn(world, 'evict')
+      actions.execute.mockRejectedValueOnce(new Error('refused'))
+
+      const result = core.act('factory.craft', [])
+      result.catch(() => undefined)
+      await core.runTick()
+
+      await expect(result).rejects.toThrow('refused')
+      expect(evict).toHaveBeenCalled()
     })
   })
 

@@ -40,6 +40,7 @@ function fakeCore() {
     start: jest.fn(async () => view),
     kill: jest.fn(async () => ({ ...view, state: 'killed' as const })),
     list: jest.fn(async () => [view]),
+    act: jest.fn(async (name: string, args: unknown[]) => ({ ran: name, args })),
     snapshot: jest.fn(() => ({
       tick: 3,
       lastTickMs: 1,
@@ -81,10 +82,15 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(port.kill('u', 'e1')).resolves.toMatchObject({ state: 'killed' })
     await expect(port.list('u')).resolves.toEqual([view])
     await expect(port.metrics()).resolves.toMatchObject({ tick: 3 })
+    await expect(port.act('files.remove', ['u', 'b', 'd', 'a.js'])).resolves.toEqual({
+      ran: 'files.remove',
+      args: ['u', 'b', 'd', 'a.js']
+    })
 
     expect(core.start).toHaveBeenCalledWith({ userId: 'u', botId: 'b', file: '/m/a.js', args: [1] })
     expect(core.kill).toHaveBeenCalledWith('u', 'e1')
     expect(core.list).toHaveBeenCalledWith('u')
+    expect(core.act).toHaveBeenCalledWith('files.remove', ['u', 'b', 'd', 'a.js'])
   })
 
   it('carries an application error across with its status and code, and hides other errors', async () => {
@@ -177,6 +183,7 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(off.start()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.kill()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.list()).rejects.toMatchObject({ statusCode: 503 })
+    await expect(off.act()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.metrics()).rejects.toMatchObject({ statusCode: 503 })
     expect(off.onEvent()()).toBeUndefined()
   })

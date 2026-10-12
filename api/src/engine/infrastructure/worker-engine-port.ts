@@ -12,6 +12,7 @@ import {
 } from '../application/engine-protocol'
 import { EngineEvent } from '../application/engine-ports'
 import { ServiceUnavailableError } from '../domain/engine.errors'
+import { WorldActionName, WorldActions } from '../application/world-actions'
 
 interface Waiting {
   resolve(data: EngineReplyData): void
@@ -39,6 +40,10 @@ export class ChannelEnginePort implements EnginePort {
 
   list(userId: string): Promise<ExecutionView[]> {
     return this.ask({ op: 'list', userId }) as Promise<ExecutionView[]>
+  }
+
+  act<K extends WorldActionName>(name: K, args: Parameters<WorldActions[K]>): ReturnType<WorldActions[K]> {
+    return this.ask({ op: 'act', name, args: [...args] }) as ReturnType<WorldActions[K]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {
@@ -101,6 +106,10 @@ export class DisabledEnginePort implements EnginePort {
 
   list(): Promise<ExecutionView[]> {
     return Promise.reject(new ServiceUnavailableError())
+  }
+
+  act<K extends WorldActionName>(): ReturnType<WorldActions[K]> {
+    return Promise.reject(new ServiceUnavailableError()) as ReturnType<WorldActions[K]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {

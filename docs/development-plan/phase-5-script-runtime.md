@@ -61,4 +61,4 @@ AGENTS.md §7.1).
 | `feature/5.9-bot-security` | 5.9 | #84 | merged |
 | `feature/5.9-bot-security` | 5.9 | PR_5_9 | merged |
 | `feature/5.11-script-e2e` | 5.11 | #85 | merged |
-| `feature/5.7-security-load-tests` | 5.7 | PR_5_7 | merged |
+| `feature/5.7-security-load-tests` | 5.7 | #86 | merged |

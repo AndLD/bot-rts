@@ -16,7 +16,8 @@ import { DEFAULT_ENGINE_CONFIG, EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionStatus } from '../domain/execution'
 import { QuickJsScriptRuntime } from '../infrastructure/quickjs-script-runtime'
 import { EngineCore } from './engine-core'
-import { ArrivalOrderScheduler } from './scheduler'
+import { BotCapacities } from './bot-capacities'
+import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
 import { WriteBehind } from './write-behind'
 
@@ -46,10 +47,16 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
   const config = { ...DEFAULT_ENGINE_CONFIG, ...options.config }
   const base = buildBase(OWNER)
-  const modules = ['processor', 'scanner', 'drive'].map((type) => buildModule(base.id, { type: type as never }))
+  const modules = ['processor', 'scanner', 'drive'].map((type) =>
+    buildModule(base.id, {
+      type: type as never,
+      props: type === 'processor' ? { opsPerTick: 2, parallelExecutions: 1 } : {}
+    })
+  )
   bots.states.set(base.id, { bot: base, ownerId: OWNER, modules })
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
+  const capacities = new BotCapacities()
   const writeBehind = new WriteBehind(store, config.flushEveryTicks)
   const core = new EngineCore({
     config,
@@ -60,7 +67,8 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     sources,
     runtime,
     api: new ScriptApi([handler]),
-    scheduler: new ArrivalOrderScheduler(),
+    scheduler: new FairScheduler(capacities, (seed) => new SeededRng(seed), 7),
+    capacities,
     registry: createModuleRegistry(),
     writeBehind,
     sink,
@@ -406,6 +414,93 @@ describe('EngineCore', () => {
       await core.shutdown()
       expect(executions.items.get('e1')?.restarts).toBe(0)
       expect(await listNow(core)).toEqual([])
+    })
+  })
+
+  describe('the fair scheduler', () => {
+    it('lets a bot make only as many calls per tick as its processor allows', async () => {
+      const { start, ticks, handler, sink } = await setup()
+
+      await start(
+        'export async function main(bot) { const r = await Promise.all([bot.scan(), bot.scan(), bot.scan()]); bot.log(r.length) }'
+      )
+      expect(handler.calls).toHaveLength(2)
+      await ticks(1)
+      expect(handler.calls).toHaveLength(3)
+      expect(sink.logs()).toEqual([])
+      await ticks(1)
+      expect(sink.logs()).toEqual(['3'])
+    })
+
+    it('never lets calls through for a bot whose processor allows no ops', async () => {
+      const { start, ticks, handler, bots, base } = await setup()
+      const state = bots.states.get(base.id)!
+      bots.states.set(base.id, {
+        ...state,
+        modules: state.modules.map((m) =>
+          m.type === 'processor' ? { ...m, props: { opsPerTick: 0, parallelExecutions: 1 } } : m
+        )
+      })
+
+      await start('export async function main(bot) { await bot.scan() }')
+      await ticks(3)
+
+      expect(handler.calls).toEqual([])
+    })
+
+    it('keeps a second execution of a bot queued until the first has ended', async () => {
+      const { core, base, start, ticks, sink } = await setup()
+      await start('export async function main(bot) { bot.log("one"); await sleep(250) }')
+      const second = core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      second.catch(() => undefined)
+
+      await ticks(1)
+      expect(sink.logs()).toEqual(['one'])
+      expect((await listNow(core)).map((e) => e.state)).toEqual(['suspended', 'queued'])
+      await ticks(8)
+      expect(sink.logs()).toEqual(['one', 'one'])
+    })
+
+    it('keeps the calls the tick had no time to apply for the next tick', async () => {
+      const script = [0, 0, 500, 500]
+      let last = 500
+      const { start, ticks, handler, core } = await setup({
+        monotonic: () => script.shift() ?? (last += 0.001)
+      })
+
+      await start('export async function main(bot) { await bot.scan() }')
+      expect(handler.calls).toEqual([])
+      expect(core.snapshot().cutTicks).toBe(1)
+
+      await ticks(1)
+      expect(handler.calls).toHaveLength(1)
+    })
+
+    it('serves every player alike when the tick cap keeps it from serving all of them', async () => {
+      let now = 0
+      const { core, bots, sources, sink, ticks } = await setup({
+        config: { tickIntervalMs: 10, tickCapRatio: 0.5 },
+        monotonic: () => (now += 1)
+      })
+      const players = Array.from({ length: 8 }, (_, i) => `player-${i}`)
+      sources.files.set(FILE, 'export async function main(bot) { for (;;) { bot.log("x"); await sleep(0) } }')
+      const started = []
+      for (const player of players) {
+        const base = buildBase(player)
+        bots.states.set(base.id, {
+          bot: base,
+          ownerId: player,
+          modules: [buildModule(base.id, { type: 'processor', props: { opsPerTick: 2, parallelExecutions: 1 } })]
+        })
+        started.push(core.start({ userId: player, botId: base.id, file: FILE, args: [] }))
+      }
+      await ticks(60)
+      const views = await Promise.all(started)
+
+      const steps = views.map((view) => sink.logs(view.id).length)
+      expect(core.snapshot().cutTicks).toBeGreaterThan(0)
+      expect(Math.min(...steps)).toBeGreaterThan(5)
+      expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(2)
     })
   })
 

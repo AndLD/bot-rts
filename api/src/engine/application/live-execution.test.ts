@@ -1,35 +1,6 @@
 import { Execution, ExecutionStatus } from '../domain/execution'
 import { LiveExecution } from './live-execution'
-import { PendingCall, ScriptExecution, StepOutcome } from './script-runtime'
-
-class FakeScript implements ScriptExecution {
-  calls: PendingCall[] = []
-  ready = false
-  settled: string[] = []
-  outcome: StepOutcome = { status: 'waiting' }
-
-  step() {
-    return this.outcome
-  }
-  takeCalls() {
-    return this.calls.splice(0)
-  }
-  resolveCall(callId: number, value: unknown) {
-    this.settled.push(`resolve ${callId} ${JSON.stringify(value)}`)
-  }
-  rejectCall(callId: number, message: string) {
-    this.settled.push(`reject ${callId} ${message}`)
-  }
-  hasReadyWork() {
-    return this.ready
-  }
-  memoryBytes() {
-    return 5
-  }
-  dispose() {
-    this.settled.push('disposed')
-  }
-}
+import { FakeScript } from '../../../tests/fakes/engine'
 
 const record: Execution = {
   id: 'e1',

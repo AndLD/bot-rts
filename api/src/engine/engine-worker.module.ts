@@ -38,7 +38,8 @@ import { FactoryHandler } from './application/handlers/factory-handler'
 import { GpsHandler } from './application/handlers/gps-handler'
 import { MaintenanceHandler } from './application/handlers/maintenance-handler'
 import { ScannerHandler } from './application/handlers/scanner-handler'
-import { ArrivalOrderScheduler, SCHEDULER, Scheduler } from './application/scheduler'
+import { BotCapacities } from './application/bot-capacities'
+import { FairScheduler, SCHEDULER, Scheduler } from './application/scheduler'
 import { ScriptApi } from './application/script-api'
 import { ScriptRuntime } from './application/script-runtime'
 import { WriteBehind } from './application/write-behind'
@@ -92,7 +93,13 @@ export class EngineWorkerModule {
           useFactory: (files: FilesService) => new FilesScriptSource(files)
         },
         { provide: SCRIPT_RUNTIME, useFactory: () => QuickJsScriptRuntime.create() },
-        { provide: SCHEDULER, useFactory: () => new ArrivalOrderScheduler() },
+        BotCapacities,
+        {
+          provide: SCHEDULER,
+          inject: [BotCapacities, APP_CONFIG],
+          useFactory: (capacities: BotCapacities, app: AppConfig) =>
+            new FairScheduler(capacities, (seed) => new SeededRng(seed), app.worldSeed ?? 0)
+        },
         {
           provide: ScriptApi,
           inject: [
@@ -141,6 +148,7 @@ export class EngineWorkerModule {
             SCRIPT_RUNTIME,
             ScriptApi,
             SCHEDULER,
+            BotCapacities,
             ModuleRegistry,
             WriteBehind,
             ENGINE_SINK,
@@ -156,6 +164,7 @@ export class EngineWorkerModule {
             runtime: ScriptRuntime,
             api: ScriptApi,
             scheduler: Scheduler,
+            capacities: BotCapacities,
             registry: ModuleRegistry,
             writeBehind: WriteBehind,
             sink: EngineSink,
@@ -173,6 +182,7 @@ export class EngineWorkerModule {
               runtime,
               api,
               scheduler,
+              capacities,
               registry,
               writeBehind,
               sink,

@@ -48,3 +48,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / findings:** the first CI run of 5.2 showed that lint and the changed-file coverage gate matter per PR: a file with only a DI token and no tests counts as 0 %; tokens are added together with the module that uses them. A flaky Cypress run of the factory spec (a part was not shown in 4 s) passed on re-run.
 - **Next step:** task 5.4 (the fair scheduler: per-bot op budget, seeded player shuffle, global cap with round-robin resume, parallelism and `queued`).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api` (the engine integration test needs the Docker PostgreSQL)
+
+### 2026-10-12 — task 5.4: fair scheduler
+- **Tasks:** 5.4
+- **Branch:** `feature/5.4-fair-scheduler` — done
+- **Decisions / deviations from the plan:** `FairScheduler` implements the `Scheduler` port: it admits the first `parallelExecutions` executions of each bot (the rest stay `queued`), shuffles the players with the generator for `seed ^ tick` and interleaves one execution per player per round (a deliberate departure from "player by player", which would let the first players use the whole cap); the executions left over by the tick cap are `deferred` and go first next tick. `capacityOf` (domain) sums the working processors (`opsPerTick`, `parallelExecutions`); `BotCapacities` holds it per bot, learned whenever the engine reads a bot's modules (launch and every applied call). The op budget is enforced where calls are applied: a FIFO backlog across ticks, a bot's calls pass up to `opsPerTick`, a call dearer than the budget takes a whole tick, budget 0 lets nothing through; the apply phase also stops at the cap and keeps the rest for the next tick. The `ArrivalOrderScheduler` of 5.4a is gone.
+- **Next step:** task 5.5 (race-condition prevention: in-memory world, collect-then-apply with deterministic order, reservations, determinism tests).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w api`

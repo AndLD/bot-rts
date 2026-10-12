@@ -39,4 +39,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| `feature/5.1-execution-model-rfc` | 5.1 | PR_5_1 | merged |
+| `feature/5.1-execution-model-rfc` | 5.1 | #72 | merged |

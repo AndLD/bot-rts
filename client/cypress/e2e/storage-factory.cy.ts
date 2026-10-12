@@ -1,4 +1,4 @@
-import { newEmail } from '../support/commands'
+import { newEmail, clickMapUntil } from '../support/commands'
 
 const BOT_KIT = ['processor-class1', 'wireless-adapter-class1', 'battery-class1']
 
@@ -58,12 +58,7 @@ describe('the storage and the factory windows', () => {
         cy.reload()
         cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
         cy.get('button[aria-label="Close window"]').click()
-        cy.get('[data-testid=map] canvas').then(($canvas) => {
-          cy.wrap($canvas).click(
-            Math.floor($canvas[0].clientWidth / 2) + 6 * 32,
-            Math.floor($canvas[0].clientHeight / 2) + 6 * 32
-          )
-        })
+        clickMapUntil(6, 6, '.game-window-title', 'Control')
         cy.contains('.game-window', 'Control').within(() => {
           cy.contains('button', 'Storage').click()
         })

@@ -1,4 +1,4 @@
-import { eventually, newEmail } from '../support/commands'
+import { eventually, newEmail, clickMapUntil } from '../support/commands'
 
 // A bot that can run a script (processor, memory, battery, wireless adapter) with what a task needs on top
 const SCRIPTED = ['processor-class1', 'memory-class1', 'wireless-adapter-class1', 'battery-class1']
@@ -202,7 +202,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
       `export async function main(bot) {
         const before = await bot.scan()
         bot.log("scanned " + before.data.filter((c) => c.type === "resource").length)
-        await bot.sleep(8000)
+        await bot.sleep(12000)
         const dug = await bot.dig()
         bot.log(dug.ok ? "dug" : "stale " + dug.code)
         if (!dug.ok) {
@@ -224,6 +224,8 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
               const before = Number(/scanned (\d+)/.exec(text)![1])
 
               // Somebody else mined it meanwhile
+              // What the engine holds is written first, then the cell goes, then the engine reads the world again
+              letTheEngineLook()
               cy.task('removeCell', deposit)
               letTheEngineLook()
 
@@ -286,12 +288,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
                   expect(liveAreas).to.have.length(1)
                   expect(cells.find((cell) => cell.contentId === stranger)).to.include({ isOwn: false })
                 })
-                cy.get('[data-testid=map] canvas').then(($canvas) => {
-                  cy.wrap($canvas).click(
-                    Math.floor($canvas[0].clientWidth / 2) + 9 * 32,
-                    Math.floor($canvas[0].clientHeight / 2) + 8 * 32
-                  )
-                })
+                clickMapUntil(9, 8, '.map-inspector', "Another player's bot")
                 cy.contains('.map-inspector', "Another player's bot")
                 cy.contains('.map-inspector', 'Live now')
 

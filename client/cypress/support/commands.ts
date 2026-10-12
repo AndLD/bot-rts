@@ -233,3 +233,36 @@ export function eventually<T>(
     return cy.wait(250, { log: false }).then(() => eventually(read, isDone, attempts - 1))
   })
 }
+
+// Clicks the cell `dx` cells east and `dy` cells south of the base, which the map shows in its middle, and clicks again until the
+// selector appears: the map learns of a cell a moment after the page opens, and a click on a cell it does not know yet does nothing
+export function clickMapUntil(
+  dx: number,
+  dy: number,
+  selector: string,
+  text?: string | RegExp,
+  attempts = 20
+): Cypress.Chainable<unknown> {
+  return cy.get('[data-testid=map] canvas').then(($canvas) => {
+    cy.wrap($canvas).click(
+      Math.floor($canvas[0].clientWidth / 2) + dx * 32,
+      Math.floor($canvas[0].clientHeight / 2) + dy * 32
+    )
+
+    return cy.get('body').then(($body) => {
+      const found = Array.from($body.find(selector)).some((element) =>
+        text === undefined
+          ? true
+          : typeof text === 'string'
+            ? element.textContent!.includes(text)
+            : text.test(element.textContent!)
+      )
+
+      return (
+        found || attempts <= 0
+          ? cy.wrap(null)
+          : cy.wait(500, { log: false }).then(() => clickMapUntil(dx, dy, selector, text, attempts - 1))
+      ) as Cypress.Chainable<unknown>
+    })
+  })
+}

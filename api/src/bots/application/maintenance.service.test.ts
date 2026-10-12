@@ -337,7 +337,8 @@ describe('MaintenanceService.disassemble', () => {
         userId: null,
         baseId,
         passwordHash: null,
-        lastPosition: null
+        lastPosition: null,
+        heading: 0
       })
       const module = { ...moduleFactory.create('storage-class1', id), id: `${id}-storage` }
       repositories.modules.items.push(module)

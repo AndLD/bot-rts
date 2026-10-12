@@ -8,6 +8,7 @@ import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { BotState } from '../domain/bot-state'
 import { capacityOf } from '../domain/bot-capacity'
+import { shuffled } from '../domain/shuffle'
 import { EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionState, ExecutionStatus, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
@@ -17,11 +18,12 @@ import { BotCapacities } from './bot-capacities'
 import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
 import { BotStateSource, EngineSink, ScriptSource } from './engine-ports'
 import { ExecutionRepository } from './execution.repository'
-import { EngineCommand, LiveExecution } from './live-execution'
+import { CallAnswer, EngineCommand, LiveExecution } from './live-execution'
 import { Scheduler } from './scheduler'
-import { ScriptApi } from './script-api'
+import { CallOutcome, ScriptApi } from './script-api'
 import { ScriptHost, ScriptRuntime } from './script-runtime'
 import { WriteBehind } from './write-behind'
+import { World } from './world/world'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
 
@@ -53,6 +55,7 @@ export interface EngineDependencies {
   capacities: BotCapacities
   registry: ModuleRegistry
   writeBehind: WriteBehind
+  world: World
   sink: EngineSink
   ids: IdGenerator
   clock: Clock
@@ -179,6 +182,7 @@ export class EngineCore {
     this.tickNumber += 1
     const tick = this.tickNumber
 
+    this.deps.world.beginTick(tick)
     await this.drainInbox()
 
     const planned = this.deps.scheduler.plan([...this.live.values()], tick)
@@ -193,7 +197,8 @@ export class EngineCore {
     }
     this.deps.scheduler.deferred(planned.slice(reached))
 
-    const isCut = await this.apply(commands, hasTime)
+    const isCut = await this.apply(commands, tick, hasTime)
+    this.deps.world.tickEnergy(this.deps.clock.now().getTime())
     await this.deps.writeBehind.flushIfDue(tick)
 
     this.metrics.record({
@@ -266,67 +271,72 @@ export class EngineCore {
     return commands
   }
 
-  // Applies the game calls in the order they were made, as far as each bot's ops per tick allow (design §12.2.1); the answers
-  // reach the scripts at the next tick. What does not fit, or does not fit in the time left, waits for the next tick.
-  // Returns whether the time ran out.
-  private async apply(commands: readonly EngineCommand[], hasTime: () => boolean): Promise<boolean> {
-    const spent = new Map<string, number>()
+  // Applies the game calls (design §12.4, §14.2). Collection is over, so the order no longer depends on who was run first: the
+  // bots take their turns in a shuffle seeded by the tick, and the calls of one bot go oldest first, in the order of their
+  // execution and call numbers. A bot's calls pass as far as its ops per tick allow (design §12.2.1); what does not fit, or
+  // does not fit in the time left, waits for the next tick. The answers reach the scripts at the start of the next tick at the
+  // earliest. Returns whether the time ran out.
+  private async apply(commands: readonly EngineCommand[], tick: number, hasTime: () => boolean): Promise<boolean> {
+    const queues = new Map<string, EngineCommand[]>()
+    const queue = (botId: string) => queues.get(botId) ?? queues.set(botId, []).get(botId)!
+    const fresh = [...commands].sort((a, b) => a.executionId.localeCompare(b.executionId) || a.callId - b.callId)
+    for (const command of [...this.backlog, ...fresh]) {
+      if (this.live.has(command.executionId)) {
+        queue(command.botId).push(command)
+      }
+    }
+    // The shuffle starts from a canonical order, so that it does not depend on how the commands were collected
+    const order = shuffled(
+      [...queues.keys()].sort(),
+      this.deps.createRng(this.deps.worldSeed ^ Math.imul(tick, APPLY_SALT))
+    )
+
     const waiting: EngineCommand[] = []
     let isCut = false
-    for (const command of [...this.backlog, ...commands]) {
-      const live = this.live.get(command.executionId)
-      if (!live) {
-        continue
+    for (const botId of order) {
+      const budget = this.deps.capacities.get(botId).opsPerTick
+      let used = 0
+      for (const command of queues.get(botId) as EngineCommand[]) {
+        // Scripts can only call the functions of the catalog
+        const cost = (findScriptFunction(command.fn) as ScriptFunctionSpec).ops
+        // A call dearer than a whole tick's budget would never run; it takes the budget of a tick alone
+        if (isCut || (used > 0 && used + cost > budget) || budget === 0) {
+          waiting.push(command)
+        } else if (!hasTime()) {
+          isCut = true
+          waiting.push(command)
+        } else {
+          used += cost
+          const { answer, delayTicks } = await this.answerFor(command)
+          ;(this.live.get(command.executionId) as LiveExecution).answer(command.callId, answer, tick + 1 + delayTicks)
+        }
       }
-      const budget = this.deps.capacities.get(command.botId).opsPerTick
-      // Scripts can only call the functions of the catalog
-      const cost = (findScriptFunction(command.fn) as ScriptFunctionSpec).ops
-      const used = spent.get(command.botId) ?? 0
-      // A call dearer than a whole tick's budget would never run; it takes the budget of a tick alone
-      if (isCut || (used > 0 && used + cost > budget) || budget === 0) {
-        waiting.push(command)
-        continue
-      }
-      if (!hasTime()) {
-        isCut = true
-        waiting.push(command)
-        continue
-      }
-      spent.set(command.botId, used + cost)
-      live.answer(command.callId, await this.answerFor(command))
     }
     this.backlog = waiting
     return isCut
   }
 
-  private async answerFor(command: EngineCommand) {
+  private async answerFor(command: EngineCommand): Promise<{ answer: CallAnswer; delayTicks: number }> {
     try {
-      const state = await this.deps.bots.load(command.botId)
-      if (!state) {
-        return { value: failureValue(ResultCode.NOT_FOUND, 'The bot is gone') }
+      const bot = await this.deps.world.bot(command.botId)
+      if (!bot) {
+        return { answer: { value: failureValue(ResultCode.NOT_FOUND, 'The bot is gone') }, delayTicks: 0 }
       }
-      this.learn(state)
-      return { value: await this.callApi(state, command) }
+      this.learn(bot.state)
+      const outcome = await this.deps.api.execute(bot.state, command.fn, command.args)
+      return { answer: { value: valueOf(outcome) }, delayTicks: outcome.delayTicks ?? 0 }
     } catch (error) {
       if (error instanceof ScriptMisuseError) {
-        return { misuse: error.message }
+        return { answer: { misuse: error.message }, delayTicks: 0 }
       }
       this.deps.logger.error(error)
-      return { misuse: 'Internal error' }
+      return { answer: { misuse: 'Internal error' }, delayTicks: 0 }
     }
   }
 
   // Remembers what the bot's processors allow, as of the modules just read
   private learn(state: BotState): void {
     this.deps.capacities.set(state.bot.id, capacityOf(this.deps.registry.instantiateAll(state.modules)))
-  }
-
-  private async callApi(state: BotState, command: EngineCommand): Promise<JsonValue | undefined> {
-    const outcome = await this.deps.api.execute(state, command.fn, command.args)
-    if (!outcome.ok) {
-      return failureValue(outcome.code, outcome.msg)
-    }
-    return outcome.data === undefined ? { ok: true } : { ok: true, data: outcome.data }
   }
 
   private async finish(live: LiveExecution, status: ExecutionStatus, reason: string | null): Promise<ExecutionView> {
@@ -364,6 +374,16 @@ export class EngineCore {
       text
     })
   }
+}
+
+const APPLY_SALT = 0x85ebca6b
+
+// What the script gets for the outcome of a call: the same shape as a Result, so `r.ok` works (design §10.3)
+function valueOf(outcome: CallOutcome): JsonValue {
+  if (!outcome.ok) {
+    return failureValue(outcome.code, outcome.msg)
+  }
+  return outcome.data === undefined ? { ok: true } : { ok: true, data: outcome.data }
 }
 
 // A failure as the script sees it: the same shape as a Result, so `r.ok` works (design §10.3)

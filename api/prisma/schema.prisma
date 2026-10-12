@@ -180,6 +180,9 @@ model Bot {
   lastX        Int?    @map("last_x")
   lastY        Int?    @map("last_y")
   lastZ        Int?    @map("last_z")
+  // The way the bot faces: a quarter turn clockwise from north, 0..3 (design §10.2); the CHECK constraint
+  // `bots_heading_check` lives in the migration SQL
+  heading      Int     @default(0)
 
   user                 User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   base                 Bot?              @relation("BaseBots", fields: [baseId], references: [id], onDelete: Cascade)

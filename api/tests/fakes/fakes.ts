@@ -546,6 +546,10 @@ export class InMemoryItemRepository implements ItemRepository {
     return this.items.get(id) ?? null
   }
 
+  async listByIds(ids: readonly string[]) {
+    return ids.flatMap((id) => this.items.get(id) ?? [])
+  }
+
   async listOfBot(botId: string) {
     return [...this.items.values()].filter((item) => item.botId === botId)
   }

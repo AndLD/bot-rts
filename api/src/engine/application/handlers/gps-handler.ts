@@ -1,37 +1,30 @@
 import { fail, ok, ResultCode } from '../../../../../lib/utils/result'
-import { MapRepository } from '../../../map/application/map.repository'
-import { EnergyService } from '../../../modules/application/energy.service'
-import { ModuleRepository } from '../../../modules/application/module.repository'
 import { GpsModule } from '../../../modules/domain/game-module'
-import { ModuleRegistry } from '../../../modules/domain/module-registry'
 import { BotState } from '../../domain/bot-state'
 import { CallOutcome, ScriptFunctionHandler } from '../script-api'
+import { World } from '../world/world'
 
-// getLocation(): where the bot is
+// getLocation(): where the bot is, as the engine knows it
 export class GpsHandler implements ScriptFunctionHandler {
   readonly functions = ['getLocation']
 
-  constructor(
-    private readonly modules: ModuleRepository,
-    private readonly registry: ModuleRegistry,
-    private readonly map: MapRepository,
-    private readonly energy: EnergyService
-  ) {}
+  constructor(private readonly world: World) {}
 
   async handle({ bot }: BotState): Promise<CallOutcome> {
-    const [gps] = this.registry.instancesOf(await this.modules.listOfBot(bot.id), GpsModule)
-    if (!gps) {
+    const acting = await this.world.bot(bot.id)
+    const gps =
+      acting && this.world.modulesOf(acting).find((module): module is GpsModule => module instanceof GpsModule)
+    if (!acting || !gps) {
       return fail(ResultCode.NO_MODULE, 'The bot has no GPS module')
     }
     const working = gps.ensureWorking()
     if (!working.ok) {
       return working
     }
-    const point = await this.map.findPointByContentId(bot.id)
-    if (!point) {
+    if (!acting.position) {
       return fail(ResultCode.NOT_FOUND, 'The bot is not on the map')
     }
-    await this.energy.pay(bot.id, gps.record.operationCost)
-    return ok({ x: point.location.x, y: point.location.y })
+    const paid = this.world.spend(acting, gps.record.operationCost)
+    return paid.ok ? ok({ x: acting.position.x, y: acting.position.y }) : paid
   }
 }

@@ -9,6 +9,7 @@ import {
   RecordingSink
 } from '../../../tests/fakes/engine'
 import { FakeClock, SequentialIdGenerator } from '../../../tests/fakes/fakes'
+import { createEngineWorld } from '../../../tests/fakes/world-engine'
 import { createModuleRegistry } from '../../modules/domain/module-registry'
 import { WorldStateStore } from '../../persistence/application/world-state-store'
 import { SeededRng } from '../../shared/infrastructure/seeded-rng'
@@ -58,6 +59,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
 
   const capacities = new BotCapacities()
   const writeBehind = new WriteBehind(store, config.flushEveryTicks)
+  const { world } = createEngineWorld({ states: bots.states, writeBehind })
   const core = new EngineCore({
     config,
     worldSeed: 7,
@@ -71,6 +73,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     capacities,
     registry: createModuleRegistry(),
     writeBehind,
+    world,
     sink,
     ids: new SequentialIdGenerator(),
     clock: new FakeClock(),
@@ -262,9 +265,14 @@ describe('EngineCore', () => {
     })
 
     it('answers a call of a bot that is gone with a failure value', async () => {
-      const { start, ticks, sink, bots } = await setup()
+      const { start, ticks, sink, bots, base } = await setup()
 
-      jest.spyOn(bots, 'load').mockResolvedValueOnce(null)
+      // The bot disappears right after the engine has let the script start
+      const state = bots.states.get(base.id)!
+      jest.spyOn(bots, 'loadControlled').mockImplementationOnce(async () => {
+        bots.states.delete(base.id)
+        return state
+      })
       await start('export async function main(bot) { const r = await bot.scan(); bot.log(r.code) }')
       await ticks(1)
 

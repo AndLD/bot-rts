@@ -48,6 +48,6 @@ import { WORLD_CONFIG, WorldConfig } from './domain/world-config'
       ) => new MapService(unitOfWork, ids, generator, clock, world.chunkSize)
     }
   ],
-  exports: [MAP_REPOSITORY, WORLD_CONFIG, MapService]
+  exports: [MAP_REPOSITORY, WORLD_CONFIG, MapService, MapGenerator]
 })
 export class MapModule {}

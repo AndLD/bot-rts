@@ -12,6 +12,9 @@ export enum MapPointType {
 
 export type Location = { x: number; y: number; z?: number }
 
+// The way a bot faces, as a quarter turn from north (0), clockwise: east is 1, south 2, west 3. North is toward smaller y.
+export type Heading = 0 | 1 | 2 | 3
+
 // If userId is not specified, then the point relates to the general game map
 export interface IMapPoint {
   _id: ID

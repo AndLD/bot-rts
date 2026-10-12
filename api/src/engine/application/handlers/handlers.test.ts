@@ -1,3 +1,5 @@
+import { ok } from '../../../../../lib/utils/result'
+import { SCRIPT_FUNCTIONS } from '../../../../../lib/utils/script-api'
 import { MODULE_CATALOG } from '../../../modules/domain/module-catalog'
 import { createWorld } from '../../../../tests/fakes/world'
 import { ScanService } from '../../../bots/application/scan.service'
@@ -5,9 +7,15 @@ import { BotState } from '../../domain/bot-state'
 import { CallOutcome, ScriptApi } from '../script-api'
 import { DriveHandler } from './drive-handler'
 import { FactoryHandler } from './factory-handler'
-import { GpsHandler } from './gps-handler'
 import { MaintenanceHandler } from './maintenance-handler'
 import { ScannerHandler } from './scanner-handler'
+
+const WORLD_FUNCTIONS = SCRIPT_FUNCTIONS.filter((spec) => !spec.isScheduled)
+  .map((spec) => spec.name)
+  .filter(
+    (name) =>
+      !['scan', 'craft', 'assemble', 'research', 'learn', 'repair', 'disassemble', 'read', 'write'].includes(name)
+  )
 
 const dataOf = <T>(result: CallOutcome): T => {
   if (!result.ok) throw new Error(result.msg)
@@ -35,10 +43,11 @@ async function setup() {
         world.energyService
       )
     ),
-    new GpsHandler(world.repositories.modules, world.moduleRegistry, world.repositories.map, world.energyService),
     new FactoryHandler(world.factoryService, world.assemblyService),
     new MaintenanceHandler(world.maintenanceService),
-    new DriveHandler(world.filesService)
+    new DriveHandler(world.filesService),
+    // The functions that work on the in-memory world have their own tests
+    { functions: WORLD_FUNCTIONS, handle: async () => ok(undefined) }
   ])
   // The starter kit has no GPS; the tests that need one add it
   const gps = world.moduleFactory.create('gps-class1', bot.id)
@@ -65,30 +74,6 @@ describe('script API handlers', () => {
     await api.execute(state, 'scan', [])
 
     await expect(api.execute(state, 'scan', [])).resolves.toMatchObject({ ok: false, code: 'COOLDOWN' })
-  })
-
-  it('getLocation returns the cell and pays the GPS operation', async () => {
-    const { api, state, stored } = await setup()
-    const before = Number(stored('battery').props.value)
-
-    await expect(api.execute(state, 'getLocation', [])).resolves.toEqual({ ok: true, data: { x: 5, y: 5 } })
-    expect(Number(stored('battery').props.value)).toBeLessThan(before)
-  })
-
-  it('getLocation fails when the gps is broken, the bot left the map or the gps is gone', async () => {
-    const { api, state, stored, repositories } = await setup()
-    const gps = stored('gps')
-    const index = repositories.modules.items.indexOf(gps)
-
-    repositories.modules.items[index] = { ...gps, condition: 0 }
-    await expect(api.execute(state, 'getLocation', [])).resolves.toMatchObject({ ok: false, code: 'BROKEN_MODULE' })
-
-    repositories.modules.items[index] = gps
-    repositories.map.points.clear()
-    await expect(api.execute(state, 'getLocation', [])).resolves.toMatchObject({ ok: false, code: 'NOT_FOUND' })
-
-    repositories.modules.items.splice(index, 1)
-    await expect(api.execute(state, 'getLocation', [])).resolves.toMatchObject({ ok: false, code: 'NO_MODULE' })
   })
 
   it('craft queues the order and returns the jobs', async () => {

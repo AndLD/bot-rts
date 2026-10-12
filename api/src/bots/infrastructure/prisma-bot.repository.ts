@@ -1,5 +1,5 @@
 import { Bot as BotRow, Prisma } from '@prisma/client'
-import { Location } from '../../../../lib/utils/interfaces/map'
+import { Heading, Location } from '../../../../lib/utils/interfaces/map'
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
 import { BotRepository } from '../application/bot.repository'
 import { Bot } from '../domain/bot.entity'
@@ -12,7 +12,8 @@ function toEntity(row: BotRow): Bot {
     userId: row.userId,
     baseId: row.baseId,
     passwordHash: row.passwordHash,
-    lastPosition: row.lastX === null ? null : { x: row.lastX, y: row.lastY as number, z: row.lastZ as number }
+    lastPosition: row.lastX === null ? null : { x: row.lastX, y: row.lastY as number, z: row.lastZ as number },
+    heading: row.heading as Heading
   }
 }
 

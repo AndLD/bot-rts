@@ -1,6 +1,6 @@
 import { Module } from '../../modules/domain/module.entity'
 import { WorldStateBatch, WorldStateStore } from '../../persistence/application/world-state-store'
-import { buildModule } from '../../../tests/integration/builders'
+import { buildItem, buildModule } from '../../../tests/integration/builders'
 import { WriteBehind } from './write-behind'
 
 const point = (id: string) => ({ id, location: { x: 0, y: 0, z: 0 }, type: null, contentId: null, resource: null })
@@ -31,11 +31,17 @@ describe('WriteBehind', () => {
     writeBehind.stageModule({ ...module, condition: 40 })
     writeBehind.stageKnownPoint({ ...point('k'), userId: 'u', seenAt: 1 })
     writeBehind.stageKnownPoint({ ...point('k'), userId: 'u', seenAt: 2 })
+    writeBehind.stageItem(buildItem({ id: 'i', botId: null }))
+    writeBehind.stageItem(buildItem({ id: 'i', botId: 'b' }))
+    writeBehind.stageHeading('b', 1)
+    writeBehind.stageHeading('b', 3)
 
     await writeBehind.flush(10)
 
     expect(batches[0].modules).toEqual([{ ...module, condition: 40 }])
     expect(batches[0].knownPoints.map((known) => known.seenAt)).toEqual([2])
+    expect(batches[0].items.map((item) => item.botId)).toEqual(['b'])
+    expect(batches[0].headings).toEqual([{ botId: 'b', heading: 3 }])
   })
 
   it('writes nothing when nothing changed', async () => {
@@ -53,14 +59,19 @@ describe('WriteBehind', () => {
     writeBehind.stageModule(module)
     writeBehind.stageMapPoint(point('p1'))
     writeBehind.stageKnownPoint({ ...point('k'), userId: 'u', seenAt: 1 })
+    writeBehind.stageItem(buildItem({ id: 'i' }))
+    writeBehind.stageHeading('b', 2)
 
     const failing = writeBehind.flush(10)
     writeBehind.stageModule({ ...module, condition: 7 })
+    writeBehind.stageHeading('b', 1)
     await expect(failing).rejects.toThrow('db down')
 
     await writeBehind.flush(20)
     expect(batches[0].modules).toEqual([{ ...module, condition: 7 }])
     expect(batches[0].mapPoints).toHaveLength(1)
     expect(batches[0].knownPoints).toHaveLength(1)
+    expect(batches[0].items.map((item) => item.id)).toEqual(['i'])
+    expect(batches[0].headings).toEqual([{ botId: 'b', heading: 1 }])
   })
 })

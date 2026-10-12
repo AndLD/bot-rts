@@ -1,6 +1,14 @@
 import { randomUUID } from 'crypto'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
-import { buildBase, buildKnownPoint, buildModule, buildPoint, buildUser } from '../../../tests/integration/builders'
+import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
+import {
+  buildBase,
+  buildItem,
+  buildKnownPoint,
+  buildModule,
+  buildPoint,
+  buildUser
+} from '../../../tests/integration/builders'
 import { createTestDatabase, TestDatabase } from '../../../tests/integration/test-database'
 import { createPrismaRepositories } from './prisma-repositories'
 import { PrismaUnitOfWork } from './prisma-unit-of-work'
@@ -56,7 +64,14 @@ describe('PrismaWorldStateStore', () => {
     const empty = buildPoint(2, 2)
     const known = buildKnownPoint(user.id, 1, 1, { type: MapPointType.BASE, contentId: base.id, seenAt: 4 })
     const module = buildModule(base.id)
-    await store.flush({ mapPoints: [point, empty], knownPoints: [known], modules: [module] })
+    await store.flush({
+      mapPoints: [point, empty],
+      knownPoints: [known],
+      modules: [module],
+      items: [],
+      removedItemIds: [],
+      headings: []
+    })
 
     const range = { from: { x: 0, y: 0, z: 0 }, to: { x: 5, y: 5, z: 0 } }
     expect(await repositories.map.findPointsInRange(range)).toEqual([point, empty])
@@ -68,7 +83,10 @@ describe('PrismaWorldStateStore', () => {
     await store.flush({
       mapPoints: [moved],
       knownPoints: [{ ...known, id: randomUUID(), seenAt: 9 }],
-      modules: [damaged]
+      modules: [damaged],
+      items: [],
+      removedItemIds: [],
+      headings: []
     })
 
     expect((await repositories.map.findPointsInRange(range)).map((p) => [p.id, p.type])).toEqual([
@@ -79,9 +97,61 @@ describe('PrismaWorldStateStore', () => {
     expect(await repositories.modules.listOfBot(base.id)).toEqual([damaged])
   })
 
+  it('flushes the amount of a deposit, the items and the headings of bots', async () => {
+    const user = buildUser()
+    const base = buildBase(user.id)
+    const repositories = createPrismaRepositories(database.client)
+    await repositories.users.add(user)
+    await repositories.bots.add(base)
+    const store = new PrismaWorldStateStore(database.client)
+    const deposit = buildPoint(3, 3, {
+      type: MapPointType.RESOURCE,
+      resource: { resource: RESOURCE.GOLD, amount: 40 }
+    })
+    const item = buildItem()
+    const known = buildKnownPoint(user.id, 3, 3, {
+      type: MapPointType.RESOURCE,
+      resource: { resource: RESOURCE.GOLD, amount: 40 },
+      seenAt: 2
+    })
+    const base_ = {
+      mapPoints: [deposit],
+      knownPoints: [known],
+      modules: [],
+      items: [item],
+      removedItemIds: [],
+      headings: []
+    }
+
+    await store.flush({ ...base_, headings: [{ botId: base.id, heading: 3 }] })
+
+    const range = { from: { x: 0, y: 0, z: 0 }, to: { x: 5, y: 5, z: 0 } }
+    expect(await repositories.map.findPointsInRange(range)).toEqual([deposit])
+    expect((await repositories.map.findKnownPointsInRange(user.id, range))[0].resource).toEqual(deposit.resource)
+    expect(await repositories.items.findById(item.id)).toEqual(item)
+    expect((await repositories.bots.findById(base.id))?.heading).toBe(3)
+
+    const mined = { ...deposit, resource: { resource: RESOURCE.GOLD, amount: 25 } }
+    const carried = { ...item, botId: base.id }
+    await store.flush({ ...base_, mapPoints: [mined], items: [carried] })
+
+    expect((await repositories.map.findPointsInRange(range))[0].resource?.amount).toBe(25)
+    expect(await repositories.items.findById(item.id)).toEqual(carried)
+
+    await store.flush({ ...base_, mapPoints: [], knownPoints: [], items: [], removedItemIds: [item.id] })
+    expect(await repositories.items.findById(item.id)).toBeNull()
+  })
+
   it('accepts an empty batch', async () => {
     await expect(
-      new PrismaWorldStateStore(database.client).flush({ mapPoints: [], knownPoints: [], modules: [] })
+      new PrismaWorldStateStore(database.client).flush({
+        mapPoints: [],
+        knownPoints: [],
+        modules: [],
+        items: [],
+        removedItemIds: [],
+        headings: []
+      })
     ).resolves.toBeUndefined()
   })
 
@@ -90,7 +160,14 @@ describe('PrismaWorldStateStore', () => {
     const point = buildPoint(1, 1)
 
     await expect(
-      store.flush({ mapPoints: [point], knownPoints: [], modules: [buildModule(randomUUID())] })
+      store.flush({
+        mapPoints: [point],
+        knownPoints: [],
+        modules: [buildModule(randomUUID())],
+        items: [],
+        removedItemIds: [],
+        headings: []
+      })
     ).rejects.toThrow()
 
     expect(await createPrismaRepositories(database.client).map.findPointByContentId(randomUUID())).toBeNull()

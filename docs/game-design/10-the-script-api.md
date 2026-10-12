@@ -81,6 +81,17 @@ and is free; calling a function the bot has no module for, with invalid argument
 the execution (§10.3), while a module that is broken or a use case that refuses (no energy, cooldown, not found) returns a
 `Result` failure.
 
+✅ **World functions (Plan 5.5):** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
+3 west); `turn('left' | 'right')` rotates it by a quarter. `move(n)` goes `n` cells (1–64) the way it faces, paying the
+engine's `operationCost` for each cell, and its promise resolves after `n × ticksPerCell` ticks (§8.5); it stops at the first
+occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` with the cells it managed in the message.
+`dig()` mines the cell **ahead**, `mine(x, y)` any neighbouring cell (8-neighbourhood), `pick()` / `take(itemId?)` lift the item
+on the cell ahead, `drop()` puts the last carried item on the free cell ahead and `drop(x, y)` on a free neighbouring cell. Mined
+resources go to the first storage module with room, a carried item counts against the manipulator's `loadCapacity`. `aim`,
+`shoot` and `reload` follow §12.6 (a shot hits the first bot on its line unless the weapon is artillery; `reload` consumes
+carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator or connect a battery.
+A bot that is moving answers `BUSY` to every action that needs its body.
+
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
 `enable()`/`disable()` (battery, generator, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
 

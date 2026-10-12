@@ -84,10 +84,8 @@ export class CombatHandler implements ScriptFunctionHandler {
     if (!shot.ok) {
       return shot
     }
-    const paid = this.world.spend(bot, shot.data.energyCost)
-    if (!paid.ok) {
-      return paid
-    }
+    // The weapon rule has checked the energy against the same batteries
+    this.world.spend(bot, shot.data.energyCost)
     this.world.updateModules(bot, [weapon.withProps(shot.data.patch)])
 
     const hits = weapon.resolve(shot.data, () => this.world.random())

@@ -278,6 +278,21 @@ describe('ManipulatorHandler', () => {
     expect(await t.manipulator.handle(await t.stateOf('b1'), 'pick', [])).toMatchObject({ ok: false, code: 'EMPTY' })
   })
 
+  it('does nothing for a bot that is not on the map', async () => {
+    const { t } = await withItem()
+    t.addBot('lost', null)
+
+    expect(await t.manipulator.handle(await t.stateOf('lost'), 'pick', [])).toMatchObject({ code: 'NOT_FOUND' })
+  })
+
+  it('counts what the bot already carries against its capacity', async () => {
+    const { t } = await withItem(30)
+    const state = await t.stateOf('b1')
+    t.world.setItemHolder(buildItem({ id: 'heavy', weight: 30 }), await t.worldBot('b1'))
+
+    expect(await t.manipulator.handle(state, 'pick', [])).toMatchObject({ ok: false, code: 'TOO_HEAVY' })
+  })
+
   it('cannot lift without energy', async () => {
     const { t } = await withItem()
     const battery = await t.typeOf('b1', 'battery')
@@ -401,6 +416,21 @@ describe('CombatHandler', () => {
       data: { hits: 1, struck: null }
     })
     expect(await damageTaken(t, 'victim')).toBe(0)
+  })
+
+  it('a missed shot harms nobody, and a broken weapon cannot aim', async () => {
+    const t = await duel()
+    const gun = await t.typeOf('shooter', 'weapon')
+    await t.replace('shooter', { ...gun, props: { ...gun.props, accuracy: 0 } })
+
+    expect(await t.combat.handle(await t.stateOf('shooter'), 'shoot', [5, 3])).toMatchObject({
+      ok: true,
+      data: { hits: 0, struck: null }
+    })
+    expect(await damageTaken(t, 'victim')).toBe(0)
+
+    await t.replace('shooter', { ...gun, condition: 0 })
+    expect(await t.combat.handle(await t.stateOf('shooter'), 'aim', [5, 3])).toMatchObject({ code: 'BROKEN_MODULE' })
   })
 
   it('reduces damage by armor, with a minimum', async () => {

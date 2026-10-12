@@ -26,6 +26,5 @@ describe('heading', () => {
     expect(isNeighbour(cell, cell)).toBe(false)
     expect(isNeighbour(cell, { x: 4, y: 2, z: 0 })).toBe(false)
     expect(isNeighbour(cell, { x: 3, y: 2, z: 1 })).toBe(false)
-    expect(isNeighbour({ x: 2, y: 2 }, { x: 3, y: 2, z: 0 })).toBe(true)
   })
 })

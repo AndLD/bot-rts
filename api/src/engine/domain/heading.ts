@@ -20,7 +20,7 @@ export function turned(heading: Heading, direction: 'left' | 'right'): Heading {
 }
 
 // Whether two cells touch, diagonals included, and are not the same cell
-export function isNeighbour(a: Location, b: Location): boolean {
+export function isNeighbour(a: Cell, b: Cell): boolean {
   const distance = Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y))
-  return distance === 1 && (a.z ?? 0) === (b.z ?? 0)
+  return distance === 1 && a.z === b.z
 }

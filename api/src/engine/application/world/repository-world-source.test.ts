@@ -65,6 +65,23 @@ describe('RepositoryWorldSource', () => {
     expect(items).toEqual([item])
   })
 
+  it('rolls the blueprint item that a new cell may hold with a fresh id', async () => {
+    const { ids, botsService, repositories } = await setup()
+    const withBlueprints = new RepositoryWorldSource(
+      new ServiceBotStateSource(botsService, repositories.bots, repositories.modules),
+      repositories.map,
+      repositories.items,
+      new MapGenerator(new FixedRng([0.99, 0]), DEFAULT_WORLD_CONFIG, { chance: 1, modules: ['gun-class2'] }),
+      ids,
+      DEFAULT_RESOURCE_BALANCE
+    )
+
+    const { point, item } = withBlueprints.generate({ x: 9, y: 9, z: 0 })
+
+    expect(item).toMatchObject({ type: 'blueprint', name: 'gun-class2' })
+    expect(point).toMatchObject({ type: 'item', contentId: item?.id })
+  })
+
   it('rolls a new cell with the world generator and knows the hardness of the resources', async () => {
     const { source } = await setup()
 

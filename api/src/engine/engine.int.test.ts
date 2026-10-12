@@ -58,6 +58,30 @@ async function until(condition: () => boolean, what: string, timeoutMs = 20000) 
 
 const logsOf = () => events.flatMap((event) => (event.type === 'log' ? [event.text] : []))
 
+describe('the engine as the single writer (design §14.2)', () => {
+  it('runs the requests that change the world in the engine thread, and carries its errors back', async () => {
+    const act = jest.spyOn(port, 'act')
+    const { accessToken, botId } = await deployWithScript('export async function main() {}')
+
+    const scan = await request(testApp.url).post(`/api/v1/bots/${botId}/scan`).set(bearer(accessToken)).expect(200)
+    const refused = await request(testApp.url)
+      .post(`/api/v1/bots/${botId}/factory/craft`)
+      .set(bearer(accessToken))
+      .send({ module: 'no-such-module' })
+      .expect(404)
+
+    expect(scan.body).toHaveLength(9)
+    expect(refused.body.code).toBe('NOT_FOUND')
+    expect(act.mock.calls.map(([name]) => name)).toEqual([
+      'bots.deployUserBase',
+      'files.write',
+      'scan.scan',
+      'factory.craft'
+    ])
+    act.mockRestore()
+  })
+})
+
 describe('the engine thread', () => {
   it('runs a script of a player: logs, a scan through the use cases, and a durable record', async () => {
     const { userId, botId } = await deployWithScript(

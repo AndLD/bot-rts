@@ -16,6 +16,9 @@ import { ModuleFactory } from '../modules/application/module.factory'
 import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
+import { APP_CONFIG, AppConfig } from '../config/app-config'
+import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
+import { routedThroughEngine } from '../engine/infrastructure/route-through-engine'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { RNG, Rng } from '../shared/application/rng'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
@@ -63,7 +66,9 @@ import { BotsGateway } from './presentation/bots.gateway'
         PASSWORD_HASHER,
         ModuleFactory,
         BaseLifecycle,
-        SpawnService
+        SpawnService,
+        APP_CONFIG,
+        ENGINE_PORT
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -74,20 +79,36 @@ import { BotsGateway } from './presentation/bots.gateway'
         hasher: PasswordHasher,
         moduleFactory: ModuleFactory,
         lifecycle: BaseLifecycle,
-        spawn: SpawnService
-      ) => new BotsService(unitOfWork, bots, modules, ids, clock, hasher, moduleFactory, lifecycle, spawn)
+        spawn: SpawnService,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(
+          new BotsService(unitOfWork, bots, modules, ids, clock, hasher, moduleFactory, lifecycle, spawn),
+          engine,
+          config.engine.isEnabled,
+          { deployUserBase: 'bots.deployUserBase' }
+        )
     },
     {
       provide: FactoryService,
-      inject: [UNIT_OF_WORK, BotsService, RecipeBook, CLOCK, EnergyModel, FactorySettler],
+      inject: [UNIT_OF_WORK, BotsService, RecipeBook, CLOCK, EnergyModel, FactorySettler, APP_CONFIG, ENGINE_PORT],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotsService,
         recipes: RecipeBook,
         clock: Clock,
         energy: EnergyModel,
-        settler: FactorySettler
-      ) => new FactoryService(unitOfWork, bots, recipes, clock, energy, settler)
+        settler: FactorySettler,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(
+          new FactoryService(unitOfWork, bots, recipes, clock, energy, settler),
+          engine,
+          config.engine.isEnabled,
+          { craft: 'factory.craft', research: 'factory.research', learn: 'factory.learn' }
+        )
     },
     {
       provide: MaintenanceService,
@@ -100,7 +121,9 @@ import { BotsGateway } from './presentation/bots.gateway'
         CLOCK,
         RNG,
         BaseLifecycle,
-        ID_GENERATOR
+        ID_GENERATOR,
+        APP_CONFIG,
+        ENGINE_PORT
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -111,24 +134,59 @@ import { BotsGateway } from './presentation/bots.gateway'
         clock: Clock,
         rng: Rng,
         lifecycle: BaseLifecycle,
-        ids: IdGenerator
-      ) => new MaintenanceService(unitOfWork, bots, recipes, registry, energy, clock, rng, lifecycle, ids)
+        ids: IdGenerator,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(
+          new MaintenanceService(unitOfWork, bots, recipes, registry, energy, clock, rng, lifecycle, ids),
+          engine,
+          config.engine.isEnabled,
+          { repair: 'maintenance.repair', disassemble: 'maintenance.disassemble' }
+        )
     },
     {
       provide: AssemblyService,
-      inject: [BotsService, MODULE_REPOSITORY, ITEM_REPOSITORY, ModuleFactory, ModuleRegistry, FactoryService],
+      inject: [
+        BotsService,
+        MODULE_REPOSITORY,
+        ITEM_REPOSITORY,
+        ModuleFactory,
+        ModuleRegistry,
+        FactoryService,
+        APP_CONFIG,
+        ENGINE_PORT
+      ],
       useFactory: (
         bots: BotsService,
         modules: ModuleRepository,
         items: ItemRepository,
         moduleFactory: ModuleFactory,
         registry: ModuleRegistry,
-        factory: FactoryService
-      ) => new AssemblyService(bots, modules, items, moduleFactory, registry, factory)
+        factory: FactoryService,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(
+          new AssemblyService(bots, modules, items, moduleFactory, registry, factory),
+          engine,
+          config.engine.isEnabled,
+          { assemble: 'assembly.assemble' }
+        )
     },
     {
       provide: ScanService,
-      inject: [BotsService, MODULE_REPOSITORY, MAP_REPOSITORY, MapService, ModuleRegistry, CLOCK, EnergyService],
+      inject: [
+        BotsService,
+        MODULE_REPOSITORY,
+        MAP_REPOSITORY,
+        MapService,
+        ModuleRegistry,
+        CLOCK,
+        EnergyService,
+        APP_CONFIG,
+        ENGINE_PORT
+      ],
       useFactory: (
         bots: BotsService,
         modules: ModuleRepository,
@@ -136,8 +194,16 @@ import { BotsGateway } from './presentation/bots.gateway'
         mapService: MapService,
         registry: ModuleRegistry,
         clock: Clock,
-        energy: EnergyService
-      ) => new ScanService(bots, modules, map, mapService, registry, clock, energy)
+        energy: EnergyService,
+        config: AppConfig,
+        engine: EnginePort
+      ) =>
+        routedThroughEngine(
+          new ScanService(bots, modules, map, mapService, registry, clock, energy),
+          engine,
+          config.engine.isEnabled,
+          { scan: 'scan.scan' }
+        )
     }
   ],
   exports: [BOT_REPOSITORY, BotsService, ScanService, AssemblyService, FactoryService, MaintenanceService]

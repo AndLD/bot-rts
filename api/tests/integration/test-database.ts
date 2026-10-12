@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 import { PrismaClient } from '@prisma/client'
-import { TEMPLATE_DATABASE, urlForDatabase } from './database-url'
+import { templateDatabase, urlForDatabase } from './database-url'
 
 const TABLES = [
   'spawn_seed_members',
@@ -30,7 +30,7 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   const name = `botrts_test_${randomUUID().replace(/-/g, '')}`
   const admin = new PrismaClient({ datasourceUrl: urlForDatabase('postgres') })
 
-  await admin.$executeRawUnsafe(`CREATE DATABASE ${name} TEMPLATE ${TEMPLATE_DATABASE}`)
+  await admin.$executeRawUnsafe(`CREATE DATABASE ${name} TEMPLATE ${templateDatabase()}`)
 
   const client = new PrismaClient({ datasourceUrl: urlForDatabase(name) })
 

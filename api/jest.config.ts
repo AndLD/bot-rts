@@ -25,7 +25,8 @@ const config: Config = {
       ...shared,
       displayName: 'integration',
       testMatch: ['**/*.int.test.ts'],
-      globalSetup: '<rootDir>/tests/integration/global-setup.ts'
+      globalSetup: '<rootDir>/tests/integration/global-setup.ts',
+      globalTeardown: '<rootDir>/tests/integration/global-teardown.ts'
     }
   ],
   // The single list of coverage exclusions (AGENTS.md §6.1); every entry has a reason

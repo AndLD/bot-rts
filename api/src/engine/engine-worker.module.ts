@@ -37,6 +37,8 @@ import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSour
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
 import { World } from './application/world/world'
+import { WorldActionExecutor } from './application/world-action-executor'
+import { EngineModule } from './engine.module'
 import { RepositoryWorldSource } from './application/world/repository-world-source'
 import { WorldSource } from './application/world/world-source'
 import { CombatHandler } from './application/handlers/combat-handler'
@@ -85,7 +87,9 @@ export class EngineWorkerModule {
         CraftingModule,
         FilesModule,
         MapModule,
-        BotsModule
+        BotsModule,
+        // Provides the port that the services are told to use, which here answers that there is no other engine
+        EngineModule
       ],
       providers: [
         { provide: ENGINE_CHANNEL, useValue: channel },
@@ -182,6 +186,18 @@ export class EngineWorkerModule {
             ])
         },
         {
+          provide: WorldActionExecutor,
+          inject: [BotsService, ScanService, FactoryService, AssemblyService, MaintenanceService, FilesService],
+          useFactory: (
+            bots: BotsService,
+            scans: ScanService,
+            factory: FactoryService,
+            assembly: AssemblyService,
+            maintenance: MaintenanceService,
+            files: FilesService
+          ) => new WorldActionExecutor({ bots, scans, factory, assembly, maintenance, files })
+        },
+        {
           provide: WriteBehind,
           inject: [WORLD_STATE_STORE, APP_CONFIG],
           useFactory: (store: WorldStateStore, app: AppConfig) => new WriteBehind(store, app.engine.flushEveryTicks)
@@ -201,6 +217,7 @@ export class EngineWorkerModule {
             ModuleRegistry,
             WriteBehind,
             World,
+            WorldActionExecutor,
             ENGINE_SINK,
             ID_GENERATOR,
             CLOCK,
@@ -218,6 +235,7 @@ export class EngineWorkerModule {
             registry: ModuleRegistry,
             writeBehind: WriteBehind,
             world: World,
+            actions: WorldActionExecutor,
             sink: EngineSink,
             ids: IdGenerator,
             clock: Clock,
@@ -237,6 +255,7 @@ export class EngineWorkerModule {
               registry,
               writeBehind,
               world,
+              actions,
               sink,
               ids,
               clock,

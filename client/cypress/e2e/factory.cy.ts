@@ -81,6 +81,8 @@ describe('the factory of the base in the terminal', () => {
   it('refuses to assemble a bot without a wireless adapter and a battery', () => {
     cy.task('stockBase', { email, items: STOCK })
     command('craft processor-class1')
+    // The order is queued by the engine at its next tick, so wait for it before the factory is hurried along
+    cy.contains('queued 1 x processor-class1')
     cy.task('finishFactoryJobs', { email })
     command('factory')
     cy.contains('- part id="')

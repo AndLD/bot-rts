@@ -659,5 +659,276 @@
       "help": "Choose what the game tells you about. A category that is off is not stored either.",
       "notifyAbout": "Notify about {category}"
     }
+  },
+  "docs": {
+    "title": "Documentation",
+    "nav": {
+      "label": "Documentation",
+      "readNext": "Read next",
+      "tree": "Pages"
+    },
+    "groups": {
+      "start": "Getting started",
+      "concepts": "Concepts",
+      "reference": "Reference",
+      "help": "Help"
+    },
+    "search": {
+      "label": "Search the documentation",
+      "placeholder": "Search…",
+      "none": "Nothing found",
+      "results": "{count, plural, one {# page} other {# pages}}"
+    },
+    "pages": {
+      "home": {
+        "title": "Bot RTS documentation",
+        "lead": "Everything you need to build bots, write the scripts that run them and play on the shared map. Start with your first base, then read the concepts. The reference pages are generated from the game itself, so their numbers are always the game's own."
+      },
+      "firstBase": {
+        "title": "Your first base",
+        "intro": "Your base is the heart of your fleet: it holds your storage, the factory that makes modules and bots, and the radio that links your bots to you. You have one base at a time.",
+        "step1": "Sign up and confirm your email with the link we send you.",
+        "step2": "Press “Deploy your base to start” and choose the access password of the base. Other players need it to connect to your bots.",
+        "step3": "The game puts the base on a free cell of the map and gives it a starting kit of modules and resources. The map shows it in the middle of what you know.",
+        "step4": "A terminal opens on the base and a short checklist guides you through the first steps. You can skip it and bring it back from the settings.",
+        "outro": "If your base is destroyed it becomes a corpse base, and you may deploy a new one."
+      },
+      "firstBot": {
+        "title": "Your first bot",
+        "intro": "A bot is a set of modules: it can do only what its modules let it do. You craft modules at the base's factory from resources and assemble them into a bot.",
+        "partsTitle": "What a bot needs",
+        "part1": "an engine and wheels (a chassis) to move",
+        "part2": "a battery for energy, and a generator with oil to refill it",
+        "part3": "a processor to run scripts, and memory (a drive) to keep them",
+        "part4": "a tool for the job: a drill to mine, a scanner to see, a gun to shoot",
+        "howTitle": "How to build one",
+        "how1": "Open the Factory and craft the modules you need. Crafting takes time.",
+        "how2": "When they are ready, open the Assemble tab, tick the modules, name the bot and assemble it.",
+        "how3": "In the terminal the same is done with the commands craft and assemble.",
+        "outro": "The new bot appears next to the base. Click it on the map to open its control panel."
+      },
+      "firstScript": {
+        "title": "Your first script",
+        "intro": "Scripts are JavaScript files on a bot's drive. They keep running while you are away.",
+        "step1": "Open the terminal of a bot that has a processor and a drive.",
+        "step2": "Type edit hello.js and write a script, for example the first one of the gallery.",
+        "step3": "Run it with run hello.js. The terminal answers “started” and an id.",
+        "step4": "What the script logs appears in the terminal; top lists the running scripts and kill stops one.",
+        "outro": "A script exports a function main(bot). Every call of the bot API returns a result that you check with ok."
+      },
+      "map": {
+        "title": "The map and the fog of war",
+        "intro": "The world is a grid of cells that never resets. A cell may hold a resource deposit, an item, a bot or a base.",
+        "fogTitle": "Fog of war",
+        "fog": "You see only what your scanners have scanned. A scanned cell is a snapshot: it shows what was there when you looked and fades with age. A cell you never scanned is black.",
+        "liveTitle": "Live areas",
+        "live": "A scanner in live mode keeps an area up to date. Inside it you see changes as they happen, including other players' bots that come close. Switch it off and the area becomes an ageing snapshot."
+      },
+      "ticks": {
+        "title": "Ticks",
+        "intro": "The game advances in ticks, ten a second by default. Everything that happens in the world happens in a tick.",
+        "order": "The orders of all players for a tick are collected first and then applied in a fixed order, so nobody gains from being faster than the others.",
+        "result": "A call such as move or scan is queued; its result reaches your script at the start of a later tick. A script that waits for the result simply goes on when it arrives."
+      },
+      "energy": {
+        "title": "Energy",
+        "intro": "Every bot has a battery, and everything it does costs energy.",
+        "idle": "Idle cost: each module drains a little every tick, even when it does nothing.",
+        "operation": "Operation cost: each action drains the cost of the module that does it.",
+        "battery": "The battery holds up to its capacity and never goes below zero.",
+        "generator": "A generator burns oil from the bot's storage and adds energy to the battery.",
+        "empty": "A bot with an empty battery can do nothing: its scripts wait until energy returns. Keep a generator and oil in your bots."
+      },
+      "opsBudget": {
+        "title": "The ops budget",
+        "intro": "A script talks to the world through calls such as move, scan and dig.",
+        "cost": "Each call costs operations. A bot has an operations budget per tick, given by its processor; when it is spent, its scripts wait for the next tick, and unspent operations are not saved.",
+        "free": "Plain JavaScript between calls costs no operations, and sleep costs none either.",
+        "slice": "But each script gets a short slice of real time per tick: an endless loop with no call in it is stopped. Put a call or a sleep in every loop."
+      },
+      "weight": {
+        "title": "Weight and speed",
+        "intro": "Every module has a weight, and the weight of a bot is the sum of its modules.",
+        "speed": "A bot can move only if it has an engine and a chassis and its weight does not exceed what the chassis can carry. The heavier the bot compared with its engine, the more ticks one cell takes.",
+        "assembly": "The game refuses to assemble a bot that is too heavy for its chassis."
+      },
+      "api": {
+        "title": "Script API reference",
+        "intro": "A script is a file that exports main(bot). The functions below are methods of bot and also globals. A bot has a function only if it has one of the modules listed for it.",
+        "result": "Every call except sleep returns a result: '{ ok: true, data }' or '{ ok: false, code, msg }'. Expected failures are values, not exceptions, so check ok before you use data."
+      },
+      "modules": {
+        "title": "Module catalogue",
+        "intro": "The modules that exist, with the numbers of a new one. Modules of a higher class are researched from the class below."
+      },
+      "recipes": {
+        "title": "Recipes",
+        "intro": "What it costs to craft each module: resources and time.",
+        "research": "Researching a higher class costs {costFactor} times the resources of the target recipe and {timeFactor} times its craft time."
+      },
+      "botos": {
+        "title": "BotOS commands",
+        "intro": "Each bot runs BotOS, a small command line. These commands work in the terminal."
+      },
+      "examples": {
+        "title": "Example scripts",
+        "intro": "Short scripts to start from. The test suite runs every one of them in the game's sandbox, so they work."
+      },
+      "publicApi": {
+        "title": "Public API and API keys",
+        "intro": "The game has a public, versioned API (REST and WebSocket) that the official client itself uses, so you can build your own client or let a program play."
+      },
+      "faq": {
+        "title": "FAQ",
+        "q1": {
+          "q": "Do my bots work when I am away?",
+          "a": "Yes. Scripts run on the server all the time, and notifications tell you what happened."
+        },
+        "q2": {
+          "q": "Why does my script do nothing?",
+          "a": "Check that the bot has a processor, a drive with the file and energy in the battery, and that you check the ok of every result."
+        },
+        "q3": {
+          "q": "Why can't my bot move?",
+          "a": "It needs an engine and wheels, energy, and a weight the chassis can carry."
+        },
+        "q4": {
+          "q": "What is a result?",
+          "a": "The answer of a game call: '{ ok: true, data }' on success or '{ ok: false, code, msg }' when the game refuses, for example because a deposit is empty."
+        },
+        "q5": {
+          "q": "Can other players see my bots?",
+          "a": "Only through their scanners, as snapshots, or inside their live areas. Connecting to your bot needs its password."
+        },
+        "q6": {
+          "q": "Where is the API described?",
+          "a": "The script API is in the reference, and the public API in its own page."
+        }
+      }
+    },
+    "api": {
+      "function": "Function",
+      "needs": "Needs a module",
+      "every": "every bot",
+      "ops": "Operations",
+      "description": "What it does",
+      "functions": {
+        "sleep": "Waits for the given number of milliseconds. It costs no operations.",
+        "scan": "A snapshot of the cells around the bot: x, y, type, content and resource of each.",
+        "view": "The changes of a live area since a game time, for a scanner in live mode.",
+        "move": "Moves the bot forward by the given number of cells.",
+        "turn": "Turns the bot a quarter turn to the left or to the right.",
+        "dig": "Mines the cell the bot faces; answers with the resource and the amount.",
+        "mine": "Mines the cell at the given coordinates, if it is within reach.",
+        "pick": "Picks up the item on the cell ahead.",
+        "take": "Takes an item (or the first one) into the bot's hands.",
+        "drop": "Drops what the bot carries on a cell.",
+        "aim": "Aims the weapon at a cell; answers with the distance.",
+        "shoot": "Fires at a cell; answers with the rounds fired and the hits.",
+        "reload": "Loads ammunition from the bot's storage into the weapon.",
+        "enable": "Switches a scanner, generator or battery on.",
+        "disable": "Switches a scanner, generator or battery off.",
+        "getLocation": "Where the bot is: x, y and z.",
+        "getLinkStatus": "The radio link of the bot to its base: connected or not, signal bars and hops.",
+        "craft": "Orders modules from the factory of the base.",
+        "assemble": "Assembles a bot from module parts at the factory.",
+        "research": "Starts the research of the blueprint of a higher class.",
+        "learn": "Learns the blueprint of an item the factory holds.",
+        "repair": "Repairs a module of a bot on an adjacent cell.",
+        "disassemble": "Takes a module of a bot on an adjacent cell apart for its parts.",
+        "read": "Reads a file, addressed as /drive/path.",
+        "write": "Writes a file, addressed as /drive/path."
+      }
+    },
+    "catalogue": {
+      "module": "Module",
+      "weight": "Weight",
+      "operationCost": "Energy per operation",
+      "idleCost": "Idle energy per tick",
+      "condition": "Condition",
+      "properties": "Properties",
+      "resources": "Resources",
+      "time": "Craft time",
+      "seconds": "{seconds} s",
+      "class": "Class",
+      "props": {
+        "accuracy": "Accuracy",
+        "caliber": "Caliber",
+        "capacity": "Capacity",
+        "cooldown": "Cooldown, ms",
+        "damage": "Damage",
+        "delay": "Delay, ms",
+        "distance": "Distance",
+        "energyPerCycle": "Energy per cycle",
+        "engineType": "Engine type",
+        "fuelPerCycle": "Oil per cycle",
+        "loadCapacity": "Load capacity",
+        "magazine": "Magazine",
+        "materialPerOperation": "Material per operation",
+        "opsPerTick": "Operations per tick",
+        "parallelExecutions": "Parallel scripts",
+        "protection": "Protection",
+        "queueSize": "Queue size",
+        "quota": "Quota",
+        "range": "Radio range",
+        "readDelay": "Read delay, ms",
+        "repairPerOp": "Repair per operation",
+        "speed": "Speed",
+        "strength": "Strength",
+        "voltage": "Voltage",
+        "writeDelay": "Write delay, ms"
+      }
+    },
+    "commands": {
+      "command": "Command",
+      "syntax": "Syntax",
+      "description": "What it does"
+    },
+    "examples": {
+      "needs": "Needs the modules: {modules}",
+      "copy": "Copy",
+      "hello": {
+        "title": "Hello, bot",
+        "description": "Logs a greeting and where the bot is."
+      },
+      "scout": {
+        "title": "Scout",
+        "description": "Scans around and lists the deposits it sees."
+      },
+      "miner": {
+        "title": "Miner",
+        "description": "Digs until the deposit is empty, then steps forward."
+      },
+      "patrol": {
+        "title": "Patrol",
+        "description": "Walks a few cells, turns at an obstacle and scans."
+      },
+      "guard": {
+        "title": "Guard",
+        "description": "Shoots at any other bot it sees. Change the test to spare your own."
+      },
+      "factory": {
+        "title": "Factory order",
+        "description": "Orders two scanners from the factory of the base."
+      },
+      "notes": {
+        "title": "Notes",
+        "description": "Writes a file on the drive and reads it back."
+      }
+    },
+    "publicApi": {
+      "openapi": "OpenAPI reference",
+      "basePath": "Base path",
+      "keys": "API keys for third-party clients are planned. Until they arrive, the API accepts the session token of a signed-in player.",
+      "rules": "Whatever you use, the same rules apply as in the game: energy, the operations budget, cooldowns and the category switches."
+    },
+    "help": {
+      "title": "Help",
+      "open": "Help",
+      "reopenTutorial": "Show the tutorial again",
+      "back": "Back",
+      "learnMore": "Learn more",
+      "what": "Open the help page"
+    }
   }
 }

@@ -1,0 +1,30 @@
+{
+  "commands": [
+    { "name": "help", "usage": "help" },
+    { "name": "ls", "usage": "ls [dir]" },
+    { "name": "cd", "usage": "cd <path>" },
+    { "name": "mkdir", "usage": "mkdir <name>" },
+    { "name": "cat", "usage": "cat <file>" },
+    { "name": "edit", "usage": "edit <file>" },
+    { "name": "rm", "usage": "rm <file>" },
+    { "name": "list", "usage": "list" },
+    { "name": "modules", "usage": "modules" },
+    { "name": "recipes", "usage": "recipes" },
+    { "name": "factory", "usage": "factory" },
+    { "name": "craft", "usage": "craft <module> [count]" },
+    { "name": "research", "usage": "research <module>" },
+    { "name": "learn", "usage": "learn <blueprint-id>" },
+    { "name": "assemble", "usage": "assemble <label|-> <part-id>..." },
+    { "name": "repair", "usage": "repair <bot-id> <module-id>" },
+    { "name": "disassemble", "usage": "disassemble <bot-id> <module-id>" },
+    { "name": "run", "usage": "run <file> [args...]" },
+    { "name": "eval", "usage": "eval <code>" },
+    { "name": "top", "usage": "top" },
+    { "name": "kill", "usage": "kill <execution-id>" },
+    { "name": "passwd", "usage": "passwd <password>" },
+    { "name": "connect", "usage": "connect <bot-id> [password]" },
+    { "name": "adopt", "usage": "adopt" },
+    { "name": "clear", "usage": "clear" },
+    { "name": "exit", "usage": "exit" }
+  ]
+}

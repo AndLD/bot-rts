@@ -12,15 +12,15 @@ const ARG_TYPES: Record<ScriptArgKind, string> = {
   nullableString: 'string | null'
 }
 
-const parameters = (spec: ScriptFunctionSpec) =>
+export const scriptParameters = (spec: ScriptFunctionSpec) =>
   spec.args.map((arg) => `${arg.name}${arg.isOptional ? '?' : ''}: ${ARG_TYPES[arg.kind]}`).join(', ')
 
-const returnType = (spec: ScriptFunctionSpec) => (spec.isScheduled ? 'Promise<void>' : 'Promise<Result<any>>')
+export const scriptReturnType = (spec: ScriptFunctionSpec) => (spec.isScheduled ? 'Promise<void>' : 'Promise<Result<any>>')
 
 export function scriptTypings(): string {
-  const methods = SCRIPT_FUNCTIONS.map((spec) => `  ${spec.name}(${parameters(spec)}): ${returnType(spec)}`)
+  const methods = SCRIPT_FUNCTIONS.map((spec) => `  ${spec.name}(${scriptParameters(spec)}): ${scriptReturnType(spec)}`)
   const globals = SCRIPT_FUNCTIONS.map(
-    (spec) => `declare function ${spec.name}(${parameters(spec)}): ${returnType(spec)}`
+    (spec) => `declare function ${spec.name}(${scriptParameters(spec)}): ${scriptReturnType(spec)}`
   )
   return [
     '// The result of a game call: expected failures are values, not exceptions',
@@ -47,3 +47,7 @@ export function scriptTypings(): string {
     ''
   ].join('\n')
 }
+
+// One function as the documentation shows it: `move(cells: number): Promise<Result<any>>`
+export const scriptSignature = (spec: ScriptFunctionSpec) =>
+  `${spec.name}(${scriptParameters(spec)}): ${scriptReturnType(spec)}`

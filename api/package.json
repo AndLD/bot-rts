@@ -16,7 +16,8 @@
     "db:seed": "dotenv -e .env.development -- ts-node prisma/seed.ts",
     "db:migrate:dev": "dotenv -e .env.development -- prisma migrate dev",
     "check:boundaries": "depcruise src --config .dependency-cruiser.cjs",
-    "openapi:generate": "ts-node scripts/generate-openapi.ts"
+    "openapi:generate": "ts-node scripts/generate-openapi.ts",
+    "docs:generate": "ts-node scripts/generate-docs.ts"
   },
   "author": "<Andrii Larionov, andrey.larionov.me@gmail.com>",
   "license": "ISC",

@@ -1,5 +1,6 @@
 'use client'
 
+import { DOC_EXAMPLES } from '@lib/utils/doc-examples'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import type { Locale } from '../../shared/i18n/locales'
@@ -10,18 +11,8 @@ const STEPS = ['build', 'program', 'compete'] as const
 const FEATURES = ['modules', 'scripts', 'manual', 'world'] as const
 const QUESTIONS = ['free', 'language', 'offline', 'api', 'phone'] as const
 
-// A script as the game's own editor takes it: the one in the showcase is what a first miner runs
-export const SHOWCASE_SCRIPT = `export async function main(bot) {
-  while (true) {
-    const mined = await bot.dig()
-
-    if (mined.ok) {
-      bot.log('mined', mined.data.amount, mined.data.resource)
-    } else {
-      await bot.move(1)
-    }
-  }
-}`
+// The showcase is the miner of the example gallery, which the sandbox tests run
+export const SHOWCASE_SCRIPT = (DOC_EXAMPLES.find((example) => example.id === 'miner') as { code: string }).code
 
 export default function Landing({ locale }: { locale: Locale }) {
   const t = useTranslations('marketing')

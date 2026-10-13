@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { ActionInputs, buildArgs } from './actionForm'
 import { ActionOutcome } from './useBotAction'
+import './ControlPanel.scss'
 
 interface ModuleChoice {
   _id: string
@@ -57,50 +58,49 @@ export default function ActionRow({ spec, isDisabled, modules, perform }: Props)
   const set = (name: string) => (value: string) => setInputs((previous) => ({ ...previous, [name]: value }))
 
   return (
-    <div className="control-action" style={{ marginBottom: 6 }}>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+    <div className="control-action">
+      <div className="control-action-line">
         <code>{spec.name}</code>
-        {spec.args.map((arg) =>
-          arg.name === 'moduleId' ? (
-            <Select
-              key={arg.name}
-              size="small"
-              style={{ minWidth: 150 }}
-              placeholder={arg.name}
-              aria-label={`${spec.name} ${arg.name}`}
-              disabled={isDisabled}
-              value={inputs[arg.name]}
-              onChange={set(arg.name)}
-              options={modules.map((module) => ({ value: module._id, label: module.name }))}
-            />
-          ) : arg.kind === 'direction' ? (
-            <Select
-              key={arg.name}
-              size="small"
-              style={{ minWidth: 90 }}
-              placeholder={arg.name}
-              aria-label={`${spec.name} ${arg.name}`}
-              disabled={isDisabled}
-              value={inputs[arg.name]}
-              onChange={set(arg.name)}
-              options={[
-                { value: 'left', label: t('left') },
-                { value: 'right', label: t('right') }
-              ]}
-            />
-          ) : (
-            <Input
-              key={arg.name}
-              size="small"
-              style={{ width: arg.kind === 'integer' ? 70 : 140 }}
-              placeholder={arg.isOptional ? `${arg.name}?` : arg.name}
-              aria-label={`${spec.name} ${arg.name}`}
-              disabled={isDisabled}
-              value={inputs[arg.name] ?? ''}
-              onChange={(event) => set(arg.name)(event.target.value)}
-            />
-          )
-        )}
+        <div className="control-action-inputs">
+          {spec.args.map((arg) =>
+            arg.name === 'moduleId' ? (
+              <Select
+                key={arg.name}
+                size="small"
+                placeholder={arg.name}
+                aria-label={`${spec.name} ${arg.name}`}
+                disabled={isDisabled}
+                value={inputs[arg.name]}
+                onChange={set(arg.name)}
+                options={modules.map((module) => ({ value: module._id, label: module.name }))}
+              />
+            ) : arg.kind === 'direction' ? (
+              <Select
+                key={arg.name}
+                size="small"
+                placeholder={arg.name}
+                aria-label={`${spec.name} ${arg.name}`}
+                disabled={isDisabled}
+                value={inputs[arg.name]}
+                onChange={set(arg.name)}
+                options={[
+                  { value: 'left', label: t('left') },
+                  { value: 'right', label: t('right') }
+                ]}
+              />
+            ) : (
+              <Input
+                key={arg.name}
+                size="small"
+                placeholder={arg.isOptional ? `${arg.name}?` : arg.name}
+                aria-label={`${spec.name} ${arg.name}`}
+                disabled={isDisabled}
+                value={inputs[arg.name] ?? ''}
+                onChange={(event) => set(arg.name)(event.target.value)}
+              />
+            )
+          )}
+        </div>
         <Button
           size="small"
           type="primary"
@@ -112,7 +112,7 @@ export default function ActionRow({ spec, isDisabled, modules, perform }: Props)
         </Button>
       </div>
       {message && (
-        <div role="status" style={{ color: message.isError ? '#f87171' : '#86efac' }}>
+        <div role="status" className="control-action-message" data-error={message.isError}>
           {message.text}
         </div>
       )}

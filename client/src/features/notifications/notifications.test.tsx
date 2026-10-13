@@ -151,7 +151,7 @@ describe('NotificationToasts', () => {
 
   beforeEach(() => jest.restoreAllMocks())
 
-  it('shows a toast for a notification, updates it when it is coalesced, and skips achievements', async () => {
+  it('shows a toast for a new notification, not again when it is coalesced, and skips achievements', async () => {
     const open = jest.spyOn(notification, 'open').mockImplementation(() => undefined)
     const socket = fakeSocket()
     serve({})
@@ -166,14 +166,9 @@ describe('NotificationToasts', () => {
     act(() => socket.emit('notification', item({ id: 'a', kind: 'underAttack', category: 'attacks', count: 3 })))
     act(() => socket.emit('notification', item({ id: 'x', category: 'achievements', kind: 'achievementUnlocked' })))
 
-    await waitFor(() => expect(open).toHaveBeenCalledTimes(2))
-    expect(open).toHaveBeenNthCalledWith(
-      1,
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1))
+    expect(open).toHaveBeenCalledWith(
       expect.objectContaining({ key: 'a', message: 'Attacks', description: 'Your bot abcdef12 is under attack' })
-    )
-    expect(open).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ key: 'a', description: 'Your bot abcdef12 is under attack ×3' })
     )
   })
 

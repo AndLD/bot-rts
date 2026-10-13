@@ -181,6 +181,17 @@ describe('NotificationService', () => {
     expect(repository.rows).toHaveLength(4)
   })
 
+  it('does not count the repeats of a coalesced notification against the cap', async () => {
+    const { service, repository } = setup()
+
+    for (let index = 0; index < 10; index++) {
+      await service.consume('alice', energyLow())
+    }
+
+    expect(repository.rows).toHaveLength(1)
+    expect(repository.rows[0].count).toBe(10)
+  })
+
   it('keeps the caps of two players and two categories apart', async () => {
     const { service, repository } = setup()
 

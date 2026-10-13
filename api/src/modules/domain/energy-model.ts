@@ -94,11 +94,26 @@ export class EnergyModel {
       }
     }
 
-    if (this.capacity(current) > 0 && this.stored(current) < this.capacity(current) * this.balance.lowThreshold) {
+    return { modules: this.reportLow(current, events).filter((record) => !records.includes(record)), events }
+  }
+
+  // Says that the energy got low once, and remembers it in the batteries until it is not low any more: the state is told
+  // when it begins, not on every tick, and not again after a restart
+  private reportLow(records: readonly Module[], events: EnergyEvent[]): Module[] {
+    const batteries = this.batteries(records)
+    const isLow =
+      this.capacity(records) > 0 && this.stored(records) < this.capacity(records) * this.balance.lowThreshold
+    const reported = batteries.filter((battery) => battery.isLowReported)
+    let current = [...records]
+
+    if (isLow && reported.length === 0) {
+      current = this.replace(current, batteries[0].withProps({ isLowReported: true }))
       events.push({ type: ENERGY_EVENT.LOW })
+    } else if (!isLow) {
+      reported.forEach((battery) => (current = this.replace(current, battery.withProps({ isLowReported: false }))))
     }
 
-    return { modules: current.filter((record) => !records.includes(record)), events }
+    return current
   }
 
   private runGenerator(records: readonly Module[], generatorId: string, now: number, events: EnergyEvent[]): Module[] {
@@ -109,7 +124,7 @@ export class EnergyModel {
     const last = generator.lastCycleAt ?? now
     const due = generator.delay > 0 ? Math.max(Math.floor((now - last) / generator.delay), 0) : 1
     const advanced = generator.delay > 0 ? Math.max(last + due * generator.delay, last) : now
-    let current = this.replace(records, generator.withProps({ lastCycleAt: advanced }))
+    let current = [...records]
 
     const room =
       generator.energyPerCycle > 0
@@ -119,7 +134,14 @@ export class EnergyModel {
     const fuelled =
       generator.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / generator.fuelPerCycle)) : wanted
     const cycles = Math.min(wanted, fuelled)
-    if (cycles < wanted) {
+    // Out of fuel is a state: it is told when it begins and remembered in the generator until it runs on oil again
+    const isStarved = cycles < wanted
+    const isOutOfFuel = isStarved || (cycles === 0 && generator.isOutOfFuel)
+    current = this.replace(
+      current,
+      generator.withProps({ lastCycleAt: advanced, ...(isOutOfFuel !== generator.isOutOfFuel && { isOutOfFuel }) })
+    )
+    if (isStarved && !generator.isOutOfFuel) {
       events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: generator.id })
     }
     if (cycles > 0) {

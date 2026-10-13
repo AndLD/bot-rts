@@ -32,14 +32,14 @@ export default function ControlPanel({
   )
 
   if (isError) {
-    return <div style={{ padding: 10 }}>{t('loadFailed')}</div>
+    return <div className="control-panel">{t('loadFailed')}</div>
   }
   if (!modules || !settings) {
-    return <div style={{ padding: 10 }}>{t('loading')}</div>
+    return <div className="control-panel">{t('loading')}</div>
   }
 
   return (
-    <div className="control-panel" style={{ padding: 10 }}>
+    <div className="control-panel">
       <Button size="small" onClick={() => onOpenStorage(botId)}>
         {t('openStorage')}
       </Button>

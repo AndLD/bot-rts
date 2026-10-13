@@ -167,11 +167,15 @@ export class NotificationService implements GameEventConsumer {
 
   private async raise(userId: string, candidate: Candidate): Promise<void> {
     try {
-      if (!(await this.isWanted(userId, candidate.category)) || this.isOverCap(userId, candidate.category)) {
+      if (!(await this.isWanted(userId, candidate.category))) {
         return
       }
       const now = this.clock.now()
+      // A repeat that joins a notification is not a new one, so it does not count against the cap
       if (candidate.isCoalesced && (await this.coalesce(userId, candidate, now))) {
+        return
+      }
+      if (this.isOverCap(userId, candidate.category)) {
         return
       }
       const isDue = candidate.dueAt === undefined || candidate.dueAt <= now.getTime()

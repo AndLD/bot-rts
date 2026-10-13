@@ -138,6 +138,75 @@ describe('EnergyModel', () => {
     })
   })
 
+  describe('states that are told when they begin', () => {
+    // The records after a tick, as the engine keeps (and saves, and loads after a restart) them
+    const after = (records: Module[], changed: Module[]) =>
+      records.map((record) => changed.find((candidate) => candidate.id === record.id) ?? record)
+    const typesOf = (events: Array<{ type: string }>) => events.map((event) => event.type)
+
+    it('tells that a generator is out of fuel once, and again only after it ran on oil in between', () => {
+      let records = bot({
+        'battery-class1': { capacity: 100, value: 50 },
+        'generator-class1': { lastCycleAt: 0 },
+        'storage-class1': { items: [] }
+      })
+
+      const first = model.tick(records, 1000)
+      records = after(records, first.modules)
+      expect(typesOf(first.events)).toEqual([ENERGY_EVENT.OUT_OF_FUEL])
+      expect(find(records, 'generator', GeneratorModule).isOutOfFuel).toBe(true)
+
+      // still dry, also with the records as they were loaded again: nothing more to tell
+      expect(model.tick(records, 2000).events).toEqual([])
+      expect(model.tick(records, 3000).events).toEqual([])
+
+      const storage = records.find((record) => record.type === 'storage') as Module
+      const withOil = { ...storage, props: { ...storage.props, items: [{ resource: 'oil', amount: 5 }] } }
+      records = after(records, [withOil])
+      const refuelled = model.tick(records, 4000)
+      records = after(records, refuelled.modules)
+      expect(refuelled.events).toEqual([])
+      expect(find(records, 'generator', GeneratorModule).isOutOfFuel).toBe(false)
+
+      records = after(records, [{ ...withOil, props: { ...withOil.props, items: [] } }])
+      expect(typesOf(model.tick(records, 5000).events)).toEqual([ENERGY_EVENT.OUT_OF_FUEL])
+    })
+
+    it('keeps the state of a generator that had nothing to do', () => {
+      const records = bot({
+        'battery-class1': { capacity: 100, value: 100 },
+        'generator-class1': { lastCycleAt: 0, isOutOfFuel: true },
+        'storage-class1': { items: [] }
+      })
+
+      const { modules, events } = model.tick(records, 1000)
+
+      expect(events).toEqual([])
+      expect(find(after(records, modules), 'generator', GeneratorModule).isOutOfFuel).toBe(true)
+    })
+
+    it('tells that the energy is low once, and again only after it was not low in between', () => {
+      let records = bot({ 'battery-class1': { capacity: 100, value: 5 } }, ['battery-class1', 'processor-class1'])
+
+      const first = model.tick(records, 1000)
+      records = after(records, first.modules)
+      expect(typesOf(first.events)).toEqual([ENERGY_EVENT.LOW])
+      expect(find(records, 'battery', BatteryModule).isLowReported).toBe(true)
+      expect(model.tick(records, 2000).events).toEqual([])
+
+      const battery = records.find((record) => record.type === 'battery') as Module
+      records = after(records, [{ ...battery, props: { ...battery.props, value: 80 } }])
+      const recovered = model.tick(records, 3000)
+      records = after(records, recovered.modules)
+      expect(recovered.events).toEqual([])
+      expect(find(records, 'battery', BatteryModule).isLowReported).toBe(false)
+
+      const drained = records.find((record) => record.type === 'battery') as Module
+      records = after(records, [{ ...drained, props: { ...drained.props, value: 5 } }])
+      expect(typesOf(model.tick(records, 4000).events)).toEqual([ENERGY_EVENT.LOW])
+    })
+  })
+
   it('burns the oil of several storages in turn and ignores the oil of a broken one', () => {
     const [battery, generator, storage] = bot({
       'battery-class1': { capacity: 100, value: 0 },

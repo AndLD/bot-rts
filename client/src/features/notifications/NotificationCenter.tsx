@@ -2,7 +2,7 @@
 
 import { INotification } from '@lib/utils/interfaces/notifications'
 import { Badge, Button, Switch } from 'antd'
-import { useFormatter, useTranslations } from 'next-intl'
+import { useFormatter, useNow, useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 import {
   useLazyNotificationsListQuery,
@@ -13,12 +13,15 @@ import { useNotificationText } from './useNotificationText'
 import './NotificationCenter.scss'
 
 const PAGE_SIZE = 30
+// `now` is only refreshed this often, so a notification that arrived since is never shown as in the future
+const RELATIVE_TIME_REFRESH_MS = 30_000
 
 // The notification center (design §24.2): what the game told the player, newest first, with the unread ones marked. Clicking a
 // notification marks it as read. Older pages are loaded on request.
 export default function NotificationCenter() {
   const t = useTranslations('notifications')
   const format = useFormatter()
+  const now = useNow({ updateInterval: RELATIVE_TIME_REFRESH_MS })
   const textOf = useNotificationText()
   const [isUnreadOnly, setUnreadOnly] = useState(false)
   const { data, isError } = useNotificationsListQuery({ limit: PAGE_SIZE, unread: isUnreadOnly || undefined })
@@ -93,7 +96,7 @@ export default function NotificationCenter() {
                   {textOf(item)}
                   {item.count > 1 && <strong> {t('times', { count: item.count })}</strong>}
                 </span>
-                <small>{format.relativeTime(item.createdAt)}</small>
+                <small>{format.relativeTime(item.createdAt, Math.max(now.getTime(), item.createdAt))}</small>
               </button>
             </li>
           ))}

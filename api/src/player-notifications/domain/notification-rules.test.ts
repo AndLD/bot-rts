@@ -34,7 +34,7 @@ describe('candidatesOf', () => {
   it.each<[GameEvent, string, string, boolean]>([
     [{ type: 'ModuleBroken', at: 1, parties: mine, moduleId: 'm' }, 'damage', 'moduleBroken', false],
     [{ type: 'EnergyLow', at: 1, parties: mine }, 'damage', 'energyLow', true],
-    [{ type: 'OutOfFuel', at: 1, parties: mine, moduleId: 'm' }, 'damage', 'outOfFuel', false],
+    [{ type: 'OutOfFuel', at: 1, parties: mine, moduleId: 'm' }, 'damage', 'outOfFuel', true],
     [{ type: 'LiveScanStopped', at: 1, parties: mine, moduleId: 'm' }, 'damage', 'liveScanStopped', false],
     [{ type: 'LinkLost', at: 1, parties: mine }, 'damage', 'linkLost', true],
     [

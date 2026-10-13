@@ -26,17 +26,17 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 4     | Module system & crafting             | 70           | ✅ Done |
 | 5     | Script runtime, scheduler & sandbox  | 104           | ✅ Done |
 | 6     | Core game GUI & map animations       | 96           | ✅ Done |
-| 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy) | 50 | ⬜ Not started |
+| 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ⬜ Not started |
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
 | 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
-|        | **Total**                            | **842**      | |
+|        | **Total**                            | **858**      | |
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–10 (842 SP).** There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–10 (858 SP).** There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -73,7 +73,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 4 — Module system & crafting (70 SP)](./development-plan/phase-4-modules-crafting.md)
 - [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./development-plan/phase-5-script-runtime.md)
 - [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
-- [Phase 7 — Presentation & engagement (50 SP)](./development-plan/phase-7-presentation-engagement.md)
+- [Phase 7 — Presentation & engagement (66 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (98 SP)](./development-plan/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)

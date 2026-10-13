@@ -89,7 +89,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 - **Landing page:** a public page at `/` in the same **Next.js app** as the game (static rendering, `next-intl` routes
   `/` and `/ru/`), so it has proper SEO. It presents the game: hero with a live animated scene, how it works (build,
   program, compete), key features (modules, scripts, manual control, persistent world), a gameplay showcase, an FAQ,
-  links to the documentation and the public API (§22), and sign-up / log-in buttons. It carries proper SEO and
+  links to the documentation (§15.5) and the public API (§22), and sign-up / log-in buttons. It carries proper SEO and
   social-preview metadata. Unlike the game screens, the landing page is **responsive** (it is the one screen expected on
   phones, §1).
 - **Ambient scene:** a self-contained, non-networked simulation rendered with the same canvas renderer and sprite atlas
@@ -113,3 +113,18 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 - Free text produced by players (script `log()` output, file names, bot labels) and terminal output from scripts is
   **not translated**. Terminal command responses are translated through message codes.
 - More languages can be added by adding a translation file; a CI check reports missing keys.
+
+## 15.5 Player documentation and in-game help 🔴
+
+- **Public docs:** a `/docs` section (and `/ru/docs`) in the same Next.js app, statically rendered with SEO metadata,
+  a sidebar tree and search. Sections: getting started (first base, bot and script), concepts (map and fog of war,
+  ticks, energy, ops budget, weight), the **script API reference**, the **module and recipe catalogue**, the BotOS
+  command reference, a gallery of example scripts (§18), and links to the OpenAPI reference and API keys (§22).
+- **Generated, not hand-copied:** the script API reference comes from the `lib` types and doc comments, and the
+  module and recipe catalogue from the balance config, so numbers cannot drift from the game. CI fails when the
+  generated pages are stale. Example scripts in the gallery are executed in the sandbox tests.
+- **In-game Help:** a Help window in the window manager renders the same content (one source, no second copy). The
+  code editor, terminal (`help <topic>`), factory, control panel and module tooltips link to the matching page, and
+  the window offers search and reopening the tutorial (§16.1). The content is bundled, so it works offline.
+- Documentation is available in English and Russian (§15.4); the tutorial teaches the first steps, the docs are the
+  reference.

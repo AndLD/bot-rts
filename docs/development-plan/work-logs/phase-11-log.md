@@ -78,6 +78,13 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 11.7, automatic reconnection.
 - **Verify with:** `npm test -w client -- daynight GameMap MapCanvas`
 
+### 2026-10-14 — task 11.7 automatic reconnection
+- **Tasks:** 11.7
+- **Branch:** `feature/11.7-auto-reconnection` — done
+- **Decisions / deviations from the plan:** Socket.IO already reconnects by itself; what was missing is handled in the client: the status and banner, an RTK Query tag invalidation once the connection is back (plus `refetchOnReconnect` with `setupListeners` for the browser's online event), a retry of reads that never reached the server (`retryCondition`: `FETCH_ERROR` and GET, three retries), a new terminal session after a reconnection, and a guard so that a failed re-read of the bases does not unmount the game. The Cypress spec stops and starts the API through two tasks (`stopApi` / `startApi`, which use the launch description that `scripts/e2e.mjs` passes in `E2E_API_LAUNCH`; `lsof` finds the process). Live areas are not re-sent by the server after a reconnection; the client keeps what it had and the map reloads.
+- **Problems / blockers / findings:** the reconnection Cypress spec could not be run locally because the developer's servers hold ports 8080 and 5173; it runs in CI. The e2e `map.cy.ts` was made to wait until the base is drawn before it clicks (a flake seen in PR 123).
+- **Next step:** 11.8, control window layout.
+- **Verify with:** `npm test -w client -- SocketProvider ConnectionBanner useTerminal empty-api GamePage`; `npm run e2e -- --skip-build -- --spec cypress/e2e/reconnection.cy.ts`
 ### 2026-10-14 — tasks 11.8 control window layout and 11.9 terminal auto-scroll
 - **Tasks:** 11.8, 11.9 (one branch: both are small and independent of the rest)
 - **Branch:** `feature/11.8-control-window-layout` — done

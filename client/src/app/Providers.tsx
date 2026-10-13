@@ -2,6 +2,7 @@
 
 import '@ant-design/v5-patch-for-react-19'
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { setupListeners } from '@reduxjs/toolkit/query'
 import { Provider } from 'react-redux'
 import { usePathname, useRouter } from 'next/navigation'
 import { AuthClientProvider } from '../features/auth/AuthClientProvider'
@@ -31,6 +32,9 @@ export function Providers({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => setIsMounted(true), [])
+
+  // Lets the queries read again when the browser is back online (`refetchOnReconnect`)
+  useEffect(() => (isMounted && store.current ? setupListeners(store.current.dispatch) : undefined), [isMounted])
 
   if (!isMounted) {
     return null

@@ -30,6 +30,7 @@ function socketWith(bases: unknown, commandResult: unknown = { type: 'output', l
 
   return {
     active: true,
+    connected: true,
     emit: jest.fn((event: string, ...args: unknown[]) => handlers[event]?.(...args)),
     on: jest.fn(),
     off: jest.fn()

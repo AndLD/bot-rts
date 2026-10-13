@@ -10,3 +10,12 @@ export const SocketContext = createContext<GameSocket | null>(null)
 export function useSocket(): GameSocket | null {
   return useContext(SocketContext)
 }
+
+// How the connection to the game server is doing: `restored` is told for a few seconds after a loss, then it is `connected`
+export type ConnectionStatus = 'connected' | 'lost' | 'reconnecting' | 'restored'
+
+export const ConnectionStatusContext = createContext<ConnectionStatus>('connected')
+
+export function useConnectionStatus(): ConnectionStatus {
+  return useContext(ConnectionStatusContext)
+}

@@ -31,7 +31,8 @@ export default function GamePage() {
         {t('account')}
       </Link>
 
-      {isError ? (
+      {/* A failed read of the bases while they are on screen (the server restarted) does not take the game away */}
+      {isError && !bases ? (
         <div style={{ padding: '56px 16px 16px' }}>{t('loadFailed')}</div>
       ) : !bases ? (
         <div style={{ padding: '56px 16px 16px' }}>{t('loading')}</div>

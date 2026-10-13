@@ -2,8 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
-import { LanguageSwitcher } from '../../shared/i18n/LanguageSwitcher'
-import './AuthPage.scss'
+import AuthFrame from './AuthFrame'
 import SigninForm from './SigninForm'
 import SignupForm from './SignupForm'
 
@@ -16,25 +15,12 @@ export default function AuthPage() {
   const reference = isSignUp ? t('signup.toLogin') : t('login.toSignup')
 
   return (
-    <div className="auth-page">
-      <div className="auth-language">
-        <LanguageSwitcher />
-      </div>
-      <div className="auth-card">
-        <h1>{title}</h1>
-        {form}
-        <p
-          style={{
-            marginTop: '15px',
-            cursor: 'pointer',
-            color: '#1677ff',
-            textAlign: 'right'
-          }}
-          onClick={() => setIsSignUp(!isSignUp)}
-        >
-          {reference}
-        </p>
-      </div>
-    </div>
+    <AuthFrame>
+      <h1>{title}</h1>
+      {form}
+      <button type="button" className="auth-switch" onClick={() => setIsSignUp(!isSignUp)}>
+        {reference}
+      </button>
+    </AuthFrame>
   )
 }

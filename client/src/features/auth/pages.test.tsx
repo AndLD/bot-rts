@@ -12,6 +12,7 @@ import VerificationPage from './VerificationPage'
 const push = jest.fn()
 let search = ''
 
+jest.mock('../ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
   useSearchParams: () => new URLSearchParams(search)
@@ -129,7 +130,7 @@ describe('LinkResultPage', () => {
     const auth = createFakeAuth({ confirmEmailChange: jest.fn(() => Promise.resolve(failure)) })
     renderApp(<LinkResultPage action="confirmEmailChange" />, { auth })
 
-    await waitFor(() => expect(screen.getByRole('link')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Go to login' })).toBeInTheDocument())
     await waitFor(() => expect(screen.getByText(/could not|failed|expired/i)).toBeInTheDocument())
     expect(auth.signOut).not.toHaveBeenCalled()
   })

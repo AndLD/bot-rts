@@ -144,3 +144,13 @@ describe('AnimationSystem', () => {
     expect(system.activeCount).toBe(0)
   })
 })
+
+describe('AnimationSystem.play', () => {
+  it('plays an effect that no event stands for', () => {
+    const { system } = setup()
+
+    system.play({ startedAt: 1000, durationMs: 100, draw: jest.fn() })
+
+    expect(system.activeCount).toBe(1)
+  })
+})

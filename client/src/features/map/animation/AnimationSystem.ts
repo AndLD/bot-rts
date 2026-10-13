@@ -118,6 +118,11 @@ export class AnimationSystem {
     return this.activeCount > 0
   }
 
+  // Starts an effect that no game event stands for, such as the scripted repair of the ambient scene
+  play(effect: Effect) {
+    this.add(effect)
+  }
+
   clear() {
     this.effects = []
     this.tweens.clear()

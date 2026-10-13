@@ -36,7 +36,7 @@ export const DEFAULT_SIZES: Record<WindowKind, { width: number; height: number }
   terminal: { width: 640, height: 420 },
   storage: { width: 360, height: 420 },
   factory: { width: 480, height: 520 },
-  control: { width: 380, height: 520 },
+  control: { width: 480, height: 520 },
   settings: { width: 420, height: 440 },
   editor: { width: 640, height: 480 },
   achievements: { width: 420, height: 520 },

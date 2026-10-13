@@ -53,3 +53,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the client test `GamePage › shows the terminal to a player with a base` is flaky in the parallel run and passes alone.
 - **Next step:** 11.4, swap the starter kit and prove the balance with a simulation test over a game day.
 - **Verify with:** `npm test -w api -- energy-model game-module map-look`
+
+### 2026-10-14 — task 11.4 energy balance and starter kit
+- **Tasks:** 11.4
+- **Branch:** `feature/11.4-energy-balance` — done
+- **Decisions / deviations from the plan:** the numbers of decision 4 were kept (panel 2 energy per 250 ms = 8/s peak, generator 48/s = 6×). `energy-balance.test.ts` simulates three game days with the starter kit and duties priced from the catalogue's operation costs: light duty (a look every 20 s, a craft every 4 minutes) never empties the battery, a continuous heavy duty (mining, driving, shooting) empties it within five minutes. The energy-service tests that exercise the oil generator now swap the starter panel for a generator.
+- **Problems / blockers / findings:** none. Existing bases are not migrated (decision 5).
+- **Next step:** 11.5, power-on hysteresis for every bot.
+- **Verify with:** `npm test -w api -- energy-balance energy.service`

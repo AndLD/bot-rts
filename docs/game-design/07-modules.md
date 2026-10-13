@@ -56,7 +56,7 @@ code is the **disk**, not the chassis.)
 
 ### 7.2.1 Power sources 🟡
 
-✅ _The abstraction and both kinds (task 11.3);_ 🔴 _the balance numbers and the starter kit are task 11.4._ The modules that make energy are **power sources**: a `PowerSourceModule`
+✅ _The abstraction and both kinds (task 11.3);_ ✅ _the balance numbers and the starter kit (task 11.4)._ The modules that make energy are **power sources**: a `PowerSourceModule`
 abstraction (cycle `delay`, `isEnabled`, `lastCycleAt`, `energyPerCycle`, `enable()` / `disable()`) with two kinds, so a new
 kind can be added without touching the others.
 

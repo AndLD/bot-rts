@@ -160,8 +160,9 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
 - **Battery:** stores energy up to its `capacity`; it can never exceed it or go below zero.
 - **Generator:** ✅ while enabled, each cycle (every `delay` ms) **burns `fuelPerCycle` oil taken from the bot's storage**
   and adds `energyPerCycle` to the battery, capped at `capacity`. Without oil it produces nothing (an `OutOfFuel` event is
-  raised once, when it runs dry, see "States are told once" below). It is a module like any other and pays its own `idleCost`. Placeholder class-1 defaults
-  (tunable): 12 energy per cycle for 0.02 oil per cycle, about 600 energy per oil.
+  raised once, when it runs dry, see "States are told once" below). It is a module like any other and pays its own `idleCost`. Class-1 defaults
+  (tunable, in the catalogue): 12 energy per 250 ms cycle (48 per second) for 0.02 oil per cycle, about 600 energy per oil.
+- **Solar panel:** ✅ class 1 makes 2 energy per 250 ms cycle at full sun (8 per second at its peak), 0.8 per second at night; the oil generator is 6× the panel's peak. A simulation test over game days (`energy-balance.test.ts`) pins the balance: the starter base (idle 2.6 per second) lives on its panel alone under a light duty and runs dry in minutes under a continuous heavy one.
 - **Live scanner:** a scanner in live mode pays its area-scaled energy cost on every tick; if the battery cannot pay, it switches itself off and a `LiveScanStopped` event is raised.
 - **Empty battery:** the bot cannot perform operations and its executions suspend until energy returns (generator
   refill or a player intervention). Charging happens inside the tick, after commands are applied.

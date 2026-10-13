@@ -1,4 +1,6 @@
 import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
+import { SequentialIdGenerator } from '../../../tests/fakes/fakes'
+import { ModuleFactory } from './module.factory'
 import { createWorld } from '../../../tests/fakes/world'
 import { StorageModule, BatteryModule } from '../domain/game-module'
 import { ENERGY_EVENT } from '../domain/energy-model'
@@ -8,6 +10,11 @@ const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
 async function setup() {
   const world = createWorld()
   const { bot } = await world.botsService.deployUserBase(alice, { password: 'secret1' })
+  // The energy rules of the oil generator are under test: the base starts on a solar panel, so put a generator in its place
+  const items = world.repositories.modules.items
+  items[items.findIndex((m) => m.botId === bot.id && m.type === 'solarPanel')] = new ModuleFactory(
+    new SequentialIdGenerator()
+  ).create('generator-class1', bot.id)
   const stored = <T>(type: string, moduleClass: new (record: never) => T) =>
     new moduleClass(world.repositories.modules.items.find((m) => m.botId === bot.id && m.type === type) as never)
   return {

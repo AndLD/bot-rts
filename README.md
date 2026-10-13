@@ -40,8 +40,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 - Email verification flow (`nodemailer`), 24 h token validity.
 - Role model: `admin`, `owner`, `user`, `unlimited`, `banned` (enforced in auth middlewares).
 - Deploy a base with an **access password** and an optional **spawn seed**: a free cell at least 30 cells from every other
-  base, the starter kit (gun, scanner, factory, armor, battery, generator, storage, processor, memory, wireless adapter; Phase 11
-  swaps the generator for a solar panel);
+  base, the starter kit (gun, scanner, factory, armor, battery, solar panel, storage, processor, memory, wireless adapter);
   one living base per player, a lost base stays on the map as a corpse base and its owner can redeploy.
 - Procedural map in chunks, with **deposits** of six resources and **per-user fog-of-war points**, generated on demand.
 - Module classes by type with a registry and a factory; the **bot filesystem** (a drive per memory module with a byte

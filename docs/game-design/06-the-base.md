@@ -16,13 +16,13 @@ Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/dom
 | `factory-class1` | factory | operationCost 40 | Craft modules and assemble bots |
 | `armor-class1` | armor | material iron, weight 45 | Survive attacks |
 | `battery-class1` | battery | 12 V, capacity 3000, value 3000 | Energy buffer |
-| `generator-class1` | generator | 12 energy per cycle for 0.02 oil, delay 250 ms (placeholders) | Refill the battery, burning oil from storage |
-| `storage-class1` | storage | capacity 200, holds items; starts with 50 oil | Store mined resources and generator fuel |
+| `solar-panel-class1` | solarPanel | 2 energy per 250 ms cycle at full sun (8 per second at its peak), burns nothing (§7.2.1) | Keep the base alive on the sun |
+| `storage-class1` | storage | capacity 200, holds items; starts with 50 oil | Store mined resources and generator fuel (the oil lets the player craft and feed a generator at once) |
 | `processor-class1` | processor | 2 ops/tick, 1 parallel execution (§12.2.1) | Run the base's scripts |
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |
 
-🔴 **Planned (Phase 11, task 11.4):** the starter kit gets `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
+✅ **Phase 11, task 11.4:** the starter kit has `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
 base keeps itself alive under a light duty: with the oil generator only, the first hands-on run showed that the idle drain
 (about 2.6 energy per second for the starter modules) and the 50 oil of the starter storage run out within minutes and the base
 goes dark. The oil generator stays craftable (§9) as the strong but manual option. Existing bases are not migrated; during

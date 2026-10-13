@@ -336,9 +336,14 @@ A feature is done only when **all** of these hold:
   exists: once lint, typecheck and tests pass locally). Do not pause between tasks, and when a named phase's exit criteria are
   met, record it and start the next named phase. Stop after the last named phase with a summary, and earlier only when
   blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
+- **Plan-related PRs merge the same way.** Every PR that belongs to a named phase is covered by the same approval: its task
+  PRs, and also the documentation and chore PRs that exist because of the plan (the phase's implementation log, task and
+  status updates in the phase file and the development plan, the work log, the matching `docs/game-design/` updates, and
+  the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
+  plan-related only when it serves a named phase; anything else follows the next rule.
 - **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
   `release/*` and `hotfix/*` into `main`) without asking.
-- **Ask the user before merging any other pull request:** documentation or chore PRs that are not phase tasks, anything
+- **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything
   targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one merge does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
@@ -385,7 +390,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - Don't introduce new `any`-typed public signatures.
 - Don't merge without green CI and ≥ 97 % coverage.
 - Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't merge a PR outside the phases the user asked for without asking the user first (§7.5); opening PRs needs no approval.
+- Don't merge a PR unrelated to the phases the user asked for without asking the user first (§7.5); opening PRs needs no approval.
 
 ---
 

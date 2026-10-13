@@ -40,5 +40,5 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/7.1-ambient-scene` | 7.1, 7.2 | [#104](https://github.com/AndLD/bot-rts/pull/104) | ✅ merged |
-| `feature/7.3-landing-page` | 7.3 | [#105](https://github.com/AndLD/bot-rts/pull/105) | 🟡 |
+| `feature/7.3-landing-page` | 7.3 | [#105](https://github.com/AndLD/bot-rts/pull/105) | ✅ merged |
 | `feature/7.10-privacy-consent` | 7.10 | _PR_ | 🟡 |

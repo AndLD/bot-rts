@@ -76,6 +76,37 @@ export function useTerminal({ connection, onConnected, onExit, onHelp }: Termina
     })
   }, [socket, connection])
 
+  // The server closes a terminal session when its connection drops: once the connection is back, a new session is opened on the
+  // same bot, and the commands go to it (design §15.6)
+  useEffect(() => {
+    if (!socket || !currentBotId) {
+      return
+    }
+    let wasLost = false
+    const onDisconnect = () => {
+      wasLost = true
+    }
+    const onConnect = () => {
+      if (!wasLost) {
+        return
+      }
+      wasLost = false
+      socket.emit('open-terminal', currentBotId, (session) => {
+        if (session) {
+          setSessionId(session._id)
+          setIsLinkUp(true)
+          setLines((previous) => [...previous, escapeHtml(t('reconnected'))])
+        }
+      })
+    }
+    socket.on('disconnect', onDisconnect)
+    socket.on('connect', onConnect)
+    return () => {
+      socket.off('disconnect', onDisconnect)
+      socket.off('connect', onConnect)
+    }
+  }, [socket, currentBotId, t])
+
   const print = useCallback(
     (echo: string[], ...output: string[]) => setLines((previous) => [...previous, ...echo, ...output]),
     []
@@ -232,7 +263,7 @@ export function useTerminal({ connection, onConnected, onExit, onHelp }: Termina
           return print(echo, escapeHtml(t('helpOpened', { topic: action.topic })))
         }
         case 'send':
-          if (!socket || !sessionId) {
+          if (!socket || !socket.connected || !sessionId) {
             return print(echo, escapeHtml(t('notConnected')))
           }
           if (!isLinkUp) {

@@ -64,10 +64,18 @@ async function resetDatabase() {
   await client.end()
 }
 
+// The processes listening on a port (a spec may have restarted the API behind the back of this script)
+function listeningOn(port) {
+  const found = spawnSync('lsof', ['-ti', `tcp:${port}`, '-sTCP:LISTEN'], { encoding: 'utf8' })
+
+  return (found.stdout ?? '').split('\n').filter(Boolean).map(Number)
+}
+
 function stopAll() {
   for (const child of children) {
     child.kill('SIGTERM')
   }
+  listeningOn(API_PORT).forEach((pid) => process.kill(pid, 'SIGTERM'))
 }
 
 process.on('SIGINT', () => {
@@ -94,10 +102,12 @@ try {
   }
 
   // The API trusts X-Forwarded-For so that a test can use an address of its own against the rate limit
-  start('api', 'npx', ['ts-node', 'index.ts'], {
+  const apiLaunch = {
+    command: 'npx',
+    args: ['ts-node', 'index.ts'],
     cwd: resolve(root, 'api'),
+    log: resolve(workDir, 'api.log'),
     env: {
-      ...process.env,
       NODE_ENV: 'development',
       PORT: String(API_PORT),
       DATABASE_URL: databaseUrl.href,
@@ -114,7 +124,8 @@ try {
       BOT_LOCKOUT_FAILURES: '3',
       WORLD_SEED: '1'
     }
-  })
+  }
+  start('api', apiLaunch.command, apiLaunch.args, { cwd: apiLaunch.cwd, env: { ...process.env, ...apiLaunch.env } })
   start('client', 'npm', ['run', 'start', '-w', 'client'], { env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl } })
 
   await waitFor(`${apiUrl}/api/v1/health`, 'The API')
@@ -123,7 +134,13 @@ try {
   const cypress = spawnSync('npx', ['cypress', isOpen ? 'open' : 'run', ...cypressArgs], {
     stdio: 'inherit',
     cwd: resolve(root, 'client'),
-    env: { ...process.env, E2E_OUTBOX_DIR: outbox, E2E_DATABASE_URL: databaseUrl.href }
+    env: {
+      ...process.env,
+      E2E_OUTBOX_DIR: outbox,
+      E2E_DATABASE_URL: databaseUrl.href,
+      // How a spec starts the API again after it stopped it
+      E2E_API_LAUNCH: JSON.stringify(apiLaunch)
+    }
   })
 
   exitCode = cypress.status ?? 1

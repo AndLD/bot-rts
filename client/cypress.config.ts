@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'fs'
+import { execFileSync, spawn } from 'child_process'
+import { openSync, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { defineConfig } from 'cypress'
 import { Client } from 'pg'
@@ -6,6 +7,31 @@ import { Client } from 'pg'
 // Set by `npm run e2e` (scripts/e2e.mjs), which also starts the API and the client
 const OUTBOX_DIR = process.env.E2E_OUTBOX_DIR ?? ''
 const DATABASE_URL = process.env.E2E_DATABASE_URL ?? ''
+
+// How scripts/e2e.mjs started the API, so that a spec can stop it and start it again
+interface ApiLaunch {
+  command: string
+  args: string[]
+  cwd: string
+  log: string
+  env: Record<string, string>
+}
+const API_LAUNCH: ApiLaunch | null = process.env.E2E_API_LAUNCH ? JSON.parse(process.env.E2E_API_LAUNCH) : null
+const API_PORT = 8080
+
+function apiProcesses(): number[] {
+  try {
+    return execFileSync('lsof', ['-ti', `tcp:${API_PORT}`, '-sTCP:LISTEN'], { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean)
+      .map(Number)
+  } catch {
+    // lsof exits with an error when nothing listens
+    return []
+  }
+}
+
+const pause = (ms: number) => new Promise((done) => setTimeout(done, ms))
 
 interface Mail {
   to: string
@@ -45,6 +71,31 @@ export default defineConfig({
     expose: { apiUrl: 'http://localhost:8080' },
     setupNodeEvents(on) {
       on('task', {
+        // The API goes down, as when the server crashes or restarts; resolves once nothing listens any more
+        async stopApi() {
+          apiProcesses().forEach((pid) => process.kill(pid, 'SIGTERM'))
+          for (let waited = 0; apiProcesses().length && waited < 20_000; waited += 250) {
+            await pause(250)
+          }
+          apiProcesses().forEach((pid) => process.kill(pid, 'SIGKILL'))
+
+          return null
+        },
+
+        // The API is started again as it was; it needs some seconds to listen, which the spec waits for
+        startApi() {
+          const launch = API_LAUNCH as ApiLaunch
+          const log = openSync(launch.log, 'a')
+          spawn(launch.command, launch.args, {
+            cwd: launch.cwd,
+            env: { ...process.env, ...launch.env },
+            detached: true,
+            stdio: ['ignore', log, log]
+          }).unref()
+
+          return null
+        },
+
         // The links of the newest email to an address with the given subject, or null while none has arrived
         mailLink({ to, subject }: { to: string; subject: string }) {
           const mail = readOutbox()

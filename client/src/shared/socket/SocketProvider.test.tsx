@@ -4,10 +4,11 @@ import { io } from 'socket.io-client'
 import { Provider } from 'react-redux'
 import { createFakeAuth } from '../../../tests/render'
 import { AuthClientContext } from '../../features/auth/auth-client-context'
+import { API_TAGS } from '../api/empty-api'
 import { setupStore } from '../store'
 import { setToken } from '../store/session.slice'
 import { SocketProvider } from './SocketProvider'
-import { useSocket } from './socket-context'
+import { ConnectionStatus, useConnectionStatus, useSocket } from './socket-context'
 
 jest.mock('socket.io-client', () => ({ io: jest.fn() }))
 
@@ -20,12 +21,25 @@ function createConnection() {
       handlers[event] = handler
     }),
     connect: jest.fn(),
-    disconnect: jest.fn()
+    disconnect: jest.fn(),
+    // The manager of the socket, which counts the attempts to connect again
+    io: {
+      on: jest.fn((event: string, handler: (typeof handlers)[string]) => {
+        handlers[`io:${event}`] = handler
+      })
+    }
   }
 }
 
-function Probe({ onSocket }: { onSocket: (socket: unknown) => void }) {
+function Probe({
+  onSocket,
+  onStatus
+}: {
+  onSocket: (socket: unknown) => void
+  onStatus: (status: ConnectionStatus) => void
+}) {
   onSocket(useSocket())
+  onStatus(useConnectionStatus())
 
   return null
 }
@@ -33,18 +47,23 @@ function Probe({ onSocket }: { onSocket: (socket: unknown) => void }) {
 function setup(token: string | null, auth = createFakeAuth()) {
   const store = setupStore()
   store.dispatch(setToken(token))
+  // What the provider dispatches, with an identity that does not change between renders
+  const dispatch = jest.fn(store.dispatch)
+  store.dispatch = dispatch as unknown as typeof store.dispatch
+  dispatch.mockClear()
   const seen: unknown[] = []
+  const statuses: ConnectionStatus[] = []
   const view = render(
     <Provider store={store}>
       <AuthClientContext.Provider value={auth}>
         <SocketProvider>
-          <Probe onSocket={(socket) => seen.push(socket)} />
+          <Probe onSocket={(socket) => seen.push(socket)} onStatus={(status) => statuses.push(status)} />
         </SocketProvider>
       </AuthClientContext.Provider>
     </Provider>
   )
 
-  return { store, seen, view, auth }
+  return { store, seen, statuses, view, auth, dispatch }
 }
 
 describe('SocketProvider', () => {
@@ -111,5 +130,79 @@ describe('SocketProvider', () => {
     })
 
     expect(auth.refresh).not.toHaveBeenCalled()
+  })
+
+  describe('when the connection is lost', () => {
+    const lose = (reason = 'transport close') => act(() => void connection.handlers.disconnect(reason as never))
+    const reconnect = () => act(() => void connection.handlers.connect())
+
+    it('says it is lost, then reconnecting, then restored for a few seconds, and reads the screen data again', () => {
+      jest.useFakeTimers()
+      const { statuses, dispatch } = setup('token-1')
+      expect(statuses.at(-1)).toBe('connected')
+
+      lose()
+      expect(statuses.at(-1)).toBe('lost')
+      act(() => void connection.handlers['io:reconnect_attempt']())
+      expect(statuses.at(-1)).toBe('reconnecting')
+
+      reconnect()
+      expect(statuses.at(-1)).toBe('restored')
+      expect(dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'api/invalidateTags', payload: [...API_TAGS] })
+      )
+      act(() => void jest.advanceTimersByTime(4000))
+      expect(statuses.at(-1)).toBe('connected')
+      jest.useRealTimers()
+    })
+
+    it('says nothing about the first connection, and does not call an attempt a loss before there was one', () => {
+      const { statuses, dispatch } = setup('token-1')
+
+      act(() => void connection.handlers['io:reconnect_attempt']())
+      reconnect()
+
+      expect(new Set(statuses)).toEqual(new Set(['connected']))
+      expect(dispatch).not.toHaveBeenCalled()
+    })
+
+    it('does not call the own sign-out a loss', () => {
+      const { statuses } = setup('token-1')
+
+      lose('io client disconnect')
+
+      expect(new Set(statuses)).toEqual(new Set(['connected']))
+    })
+
+    it('connects again by itself when the server ended the connection', () => {
+      setup('token-1')
+
+      lose('io server disconnect')
+
+      expect(connection.connect).toHaveBeenCalled()
+    })
+
+    it('says the connection is lost when the server cannot be reached at all', async () => {
+      const { statuses } = setup('token-1')
+
+      await act(async () => {
+        await connection.handlers.connect_error({ message: 'xhr poll error' } as never)
+      })
+
+      expect(statuses.at(-1)).toBe('lost')
+    })
+
+    it('forgets a restored message that is still shown when the connection is lost again', () => {
+      jest.useFakeTimers()
+      const { statuses } = setup('token-1')
+
+      lose()
+      reconnect()
+      lose()
+      act(() => void jest.advanceTimersByTime(5000))
+
+      expect(statuses.at(-1)).toBe('lost')
+      jest.useRealTimers()
+    })
   })
 })

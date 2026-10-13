@@ -247,7 +247,8 @@
     "connectionRestored": "Connection restored",
     "missedSummary": "While the bot was out of reach: {scans} scans, {events} events",
     "helpOpened": "Opening the help page: {topic}",
-    "helpUnknown": "There is no help on “{topic}”. Topics: {topics}"
+    "helpUnknown": "There is no help on “{topic}”. Topics: {topics}",
+    "reconnected": "Reconnected: a new terminal session is open."
   },
   "errors": {
     "generic": "Something went wrong",
@@ -944,5 +945,10 @@
       "day": "Day",
       "evening": "Evening"
     }
+  },
+  "connection": {
+    "lost": "Connection to the server lost",
+    "reconnecting": "Reconnecting to the server…",
+    "restored": "Connection restored"
   }
 }

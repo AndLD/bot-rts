@@ -3,6 +3,7 @@
 import { MANUAL_CATEGORIES, ManualCategory } from '@lib/utils/interfaces/settings'
 import { Button, Select, Switch, Tag } from 'antd'
 import { useTranslations } from 'next-intl'
+import NotificationPreferences from '../notifications/NotificationPreferences'
 import {
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,
@@ -64,6 +65,8 @@ export default function SettingsPanel() {
         ]}
         style={{ minWidth: 200 }}
       />
+
+      <NotificationPreferences />
 
       <h4>{t('tutorial')}</h4>
       <Button size="small" onClick={() => restartTutorial()}>

@@ -16,7 +16,7 @@ the player documentation (a public `/docs` section and the same content as an in
 | 7.4 | Achievements backend: data-driven definitions, evaluator consuming game events, per-user progress and unlock storage, `/api/v1` read endpoints | 5 | ✅ |
 | 7.5 | Achievements UI: achievements page with progress, unlock toast, profile badges | 3 | ✅ |
 | 7.6 | Notifications backend per design §24.2: rules from game events, per-category preferences, coalescing and caps, 30-day persistent store, Socket.IO push, `/api/v1` list / mark-read endpoints, login summary | 8 | ✅ |
-| 7.7 | Notifications UI: toasts, notification center with unread count and mark-as-read, category preferences in the settings | 5 | ⬜ |
+| 7.7 | Notifications UI: toasts, notification center with unread count and mark-as-read, category preferences in the settings | 5 | ✅ |
 | 7.8 | Russian translation of all UI strings (landing, auth, game screens, tutorial, achievements, notifications, API error codes, documentation chrome) and of the documentation pages (7.11) and the missing-key CI check on every PR | 3 | ⬜ |
 | 7.9 | E2E (Cypress): landing page calls to action → sign-up, language switch (`/` and `/ru/`), auth page with the ambient scene and the reduced-motion fallback, achievement unlock toast and page (including one earned offline), realtime notifications, notification center, offline summary at login, notification preferences; also notification coalescing, translated terminal responses and error codes, the failed-password notification, and the privacy policy page, its links and the sign-up acceptance | 7 | ⬜ |
 | 7.10 | Privacy policy and consent: public `/privacy` page in English and Russian (what is collected: account email, game data, terminal logs, cookies/tokens; purposes, retention, third parties, user rights, contact), linked from the landing footer and the sign-up form; sign-up requires accepting it, and the accepted version and time are stored with the user; account export and deletion (task 2.7) are referenced; the cookie notice declines non-essential cookies by default | 3 | ✅ |
@@ -44,3 +44,4 @@ AGENTS.md §7.1).
 | `feature/7.10-privacy-consent` | 7.10 | [#106](https://github.com/AndLD/bot-rts/pull/106) | 🟡 |
 | `feature/7.5-achievements-ui` | 7.4, 7.5 | _PR_ | 🟡 |
 | `feature/7.6-notifications-backend` | 7.6 | _PR_ | 🟡 |
+| `feature/7.7-notifications-ui` | 7.7 | _PR_ | 🟡 |

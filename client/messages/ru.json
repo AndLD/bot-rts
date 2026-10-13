@@ -40,7 +40,8 @@
       "editor": "Редактор",
       "botTerminal": "Терминал {botId}",
       "botControl": "Управление {botId}",
-      "achievements": "Достижения"
+      "achievements": "Достижения",
+      "notifications": "Уведомления"
     }
   },
   "storage": {
@@ -406,6 +407,54 @@
         "title": "Выпускник",
         "description": "Пройдите обучение"
       }
+    }
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "empty": "Пока ничего",
+    "loading": "Загрузка...",
+    "loadFailed": "Не удалось загрузить уведомления",
+    "markAllRead": "Отметить все прочитанными",
+    "loadMore": "Показать ещё",
+    "unreadOnly": "Только непрочитанные",
+    "unreadCount": "Непрочитанных: {count}",
+    "times": "×{count}",
+    "categories": {
+      "attacks": "Атаки",
+      "damage": "Повреждения и энергия",
+      "scripts": "Скрипты",
+      "security": "Безопасность",
+      "fabrication": "Производство",
+      "trade": "Торговля",
+      "achievements": "Достижения",
+      "system": "Система"
+    },
+    "kinds": {
+      "underAttack": "Ваш бот {bot} под атакой",
+      "moduleBroken": "Сломан модуль бота {bot}",
+      "energyLow": "У бота {bot} заканчивается энергия",
+      "outOfFuel": "У бота {bot} закончилось топливо",
+      "liveScanStopped": "Непрерывное сканирование бота {bot} остановлено",
+      "linkLost": "Бот {bot} потерял радиосвязь",
+      "linkRestored": "Связь с ботом {bot} восстановлена",
+      "linkWeak": "Слабый сигнал бота {bot}: {bars} из 4 делений",
+      "scriptFinished": "Скрипт бота {bot} завершился",
+      "scriptFailed": "Скрипт бота {bot} упал: {reason}",
+      "passwordFailed": "{lockedOut, select, true {Бот {bot} заблокирован после неверных паролей} other {Кто-то ввёл неверный пароль для бота {bot}}}",
+      "botAssembled": "Собран новый бот {bot}",
+      "craftDone": "{count, plural, one {# модуль} few {# модуля} many {# модулей} other {# модуля}}: {module} готово",
+      "researchDone": "Исследование {module} завершено",
+      "achievementUnlocked": "Получено достижение: {title}",
+      "unknown": "Что-то произошло"
+    },
+    "away": {
+      "title": "Пока вас не было",
+      "summary": "{total, plural, one {# событие} few {# события} many {# событий} other {# события}}{attacks, plural, =0 {} one {, # атака} few {, # атаки} many {, # атак} other {, # атаки}}{achievements, plural, =0 {} one {, # достижение} few {, # достижения} many {, # достижений} other {, # достижения}}"
+    },
+    "preferences": {
+      "title": "Уведомления",
+      "help": "Выберите, о чём игра сообщает вам. Уведомления отключённой категории не сохраняются.",
+      "notifyAbout": "Уведомлять: {category}"
     }
   }
 }

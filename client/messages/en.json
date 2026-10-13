@@ -342,7 +342,8 @@
       "editor": "Editor",
       "botTerminal": "Terminal {botId}",
       "botControl": "Control {botId}",
-      "achievements": "Achievements"
+      "achievements": "Achievements",
+      "notifications": "Notifications"
     }
   },
   "storage": {
@@ -609,6 +610,54 @@
         "title": "Graduate",
         "description": "Complete the tutorial"
       }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Nothing yet",
+    "loading": "Loading...",
+    "loadFailed": "Could not load the notifications",
+    "markAllRead": "Mark all as read",
+    "loadMore": "Load more",
+    "unreadOnly": "Unread only",
+    "unreadCount": "{count} unread",
+    "times": "×{count}",
+    "categories": {
+      "attacks": "Attacks",
+      "damage": "Damage and energy",
+      "scripts": "Scripts",
+      "security": "Security",
+      "fabrication": "Fabrication",
+      "trade": "Trade",
+      "achievements": "Achievements",
+      "system": "System"
+    },
+    "kinds": {
+      "underAttack": "Your bot {bot} is under attack",
+      "moduleBroken": "A module of bot {bot} is broken",
+      "energyLow": "Bot {bot} is low on energy",
+      "outOfFuel": "Bot {bot} has run out of fuel",
+      "liveScanStopped": "The live scan of bot {bot} has stopped",
+      "linkLost": "Bot {bot} has lost the radio link",
+      "linkRestored": "Bot {bot} is connected again",
+      "linkWeak": "The signal of bot {bot} is weak: {bars} of 4 bars",
+      "scriptFinished": "A script of bot {bot} has finished",
+      "scriptFailed": "A script of bot {bot} has crashed: {reason}",
+      "passwordFailed": "{lockedOut, select, true {Bot {bot} is locked out after wrong passwords} other {Someone tried a wrong password on bot {bot}}}",
+      "botAssembled": "A new bot {bot} has been assembled",
+      "craftDone": "{count, plural, one {# module} other {# modules}} of {module} ready",
+      "researchDone": "The research of {module} has finished",
+      "achievementUnlocked": "Achievement unlocked: {title}",
+      "unknown": "Something happened"
+    },
+    "away": {
+      "title": "While you were away",
+      "summary": "{total, plural, one {# event} other {# events}}{attacks, plural, =0 {} one {, # attack} other {, # attacks}}{achievements, plural, =0 {} one {, # achievement} other {, # achievements}}"
+    },
+    "preferences": {
+      "title": "Notifications",
+      "help": "Choose what the game tells you about. A category that is off is not stored either.",
+      "notifyAbout": "Notify about {category}"
     }
   }
 }

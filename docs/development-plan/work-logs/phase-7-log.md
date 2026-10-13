@@ -63,3 +63,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** coalescing and caps are in memory per API process; notifications for a bot that is out of reach of its base are not made until the link returns (design §11.2.1); there is no `BotAdopted` / `BaseControlLost` notification for the former owner of a bot (the engine does not know who it was).
 - **Next step:** task 7.7 (notifications UI).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api` (needs `npm run db:up`)
+
+### 2026-10-13 — task 7.7: notifications UI
+- **Tasks:** 7.7
+- **Branch:** `feature/7.7-notifications-ui` — done
+- **Decisions / deviations from the plan:** `NotificationToasts` (in `GameScreen`) shows an Ant Design toast for each pushed `notification`, with the id as the toast key, so a coalesced notification (the same id with a higher count) updates its toast and does not repeat it; achievements are skipped there (they have their own toast, 7.5). `NotificationCenter` is a window (`notifications`, toolbar button with a badge of the unread count from `/notifications/summary`): newest first, unread ones in bold with a dot, `×N` for a coalesced one, a click marks it read, "Mark all as read", "Unread only", and "Load more" (the page before the last `createdAt`). `useNotificationText` writes the text from the `kind` and `params` (module and achievement names in the player's language, the bot as its short id); an unknown kind shows "Something happened". `AwaySummary` shows "While you were away: 12 events, 2 attacks, 1 achievement" once per visit (`sessionStorage`). The category preferences are a section of the settings window (`NotificationPreferences`, a switch per category). The notification `params` in the OpenAPI document are typed as text, number or flag, so the generated client has no `any`.
+- **Next step:** the player documentation (7.11), then 7.12, 7.13, the Russian translation of everything (7.8) and the Cypress specs (7.9).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`

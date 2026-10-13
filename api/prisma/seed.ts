@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { PrismaClient } from '@prisma/client'
 import { BcryptPasswordHasher } from '../src/auth/infrastructure/bcrypt-password-hasher'
 import { LOCAL_PROVIDER } from '../src/auth/domain/identity'
+import { PRIVACY_POLICY_VERSION } from '../../lib/utils/privacy'
 import { PrismaUnitOfWork } from '../src/persistence/infrastructure/prisma-unit-of-work'
 
 // Creates the root owner with a verified email from ROOT_USER_EMAIL / ROOT_USER_PASSWORD; safe to run repeatedly
@@ -30,6 +31,8 @@ async function main() {
         email,
         status: 'owner',
         subscription: 'free',
+        privacyAcceptedVersion: PRIVACY_POLICY_VERSION,
+        privacyAcceptedAt: now,
         createdAt: now,
         updatedAt: null,
         deletedAt: null

@@ -195,14 +195,16 @@ solar panel burns nothing and adds `energyPerCycle × sunlight(now)` per cycle (
 - **Presentation:** an in-game clock in the HUD and a night filter over the map (§15.6); both are cosmetic and never touch the
   simulation.
 
-### 12.5.2 Power-on hysteresis 🔴
+### 12.5.2 Power-on hysteresis ✅
 
-_Planned for Phase 11 (task 11.5)._ A bot whose battery reaches **0** becomes *unpowered*: it cannot spend energy, its radio
+A bot whose battery reaches **0** becomes *unpowered*: it cannot spend energy, its radio
 link is down and its executions and factory / maintenance jobs wait. It powers on again only when the stored energy has grown
 to a **resume threshold (10 energy, one config value for every bot)**, not at the first unit above 0, so a bot at the edge does
 not flap between working and out of energy (and the radio link does not flap between lost and restored). A bot with 20 energy
 works until 0; the state is persisted in the batteries like the other states of this section, and the suspended work continues
 by itself after the resume.
+
+**Implementation.** `isUnpowered` is a property of the battery (like `isLowReported`), set by the energy tick when the stored energy is 0 (also when an operation emptied it and a generator refilled it within the same tick) and cleared when the stored energy reaches `resumeThreshold` (`EnergyBalance`, default 10, never above the capacity). While it is set, `EnergyModel.isDepleted` is true and `available` is 0, so `spend` (every operation, factory and maintenance order, the live scanner), the weapon's energy check and the radio adapter's node all refuse; a dark bot also drains no idle cost, so it can recover. Executions are not killed: their calls get `NO_ENERGY` and continue after the resume, and factory jobs already queued finish on their own timers.
 
 ## 12.6 Combat model ✅
 

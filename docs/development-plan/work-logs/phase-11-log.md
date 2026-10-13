@@ -61,3 +61,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none. Existing bases are not migrated (decision 5).
 - **Next step:** 11.5, power-on hysteresis for every bot.
 - **Verify with:** `npm test -w api -- energy-balance energy.service`
+
+### 2026-10-14 — task 11.5 power-on hysteresis
+- **Tasks:** 11.5
+- **Branch:** `feature/11.5-power-on-hysteresis` — done
+- **Decisions / deviations from the plan:** the rule lives in `EnergyModel` (one place for the API's factory / maintenance services and the engine): `isUnpowered` on the battery, `isDepleted` / `available`, `resumeThreshold` 10. A dark bot drains no idle cost (otherwise it could not recover at night). Executions are not suspended by a separate mechanism: they get `NO_ENERGY` from `spend` as before.
+- **Problems / blockers / findings:** none.
+- **Next step:** 11.6, day/night UI (HUD clock and night filter).
+- **Verify with:** `npm test -w api -- energy-model radio-network`

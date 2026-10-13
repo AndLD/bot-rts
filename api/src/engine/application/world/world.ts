@@ -194,8 +194,9 @@ export class World {
     this.writeBehind.stageItemRemoval(item.id)
   }
 
+  // The energy the bot can use now: none while it is unpowered (design §12.5)
   energyOf(bot: WorldBot): number {
-    return this.energy.stored(bot.state.modules)
+    return this.energy.available(bot.state.modules)
   }
 
   // The bot's modules, changed
@@ -223,7 +224,7 @@ export class World {
     const adapter = this.registry
       .instantiateAll(bot.state.modules)
       .find((module): module is WirelessAdapterModule => module instanceof WirelessAdapterModule && module.isOnline)
-    return `${adapter ? adapter.range : 'off'}|${this.energy.stored(bot.state.modules) > 0}`
+    return `${adapter ? adapter.range : 'off'}|${!this.energy.isDepleted(bot.state.modules)}`
   }
 
   // Pays an operation from the bot's batteries; NO_ENERGY when they cannot

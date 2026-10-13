@@ -254,6 +254,9 @@ const injectedRtkApi = api.injectEndpoints({
     }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
+    }),
+    gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
+      query: () => ({ url: `/api/v1/time` })
     })
   }),
   overrideExisting: false
@@ -477,6 +480,8 @@ export type NotificationsUpdatePreferencesApiArg = {
 }
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
+export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
+export type GameTimeCurrentApiArg = void
 export type UserInfoResponse = {
   _id: string
   name: string
@@ -1009,6 +1014,24 @@ export type HealthResponse = {
   status: 'ok'
   database: 'up'
 }
+export type DayPhaseSpanResponse = {
+  phase: 'night' | 'morning' | 'day' | 'evening'
+  /** In-game hour at which this part of the day starts */
+  fromHour: number
+  /** How much sun reaches solar panels, from 0 to 1 */
+  sunlight: number
+}
+export type GameTimeConfigResponse = {
+  /** One in-game day in real milliseconds; the world clock counts from the Unix epoch */
+  dayLengthMs: number
+  hoursPerDay: number
+  spans: DayPhaseSpanResponse[]
+}
+export type GameTimeResponse = {
+  /** The server instant in ms */
+  now: number
+  config: GameTimeConfigResponse
+}
 export const {
   useUsersMeQuery,
   useUsersListQuery,
@@ -1063,5 +1086,6 @@ export const {
   useNotificationsMarkReadMutation,
   useNotificationsPreferencesQuery,
   useNotificationsUpdatePreferencesMutation,
-  useHealthCheckQuery
+  useHealthCheckQuery,
+  useGameTimeCurrentQuery
 } = injectedRtkApi

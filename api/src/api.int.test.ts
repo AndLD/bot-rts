@@ -24,6 +24,18 @@ const api = () => request(testApp.url)
 const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
 const signUp = (email: string, name = 'Alice') => signUpVerified(testApp, database, email, name)
 
+describe('the game time', () => {
+  it('tells a signed-in player the server instant and the day/night config', async () => {
+    await api().get('/api/v1/time').expect(401)
+    const { accessToken } = await signUp('alice@example.com')
+
+    const response = await api().get('/api/v1/time').set(bearer(accessToken)).expect(200)
+
+    expect(response.body.now).toBeCloseTo(Date.now(), -4)
+    expect(response.body.config).toMatchObject({ dayLengthMs: 1_440_000, hoursPerDay: 24 })
+  })
+})
+
 describe('account flows', () => {
   it('registers, is held back until the email is verified, then logs in, refreshes and logs out', async () => {
     const registered = await api()

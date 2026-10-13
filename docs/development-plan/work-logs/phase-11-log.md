@@ -37,3 +37,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 11.2, the game clock and day/night model in `lib`.
 - **Verify with:** `npm test -w api -- energy-events radio-network`
+
+### 2026-10-14 — task 11.2 game clock and day/night model
+- **Tasks:** 11.2
+- **Branch:** `feature/11.2-game-clock` — done
+- **Decisions / deviations from the plan:** the clock is `lib/utils/game-time.ts` (pure; defaults from the plan's decisions 1-2, stepwise sunlight per day part). `GET /api/v1/time` (authenticated, new `time` Nest module) returns `{ now, config }`; the config is the `DEFAULT_GAME_TIME` constant (the balance lives in `lib`, like the other typed defaults), not an env variable. The client derives the time from `now` with `useServerClock` in 11.6.
+- **Problems / blockers / findings:** none.
+- **Next step:** 11.3, split the power sources (`PowerSourceModule`, `GeneratorModule`, `SolarPanelModule`).
+- **Verify with:** `npm test -w api -- game-time`; `npx jest src/api.int.test.ts -t "game time"` in `api`

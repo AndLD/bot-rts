@@ -12,6 +12,8 @@ import {
   useFactoryResearchMutation,
   useFactoryStatusQuery
 } from '../../shared/api'
+import HelpLink from '../../docs/HelpLink'
+import ModuleHelpName from '../../docs/ModuleHelpName'
 import { useGameNames } from '../map/useGameNames'
 import { useModuleName } from './useModuleName'
 import { useServerClock } from './useServerClock'
@@ -72,6 +74,7 @@ export default function FactoryPanel({ baseId }: { baseId: string }) {
 
   const craftTab = (
     <div>
+      <HelpLink slug="getting-started/first-bot" />
       {status.jobs.length > 0 && (
         <>
           <h4>{t('jobs')}</h4>
@@ -118,8 +121,7 @@ export default function FactoryPanel({ baseId }: { baseId: string }) {
 
         return (
           <div key={recipe.module} className="factory-recipe" style={{ marginBottom: 8 }}>
-            <strong>{moduleName(recipe.module)}</strong>{' '}
-            <span>{t('time', { seconds: seconds(recipe.craftTimeMs) })}</span>
+            <ModuleHelpName module={recipe.module} /> <span>{t('time', { seconds: seconds(recipe.craftTimeMs) })}</span>
             <div>{costTags(recipe.resources, recipe.isKnown ? count : 1)}</div>
             {recipe.isKnown ? (
               <div style={{ display: 'flex', gap: 6 }}>

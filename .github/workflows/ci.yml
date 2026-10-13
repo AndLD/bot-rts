@@ -82,6 +82,14 @@ jobs:
             echo "Run 'npm run openapi:generate -w api && npm run api:generate -w client' and commit the result"
             exit 1
           }
+      - name: Documentation data is up to date
+        if: steps.changes.outputs.code == 'true'
+        run: |
+          npm run docs:generate
+          git diff --exit-code -- client/src/docs/generated || {
+            echo "Run 'npm run docs:generate' and commit the result"
+            exit 1
+          }
       - name: Migrations match the Prisma schema
         if: steps.changes.outputs.code == 'true'
         env:

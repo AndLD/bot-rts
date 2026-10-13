@@ -3,6 +3,8 @@
 import { Badge, Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
+import { showHelp } from '../../docs/help.slice'
+import HelpPanel from '../help/HelpPanel'
 import AwaySummary from '../notifications/AwaySummary'
 import NotificationCenter from '../notifications/NotificationCenter'
 import NotificationToasts from '../notifications/NotificationToasts'
@@ -44,6 +46,7 @@ const LAUNCHABLE: WindowKind[] = [
   'factory',
   'achievements',
   'notifications',
+  'help',
   'settings'
 ]
 
@@ -69,6 +72,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         <Terminal
           connection={{ botId, sessionId }}
           onConnected={openConnection}
+          onHelp={openHelp}
           onExit={() => dispatch(closeWindow(win.id))}
         />
       )
@@ -84,6 +88,12 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     dispatch(openWindow({ id: `control:${botId}`, kind: 'control', params: { botId } }))
   }
 
+  // A page of the documentation, in the Help window
+  function openHelp(slug: string) {
+    dispatch(showHelp(slug))
+    dispatch(openWindow({ id: 'help', kind: 'help', params: {} }))
+  }
+
   // What a bot carries
   function openStorage(botId: string) {
     dispatch(openWindow({ id: `storage:${botId}`, kind: 'storage', params: { botId } }))
@@ -94,7 +104,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
       case 'terminal':
         return win.params.botId
           ? connectedTerminal(win)
-          : { title: t('kinds.terminal'), content: <Terminal onConnected={openConnection} /> }
+          : { title: t('kinds.terminal'), content: <Terminal onConnected={openConnection} onHelp={openHelp} /> }
       case 'control':
         return {
           title: t('kinds.botControl', { botId: win.params.botId.slice(0, SHORT_ID) }),
@@ -102,6 +112,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         }
       case 'settings':
         return { title: t('kinds.settings'), content: <SettingsPanel /> }
+      case 'help':
+        return { title: t('kinds.help'), content: <HelpPanel /> }
       case 'notifications':
         return { title: t('kinds.notifications'), content: <NotificationCenter /> }
       case 'achievements':

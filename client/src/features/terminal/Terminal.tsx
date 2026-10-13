@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
+import HelpLink from '../../docs/HelpLink'
 import './Terminal.scss'
 import { TerminalOptions, useTerminal } from './useTerminal'
 
@@ -112,6 +113,8 @@ function FileEditor({
       <div style={{ display: 'flex', gap: 15 }}>
         <button onClick={() => onSave(text)}>{t('save')}</button>
         <button onClick={onCancel}>{t('cancel')}</button>
+        <HelpLink slug="examples" />
+        <HelpLink slug="examples" />
       </div>
     </div>
   )

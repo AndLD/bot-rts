@@ -114,7 +114,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   **not translated**. Terminal command responses are translated through message codes.
 - More languages can be added by adding a translation file; a CI check reports missing keys.
 
-## 15.5 Player documentation and in-game help 🔴
+## 15.5 Player documentation and in-game help ✅
 
 - **Public docs:** a `/docs` section (and `/ru/docs`) in the same Next.js app, statically rendered with SEO metadata,
   a sidebar tree and search. Sections: getting started (first base, bot and script), concepts (map and fog of war,

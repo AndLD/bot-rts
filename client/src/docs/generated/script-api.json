@@ -1,0 +1,182 @@
+{
+  "functions": [
+    {
+      "name": "sleep",
+      "signature": "sleep(ms: number): Promise<void>",
+      "modules": [],
+      "args": [{ "name": "ms", "kind": "integer", "isOptional": false }],
+      "ops": 0
+    },
+    { "name": "scan", "signature": "scan(): Promise<Result<any>>", "modules": ["scanner"], "args": [], "ops": 1 },
+    {
+      "name": "view",
+      "signature": "view(since?: number): Promise<Result<any>>",
+      "modules": ["scanner"],
+      "args": [{ "name": "since", "kind": "integer", "isOptional": true }],
+      "ops": 1
+    },
+    {
+      "name": "move",
+      "signature": "move(cells: number): Promise<Result<any>>",
+      "modules": ["engine", "movement"],
+      "args": [{ "name": "cells", "kind": "integer", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "turn",
+      "signature": "turn(direction: 'left' | 'right'): Promise<Result<any>>",
+      "modules": ["engine", "movement"],
+      "args": [{ "name": "direction", "kind": "direction", "isOptional": false }],
+      "ops": 1
+    },
+    { "name": "dig", "signature": "dig(): Promise<Result<any>>", "modules": ["mining"], "args": [], "ops": 1 },
+    {
+      "name": "mine",
+      "signature": "mine(x: number, y: number): Promise<Result<any>>",
+      "modules": ["mining"],
+      "args": [
+        { "name": "x", "kind": "integer", "isOptional": false },
+        { "name": "y", "kind": "integer", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    { "name": "pick", "signature": "pick(): Promise<Result<any>>", "modules": ["manipulator"], "args": [], "ops": 1 },
+    {
+      "name": "take",
+      "signature": "take(itemId?: string): Promise<Result<any>>",
+      "modules": ["manipulator"],
+      "args": [{ "name": "itemId", "kind": "string", "isOptional": true }],
+      "ops": 1
+    },
+    {
+      "name": "drop",
+      "signature": "drop(x?: number, y?: number): Promise<Result<any>>",
+      "modules": ["manipulator"],
+      "args": [
+        { "name": "x", "kind": "integer", "isOptional": true },
+        { "name": "y", "kind": "integer", "isOptional": true }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "aim",
+      "signature": "aim(x: number, y: number): Promise<Result<any>>",
+      "modules": ["weapon"],
+      "args": [
+        { "name": "x", "kind": "integer", "isOptional": false },
+        { "name": "y", "kind": "integer", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "shoot",
+      "signature": "shoot(x: number, y: number): Promise<Result<any>>",
+      "modules": ["weapon"],
+      "args": [
+        { "name": "x", "kind": "integer", "isOptional": false },
+        { "name": "y", "kind": "integer", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    { "name": "reload", "signature": "reload(): Promise<Result<any>>", "modules": ["weapon"], "args": [], "ops": 1 },
+    {
+      "name": "enable",
+      "signature": "enable(moduleId: string): Promise<Result<any>>",
+      "modules": ["scanner", "generator", "battery"],
+      "args": [{ "name": "moduleId", "kind": "string", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "disable",
+      "signature": "disable(moduleId: string): Promise<Result<any>>",
+      "modules": ["scanner", "generator", "battery"],
+      "args": [{ "name": "moduleId", "kind": "string", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "getLocation",
+      "signature": "getLocation(): Promise<Result<any>>",
+      "modules": ["gps"],
+      "args": [],
+      "ops": 1
+    },
+    {
+      "name": "getLinkStatus",
+      "signature": "getLinkStatus(): Promise<Result<any>>",
+      "modules": ["wirelessAdapter"],
+      "args": [],
+      "ops": 1
+    },
+    {
+      "name": "craft",
+      "signature": "craft(module: string, count?: number): Promise<Result<any>>",
+      "modules": ["factory"],
+      "args": [
+        { "name": "module", "kind": "string", "isOptional": false },
+        { "name": "count", "kind": "integer", "isOptional": true }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "assemble",
+      "signature": "assemble(label: string | null, partIds: string[]): Promise<Result<any>>",
+      "modules": ["factory"],
+      "args": [
+        { "name": "label", "kind": "nullableString", "isOptional": false },
+        { "name": "partIds", "kind": "stringList", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "research",
+      "signature": "research(module: string): Promise<Result<any>>",
+      "modules": ["factory"],
+      "args": [{ "name": "module", "kind": "string", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "learn",
+      "signature": "learn(itemId: string): Promise<Result<any>>",
+      "modules": ["factory"],
+      "args": [{ "name": "itemId", "kind": "string", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "repair",
+      "signature": "repair(botId: string, moduleId: string): Promise<Result<any>>",
+      "modules": ["repair"],
+      "args": [
+        { "name": "botId", "kind": "string", "isOptional": false },
+        { "name": "moduleId", "kind": "string", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "disassemble",
+      "signature": "disassemble(botId: string, moduleId: string): Promise<Result<any>>",
+      "modules": ["repair"],
+      "args": [
+        { "name": "botId", "kind": "string", "isOptional": false },
+        { "name": "moduleId", "kind": "string", "isOptional": false }
+      ],
+      "ops": 1
+    },
+    {
+      "name": "read",
+      "signature": "read(path: string): Promise<Result<any>>",
+      "modules": ["drive"],
+      "args": [{ "name": "path", "kind": "string", "isOptional": false }],
+      "ops": 1
+    },
+    {
+      "name": "write",
+      "signature": "write(path: string, content: string): Promise<Result<any>>",
+      "modules": ["drive"],
+      "args": [
+        { "name": "path", "kind": "string", "isOptional": false },
+        { "name": "content", "kind": "string", "isOptional": false }
+      ],
+      "ops": 1
+    }
+  ]
+}

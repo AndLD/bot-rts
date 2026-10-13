@@ -1,0 +1,369 @@
+{
+  "resources": [
+    { "resource": "iron", "spawnWeight": 30, "minAmount": 80, "maxAmount": 200, "hardness": 2 },
+    { "resource": "stone", "spawnWeight": 25, "minAmount": 100, "maxAmount": 250, "hardness": 1 },
+    { "resource": "wood", "spawnWeight": 20, "minAmount": 60, "maxAmount": 160, "hardness": 1 },
+    { "resource": "oil", "spawnWeight": 12, "minAmount": 40, "maxAmount": 120, "hardness": 2 },
+    { "resource": "crystal", "spawnWeight": 9, "minAmount": 20, "maxAmount": 80, "hardness": 3 },
+    { "resource": "gold", "spawnWeight": 4, "minAmount": 10, "maxAmount": 40, "hardness": 3 }
+  ],
+  "modules": [
+    {
+      "name": "engine-class1",
+      "type": "engine",
+      "maxCondition": 100,
+      "weight": 40,
+      "operationCost": 2,
+      "idleCost": 0,
+      "props": { "engineType": "electric", "speed": 50 }
+    },
+    {
+      "name": "wheels-class1",
+      "type": "movement",
+      "maxCondition": 100,
+      "weight": 25,
+      "operationCost": 0,
+      "idleCost": 0,
+      "props": { "loadCapacity": 400 }
+    },
+    {
+      "name": "drill-class1",
+      "type": "mining",
+      "maxCondition": 100,
+      "weight": 35,
+      "operationCost": 3,
+      "idleCost": 0,
+      "props": { "materialPerOperation": 5, "strength": 2 }
+    },
+    {
+      "name": "manipulator-class1",
+      "type": "manipulator",
+      "maxCondition": 100,
+      "weight": 20,
+      "operationCost": 1,
+      "idleCost": 0,
+      "props": { "loadCapacity": 50 }
+    },
+    {
+      "name": "repair-class1",
+      "type": "repair",
+      "maxCondition": 100,
+      "weight": 25,
+      "operationCost": 5,
+      "idleCost": 0,
+      "props": { "repairPerOp": 25, "delay": 1000 }
+    },
+    {
+      "name": "gps-class1",
+      "type": "gps",
+      "maxCondition": 100,
+      "weight": 2,
+      "operationCost": 0.1,
+      "idleCost": 0.01,
+      "props": {}
+    },
+    {
+      "name": "gun-class1",
+      "type": "weapon",
+      "maxCondition": 100,
+      "weight": 30,
+      "operationCost": 5,
+      "idleCost": 0.05,
+      "props": { "distance": 5, "damage": 50, "accuracy": 0.5, "cooldown": 2000, "caliber": 25, "magazine": 10 }
+    },
+    {
+      "name": "scanner-class1",
+      "type": "scanner",
+      "maxCondition": 100,
+      "weight": 30,
+      "operationCost": 1,
+      "idleCost": 0.05,
+      "props": { "distance": 1, "delay": 250 }
+    },
+    {
+      "name": "gun-class2",
+      "type": "weapon",
+      "maxCondition": 100,
+      "weight": 40,
+      "operationCost": 6,
+      "idleCost": 0.05,
+      "props": { "distance": 8, "damage": 80, "accuracy": 0.7, "cooldown": 1500, "caliber": 25, "magazine": 15 }
+    },
+    {
+      "name": "scanner-class2",
+      "type": "scanner",
+      "maxCondition": 100,
+      "weight": 35,
+      "operationCost": 1,
+      "idleCost": 0.08,
+      "props": { "distance": 3, "delay": 250 }
+    },
+    {
+      "name": "drill-class2",
+      "type": "mining",
+      "maxCondition": 100,
+      "weight": 45,
+      "operationCost": 4,
+      "idleCost": 0,
+      "props": { "materialPerOperation": 10, "strength": 3 }
+    },
+    {
+      "name": "battery-class2",
+      "type": "battery",
+      "maxCondition": 100,
+      "weight": 70,
+      "operationCost": 0,
+      "idleCost": 0,
+      "props": { "voltage": 24, "capacity": 8000 }
+    },
+    {
+      "name": "factory-class1",
+      "type": "factory",
+      "maxCondition": 100,
+      "weight": 30,
+      "operationCost": 40,
+      "idleCost": 0.05,
+      "props": { "queueSize": 10 }
+    },
+    {
+      "name": "armor-class1",
+      "type": "armor",
+      "maxCondition": 100,
+      "weight": 45,
+      "operationCost": 0,
+      "idleCost": 0,
+      "props": { "protection": 10 }
+    },
+    {
+      "name": "battery-class1",
+      "type": "battery",
+      "maxCondition": 100,
+      "weight": 50,
+      "operationCost": 0,
+      "idleCost": 0,
+      "props": { "voltage": 12, "capacity": 3000 }
+    },
+    {
+      "name": "generator-class1",
+      "type": "generator",
+      "maxCondition": 100,
+      "weight": 50,
+      "operationCost": 1,
+      "idleCost": 0,
+      "props": { "delay": 250, "energyPerCycle": 12, "fuelPerCycle": 0.02 }
+    },
+    {
+      "name": "storage-class1",
+      "type": "storage",
+      "maxCondition": 100,
+      "weight": 50,
+      "operationCost": 1,
+      "idleCost": 0,
+      "props": { "capacity": 200 }
+    },
+    {
+      "name": "processor-class1",
+      "type": "processor",
+      "maxCondition": 100,
+      "weight": 10,
+      "operationCost": 1,
+      "idleCost": 0.05,
+      "props": { "delay": 250, "opsPerTick": 2, "parallelExecutions": 1 }
+    },
+    {
+      "name": "memory-class1",
+      "type": "drive",
+      "maxCondition": 100,
+      "weight": 5,
+      "operationCost": 0.1,
+      "idleCost": 0.01,
+      "props": { "quota": 65536, "readDelay": 50, "writeDelay": 100 }
+    },
+    {
+      "name": "wireless-adapter-class1",
+      "type": "wirelessAdapter",
+      "maxCondition": 100,
+      "weight": 5,
+      "operationCost": 0.1,
+      "idleCost": 0.05,
+      "props": { "range": 20 }
+    }
+  ],
+  "recipes": [
+    {
+      "module": "scanner-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 20 },
+        { "resource": "crystal", "amount": 5 }
+      ],
+      "craftTimeMs": 10000
+    },
+    {
+      "module": "gun-class1",
+      "classLevel": 1,
+      "resources": [{ "resource": "iron", "amount": 50 }],
+      "craftTimeMs": 20000
+    },
+    {
+      "module": "engine-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 30 },
+        { "resource": "oil", "amount": 10 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "wheels-class1",
+      "classLevel": 1,
+      "resources": [{ "resource": "iron", "amount": 25 }],
+      "craftTimeMs": 10000
+    },
+    {
+      "module": "drill-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 40 },
+        { "resource": "crystal", "amount": 10 }
+      ],
+      "craftTimeMs": 20000
+    },
+    {
+      "module": "battery-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 20 },
+        { "resource": "crystal", "amount": 15 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "storage-class1",
+      "classLevel": 1,
+      "resources": [{ "resource": "iron", "amount": 30 }],
+      "craftTimeMs": 10000
+    },
+    {
+      "module": "memory-class1",
+      "classLevel": 1,
+      "resources": [{ "resource": "crystal", "amount": 10 }],
+      "craftTimeMs": 10000
+    },
+    {
+      "module": "processor-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "crystal", "amount": 25 },
+        { "resource": "gold", "amount": 10 }
+      ],
+      "craftTimeMs": 25000
+    },
+    {
+      "module": "wireless-adapter-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "crystal", "amount": 15 },
+        { "resource": "gold", "amount": 20 }
+      ],
+      "craftTimeMs": 20000
+    },
+    {
+      "module": "armor-class1",
+      "classLevel": 1,
+      "resources": [{ "resource": "iron", "amount": 35 }],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "generator-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 30 },
+        { "resource": "crystal", "amount": 5 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "manipulator-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 25 },
+        { "resource": "crystal", "amount": 5 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "gps-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "crystal", "amount": 10 },
+        { "resource": "gold", "amount": 5 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "repair-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 30 },
+        { "resource": "crystal", "amount": 5 }
+      ],
+      "craftTimeMs": 15000
+    },
+    {
+      "module": "factory-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 60 },
+        { "resource": "crystal", "amount": 20 }
+      ],
+      "craftTimeMs": 30000
+    },
+    {
+      "module": "scanner-class2",
+      "classLevel": 2,
+      "resources": [
+        { "resource": "iron", "amount": 40 },
+        { "resource": "crystal", "amount": 15 }
+      ],
+      "craftTimeMs": 20000
+    },
+    {
+      "module": "gun-class2",
+      "classLevel": 2,
+      "resources": [
+        { "resource": "iron", "amount": 100 },
+        { "resource": "crystal", "amount": 10 }
+      ],
+      "craftTimeMs": 40000
+    },
+    {
+      "module": "drill-class2",
+      "classLevel": 2,
+      "resources": [
+        { "resource": "iron", "amount": 80 },
+        { "resource": "crystal", "amount": 30 }
+      ],
+      "craftTimeMs": 40000
+    },
+    {
+      "module": "battery-class2",
+      "classLevel": 2,
+      "resources": [
+        { "resource": "iron", "amount": 40 },
+        { "resource": "crystal", "amount": 40 }
+      ],
+      "craftTimeMs": 30000
+    }
+  ],
+  "balance": {
+    "researchCostFactor": 5,
+    "researchTimeFactor": 10,
+    "worldBlueprintChance": 0.01,
+    "lootBlueprintChance": 0.1,
+    "repairThreshold": 0.2,
+    "repairCostFactor": 0.5,
+    "scrapMinShare": 0.3,
+    "scrapMaxShare": 0.5
+  }
+}

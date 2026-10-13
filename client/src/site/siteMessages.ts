@@ -5,7 +5,7 @@ import { Locale, Messages, withFallback } from '../shared/i18n/locales'
 const CATALOGUES: Record<Locale, Messages> = { en, ru: withFallback(en, ru) }
 
 // The public pages are rendered at build time, so the browser gets only the texts they use
-const PUBLIC_NAMESPACES = ['common', 'site', 'marketing', 'privacy', 'docs'] as const
+const PUBLIC_NAMESPACES = ['common', 'site', 'marketing', 'privacy', 'docs', 'modules', 'map', 'terminal'] as const
 
 export function siteMessages(locale: Locale): Messages {
   const all = CATALOGUES[locale]

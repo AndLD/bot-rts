@@ -5,6 +5,7 @@ import { ErrorCode } from '@lib/utils/error-codes'
 import { ResultCode } from '@lib/utils/result'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useState } from 'react'
+import { HELP_TOPICS, helpSlugOf } from '../../docs/help'
 import { useLogout } from '../auth/hooks'
 import { useErrorMessage } from '../../shared/errors'
 import { useSocket } from '../../shared/socket/socket-context'
@@ -31,10 +32,12 @@ export interface TerminalOptions {
   onConnected?: (connection: TerminalConnection) => void
   // `exit` was typed in a connected terminal: its window goes away
   onExit?: () => void
+  // `help <topic>` names a page of the documentation: the game shows it in the Help window (design §15.5)
+  onHelp?: (slug: string) => void
 }
 
 // The state of the terminal and the effects of the commands; the interpreter decides, this hook performs
-export function useTerminal({ connection, onConnected, onExit }: TerminalOptions) {
+export function useTerminal({ connection, onConnected, onExit, onHelp }: TerminalOptions) {
   const t = useTranslations('terminal')
   const errorMessage = useErrorMessage()
   const socket = useSocket()
@@ -216,6 +219,18 @@ export function useTerminal({ connection, onConnected, onExit }: TerminalOptions
         case 'exit-shell':
           setIsShellMode(false)
           return setLines([])
+        case 'help': {
+          const slug = helpSlugOf(action.topic)
+
+          if (!slug) {
+            return print(
+              echo,
+              escapeHtml(t('helpUnknown', { topic: action.topic, topics: Object.keys(HELP_TOPICS).join(', ') }))
+            )
+          }
+          onHelp?.(slug)
+          return print(echo, escapeHtml(t('helpOpened', { topic: action.topic })))
+        }
         case 'send':
           if (!socket || !sessionId) {
             return print(echo, escapeHtml(t('notConnected')))
@@ -232,7 +247,7 @@ export function useTerminal({ connection, onConnected, onExit }: TerminalOptions
           )
       }
     },
-    [socket, sessionId, isShellMode, isLinkUp, prefix, print, show, failure, t, onExit]
+    [socket, sessionId, isShellMode, isLinkUp, prefix, print, show, failure, t, onExit, onHelp]
   )
 
   const saveEditor = useCallback(

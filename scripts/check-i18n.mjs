@@ -103,6 +103,21 @@ for (const code of errorCodes) {
   }
 }
 
+// The namespaces that must be translated in every language (the public pages, the documentation and the engagement features): a
+// missing key there fails the check. The other namespaces fall back to English until they are translated (task 7.8 adds them).
+const TRANSLATED_NAMESPACES = ['docs', 'marketing', 'privacy', 'site', 'achievements', 'notifications']
+
+for (const [language, keys] of Object.entries(catalogues)) {
+  if (language === 'en') {
+    continue
+  }
+  for (const key of english) {
+    if (TRANSLATED_NAMESPACES.includes(key.split('.')[0]) && !keys.has(key)) {
+      errors.push(`messages/${language}.json: the key "${key}" is not translated`)
+    }
+  }
+}
+
 if (errors.length) {
   console.error(errors.join('\n'))
   process.exit(1)

@@ -31,6 +31,7 @@ jest.mock('../control/ControlPanel', () => ({
     </div>
   )
 }))
+jest.mock('../help/HelpPanel', () => ({ __esModule: true, default: () => <div>the help</div> }))
 jest.mock('../notifications/NotificationCenter', () => ({
   __esModule: true,
   default: () => <div>the notification center</div>
@@ -52,14 +53,17 @@ jest.mock('../terminal/Terminal', () => ({
   default: ({
     connection,
     onConnected,
-    onExit
+    onExit,
+    onHelp
   }: {
     connection?: { botId: string }
     onConnected?: (c: { botId: string; sessionId: string }) => void
     onExit?: () => void
+    onHelp?: (slug: string) => void
   }) => (
     <div>
       {connection ? `the terminal of ${connection.botId}` : 'the terminal'}
+      <button onClick={() => onHelp?.('api')}>ask for help</button>
       <button onClick={() => onConnected?.({ botId: 'bot-2-long-id', sessionId: 's2' })}>connect</button>
       <button onClick={onExit}>leave</button>
     </div>
@@ -130,6 +134,24 @@ describe('GameScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Notifications' }))
 
     expect(screen.getByText('the notification center')).toBeInTheDocument()
+  })
+
+  it('opens the Help window from the toolbar', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Help' }))
+
+    expect(screen.getByText('the help')).toBeInTheDocument()
+  })
+
+  it('opens the Help window at the page of a topic the terminal names', () => {
+    const store = setupStore()
+    renderApp(<GameScreen baseId="b1" />, { store })
+
+    fireEvent.click(screen.getByRole('button', { name: 'ask for help' }))
+
+    expect(store.getState().help.slug).toBe('api')
+    expect(store.getState().windows.windows.some((window) => window.kind === 'help')).toBe(true)
   })
 
   it('opens the factory of the base from the toolbar', () => {

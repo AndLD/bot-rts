@@ -98,7 +98,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 - **Privacy policy:** a public `/privacy` page (English and Russian) linked from the landing footer and the sign-up form.
   It states what is collected (account email, game data, terminal logs, cookies and tokens), why, for how long, who
   receives it and the user's rights (account deletion, §5.1). Sign-up requires accepting it; the accepted version and
-  time are stored with the user. 🔴
+  time are stored with the user. ✅
 - **Authentication page:** the login / sign-up forms are shown over the animated ambient scene, redesigned to match the
   landing page. The scene pauses when the tab is hidden and honours the reduced-motion setting.
 

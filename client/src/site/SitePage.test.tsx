@@ -12,7 +12,10 @@ describe('SitePage', () => {
     expect(screen.getByText('content')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Войти' })).toHaveAttribute('href', '/auth')
     expect(screen.getByRole('link', { name: 'Регистрация' })).toHaveAttribute('href', '/auth?mode=signup')
-    expect(screen.getByRole('link', { name: 'Политика конфиденциальности' })).toHaveAttribute('href', '/ru/privacy')
+    expect(screen.getAllByRole('link', { name: 'Политика конфиденциальности' })[0]).toHaveAttribute(
+      'href',
+      '/ru/privacy'
+    )
   })
 
   it('links the same page in the other language and marks the current one', () => {

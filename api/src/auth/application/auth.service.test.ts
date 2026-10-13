@@ -1,9 +1,15 @@
+import { PRIVACY_POLICY_VERSION } from '../../../../lib/utils/privacy'
 import { createAuthWorld } from '../../../tests/fakes/auth'
 import { UnauthorizedError } from '../../shared/domain/errors'
 import { EmailNotVerifiedError, UserBannedError } from '../../users/domain/user.errors'
 import { AccessTokenExpiredError } from '../domain/auth.errors'
 
-const input = { name: 'Alice', email: 'alice@example.com', password: 'Passw0rd!x' }
+const input = {
+  name: 'Alice',
+  email: 'alice@example.com',
+  password: 'Passw0rd!x',
+  acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+}
 
 async function setup() {
   const world = createAuthWorld()

@@ -1,3 +1,4 @@
+import { PRIVACY_POLICY_VERSION } from '../../lib/utils/privacy'
 import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
@@ -27,7 +28,12 @@ describe('account flows', () => {
   it('registers, is held back until the email is verified, then logs in, refreshes and logs out', async () => {
     const registered = await api()
       .post('/api/v1/auth/register')
-      .send({ name: 'Alice', email: 'alice@example.com', password: PASSWORD })
+      .send({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: PASSWORD,
+        acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+      })
       .expect(201)
     const cookie = registered.headers['set-cookie'] as unknown as string[]
 
@@ -73,7 +79,12 @@ describe('account flows', () => {
   })
 
   it('validates input and rejects a duplicate email', async () => {
-    const body = { name: 'Alice', email: 'alice@example.com', password: PASSWORD }
+    const body = {
+      name: 'Alice',
+      email: 'alice@example.com',
+      password: PASSWORD,
+      acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+    }
     await api().post('/api/v1/auth/register').send(body).expect(201)
 
     expect((await api().post('/api/v1/auth/register').send(body).expect(400)).body.code).toBe('EMAIL_ALREADY_EXISTS')
@@ -94,6 +105,30 @@ describe('account flows', () => {
       .send({ ...body, status: 'owner' })
       .expect(400)
     await api().post('/api/v1/auth/login').send({ email: 'alice@example.com' }).expect(400)
+  })
+
+  it('needs the current privacy policy accepted, and keeps what was accepted and when', async () => {
+    const body = { name: 'Alice', email: 'alice@example.com', password: PASSWORD }
+
+    await api().post('/api/v1/auth/register').send(body).expect(400)
+    expect(
+      (
+        await api()
+          .post('/api/v1/auth/register')
+          .send({ ...body, acceptedPrivacyVersion: '1999-01-01' })
+          .expect(400)
+      ).body.code
+    ).toBe('PRIVACY_NOT_ACCEPTED')
+    expect(await database.client.user.count()).toBe(0)
+
+    await api()
+      .post('/api/v1/auth/register')
+      .send({ ...body, acceptedPrivacyVersion: PRIVACY_POLICY_VERSION })
+      .expect(201)
+    const user = await database.client.user.findUniqueOrThrow({ where: { email: 'alice@example.com' } })
+
+    expect(user.privacyAcceptedVersion).toBe(PRIVACY_POLICY_VERSION)
+    expect(user.privacyAcceptedAt).toBeInstanceOf(Date)
   })
 
   it('answers wrong credentials the same for unknown and known emails', async () => {
@@ -203,7 +238,12 @@ describe('account flows', () => {
   it('resends the verification link', async () => {
     await api()
       .post('/api/v1/auth/register')
-      .send({ name: 'Alice', email: 'alice@example.com', password: PASSWORD })
+      .send({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: PASSWORD,
+        acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+      })
       .expect(201)
     const first = testApp.emails.tokenFor('alice@example.com')
 
@@ -373,7 +413,12 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
 
     const registered = await api()
       .post('/api/v1/auth/register')
-      .send({ name: 'Alice', email: 'alice@example.com', password: PASSWORD })
+      .send({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: PASSWORD,
+        acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+      })
       .expect(201)
     await api()
       .post('/api/v1/bots/base')

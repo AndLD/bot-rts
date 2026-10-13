@@ -2227,6 +2227,7 @@
               "CREDENTIALS_INVALID",
               "EMAIL_ALREADY_EXISTS",
               "EMAIL_NOT_VERIFIED",
+              "PRIVACY_NOT_ACCEPTED",
               "USER_BANNED",
               "INVALID_TOKEN",
               "TOKEN_EXPIRED",
@@ -2481,12 +2482,18 @@
           },
           "password": {
             "type": "string"
+          },
+          "acceptedPrivacyVersion": {
+            "type": "string",
+            "description": "The version of the privacy policy the player accepted",
+            "example": "2026-10-13"
           }
         },
         "required": [
           "name",
           "email",
-          "password"
+          "password",
+          "acceptedPrivacyVersion"
         ]
       },
       "AuthTokenResponse": {

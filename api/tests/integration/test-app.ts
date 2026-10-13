@@ -1,3 +1,4 @@
+import { PRIVACY_POLICY_VERSION } from '../../../lib/utils/privacy'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { Test } from '@nestjs/testing'
 import { AddressInfo } from 'net'
@@ -81,7 +82,10 @@ export async function signUpVerified(
   email: string,
   name = 'Alice'
 ): Promise<SignedUp> {
-  await request(testApp.url).post('/api/v1/auth/register').send({ name, email, password: PASSWORD }).expect(201)
+  await request(testApp.url)
+    .post('/api/v1/auth/register')
+    .send({ name, email, password: PASSWORD, acceptedPrivacyVersion: PRIVACY_POLICY_VERSION })
+    .expect(201)
   await request(testApp.url)
     .post('/api/v1/auth/email/verify')
     .send({ token: testApp.emails.tokenFor(email) })

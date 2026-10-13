@@ -11,6 +11,10 @@ export function useAuthRules() {
     name: { pattern: NAME_PATTERN, message: t('nameInvalid') } satisfies Rule,
     emailRequired: { required: true, message: t('emailRequired') } satisfies Rule,
     email: { type: 'email', message: t('emailInvalid') } satisfies Rule,
+    privacyRequired: {
+      validator: (_rule: unknown, value: unknown) =>
+        value === true ? Promise.resolve() : Promise.reject(new Error(t('privacyRequired')))
+    } satisfies Rule,
     passwordRequired: { required: true, message: t('passwordRequired') } satisfies Rule,
     password: {
       pattern: PASSWORD_PATTERN,

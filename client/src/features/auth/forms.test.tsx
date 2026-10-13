@@ -1,3 +1,4 @@
+import { PRIVACY_POLICY_VERSION } from '@lib/utils/privacy'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { notification } from 'antd'
 import userEvent from '@testing-library/user-event'
@@ -70,6 +71,7 @@ describe('SignupForm', () => {
     await types('Name', 'Jon')
     await types('Email', 'a@b.co')
     await types('Password', 'Pa$$w0rd')
+    await userEvent.click(screen.getByRole('checkbox'))
     await userEvent.click(screen.getByRole('button', { name: 'Sign up' }))
   }
 
@@ -80,7 +82,31 @@ describe('SignupForm', () => {
     await fill()
 
     await waitFor(() => expect(push).toHaveBeenCalledWith('/forbidden'))
-    expect(auth.signUp).toHaveBeenCalledWith({ name: 'Jon', email: 'a@b.co', password: 'Pa$$w0rd' })
+    expect(auth.signUp).toHaveBeenCalledWith({
+      name: 'Jon',
+      email: 'a@b.co',
+      password: 'Pa$$w0rd',
+      acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+    })
+  })
+
+  it('links the privacy policy in the language of the player', () => {
+    renderApp(<SignupForm />)
+
+    expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy')
+  })
+
+  it('does not sign up before the privacy policy is accepted', async () => {
+    const auth = createFakeAuth()
+    renderApp(<SignupForm />, { auth })
+
+    await types('Name', 'Jon')
+    await types('Email', 'a@b.co')
+    await types('Password', 'Pa$$w0rd')
+    await userEvent.click(screen.getByRole('button', { name: 'Sign up' }))
+
+    expect(await screen.findByText('Please accept the privacy policy to sign up')).toBeInTheDocument()
+    expect(auth.signUp).not.toHaveBeenCalled()
   })
 
   it('rejects a weak password before asking the server', async () => {

@@ -1,3 +1,4 @@
+import { PRIVACY_POLICY_VERSION } from '../../../lib/utils/privacy'
 export const PASSWORD = 'Pa$$w0rd1'
 
 let counter = 0
@@ -51,7 +52,7 @@ Cypress.Commands.add('register', (email, name = 'Jon') =>
       method: 'POST',
       url: `${Cypress.expose('apiUrl')}/api/v1/auth/register`,
       headers: { 'x-forwarded-for': clientAddress },
-      body: { name, email, password: PASSWORD }
+      body: { name, email, password: PASSWORD, acceptedPrivacyVersion: PRIVACY_POLICY_VERSION }
     })
     .its('body.accessToken')
 )

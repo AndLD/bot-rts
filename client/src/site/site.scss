@@ -120,6 +120,35 @@ a.site-button-primary {
   }
 }
 
+.site-article {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px $gutter 56px;
+
+  h1 {
+    font-size: clamp(30px, 5vw, 44px);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: 26px;
+    margin: 32px 0 8px;
+  }
+
+  p,
+  li {
+    margin-bottom: 8px;
+  }
+
+  ul {
+    padding-left: 24px;
+  }
+}
+
+.site-muted {
+  color: $muted;
+}
+
 .landing-hero {
   position: relative;
   display: flex;

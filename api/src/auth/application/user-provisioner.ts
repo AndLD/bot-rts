@@ -36,6 +36,8 @@ export class UserProvisioner {
       subscription: 'free',
       createdAt: now,
       updatedAt: null,
+      privacyAcceptedVersion: null,
+      privacyAcceptedAt: null,
       deletedAt: null
     }
     await this.users.add(user)

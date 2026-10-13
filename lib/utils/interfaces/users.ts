@@ -28,6 +28,8 @@ export interface IUserPostBody {
   name: string
   email: string
   password: string
+  // The version of the privacy policy the player accepted (lib/utils/privacy.ts)
+  acceptedPrivacyVersion: string
 }
 
 export const USER_STATUSES = ['admin', 'owner', 'user', 'unlimited', 'banned'] as const

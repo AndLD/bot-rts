@@ -17,6 +17,7 @@ export interface Credentials {
 
 export interface Registration extends Credentials {
   name: string
+  acceptedPrivacyVersion: string
 }
 
 export interface AuthClient {

@@ -15,6 +15,7 @@ describe('account management', () => {
 
     cy.visit('/auth')
     cy.contains('Forgot your password?').click()
+    cy.location('pathname').should('eq', '/forgot-password')
     cy.get('input[type=email]').type(email)
     cy.contains('button', 'Send the link').click()
     cy.contains('If this address is registered, we have sent a link to it.')

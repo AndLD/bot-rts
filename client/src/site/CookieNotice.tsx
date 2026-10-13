@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 import type { Locale } from '../shared/i18n/locales'
 import { localePath } from './config'
+import './CookieNotice.scss'
 
 export const COOKIE_NOTICE_KEY = 'cookie-notice-seen'
 

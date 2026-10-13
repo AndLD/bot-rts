@@ -149,42 +149,6 @@ a.site-button-primary {
   color: $muted;
 }
 
-.cookie-notice {
-  position: fixed;
-  left: $gutter;
-  right: $gutter;
-  bottom: $gutter;
-  z-index: 100;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 12px 16px;
-  background: $panel;
-  border: 1px solid $line;
-  border-radius: 8px;
-  color: $text;
-  font-size: 16px;
-
-  p {
-    flex: 1 1 320px;
-  }
-
-  a {
-    color: $accent;
-  }
-
-  .site-button {
-    background: none;
-    color: $accent;
-    cursor: pointer;
-    font-size: 16px;
-  }
-}
-
 .landing-hero {
   position: relative;
   display: flex;

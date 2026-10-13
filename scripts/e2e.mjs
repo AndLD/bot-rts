@@ -19,8 +19,10 @@ const isOpen = args.includes('--open')
 const shouldBuild = !args.includes('--skip-build')
 const cypressArgs = args.includes('--') ? args.slice(args.indexOf('--') + 1) : []
 
-const API_PORT = 8080
-const CLIENT_PORT = 5173
+// The ports and the build folder can be changed, so that a run does not collide with a development server
+const API_PORT = Number(process.env.E2E_API_PORT ?? 8080)
+const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 5173)
+const DIST_DIR = '.next-e2e'
 const children = []
 
 function run(command, commandArgs, options) {
@@ -98,7 +100,9 @@ try {
   const apiUrl = `http://localhost:${API_PORT}`
 
   if (shouldBuild) {
-    run('npm', ['run', 'build', '-w', 'client'], { env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl } })
+    run('npm', ['run', 'build', '-w', 'client'], {
+      env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl, NEXT_DIST_DIR: DIST_DIR }
+    })
   }
 
   // The API trusts X-Forwarded-For so that a test can use an address of its own against the rate limit
@@ -126,7 +130,10 @@ try {
     }
   }
   start('api', apiLaunch.command, apiLaunch.args, { cwd: apiLaunch.cwd, env: { ...process.env, ...apiLaunch.env } })
-  start('client', 'npm', ['run', 'start', '-w', 'client'], { env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl } })
+  start('client', 'npx', ['next', 'start', '--port', String(CLIENT_PORT)], {
+    cwd: resolve(root, 'client'),
+    env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl, NEXT_DIST_DIR: DIST_DIR }
+  })
 
   await waitFor(`${apiUrl}/api/v1/health`, 'The API')
   await waitFor(`http://localhost:${CLIENT_PORT}/`, 'The client')

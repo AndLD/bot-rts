@@ -46,6 +46,15 @@ describe('AchievementsPanel', () => {
     expect(screen.getByText('0 / 1')).toBeInTheDocument()
   })
 
+  it('writes the level as a number past the roman numerals', async () => {
+    query.mockResolvedValue({
+      data: [{ ...list[1], id: 'prospector.11', level: 11, levels: 12, progress: 0 }]
+    } as never)
+    renderApp(<AchievementsPanel />, opts())
+
+    expect(await screen.findByText('Prospector 11')).toBeInTheDocument()
+  })
+
   it('says it is loading, and when it could not load', async () => {
     query.mockImplementation(() => new Promise(() => undefined) as never)
     const { unmount } = renderApp(<AchievementsPanel />, opts())

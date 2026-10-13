@@ -131,6 +131,12 @@ export class BatteryModule extends GameModule {
     return this.flag('isLowReported', false)
   }
 
+  // Whether the bot ran out of energy and has not grown the stored energy back to the resume threshold since; it stays set
+  // until it has (design §12.5), so a bot at the edge does not flap between working and out of energy
+  get isUnpowered(): boolean {
+    return this.flag('isUnpowered', false)
+  }
+
   // The energy after taking `amount` out; an empty battery refuses and keeps its charge (design §12.5)
   discharge(amount: number): Result<number> {
     const working = this.ensureWorking()

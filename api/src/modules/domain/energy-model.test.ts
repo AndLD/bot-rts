@@ -257,6 +257,113 @@ describe('EnergyModel', () => {
     })
   })
 
+  describe('powering on again (hysteresis)', () => {
+    const after = (records: Module[], changed: Module[]) =>
+      records.map((record) => changed.find((candidate) => candidate.id === record.id) ?? record)
+    const setStored = (records: Module[], value: number) =>
+      records.map((record) => (record.type === 'battery' ? { ...record, props: { ...record.props, value } } : record))
+    const edge = () =>
+      bot({ 'battery-class1': { capacity: 100, value: 20 }, 'generator-class1': { isEnabled: false } }, [
+        'battery-class1',
+        'generator-class1',
+        'processor-class1'
+      ])
+
+    it('lets a bot with 20 energy work all the way down to 0', () => {
+      let records = edge()
+
+      const first = model.spend(records, 12)
+      records = first.ok ? after(records, first.data) : records
+      const second = model.spend(records, 8)
+
+      expect(first.ok).toBe(true)
+      expect(second.ok && model.stored(after(records, second.data))).toBe(0)
+    })
+
+    it('stays unpowered after reaching 0 until the stored energy grows to the resume threshold', () => {
+      let records = setStored(edge(), 0)
+      records = after(records, model.tick(records, 100).modules)
+      expect(find(records, 'battery', BatteryModule).isUnpowered).toBe(true)
+      expect(model.isDepleted(records)).toBe(true)
+
+      // 5 units arrive: still dark, nothing can be paid, nothing is available
+      records = setStored(records, 5)
+      records = after(records, model.tick(records, 200).modules)
+      expect(model.isDepleted(records)).toBe(true)
+      expect(model.available(records)).toBe(0)
+      expect(model.spend(records, 1)).toMatchObject({ ok: false, code: 'NO_ENERGY' })
+      expect(model.stored(records)).toBe(5)
+
+      // 10 units: back on
+      records = setStored(records, 10)
+      records = after(records, model.tick(records, 300).modules)
+      expect(find(records, 'battery', BatteryModule).isUnpowered).toBe(false)
+      expect(model.isDepleted(records)).toBe(false)
+      expect(model.spend(records, 1).ok).toBe(true)
+    })
+
+    it('catches a battery that was emptied by an operation even when a generator refills it within the same tick', () => {
+      let records = bot({ 'battery-class1': { capacity: 100, value: 0 }, 'generator-class1': { lastCycleAt: 0 } }, [
+        'battery-class1',
+        'generator-class1',
+        'storage-class1'
+      ])
+
+      records = after(records, model.tick(records, 1000).modules)
+
+      // 4 cycles of 12 energy have refilled the battery, but it ran dry first: it powers on at 10, here 48 is above that
+      expect(model.stored(records)).toBe(48)
+      expect(model.isDepleted(records)).toBe(false)
+    })
+
+    it('does not drain the idle cost of a dark bot, so it can recover', () => {
+      let records = setStored(edge(), 0)
+      records = after(records, model.tick(records, 100).modules)
+      records = setStored(records, 6)
+
+      const { modules } = model.tick(records, 200)
+
+      expect(model.stored(after(records, modules))).toBe(6)
+    })
+
+    it('does not flap: a bot hovering around the threshold changes state once per recovery', () => {
+      let records = setStored(edge(), 0)
+      let changes = 0
+      let wasDepleted = true
+      records = after(records, model.tick(records, 0).modules)
+      for (let tick = 1; tick <= 200; tick++) {
+        // the sun gives 0.3 a tick, the idle drain (0.05) is paid once powered
+        const battery = find(records, 'battery', BatteryModule)
+        records = setStored(records, Math.min(battery.value + 0.3, 100))
+        records = after(records, model.tick(records, tick * 100).modules)
+        const isDepleted = model.isDepleted(records)
+        changes += isDepleted !== wasDepleted ? 1 : 0
+        wasDepleted = isDepleted
+      }
+
+      expect(changes).toBe(1)
+    })
+
+    it('remembers the state in the battery record, which is what survives a restart', () => {
+      let records = setStored(edge(), 0)
+      records = after(records, model.tick(records, 100).modules)
+
+      const reloaded = JSON.parse(JSON.stringify(records)) as Module[]
+
+      expect(model.isDepleted(setStored(reloaded, 4))).toBe(true)
+    })
+
+    it('uses the capacity as the threshold of a battery smaller than it', () => {
+      let records = bot({ 'battery-class1': { capacity: 5, value: 0 } }, ['battery-class1', 'processor-class1'])
+      records = after(records, model.tick(records, 100).modules)
+      records = setStored(records, 5)
+
+      records = after(records, model.tick(records, 200).modules)
+
+      expect(model.isDepleted(records)).toBe(false)
+    })
+  })
+
   it('burns the oil of several storages in turn and ignores the oil of a broken one', () => {
     const [battery, generator, storage] = bot({
       'battery-class1': { capacity: 100, value: 0 },
@@ -348,7 +455,9 @@ describe('EnergyModel', () => {
     })
 
     expect(model.tick(records, 0).events).toEqual([{ type: ENERGY_EVENT.LOW }])
-    expect(new EnergyModel(registry, { lowThreshold: 0.05 }).tick(records, 0).events).toEqual([])
+    expect(
+      new EnergyModel(registry, { ...DEFAULT_ENERGY_BALANCE, lowThreshold: 0.05 }).tick(records, 0).events
+    ).toEqual([])
     expect(DEFAULT_ENERGY_BALANCE.lowThreshold).toBe(0.1)
   })
 

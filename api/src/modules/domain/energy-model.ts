@@ -25,9 +25,11 @@ export interface EnergyEvent {
 export interface EnergyBalance {
   // Share of the capacity under which the bot is told its energy is low
   lowThreshold: number
+  // The stored energy an unpowered bot needs before it powers on again (design §12.5)
+  resumeThreshold: number
 }
 
-export const DEFAULT_ENERGY_BALANCE: EnergyBalance = { lowThreshold: 0.1 }
+export const DEFAULT_ENERGY_BALANCE: EnergyBalance = { lowThreshold: 0.1, resumeThreshold: 10 }
 
 // The records of a bot after something happened to its energy
 export interface EnergyChange {
@@ -56,14 +58,20 @@ export class EnergyModel {
     return this.batteries(records).reduce((sum, battery) => sum + battery.capacity, 0)
   }
 
-  // A bot with an empty battery performs no operations until energy returns
+  // A bot whose battery reached zero is unpowered: it performs no operations and holds no radio link until the stored energy
+  // has grown to the resume threshold
   isDepleted(records: readonly Module[]): boolean {
-    return this.stored(records) <= 0
+    return this.stored(records) <= 0 || this.batteries(records).some((battery) => battery.isUnpowered)
+  }
+
+  // The energy a bot can use now: nothing while it is unpowered
+  available(records: readonly Module[]): number {
+    return this.isDepleted(records) ? 0 : this.stored(records)
   }
 
   // Pays for an operation: the changed records, or NO_ENERGY with the batteries untouched
   spend(records: readonly Module[], amount: number): Result<Module[]> {
-    if (amount > this.stored(records)) {
+    if (amount > this.available(records)) {
       return fail(ResultCode.NO_ENERGY, 'Not enough energy')
     }
     return ok(this.withdraw(records, amount))
@@ -75,9 +83,13 @@ export class EnergyModel {
     const events: EnergyEvent[] = []
     let current = [...records]
 
-    const idle = this.instances(current)
-      .filter((module) => module.isWorking)
-      .reduce((sum, module) => sum + module.record.idleCost, 0)
+    // An unpowered bot is dark: its modules drain nothing until it powers on again
+    const hasReachedZero = this.isDepleted(current)
+    const idle = hasReachedZero
+      ? 0
+      : this.instances(current)
+          .filter((module) => module.isWorking)
+          .reduce((sum, module) => sum + module.record.idleCost, 0)
     current = this.withdraw(current, Math.min(idle * ticks, this.stored(current)))
 
     for (const source of this.powerSources(current)) {
@@ -96,7 +108,29 @@ export class EnergyModel {
       }
     }
 
+    current = this.updatePower(current, hasReachedZero)
     return { modules: this.reportLow(current, events).filter((record) => !records.includes(record)), events }
+  }
+
+  // Remembers in the batteries that the bot ran out of energy, and forgets it once the stored energy is back to the resume
+  // threshold: the state survives a restart and is the same for the radio, the operations and the jobs
+  private updatePower(records: readonly Module[], wasZero: boolean): Module[] {
+    const batteries = this.batteries(records)
+    if (batteries.length === 0) {
+      return [...records]
+    }
+    const stored = this.stored(records)
+    const isUnpowered = batteries.some((battery) => battery.isUnpowered) || wasZero || stored <= 0
+    const resume = Math.min(this.balance.resumeThreshold, this.capacity(records))
+    const shouldStay = isUnpowered && stored < resume
+    if (shouldStay === batteries.some((battery) => battery.isUnpowered)) {
+      return [...records]
+    }
+    return shouldStay
+      ? this.replace(records, batteries[0].withProps({ isUnpowered: true }))
+      : batteries
+          .filter((battery) => battery.isUnpowered)
+          .reduce((current, battery) => this.replace(current, battery.withProps({ isUnpowered: false })), [...records])
   }
 
   // Says that the energy got low once, and remembers it in the batteries until it is not low any more: the state is told

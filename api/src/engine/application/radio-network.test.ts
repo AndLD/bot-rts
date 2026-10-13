@@ -183,6 +183,29 @@ describe('RadioNetwork', () => {
     ])
   })
 
+  it('keeps a bot that ran out of energy off the network until it has grown back to the resume threshold', async () => {
+    const t = await setup()
+    t.worker('rover', 5)
+    await t.radio.statusOf(OWNER, 'rover')
+    const charge = async (value: number) => {
+      const bot = (await t.world.bot('rover'))!
+      const battery = bot.state.modules.find((m) => m.type === 'battery')!
+      t.world.updateModules(bot, [{ ...battery, props: { ...battery.props, value } }])
+      t.world.tickEnergy(t.clock.now().getTime())
+      await t.tick()
+    }
+
+    await charge(0)
+    await charge(5)
+    await charge(9)
+    expect(t.games().map((event) => event.type)).toEqual(['LinkLost'])
+
+    await charge(10)
+    await charge(30)
+    await charge(30)
+    expect(t.games().map((event) => event.type)).toEqual(['LinkLost', 'LinkRestored'])
+  })
+
   it('counts only the bots of the base, and nothing connects without a living base', async () => {
     const t = await setup()
     t.worker('stranger', 3, 'bob', 'other-base')

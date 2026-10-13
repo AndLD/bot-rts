@@ -29,3 +29,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   delivered are in PR #114.
 - **Next step:** the plan and its decisions are approved (existing bases: no migration, the local database is reset instead, see decision 5); start with 11.1.
 - **Verify with:** `git status`, `git branch -a`, the open pull requests.
+
+### 2026-10-13 — task 11.1 event spam audit
+- **Tasks:** 11.1
+- **Branch:** `feature/11.1-event-spam-audit` — done
+- **Decisions / deviations from the plan:** the audit found nothing besides `OutOfFuel` / `EnergyLow` (fixed in #114) that repeats while a state lasts: link events compare with the previous refresh, `ModuleBroken` is guarded by the condition edge, `LiveScanStopped` disables the scanner, executions end once. The only flapping source is the energy edge of the radio link, which task 11.5 removes.
+- **Problems / blockers / findings:** none.
+- **Next step:** 11.2, the game clock and day/night model in `lib`.
+- **Verify with:** `npm test -w api -- energy-events radio-network`

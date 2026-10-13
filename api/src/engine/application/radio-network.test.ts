@@ -141,6 +141,21 @@ describe('RadioNetwork', () => {
     expect(t.games()).toHaveLength(1)
   })
 
+  it('tells a lasting weak or lost link once, however many ticks it lasts (design §24.1)', async () => {
+    const t = await setup()
+    t.worker('rover', 2)
+    t.worker('far', 5)
+    await t.radio.statusOf(OWNER, 'rover')
+
+    await t.move('rover', 19)
+    await t.move('far', 50)
+    for (let i = 0; i < 100; i++) {
+      await t.tick(100)
+    }
+
+    expect(t.games().map((event) => event.type)).toEqual(['LinkWeak', 'LinkLost'])
+  })
+
   it('loses the bots behind a relay that breaks, and finds them again when it is repaired', async () => {
     const t = await setup()
     t.worker('relay', 15)

@@ -34,13 +34,14 @@ substitute. Three kinds of events exist:
 
 | Kind | Rule | Examples |
 | --- | --- | --- |
-| Result of an action | once per action | `ShotHit`, `CraftOrdered`, `BotAssembled`, `PasswordAttemptFailed` |
-| Edge (a state begins or ends) | once per change of state, state persisted | ✅ `OutOfFuel`, `EnergyLow`; 🔴 to be audited: `LiveScanStopped`, `LinkLost` / `LinkWeak` / `LinkRestored`, `ModuleBroken`, the execution events |
+| Result of an action | once per action | `BotMoved`, `ShotFired`, `ShotHit`, `ModuleDamaged`, `ResourceMined`, `ScanCompleted`, `CraftOrdered`, `BotAssembled`, `PasswordAttemptFailed` |
+| Edge (a state begins or ends) | once per change of state, state persisted | `OutOfFuel`, `EnergyLow` (flags in the generator and battery properties), `LiveScanStopped` (the scanner switches itself off, so it cannot repeat), `ModuleBroken` (only when the condition falls from above 0 to 0), `DepositDepleted`, `LinkLost` / `LinkWeak` / `LinkRestored` (raised on a change of the link compared with the previous refresh; nothing is told on the first look after a restart), `ExecutionFinished` / `ExecutionFailed` (once, when the execution ends) |
 | Level (a state that lasts) | never an event; shown as state in the UI | the energy level, the link bars |
 
-🔴 _Planned (Phase 11, task 11.1):_ an inventory of every event type with this classification, fixes for the ones that still
-repeat, and a contract test that runs a bot through many ticks in an unchanged bad state and fails if any event type fires more
-than once.
+✅ _Audited (Phase 11, task 11.1):_ every event type above is classified. The contract tests
+(`energy-events.contract.test.ts`, and the lasting-link test in `radio-network.test.ts`) run a bot through hundreds of ticks in
+an unchanged bad state (no oil, low battery, a live scanner without energy, an empty battery, a weak or lost link) and fail if any
+event type fires more than once. A flapping link caused by the energy edge is removed by the power-on hysteresis (§12.5, task 11.5).
 
 ## 24.2 Notifications ✅
 

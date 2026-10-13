@@ -13,6 +13,7 @@ jest.mock('../map/GameMap', () => ({
     <div>
       the map of {baseId}
       <button onClick={() => onOpenBot('bot-9-long-id')}>click a bot</button>
+      <button onClick={() => onOpenBot(baseId)}>click the base</button>
     </div>
   )
 }))
@@ -204,6 +205,19 @@ describe('GameScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Control panel' }))
     expect(screen.getByText('the control of b1')).toBeInTheDocument()
+  })
+
+  it('has one control panel and one storage per bot, whether opened from the toolbar or the map', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Control panel' }))
+    fireEvent.click(screen.getByText('click the base'))
+    fireEvent.click(screen.getByRole('button', { name: 'Control panel' }))
+    expect(screen.getAllByText('the control of b1')).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Storage' }))
+    fireEvent.click(screen.getByText('open its storage'))
+    expect(screen.getAllByText('the storage of b1')).toHaveLength(1)
   })
 
   it('shows the tutorial over the screen', () => {

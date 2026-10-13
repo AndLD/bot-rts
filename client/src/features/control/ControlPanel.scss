@@ -1,0 +1,39 @@
+.control-panel {
+  padding: 12px 16px;
+
+  h4 {
+    margin: 16px 0 8px;
+  }
+
+  // Every action is a row of the same three columns: the name, the inputs that share the room, the button
+  .control-action {
+    margin-bottom: 8px;
+  }
+
+  .control-action-line {
+    display: grid;
+    grid-template-columns: 9em minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .control-action-inputs {
+    display: flex;
+    gap: 6px;
+
+    > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+
+  .control-action-message {
+    margin-top: 4px;
+    color: #86efac;
+    overflow-wrap: anywhere;
+
+    &[data-error='true'] {
+      color: #f87171;
+    }
+  }
+}

@@ -36,6 +36,9 @@ const TUTORIAL_TARGET: Record<TutorialStep, WindowKind> = {
   assemble: 'factory'
 }
 
+// The windows that are about one bot: a bot has one of each, however it was opened (the toolbar, the map, another window)
+const BOT_WINDOWS: WindowKind[] = ['control', 'storage']
+
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
@@ -83,9 +86,13 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     dispatch(openWindow({ id: `terminal:${botId}`, kind: 'terminal', params: { botId, sessionId } }))
   }
 
+  function openBotWindow(kind: WindowKind, botId: string) {
+    dispatch(openWindow({ id: `${kind}:${botId}`, kind, params: { botId } }))
+  }
+
   // The control panel of one of the player's bots
   function openControl(botId: string) {
-    dispatch(openWindow({ id: `control:${botId}`, kind: 'control', params: { botId } }))
+    openBotWindow('control', botId)
   }
 
   // A page of the documentation, in the Help window
@@ -96,7 +103,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
 
   // What a bot carries
   function openStorage(botId: string) {
-    dispatch(openWindow({ id: `storage:${botId}`, kind: 'storage', params: { botId } }))
+    openBotWindow('storage', botId)
   }
 
   function renderWindow(win: GameWindow) {
@@ -138,7 +145,9 @@ export default function GameScreen({ baseId }: { baseId: string }) {
               size="small"
               className={kind === highlighted ? 'tutorial-highlight' : undefined}
               onClick={() =>
-                dispatch(openWindow({ id: kind, kind, params: kind === 'terminal' ? {} : { botId: baseId } }))
+                BOT_WINDOWS.includes(kind)
+                  ? openBotWindow(kind, baseId)
+                  : dispatch(openWindow({ id: kind, kind, params: kind === 'terminal' ? {} : { botId: baseId } }))
               }
             >
               {t(`kinds.${kind}`)}

@@ -28,7 +28,7 @@ export function candidatesOf(userId: string, event: GameEvent): Candidate[] {
     case 'EnergyLow':
       return isOwn ? [note('damage', 'energyLow', botId, {}, { isCoalesced: true })] : []
     case 'OutOfFuel':
-      return isOwn ? [note('damage', 'outOfFuel', botId)] : []
+      return isOwn ? [note('damage', 'outOfFuel', botId, {}, { isCoalesced: true })] : []
     case 'LiveScanStopped':
       return isOwn ? [note('damage', 'liveScanStopped', botId)] : []
     case 'LinkLost':

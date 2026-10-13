@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from './auth-client-context'
-import './AuthPage.scss'
+import AuthFrame from './AuthFrame'
 
 export type LinkAction = 'confirmEmailChange' | 'confirmAccountDeletion'
 
@@ -40,13 +40,11 @@ export default function LinkResultPage({ action }: { action: LinkAction }) {
       : { done: t('accountDeletion.done'), failed: t('accountDeletion.failed') }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        {outcome === 'working' ? <LoadingOutlined /> : <p>{messages[outcome]}</p>}
-        <Link href="/auth" className="auth-link">
-          {t('toLogin')}
-        </Link>
-      </div>
-    </div>
+    <AuthFrame hasLanguage={false}>
+      {outcome === 'working' ? <LoadingOutlined /> : <p>{messages[outcome]}</p>}
+      <Link href="/auth" className="auth-link">
+        {t('toLogin')}
+      </Link>
+    </AuthFrame>
   )
 }

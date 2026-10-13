@@ -2,7 +2,7 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
+**Status:** 🟡 In progress · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
 
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), the Russian translation, and
@@ -10,8 +10,8 @@ the player documentation (a public `/docs` section and the same content as an in
 
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
-| 7.1 | Ambient scene: self-contained scripted simulation (bots moving, digging, shooting, repairing) rendered with the map renderer and animation system; pauses when hidden | 5 | ⬜ |
-| 7.2 | Authentication page redesign: forms over the ambient scene, matching the landing page | 3 | ⬜ |
+| 7.1 | Ambient scene: self-contained scripted simulation (bots moving, digging, shooting, repairing) rendered with the map renderer and animation system; pauses when hidden | 5 | ✅ |
+| 7.2 | Authentication page redesign: forms over the ambient scene, matching the landing page | 3 | ✅ |
 | 7.3 | Landing page as the marketing routes of the Next.js app per design §15.3: static rendering, `next-intl` routes `/` and `/ru/`, SEO metadata (Open Graph, `hreflang`, sitemap, structured data), static poster with lazy-loaded ambient scene, Lighthouse CI gate (SEO ≥ 95, performance ≥ 90) | 8 | ⬜ |
 | 7.4 | Achievements backend: data-driven definitions, evaluator consuming game events, per-user progress and unlock storage, `/api/v1` read endpoints | 5 | ⬜ |
 | 7.5 | Achievements UI: achievements page with progress, unlock toast, profile badges | 3 | ⬜ |
@@ -39,4 +39,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/7.1-ambient-scene` | 7.1, 7.2 | _PR_ | 🟡 |

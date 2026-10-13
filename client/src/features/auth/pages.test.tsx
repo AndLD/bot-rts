@@ -12,6 +12,7 @@ import VerificationPage from './VerificationPage'
 const push = jest.fn()
 let search = ''
 
+jest.mock('../ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
   useSearchParams: () => new URLSearchParams(search)
@@ -129,7 +130,7 @@ describe('LinkResultPage', () => {
     const auth = createFakeAuth({ confirmEmailChange: jest.fn(() => Promise.resolve(failure)) })
     renderApp(<LinkResultPage action="confirmEmailChange" />, { auth })
 
-    await waitFor(() => expect(screen.getByRole('link')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Go to login' })).toBeInTheDocument())
     await waitFor(() => expect(screen.getByText(/could not|failed|expired/i)).toBeInTheDocument())
     expect(auth.signOut).not.toHaveBeenCalled()
   })
@@ -146,6 +147,18 @@ describe('LinkResultPage', () => {
     await waitFor(() => expect(auth.signOut).toHaveBeenCalled())
 
     expect(auth.confirmEmailChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not send the same link again when the page renders again', async () => {
+    search = 'token=abc'
+    const auth = createFakeAuth()
+    const { rerender } = renderApp(<LinkResultPage action="confirmEmailChange" />, { auth })
+    await waitFor(() => expect(auth.signOut).toHaveBeenCalled())
+
+    rerender(<LinkResultPage action="confirmAccountDeletion" />)
+
+    expect(auth.confirmEmailChange).toHaveBeenCalledTimes(1)
+    expect(auth.confirmAccountDeletion).not.toHaveBeenCalled()
   })
 
   it('sends an empty token when the link has none', async () => {

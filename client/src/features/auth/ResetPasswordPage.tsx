@@ -7,9 +7,8 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
-import { LanguageSwitcher } from '../../shared/i18n/LanguageSwitcher'
 import { useAuth } from './auth-client-context'
-import './AuthPage.scss'
+import AuthFrame from './AuthFrame'
 import { useAuthRules } from './validation'
 
 // The form that sets the new password for the token of the emailed link
@@ -51,17 +50,12 @@ export default function ResetPasswordPage() {
   const token = useSearchParams().get('token')
 
   return (
-    <div className="auth-page">
-      <div className="auth-language">
-        <LanguageSwitcher />
-      </div>
-      <div className="auth-card">
-        <h1>{t('reset.title')}</h1>
-        {token ? <ResetForm token={token} /> : <p>{t('reset.missingToken')}</p>}
-        <Link href="/auth" className="auth-link">
-          {t('confirm.toLogin')}
-        </Link>
-      </div>
-    </div>
+    <AuthFrame>
+      <h1>{t('reset.title')}</h1>
+      {token ? <ResetForm token={token} /> : <p>{t('reset.missingToken')}</p>}
+      <Link href="/auth" className="auth-link">
+        {t('confirm.toLogin')}
+      </Link>
+    </AuthFrame>
   )
 }

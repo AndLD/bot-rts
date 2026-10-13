@@ -11,6 +11,7 @@ import SignupForm from './SignupForm'
 
 const push = jest.fn()
 
+jest.mock('../ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push }) }))
 jest.mock('../../shared/notifications', () => ({ errorNotification: jest.fn() }))
 

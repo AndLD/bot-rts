@@ -1,0 +1,5 @@
+{
+  // The dev server regenerates .next/dev/types, which breaks noUnusedLocals; the typecheck uses the types of `next typegen`
+  "extends": "./tsconfig.json",
+  "include": ["next-env.d.ts", "src", "tests", ".next/types/**/*.ts"]
+}

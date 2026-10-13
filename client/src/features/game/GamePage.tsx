@@ -32,9 +32,9 @@ export default function GamePage() {
       </Link>
 
       {isError ? (
-        <div style={{ padding: 10 }}>{t('loadFailed')}</div>
+        <div style={{ padding: '56px 16px 16px' }}>{t('loadFailed')}</div>
       ) : !bases ? (
-        <div style={{ padding: 10 }}>{t('loading')}</div>
+        <div style={{ padding: '56px 16px 16px' }}>{t('loading')}</div>
       ) : bases.length ? (
         <SocketProvider>
           <GameScreen baseId={bases[0]._id} />

@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
 import { useBotsDeployBaseMutation } from '../../shared/api'
+import './DeployBase.scss'
 
 interface DeployForm {
   password: string

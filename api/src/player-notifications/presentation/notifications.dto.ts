@@ -11,8 +11,7 @@ import {
 } from '../../../../lib/utils/interfaces/notifications'
 import { MAX_PAGE } from '../application/notification.service'
 
-const toBoolean = ({ value }: { value: unknown }) =>
-  value === 'true' || value === true ? true : value === 'false' || value === false ? false : value
+const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value)
 
 export class ListNotificationsQueryDto {
   @IsOptional()

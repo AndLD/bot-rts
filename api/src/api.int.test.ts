@@ -398,6 +398,9 @@ describe('authorization', () => {
     await api().get('/api/v1/notifications?limit=0').set(bearer(accessToken)).expect(400)
     await api().get('/api/v1/notifications?limit=1000').set(bearer(accessToken)).expect(400)
     await api().get('/api/v1/notifications?unread=maybe').set(bearer(accessToken)).expect(400)
+    expect(
+      (await api().get('/api/v1/notifications?unread=false').set(bearer(accessToken)).expect(200)).body.items
+    ).toHaveLength(2)
 
     expect((await api().get('/api/v1/notifications/summary').set(bearer(accessToken)).expect(200)).body).toEqual({
       unread: 2,

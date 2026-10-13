@@ -187,7 +187,8 @@ describe("the engine to the player's sockets", () => {
     )
     expect(heard.mine.find(([event]) => event === 'script-log')?.[1]).toMatchObject({ text: 'to you', botId })
     expect(heard.mine.find(([event]) => event === 'game-event')?.[1]).toMatchObject({ type: 'ExecutionFinished' })
-    expect(heard.theirs).toEqual([])
+    // What they earn on their own (the first achievement of a player who has just deployed a base) is theirs to hear
+    expect(heard.theirs.filter(([event]) => !['achievement-unlocked', 'notification'].includes(event))).toEqual([])
     mine.close()
     theirs.close()
   })

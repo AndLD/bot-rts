@@ -74,6 +74,14 @@ describe('candidatesOf', () => {
     ).toEqual({ reason: 'boom' })
   })
 
+  it("does not tell a player of a craft or a research that is someone else's", () => {
+    const craft: GameEvent = { type: 'CraftOrdered', at: 1, parties: mine, module: 'drill', count: 1, readyAt: 9 }
+    const research: GameEvent = { type: 'ResearchOrdered', at: 1, parties: mine, module: 'gun', readyAt: 9 }
+
+    expect(candidatesOf('bob', craft)).toEqual([])
+    expect(candidatesOf('bob', research)).toEqual([])
+  })
+
   it('waits for the factory to finish before telling of a craft or a research', () => {
     const craft = candidatesOf('alice', {
       type: 'CraftOrdered',

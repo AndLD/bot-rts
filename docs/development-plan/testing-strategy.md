@@ -36,6 +36,7 @@ The rules live in [`AGENTS.md` §6](../../AGENTS.md); this page shows how they p
 | **8** Hardening | Load and soak tests (8.6); API contract tests proving the official client and API-key clients behave identically (8.10); MCP tests against a seeded backend (8.11); e2e of API keys and two-player interaction (8.13); final coverage sweep (8.8) |
 | **9** Admin console | Authorization matrix tests, every admin endpoint × every role, plus audit completeness (9.14); e2e of the admin flows (9.13) |
 | **10** Market and chat | Money and goods conservation property tests, matching determinism (10.13); e2e of exchange, auctions, inbox, chat and transfers (10.14) |
+| **11** Energy, day/night, resilience (developed after Phase 7) | Event-spam contract test: no event fires twice in an unchanged state (11.1); balance simulation over a game day for the solar panel, the oil generator and heavy work (11.4); power-on hysteresis and restart cases (11.5); e2e of the day/night filter, reconnection, control window and terminal scrolling (11.10) |
 
 ## End-to-end coverage matrix
 
@@ -77,5 +78,7 @@ about 15 minutes it is sharded and run in parallel.
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
+| Day/night filter does not block map clicks, the in-game clock, solar panel versus oil generator, a bot at the edge of its energy does not flap, no repeated event while a state lasts | 11.10 |
+| Automatic reconnection after the API restarts, control window layout, terminal follows new output only when at the bottom | 11.10 |
 | Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 (`gameplay.cy.ts`: live area and ageing snapshot; the stale-scan recovery by the handler and script-api unit tests) |
 | Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 (`connect.cy.ts`, `radio.cy.ts`: out of range, relay chain, terminal interrupted and resumed, signal bars); relay towers do not exist (relays are the player's own bots); buffered scans and the summary of missed events: `radio-network.test.ts`, `radio-buffers.test.ts`, `useTerminal.test.tsx` |

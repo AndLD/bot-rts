@@ -205,6 +205,8 @@ npm run dev -w api
 npm run dev -w client
 ```
 
+In the Claude desktop app the same two servers start from `.claude/launch.json` (`api` on :8080, `client` on :5173).
+
 Open <http://localhost:5173>. Sign up and confirm the emailed link. Without SMTP settings no mail is sent in development; mark
 the account as verified with `UPDATE local_credentials SET email_verified = true;` instead. Then open the `/game` route.
 

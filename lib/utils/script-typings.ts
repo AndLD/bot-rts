@@ -15,7 +15,8 @@ const ARG_TYPES: Record<ScriptArgKind, string> = {
 export const scriptParameters = (spec: ScriptFunctionSpec) =>
   spec.args.map((arg) => `${arg.name}${arg.isOptional ? '?' : ''}: ${ARG_TYPES[arg.kind]}`).join(', ')
 
-export const scriptReturnType = (spec: ScriptFunctionSpec) => (spec.isScheduled ? 'Promise<void>' : 'Promise<Result<any>>')
+export const scriptReturnType = (spec: ScriptFunctionSpec) =>
+  spec.isScheduled ? 'Promise<void>' : 'Promise<Result<any>>'
 
 export function scriptTypings(): string {
   const methods = SCRIPT_FUNCTIONS.map((spec) => `  ${spec.name}(${scriptParameters(spec)}): ${scriptReturnType(spec)}`)

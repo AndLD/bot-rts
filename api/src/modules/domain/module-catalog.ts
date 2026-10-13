@@ -198,7 +198,7 @@ export const STARTER_KIT: readonly string[] = [
   'factory-class1',
   'armor-class1',
   'battery-class1',
-  'generator-class1',
+  'solar-panel-class1',
   'storage-class1',
   'processor-class1',
   'memory-class1',

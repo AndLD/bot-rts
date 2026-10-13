@@ -29,7 +29,12 @@ beforeEach(async () => {
   const base = buildBase(user.id)
   await new PrismaBotRepository(database.client).add(base)
   baseId = base.id
-  await modules.addMany(new ModuleFactory(new UuidIdGenerator()).starterKit(base.id))
+  // The energy rules of the oil generator are under test: the base starts on a solar panel, so put a generator in its place
+  const factory = new ModuleFactory(new UuidIdGenerator())
+  await modules.addMany([
+    ...factory.starterKit(base.id).filter((module) => module.type !== 'solarPanel'),
+    factory.create('generator-class1', base.id)
+  ])
 })
 afterAll(() => database.drop())
 

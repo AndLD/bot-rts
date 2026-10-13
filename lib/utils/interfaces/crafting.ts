@@ -106,6 +106,12 @@ export const DEFAULT_RECIPES: readonly IRecipe[] = [
   },
   { module: 'armor-class1', classLevel: 1, resources: [stack(IRON, 35)], craftTimeMs: 15_000 },
   { module: 'generator-class1', classLevel: 1, resources: [stack(IRON, 30), stack(CRYSTAL, 5)], craftTimeMs: 15_000 },
+  {
+    module: 'solar-panel-class1',
+    classLevel: 1,
+    resources: [stack(IRON, 15), stack(CRYSTAL, 20)],
+    craftTimeMs: 20_000
+  },
   { module: 'manipulator-class1', classLevel: 1, resources: [stack(IRON, 25), stack(CRYSTAL, 5)], craftTimeMs: 15_000 },
   { module: 'gps-class1', classLevel: 1, resources: [stack(CRYSTAL, 10), stack(GOLD, 5)], craftTimeMs: 15_000 },
   { module: 'repair-class1', classLevel: 1, resources: [stack(IRON, 30), stack(CRYSTAL, 5)], craftTimeMs: 15_000 },

@@ -45,3 +45,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 11.3, split the power sources (`PowerSourceModule`, `GeneratorModule`, `SolarPanelModule`).
 - **Verify with:** `npm test -w api -- game-time`; `npx jest src/api.int.test.ts -t "game time"` in `api`
+
+### 2026-10-14 — task 11.3 power sources split
+- **Tasks:** 11.3 (also removes the duplicate §12.5.1 that the 11.2 PR added to the design: the section already existed from the plan)
+- **Branch:** `feature/11.3-power-sources` — done
+- **Decisions / deviations from the plan:** `PowerSourceModule` carries `isOutOfFuel` and a zero `fuelPerCycle`, so the energy model has one loop for every kind and the solar panel never raises `OutOfFuel`. `outputAt(now, time)` is the polymorphic part (generator 1, solar panel the sunlight). `EnergyModel` takes the `GameTimeConfig` as its third constructor argument. The panel has a map icon (`solar`, new atlas sprite). The recipe is 15 iron + 20 crystal, 20 s. The starter kit is untouched (11.4).
+- **Problems / blockers / findings:** the client test `GamePage › shows the terminal to a player with a base` is flaky in the parallel run and passes alone.
+- **Next step:** 11.4, swap the starter kit and prove the balance with a simulation test over a game day.
+- **Verify with:** `npm test -w api -- energy-model game-module map-look`

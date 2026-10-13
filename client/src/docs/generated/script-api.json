@@ -82,14 +82,14 @@
     {
       "name": "enable",
       "signature": "enable(moduleId: string): Promise<Result<any>>",
-      "modules": ["scanner", "generator", "battery"],
+      "modules": ["scanner", "generator", "solarPanel", "battery"],
       "args": [{ "name": "moduleId", "kind": "string", "isOptional": false }],
       "ops": 1
     },
     {
       "name": "disable",
       "signature": "disable(moduleId: string): Promise<Result<any>>",
-      "modules": ["scanner", "generator", "battery"],
+      "modules": ["scanner", "generator", "solarPanel", "battery"],
       "args": [{ "name": "moduleId", "kind": "string", "isOptional": false }],
       "ops": 1
     },

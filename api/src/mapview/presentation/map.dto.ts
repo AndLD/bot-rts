@@ -70,7 +70,7 @@ export class MapCellResponse implements IMapCell {
   @ApiPropertyOptional({ enum: ['wheels', 'tracks', 'immobile'] })
   chassis?: MapChassis
 
-  @ApiPropertyOptional({ enum: ['weapon', 'drill', 'scanner', 'antenna'], isArray: true })
+  @ApiPropertyOptional({ enum: ['weapon', 'drill', 'scanner', 'antenna', 'solar'], isArray: true })
   icons?: MapModuleIcon[]
 
   @ApiPropertyOptional()

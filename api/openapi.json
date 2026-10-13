@@ -3203,6 +3203,7 @@
               "armor",
               "scanner",
               "generator",
+              "solarPanel",
               "factory",
               "gps",
               "repair"
@@ -3810,7 +3811,8 @@
                 "weapon",
                 "drill",
                 "scanner",
-                "antenna"
+                "antenna",
+                "solar"
               ]
             }
           },

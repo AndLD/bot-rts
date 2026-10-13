@@ -14,6 +14,7 @@ describe('map look', () => {
     expect(iconsOf([part('wirelessAdapter'), part('weapon'), part('weapon'), part('battery'), part('mining')])).toEqual(
       ['weapon', 'drill', 'antenna']
     )
+    expect(iconsOf([part('solarPanel'), part('scanner')])).toEqual(['scanner', 'solar'])
     expect(iconsOf([])).toEqual([])
   })
 

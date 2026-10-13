@@ -153,6 +153,15 @@
       "props": { "delay": 250, "energyPerCycle": 12, "fuelPerCycle": 0.02 }
     },
     {
+      "name": "solar-panel-class1",
+      "type": "solarPanel",
+      "maxCondition": 100,
+      "weight": 30,
+      "operationCost": 1,
+      "idleCost": 0,
+      "props": { "delay": 250, "energyPerCycle": 2 }
+    },
+    {
       "name": "storage-class1",
       "type": "storage",
       "maxCondition": 100,
@@ -282,6 +291,15 @@
         { "resource": "crystal", "amount": 5 }
       ],
       "craftTimeMs": 15000
+    },
+    {
+      "module": "solar-panel-class1",
+      "classLevel": 1,
+      "resources": [
+        { "resource": "iron", "amount": 15 },
+        { "resource": "crystal", "amount": 20 }
+      ],
+      "craftTimeMs": 20000
     },
     {
       "module": "manipulator-class1",

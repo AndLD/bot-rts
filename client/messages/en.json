@@ -405,6 +405,7 @@
       "wireless-adapter": "Wireless adapter",
       "armor": "Armor",
       "generator": "Generator",
+      "solar-panel": "Solar panel",
       "manipulator": "Manipulator",
       "gps": "GPS",
       "repair": "Repair",
@@ -739,8 +740,9 @@
         "idle": "Idle cost: each module drains a little every tick, even when it does nothing.",
         "operation": "Operation cost: each action drains the cost of the module that does it.",
         "battery": "The battery holds up to its capacity and never goes below zero.",
-        "generator": "A generator burns oil from the bot's storage and adds energy to the battery.",
-        "empty": "A bot with an empty battery can do nothing: its scripts wait until energy returns. Keep a generator and oil in your bots."
+        "generator": "A generator burns oil from the bot's storage and adds energy to the battery. It is strong, but you must bring it oil.",
+        "solar": "A solar panel burns nothing and makes energy from the sun: the most at midday, a tenth of it at night.",
+        "empty": "A bot with an empty battery can do nothing: its scripts wait until energy returns. Keep a power source in your bots, and oil if they run a generator."
       },
       "opsBudget": {
         "title": "The ops budget",

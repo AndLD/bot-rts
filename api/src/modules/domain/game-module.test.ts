@@ -1,3 +1,4 @@
+import { DEFAULT_GAME_TIME } from '../../../../lib/utils/game-time'
 import { buildModule } from '../../../tests/integration/builders'
 import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import {
@@ -8,6 +9,7 @@ import {
   EngineModule,
   FactoryModule,
   GeneratorModule,
+  SolarPanelModule,
   GpsModule,
   ManipulatorModule,
   MiningModule,
@@ -97,6 +99,22 @@ describe('the behaviour of the module types', () => {
     expect(of(GeneratorModule, {}, { condition: 0 }).enable(0)).toMatchObject({ code: 'BROKEN_MODULE' })
     expect(of(GeneratorModule, { isEnabled: true }, { condition: 0 }).disable()).toEqual({
       patch: { isEnabled: false }
+    })
+    const noon = 12 * 60_000
+    const midnight = 0
+    expect(of(SolarPanelModule, { isEnabled: true, delay: 250, energyPerCycle: 2 })).toMatchObject({
+      isEnabled: true,
+      delay: 250,
+      energyPerCycle: 2,
+      fuelPerCycle: 0,
+      isOutOfFuel: false
+    })
+    expect(of(SolarPanelModule, {}).outputAt(noon, DEFAULT_GAME_TIME)).toBe(1)
+    expect(of(SolarPanelModule, {}).outputAt(midnight, DEFAULT_GAME_TIME)).toBe(0.1)
+    expect(of(GeneratorModule, {}).outputAt()).toBe(1)
+    expect(of(SolarPanelModule, {}).enable(5)).toEqual({
+      ok: true,
+      data: { patch: { isEnabled: true, lastCycleAt: 5 } }
     })
     expect(of(ProcessorModule, { delay: 250 }).delay).toBe(250)
   })

@@ -10,9 +10,10 @@ const ICONS: Partial<Record<Module['type'], MapModuleIcon>> = {
   weapon: 'weapon',
   mining: 'drill',
   scanner: 'scanner',
-  wirelessAdapter: 'antenna'
+  wirelessAdapter: 'antenna',
+  solarPanel: 'solar'
 }
-const ICON_ORDER: readonly MapModuleIcon[] = ['weapon', 'drill', 'scanner', 'antenna']
+const ICON_ORDER: readonly MapModuleIcon[] = ['weapon', 'drill', 'scanner', 'antenna', 'solar']
 
 // What the bot rolls on: tracks, wheels, or nothing
 export function chassisOf(modules: readonly Part[]): MapChassis {

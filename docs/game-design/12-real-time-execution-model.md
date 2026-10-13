@@ -153,15 +153,6 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
 
 ## 12.5 Time, energy and sleep
 
-### 12.5.1 The game clock and day/night ✅
-
-The world has one clock for everybody: an in-game hour is one real minute, so a day lasts **24 real minutes**, counted from the
-Unix epoch (no per-player offset). The clock is a pure module of `lib` (`game-time`): from a timestamp and a typed config
-(`dayLengthMs`, `hoursPerDay` and the day parts) it gives the in-game hour, the day phase and the **sunlight factor**. Defaults:
-night 21:00-05:00 → 0.1, morning 05:00-09:00 and evening 17:00-21:00 → 0.6, day 09:00-17:00 → 1.0 (an average of about 0.57).
-The engine takes the timestamp from its injected clock; the client derives the same time from the server's instant, which
-`GET /api/v1/time` returns together with the config, and its server-synced clock (`useServerClock`). Nothing calls `Date.now()`.
-
 ✅ **Energy model:**
 
 - **Idle drain:** every tick, each attached module drains its `idleCost` from the battery.
@@ -185,21 +176,21 @@ begins**, not on every tick or cycle it stays true. The state is kept in the mod
 generator ran on oil again, the energy is not low any more) and the state is then told again if it recurs. The rule for every
 level-triggered event is in §24.1.
 
-**Power sources 🔴.** _Planned for Phase 11._ Generators are one kind of power source next to the solar panel (§7.2.1); the
+**Power sources ✅.** Generators are one kind of power source next to the solar panel (§7.2.1); the
 energy model runs every working, enabled source on its own cycle (`delay`), so adding a kind does not change the others. A
 solar panel burns nothing and adds `energyPerCycle × sunlight(now)` per cycle (§12.5.1).
 
-### 12.5.1 Game time and day/night 🔴
+### 12.5.1 Game time and day/night 🟡
 
-_Planned for Phase 11 (tasks 11.2 and 11.6)._ The world has one shared clock derived from the engine's injected clock (never
+✅ _The clock (task 11.2)_ and 🔴 _the presentation (task 11.6)._ The world has one shared clock derived from the engine's injected clock (never
 `Date.now()` in game logic, §12.4); every player sees the same time.
 
 - **Scale (tunable config):** one in-game hour is one real minute, so a **day lasts 24 real minutes**; the world clock counts
   from the Unix epoch.
 - **Phases and sunlight factor:** night 21:00–05:00 → **0.1**; morning 05:00–09:00 and evening 17:00–21:00 → **0.6**; day
   09:00–17:00 → **1.0** (a day averages about 0.57). The factor multiplies the output of solar panels (§7.2.1) and nothing else.
-- **Shared code:** the time of day, the phase and the factor are pure functions in `lib`; the API serves the time config and the
-  current instant through `/api/v1`, and the client derives the same time from its server-synced clock (§15.1).
+- **Shared code ✅:** the time of day, the phase and the factor are pure functions in `lib` (`game-time`); the API serves the time config and the
+  current instant at `GET /api/v1/time`, and the client derives the same time from its server-synced clock (§15.1).
 - **Presentation:** an in-game clock in the HUD and a night filter over the map (§15.6); both are cosmetic and never touch the
   simulation.
 

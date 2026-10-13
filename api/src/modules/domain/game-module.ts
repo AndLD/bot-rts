@@ -1,3 +1,4 @@
+import { GameTimeConfig, sunlightOf } from '../../../../lib/utils/game-time'
 import { EngineType, ModuleType } from '../../../../lib/utils/interfaces/modules'
 import { IResourceStack, RESOURCES } from '../../../../lib/utils/interfaces/resources'
 import { fail, ok, Result, ResultCode } from '../../../../lib/utils/result'
@@ -148,43 +149,68 @@ export class BatteryModule extends GameModule {
   }
 }
 
-export class GeneratorModule extends GameModule {
+// Makes energy for the battery in cycles (design §7.2.1, §12.5). What a cycle burns and how much it makes is up to the kind
+// of source; the energy model runs every kind the same way.
+export abstract class PowerSourceModule extends GameModule {
   get delay(): number {
     return this.number('delay', 0)
   }
 
-  // Energy added to the battery by one cycle, and the oil one cycle burns (design §12.5)
+  // Energy added to the battery by one cycle at full output
   get energyPerCycle(): number {
     return this.number('energyPerCycle', 0)
   }
 
+  // The oil one cycle burns from the bot's storage; none for a source that needs no fuel
   get fuelPerCycle(): number {
-    return this.number('fuelPerCycle', 0)
+    return 0
   }
 
-  // Whether the generator ran out of oil and the player was told; it stays set until the generator runs on oil again
+  // Whether the source ran out of fuel and the player was told; it stays set until it runs on fuel again (never for a
+  // source that needs none)
   get isOutOfFuel(): boolean {
     return this.flag('isOutOfFuel', false)
   }
 
-  // When the last cycle was due, in ms of the game clock; unset until the generator first runs
+  // Share of `energyPerCycle` made at the given game time, from 0 to 1
+  abstract outputAt(timestampMs: number, time: GameTimeConfig): number
+
+  // When the last cycle was due, in ms of the game clock; unset until the source first runs
   get lastCycleAt(): number | undefined {
     return this.record.props.lastCycleAt === undefined ? undefined : this.number('lastCycleAt', 0)
   }
 
-  // Switching on starts the cycles from now, so a generator that was off does not catch up
+  // Switching on starts the cycles from now, so a source that was off does not catch up
   enable(now: number): Result<{ patch: Record<string, unknown> }> {
     const working = this.ensureWorking()
     return working.ok ? ok({ patch: { isEnabled: true, lastCycleAt: now } }) : working
   }
 
-  // Always possible, so that a broken generator can still be switched off
+  // Always possible, so that a broken source can still be switched off
   disable(): { patch: Record<string, unknown> } {
     return { patch: { isEnabled: false } }
   }
 
   get isEnabled(): boolean {
     return this.flag('isEnabled', false)
+  }
+}
+
+// Burns oil from the bot's storage; full output day and night
+export class GeneratorModule extends PowerSourceModule {
+  override get fuelPerCycle(): number {
+    return this.number('fuelPerCycle', 0)
+  }
+
+  outputAt(): number {
+    return 1
+  }
+}
+
+// Needs no fuel; its output follows the sunlight of the time of day
+export class SolarPanelModule extends PowerSourceModule {
+  outputAt(timestampMs: number, time: GameTimeConfig): number {
+    return sunlightOf(timestampMs, time)
   }
 }
 

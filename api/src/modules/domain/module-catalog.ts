@@ -144,6 +144,16 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     props: { delay: 250, isEnabled: true, energyPerCycle: 12, fuelPerCycle: 0.02 }
   },
   {
+    type: 'solarPanel',
+    name: 'solar-panel-class1',
+    ...full,
+    idleCost: 0,
+    operationCost: 1,
+    weight: 30,
+    // 8 energy per second at full sun, nothing burnt (design §7.2.1)
+    props: { delay: 250, isEnabled: true, energyPerCycle: 2 }
+  },
+  {
     type: 'storage',
     name: 'storage-class1',
     ...full,

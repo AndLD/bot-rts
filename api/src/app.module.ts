@@ -10,6 +10,7 @@ import { EngineModule } from './engine/engine.module'
 import { RealtimeModule } from './engine/realtime.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
+import { TimeModule } from './time/time.module'
 import { MapModule } from './map/map.module'
 import { MapViewModule } from './mapview/mapview.module'
 import { ModulesModule } from './modules/modules.module'
@@ -46,7 +47,8 @@ export class AppModule {
         TerminalModule,
         EngineModule,
         RealtimeModule,
-        HealthModule
+        HealthModule,
+        TimeModule
       ]
     }
   }

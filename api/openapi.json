@@ -2455,6 +2455,43 @@
           "health"
         ]
       }
+    },
+    "/api/v1/time": {
+      "get": {
+        "operationId": "gameTimeCurrent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "The server instant and the day/night config (design §12.4)",
+        "tags": [
+          "time"
+        ]
+      }
     }
   },
   "info": {
@@ -4336,6 +4373,72 @@
         "required": [
           "status",
           "database"
+        ]
+      },
+      "DayPhaseSpanResponse": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "night",
+              "morning",
+              "day",
+              "evening"
+            ]
+          },
+          "fromHour": {
+            "type": "number",
+            "description": "In-game hour at which this part of the day starts"
+          },
+          "sunlight": {
+            "type": "number",
+            "description": "How much sun reaches solar panels, from 0 to 1"
+          }
+        },
+        "required": [
+          "phase",
+          "fromHour",
+          "sunlight"
+        ]
+      },
+      "GameTimeConfigResponse": {
+        "type": "object",
+        "properties": {
+          "dayLengthMs": {
+            "type": "number",
+            "description": "One in-game day in real milliseconds; the world clock counts from the Unix epoch"
+          },
+          "hoursPerDay": {
+            "type": "number"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayPhaseSpanResponse"
+            }
+          }
+        },
+        "required": [
+          "dayLengthMs",
+          "hoursPerDay",
+          "spans"
+        ]
+      },
+      "GameTimeResponse": {
+        "type": "object",
+        "properties": {
+          "now": {
+            "type": "number",
+            "description": "The server instant in ms"
+          },
+          "config": {
+            "$ref": "#/components/schemas/GameTimeConfigResponse"
+          }
+        },
+        "required": [
+          "now",
+          "config"
         ]
       }
     }

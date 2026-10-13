@@ -153,6 +153,15 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
 
 ## 12.5 Time, energy and sleep
 
+### 12.5.1 The game clock and day/night ✅
+
+The world has one clock for everybody: an in-game hour is one real minute, so a day lasts **24 real minutes**, counted from the
+Unix epoch (no per-player offset). The clock is a pure module of `lib` (`game-time`): from a timestamp and a typed config
+(`dayLengthMs`, `hoursPerDay` and the day parts) it gives the in-game hour, the day phase and the **sunlight factor**. Defaults:
+night 21:00-05:00 → 0.1, morning 05:00-09:00 and evening 17:00-21:00 → 0.6, day 09:00-17:00 → 1.0 (an average of about 0.57).
+The engine takes the timestamp from its injected clock; the client derives the same time from the server's instant, which
+`GET /api/v1/time` returns together with the config, and its server-synced clock (`useServerClock`). Nothing calls `Date.now()`.
+
 ✅ **Energy model:**
 
 - **Idle drain:** every tick, each attached module drains its `idleCost` from the battery.

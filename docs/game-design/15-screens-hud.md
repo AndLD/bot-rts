@@ -17,7 +17,7 @@
 | **Factory GUI → Craft table → Assemble** | 🟡 | Blueprint list, resource costs, craft button, then module selection and assembly (Plan 6.4). |
 | **Bot list / fleet view** | 🟡 | Simple list of the player's bots with ids, labels, types. |
 | **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). One window per bot; every action is a row of three aligned columns (§15.6). |
-| **HUD clock and night filter** | 🔴 | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
+| **HUD clock and night filter** | ✅ | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
 | **Connection banner** | 🔴 | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
 | **Settings (global + profile)** | 🟡 | Category switches for manual control at game level and per player (§15.1); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
 | **Notification center** | ✅ | Unread count, list with a count on coalesced notifications, load more, mark as read, preferences (§24.2). |
@@ -147,8 +147,8 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
   the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or
   windows appear after it.
-- 🔴 **In-game clock and night filter** (task 11.6): the HUD shows the in-game time and the day phase (§12.5.1). A
+- ✅ **In-game clock and night filter** (task 11.6): the HUD shows the in-game time and the day phase (§12.5.1). A
   **dark-blue, high-opacity filter** lies over the map canvas, strongest at night (about 0.65), light in the morning and evening
   (about 0.25), none by day, with smooth transitions and reduced motion respected. The filter layer lets pointer events through,
-  so map clicks, hover and the cell inspector work at any hour.
+  so map clicks, hover and the cell inspector work at any hour. Implementation: `useGameTime` derives the time from `GET /api/v1/time` and the server-synced clock; `GameClock` shows `HH:MM · phase` in the top-right corner; `NightFilter` is a layer inside `MapCanvas` (under the cell inspector) with `pointer-events: none`, an opacity per phase and a 20 s linear fade.
 - ✅ **Relative times** in the notification center ("5 seconds ago") use the current time and are never shown in the future.

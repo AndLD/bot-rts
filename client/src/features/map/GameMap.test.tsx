@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import { DEFAULT_GAME_TIME } from '@lib/utils/game-time'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
@@ -10,14 +11,38 @@ const canvas = jest.fn()
 const reduced = jest.fn()
 jest.mock('./MapCanvas', () => ({
   __esModule: true,
-  default: (props: { center?: { x: number; y: number }; onOpenBot?: unknown; isReducedMotion?: boolean }) => {
+  default: (props: {
+    center?: { x: number; y: number }
+    onOpenBot?: unknown
+    isReducedMotion?: boolean
+    children?: React.ReactNode
+  }) => {
     canvas(props.center, props.onOpenBot)
     reduced(props.isReducedMotion)
-    return <div>the map</div>
+    return <div>the map{props.children}</div>
   }
 }))
 
 describe('GameMap', () => {
+  it('lays the night filter over the map, as strong as the time of day says', async () => {
+    jest
+      .mocked(baseQueryWithRefresh)
+      .mockImplementation((async (args: { url: string }) =>
+        args.url.endsWith('/time')
+          ? { data: { now: 2 * 60_000, config: DEFAULT_GAME_TIME } }
+          : args.url.endsWith('/settings')
+            ? { data: { user: { reducedMotion: null } } }
+            : args.url.includes('/map/bots/')
+              ? { data: { x: 1, y: 1 } }
+              : { data: [] }) as never)
+
+    renderApp(<GameMap baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
+
+    await jest
+      .requireActual('@testing-library/react')
+      .waitFor(() => expect(screen.getByTestId('night-filter')).toHaveStyle({ opacity: '0.65' }))
+  })
+
   it('opens the map on the base', async () => {
     jest
       .mocked(baseQueryWithRefresh)

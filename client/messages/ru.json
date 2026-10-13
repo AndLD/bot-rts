@@ -935,5 +935,14 @@
       "confirmCancel": "Отмена",
       "failed": "База не развёрнута"
     }
+  },
+  "daynight": {
+    "label": "Игровое время",
+    "phases": {
+      "night": "Ночь",
+      "morning": "Утро",
+      "day": "День",
+      "evening": "Вечер"
+    }
   }
 }

@@ -5,6 +5,8 @@ import { useBotsListQuery, useMapPositionQuery } from '../../shared/api'
 import MapCanvas from './MapCanvas'
 import { useReducedMotion } from './useReducedMotion'
 import { useMapStream } from './useMapStream'
+import NightFilter from '../daynight/NightFilter'
+import { useGameTime } from '../daynight/useGameTime'
 
 // The player's map, opened on their base
 export default function GameMap({ baseId, onOpenBot }: { baseId: string; onOpenBot?: (botId: string) => void }) {
@@ -13,6 +15,7 @@ export default function GameMap({ baseId, onOpenBot }: { baseId: string; onOpenB
   const { data: bots } = useBotsListQuery({})
   const botCount = bots?.length
   const isReducedMotion = useReducedMotion()
+  const time = useGameTime()
 
   // A bot that was assembled or lost is on the map or gone from it, which the stream does not tell
   useEffect(() => {
@@ -20,12 +23,8 @@ export default function GameMap({ baseId, onOpenBot }: { baseId: string; onOpenB
   }, [botCount, loader])
 
   return (
-    <MapCanvas
-      store={store}
-      loader={loader}
-      center={position}
-      onOpenBot={onOpenBot}
-      isReducedMotion={isReducedMotion}
-    />
+    <MapCanvas store={store} loader={loader} center={position} onOpenBot={onOpenBot} isReducedMotion={isReducedMotion}>
+      <NightFilter phase={time?.phase} isReducedMotion={isReducedMotion} />
+    </MapCanvas>
   )
 }

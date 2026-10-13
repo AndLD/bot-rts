@@ -11,8 +11,8 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 > crafting/factory, the canvas map and automated tests are **not implemented yet**. The client build currently fails on
 > broken imports and unused variables (fixed in Phase 0, task 0.1).
 >
-> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–8, with story
-> points per task) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
+> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–11, with story
+> points per task; Phase 11 is developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
 > agents are in [`AGENTS.md`](./AGENTS.md).
 
 ---
@@ -40,7 +40,8 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 - Email verification flow (`nodemailer`), 24 h token validity.
 - Role model: `admin`, `owner`, `user`, `unlimited`, `banned` (enforced in auth middlewares).
 - Deploy a base with an **access password** and an optional **spawn seed**: a free cell at least 30 cells from every other
-  base, the starter kit (gun, scanner, factory, armor, battery, generator, storage, processor, memory, wireless adapter);
+  base, the starter kit (gun, scanner, factory, armor, battery, generator, storage, processor, memory, wireless adapter; Phase 11
+  swaps the generator for a solar panel);
   one living base per player, a lost base stays on the map as a corpse base and its owner can redeploy.
 - Procedural map in chunks, with **deposits** of six resources and **per-user fog-of-war points**, generated on demand.
 - Module classes by type with a registry and a factory; the **bot filesystem** (a drive per memory module with a byte
@@ -309,5 +310,5 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
   screens, in-game scenarios, and examples.
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
-- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–8).
+- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 is developed after Phase 7).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

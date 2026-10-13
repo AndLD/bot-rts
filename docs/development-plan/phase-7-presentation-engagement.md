@@ -2,7 +2,7 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)
 
-**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
 
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), the Russian translation, and
@@ -45,4 +45,15 @@ AGENTS.md §7.1).
 | `feature/7.5-achievements-ui` | 7.4, 7.5 | [#107](https://github.com/AndLD/bot-rts/pull/107) | ✅ merged |
 | `feature/7.7-notifications-ui` | 7.6, 7.7 | [#108](https://github.com/AndLD/bot-rts/pull/108) | ✅ merged |
 | `feature/7.11-player-docs` | 7.11, 7.12, 7.13 | [#109](https://github.com/AndLD/bot-rts/pull/109) | ✅ merged |
-| `feature/7.8-russian` | 7.8, 7.9 | [#110](https://github.com/AndLD/bot-rts/pull/110) | 🟡 |
+| `feature/7.8-russian` | 7.8, 7.9 | [#110](https://github.com/AndLD/bot-rts/pull/110) | ✅ merged |
+
+Fixes found in the first hands-on run after the phase (2026-10-13), not part of the original tasks; the follow-up work they led
+to is [Phase 11](./phase-11-energy-time-ux.md):
+
+| Branch | What | PR | Status |
+| --- | --- | --- | --- |
+| `docs/migrate-after-phase` | AGENTS.md: migrate the local database after a completed phase | [#111](https://github.com/AndLD/bot-rts/pull/111) | ✅ merged |
+| `bugfix/seed-privacy-consent` | the seed script records the privacy consent of the root user | [#112](https://github.com/AndLD/bot-rts/pull/112) | ✅ merged |
+| `bugfix/game-layout-margins` | deploy-base page margins and light text; the client typecheck no longer fails while `next dev` runs | [#113](https://github.com/AndLD/bot-rts/pull/113) | ✅ merged |
+| `bugfix/control-window-and-fuel-spam` | coalesced notifications keep counting and raise no repeated toast, `OutOfFuel` and `EnergyLow` told once and remembered in the modules, one control and storage window per bot, aligned control actions, relative times with `now` | [#114](https://github.com/AndLD/bot-rts/pull/114) | ✅ merged |
+| `chore/dev-server-launch-config` | `.claude/launch.json` for the Claude desktop app | [#116](https://github.com/AndLD/bot-rts/pull/116) | ✅ merged |

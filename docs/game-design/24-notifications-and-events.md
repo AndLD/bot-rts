@@ -26,6 +26,22 @@ where `GameEventDispatcher` fans it out to its consumers, and `RealtimeGateway` 
 `user:<id>`) as `game-event`, next to `radio-changes`, `vision`, `execution` and `script-log`. Animations, achievements and
 notifications are such consumers, outside the tick path.
 
+**Events are edges, not levels.** An event says that something **happened or began**; it is never repeated while a state merely
+goes on. A publisher that sees a lasting state on every tick or cycle (a generator without oil, a low battery, a link that stays
+down) must raise the event only when the state begins, and keep the state where it survives a restart (the module properties,
+§12.5), so a restart does not tell it again; the notification layer's coalescing (§24.2) is a second line of defence, not a
+substitute. Three kinds of events exist:
+
+| Kind | Rule | Examples |
+| --- | --- | --- |
+| Result of an action | once per action | `ShotHit`, `CraftOrdered`, `BotAssembled`, `PasswordAttemptFailed` |
+| Edge (a state begins or ends) | once per change of state, state persisted | ✅ `OutOfFuel`, `EnergyLow`; 🔴 to be audited: `LiveScanStopped`, `LinkLost` / `LinkWeak` / `LinkRestored`, `ModuleBroken`, the execution events |
+| Level (a state that lasts) | never an event; shown as state in the UI | the energy level, the link bars |
+
+🔴 _Planned (Phase 11, task 11.1):_ an inventory of every event type with this classification, fixes for the ones that still
+repeat, and a contract test that runs a bot through many ticks in an unchanged bad state and fails if any event type fires more
+than once.
+
 ## 24.2 Notifications ✅
 
 - **Realtime:** notifications are pushed over the player's Socket.IO connection as they happen.

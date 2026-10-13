@@ -105,6 +105,13 @@ snapshot stamped with that moment, and another area of the same player that stil
 restart the bots with `isLive` scanners resume their vision. The map is held in memory in chunks, at most `ENGINE_MAX_CHUNKS`;
 the least recently used chunk without unwritten changes is dropped first.
 
+## 4.5 Day and night 🔴
+
+_Planned for Phase 11 (tasks 11.2 and 11.6)._ The world has a day/night cycle on a shared clock (§12.5.1). It does not change
+the map or the rules of movement and vision; it changes how much energy solar panels make (§7.2.1) and how the map looks: a
+**dark-blue, high-opacity filter** lies over the map canvas at night, lighter in the morning and evening, absent by day. The
+filter is purely visual and lets pointer events through, so clicking and inspecting cells works at any hour (§15.6).
+
 ## 4.3 Map rendering (monitor / canvas)
 
 ✅ The map is drawn on a canvas with **sprites**, one per cell, not flat coloured squares.

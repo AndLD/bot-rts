@@ -417,6 +417,9 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   (design §10.3).
 - **Game events:** the engine emits typed events after applying a tick's commands; animations, achievements and
   notifications consume them outside the tick path (design §24).
+- **Events are edges, not levels:** an event is raised when something happens or a state begins, never on every tick or cycle a
+  state lasts; keep such a state in persisted data (module properties, not engine memory) so a restart does not repeat the
+  event, and cover it with a test that runs many ticks in the unchanged state (design §24.1).
 - **Admin endpoints** (`/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
 - **Money and goods:** credits and traded items move only through engine commands that write double-entry **ledger**

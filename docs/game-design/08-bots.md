@@ -26,7 +26,7 @@ A bot is a set of attached modules plus an identity:
 | Power | **battery** | every bot |
 | Mobility | **engine + chassis** (wheels/tracks) | only bots that must move; a bot without them is a legal stationary bot |
 
-Optional: memory (drive), storage, weapon, drill, manipulator, scanner, armor, generator, GPS. A bot without memory
+Optional: memory (drive), storage, weapon, drill, manipulator, scanner, armor, generator or solar panel (a power source, §7.2.1), GPS. A bot without memory
 cannot store scripts but can still be driven remotely.
 
 Assembly validates these rules and rejects physically impossible builds (including `totalWeight > chassis.loadCapacity`
@@ -102,4 +102,5 @@ One **repair ("fixing") module** provides both `repair(...)` and `disassemble(..
 - Terrain has no effect on movement for now (terrain types are in the backlog, §21).
 
 ✅ **Energy:** see §12.5 (idle drain per tick, operation drain per action, generator refill). A bot that runs out of
-energy stops performing operations until recharged.
+energy stops performing operations until recharged; 🔴 it resumes only after the stored energy has grown by a margin, not at
+the first unit (§12.5.2, Phase 11).

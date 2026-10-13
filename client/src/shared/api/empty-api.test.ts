@@ -12,6 +12,8 @@ function setup() {
   const api = emptyApi.injectEndpoints({
     endpoints: (builder) => ({
       read: builder.query<string, void>({ query: () => '/api/v1/read' }),
+      bare: builder.query<string, void>({ query: () => ({ url: '/api/v1/bare' }) }),
+      named: builder.query<string, void>({ query: () => ({ url: '/api/v1/named', method: 'get' }) }),
       write: builder.mutation<string, void>({ query: () => ({ url: '/api/v1/write', method: 'POST' }) })
     }),
     overrideExisting: true
@@ -55,6 +57,26 @@ describe('the retries of the API', () => {
 
     expect(result.isError).toBe(true)
     expect(calls()).toHaveLength(4)
+  })
+
+  it('reads again a request that names no method, and one that names it', async () => {
+    jest
+      .mocked(baseQueryWithRefresh)
+      .mockResolvedValueOnce(NETWORK_DOWN as never)
+      .mockResolvedValue({ data: 'hello' } as never)
+    const { store, api } = setup()
+
+    const first = store.dispatch(api.endpoints.bare.initiate())
+    await jest.advanceTimersByTimeAsync(10_000)
+    expect((await first).data).toBe('hello')
+
+    jest
+      .mocked(baseQueryWithRefresh)
+      .mockResolvedValueOnce(NETWORK_DOWN as never)
+      .mockResolvedValue({ data: 'again' } as never)
+    const second = store.dispatch(api.endpoints.named.initiate())
+    await jest.advanceTimersByTimeAsync(10_000)
+    expect((await second).data).toBe('again')
   })
 
   it('does not repeat a request that changes something, nor a refused one', async () => {

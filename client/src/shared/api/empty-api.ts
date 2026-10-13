@@ -21,7 +21,7 @@ const MAX_RETRIES = 3
 const baseQueryWithRetry = retry(baseQueryWithRefresh, {
   retryCondition: (error, args, { attempt }) =>
     attempt <= MAX_RETRIES &&
-    (error as FetchBaseQueryError | undefined)?.status === 'FETCH_ERROR' &&
+    (error as FetchBaseQueryError).status === 'FETCH_ERROR' &&
     (typeof args === 'string' || (args.method ?? 'GET').toUpperCase() === 'GET')
 })
 

@@ -17,7 +17,8 @@ describe('losing the connection to the server', () => {
 
     cy.task('startApi')
     cy.contains(banner, 'Connection restored', { timeout: 120_000 })
-    cy.get(banner).should('not.exist')
+    // It is shown for a few seconds, then it goes
+    cy.get(banner, { timeout: 15_000 }).should('not.exist')
 
     cy.window().its('isSameDocument').should('equal', true)
     cy.contains('Reconnected: a new terminal session is open.')

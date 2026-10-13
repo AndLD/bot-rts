@@ -27,6 +27,10 @@ describe('the documentation on the public pages', () => {
     expect(docsMetadata('en', ['api']).description).toMatch(/exports main\(bot\)/)
   })
 
+  it('describes a page that has no lead by the title of the documentation', () => {
+    expect(docsMetadata('en', ['faq']).description).toBe('Documentation')
+  })
+
   it('has nothing to say about a page that does not exist', () => {
     expect(docsMetadata('en', ['nowhere'])).toEqual({})
   })

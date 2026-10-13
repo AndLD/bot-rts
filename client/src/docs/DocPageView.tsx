@@ -33,7 +33,7 @@ export default function DocPageView({ page }: { page: DocPage }) {
       costFactor: catalogue.balance.researchCostFactor,
       timeFactor: catalogue.balance.researchTimeFactor
     })
-  const seeAlso = page.blocks.filter((block) => block.type === 'see')
+  const seeAlso = page.blocks.flatMap((block) => (block.type === 'see' ? [block.slug] : []))
 
   return (
     <article className="doc-page">
@@ -68,7 +68,8 @@ export default function DocPageView({ page }: { page: DocPage }) {
 
             return <Generated key={index} />
           }
-          default:
+          case 'see':
+            // Listed together at the end of the page
             return null
         }
       })}
@@ -76,9 +77,9 @@ export default function DocPageView({ page }: { page: DocPage }) {
         <nav className="doc-see" aria-label={t('nav.readNext')}>
           <strong>{t('nav.readNext')}</strong>
           <ul>
-            {seeAlso.map((block) => (
-              <li key={block.type === 'see' ? block.slug : ''}>
-                <DocLink slug={block.type === 'see' ? block.slug : ''} />
+            {seeAlso.map((slug) => (
+              <li key={slug}>
+                <DocLink slug={slug} />
               </li>
             ))}
           </ul>

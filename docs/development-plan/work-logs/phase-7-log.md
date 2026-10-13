@@ -99,3 +99,19 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Findings on the way (fixed):** a connected terminal closed its own session on every re-render (its `connection` object is new each time), which only showed once notifications made the game screen draw more often; two Cypress specs had races (the live-area spec opened the page before the area existed, the reset-password spec typed before the page changed).
 - **Known gaps handed on:** events of a bot out of reach of its base are not counted or notified until its link returns (design §11.2.1); no notification for a finished craft except the one stored at order time; the API keys page of the docs says keys are planned (Phase 8); the Lighthouse gate runs three times per page and judges the median.
 - **Next step:** Phase 8 (multiplayer and API hardening).
+
+### 2026-10-13 — first hands-on run after the phase: fixes and Phase 11
+- **Tasks:** none of the plan; follow-ups of 7.4–7.7 and 6.x found by playing
+- **Branches:** `bugfix/seed-privacy-consent`, `bugfix/game-layout-margins`, `bugfix/control-window-and-fuel-spam` (PRs #112–#114), all merged
+- **Findings (fixed):** the seed script did not compile after 7.10 added the consent fields (it is excluded from the typecheck); the
+  database was behind the schema (the engine crash-looped on a missing table, hence the new rule in AGENTS.md §7.6); the deploy-base
+  page had no margins and dark labels on black; the toolbar and the map opened two control windows for one base; an `OutOfFuel` event
+  was raised on every generator cycle and `EnergyLow` on every tick, and the notification cap counted the repeats that only joined
+  an existing notification; the notification center logged an error on every render (`relativeTime` without `now`).
+- **Decisions:** level-triggered events are told when the state begins and the state is kept in the module properties, so a restart
+  does not tell it again (design §24.1, AGENTS.md §9); coalesced repeats update the count without a new toast.
+- **Handed on:** Phase 11 (energy balance with a solar panel, day/night, power-on hysteresis, automatic reconnection, control window and
+  terminal scrolling, an audit of the remaining events). A base without power loses its radio link, so its events are kept for the
+  summary and no notification is sent (design §11.2.1); a restart while events are kept loses them.
+- **Next step:** Phase 11 (developed before Phases 8–10), starting with 11.1.
+- **Verify with:** `git log --oneline -8`; `npm run typecheck && npm run test:coverage`

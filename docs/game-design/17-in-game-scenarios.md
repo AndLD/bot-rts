@@ -131,5 +131,8 @@ and travel time force trade-offs.
 
 1. A heavy bot (lots of armor + storage) runs out of energy mid-haul.
 2. All its operations suspend; the battery drains only `idleCost` now.
-3. Its generator module (`+300` energy per operation, 250 ms delay) slowly refills the battery, and the haul resumes.
-4. The player responds by adding a bigger battery or a second generator — a hardware fix to a software problem.
+3. Its power source slowly refills the battery: a solar panel (🔴 Phase 11; its output follows the time of day, so the night is the
+   dangerous time, §12.5.1) or an oil generator (strong, but it needs oil in a storage, §7.2.1). The bot powers on again only
+   when the stored energy has grown to the resume threshold (🔴 §12.5.2), so it does not flap at the edge, and the haul resumes.
+4. The player responds by adding a bigger battery to carry the bot through the night, a second power source, or an oil
+   generator fed by a logistics bot — a hardware fix to a software problem.

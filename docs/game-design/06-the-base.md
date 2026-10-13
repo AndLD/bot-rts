@@ -22,6 +22,12 @@ Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/dom
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |
 
+🔴 **Planned (Phase 11, task 11.4):** the starter kit gets `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
+base keeps itself alive under a light duty: with the oil generator only, the first hands-on run showed that the idle drain
+(about 2.6 energy per second for the starter modules) and the 50 oil of the starter storage run out within minutes and the base
+goes dark. The oil generator stays craftable (§9) as the strong but manual option. Existing bases are not migrated; during
+development the local database is simply reset.
+
 ✅ The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
 notes remains undefined. The kit is implemented this way (task 3.9).

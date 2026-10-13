@@ -4,11 +4,11 @@
 
 | Screen | Status | Contents |
 | --- | --- | --- |
-| **Landing page** | 🔴 | Public marketing page for the game (§15.3). |
-| **Auth** | 🟡 | Login / sign-up forms with validation; toggle between them. 🔴 Animated ambient map scene beside the forms (§15.3). |
+| **Landing page** | ✅ | Public marketing page for the game (§15.3). |
+| **Auth** | ✅ | Login / sign-up forms with validation and privacy consent; toggle between them, over the animated ambient map scene (§15.3). |
 | **Verification** | ✅ | Landing page for the email-verification link; redirects on success/failure. |
 | **Inactive** | ✅ | "Check your email. We have sent verification letter." |
-| **Deploy base** | 🟡 | Red **"Deploy your base to start"** button for players without a base. |
+| **Deploy base** | ✅ | The first screen of a player without a base: set the base password (and an optional spawn seed), confirm, deploy; a centred form with side margins. |
 | **Monitor (map)** | 🟡 | Canvas map with sprites (§4.3), fog of war, pan/zoom, cell inspection, streamed from the server (Plan 6.1–6.2). |
 | **Base terminal** | 🟡 | BotOS terminal + bot list + `connect`. |
 | **Bot terminal** | ✅ | Draggable terminal window per connected bot (opened by `connect`); "Connection interrupted" on drop, resumed with a summary when the link is back (Plan 6.5). |
@@ -16,10 +16,12 @@
 | **Physical storage GUI** | 🟡 | Resources and carried items of a bot; take/drop by manual actions (Plan 6.3). |
 | **Factory GUI → Craft table → Assemble** | 🟡 | Blueprint list, resource costs, craft button, then module selection and assembly (Plan 6.4). |
 | **Bot list / fleet view** | 🟡 | Simple list of the player's bots with ids, labels, types. |
-| **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). |
+| **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). One window per bot; every action is a row of three aligned columns (§15.6). |
+| **HUD clock and night filter** | 🔴 | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
+| **Connection banner** | 🔴 | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
 | **Settings (global + profile)** | 🟡 | Category switches for manual control at game level and per player (§15.1); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
-| **Notification center** | 🔴 | Unread count, list, mark as read, preferences (§24.2). |
-| **Achievements** | 🔴 | Unlocked and locked achievements with progress (§23). |
+| **Notification center** | ✅ | Unread count, list with a count on coalesced notifications, load more, mark as read, preferences (§24.2). |
+| **Achievements** | ✅ | Unlocked and locked achievements with progress (§23). |
 | **Script monitor (`top`)** | 🔴 | Running executions with resource usage; kill control. |
 
 ---
@@ -128,3 +130,25 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   the window offers search and reopening the tutorial (§16.1). The content is bundled, so it works offline.
 - Documentation is available in English and Russian (§15.4); the tutorial teaches the first steps, the docs are the
   reference.
+
+## 15.6 Window and HUD behaviour
+
+- ✅ **One window per bot and kind.** The control panel and the storage of a bot are single windows, whether they are opened
+  from the toolbar, by clicking the bot on the map or from another window: opening one that is already open brings it to
+  the front. Windows remember their place and size per window id.
+- ✅ **Control panel layout.** Each action is a row of three columns: the action name, the inputs (they share the free width and
+  keep a readable minimum), and the button; the result of the action shows under the row.
+- 🔴 **Wider control panel** (Phase 11, task 11.8): a wider default window and a wider inputs column, so placeholders and values
+  are readable; the saved layout of an old narrow window is migrated.
+- 🔴 **Terminal follows new output only at the bottom** (task 11.9): when lines arrive, the terminal scrolls down **only if it was
+  already scrolled to the bottom** just before; a player who scrolled up to read is not pulled down, and scrolling to the bottom
+  again resumes following.
+- 🔴 **Automatic reconnection** (task 11.7): when the server goes down or the network drops, the client reconnects with backoff
+  without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
+  the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or
+  windows appear after it.
+- 🔴 **In-game clock and night filter** (task 11.6): the HUD shows the in-game time and the day phase (§12.5.1). A
+  **dark-blue, high-opacity filter** lies over the map canvas, strongest at night (about 0.65), light in the morning and evening
+  (about 0.25), none by day, with smooth transitions and reduced motion respected. The filter layer lets pointer events through,
+  so map clicks, hover and the cell inspector work at any hour.
+- ✅ **Relative times** in the notification center ("5 seconds ago") use the current time and are never shown in the future.

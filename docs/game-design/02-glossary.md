@@ -22,6 +22,10 @@
 | **Corpse base** | A base whose owner has lost control (no working wireless adapter). It stays on the map and can be repaired (§6.3). |
 | **Stale bot** | A bot whose base is a corpse base; it has no active owner, keeps running, and can be adopted by anyone with access (§6.3, §11.2.2). |
 | **Adopt** | Re-assign a bot to the base the connection came from, after authenticating on it (§11.2.2). Bases cannot be adopted. |
+| **Power source** | A module that makes energy: the oil **generator** (burns oil, strong, manual) or the 🔴 **solar panel** (no fuel, weak, follows the sun). §7.2.1. |
+| **Sunlight factor** | 🔴 The share of its peak output a solar panel makes at a time of day (night 0.1, morning and evening 0.6, day 1.0). §12.5.1. |
+| **Game time** | 🔴 The shared in-game clock: one in-game hour is one real minute, a day is 24 real minutes. §12.5.1. |
+| **Unpowered** | 🔴 The state of a bot whose battery reached 0: it cannot spend energy and its link is down until the stored energy grows to the resume threshold (10). §12.5.2. |
 | **Engine** | The single authoritative game process: tick loop, world state, QuickJS script contexts, and the only writer of world data (§12.2.2, §14.2). |
 | **Result** | The `{ ok, data }` / `{ ok: false, code, msg }` object returned by every script API call (§10.3). |
 | **Game event** | A typed fact emitted by the engine each tick (moved, shot, mined, …) that feeds animations, achievements and notifications (§24.1). |

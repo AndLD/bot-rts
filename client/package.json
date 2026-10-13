@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 5173",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p cypress/tsconfig.json",
+    "typecheck": "next typegen && tsc --noEmit -p tsconfig.typecheck.json && tsc --noEmit -p cypress/tsconfig.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "cypress:open": "cypress open",

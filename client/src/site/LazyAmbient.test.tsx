@@ -1,12 +1,17 @@
 import { act, render, screen } from '@testing-library/react'
 import LazyAmbient, { AMBIENT_DELAY_MS } from './LazyAmbient'
 
+jest.mock('../features/ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
+// The loader of a dynamic import is run, the way Next.js runs it when the component is first shown
 jest.mock('next/dynamic', () => ({
   __esModule: true,
-  default: () =>
-    function Scene() {
+  default: (load: () => Promise<unknown>) => {
+    void load()
+
+    return function Scene() {
       return <div data-testid="ambient-scene" />
     }
+  }
 }))
 
 describe('LazyAmbient', () => {

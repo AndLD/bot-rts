@@ -1,16 +1,19 @@
 import { SITE_URL } from '../site/config'
-import { PUBLIC_PATHS } from '../site/paths'
 import robots from './robots'
 import sitemap from './sitemap'
+
+jest.mock('../site/paths', () => ({ PUBLIC_PATHS: ['', '/docs'] }))
 
 describe('sitemap', () => {
   it('lists every public page in each language with its alternates', () => {
     const entries = sitemap()
 
-    expect(entries).toHaveLength(PUBLIC_PATHS.length * 2)
+    expect(entries).toHaveLength(4)
     expect(entries[0]).toMatchObject({ url: `${SITE_URL}/`, priority: 1 })
     expect(entries[1]).toMatchObject({ url: `${SITE_URL}/ru` })
     expect(entries[0].alternates?.languages).toMatchObject({ ru: `${SITE_URL}/ru` })
+    expect(entries[2]).toMatchObject({ url: `${SITE_URL}/docs`, priority: 0.6 })
+    expect(entries[3]).toMatchObject({ url: `${SITE_URL}/ru/docs` })
   })
 })
 

@@ -42,6 +42,6 @@ AGENTS.md §7.1).
 | `feature/7.1-ambient-scene` | 7.1, 7.2 | [#104](https://github.com/AndLD/bot-rts/pull/104) | ✅ merged |
 | `feature/7.3-landing-page` | 7.3 | [#105](https://github.com/AndLD/bot-rts/pull/105) | ✅ merged |
 | `feature/7.10-privacy-consent` | 7.10 | [#106](https://github.com/AndLD/bot-rts/pull/106) | ✅ merged |
-| `feature/7.5-achievements-ui` | 7.4, 7.5 | [#107](https://github.com/AndLD/bot-rts/pull/107) | 🟡 |
-| `feature/7.7-notifications-ui` | 7.6, 7.7 | [#108](https://github.com/AndLD/bot-rts/pull/108) | 🟡 |
+| `feature/7.5-achievements-ui` | 7.4, 7.5 | [#107](https://github.com/AndLD/bot-rts/pull/107) | ✅ merged |
+| `feature/7.7-notifications-ui` | 7.6, 7.7 | [#108](https://github.com/AndLD/bot-rts/pull/108) | ✅ merged |
 | `feature/7.11-player-docs` | 7.11, 7.12, 7.13 | _PR_ | 🟡 |

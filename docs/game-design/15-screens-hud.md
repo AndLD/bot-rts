@@ -18,7 +18,7 @@
 | **Bot list / fleet view** | 🟡 | Simple list of the player's bots with ids, labels, types. |
 | **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). One window per bot; every action is a row of three aligned columns (§15.6). |
 | **HUD clock and night filter** | ✅ | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
-| **Connection banner** | 🔴 | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
+| **Connection banner** | ✅ | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
 | **Settings (global + profile)** | 🟡 | Category switches for manual control at game level and per player (§15.1); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
 | **Notification center** | ✅ | Unread count, list with a count on coalesced notifications, load more, mark as read, preferences (§24.2). |
 | **Achievements** | ✅ | Unlocked and locked achievements with progress (§23). |
@@ -143,10 +143,10 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 - 🔴 **Terminal follows new output only at the bottom** (task 11.9): when lines arrive, the terminal scrolls down **only if it was
   already scrolled to the bottom** just before; a player who scrolled up to read is not pulled down, and scrolling to the bottom
   again resumes following.
-- 🔴 **Automatic reconnection** (task 11.7): when the server goes down or the network drops, the client reconnects with backoff
+- ✅ **Automatic reconnection** (task 11.7): when the server goes down or the network drops, the client reconnects with backoff
   without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
   the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or
-  windows appear after it.
+  windows appear after it. Implementation: the Socket.IO client keeps one `Socket` and reconnects with a 1-5 s growing pause (the server puts it back in its player room on every connection); `SocketProvider` tells `lost` / `reconnecting` / `restored` (shown 4 s) to `ConnectionBanner` and, once back, invalidates every RTK Query tag so what is on screen is read again; a read that never reached the server is retried up to three times (never a request that changes something), and a failed re-read of the bases does not take the game off the screen; the map reloads on `connect`; each terminal opens a new stored session on its bot (the server closes sessions with the connection) and says so; windows live in Redux, so none is duplicated; the toasts listen on the same `Socket`, so they are not registered twice.
 - ✅ **In-game clock and night filter** (task 11.6): the HUD shows the in-game time and the day phase (§12.5.1). A
   **dark-blue, high-opacity filter** lies over the map canvas, strongest at night (about 0.65), light in the morning and evening
   (about 0.25), none by day, with smooth transitions and reduced motion respected. The filter layer lets pointer events through,

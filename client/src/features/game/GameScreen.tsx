@@ -10,6 +10,7 @@ import NotificationCenter from '../notifications/NotificationCenter'
 import NotificationToasts from '../notifications/NotificationToasts'
 import AchievementsPanel from '../achievements/AchievementsPanel'
 import AchievementToasts from '../achievements/AchievementToasts'
+import ConnectionBanner from './ConnectionBanner'
 import GameClock from '../daynight/GameClock'
 import GameMap from '../map/GameMap'
 import ControlPanel from '../control/ControlPanel'
@@ -165,6 +166,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         })}
       </div>
       <GameClock />
+      <ConnectionBanner />
       <WindowManager renderWindow={renderWindow} />
       <TutorialOverlay />
       <AchievementToasts />

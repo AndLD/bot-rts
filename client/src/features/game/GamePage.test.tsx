@@ -1,8 +1,9 @@
 import { BOT_TYPE } from '@lib/utils/interfaces/bots'
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
+import { api } from '../../shared/api'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
 import GamePage from './GamePage'
 
@@ -80,6 +81,22 @@ describe('GamePage', () => {
     await userEvent.click(await screen.findByText('Deploy', { selector: '.ant-modal button span' }))
 
     expect(await screen.findByText('the terminal')).toBeInTheDocument()
+  })
+
+  it('keeps the game on screen when reading the bases again fails, as while the server restarts', async () => {
+    const store = storeWithToken(makeJwt(60))
+    const serving = (basesAnswer: object) =>
+      query.mockImplementation((async (args: { url: string }) =>
+        args.url === '/api/v1/bots' ? basesAnswer : { data: null }) as never)
+    serving({ data: [{ _id: 'b1', type: BOT_TYPE.BASE }] })
+    renderApp(<GamePage />, { store })
+    expect(await screen.findByText('the terminal')).toBeInTheDocument()
+
+    serving({ error: { status: 500, data: {} } })
+    await act(async () => void store.dispatch(api.util.invalidateTags(['Bases'])))
+
+    expect(screen.getByText('the terminal')).toBeInTheDocument()
+    expect(screen.queryByText('Could not load your base')).not.toBeInTheDocument()
   })
 
   it('says so when the bases cannot be loaded', async () => {

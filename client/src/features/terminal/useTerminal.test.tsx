@@ -15,6 +15,7 @@ function createSocket(handlers: Record<string, Handler>, isActive = true) {
   const listeners = new Map<string, Set<Handler>>()
   return {
     active: isActive,
+    connected: isActive,
     emit: jest.fn((event: string, ...args: never[]) => handlers[event]?.(...args)),
     on: jest.fn((event: string, listener: Handler) =>
       listeners.set(event, (listeners.get(event) ?? new Set()).add(listener))
@@ -59,6 +60,66 @@ async function connected(overrides: Record<string, Handler> = {}, options: Termi
   await waitFor(() => expect(hook.result.current.currentBotId).toBe('base-1'))
   return { socket, ...hook }
 }
+
+describe('useTerminal: after the connection was lost', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  // The session the last command went to
+  const lastSession = (socket: unknown) =>
+    (socket as { emit: jest.Mock }).emit.mock.calls.filter(([event]) => event === 'terminal-command').at(-1)?.[1]
+
+  it('opens a new session on the same bot when the connection is back, and talks to it', async () => {
+    let opened = 0
+    const { socket, result } = await connected({
+      'open-terminal': ((_bot: string, ack: (session: unknown) => void) =>
+        ack({ _id: `session-${++opened}` })) as Handler
+    })
+    act(() => result.current.run('ls'))
+    expect(lastSession(socket)).toBe('session-1')
+
+    act(() => socket.push('disconnect'))
+    act(() => socket.push('connect'))
+
+    await waitFor(() => expect(result.current.lines.at(-1)).toBe('Reconnected: a new terminal session is open.'))
+    expect(socket.emit).toHaveBeenLastCalledWith('open-terminal', 'base-1', expect.any(Function))
+    act(() => result.current.run('ls'))
+    expect(lastSession(socket)).toBe('session-2')
+  })
+
+  it('does nothing when it connects for the first time', async () => {
+    const { socket, result } = await connected()
+
+    act(() => socket.push('connect'))
+
+    expect(result.current.lines).toEqual([])
+    expect(socket.emit).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the old session and says nothing when the new one cannot be opened', async () => {
+    let attempt = 0
+    const { socket, result } = await connected({
+      'open-terminal': ((_bot: string, ack: (session: unknown) => void) =>
+        ack(attempt++ === 0 ? { _id: 'session-1' } : null)) as Handler
+    })
+
+    act(() => socket.push('disconnect'))
+    act(() => socket.push('connect'))
+    act(() => result.current.run('ls'))
+
+    expect(result.current.lines.some((line) => line.startsWith('Reconnected'))).toBe(false)
+    expect(lastSession(socket)).toBe('session-1')
+  })
+
+  it('does not send a command while the connection is down', async () => {
+    const { socket, result } = await connected()
+    ;(socket as unknown as { connected: boolean }).connected = false
+
+    act(() => result.current.run('ls'))
+
+    expect(result.current.lines.at(-1)).toBe('The terminal is not connected yet')
+    expect(lastSession(socket)).toBeUndefined()
+  })
+})
 
 describe('useTerminal: connecting', () => {
   beforeEach(() => jest.clearAllMocks())

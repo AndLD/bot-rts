@@ -6,7 +6,9 @@ import { TutorialFacts, TutorialProgress, TutorialProgressRepository } from './t
 export class TutorialService {
   constructor(
     private readonly progress: TutorialProgressRepository,
-    private readonly facts: TutorialFacts
+    private readonly facts: TutorialFacts,
+    // Told once when a player finishes the tutorial (the achievements count it)
+    private readonly onCompleted: (userId: string) => void = () => undefined
   ) {}
 
   async get(userId: string): Promise<ITutorial> {
@@ -20,6 +22,9 @@ export class TutorialService {
       if (status !== current.status || done.length !== current.done.length) {
         current = { status, done }
         await this.progress.save(userId, current)
+      }
+      if (status === 'completed') {
+        this.onCompleted(userId)
       }
     }
 

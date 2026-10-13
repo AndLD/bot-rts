@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
+import { AchievementService } from '../achievements/application/achievement.service'
+import { AchievementsModule } from '../achievements/achievements.module'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import {
@@ -14,6 +16,7 @@ import { PrismaTutorialProgressRepository } from './infrastructure/prisma-tutori
 import { TutorialController } from './presentation/tutorial.controller'
 
 @Module({
+  imports: [AchievementsModule],
   controllers: [TutorialController],
   providers: [
     {
@@ -29,8 +32,9 @@ import { TutorialController } from './presentation/tutorial.controller'
     },
     {
       provide: TutorialService,
-      inject: [TUTORIAL_PROGRESS_REPOSITORY, TUTORIAL_FACTS],
-      useFactory: (progress: TutorialProgressRepository, facts: TutorialFacts) => new TutorialService(progress, facts)
+      inject: [TUTORIAL_PROGRESS_REPOSITORY, TUTORIAL_FACTS, AchievementService],
+      useFactory: (progress: TutorialProgressRepository, facts: TutorialFacts, achievements: AchievementService) =>
+        new TutorialService(progress, facts, achievements.tutorialCompleted.bind(achievements))
     }
   ]
 })

@@ -12,6 +12,7 @@ import VerificationPage from './VerificationPage'
 const push = jest.fn()
 let search = ''
 
+jest.mock('../achievements/AchievementBadges', () => ({ __esModule: true, default: () => <div>the badges</div> }))
 jest.mock('../ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push }),
@@ -170,6 +171,12 @@ describe('LinkResultPage', () => {
 })
 
 describe('AccountPage', () => {
+  it('shows the badges the player earned', () => {
+    renderApp(<AccountPage />)
+
+    expect(screen.getByText('the badges')).toBeInTheDocument()
+  })
+
   it('changes the password', async () => {
     const auth = createFakeAuth()
     renderApp(<AccountPage />, { auth })

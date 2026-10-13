@@ -63,6 +63,30 @@ describe('RealtimeGateway', () => {
     expect(emitted).toEqual([{ room: 'user:alice', event: 'game-event', payload: event }])
   })
 
+  it('pushes something that is not a game event of the engine to the room of a player', () => {
+    const { gateway, server, emitted } = setup()
+
+    gateway.push('alice', 'achievement-unlocked', {
+      id: 'firstSteps',
+      family: 'firstSteps',
+      level: 1,
+      levels: 1,
+      threshold: 1,
+      unlockedAt: 5
+    })
+    gateway.afterInit(server)
+    gateway.push('alice', 'achievement-unlocked', {
+      id: 'firstSteps',
+      family: 'firstSteps',
+      level: 1,
+      levels: 1,
+      threshold: 1,
+      unlockedAt: 5
+    })
+
+    expect(emitted).toEqual([expect.objectContaining({ room: 'user:alice', event: 'achievement-unlocked' })])
+  })
+
   it('says nothing before the server exists and stops listening on shutdown', () => {
     const { gateway, off } = setup()
 

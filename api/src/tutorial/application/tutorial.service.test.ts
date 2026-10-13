@@ -16,14 +16,14 @@ class InMemoryProgress implements TutorialProgressRepository {
   }
 }
 
-function setup(done: TutorialStep[] = []) {
+function setup(done: TutorialStep[] = [], onCompleted?: (userId: string) => void) {
   const progress = new InMemoryProgress()
   const happened = new Set<TutorialStep>(done)
   const facts: TutorialFacts = {
     check: jest.fn(async () => Object.fromEntries(TUTORIAL_STEPS.map((step) => [step, happened.has(step)])) as never)
   }
 
-  return { progress, facts, happened, service: new TutorialService(progress, facts) }
+  return { progress, facts, happened, service: new TutorialService(progress, facts, onCompleted) }
 }
 
 describe('TutorialService', () => {
@@ -51,6 +51,17 @@ describe('TutorialService', () => {
     happened.clear()
     expect((await service.get('u')).steps.find((step) => step.id === 'scan')?.isDone).toBe(true)
     expect(progress.saved).toHaveLength(1)
+  })
+
+  it('tells once when a player finishes the tutorial', async () => {
+    const onCompleted = jest.fn()
+    const { service } = setup([...TUTORIAL_STEPS], onCompleted)
+
+    await service.get('u')
+    await service.get('u')
+
+    expect(onCompleted).toHaveBeenCalledTimes(1)
+    expect(onCompleted).toHaveBeenCalledWith('u')
   })
 
   it('completes when every step is done, and stops looking after that', async () => {

@@ -31,6 +31,8 @@ jest.mock('../control/ControlPanel', () => ({
     </div>
   )
 }))
+jest.mock('../achievements/AchievementsPanel', () => ({ __esModule: true, default: () => <div>the achievements</div> }))
+jest.mock('../achievements/AchievementToasts', () => ({ __esModule: true, default: () => <div>the toasts</div> }))
 jest.mock('../settings/SettingsPanel', () => ({ __esModule: true, default: () => <div>the settings</div> }))
 jest.mock('../storage/StoragePanel', () => ({
   __esModule: true,
@@ -97,6 +99,15 @@ describe('GameScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
 
     expect(screen.getByText('the settings')).toBeInTheDocument()
+  })
+
+  it('opens the achievements from the toolbar, and listens for new ones', () => {
+    renderApp(<GameScreen baseId="b1" />)
+
+    expect(screen.getByText('the toasts')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Achievements' }))
+
+    expect(screen.getByText('the achievements')).toBeInTheDocument()
   })
 
   it('opens the factory of the base from the toolbar', () => {

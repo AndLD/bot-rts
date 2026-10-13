@@ -36,6 +36,7 @@ import { LiveVision } from './live-vision'
 import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
 import { ACTION_CATEGORIES, controlledBotOf, WorldActionName } from './world-actions'
+import { worldActionEvents } from './world-action-events'
 import { categoryOfFunction, ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
@@ -231,6 +232,9 @@ export class EngineCore {
       await this.deps.world.sync()
       try {
         const result = await this.deps.actions.execute(name, args)
+        for (const event of worldActionEvents(name, args, result, this.deps.outbox.now())) {
+          this.deps.outbox.publish(event)
+        }
         if (name === 'access.adopt') {
           // The bot has another owner now: what its old owner left running stops with them
           await this.killAllOf(args[2] as string)

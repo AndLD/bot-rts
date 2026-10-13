@@ -172,7 +172,8 @@
         "warning": "This erases your personal data. Your base stays on the map as the ruin of a deleted player.",
         "submit": "Delete my account",
         "sent": "We sent a confirmation link to your email. Follow it to finish."
-      }
+      },
+      "badges": "Achievements"
     }
   },
   "game": {
@@ -340,7 +341,8 @@
       "settings": "Settings",
       "editor": "Editor",
       "botTerminal": "Terminal {botId}",
-      "botControl": "Control {botId}"
+      "botControl": "Control {botId}",
+      "achievements": "Achievements"
     }
   },
   "storage": {
@@ -546,6 +548,67 @@
     "contact": {
       "title": "Contact",
       "text": "Questions about your data: {email}."
+    }
+  },
+  "achievements": {
+    "title": "Achievements",
+    "unlocked": "Achievement unlocked",
+    "loading": "Loading...",
+    "loadFailed": "Could not load the achievements",
+    "summary": "{done} of {total} earned",
+    "earnedOn": "Earned {date}",
+    "progress": "{progress} / {threshold}",
+    "badges": "Badges",
+    "noBadges": "No badges yet",
+    "families": {
+      "firstSteps": {
+        "title": "First steps",
+        "description": "Deploy a base"
+      },
+      "helloWorld": {
+        "title": "Hello, world",
+        "description": "Run a first script"
+      },
+      "prospector": {
+        "title": "Prospector",
+        "description": "Scan {count} cells"
+      },
+      "miner": {
+        "title": "Miner",
+        "description": "Mine {count} units of resources"
+      },
+      "fabricator": {
+        "title": "Fabricator",
+        "description": "Order {count} modules from the factory"
+      },
+      "assembler": {
+        "title": "Assembler",
+        "description": "Assemble {count} bots"
+      },
+      "fixer": {
+        "title": "Fixer",
+        "description": "Repair {count} modules"
+      },
+      "scavenger": {
+        "title": "Scavenger",
+        "description": "Disassemble {count} modules"
+      },
+      "adopter": {
+        "title": "Adopter",
+        "description": "Adopt a stale bot"
+      },
+      "marksman": {
+        "title": "Marksman",
+        "description": "Hit {count} shots"
+      },
+      "traveller": {
+        "title": "Traveller",
+        "description": "Move your bots {count} cells"
+      },
+      "graduate": {
+        "title": "Graduate",
+        "description": "Complete the tutorial"
+      }
     }
   }
 }

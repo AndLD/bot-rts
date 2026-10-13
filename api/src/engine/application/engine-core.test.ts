@@ -911,6 +911,7 @@ describe('EngineCore', () => {
 
     it('does not ask for a link when the action controls no bot', async () => {
       const { core, radio, actions } = await setup()
+      actions.execute.mockResolvedValueOnce({ bot: { id: 'base-1' } })
 
       const result = core.act('bots.deployUserBase', [{ id: 'u', name: 'U' }, { password: 'x' }])
       await core.runTick()
@@ -918,6 +919,26 @@ describe('EngineCore', () => {
 
       expect(radio.ensureControl).not.toHaveBeenCalled()
       expect(actions.execute).toHaveBeenCalled()
+    })
+
+    it('publishes what a world action did as an event, and nothing for an action without one or one that failed', async () => {
+      const { core, actions, outbox } = await setup()
+      actions.execute.mockResolvedValueOnce({ bot: { id: 'base-1' } })
+
+      const deploy = core.act('bots.deployUserBase', [{ id: 'u', name: 'U' }, { password: 'x' }])
+      await core.runTick()
+      await deploy
+      const files = core.act('files.remove', ['user-1', 'bot-1', 'a.js'])
+      await core.runTick()
+      await files
+      actions.execute.mockRejectedValueOnce(new Error('no'))
+      const failing = core.act('factory.craft', ['user-1', 'bot-1', 'scanner-class1', 1]).catch(() => undefined)
+      await core.runTick()
+      await failing
+
+      expect(outbox.drain()).toEqual([
+        expect.objectContaining({ type: 'BaseDeployed', parties: [{ userId: 'u', botId: 'base-1' }] })
+      ])
     })
 
     it('tells the link status of a bot, and recomputes the networks that changed every tick', async () => {

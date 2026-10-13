@@ -220,6 +220,9 @@ const injectedRtkApi = api.injectEndpoints({
     tutorialRestart: build.mutation<TutorialRestartApiResponse, TutorialRestartApiArg>({
       query: () => ({ url: `/api/v1/tutorial/restart`, method: 'POST' })
     }),
+    achievementsList: build.query<AchievementsListApiResponse, AchievementsListApiArg>({
+      query: () => ({ url: `/api/v1/achievements` })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -421,6 +424,8 @@ export type TutorialSkipApiResponse = /** status 200  */ TutorialResponse
 export type TutorialSkipApiArg = void
 export type TutorialRestartApiResponse = /** status 200  */ TutorialResponse
 export type TutorialRestartApiArg = void
+export type AchievementsListApiResponse = /** status 200  */ AchievementResponse[]
+export type AchievementsListApiArg = void
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
 export type UserInfoResponse = {
@@ -875,6 +880,21 @@ export type TutorialResponse = {
   /** The first step not done, while the tutorial is active */
   current: ('openTerminal' | 'listModules' | 'scan' | 'writeScript' | 'runScript' | 'craft' | 'assemble') | null
 }
+export type AchievementResponse = {
+  /** For example `prospector.2` */
+  id: string
+  /** The idea it belongs to; its texts are the translation keys of the family */
+  family: string
+  level: number
+  /** How many levels the family has */
+  levels: number
+  /** What the counter must reach to unlock it */
+  threshold: number
+  /** Where the counter is now, at most the threshold */
+  progress: number
+  /** When it was unlocked (ms since the epoch) */
+  unlockedAt: number | null
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -927,5 +947,6 @@ export const {
   useTutorialGetQuery,
   useTutorialSkipMutation,
   useTutorialRestartMutation,
+  useAchievementsListQuery,
   useHealthCheckQuery
 } = injectedRtkApi

@@ -48,5 +48,14 @@ export type GameEvent =
       missed: { scans: number; events: number; byType: Record<string, number> }
     })
   | (Base & { type: 'LinkWeak'; bars: RadioBars })
+  // What a player's order to the world did (the engine publishes them after it ran the order, design §24.1)
+  | (Base & { type: 'BaseDeployed' })
+  // The factory queued `count` modules; the last is ready at `readyAt` (game time, ms)
+  | (Base & { type: 'CraftOrdered'; module: string; count: number; readyAt: number })
+  | (Base & { type: 'ResearchOrdered'; module: string; readyAt: number })
+  | (Base & { type: 'BotAssembled'; newBotId: string })
+  | (Base & { type: 'ModuleRepaired'; targetBotId: string; moduleId: string })
+  | (Base & { type: 'ModuleDisassembled'; targetBotId: string; moduleId: string })
+  | (Base & { type: 'BotAdopted'; adoptedBotId: string })
 
 export type GameEventType = GameEvent['type']

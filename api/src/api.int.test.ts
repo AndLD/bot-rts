@@ -346,6 +346,24 @@ describe('authorization', () => {
     expect(doneSteps(restarted.body)).toEqual(['scan'])
   })
 
+  it('lists the achievements of a player with their progress', async () => {
+    await api().get('/api/v1/achievements').expect(401)
+    const { accessToken } = await signUp('alice@example.com')
+
+    const list = (await api().get('/api/v1/achievements').set(bearer(accessToken)).expect(200)).body
+
+    expect(list.length).toBeGreaterThan(10)
+    expect(list.find((item: { id: string }) => item.id === 'prospector.2')).toEqual({
+      id: 'prospector.2',
+      family: 'prospector',
+      level: 2,
+      levels: 3,
+      threshold: 1000,
+      progress: 0,
+      unlockedAt: null
+    })
+  })
+
   it('lets an admin list and edit regular users but not change a status', async () => {
     const alice = await signUp('alice@example.com')
     const admin = await signUp('admin@example.com', 'Admin')

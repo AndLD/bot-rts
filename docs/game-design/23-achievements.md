@@ -17,6 +17,8 @@
 - An unlock raises a realtime notification (§24) and appears in the player's achievements page with progress bars for
   locked ones.
 
+**Implementation (Phase 7).** `AchievementService` is a game-event consumer (§24.1) in the API process. It counts what the player's own events add to per-player counters (`cellsScanned`, `unitsMined`, `shotsHit`, `scriptRuns`, `cellsTravelled`, and the world orders the engine now reports as events: `BaseDeployed`, `CraftOrdered`, `BotAssembled`, `ModuleRepaired`, `ModuleDisassembled`, `BotAdopted`), keeps them in memory and writes them in batches every two seconds, and unlocks every achievement whose counter reached its threshold. The definitions are data (`api/src/achievements/domain/achievement-definitions.ts`): a family with a counter and a list of thresholds, one achievement per level (`prospector.1`, …), optionally hidden; the texts are the translation keys of the family. It works for players who are not logged in, because it never looks at sockets; an unlock is pushed as `achievement-unlocked` to the sockets the player has now, and `GET /api/v1/achievements` lists everything with progress. Events of a bot that is out of reach of its base arrive only as the summary of §11.2.1 and are not counted.
+
 ## 23.2 Initial set (illustrative; final list is content work)
 
 | Achievement | Trigger |

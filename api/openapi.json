@@ -2157,6 +2157,45 @@
         ]
       }
     },
+    "/api/v1/achievements": {
+      "get": {
+        "operationId": "achievementsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "achievements"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -3804,6 +3843,48 @@
           "status",
           "steps",
           "current"
+        ]
+      },
+      "AchievementResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "For example `prospector.2`"
+          },
+          "family": {
+            "type": "string",
+            "description": "The idea it belongs to; its texts are the translation keys of the family"
+          },
+          "level": {
+            "type": "number"
+          },
+          "levels": {
+            "type": "number",
+            "description": "How many levels the family has"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "What the counter must reach to unlock it"
+          },
+          "progress": {
+            "type": "number",
+            "description": "Where the counter is now, at most the threshold"
+          },
+          "unlockedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "When it was unlocked (ms since the epoch)"
+          }
+        },
+        "required": [
+          "id",
+          "family",
+          "level",
+          "levels",
+          "threshold",
+          "progress",
+          "unlockedAt"
         ]
       },
       "HealthResponse": {

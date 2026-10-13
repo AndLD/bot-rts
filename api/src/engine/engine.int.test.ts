@@ -193,6 +193,51 @@ describe("the engine to the player's sockets", () => {
   })
 })
 
+describe('achievements from the events of the engine (design §23)', () => {
+  it('unlocks what a player earns by deploying a base and running a script, tells their sockets, and keeps the progress', async () => {
+    players += 1
+    const player = await signUpVerified(testApp, database, `player${players}@example.com`)
+    const socket = connect(testApp.url, {
+      auth: { token: player.accessToken },
+      reconnection: false,
+      transports: ['websocket']
+    })
+    await new Promise<void>((resolve, reject) => {
+      socket.on('connect', () => resolve())
+      socket.on('connect_error', reject)
+    })
+    const unlocked: string[] = []
+    socket.on('achievement-unlocked', (unlock: { id: string }) => unlocked.push(unlock.id))
+
+    const deployed = await request(testApp.url)
+      .post('/api/v1/bots/base')
+      .set(bearer(player.accessToken))
+      .send({ password: 'secret1' })
+      .expect(201)
+    await until(() => unlocked.includes('firstSteps'), 'the first achievement')
+
+    const botId = deployed.body.bot._id as string
+    const drive = await database.client.module.findFirstOrThrow({ where: { botId, type: 'drive' } })
+    await request(testApp.url)
+      .put(`/api/v1/bots/${botId}/drives/${drive.id}/file`)
+      .set(bearer(player.accessToken))
+      .send({ path: 'main.js', content: 'export async function main(bot) { bot.log("hi") }' })
+      .expect(200)
+    await port.start({ userId: player.userId, botId, file: '/memory-class1/main.js', args: [] })
+    await until(() => unlocked.includes('helloWorld'), 'the second achievement')
+
+    const list = (await request(testApp.url).get('/api/v1/achievements').set(bearer(player.accessToken)).expect(200))
+      .body as Array<{ id: string; unlockedAt: number | null }>
+    expect(
+      list
+        .filter((item) => item.unlockedAt !== null)
+        .map((item) => item.id)
+        .sort()
+    ).toEqual(['firstSteps', 'helloWorld'])
+    socket.close()
+  })
+})
+
 describe('scripts from the terminal', () => {
   const ask = <T>(socket: Socket, event: string, ...args: unknown[]) =>
     new Promise<T>((resolve, reject) =>

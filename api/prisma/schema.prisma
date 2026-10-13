@@ -102,6 +102,8 @@ model User {
   blueprints           Blueprint[]
   executions           Execution[]
   settings             UserSetting?
+  achievementCounters  AchievementCounter[]
+  achievementUnlocks   AchievementUnlock[]
 
   @@index([createdAt])
   @@map("users")
@@ -457,4 +459,29 @@ model UserSetting {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
+}
+
+// What the game counts for a player (design §23.1): one row per counter, only ever growing
+model AchievementCounter {
+  userId    String   @map("user_id") @db.Uuid
+  counter   String
+  value     BigInt   @default(0)
+  updatedAt DateTime @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, counter])
+  @@map("achievement_counters")
+}
+
+// The achievements a player has earned, and when
+model AchievementUnlock {
+  userId        String   @map("user_id") @db.Uuid
+  achievementId String   @map("achievement_id")
+  unlockedAt    DateTime @map("unlocked_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+  @@map("achievement_unlocks")
 }

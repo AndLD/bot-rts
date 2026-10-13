@@ -1,6 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common'
 import { AppConfig } from './config/app-config'
 import { ConfigModule } from './config/config.module'
+import { AchievementsModule } from './achievements/achievements.module'
 import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
 import { CraftingModule } from './crafting/crafting.module'
@@ -39,6 +40,7 @@ export class AppModule {
         MapViewModule,
         SettingsModule,
         TutorialModule,
+        AchievementsModule,
         TerminalModule,
         EngineModule,
         RealtimeModule,

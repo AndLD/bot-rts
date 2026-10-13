@@ -1,6 +1,7 @@
 import { Inject, OnApplicationShutdown } from '@nestjs/common'
 import { OnGatewayConnection, OnGatewayInit, WebSocketGateway } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
+import { ServerToClientEvents } from '../../../../lib/utils/socket-events'
 import { GameEvent } from '../domain/game-event'
 import { EngineEvent } from '../application/engine-ports'
 import { ENGINE_PORT, EnginePort } from '../application/engine-port'
@@ -36,6 +37,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnAp
   // The game events come through the dispatcher, like for any consumer
   consume(userId: string, event: GameEvent) {
     this.server?.to(roomOf(userId)).emit('game-event', event)
+  }
+
+  // Tells a player's connections of something that is not a game event of the engine, such as an achievement
+  push<E extends keyof ServerToClientEvents>(userId: string, event: E, ...args: Parameters<ServerToClientEvents[E]>) {
+    this.server?.to(roomOf(userId)).emit(event, ...args)
   }
 
   private forward(event: EngineEvent) {

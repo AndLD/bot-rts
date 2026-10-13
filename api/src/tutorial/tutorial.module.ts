@@ -34,7 +34,7 @@ import { TutorialController } from './presentation/tutorial.controller'
       provide: TutorialService,
       inject: [TUTORIAL_PROGRESS_REPOSITORY, TUTORIAL_FACTS, AchievementService],
       useFactory: (progress: TutorialProgressRepository, facts: TutorialFacts, achievements: AchievementService) =>
-        new TutorialService(progress, facts, (userId) => achievements.record(userId, 'tutorialsCompleted'))
+        new TutorialService(progress, facts, achievements.tutorialCompleted.bind(achievements))
     }
   ]
 })

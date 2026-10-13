@@ -46,6 +46,11 @@ export class AchievementService implements GameEventConsumer {
     this.add(userId, { [counter]: amount })
   }
 
+  // For the tutorial service: a player finished it
+  tutorialCompleted(userId: string): void {
+    this.record(userId, 'tutorialsCompleted')
+  }
+
   onUnlocked(listener: UnlockListener): () => void {
     this.listeners.add(listener)
 

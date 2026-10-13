@@ -9,7 +9,7 @@ const isCounter = (value: string): value is Counter => (COUNTERS as readonly str
 export class PrismaAchievementRepository implements AchievementRepository {
   constructor(
     private readonly db: PrismaClient,
-    private readonly now: () => Date = () => new Date()
+    private readonly now: () => Date
   ) {}
 
   async addToCounters(userId: string, deltas: Totals): Promise<Totals> {

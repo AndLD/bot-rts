@@ -117,6 +117,15 @@ describe('AchievementService', () => {
     expect(repository.counterRows.get('alice')).toEqual({ basesDeployed: 1 })
   })
 
+  it('counts a finished tutorial', async () => {
+    const { service, repository } = setup()
+
+    service.tutorialCompleted('alice')
+    await service.flush()
+
+    expect(repository.counterRows.get('alice')).toEqual({ tutorialsCompleted: 1 })
+  })
+
   it('writes nothing when nothing was counted', async () => {
     const { service, repository } = setup()
 

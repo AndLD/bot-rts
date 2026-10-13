@@ -56,10 +56,12 @@ export function worldActionEvents(
     return []
   }
 
-  const controlled = controlledBotOf(name, args)
-  const botId =
-    controlled?.botId ?? (name === 'bots.deployUserBase' ? (result as { bot: { id: string } }).bot.id : null)
-  const userId = name === 'bots.deployUserBase' ? (args[0] as { id: string }).id : (args[0] as string)
+  // A deployed base is the only order that controls no bot, and the only one whose first argument is the user and not their id
+  const isDeploy = name === 'bots.deployUserBase'
+  const userId = isDeploy ? (args[0] as { id: string }).id : (args[0] as string)
+  const botId = isDeploy
+    ? (result as { bot: { id: string } }).bot.id
+    : (controlledBotOf(name, args) as { botId: string }).botId
 
   return [{ ...make(args, result), at, parties: [{ userId, botId }] } as GameEvent]
 }

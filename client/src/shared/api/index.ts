@@ -22,6 +22,11 @@ export const api = generated.enhanceEndpoints({
     adminSettingsUpdate: { invalidatesTags: ['Settings'] },
     // An unlock pushed over the socket makes the list stale
     achievementsList: { providesTags: ['Achievements'] },
+    notificationsList: { providesTags: ['Notifications'] },
+    notificationsSummary: { providesTags: ['Notifications'] },
+    notificationsMarkRead: { invalidatesTags: ['Notifications'] },
+    notificationsPreferences: { providesTags: ['NotificationPreferences'] },
+    notificationsUpdatePreferences: { invalidatesTags: ['NotificationPreferences'] },
     tutorialGet: { providesTags: ['Tutorial'] },
     tutorialSkip: { invalidatesTags: ['Tutorial'] },
     tutorialRestart: { invalidatesTags: ['Tutorial'] },
@@ -31,6 +36,12 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useLazyNotificationsListQuery,
+  useNotificationsListQuery,
+  useNotificationsMarkReadMutation,
+  useNotificationsPreferencesQuery,
+  useNotificationsSummaryQuery,
+  useNotificationsUpdatePreferencesMutation,
   useAchievementsListQuery,
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,

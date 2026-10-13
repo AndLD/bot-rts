@@ -24,6 +24,7 @@ import { BotCapacities } from './bot-capacities'
 import { FairScheduler } from './scheduler'
 import { CallOutcome, ScriptApi, ScriptFunctionHandler } from './script-api'
 import { EventOutbox } from './event-outbox'
+import { BotPasswordWrongError } from '../../terminal/domain/terminal.errors'
 import { GameEventBus } from './game-event-bus'
 import { LiveVision } from './live-vision'
 import { NoSignalError, RadioNetwork } from './radio-network'
@@ -939,6 +940,44 @@ describe('EngineCore', () => {
       expect(outbox.drain()).toEqual([
         expect.objectContaining({ type: 'BaseDeployed', parties: [{ userId: 'u', botId: 'base-1' }] })
       ])
+    })
+
+    it('tells the owner of a bot that someone tried a wrong password on it, and lets the one who tried get the error', async () => {
+      const { core, actions, outbox } = await setup()
+      actions.execute.mockRejectedValueOnce(
+        new BotPasswordWrongError({ targetBotId: 'target-1', ownerId: 'owner-1', isLockedOut: true })
+      )
+
+      const attempt = core.act('access.connect', ['user-1', 'bot-1', 'target-1', 'guess']).catch((error) => error)
+      await core.runTick()
+
+      expect(await attempt).toBeInstanceOf(BotPasswordWrongError)
+      expect(outbox.drain()).toEqual([
+        {
+          type: 'PasswordAttemptFailed',
+          at: expect.any(Number),
+          parties: [
+            { userId: 'owner-1', botId: 'target-1' },
+            { userId: 'user-1', botId: 'bot-1' }
+          ],
+          isLockedOut: true
+        }
+      ])
+    })
+
+    it('tells nobody of a wrong password on a bot nobody owns, or of any other failure', async () => {
+      const { core, actions, outbox } = await setup()
+      actions.execute.mockRejectedValueOnce(
+        new BotPasswordWrongError({ targetBotId: 'target-1', ownerId: null, isLockedOut: false })
+      )
+      actions.execute.mockRejectedValueOnce(new BotPasswordWrongError())
+
+      const unowned = core.act('access.connect', ['user-1', 'bot-1', 'target-1']).catch(() => undefined)
+      const bare = core.act('access.connect', ['user-1', 'bot-1', 'target-1']).catch(() => undefined)
+      await core.runTick()
+      await Promise.all([unowned, bare])
+
+      expect(outbox.drain()).toEqual([])
     })
 
     it('tells the link status of a bot, and recomputes the networks that changed every tick', async () => {

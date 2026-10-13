@@ -234,9 +234,6 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
                 })
 
                 manual('enable').its('body.ok').should('equal', true)
-                cy.reload()
-                cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
-                cy.get('button[aria-label="Close window"]').click()
 
                 // The live area is announced and the stranger is in it, as the watcher sees it now
                 eventually(
@@ -246,6 +243,10 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
                   expect(liveAreas).to.have.length(1)
                   expect(cells.find((cell) => cell.contentId === stranger)).to.include({ isOwn: false })
                 })
+                // The page opens only now, so what it is told is what the server already knows
+                cy.reload()
+                cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
+                cy.get('button[aria-label="Close window"]').click()
                 clickMapUntil(9, 8, '.map-inspector', "Another player's bot")
                 cy.contains('.map-inspector', "Another player's bot")
                 cy.contains('.map-inspector', 'Live now')

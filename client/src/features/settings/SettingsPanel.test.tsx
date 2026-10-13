@@ -27,6 +27,9 @@ function setup(options: { status?: string; global?: object; user?: object; reduc
       return { data: {} }
     }
     if (args.url.endsWith('/users/me')) return { data: { status: options.status ?? 'user' } }
+    if (args.url.endsWith('/notifications/preferences')) {
+      return { data: { categories: { attacks: true, damage: false } } }
+    }
     return {
       data: {
         global: { categories: { ...on, ...options.global } },
@@ -43,6 +46,13 @@ function setup(options: { status?: string; global?: object; user?: object; reduc
 const switchOf = (name: string) => screen.getByLabelText(name)
 
 describe('SettingsPanel', () => {
+  it('has the notification switches of the player', async () => {
+    setup()
+
+    expect(await screen.findByLabelText('Notify about Attacks')).toBeChecked()
+    expect(screen.getByLabelText('Notify about Damage and energy')).not.toBeChecked()
+  })
+
   it('waits for the settings, and says when they cannot be loaded', async () => {
     query.mockReset()
     query.mockReturnValue(new Promise(() => undefined) as never)

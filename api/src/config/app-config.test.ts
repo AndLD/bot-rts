@@ -3,6 +3,7 @@ import { DEFAULT_WORLD_CONFIG } from '../map/domain/world-config'
 import { DEFAULT_CRAFTING_CONFIG } from '../crafting/domain/crafting-config'
 import { DEFAULT_ENGINE_CONFIG } from '../engine/domain/engine-config'
 import { DEFAULT_SPAWN_CONFIG } from '../spawn/domain/spawn-config'
+import { DEFAULT_PLAYER_NOTIFICATIONS } from '../player-notifications/domain/notification-policy'
 import { DEFAULT_BOT_SECURITY } from '../terminal/domain/bot-security'
 import { DEFAULT_TERMINAL_RETENTION } from '../terminal/domain/terminal-retention'
 import { ConfigError, loadConfig } from './app-config'
@@ -25,6 +26,7 @@ describe('loadConfig', () => {
       engine: { ...DEFAULT_ENGINE_CONFIG, isEnabled: true },
       terminal: DEFAULT_TERMINAL_RETENTION,
       botSecurity: DEFAULT_BOT_SECURITY,
+      notifications: DEFAULT_PLAYER_NOTIFICATIONS,
       smtp: undefined,
       emailOutboxDir: undefined,
       auth: {
@@ -61,6 +63,9 @@ describe('loadConfig', () => {
       BOT_ATTEMPT_DELAY_MS: '50',
       BOT_LOCKOUT_FAILURES: '2',
       BOT_LOCKOUT_MS: '5000',
+      NOTIFICATION_RETENTION_DAYS: '7',
+      NOTIFICATION_COALESCE_MS: '5000',
+      NOTIFICATION_CAP_PER_MINUTE: '3',
       TERMINAL_LOG_RETENTION_DAYS: '7',
       TERMINAL_LOG_MAX_LINES: '100',
       TERMINAL_SECURITY_RETENTION_DAYS: 'junk',
@@ -77,6 +82,7 @@ describe('loadConfig', () => {
       world: { resourceChance: 0.5 },
       terminal: { logDays: 7, maxLinesPerBot: 100, securityDays: 90 },
       botSecurity: { attemptEnergy: 9, attemptDelayMs: 50, maxFailures: 2, lockoutMs: 5000 },
+      notifications: { retentionDays: 7, coalesceMs: 5000, capPerMinute: 3 },
       smtp: { host: 'smtp.example.com', user: 'u' },
       emailOutboxDir: '/tmp/outbox',
       auth: { accessSecret: 's3cret', accessTtlSeconds: 300, policy: { sessionTtlMs: 7 * 24 * 3600 * 1000 } },

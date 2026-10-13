@@ -8,6 +8,10 @@ import { readSpawnConfig } from '../spawn/infrastructure/spawn-config.reader'
 import { readWorldConfig } from '../map/infrastructure/world-config.reader'
 import { BotSecurityPolicy, DEFAULT_BOT_SECURITY } from '../terminal/domain/bot-security'
 import { DEFAULT_TERMINAL_RETENTION, TerminalRetention } from '../terminal/domain/terminal-retention'
+import {
+  DEFAULT_PLAYER_NOTIFICATIONS,
+  PlayerNotificationsConfig
+} from '../player-notifications/domain/notification-policy'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
 
@@ -44,6 +48,7 @@ export interface AppConfig {
   engine: EngineSettings
   terminal: TerminalRetention
   botSecurity: BotSecurityPolicy
+  notifications: PlayerNotificationsConfig
   smtp: SmtpConfig | undefined
   // A directory that receives every outgoing email as a JSON file, for end-to-end tests; unset in normal operation
   emailOutboxDir: string | undefined
@@ -158,6 +163,11 @@ export function loadConfig(env: Env): AppConfig {
       attemptDelayMs: positiveInt(env.BOT_ATTEMPT_DELAY_MS, DEFAULT_BOT_SECURITY.attemptDelayMs),
       maxFailures: positiveInt(env.BOT_LOCKOUT_FAILURES, DEFAULT_BOT_SECURITY.maxFailures),
       lockoutMs: positiveInt(env.BOT_LOCKOUT_MS, DEFAULT_BOT_SECURITY.lockoutMs)
+    },
+    notifications: {
+      retentionDays: positiveInt(env.NOTIFICATION_RETENTION_DAYS, DEFAULT_PLAYER_NOTIFICATIONS.retentionDays),
+      coalesceMs: positiveInt(env.NOTIFICATION_COALESCE_MS, DEFAULT_PLAYER_NOTIFICATIONS.coalesceMs),
+      capPerMinute: positiveInt(env.NOTIFICATION_CAP_PER_MINUTE, DEFAULT_PLAYER_NOTIFICATIONS.capPerMinute)
     },
     smtp: readSmtpConfig(env),
     emailOutboxDir: env.EMAIL_OUTBOX_DIR || undefined,

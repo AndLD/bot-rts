@@ -36,6 +36,7 @@ import { LiveVision } from './live-vision'
 import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
 import { ACTION_CATEGORIES, controlledBotOf, WorldActionName } from './world-actions'
+import { BotPasswordWrongError } from '../../terminal/domain/terminal.errors'
 import { worldActionEvents } from './world-action-events'
 import { categoryOfFunction, ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
@@ -240,10 +241,30 @@ export class EngineCore {
           await this.killAllOf(args[2] as string)
         }
         return result
+      } catch (error) {
+        this.publishFailedAttempt(error, args)
+        throw error
       } finally {
         this.deps.world.evict()
       }
     })
+  }
+
+  // A wrong password on a bot is news for the bot's owner (design §24.2), even though the one who tried only gets an error
+  private publishFailedAttempt(error: unknown, args: readonly unknown[]): void {
+    if (error instanceof BotPasswordWrongError && error.attempt?.ownerId) {
+      const { targetBotId, ownerId, isLockedOut } = error.attempt
+
+      this.deps.outbox.publish({
+        type: 'PasswordAttemptFailed',
+        at: this.deps.outbox.now(),
+        parties: [
+          { userId: ownerId, botId: targetBotId },
+          { userId: args[0] as string, botId: args[1] as string }
+        ],
+        isLockedOut
+      })
+    }
   }
 
   // Manual control of a category the game or the player has switched off is refused here, not only hidden in the UI

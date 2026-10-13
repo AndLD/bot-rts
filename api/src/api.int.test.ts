@@ -364,6 +364,92 @@ describe('authorization', () => {
     })
   })
 
+  it('serves the notification center: list, summary, mark as read, and the preferences', async () => {
+    await api().get('/api/v1/notifications').expect(401)
+    const { accessToken, userId } = await signUp('alice@example.com')
+    const stranger = await signUp('bob@example.com', 'Bob')
+    const make = (owner: string, overrides: object = {}) =>
+      database.client.playerNotification.create({
+        data: {
+          id: randomUUID(),
+          userId: owner,
+          category: 'damage',
+          kind: 'moduleBroken',
+          params: { bot: 'b1' },
+          createdAt: new Date(),
+          deliveredAt: new Date(),
+          ...overrides
+        }
+      })
+    const first = await make(userId, { createdAt: new Date(Date.now() - 2000) })
+    const second = await make(userId, { category: 'attacks', kind: 'underAttack', count: 3 })
+    await make(userId, { deliveredAt: null, createdAt: new Date(Date.now() + 60_000) })
+    await make(stranger.userId)
+
+    const list = (await api().get('/api/v1/notifications?limit=1').set(bearer(accessToken)).expect(200)).body
+    expect(list.unread).toBe(2)
+    expect(list.items).toEqual([
+      expect.objectContaining({ id: second.id, category: 'attacks', kind: 'underAttack', count: 3, readAt: null })
+    ])
+    const older = (
+      await api().get(`/api/v1/notifications?before=${list.items[0].createdAt}`).set(bearer(accessToken)).expect(200)
+    ).body
+    expect(older.items.map((item: { id: string }) => item.id)).toEqual([first.id])
+    await api().get('/api/v1/notifications?limit=0').set(bearer(accessToken)).expect(400)
+    await api().get('/api/v1/notifications?limit=1000').set(bearer(accessToken)).expect(400)
+    await api().get('/api/v1/notifications?unread=maybe').set(bearer(accessToken)).expect(400)
+    expect(
+      (await api().get('/api/v1/notifications?unread=false').set(bearer(accessToken)).expect(200)).body.items
+    ).toHaveLength(2)
+
+    expect((await api().get('/api/v1/notifications/summary').set(bearer(accessToken)).expect(200)).body).toEqual({
+      unread: 2,
+      byCategory: { damage: 1, attacks: 1 }
+    })
+
+    expect(
+      (
+        await api()
+          .post('/api/v1/notifications/read')
+          .set(bearer(accessToken))
+          .send({ ids: [first.id] })
+          .expect(200)
+      ).body
+    ).toEqual({ marked: 1 })
+    expect(
+      (await api().get('/api/v1/notifications?unread=true').set(bearer(accessToken)).expect(200)).body.items
+    ).toHaveLength(1)
+    await api().post('/api/v1/notifications/read').set(bearer(accessToken)).send({ ids: 'all' }).expect(400)
+    expect((await api().post('/api/v1/notifications/read').set(bearer(accessToken)).send({}).expect(200)).body).toEqual(
+      {
+        marked: 1
+      }
+    )
+    expect(
+      (await api().get('/api/v1/notifications/summary').set(bearer(stranger.accessToken)).expect(200)).body.unread
+    ).toBe(1)
+
+    const defaults = (await api().get('/api/v1/notifications/preferences').set(bearer(accessToken)).expect(200)).body
+    expect(Object.values(defaults.categories).every((isOn) => isOn === true)).toBe(true)
+    const changed = (
+      await api()
+        .patch('/api/v1/notifications/preferences')
+        .set(bearer(accessToken))
+        .send({ categories: { trade: false } })
+        .expect(200)
+    ).body
+    expect(changed.categories).toMatchObject({ trade: false, attacks: true })
+    await api()
+      .patch('/api/v1/notifications/preferences')
+      .set(bearer(accessToken))
+      .send({ categories: { nonsense: true } })
+      .expect(400)
+    expect(
+      (await api().patch('/api/v1/notifications/preferences').set(bearer(accessToken)).send({}).expect(200)).body
+        .categories.trade
+    ).toBe(false)
+  })
+
   it('lets an admin list and edit regular users but not change a status', async () => {
     const alice = await signUp('alice@example.com')
     const admin = await signUp('admin@example.com', 'Admin')

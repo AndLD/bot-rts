@@ -1,8 +1,11 @@
 'use client'
 
-import { Button } from 'antd'
+import { Badge, Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
+import AwaySummary from '../notifications/AwaySummary'
+import NotificationCenter from '../notifications/NotificationCenter'
+import NotificationToasts from '../notifications/NotificationToasts'
 import AchievementsPanel from '../achievements/AchievementsPanel'
 import AchievementToasts from '../achievements/AchievementToasts'
 import GameMap from '../map/GameMap'
@@ -15,7 +18,7 @@ import Terminal from '../terminal/Terminal'
 import { TerminalConnection } from '../terminal/useTerminal'
 import WindowManager from '../windows/WindowManager'
 import { closeWindow, GameWindow, openWindow, WindowKind } from '../windows/windows.slice'
-import { useTutorialGetQuery } from '../../shared/api'
+import { useNotificationsSummaryQuery, useTutorialGetQuery } from '../../shared/api'
 import { useAppDispatch } from '../../shared/store/hooks'
 import { TutorialStep } from '@lib/utils/interfaces/tutorial'
 
@@ -34,13 +37,22 @@ const TUTORIAL_TARGET: Record<TutorialStep, WindowKind> = {
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
-const LAUNCHABLE: WindowKind[] = ['terminal', 'control', 'storage', 'factory', 'achievements', 'settings']
+const LAUNCHABLE: WindowKind[] = [
+  'terminal',
+  'control',
+  'storage',
+  'factory',
+  'achievements',
+  'notifications',
+  'settings'
+]
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
   const t = useTranslations('windows')
   const dispatch = useAppDispatch()
   const { data: tutorial } = useTutorialGetQuery()
+  const { data: summary } = useNotificationsSummaryQuery()
   const highlighted = tutorial?.current ? TUTORIAL_TARGET[tutorial.current] : null
 
   useEffect(() => {
@@ -90,6 +102,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         }
       case 'settings':
         return { title: t('kinds.settings'), content: <SettingsPanel /> }
+      case 'notifications':
+        return { title: t('kinds.notifications'), content: <NotificationCenter /> }
       case 'achievements':
         return { title: t('kinds.achievements'), content: <AchievementsPanel /> }
       case 'factory':
@@ -105,22 +119,34 @@ export default function GameScreen({ baseId }: { baseId: string }) {
     <div style={{ position: 'absolute', inset: 0 }}>
       <GameMap baseId={baseId} onOpenBot={openControl} />
       <div className="game-toolbar" role="toolbar">
-        {LAUNCHABLE.map((kind) => (
-          <Button
-            key={kind}
-            size="small"
-            className={kind === highlighted ? 'tutorial-highlight' : undefined}
-            onClick={() =>
-              dispatch(openWindow({ id: kind, kind, params: kind === 'terminal' ? {} : { botId: baseId } }))
-            }
-          >
-            {t(`kinds.${kind}`)}
-          </Button>
-        ))}
+        {LAUNCHABLE.map((kind) => {
+          const button = (
+            <Button
+              key={kind}
+              size="small"
+              className={kind === highlighted ? 'tutorial-highlight' : undefined}
+              onClick={() =>
+                dispatch(openWindow({ id: kind, kind, params: kind === 'terminal' ? {} : { botId: baseId } }))
+              }
+            >
+              {t(`kinds.${kind}`)}
+            </Button>
+          )
+
+          return kind === 'notifications' ? (
+            <Badge key={kind} count={summary?.unread ?? 0} size="small" overflowCount={99}>
+              {button}
+            </Badge>
+          ) : (
+            button
+          )
+        })}
       </div>
       <WindowManager renderWindow={renderWindow} />
       <TutorialOverlay />
       <AchievementToasts />
+      <NotificationToasts />
+      <AwaySummary />
     </div>
   )
 }

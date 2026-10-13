@@ -31,6 +31,15 @@ jest.mock('../control/ControlPanel', () => ({
     </div>
   )
 }))
+jest.mock('../notifications/NotificationCenter', () => ({
+  __esModule: true,
+  default: () => <div>the notification center</div>
+}))
+jest.mock('../notifications/NotificationToasts', () => ({
+  __esModule: true,
+  default: () => <div>the notification toasts</div>
+}))
+jest.mock('../notifications/AwaySummary', () => ({ __esModule: true, default: () => <div>the away summary</div> }))
 jest.mock('../achievements/AchievementsPanel', () => ({ __esModule: true, default: () => <div>the achievements</div> }))
 jest.mock('../achievements/AchievementToasts', () => ({ __esModule: true, default: () => <div>the toasts</div> }))
 jest.mock('../settings/SettingsPanel', () => ({ __esModule: true, default: () => <div>the settings</div> }))
@@ -108,6 +117,19 @@ describe('GameScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Achievements' }))
 
     expect(screen.getByText('the achievements')).toBeInTheDocument()
+  })
+
+  it('opens the notification center from the toolbar, which shows how many are unread', async () => {
+    query.mockImplementation((async (args: { url: string }) =>
+      args.url.endsWith('/notifications/summary') ? { data: { unread: 5, byCategory: {} } } : { data: {} }) as never)
+    renderApp(<GameScreen baseId="b1" />, { store: storeWithToken(makeJwt(60)) })
+
+    expect(await screen.findByText('5')).toBeInTheDocument()
+    expect(screen.getByText('the notification toasts')).toBeInTheDocument()
+    expect(screen.getByText('the away summary')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Notifications' }))
+
+    expect(screen.getByText('the notification center')).toBeInTheDocument()
   })
 
   it('opens the factory of the base from the toolbar', () => {

@@ -79,3 +79,4 @@ AGENTS.md §7.1).
 | `feature/11.5-power-on-hysteresis` | 11.5 | [#122](https://github.com/AndLD/bot-rts/pull/122) | ✅ merged |
 | `feature/11.6-day-night-ui` | 11.6 | [#123](https://github.com/AndLD/bot-rts/pull/123) | ✅ merged |
 | `feature/11.7-auto-reconnection` | 11.7 | [#124](https://github.com/AndLD/bot-rts/pull/124) | ✅ merged |
+| `feature/11.8-control-window-layout` | 11.8, 11.9 | [#125](https://github.com/AndLD/bot-rts/pull/125) | 🟡 |

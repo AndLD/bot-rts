@@ -57,5 +57,7 @@ export type GameEvent =
   | (Base & { type: 'ModuleRepaired'; targetBotId: string; moduleId: string })
   | (Base & { type: 'ModuleDisassembled'; targetBotId: string; moduleId: string })
   | (Base & { type: 'BotAdopted'; adoptedBotId: string })
+  // Someone failed to connect to a bot with the wrong password: the first party is the owner of that bot, the second the one that tried
+  | (Base & { type: 'PasswordAttemptFailed'; isLockedOut: boolean })
 
 export type GameEventType = GameEvent['type']

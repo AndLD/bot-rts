@@ -104,6 +104,7 @@ model User {
   settings             UserSetting?
   achievementCounters  AchievementCounter[]
   achievementUnlocks   AchievementUnlock[]
+  notifications        PlayerNotification[]
 
   @@index([createdAt])
   @@map("users")
@@ -448,13 +449,15 @@ model GameSetting {
 
 // The settings of one player, as the player set them (design §15.1, §15.2)
 model UserSetting {
-  userId           String   @id @map("user_id") @db.Uuid
+  userId                 String   @id @map("user_id") @db.Uuid
   // The switches of the categories of manual control, by category; one that is not there is on
-  manualCategories Json     @default("{}") @map("manual_categories")
-  reducedMotion    Boolean? @map("reduced_motion")
+  manualCategories       Json     @default("{}") @map("manual_categories")
+  reducedMotion          Boolean? @map("reduced_motion")
   // How far the player is in the tutorial: its status and the steps done (design §16.1)
-  tutorial         Json     @default("{}")
-  updatedAt        DateTime @map("updated_at") @db.Timestamptz(3)
+  tutorial               Json     @default("{}")
+  // The categories of notifications the player switched off, by category; one that is not there is on (design §24.2)
+  notificationCategories Json     @default("{}") @map("notification_categories")
+  updatedAt              DateTime @map("updated_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -484,4 +487,26 @@ model AchievementUnlock {
 
   @@id([userId, achievementId])
   @@map("achievement_unlocks")
+}
+
+// What the game told a player, kept for a limited time (design §24.2). A notification for something that finishes later waits with
+// `deliveredAt` empty until its time.
+model PlayerNotification {
+  id          String    @id @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  category    String
+  // The translation key of the text, and its parameters
+  kind        String
+  params      Json      @default("{}")
+  botId       String?   @map("bot_id")
+  count       Int       @default(1)
+  createdAt   DateTime  @map("created_at") @db.Timestamptz(3)
+  deliveredAt DateTime? @map("delivered_at") @db.Timestamptz(3)
+  readAt      DateTime? @map("read_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([deliveredAt, createdAt])
+  @@map("player_notifications")
 }

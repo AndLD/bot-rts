@@ -1,4 +1,5 @@
 import { IAchievementUnlock } from './interfaces/achievements'
+import { INotification } from './interfaces/notifications'
 import { IBlueprint, IFactoryJob, IFactoryStatus } from './interfaces/crafting'
 import { IBot, IBotWithModules } from './interfaces/bots'
 import { ModuleProps } from './interfaces/modules'
@@ -53,6 +54,8 @@ export interface ServerToClientEvents {
   'game-event': (event: GameEvent) => void
   // The player earned an achievement (design §23), also one earned while they were away: it arrives when they are back
   'achievement-unlocked': (unlock: IAchievementUnlock) => void
+  // A notification the player should see (design §24.2); one that was coalesced arrives again, changed, with the same id
+  notification: (notification: INotification) => void
   // Cells of the player's map that changed
   'map-cells': (update: IMapUpdate) => void
   // The squares the player's scanners keep live now (all of them, every time they change)

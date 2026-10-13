@@ -7,8 +7,15 @@ export class TerminalSessionClosedError extends AppError {
   }
 }
 
+// What was tried, for the owner of the bot to hear of it (design §24.2)
+export interface FailedAttempt {
+  targetBotId: string
+  ownerId: string | null
+  isLockedOut: boolean
+}
+
 export class BotPasswordWrongError extends AppError {
-  constructor() {
+  constructor(readonly attempt?: FailedAttempt) {
     super(403, ErrorCode.BOT_PASSWORD_WRONG, 'The password is wrong')
   }
 }

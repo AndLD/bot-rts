@@ -85,7 +85,11 @@ export class BotAccessService {
         ownerId ?? userId,
         `Wrong password from bot ${source.id}${failed.lockedUntil ? `; locked out until ${failed.lockedUntil.toISOString()}` : ''}`
       )
-      throw new BotPasswordWrongError()
+      throw new BotPasswordWrongError({
+        targetBotId: target.id,
+        ownerId,
+        isLockedOut: failed.lockedUntil !== null
+      })
     }
     await this.access.save(target.id, NO_ATTEMPTS)
     await this.securityLog.record(target.id, ownerId ?? userId, `Connected from bot ${source.id}`)

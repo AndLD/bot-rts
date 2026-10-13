@@ -126,6 +126,16 @@ describe('BotAccessService connect', () => {
     expect(t.securityLines()).toEqual([`Wrong password from bot ${t.mine.id}`, `Wrong password from bot ${t.mine.id}`])
   })
 
+  it('says which bot was tried, whose it is and whether it is locked now, for its owner to be told', async () => {
+    const t = await setup({ security: { maxFailures: 2, lockoutMs: 1000 } })
+
+    const first = await t.connect('x').catch((error) => error)
+    const second = await t.connect('x').catch((error) => error)
+
+    expect(first.attempt).toEqual({ targetBotId: t.theirs.id, ownerId: bob.id, isLockedOut: false })
+    expect(second.attempt).toEqual({ targetBotId: t.theirs.id, ownerId: bob.id, isLockedOut: true })
+  })
+
   it('locks the bot out after too many failures, for a while, and counts afresh after the lockout', async () => {
     const t = await setup({ security: { maxFailures: 2, lockoutMs: 1000 } })
 

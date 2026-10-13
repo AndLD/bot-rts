@@ -208,6 +208,8 @@ describe('achievements from the events of the engine (design §23)', () => {
     })
     const unlocked: string[] = []
     socket.on('achievement-unlocked', (unlock: { id: string }) => unlocked.push(unlock.id))
+    const notified: Array<{ category: string; kind: string }> = []
+    socket.on('notification', (notification: { category: string; kind: string }) => notified.push(notification))
 
     const deployed = await request(testApp.url)
       .post('/api/v1/bots/base')
@@ -225,6 +227,13 @@ describe('achievements from the events of the engine (design §23)', () => {
       .expect(200)
     await port.start({ userId: player.userId, botId, file: '/memory-class1/main.js', args: [] })
     await until(() => unlocked.includes('helloWorld'), 'the second achievement')
+
+    await until(() => notified.some((n) => n.kind === 'scriptFinished'), 'the notification of the script')
+    expect(notified.map((n) => n.kind)).toEqual(expect.arrayContaining(['achievementUnlocked', 'scriptFinished']))
+    const stored = (await request(testApp.url).get('/api/v1/notifications').set(bearer(player.accessToken)).expect(200))
+      .body as { items: Array<{ kind: string }>; unread: number }
+    expect(stored.items.map((item) => item.kind)).toEqual(expect.arrayContaining(['scriptFinished']))
+    expect(stored.unread).toBeGreaterThan(0)
 
     const list = (await request(testApp.url).get('/api/v1/achievements').set(bearer(player.accessToken)).expect(200))
       .body as Array<{ id: string; unlockedAt: number | null }>

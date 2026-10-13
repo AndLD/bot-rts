@@ -223,6 +223,35 @@ const injectedRtkApi = api.injectEndpoints({
     achievementsList: build.query<AchievementsListApiResponse, AchievementsListApiArg>({
       query: () => ({ url: `/api/v1/achievements` })
     }),
+    notificationsList: build.query<NotificationsListApiResponse, NotificationsListApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/notifications`,
+        params: {
+          limit: queryArg.limit,
+          before: queryArg.before,
+          unread: queryArg.unread
+        }
+      })
+    }),
+    notificationsSummary: build.query<NotificationsSummaryApiResponse, NotificationsSummaryApiArg>({
+      query: () => ({ url: `/api/v1/notifications/summary` })
+    }),
+    notificationsMarkRead: build.mutation<NotificationsMarkReadApiResponse, NotificationsMarkReadApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/notifications/read`, method: 'POST', body: queryArg.markReadDto })
+    }),
+    notificationsPreferences: build.query<NotificationsPreferencesApiResponse, NotificationsPreferencesApiArg>({
+      query: () => ({ url: `/api/v1/notifications/preferences` })
+    }),
+    notificationsUpdatePreferences: build.mutation<
+      NotificationsUpdatePreferencesApiResponse,
+      NotificationsUpdatePreferencesApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/notifications/preferences`,
+        method: 'PATCH',
+        body: queryArg.updateNotificationPreferencesDto
+      })
+    }),
     healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
       query: () => ({ url: `/api/v1/health` })
     })
@@ -426,6 +455,26 @@ export type TutorialRestartApiResponse = /** status 200  */ TutorialResponse
 export type TutorialRestartApiArg = void
 export type AchievementsListApiResponse = /** status 200  */ AchievementResponse[]
 export type AchievementsListApiArg = void
+export type NotificationsListApiResponse = /** status 200  */ NotificationListResponse
+export type NotificationsListApiArg = {
+  limit?: number
+  /** Only notifications older than this time (ms since the epoch), for the next page */
+  before?: number
+  /** Only those not read yet */
+  unread?: boolean
+}
+export type NotificationsSummaryApiResponse = /** status 200  */ NotificationSummaryResponse
+export type NotificationsSummaryApiArg = void
+export type NotificationsMarkReadApiResponse = /** status 200  */ MarkedReadResponse
+export type NotificationsMarkReadApiArg = {
+  markReadDto: MarkReadDto
+}
+export type NotificationsPreferencesApiResponse = /** status 200  */ NotificationPreferencesResponse
+export type NotificationsPreferencesApiArg = void
+export type NotificationsUpdatePreferencesApiResponse = /** status 200  */ NotificationPreferencesResponse
+export type NotificationsUpdatePreferencesApiArg = {
+  updateNotificationPreferencesDto: UpdateNotificationPreferencesDto
+}
 export type HealthCheckApiResponse = /** status 200  */ HealthResponse
 export type HealthCheckApiArg = void
 export type UserInfoResponse = {
@@ -895,6 +944,66 @@ export type AchievementResponse = {
   /** When it was unlocked (ms since the epoch) */
   unlockedAt: number | null
 }
+export type NotificationResponse = {
+  id: string
+  category: 'attacks' | 'damage' | 'scripts' | 'security' | 'fabrication' | 'trade' | 'achievements' | 'system'
+  /** What happened, for example `underAttack`; the translation key of its text */
+  kind: string
+  params: {
+    [key: string]: any
+  }
+  botId: string | null
+  /** How many times it happened (repeated events are coalesced) */
+  count: number
+  /** When it happened (ms since the epoch); the last time for a coalesced one */
+  createdAt: number
+  readAt: number | null
+}
+export type NotificationListResponse = {
+  items: NotificationResponse[]
+  /** How many the player has not read, in all */
+  unread: number
+}
+export type NotificationSummaryResponse = {
+  unread: number
+  /** Unread, by category */
+  byCategory: {
+    [key: string]: number
+  }
+}
+export type MarkedReadResponse = {
+  /** How many were marked as read */
+  marked: number
+}
+export type MarkReadDto = {
+  /** The notifications to mark as read; every one when left out */
+  ids?: string[]
+}
+export type NotificationPreferencesResponse = {
+  /** Which categories the player wants to hear about */
+  categories: {
+    attacks?: boolean
+    damage?: boolean
+    scripts?: boolean
+    security?: boolean
+    fabrication?: boolean
+    trade?: boolean
+    achievements?: boolean
+    system?: boolean
+  }
+}
+export type UpdateNotificationPreferencesDto = {
+  categories?: {
+    attacks?: boolean
+    damage?: boolean
+    scripts?: boolean
+    security?: boolean
+    fabrication?: boolean
+    trade?: boolean
+    achievements?: boolean
+    system?: boolean
+  }
+}
 export type HealthResponse = {
   status: 'ok'
   database: 'up'
@@ -948,5 +1057,10 @@ export const {
   useTutorialSkipMutation,
   useTutorialRestartMutation,
   useAchievementsListQuery,
+  useNotificationsListQuery,
+  useNotificationsSummaryQuery,
+  useNotificationsMarkReadMutation,
+  useNotificationsPreferencesQuery,
+  useNotificationsUpdatePreferencesMutation,
   useHealthCheckQuery
 } = injectedRtkApi

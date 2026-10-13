@@ -2196,6 +2196,234 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notificationsList",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "description": "Only notifications older than this time (ms since the epoch), for the next page",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "unread",
+            "required": false,
+            "in": "query",
+            "description": "Only those not read yet",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/summary": {
+      "get": {
+        "operationId": "notificationsSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSummaryResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/read": {
+      "post": {
+        "operationId": "notificationsMarkRead",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkReadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkedReadResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "operationId": "notificationsPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      },
+      "patch": {
+        "operationId": "notificationsUpdatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthCheck",
@@ -3886,6 +4114,195 @@
           "progress",
           "unlockedAt"
         ]
+      },
+      "NotificationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "attacks",
+              "damage",
+              "scripts",
+              "security",
+              "fabrication",
+              "trade",
+              "achievements",
+              "system"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "description": "What happened, for example `underAttack`; the translation key of its text"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "botId": {
+            "type": "string",
+            "nullable": true
+          },
+          "count": {
+            "type": "number",
+            "description": "How many times it happened (repeated events are coalesced)"
+          },
+          "createdAt": {
+            "type": "number",
+            "description": "When it happened (ms since the epoch); the last time for a coalesced one"
+          },
+          "readAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "kind",
+          "params",
+          "botId",
+          "count",
+          "createdAt",
+          "readAt"
+        ]
+      },
+      "NotificationListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationResponse"
+            }
+          },
+          "unread": {
+            "type": "number",
+            "description": "How many the player has not read, in all"
+          }
+        },
+        "required": [
+          "items",
+          "unread"
+        ]
+      },
+      "NotificationSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "unread": {
+            "type": "number"
+          },
+          "byCategory": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Unread, by category"
+          }
+        },
+        "required": [
+          "unread",
+          "byCategory"
+        ]
+      },
+      "MarkReadDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "The notifications to mark as read; every one when left out",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "MarkedReadResponse": {
+        "type": "object",
+        "properties": {
+          "marked": {
+            "type": "number",
+            "description": "How many were marked as read"
+          }
+        },
+        "required": [
+          "marked"
+        ]
+      },
+      "NotificationPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "object",
+            "properties": {
+              "attacks": {
+                "type": "boolean"
+              },
+              "damage": {
+                "type": "boolean"
+              },
+              "scripts": {
+                "type": "boolean"
+              },
+              "security": {
+                "type": "boolean"
+              },
+              "fabrication": {
+                "type": "boolean"
+              },
+              "trade": {
+                "type": "boolean"
+              },
+              "achievements": {
+                "type": "boolean"
+              },
+              "system": {
+                "type": "boolean"
+              }
+            },
+            "description": "Which categories the player wants to hear about"
+          }
+        },
+        "required": [
+          "categories"
+        ]
+      },
+      "UpdateNotificationPreferencesDto": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "object",
+            "properties": {
+              "attacks": {
+                "type": "boolean"
+              },
+              "damage": {
+                "type": "boolean"
+              },
+              "scripts": {
+                "type": "boolean"
+              },
+              "security": {
+                "type": "boolean"
+              },
+              "fabrication": {
+                "type": "boolean"
+              },
+              "trade": {
+                "type": "boolean"
+              },
+              "achievements": {
+                "type": "boolean"
+              },
+              "system": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
       },
       "HealthResponse": {
         "type": "object",

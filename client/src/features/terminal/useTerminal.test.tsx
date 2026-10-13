@@ -53,9 +53,9 @@ const handlers = (overrides: Record<string, Handler> = {}): Record<string, Handl
   ...overrides
 })
 
-async function connected(overrides: Record<string, Handler> = {}) {
+async function connected(overrides: Record<string, Handler> = {}, options: TerminalOptions = {}) {
   const socket = createSocket(handlers(overrides))
-  const hook = setup(socket)
+  const hook = setup(socket, options)
   await waitFor(() => expect(hook.result.current.currentBotId).toBe('base-1'))
   return { socket, ...hook }
 }
@@ -115,6 +115,38 @@ describe('useTerminal: commands', () => {
     act(() => result.current.run('ls'))
 
     expect(result.current.lines).toEqual(['/&gt; ls', 'a&lt;b&gt;', 'c'])
+  })
+
+  it('opens the page of a help topic in the documentation without asking the server', async () => {
+    const onHelp = jest.fn()
+    const { socket, result } = await connected({}, { onHelp })
+    socket.emit.mockClear()
+
+    act(() => result.current.run('help api'))
+
+    expect(onHelp).toHaveBeenCalledWith('api')
+    expect(socket.emit).not.toHaveBeenCalled()
+    expect(result.current.lines).toEqual(['/&gt; help api', 'Opening the help page: api'])
+  })
+
+  it('lists the topics when the help topic is not one, and asks the server for the plain help', async () => {
+    const onHelp = jest.fn()
+    const { socket, result } = await connected({}, { onHelp })
+
+    act(() => result.current.run('help nonsense'))
+    expect(onHelp).not.toHaveBeenCalled()
+    expect(result.current.lines[1]).toMatch(/There is no help on “nonsense”\. Topics: .*energy.*api/)
+
+    act(() => result.current.run('help'))
+    expect(socket.emit).toHaveBeenCalledWith('terminal-command', 'session-1', 'help', expect.any(Function))
+  })
+
+  it('still answers a help topic when nothing opens the Help window', async () => {
+    const { result } = await connected()
+
+    act(() => result.current.run('help api'))
+
+    expect(result.current.lines[1]).toBe('Opening the help page: api')
   })
 
   it('sends the typed line with the session', async () => {

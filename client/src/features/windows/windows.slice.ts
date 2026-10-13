@@ -10,7 +10,7 @@ export interface Rect {
 }
 
 export type WindowKind =
-  'terminal' | 'storage' | 'factory' | 'control' | 'settings' | 'editor' | 'achievements' | 'notifications'
+  'terminal' | 'storage' | 'factory' | 'control' | 'settings' | 'editor' | 'achievements' | 'notifications' | 'help'
 
 export interface GameWindow extends Rect {
   id: string
@@ -40,7 +40,8 @@ export const DEFAULT_SIZES: Record<WindowKind, { width: number; height: number }
   settings: { width: 420, height: 440 },
   editor: { width: 640, height: 480 },
   achievements: { width: 420, height: 520 },
-  notifications: { width: 420, height: 480 }
+  notifications: { width: 420, height: 480 },
+  help: { width: 820, height: 560 }
 }
 
 function readLayouts(): Record<string, Rect> {

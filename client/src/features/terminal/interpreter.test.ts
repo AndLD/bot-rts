@@ -48,3 +48,15 @@ describe('interpret', () => {
     expect(interpret('exit', { isShellMode: false })).toEqual({ type: 'send', line: 'exit' })
   })
 })
+
+describe('interpret: help', () => {
+  it('opens a topic of the documentation for help with a topic', () => {
+    expect(interpret('help api', { isShellMode: false })).toEqual({ type: 'help', topic: 'api' })
+    expect(interpret('  help   energy  ', { isShellMode: false })).toEqual({ type: 'help', topic: 'energy' })
+  })
+
+  it('leaves the plain help to the server, and shell mode to the code it runs', () => {
+    expect(interpret('help', { isShellMode: false })).toEqual({ type: 'send', line: 'help' })
+    expect(interpret('help api', { isShellMode: true })).toEqual({ type: 'send', line: 'eval help api' })
+  })
+})

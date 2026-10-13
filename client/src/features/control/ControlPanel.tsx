@@ -4,6 +4,7 @@ import { ModuleType } from '@lib/utils/interfaces/modules'
 import { Button, Tag } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useMemo } from 'react'
+import HelpLink from '../../docs/HelpLink'
 import { useBotsModulesQuery, useSettingsGetQuery } from '../../shared/api'
 import { useCategoryNames } from '../settings/useCategoryNames'
 import ActionRow from './ActionRow'
@@ -42,6 +43,7 @@ export default function ControlPanel({
       <Button size="small" onClick={() => onOpenStorage(botId)}>
         {t('openStorage')}
       </Button>
+      <HelpLink slug="api" />
       {groups.map(({ category, actions }) => {
         const isOn = category === null || settings.effective[category]
 

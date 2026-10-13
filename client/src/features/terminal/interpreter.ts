@@ -14,6 +14,7 @@ export type TerminalAction =
   | { type: 'clear' }
   | { type: 'enter-shell' }
   | { type: 'exit-shell' }
+  | { type: 'help'; topic: string }
   | { type: 'send'; line: string }
 
 export function getPrefix(session: { isShellMode: boolean; cwd: ITerminalCwd }): string {
@@ -48,5 +49,11 @@ export function interpret(input: string, session: TerminalSession): TerminalActi
     return command === 'exit' ? { type: 'exit-shell' } : { type: 'send', line: `eval ${command}` }
   }
 
-  return command === 'shell' ? { type: 'enter-shell' } : { type: 'send', line: command }
+  if (command === 'shell') {
+    return { type: 'enter-shell' }
+  }
+  // `help` alone is answered by the server with the list of commands; `help <topic>` opens a page of the documentation
+  const topic = /^help\s+(\S.*)$/.exec(command)?.[1]
+
+  return topic ? { type: 'help', topic } : { type: 'send', line: command }
 }

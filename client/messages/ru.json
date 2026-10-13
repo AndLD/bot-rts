@@ -41,7 +41,8 @@
       "botTerminal": "Терминал {botId}",
       "botControl": "Управление {botId}",
       "achievements": "Достижения",
-      "notifications": "Уведомления"
+      "notifications": "Уведомления",
+      "help": "Справка"
     }
   },
   "storage": {
@@ -727,5 +728,9 @@
       "learnMore": "Подробнее",
       "what": "Открыть страницу справки"
     }
+  },
+  "terminal": {
+    "helpOpened": "Открываю страницу справки: {topic}",
+    "helpUnknown": "Справки по теме «{topic}» нет. Темы: {topics}"
   }
 }

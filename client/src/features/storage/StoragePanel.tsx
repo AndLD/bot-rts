@@ -3,6 +3,7 @@
 import { Button, Progress } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import HelpLink from '../../docs/HelpLink'
 import { useBotControlGetStorageQuery } from '../../shared/api'
 import { useBotAction } from '../control/useBotAction'
 import { useGameNames } from '../map/useGameNames'
@@ -35,7 +36,9 @@ export default function StoragePanel({ botId }: { botId: string }) {
 
   return (
     <div className="storage-panel" style={{ padding: 10 }}>
-      <div>{t('used', { used: data.used, capacity: data.capacity })}</div>
+      <div>
+        {t('used', { used: data.used, capacity: data.capacity })} <HelpLink slug="concepts/weight" />
+      </div>
       <Progress
         percent={data.capacity ? Math.round((data.used / data.capacity) * 100) : 0}
         showInfo={false}

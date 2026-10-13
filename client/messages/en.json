@@ -245,7 +245,9 @@
     },
     "connectionInterrupted": "Connection interrupted: the bot is out of reach",
     "connectionRestored": "Connection restored",
-    "missedSummary": "While the bot was out of reach: {scans} scans, {events} events"
+    "missedSummary": "While the bot was out of reach: {scans} scans, {events} events",
+    "helpOpened": "Opening the help page: {topic}",
+    "helpUnknown": "There is no help on “{topic}”. Topics: {topics}"
   },
   "errors": {
     "generic": "Something went wrong",
@@ -343,7 +345,8 @@
       "botTerminal": "Terminal {botId}",
       "botControl": "Control {botId}",
       "achievements": "Achievements",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "help": "Help"
     }
   },
   "storage": {

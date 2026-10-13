@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import DocLink from './DocLink'
+import catalogue from './generated/catalogue.json'
 import { DocPage } from './structure'
 import CommandReference from './parts/CommandReference'
 import DocsIndex from './parts/DocsIndex'
@@ -26,7 +27,12 @@ const GENERATED = {
 // catalogue of modules, the recipes, the commands, the examples) is rendered from the generated data.
 export default function DocPageView({ page }: { page: DocPage }) {
   const t = useTranslations('docs')
-  const text = (key: string) => t(`pages.${page.id}.${key}`)
+  // The numbers a text may quote come from the balance config, so they cannot drift from the game
+  const text = (key: string) =>
+    t(`pages.${page.id}.${key}`, {
+      costFactor: catalogue.balance.researchCostFactor,
+      timeFactor: catalogue.balance.researchTimeFactor
+    })
   const seeAlso = page.blocks.filter((block) => block.type === 'see')
 
   return (

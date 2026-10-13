@@ -133,12 +133,14 @@ export function useTerminal({ connection, onConnected, onExit }: TerminalOptions
   }, [socket, currentBotId, t])
 
   // A terminal that was reached with `connect` ends its session when its window goes away
+  // (keyed by the id of the session: the object that names it is made anew whenever the screen is drawn again)
+  const connectedSession = connection?.sessionId
   useEffect(() => {
-    if (!socket || !connection) {
+    if (!socket || !connectedSession) {
       return
     }
-    return () => void socket.emit('close-terminal', connection.sessionId, () => undefined)
-  }, [socket, connection])
+    return () => void socket.emit('close-terminal', connectedSession, () => undefined)
+  }, [socket, connectedSession])
 
   // The error as a line: translated by its code when we have a text for it, otherwise the server's own message. A usage
   // error and a script that cannot be loaded are the message itself, which says how the command is used or what is wrong.

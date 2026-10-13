@@ -352,6 +352,24 @@ describe('useTerminal: connecting to other bots', () => {
       expect(socket.emit).toHaveBeenCalledWith('close-terminal', 'session-2', expect.any(Function))
     })
 
+    it('keeps its session when the screen is drawn again with a new object naming the same session', () => {
+      const socket = createSocket(handlers({ 'close-terminal': ((_id: string, ack: () => void) => ack()) as Handler }))
+      const hook = renderHook(({ connection: given }) => useTerminal({ connection: given }), {
+        initialProps: { connection: { botId: 'bot-2', sessionId: 'session-2' } },
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
+            <AuthClientContext.Provider value={auth}>
+              <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+            </AuthClientContext.Provider>
+          </NextIntlClientProvider>
+        )
+      })
+
+      hook.rerender({ connection: { botId: 'bot-2', sessionId: 'session-2' } })
+
+      expect(socket.emit).not.toHaveBeenCalledWith('close-terminal', expect.anything(), expect.anything())
+    })
+
     it('has no session to end without a socket', () => {
       expect(() => setup(null, { connection }).unmount()).not.toThrow()
     })

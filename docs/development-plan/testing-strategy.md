@@ -32,7 +32,7 @@ The rules live in [`AGENTS.md` §6](../../AGENTS.md); this page shows how they p
 | **4** Modules and crafting | Per-task tests with seeded RNG for combat, energy and weight rules; e2e for crafting, assembly, research, repair/disassembly and energy (4.7) |
 | **5** Runtime | Determinism tests (5.5): same seed and commands give an identical tick result, independent of arrival order; sandbox escape, infinite-loop, memory and many-bot fairness tests (5.7); benchmark spike (5.1); e2e of the script lifecycle (5.11) |
 | **6** GUI | e2e for every Phase 6 screen (6.6); tutorial spec (6.9); core gameplay journeys (6.12) |
-| **7** Presentation | Lighthouse CI gate for the landing page (7.3); missing-translation check (7.8); e2e for landing, language, achievements and notifications (7.9) |
+| **7** Presentation | Lighthouse CI gate for the landing page (7.3); missing-translation check (7.8); e2e for landing, language, achievements and notifications (7.9); stale generated-docs check (7.11), docs link checker, example-script execution and docs e2e (7.13) |
 | **8** Hardening | Load and soak tests (8.6); API contract tests proving the official client and API-key clients behave identically (8.10); MCP tests against a seeded backend (8.11); e2e of API keys and two-player interaction (8.13); final coverage sweep (8.8) |
 | **9** Admin console | Authorization matrix tests, every admin endpoint × every role, plus audit completeness (9.14); e2e of the admin flows (9.13) |
 | **10** Market and chat | Money and goods conservation property tests, matching determinism (10.13); e2e of exchange, auctions, inbox, chat and transfers (10.14) |
@@ -62,6 +62,7 @@ about 15 minutes it is sharded and run in parallel.
 | Landing page, language switch, auth page scene | 7.9 |
 | Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |
+| Player docs: `/docs` navigation and search, language switch, landing link, in-game Help window and contextual "?" links | 7.13 |
 | API key lifecycle; two-player interaction (contest, fog privacy, attack, adopt) | 8.13 |
 | Account management: forgot / reset password, change password, change email, delete account | 2.7 |
 | Signup validation, expired or reused verification link, login lockout, banned user mid-session | 2.7 |

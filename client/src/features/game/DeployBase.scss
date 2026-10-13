@@ -1,0 +1,23 @@
+.deploy-base {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  // Leaves room for the account link in the top corner
+  padding: 56px 16px 32px;
+
+  h2 {
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 24px;
+    color: #ccc;
+  }
+
+  // The game screen is dark, so the form text must be light
+  .ant-form-item-label > label,
+  .ant-form-item-extra {
+    color: #ddd;
+  }
+}

@@ -10,6 +10,8 @@ export default function BlockedPage() {
     <div
       style={{
         fontSize: 45,
+        padding: 16,
+        textAlign: 'center',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',

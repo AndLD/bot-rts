@@ -78,3 +78,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the API keys page says keys are planned (Phase 8); the Russian descriptions of the terminal commands in the BotOS reference are the English ones until 7.8.
 - **Next step:** task 7.8 (Russian translation of every namespace and the check on every PR), then 7.9 (the remaining Cypress specs).
 - **Verify with:** `npm run docs:generate && git diff --exit-code client/src/docs/generated`; `npm run typecheck && npm run test:coverage`; `node scripts/e2e.mjs -- --spec cypress/e2e/docs.cy.ts`
+
+### 2026-10-13 — task 7.8: Russian translation
+- **Tasks:** 7.8
+- **Branch:** `feature/7.8-russian` — done
+- **Decisions / deviations from the plan:** the Russian catalogue now has every key of the English one (651), written by hand: account and sign-in pages, the deploy dialog, the terminal (its messages and the description of every command), and the texts of all API error codes (the API sends codes and parameters, the client writes the text, design §15.4); the landing page, privacy policy, documentation, achievements and notifications were written with their features. `scripts/check-i18n.mjs` fails on every key that is missing in any language (it only warned before for the namespaces not yet translated), so a new string without a translation fails the `Message catalogues` step of CI. `withFallback` stays as a safety net in the browser. Free text of players (script logs, file names, bot labels) is not translated by design.
+- **Next step:** task 7.9 (the remaining Cypress specs), then the exit criteria of Phase 7.
+- **Verify with:** `npm run i18n:check`; `npm run test:coverage -w client`

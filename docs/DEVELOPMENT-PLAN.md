@@ -26,7 +26,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 4     | Module system & crafting             | 70           | ✅ Done |
 | 5     | Script runtime, scheduler & sandbox  | 104           | ✅ Done |
 | 6     | Core game GUI & map animations       | 96           | ✅ Done |
-| 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ⬜ Not started |
+| 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ✅ Done |
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
 | 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |

@@ -2,7 +2,7 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)
 
-**Status:** 🟡 In progress · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
+**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
 
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), the Russian translation, and
@@ -44,5 +44,5 @@ AGENTS.md §7.1).
 | `feature/7.10-privacy-consent` | 7.10 | [#106](https://github.com/AndLD/bot-rts/pull/106) | ✅ merged |
 | `feature/7.5-achievements-ui` | 7.4, 7.5 | [#107](https://github.com/AndLD/bot-rts/pull/107) | ✅ merged |
 | `feature/7.7-notifications-ui` | 7.6, 7.7 | [#108](https://github.com/AndLD/bot-rts/pull/108) | ✅ merged |
-| `feature/7.11-player-docs` | 7.11, 7.12, 7.13 | [#109](https://github.com/AndLD/bot-rts/pull/109) | 🟡 |
-| `feature/7.8-russian` | 7.8, 7.9 | _PR_ | 🟡 |
+| `feature/7.11-player-docs` | 7.11, 7.12, 7.13 | [#109](https://github.com/AndLD/bot-rts/pull/109) | ✅ merged |
+| `feature/7.8-russian` | 7.8, 7.9 | [#110](https://github.com/AndLD/bot-rts/pull/110) | 🟡 |

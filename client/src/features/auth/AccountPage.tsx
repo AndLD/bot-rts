@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
+import AchievementBadges from '../achievements/AchievementBadges'
 import { LanguageSwitcher } from '../../shared/i18n/LanguageSwitcher'
 import { useAuth } from './auth-client-context'
 import { AuthResult } from './auth-client'
@@ -38,6 +39,10 @@ export default function AccountPage() {
         <h1>{t('account.title')}</h1>
         <LanguageSwitcher />
       </div>
+
+      <Card title={t('account.badges')}>
+        <AchievementBadges />
+      </Card>
 
       <Card title={t('account.password.title')}>
         <Form

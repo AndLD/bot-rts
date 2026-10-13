@@ -43,8 +43,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ### 2026-10-13 — task 7.4: achievements backend
 - **Tasks:** 7.4
-- **Branch:** `feature/7.4-achievements-backend` — done
+- **Branch:** `feature/7.4-achievements-backend` — done (merged with 7.5 in `feature/7.5-achievements-ui`)
 - **Decisions / deviations from the plan:** the new `achievements` module (domain / application / Prisma / controller): `countersOf(event)` is the pure map from a game event to counter increments; `ACHIEVEMENT_FAMILIES` is the data (family, counter, thresholds, `isHidden`), expanded into one definition per level; `AchievementService` consumes events (only for the actor, the first party, so a watcher of a live area earns nothing), adds to counters in memory and `flush`es every 2 s (and on shutdown) with one upsert per counter, unlocks idempotently (`createMany … skipDuplicates`, so two processes announce once), and tells listeners; `RealtimeModule` wires it as a dispatcher consumer and pushes `achievement-unlocked` through the new `RealtimeGateway.push`. Tables `achievement_counters` and `achievement_unlocks` (cascade-deleted with the user). `GET /api/v1/achievements` returns every visible achievement with `progress` / `threshold` / `unlockedAt` (hidden ones only once unlocked). **The engine now reports what a world order did** (`worldActionEvents` in `EngineCore.act`, after success): `BaseDeployed`, `CraftOrdered` (count and `readyAt`), `ResearchOrdered`, `BotAssembled`, `ModuleRepaired`, `ModuleDisassembled`, `BotAdopted` — these are also the source of the notifications of 7.6. "Graduate" is counted when `TutorialService` first sees the tutorial complete. The listed achievements that need state and not events (Cartographer, Connected, Veteran, Automator) and the trade ones (Phase 10) are not in the initial set.
 - **Open points:** events of a bot out of reach of its base are buffered as a summary (design §11.2.1) and not counted; there is no event for a craft that has *finished* (jobs settle lazily), only for the order.
 - **Next step:** task 7.5 (achievements UI).
 - **Verify with:** `npm run typecheck && npm run test:coverage -w api` (needs `npm run db:up`)
+
+### 2026-10-13 — task 7.5: achievements UI
+- **Tasks:** 7.5
+- **Branch:** `feature/7.5-achievements-ui` — done (it carries 7.4 too: one pull request)
+- **Decisions / deviations from the plan:** a new window kind `achievements` (toolbar button) shows `AchievementsPanel`: the earned ones first with the date, the rest with a progress bar and `progress / threshold`. `AchievementToasts` (mounted in `GameScreen`) listens for the socket event `achievement-unlocked`, shows an Ant Design notification ("Achievement unlocked" and the title) and invalidates the `Achievements` tag so the list refreshes; one earned while the player was away arrives the moment their socket connects. **Profile badges:** `AchievementBadges` (a gold tag for each earned achievement) is on the account page. Texts: the family is the translation key (`achievements.families.<family>.title` / `.description` with `{count}`), a family of several levels shows the level as a roman numeral (`useAchievementText`); both languages are written.
+- **Next step:** task 7.6 (notifications backend).
+- **Verify with:** `npm run typecheck && npm run test:coverage -w client`

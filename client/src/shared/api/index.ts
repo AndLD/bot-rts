@@ -20,6 +20,8 @@ export const api = generated.enhanceEndpoints({
     settingsUpdate: { invalidatesTags: ['Settings'] },
     adminSettingsGet: { providesTags: ['Settings'] },
     adminSettingsUpdate: { invalidatesTags: ['Settings'] },
+    // An unlock pushed over the socket makes the list stale
+    achievementsList: { providesTags: ['Achievements'] },
     tutorialGet: { providesTags: ['Tutorial'] },
     tutorialSkip: { invalidatesTags: ['Tutorial'] },
     tutorialRestart: { invalidatesTags: ['Tutorial'] },
@@ -29,6 +31,7 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useAchievementsListQuery,
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,
   useTutorialGetQuery,

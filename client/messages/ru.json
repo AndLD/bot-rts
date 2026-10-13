@@ -39,7 +39,8 @@
       "settings": "Настройки",
       "editor": "Редактор",
       "botTerminal": "Терминал {botId}",
-      "botControl": "Управление {botId}"
+      "botControl": "Управление {botId}",
+      "achievements": "Достижения"
     }
   },
   "storage": {
@@ -292,6 +293,9 @@
     },
     "signup": {
       "accept": "Я принимаю <link>политику конфиденциальности</link>"
+    },
+    "account": {
+      "badges": "Достижения"
     }
   },
   "privacy": {
@@ -342,5 +346,66 @@
   },
   "errors": {
     "PRIVACY_NOT_ACCEPTED": "Примите действующую политику конфиденциальности"
+  },
+  "achievements": {
+    "title": "Достижения",
+    "unlocked": "Получено достижение",
+    "loading": "Загрузка...",
+    "loadFailed": "Не удалось загрузить достижения",
+    "summary": "Получено {done} из {total}",
+    "earnedOn": "Получено {date}",
+    "progress": "{progress} / {threshold}",
+    "badges": "Знаки",
+    "noBadges": "Знаков пока нет",
+    "families": {
+      "firstSteps": {
+        "title": "Первые шаги",
+        "description": "Разверните базу"
+      },
+      "helloWorld": {
+        "title": "Hello, world",
+        "description": "Запустите первый скрипт"
+      },
+      "prospector": {
+        "title": "Старатель",
+        "description": "Просканируйте клеток: {count}"
+      },
+      "miner": {
+        "title": "Шахтёр",
+        "description": "Добудьте единиц ресурсов: {count}"
+      },
+      "fabricator": {
+        "title": "Производитель",
+        "description": "Закажите на фабрике модулей: {count}"
+      },
+      "assembler": {
+        "title": "Сборщик",
+        "description": "Соберите ботов: {count}"
+      },
+      "fixer": {
+        "title": "Ремонтник",
+        "description": "Отремонтируйте модулей: {count}"
+      },
+      "scavenger": {
+        "title": "Разборщик",
+        "description": "Разберите модулей: {count}"
+      },
+      "adopter": {
+        "title": "Усыновитель",
+        "description": "Усыновите брошенного бота"
+      },
+      "marksman": {
+        "title": "Стрелок",
+        "description": "Попадите выстрелами: {count}"
+      },
+      "traveller": {
+        "title": "Путешественник",
+        "description": "Проведите ботов на клеток: {count}"
+      },
+      "graduate": {
+        "title": "Выпускник",
+        "description": "Пройдите обучение"
+      }
+    }
   }
 }

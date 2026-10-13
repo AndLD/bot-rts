@@ -3,6 +3,8 @@
 import { Button } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
+import AchievementsPanel from '../achievements/AchievementsPanel'
+import AchievementToasts from '../achievements/AchievementToasts'
 import GameMap from '../map/GameMap'
 import ControlPanel from '../control/ControlPanel'
 import FactoryPanel from '../factory/FactoryPanel'
@@ -32,7 +34,7 @@ const TUTORIAL_TARGET: Record<TutorialStep, WindowKind> = {
 // A bot's id as the player sees it in a title
 const SHORT_ID = 8
 
-const LAUNCHABLE: WindowKind[] = ['terminal', 'control', 'storage', 'factory', 'settings']
+const LAUNCHABLE: WindowKind[] = ['terminal', 'control', 'storage', 'factory', 'achievements', 'settings']
 
 // The game screen: the map with the player's windows over it
 export default function GameScreen({ baseId }: { baseId: string }) {
@@ -88,6 +90,8 @@ export default function GameScreen({ baseId }: { baseId: string }) {
         }
       case 'settings':
         return { title: t('kinds.settings'), content: <SettingsPanel /> }
+      case 'achievements':
+        return { title: t('kinds.achievements'), content: <AchievementsPanel /> }
       case 'factory':
         return { title: t('kinds.factory'), content: <FactoryPanel baseId={win.params.botId} /> }
       case 'storage':
@@ -116,6 +120,7 @@ export default function GameScreen({ baseId }: { baseId: string }) {
       </div>
       <WindowManager renderWindow={renderWindow} />
       <TutorialOverlay />
+      <AchievementToasts />
     </div>
   )
 }

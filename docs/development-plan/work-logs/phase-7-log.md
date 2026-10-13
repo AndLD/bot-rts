@@ -78,3 +78,24 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Open points:** the API keys page says keys are planned (Phase 8); the Russian descriptions of the terminal commands in the BotOS reference are the English ones until 7.8.
 - **Next step:** task 7.8 (Russian translation of every namespace and the check on every PR), then 7.9 (the remaining Cypress specs).
 - **Verify with:** `npm run docs:generate && git diff --exit-code client/src/docs/generated`; `npm run typecheck && npm run test:coverage`; `node scripts/e2e.mjs -- --spec cypress/e2e/docs.cy.ts`
+
+### 2026-10-13 — task 7.8: Russian translation
+- **Tasks:** 7.8
+- **Branch:** `feature/7.8-russian` — done
+- **Decisions / deviations from the plan:** the Russian catalogue now has every key of the English one (651), written by hand: account and sign-in pages, the deploy dialog, the terminal (its messages and the description of every command), and the texts of all API error codes (the API sends codes and parameters, the client writes the text, design §15.4); the landing page, privacy policy, documentation, achievements and notifications were written with their features. `scripts/check-i18n.mjs` fails on every key that is missing in any language (it only warned before for the namespaces not yet translated), so a new string without a translation fails the `Message catalogues` step of CI. `withFallback` stays as a safety net in the browser. Free text of players (script logs, file names, bot labels) is not translated by design.
+- **Next step:** task 7.9 (the remaining Cypress specs), then the exit criteria of Phase 7.
+- **Verify with:** `npm run i18n:check`; `npm run test:coverage -w client`
+
+### 2026-10-13 — task 7.9: end-to-end tests of the Phase 7 flows
+- **Tasks:** 7.9
+- **Branch:** `feature/7.8-russian` — done (7.8 and 7.9 in one pull request)
+- **Specs:** `site.cy.ts` (the landing page and its calls to action, `/ru` with the language switch, `hreflang` and structured data, the footer links, the privacy policy in both languages, the cookie notice that is shown once and sets no cookie, the auth page over the live scene — which moves — and the still picture under reduced motion, the language choice on the auth page, translated terminal answers and error texts) and `engagement.cy.ts` (an achievement unlocked while the page is open, with its toast and the achievements page; one earned while nobody was there, with the "While you were away" summary, the achievements page and the notification centre; the badges on the account page; a real-time notification with the unread badge, mark as read; coalescing into one notification with ×3; mark all as read and a category switched off in the settings; the failed-password notification for the owner of a bot, coalesced). The docs and Help specs are in `docs.cy.ts` (7.13).
+- **Findings:** a bot that stands out of the radio reach of its owner's base does not tell its owner of a wrong password (design §11.2.1: its events are kept as a summary), so the spec puts the bot between two bases that share a spawn seed. API polling (`poll`) is used for what the engine and the consumers write a moment after the player acts.
+- **Next step:** the exit criteria of Phase 7 (all pull requests merged and green), then the phase summary.
+- **Verify with:** `node scripts/e2e.mjs -- --spec cypress/e2e/site.cy.ts` and `--spec cypress/e2e/engagement.cy.ts`
+
+### 2026-10-13 — Phase 7 done
+- **Tasks:** all of 7.1–7.13 are ✅; the exit criteria hold: the landing and authentication pages carry the animated ambient scene; achievements unlock from real game events, also while the player is offline; notifications arrive in real time and wait for offline players; the whole UI is in English and Russian with a missing-key check in CI; the privacy policy is published and accepted at sign-up; the documentation is public at `/docs` in both languages, generated from the code where it can be, and is the Help window of the game with contextual links.
+- **Findings on the way (fixed):** a connected terminal closed its own session on every re-render (its `connection` object is new each time), which only showed once notifications made the game screen draw more often; two Cypress specs had races (the live-area spec opened the page before the area existed, the reset-password spec typed before the page changed).
+- **Known gaps handed on:** events of a bot out of reach of its base are not counted or notified until its link returns (design §11.2.1); no notification for a finished craft except the one stored at order time; the API keys page of the docs says keys are planned (Phase 8); the Lighthouse gate runs three times per page and judges the median.
+- **Next step:** Phase 8 (multiplayer and API hardening).

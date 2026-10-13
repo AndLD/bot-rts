@@ -19,7 +19,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ## Entries
 
-### 2026-10-13 — phase planned, waiting for approval
+### 2026-10-13 — phase planned and approved
 - **Tasks:** none started
 - **Branch:** `docs/plan-phase-11-energy-time-ux` — the plan only
 - **Decisions / deviations from the plan:** the phase is numbered 11 to keep the task numbers of Phases 8–10 stable, and is
@@ -27,5 +27,5 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the first hands-on run of the finished Phases 0–7 found the energy starvation of the
   default base, per-tick event spam, a missing automatic reconnection and layout problems; the notification fixes already
   delivered are in PR #114.
-- **Next step:** the owner approves (or changes) the plan and the proposed decisions; then start with 11.1.
+- **Next step:** the plan and its decisions are approved (existing bases: no migration, the local database is reset instead, see decision 5); start with 11.1.
 - **Verify with:** `git status`, `git branch -a`, the open pull requests.

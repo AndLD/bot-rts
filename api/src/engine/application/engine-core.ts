@@ -109,6 +109,8 @@ export class EngineCore {
   private readonly manualCalls = new Map<string, ManualCall>()
   // A manual action that takes time keeps the bot busy: the next one waits, as a script waits for the answer of its call
   private readonly busyUntil = new Map<string, number>()
+  // The generators that are out of fuel (bot and module), so the player is told when one runs out and not on every cycle after
+  private readonly unfuelled = new Set<string>()
   // Game calls the bots' op budgets have not let through yet, oldest first
   private backlog: EngineCommand[] = []
   private readonly metrics = new EngineMetrics()
@@ -547,10 +549,16 @@ export class EngineCore {
   // The energy rules report what a bot should be told (design §12.5)
   private tellEnergy(bot: WorldBot, { type, moduleId }: EnergyEvent, now: number): void {
     const about = { at: now, parties: [{ userId: bot.state.ownerId, botId: bot.state.bot.id }] as [EventParty] }
+    const generator = `${bot.state.bot.id}|${moduleId}`
     if (type === ENERGY_EVENT.LOW) {
       this.deps.outbox.publish({ ...about, type: 'EnergyLow' })
+    } else if (type === ENERGY_EVENT.GENERATOR_FUELLED) {
+      this.unfuelled.delete(generator)
     } else if (type === ENERGY_EVENT.OUT_OF_FUEL) {
-      this.deps.outbox.publish({ ...about, type: 'OutOfFuel', moduleId: moduleId as string })
+      if (!this.unfuelled.has(generator)) {
+        this.unfuelled.add(generator)
+        this.deps.outbox.publish({ ...about, type: 'OutOfFuel', moduleId: moduleId as string })
+      }
     } else {
       this.deps.outbox.publish({ ...about, type: 'LiveScanStopped', moduleId: moduleId as string })
     }

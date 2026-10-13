@@ -95,7 +95,7 @@ describe('EnergyModel', () => {
     expect(find(modules, 'battery', BatteryModule).value).toBeCloseTo(10 - 0.1 + 48)
     expect(find(modules, 'storage', StorageModule).amountOf(RESOURCE.OIL)).toBeCloseTo(50 - 0.08)
     expect(find(modules, 'generator', GeneratorModule).lastCycleAt).toBe(1000)
-    expect(events).toEqual([])
+    expect(events).toEqual([{ type: ENERGY_EVENT.GENERATOR_FUELLED, moduleId: expect.any(String) }])
   })
 
   it('starts counting cycles when it first runs, and keeps the remainder of a cycle', () => {
@@ -116,6 +116,16 @@ describe('EnergyModel', () => {
     // 89.9 after the idle drain: one cycle fills the battery, the other nine due cycles burn nothing
     expect(find(modules, 'battery', BatteryModule).value).toBe(100)
     expect(find(modules, 'storage', StorageModule).amountOf(RESOURCE.OIL)).toBeCloseTo(50 - 0.02)
+  })
+
+  it('says when a generator ran its cycles on fuel, and says nothing when it had no cycle to run', () => {
+    const records = bot({ 'battery-class1': { capacity: 100, value: 10 }, 'generator-class1': { lastCycleAt: 0 } })
+
+    expect(model.tick(records, 1000).events).toContainEqual({
+      type: ENERGY_EVENT.GENERATOR_FUELLED,
+      moduleId: expect.any(String)
+    })
+    expect(model.tick(records, 0).events.filter((event) => event.type !== ENERGY_EVENT.LOW)).toEqual([])
   })
 
   it('stops without oil and says so', () => {

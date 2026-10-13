@@ -10,6 +10,8 @@ import { stockOf, withdrawStacks } from './storage-stock'
 export const ENERGY_EVENT = {
   LOW: 'EnergyLow',
   OUT_OF_FUEL: 'OutOfFuel',
+  // A generator that had no oil ran its cycles again; only the engine, which tells the player of a change of state, needs it
+  GENERATOR_FUELLED: 'GeneratorFuelled',
   LIVE_SCAN_STOPPED: 'LiveScanStopped'
 } as const
 
@@ -17,7 +19,7 @@ export type EnergyEventType = (typeof ENERGY_EVENT)[keyof typeof ENERGY_EVENT]
 
 export interface EnergyEvent {
   type: EnergyEventType
-  // The module the event is about: the generator without oil, the scanner that switched itself off
+  // The module the event is about: the generator without oil or with oil again, the scanner that switched itself off
   moduleId?: string
 }
 
@@ -119,8 +121,11 @@ export class EnergyModel {
     const fuelled =
       generator.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / generator.fuelPerCycle)) : wanted
     const cycles = Math.min(wanted, fuelled)
+    // Reported on every cycle that lacks fuel: it is a state, and whoever tells the player tells of the change only
     if (cycles < wanted) {
       events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: generator.id })
+    } else if (cycles > 0) {
+      events.push({ type: ENERGY_EVENT.GENERATOR_FUELLED, moduleId: generator.id })
     }
     if (cycles > 0) {
       current = this.apply(

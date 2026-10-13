@@ -125,6 +125,11 @@ export class BatteryModule extends GameModule {
     return this.flag('isConnected', true)
   }
 
+  // Whether the player was told that the energy is low; it stays set until the energy is not low any more
+  get isLowReported(): boolean {
+    return this.flag('isLowReported', false)
+  }
+
   // The energy after taking `amount` out; an empty battery refuses and keeps its charge (design §12.5)
   discharge(amount: number): Result<number> {
     const working = this.ensureWorking()
@@ -155,6 +160,11 @@ export class GeneratorModule extends GameModule {
 
   get fuelPerCycle(): number {
     return this.number('fuelPerCycle', 0)
+  }
+
+  // Whether the generator ran out of oil and the player was told; it stays set until the generator runs on oil again
+  get isOutOfFuel(): boolean {
+    return this.flag('isOutOfFuel', false)
   }
 
   // When the last cycle was due, in ms of the game clock; unset until the generator first runs

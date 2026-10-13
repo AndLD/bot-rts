@@ -55,7 +55,7 @@ describe('EnergyService', () => {
     // four cycles of 12 energy for 0.02 oil each
     expect(battery().value).toBeGreaterThan(afterFirst + 40)
     expect(storage().amountOf(RESOURCE.OIL)).toBeCloseTo(50 - 0.08)
-    expect(events).toEqual([{ type: ENERGY_EVENT.GENERATOR_FUELLED, moduleId: expect.any(String) }])
+    expect(events).toEqual([])
   })
 
   it('reports an empty fuel tank', async () => {

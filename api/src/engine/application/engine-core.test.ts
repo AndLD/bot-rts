@@ -756,25 +756,6 @@ describe('EngineCore', () => {
 
       expect(outbox.drain().map((e) => e.type)).toEqual(['EnergyLow', 'OutOfFuel', 'LiveScanStopped'])
     })
-
-    it('tells of a generator that runs out of fuel once, and again only after it ran on fuel in between', async () => {
-      const { ticks, outbox, world, base, modules } = await setup()
-      const botState = { bot: base, ownerId: OWNER, modules }
-      const worldBot = { state: botState, position: null, heading: 0 as const, carried: [] }
-      const dry = { bot: worldBot, event: { type: 'OutOfFuel' as const, moduleId: 'gen' } }
-      const fuelled = { bot: worldBot, event: { type: 'GeneratorFuelled' as const, moduleId: 'gen' } }
-      jest
-        .spyOn(world, 'tickEnergy')
-        .mockReturnValueOnce([dry])
-        .mockReturnValueOnce([dry])
-        .mockReturnValueOnce([fuelled])
-        .mockReturnValueOnce([dry])
-        .mockReturnValueOnce([dry])
-
-      await ticks(5)
-
-      expect(outbox.drain().map((e) => e.type)).toEqual(['OutOfFuel', 'OutOfFuel'])
-    })
   })
 
   describe('manual actions', () => {

@@ -10,8 +10,6 @@ import { stockOf, withdrawStacks } from './storage-stock'
 export const ENERGY_EVENT = {
   LOW: 'EnergyLow',
   OUT_OF_FUEL: 'OutOfFuel',
-  // A generator that had no oil ran its cycles again; only the engine, which tells the player of a change of state, needs it
-  GENERATOR_FUELLED: 'GeneratorFuelled',
   LIVE_SCAN_STOPPED: 'LiveScanStopped'
 } as const
 
@@ -19,7 +17,7 @@ export type EnergyEventType = (typeof ENERGY_EVENT)[keyof typeof ENERGY_EVENT]
 
 export interface EnergyEvent {
   type: EnergyEventType
-  // The module the event is about: the generator without oil or with oil again, the scanner that switched itself off
+  // The module the event is about: the generator without oil, the scanner that switched itself off
   moduleId?: string
 }
 
@@ -96,11 +94,26 @@ export class EnergyModel {
       }
     }
 
-    if (this.capacity(current) > 0 && this.stored(current) < this.capacity(current) * this.balance.lowThreshold) {
+    return { modules: this.reportLow(current, events).filter((record) => !records.includes(record)), events }
+  }
+
+  // Says that the energy got low once, and remembers it in the batteries until it is not low any more: the state is told
+  // when it begins, not on every tick, and not again after a restart
+  private reportLow(records: readonly Module[], events: EnergyEvent[]): Module[] {
+    const batteries = this.batteries(records)
+    const isLow =
+      this.capacity(records) > 0 && this.stored(records) < this.capacity(records) * this.balance.lowThreshold
+    const reported = batteries.filter((battery) => battery.isLowReported)
+    let current = [...records]
+
+    if (isLow && reported.length === 0) {
+      current = this.replace(current, batteries[0].withProps({ isLowReported: true }))
       events.push({ type: ENERGY_EVENT.LOW })
+    } else if (!isLow) {
+      reported.forEach((battery) => (current = this.replace(current, battery.withProps({ isLowReported: false }))))
     }
 
-    return { modules: current.filter((record) => !records.includes(record)), events }
+    return current
   }
 
   private runGenerator(records: readonly Module[], generatorId: string, now: number, events: EnergyEvent[]): Module[] {
@@ -111,7 +124,7 @@ export class EnergyModel {
     const last = generator.lastCycleAt ?? now
     const due = generator.delay > 0 ? Math.max(Math.floor((now - last) / generator.delay), 0) : 1
     const advanced = generator.delay > 0 ? Math.max(last + due * generator.delay, last) : now
-    let current = this.replace(records, generator.withProps({ lastCycleAt: advanced }))
+    let current = [...records]
 
     const room =
       generator.energyPerCycle > 0
@@ -121,11 +134,15 @@ export class EnergyModel {
     const fuelled =
       generator.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / generator.fuelPerCycle)) : wanted
     const cycles = Math.min(wanted, fuelled)
-    // Reported on every cycle that lacks fuel: it is a state, and whoever tells the player tells of the change only
-    if (cycles < wanted) {
+    // Out of fuel is a state: it is told when it begins and remembered in the generator until it runs on oil again
+    const isStarved = cycles < wanted
+    const isOutOfFuel = isStarved || (cycles === 0 && generator.isOutOfFuel)
+    current = this.replace(
+      current,
+      generator.withProps({ lastCycleAt: advanced, ...(isOutOfFuel !== generator.isOutOfFuel && { isOutOfFuel }) })
+    )
+    if (isStarved && !generator.isOutOfFuel) {
       events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: generator.id })
-    } else if (cycles > 0) {
-      events.push({ type: ENERGY_EVENT.GENERATOR_FUELLED, moduleId: generator.id })
     }
     if (cycles > 0) {
       current = this.apply(

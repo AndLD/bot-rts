@@ -60,10 +60,7 @@ describe('energy accounting against PostgreSQL', () => {
     expect(battery.value).toBeGreaterThan(100 + 40)
     expect((await stored('storage', StorageModule)).amountOf(RESOURCE.OIL)).toBeCloseTo(50 - 0.08)
     // 140 of 3000 is under a tenth of the capacity
-    expect(events).toEqual([
-      { type: ENERGY_EVENT.GENERATOR_FUELLED, moduleId: expect.any(String) },
-      { type: ENERGY_EVENT.LOW }
-    ])
+    expect(events).toEqual([{ type: ENERGY_EVENT.LOW }])
   })
 
   it('reports a generator that ran out of oil', async () => {

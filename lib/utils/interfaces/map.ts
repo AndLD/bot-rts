@@ -29,7 +29,7 @@ export interface IMapPoint {
 }
 
 export type MapChassis = 'wheels' | 'tracks' | 'immobile'
-export type MapModuleIcon = 'weapon' | 'drill' | 'scanner' | 'antenna'
+export type MapModuleIcon = 'weapon' | 'drill' | 'scanner' | 'antenna' | 'solar'
 export type MapItemKind = 'blueprint' | 'ammunition' | 'part' | 'generic'
 
 // A cell of the map as a player sees it, with what the renderer needs to draw it (design §4.3). Cells the player never

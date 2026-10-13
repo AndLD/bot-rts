@@ -19,6 +19,7 @@ export type ModuleType =
   | 'armor'
   | 'scanner'
   | 'generator'
+  | 'solarPanel'
   | 'factory'
   | 'gps'
   | 'repair'
@@ -38,6 +39,7 @@ export const MODULE_TYPES: readonly ModuleType[] = [
   'armor',
   'scanner',
   'generator',
+  'solarPanel',
   'factory',
   'gps',
   'repair'
@@ -177,16 +179,25 @@ export interface IScannerModule extends IScannerModuleProps {
   scan(): Promise<Result<IMapPoint[]>>
 }
 
-export interface IGeneratorModuleProps extends IModuleProps {
+// What makes energy for the battery: a generator burning oil, a solar panel following the sun (design §7.2.1)
+export interface IPowerSourceModuleProps extends IModuleProps {
   energyPerCycle: number
-  fuelPerCycle: number // oil burnt from the bot's storage per cycle
   delay: number // in ms
   isEnabled: boolean
 }
-export interface IGeneratorModule extends IGeneratorModuleProps {
+export interface IPowerSourceModule extends IPowerSourceModuleProps {
   enable(): Promise<Result>
   disable(): Promise<Result>
 }
+
+export interface IGeneratorModuleProps extends IPowerSourceModuleProps {
+  fuelPerCycle: number // oil burnt from the bot's storage per cycle
+}
+export interface IGeneratorModule extends IGeneratorModuleProps, IPowerSourceModule {}
+
+// Burns nothing: the output of a cycle is `energyPerCycle` scaled by the sunlight of the time of day
+export interface ISolarPanelModuleProps extends IPowerSourceModuleProps {}
+export interface ISolarPanelModule extends ISolarPanelModuleProps, IPowerSourceModule {}
 
 export interface IFactoryModuleProps extends IModuleProps {
   queueSize: number
@@ -228,6 +239,7 @@ export type Module =
   | IArmorModule
   | IScannerModule
   | IGeneratorModule
+  | ISolarPanelModule
   | IFactoryModule
   | IGpsModule
   | IRepairModule
@@ -246,6 +258,7 @@ export type ModuleProps =
   | IArmorModuleProps
   | IScannerModuleProps
   | IGeneratorModuleProps
+  | ISolarPanelModuleProps
   | IFactoryModuleProps
   | IGpsModuleProps
   | IRepairModuleProps

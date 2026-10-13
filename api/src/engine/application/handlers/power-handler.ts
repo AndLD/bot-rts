@@ -1,5 +1,5 @@
 import { fail, ok, ResultCode } from '../../../../../lib/utils/result'
-import { BatteryModule, GeneratorModule } from '../../../modules/domain/game-module'
+import { BatteryModule, PowerSourceModule } from '../../../modules/domain/game-module'
 import { ScannerModule } from '../../../modules/domain/scanner-module'
 import { Clock } from '../../../shared/application/clock'
 import { BotState } from '../../domain/bot-state'
@@ -9,7 +9,7 @@ import { LiveVision } from '../live-vision'
 import { CallOutcome, ScriptFunctionHandler } from '../script-api'
 import { World } from '../world/world'
 
-// enable(moduleId) and disable(moduleId): switch a generator on or off (it burns oil for energy, design §12.5), put a scanner
+// enable(moduleId) and disable(moduleId): switch a power source on or off (a generator burns oil for energy, a solar panel follows the sun, design §12.5), put a scanner
 // into or out of live mode (§4.4), or connect and disconnect a battery
 export class PowerHandler implements ScriptFunctionHandler {
   readonly functions = ['enable', 'disable']
@@ -29,7 +29,7 @@ export class PowerHandler implements ScriptFunctionHandler {
     const isEnabling = fn === 'enable'
 
     let patch: Record<string, unknown>
-    if (module instanceof GeneratorModule) {
+    if (module instanceof PowerSourceModule) {
       const switched = isEnabling ? module.enable(this.clock.now().getTime()) : ok(module.disable())
       if (!switched.ok) {
         return switched

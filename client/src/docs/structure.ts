@@ -101,7 +101,7 @@ export const DOC_PAGES: readonly DocPage[] = [
     group: 'concepts',
     blocks: [
       ...paragraphs('intro'),
-      list('idle', 'operation', 'battery', 'generator'),
+      list('idle', 'operation', 'battery', 'generator', 'solar'),
       ...paragraphs('empty'),
       ...see('modules')
     ]

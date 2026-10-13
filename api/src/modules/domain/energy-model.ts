@@ -1,6 +1,7 @@
+import { DEFAULT_GAME_TIME, GameTimeConfig } from '../../../../lib/utils/game-time'
 import { RESOURCE } from '../../../../lib/utils/interfaces/resources'
 import { fail, ok, Result, ResultCode } from '../../../../lib/utils/result'
-import { BatteryModule, GameModule, GeneratorModule } from './game-module'
+import { BatteryModule, GameModule, PowerSourceModule } from './game-module'
 import { Module } from './module.entity'
 import { ModuleRegistry } from './module-registry'
 import { ScannerModule } from './scanner-module'
@@ -37,12 +38,13 @@ export interface EnergyChange {
 // Rounds away the float noise of fractional fuel and energy amounts
 const clean = (value: number) => Math.round(value * 1e6) / 1e6
 
-// The energy accounting of one bot (design §12.5): batteries store it, modules drain it, generators burn oil to make it.
+// The energy accounting of one bot (design §12.5): batteries store it, modules drain it, power sources make it (generators burn oil, solar panels follow the sun).
 // Stateless: it takes the bot's module records and returns the records that changed.
 export class EnergyModel {
   constructor(
     private readonly registry: ModuleRegistry,
-    private readonly balance: EnergyBalance = DEFAULT_ENERGY_BALANCE
+    private readonly balance: EnergyBalance = DEFAULT_ENERGY_BALANCE,
+    private readonly time: GameTimeConfig = DEFAULT_GAME_TIME
   ) {}
 
   // The energy in the batteries that are connected and working
@@ -67,7 +69,7 @@ export class EnergyModel {
     return ok(this.withdraw(records, amount))
   }
 
-  // One tick, applied after the commands: every working module drains its idle cost, the generators refill the
+  // One tick, applied after the commands: every working module drains its idle cost, the power sources refill the
   // batteries, and a live scanner pays for refreshing its area or switches itself off.
   tick(records: readonly Module[], now: number, ticks = 1): EnergyChange {
     const events: EnergyEvent[] = []
@@ -78,8 +80,8 @@ export class EnergyModel {
       .reduce((sum, module) => sum + module.record.idleCost, 0)
     current = this.withdraw(current, Math.min(idle * ticks, this.stored(current)))
 
-    for (const generator of this.generators(current)) {
-      current = this.runGenerator(current, generator.id, now, events)
+    for (const source of this.powerSources(current)) {
+      current = this.runPowerSource(current, source.id, now, events)
     }
 
     for (const scanner of this.instances(current).filter((m): m is ScannerModule => m instanceof ScannerModule)) {
@@ -116,40 +118,38 @@ export class EnergyModel {
     return current
   }
 
-  private runGenerator(records: readonly Module[], generatorId: string, now: number, events: EnergyEvent[]): Module[] {
-    const generator = this.generators(records).find((candidate) => candidate.id === generatorId)
-    if (!generator?.isWorking || !generator.isEnabled) {
+  private runPowerSource(records: readonly Module[], sourceId: string, now: number, events: EnergyEvent[]): Module[] {
+    const source = this.powerSources(records).find((candidate) => candidate.id === sourceId)
+    if (!source?.isWorking || !source.isEnabled) {
       return [...records]
     }
-    const last = generator.lastCycleAt ?? now
-    const due = generator.delay > 0 ? Math.max(Math.floor((now - last) / generator.delay), 0) : 1
-    const advanced = generator.delay > 0 ? Math.max(last + due * generator.delay, last) : now
+    const last = source.lastCycleAt ?? now
+    const due = source.delay > 0 ? Math.max(Math.floor((now - last) / source.delay), 0) : 1
+    const advanced = source.delay > 0 ? Math.max(last + due * source.delay, last) : now
     let current = [...records]
 
-    const room =
-      generator.energyPerCycle > 0
-        ? Math.ceil((this.capacity(current) - this.stored(current)) / generator.energyPerCycle)
-        : 0
+    const perCycle = clean(source.energyPerCycle * source.outputAt(now, this.time))
+    const room = perCycle > 0 ? Math.ceil((this.capacity(current) - this.stored(current)) / perCycle) : 0
     const wanted = Math.min(due, Math.max(room, 0))
     const fuelled =
-      generator.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / generator.fuelPerCycle)) : wanted
+      source.fuelPerCycle > 0 ? Math.floor(clean(stockOf(current, RESOURCE.OIL) / source.fuelPerCycle)) : wanted
     const cycles = Math.min(wanted, fuelled)
-    // Out of fuel is a state: it is told when it begins and remembered in the generator until it runs on oil again
+    // Out of fuel is a state: it is told when it begins and remembered in the source until it runs on oil again
     const isStarved = cycles < wanted
-    const isOutOfFuel = isStarved || (cycles === 0 && generator.isOutOfFuel)
+    const isOutOfFuel = isStarved || (cycles === 0 && source.isOutOfFuel)
     current = this.replace(
       current,
-      generator.withProps({ lastCycleAt: advanced, ...(isOutOfFuel !== generator.isOutOfFuel && { isOutOfFuel }) })
+      source.withProps({ lastCycleAt: advanced, ...(isOutOfFuel !== source.isOutOfFuel && { isOutOfFuel }) })
     )
-    if (isStarved && !generator.isOutOfFuel) {
-      events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: generator.id })
+    if (isStarved && !source.isOutOfFuel) {
+      events.push({ type: ENERGY_EVENT.OUT_OF_FUEL, moduleId: source.id })
     }
     if (cycles > 0) {
       current = this.apply(
         current,
-        withdrawStacks(current, [{ resource: RESOURCE.OIL, amount: clean(cycles * generator.fuelPerCycle) }])
+        withdrawStacks(current, [{ resource: RESOURCE.OIL, amount: clean(cycles * source.fuelPerCycle) }])
       )
-      current = this.deposit(current, cycles * generator.energyPerCycle)
+      current = this.deposit(current, cycles * perCycle)
     }
     return current
   }
@@ -164,8 +164,8 @@ export class EnergyModel {
     )
   }
 
-  private generators(records: readonly Module[]): GeneratorModule[] {
-    return this.instances(records).filter((module): module is GeneratorModule => module instanceof GeneratorModule)
+  private powerSources(records: readonly Module[]): PowerSourceModule[] {
+    return this.instances(records).filter((module): module is PowerSourceModule => module instanceof PowerSourceModule)
   }
 
   // The records with the changed ones of a successful withdrawal put in; the caller has checked there is enough

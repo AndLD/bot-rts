@@ -6,7 +6,7 @@ import { RESOURCE } from '@lib/utils/interfaces/resources'
 export type Chassis = 'wheels' | 'tracks' | 'immobile'
 
 // The key modules that get an icon on the bot's sprite
-export type ModuleOverlay = 'weapon' | 'drill' | 'scanner' | 'antenna'
+export type ModuleOverlay = 'weapon' | 'drill' | 'scanner' | 'antenna' | 'solar'
 
 export type Owner = 'own' | 'enemy'
 

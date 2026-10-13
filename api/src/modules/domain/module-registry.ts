@@ -8,6 +8,7 @@ import {
   FactoryModule,
   GameModule,
   GeneratorModule,
+  SolarPanelModule,
   GpsModule,
   ManipulatorModule,
   MiningModule,
@@ -59,6 +60,7 @@ export function createModuleRegistry(): ModuleRegistry {
     .register('weapon', WeaponModule)
     .register('battery', BatteryModule)
     .register('generator', GeneratorModule)
+    .register('solarPanel', SolarPanelModule)
     .register('storage', StorageModule)
     .register('factory', FactoryModule)
     .register('armor', ArmorModule)

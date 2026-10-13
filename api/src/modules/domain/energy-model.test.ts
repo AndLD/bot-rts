@@ -98,6 +98,56 @@ describe('EnergyModel', () => {
     expect(events).toEqual([])
   })
 
+  describe('a solar panel', () => {
+    const MINUTE = 60_000
+    const withPanel = (battery: Record<string, unknown>) =>
+      bot({ 'battery-class1': battery, 'solar-panel-class1': { lastCycleAt: 0 } }, [
+        'battery-class1',
+        'solar-panel-class1'
+      ])
+    const after = (m: EnergyModel, records: Module[], now: number) => {
+      const { modules } = m.tick(records, now)
+      return records.map((record) => modules.find((changed) => changed.id === record.id) ?? record)
+    }
+    const gained = (records: Module[], now: number) => model.stored(after(model, records, now))
+
+    it('makes full output at noon and a tenth of it at night, burning nothing', () => {
+      const noon = 12 * MINUTE
+      const records = withPanel({ capacity: 100, value: 10 }).map((m) =>
+        m.type === 'solarPanel' ? { ...m, props: { ...m.props, lastCycleAt: noon - 1000 } } : m
+      )
+      const night = withPanel({ capacity: 100, value: 10 }).map((m) =>
+        m.type === 'solarPanel' ? { ...m, props: { ...m.props, lastCycleAt: 2 * MINUTE - 1000 } } : m
+      )
+
+      // 4 cycles of 2 energy (8 per second) in the sun, 4 cycles of 0.2 at night
+      expect(gained(records, noon)).toBeCloseTo(18)
+      expect(gained(night, 2 * MINUTE)).toBeCloseTo(10.8)
+    })
+
+    it('never runs out of fuel, and leaves a disabled or full one alone', () => {
+      const records = withPanel({ capacity: 100, value: 100 })
+
+      expect(model.tick(records, 12 * MINUTE).events).toEqual([])
+      const off = withPanel({ capacity: 100, value: 10 }).map((m) =>
+        m.type === 'solarPanel' ? { ...m, props: { ...m.props, isEnabled: false } } : m
+      )
+      expect(gained(off, 12 * MINUTE)).toBe(10)
+    })
+
+    it('makes nothing when there is no sun at all', () => {
+      const dark = new EnergyModel(registry, DEFAULT_ENERGY_BALANCE, {
+        dayLengthMs: 1000,
+        hoursPerDay: 24,
+        spans: [{ phase: 'night', fromHour: 0, sunlight: 0 }]
+      })
+      const records = withPanel({ capacity: 100, value: 10 })
+
+      expect(dark.stored(after(dark, records, 1000))).toBe(10)
+      expect(dark.tick(records, 1000).events).toEqual([])
+    })
+  })
+
   it('starts counting cycles when it first runs, and keeps the remainder of a cycle', () => {
     const fresh = bot({ 'battery-class1': { capacity: 100, value: 10 } })
     const first = model.tick(fresh, 5000)

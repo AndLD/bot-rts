@@ -646,6 +646,21 @@ describe('PowerHandler', () => {
     expect((await t.typeOf('b1', 'battery')).props.isConnected).toBe(false)
   })
 
+  it('switches a solar panel like a generator', async () => {
+    const t = await setup()
+    t.addBot('b1', at(1, 1), [...FULL_KIT, 'solar-panel-class1'])
+    const state = await t.stateOf('b1')
+    const panel = await t.typeOf('b1', 'solarPanel')
+
+    await t.power.handle(state, 'disable', [panel.id])
+    expect((await t.typeOf('b1', 'solarPanel')).props.isEnabled).toBe(false)
+    expect(await t.power.handle(state, 'enable', [panel.id])).toEqual({
+      ok: true,
+      data: { moduleId: panel.id, isOn: true }
+    })
+    expect((await t.typeOf('b1', 'solarPanel')).props.isEnabled).toBe(true)
+  })
+
   it('refuses a missing module, a broken generator and a module that has no switch', async () => {
     const t = await setup()
     t.addBot('b1', at(1, 1), [...FULL_KIT, 'generator-class1'])

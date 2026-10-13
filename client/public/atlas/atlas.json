@@ -86,116 +86,122 @@
       "w": 32,
       "h": 32
     },
-    "overlay_cracked": {
+    "overlay_solar": {
       "x": 192,
+      "y": 32,
+      "w": 32,
+      "h": 32
+    },
+    "overlay_cracked": {
+      "x": 224,
       "y": 32,
       "w": 32,
       "h": 32
     },
     "resource_gold_full": {
-      "x": 224,
-      "y": 32,
+      "x": 0,
+      "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_gold_half": {
-      "x": 0,
+      "x": 32,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_gold_low": {
-      "x": 32,
+      "x": 64,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_iron_full": {
-      "x": 64,
+      "x": 96,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_iron_half": {
-      "x": 96,
+      "x": 128,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_iron_low": {
-      "x": 128,
+      "x": 160,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_stone_full": {
-      "x": 160,
+      "x": 192,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_stone_half": {
-      "x": 192,
+      "x": 224,
       "y": 64,
       "w": 32,
       "h": 32
     },
     "resource_stone_low": {
-      "x": 224,
-      "y": 64,
-      "w": 32,
-      "h": 32
-    },
-    "resource_wood_full": {
       "x": 0,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_wood_half": {
+    "resource_wood_full": {
       "x": 32,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_wood_low": {
+    "resource_wood_half": {
       "x": 64,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_oil_full": {
+    "resource_wood_low": {
       "x": 96,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_oil_half": {
+    "resource_oil_full": {
       "x": 128,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_oil_low": {
+    "resource_oil_half": {
       "x": 160,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_crystal_full": {
+    "resource_oil_low": {
       "x": 192,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_crystal_half": {
+    "resource_crystal_full": {
       "x": 224,
       "y": 96,
       "w": 32,
       "h": 32
     },
-    "resource_crystal_low": {
+    "resource_crystal_half": {
       "x": 0,
+      "y": 128,
+      "w": 32,
+      "h": 32
+    },
+    "resource_crystal_low": {
+      "x": 32,
       "y": 128,
       "w": 32,
       "h": 32

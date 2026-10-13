@@ -707,6 +707,7 @@ export type ModuleResponse = {
     | 'armor'
     | 'scanner'
     | 'generator'
+    | 'solarPanel'
     | 'factory'
     | 'gps'
     | 'repair'
@@ -862,7 +863,7 @@ export type MapCellResponse = {
   /** On bots and bases: whether they are the requesting player’s */
   isOwn?: boolean
   chassis?: 'wheels' | 'tracks' | 'immobile'
-  icons?: ('weapon' | 'drill' | 'scanner' | 'antenna')[]
+  icons?: ('weapon' | 'drill' | 'scanner' | 'antenna' | 'solar')[]
   isDamaged?: boolean
   item?: 'blueprint' | 'ammunition' | 'part' | 'generic'
 }

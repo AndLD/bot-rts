@@ -73,13 +73,13 @@ export const SCRIPT_FUNCTIONS: readonly ScriptFunctionSpec[] = [
   { name: 'reload', modules: ['weapon'], args: [], ops: 1 },
   {
     name: 'enable',
-    modules: ['scanner', 'generator', 'battery'],
+    modules: ['scanner', 'generator', 'solarPanel', 'battery'],
     args: [{ name: 'moduleId', kind: 'string' }],
     ops: 1
   },
   {
     name: 'disable',
-    modules: ['scanner', 'generator', 'battery'],
+    modules: ['scanner', 'generator', 'solarPanel', 'battery'],
     args: [{ name: 'moduleId', kind: 'string' }],
     ops: 1
   },

@@ -75,6 +75,7 @@ const sprites = {
   overlay_drill: `<path d="M16 3 21 15 11 15Z" fill="#fbbf24" stroke="#78350f"/><rect x="13" y="15" width="6" height="5" fill="#52525b"/>`,
   overlay_scanner: `<path d="M8 12a10 10 0 0 1 16 0" stroke="#7dd3fc" stroke-width="2" fill="none"/><path d="M11 15a6 6 0 0 1 10 0" stroke="#7dd3fc" stroke-width="2" fill="none"/><circle cx="16" cy="19" r="2" fill="#7dd3fc"/>`,
   overlay_antenna: `<path d="M16 22V6" stroke="#e4e4e7" stroke-width="2"/><circle cx="16" cy="5" r="2.5" fill="#f87171"/>`,
+  overlay_solar: `<rect x="6" y="8" width="20" height="14" rx="2" fill="#1e3a8a" stroke="#93c5fd" stroke-width="1.5"/><path d="M13 8v14M19 8v14M6 15h20" stroke="#60a5fa" stroke-width="1"/>`,
   overlay_cracked: `<path d="M5 6 12 14 8 18 17 25 14 30M20 3 17 11 25 16 22 22" stroke="#09090b" stroke-width="1.5" fill="none"/>`
 }
 

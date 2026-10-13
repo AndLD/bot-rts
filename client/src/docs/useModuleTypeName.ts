@@ -16,6 +16,7 @@ const FAMILY: Record<ModuleType, string> = {
   armor: 'armor',
   scanner: 'scanner',
   generator: 'generator',
+  solarPanel: 'solar-panel',
   factory: 'factory',
   gps: 'gps',
   repair: 'repair'

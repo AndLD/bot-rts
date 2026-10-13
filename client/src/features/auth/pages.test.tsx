@@ -149,6 +149,18 @@ describe('LinkResultPage', () => {
     expect(auth.confirmEmailChange).toHaveBeenCalledTimes(1)
   })
 
+  it('does not send the same link again when the page renders again', async () => {
+    search = 'token=abc'
+    const auth = createFakeAuth()
+    const { rerender } = renderApp(<LinkResultPage action="confirmEmailChange" />, { auth })
+    await waitFor(() => expect(auth.signOut).toHaveBeenCalled())
+
+    rerender(<LinkResultPage action="confirmAccountDeletion" />)
+
+    expect(auth.confirmEmailChange).toHaveBeenCalledTimes(1)
+    expect(auth.confirmAccountDeletion).not.toHaveBeenCalled()
+  })
+
   it('sends an empty token when the link has none', async () => {
     const auth = createFakeAuth()
     renderApp(<LinkResultPage action="confirmAccountDeletion" />, { auth })

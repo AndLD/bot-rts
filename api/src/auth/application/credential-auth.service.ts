@@ -4,6 +4,8 @@ export interface RegisterInput {
   name: string
   email: string
   password: string
+  // The version of the privacy policy the player agreed to (design §15.3)
+  acceptedPrivacyVersion: string
   userAgent?: string
 }
 

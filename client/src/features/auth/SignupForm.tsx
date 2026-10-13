@@ -1,11 +1,15 @@
 'use client'
 
-import { Button, Form, Input } from 'antd'
+import { Button, Checkbox, Form, Input } from 'antd'
+import { PRIVACY_POLICY_VERSION } from '@lib/utils/privacy'
+import Link from 'next/link'
 import { IUserPostBody } from '@lib/utils/interfaces/users'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { errorNotification } from '../../shared/notifications'
 import { useErrorMessage } from '../../shared/errors'
+import { useLocaleState } from '../../shared/i18n/I18nProvider'
+import { localePath } from '../../site/config'
 import { useAuth } from './auth-client-context'
 import { useAuthRules } from './validation'
 
@@ -16,9 +20,10 @@ export default function SignupForm() {
   const router = useRouter()
   const [form] = Form.useForm()
   const auth = useAuth()
+  const { locale } = useLocaleState()
 
-  async function onFinish(user: IUserPostBody) {
-    const result = await auth.signUp(user)
+  async function onFinish({ name, email, password }: Omit<IUserPostBody, 'acceptedPrivacyVersion'>) {
+    const result = await auth.signUp({ name, email, password, acceptedPrivacyVersion: PRIVACY_POLICY_VERSION })
 
     if (result.ok) {
       router.push('/forbidden')
@@ -39,6 +44,18 @@ export default function SignupForm() {
 
       <Form.Item name="password" rules={[rules.passwordRequired, rules.password]}>
         <Input.Password placeholder={t('fields.password')} />
+      </Form.Item>
+
+      <Form.Item name="acceptPrivacy" valuePropName="checked" rules={[rules.privacyRequired]}>
+        <Checkbox>
+          {t.rich('signup.accept', {
+            link: (chunks) => (
+              <Link href={localePath(locale, '/privacy')} target="_blank">
+                {chunks}
+              </Link>
+            )
+          })}
+        </Checkbox>
       </Form.Item>
 
       <div className="button">

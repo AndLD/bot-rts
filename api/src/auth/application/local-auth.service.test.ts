@@ -1,15 +1,23 @@
+import { PRIVACY_POLICY_VERSION } from '../../../../lib/utils/privacy'
 import { createAuthWorld } from '../../../tests/fakes/auth'
 import { buildUser } from '../../../tests/integration/builders'
 import { UnauthorizedError, ValidationError } from '../../shared/domain/errors'
 import {
   CredentialsInvalidError,
   EmailAlreadyExistsError,
+  PrivacyNotAcceptedError,
   EmailNotVerifiedError,
   UserBannedError
 } from '../../users/domain/user.errors'
 import { InvalidTokenError, WrongPasswordError } from '../domain/auth.errors'
 
-const input = { name: 'Alice', email: 'alice@example.com', password: 'Passw0rd!x', userAgent: 'jest' }
+const input = {
+  name: 'Alice',
+  email: 'alice@example.com',
+  password: 'Passw0rd!x',
+  acceptedPrivacyVersion: PRIVACY_POLICY_VERSION,
+  userAgent: 'jest'
+}
 const HOUR = 3600 * 1000
 
 async function setup() {
@@ -49,6 +57,22 @@ describe('register', () => {
     ])
     expect(tokens.accessToken).toMatch(/^access\./)
     expect(mailer.last('verification')).toMatchObject({ to: 'alice@example.com' })
+  })
+
+  it('stores the version of the privacy policy that was accepted, and when', async () => {
+    const { user } = await setup()
+
+    expect(user.privacyAcceptedVersion).toBe(PRIVACY_POLICY_VERSION)
+    expect(user.privacyAcceptedAt).toBeInstanceOf(Date)
+  })
+
+  it('refuses a sign-up that accepted another version of the policy, and creates nothing', async () => {
+    const world = createAuthWorld()
+
+    await expect(world.auth.register({ ...input, acceptedPrivacyVersion: '1999-01-01' })).rejects.toThrow(
+      PrivacyNotAcceptedError
+    )
+    expect(world.repositories.users.items.size).toBe(0)
   })
 
   it('normalises the email and rejects a taken one', async () => {

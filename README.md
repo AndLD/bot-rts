@@ -243,6 +243,7 @@ pm2 start ecosystem.config.json
 | `SMTP_USER` / `SMTP_PASS`                           | api     | SMTP credentials; without them the email service is a no-op                                                                                                    | —                                                  |
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD`            | api     | Auto-created root/admin user                                                                                                                                   | `root@root.root` / none                            |
 | `NEXT_PUBLIC_API_URL`                               | client  | Backend base URL (read in the browser)                                                                                                                         | `http://localhost:8080`                            |
+| `NEXT_PUBLIC_CONTACT_EMAIL`                         | client  | The address the privacy policy tells players to write to about their data (read at build time)                                                                  | `privacy@botrts.example`                           |
 | `NEXT_PUBLIC_SITE_URL`                              | client  | Public address of the site, for canonical links, the sitemap and social previews (read at build time)                                                           | `http://localhost:5173`                            |
 
 ---

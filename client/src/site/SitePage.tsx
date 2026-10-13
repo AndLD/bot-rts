@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Locale } from '../shared/i18n/locales'
+import CookieNotice from './CookieNotice'
 import SiteFooter from './SiteFooter'
 import SiteHeader from './SiteHeader'
 import { SiteIntl } from './SiteIntl'
@@ -14,6 +15,7 @@ export function SitePage({ locale, path, children }: { locale: Locale; path: str
         <SiteHeader locale={locale} path={path} />
         <main className="site-main">{children}</main>
         <SiteFooter locale={locale} />
+        <CookieNotice locale={locale} />
       </div>
     </SiteIntl>
   )

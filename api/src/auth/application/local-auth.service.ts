@@ -1,3 +1,4 @@
+import { PRIVACY_POLICY_VERSION } from '../../../../lib/utils/privacy'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
@@ -5,7 +6,11 @@ import { UnauthorizedError, ValidationError } from '../../shared/domain/errors'
 import { Repositories, UnitOfWork } from '../../persistence/application/unit-of-work'
 import { assertCanUseApi } from '../../users/domain/user-access'
 import { User } from '../../users/domain/user.entity'
-import { CredentialsInvalidError, EmailAlreadyExistsError } from '../../users/domain/user.errors'
+import {
+  CredentialsInvalidError,
+  EmailAlreadyExistsError,
+  PrivacyNotAcceptedError
+} from '../../users/domain/user.errors'
 import { AuthPolicy } from '../domain/auth-policy'
 import { AuthTokenKind, isAuthTokenUsable } from '../domain/auth-token'
 import { InvalidTokenError, WrongPasswordError } from '../domain/auth.errors'
@@ -41,7 +46,11 @@ export class LocalAuthService implements CredentialAuthService {
 
   constructor(private readonly deps: LocalAuthDependencies) {}
 
-  async register({ name, email, password, userAgent }: RegisterInput): Promise<SessionTokens> {
+  async register({ name, email, password, acceptedPrivacyVersion, userAgent }: RegisterInput): Promise<SessionTokens> {
+    if (acceptedPrivacyVersion !== PRIVACY_POLICY_VERSION) {
+      throw new PrivacyNotAcceptedError()
+    }
+
     const address = normalizeEmail(email)
     const passwordHash = await this.deps.hasher.hash(password)
 
@@ -59,6 +68,8 @@ export class LocalAuthService implements CredentialAuthService {
         subscription: 'free',
         createdAt: now,
         updatedAt: null,
+        privacyAcceptedVersion: acceptedPrivacyVersion,
+        privacyAcceptedAt: now,
         deletedAt: null
       }
       await repositories.users.add(user)

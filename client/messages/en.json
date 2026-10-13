@@ -100,7 +100,8 @@
       "title": "Sign Up",
       "submit": "Sign up",
       "failed": "Could not sign up",
-      "toLogin": "Already have an account? Log in"
+      "toLogin": "Already have an account? Log in",
+      "accept": "I accept the <link>privacy policy</link>"
     },
     "fields": {
       "name": "Name",
@@ -116,7 +117,8 @@
       "emailRequired": "Please enter your email!",
       "emailInvalid": "Invalid email",
       "passwordRequired": "Please enter your password!",
-      "passwordInvalid": "The password must have 6-20 characters, a digit, an uppercase and a lowercase Latin letter and a special character: {characters}"
+      "passwordInvalid": "The password must have 6-20 characters, a digit, an uppercase and a lowercase Latin letter and a special character: {characters}",
+      "privacyRequired": "Please accept the privacy policy to sign up"
     },
     "forbidden": {
       "message": "Check your email. We have sent a verification letter",
@@ -295,7 +297,8 @@
     "NO_AMMO": "No ammunition",
     "NO_SIGNAL": "No signal",
     "NO_SPACE": "There is not enough space",
-    "MANUAL_CATEGORY_DISABLED": "This kind of manual control is switched off"
+    "MANUAL_CATEGORY_DISABLED": "This kind of manual control is switched off",
+    "PRIVACY_NOT_ACCEPTED": "Please accept the current privacy policy"
   },
   "map": {
     "cell": "Cell {x}, {y}",
@@ -491,6 +494,58 @@
     "privacy": "Privacy policy",
     "login": "Log in",
     "signup": "Sign up",
-    "copyright": "© Bot RTS"
+    "copyright": "© Bot RTS",
+    "cookie": {
+      "label": "Cookies and storage",
+      "text": "This site uses only the cookies and browser storage it needs to work: your sign-in and your language. Nothing is used for advertising or tracking, and non-essential cookies stay off.",
+      "ok": "Got it",
+      "more": "Privacy policy"
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "Privacy policy — Bot RTS",
+      "description": "What Bot RTS collects about its players, why, for how long, who receives it, and the rights players have over it."
+    },
+    "title": "Privacy policy",
+    "version": "Version {version}",
+    "intro": "Bot RTS is a browser game. This page explains what we collect about you when you play, why we collect it, and what you can do about it.",
+    "collected": {
+      "title": "What we collect",
+      "items": {
+        "account": "Account data: your name and email address, a hash of your password (never the password itself), and the time you accepted this policy.",
+        "game": "Game data: your bases, bots, modules, items, files and scripts, the parts of the map you have seen, your achievements and notifications, and your settings.",
+        "terminal": "Terminal logs: the commands you type and what the game answers, and the output of your scripts, so you can read them later.",
+        "technical": "Technical data: the sessions you are signed in on (the browser name and when each was last used) and the address your requests come from, which is used to limit abuse."
+      }
+    },
+    "purposes": {
+      "title": "Why we collect it",
+      "text": "To run your account and the game you play, to keep other players and the service safe (limiting repeated password attempts, banning abuse), to send the emails you ask for (confirming your address, resetting a password, confirming a change), and to show you what happened while you were away. We do not sell your data and do not use it for advertising."
+    },
+    "cookies": {
+      "title": "Cookies and browser storage",
+      "text": "We use one cookie, which keeps you signed in (it is HTTP-only and is sent only to the game's API), and your browser's storage for the access token and your language. These are essential, so no consent banner can switch them off. We set no analytics, advertising or other non-essential cookies."
+    },
+    "retention": {
+      "title": "How long we keep it",
+      "text": "Account and game data are kept while your account exists. Terminal logs and notifications are kept for a limited time (notifications for 30 days). When you delete your account, your name, email, credentials and sessions are erased; the game data that the world depends on, such as the place of your base, stays without any link to you."
+    },
+    "sharing": {
+      "title": "Who receives it",
+      "text": "Your data stays with us. It is shared only with the services that do the work for us, such as the provider that sends our emails and the one that hosts the game, and with authorities where the law requires it. Other players see only what the game shows them: for example the name of a base they have scanned."
+    },
+    "rights": {
+      "title": "Your rights",
+      "text": "You can see and change your name, email and password in your account page, and delete your account there; deletion is confirmed by an emailed link. You can ask for a copy of your data, ask us to correct it, or object to how we use it by writing to {email}. If you are in the European Union you can also complain to your data protection authority."
+    },
+    "changes": {
+      "title": "Changes",
+      "text": "When this policy changes, its version changes too, and the new version is shown at sign-up."
+    },
+    "contact": {
+      "title": "Contact",
+      "text": "Questions about your data: {email}."
+    }
   }
 }

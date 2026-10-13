@@ -41,7 +41,12 @@ describe('local auth client', () => {
 
       await cacheAUser(store)
       succeed({ accessToken: 'jwt' })
-      await client.signUp({ name: 'Alice Smith', email: 'a@b.co', password: 'Pa$$w0rd' })
+      await client.signUp({
+        name: 'Alice Smith',
+        email: 'a@b.co',
+        password: 'Pa$$w0rd',
+        acceptedPrivacyVersion: '2026-10-13'
+      })
       expect(api.endpoints.usersMe.select()(store.getState()).data).toBeUndefined()
     })
 
@@ -91,7 +96,14 @@ describe('local auth client', () => {
       const { store, client } = setup()
       succeed({ accessToken: 'jwt' })
 
-      expect(await client.signUp({ name: 'Jon', email: 'a@b.co', password: 'Pa$$w0rd' })).toEqual({ ok: true })
+      expect(
+        await client.signUp({
+          name: 'Jon',
+          email: 'a@b.co',
+          password: 'Pa$$w0rd',
+          acceptedPrivacyVersion: '2026-10-13'
+        })
+      ).toEqual({ ok: true })
       expect(requestOf().url).toBe('/api/v1/auth/register')
       expect(store.getState().session.token).toBe('jwt')
     })
@@ -100,7 +112,9 @@ describe('local auth client', () => {
       const { client } = setup()
       fail(409, { code: 'EMAIL_TAKEN' })
 
-      expect(await client.signUp({ name: 'Jon', email: 'a@b.co', password: 'x' })).toMatchObject({
+      expect(
+        await client.signUp({ name: 'Jon', email: 'a@b.co', password: 'x', acceptedPrivacyVersion: '2026-10-13' })
+      ).toMatchObject({
         ok: false,
         failure: { code: 'EMAIL_TAKEN' }
       })

@@ -10,7 +10,12 @@ function errorsOf<T extends object>(type: new () => T, plain: object) {
   )
 }
 
-const valid = { name: 'Alice', email: 'alice@example.com', password: 'Passw0rd!x' }
+const valid = {
+  name: 'Alice',
+  email: 'alice@example.com',
+  password: 'Passw0rd!x',
+  acceptedPrivacyVersion: '2026-10-13'
+}
 
 describe('auth DTOs', () => {
   it('accept valid input and trim the email', () => {
@@ -24,6 +29,9 @@ describe('auth DTOs', () => {
     expect(errorsOf(RegisterDto, { ...valid, name: 'alice' })).toEqual(['name'])
     expect(errorsOf(RegisterDto, { ...valid, email: 'nope' })).toEqual(['email'])
     expect(errorsOf(RegisterDto, { ...valid, status: 'owner' })).toEqual(['status'])
+    expect(errorsOf(RegisterDto, { name: valid.name, email: valid.email, password: valid.password })).toEqual([
+      'acceptedPrivacyVersion'
+    ])
   })
 
   it('leave a non-string email to the validator instead of trimming it', () => {

@@ -13,6 +13,8 @@ function toEntity(row: UserRow): User {
     subscription: row.subscription,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    privacyAcceptedVersion: row.privacyAcceptedVersion,
+    privacyAcceptedAt: row.privacyAcceptedAt,
     deletedAt: row.deletedAt
   }
 }

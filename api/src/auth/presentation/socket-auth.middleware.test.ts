@@ -1,10 +1,16 @@
+import { PRIVACY_POLICY_VERSION } from '../../../../lib/utils/privacy'
 import { Socket } from 'socket.io'
 import { SOCKET_TOKEN_EXPIRED, SOCKET_UNAUTHORIZED } from '../../../../lib/utils/constants'
 import { createAuthWorld } from '../../../tests/fakes/auth'
 import { Logger } from '../../shared/application/logger'
 import { createSocketAuthMiddleware } from './socket-auth.middleware'
 
-const input = { name: 'Alice', email: 'alice@example.com', password: 'Passw0rd!x' }
+const input = {
+  name: 'Alice',
+  email: 'alice@example.com',
+  password: 'Passw0rd!x',
+  acceptedPrivacyVersion: PRIVACY_POLICY_VERSION
+}
 
 async function setup(verifyEmail = true) {
   const world = createAuthWorld()

@@ -22,6 +22,8 @@ export function buildUser(overrides: Partial<User> = {}): User {
     subscription: 'free',
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: null,
+    privacyAcceptedVersion: null,
+    privacyAcceptedAt: null,
     deletedAt: null,
     ...overrides
   }

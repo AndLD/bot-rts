@@ -7,6 +7,12 @@ export class EmailAlreadyExistsError extends AppError {
   }
 }
 
+export class PrivacyNotAcceptedError extends AppError {
+  constructor() {
+    super(400, ErrorCode.PRIVACY_NOT_ACCEPTED, 'The current privacy policy must be accepted')
+  }
+}
+
 export class CredentialsInvalidError extends AppError {
   constructor() {
     super(401, ErrorCode.CREDENTIALS_INVALID, 'Email or password is invalid')

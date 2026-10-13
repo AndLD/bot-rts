@@ -445,6 +445,7 @@ export type ErrorResponseModel = {
     | 'CREDENTIALS_INVALID'
     | 'EMAIL_ALREADY_EXISTS'
     | 'EMAIL_NOT_VERIFIED'
+    | 'PRIVACY_NOT_ACCEPTED'
     | 'USER_BANNED'
     | 'INVALID_TOKEN'
     | 'TOKEN_EXPIRED'
@@ -534,6 +535,8 @@ export type RegisterDto = {
   name: string
   email: string
   password: string
+  /** The version of the privacy policy the player accepted */
+  acceptedPrivacyVersion: string
 }
 export type LoginDto = {
   email: string

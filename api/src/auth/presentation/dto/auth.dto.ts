@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
 import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator'
+import { PRIVACY_POLICY_VERSION } from '../../../../../lib/utils/privacy'
 import { NAME_PATTERN, PASSWORD_PATTERN } from '../../../../../lib/utils/validation'
 
 const PASSWORD_MESSAGE =
@@ -26,6 +27,14 @@ export class RegisterDto {
   @Matches(PASSWORD_PATTERN, { message: PASSWORD_MESSAGE })
   @ApiProperty()
   password!: string
+
+  @IsString()
+  @MaxLength(32)
+  @ApiProperty({
+    description: 'The version of the privacy policy the player accepted',
+    example: PRIVACY_POLICY_VERSION
+  })
+  acceptedPrivacyVersion!: string
 }
 
 export class LoginDto {

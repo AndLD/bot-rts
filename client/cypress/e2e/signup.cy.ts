@@ -1,11 +1,14 @@
 import { newEmail, PASSWORD } from '../support/commands'
 
-function fillSignup(email: string, password = PASSWORD, name = 'Jon') {
+function fillSignup(email: string, password = PASSWORD, name = 'Jon', acceptsPrivacy = true) {
   cy.visit('/auth')
   cy.contains("Don't have an account? Sign up").click()
   cy.get('input[placeholder="Name"]').type(name)
   cy.get('input[type=email]').type(email)
   cy.get('input[type=password]').type(password, { parseSpecialCharSequences: false })
+  if (acceptsPrivacy) {
+    cy.get('input[type=checkbox]').check()
+  }
   cy.contains('button', 'Sign up').click()
 }
 
@@ -48,6 +51,16 @@ describe('sign up and email verification', () => {
 
     cy.contains('.ant-notification', 'This email is already registered')
     cy.location('pathname').should('eq', '/auth')
+  })
+
+  it('needs the privacy policy accepted, and links it', () => {
+    cy.intercept('POST', '**/api/v1/auth/register').as('register')
+
+    fillSignup(newEmail(), PASSWORD, 'Jon', false)
+
+    cy.contains('Please accept the privacy policy to sign up')
+    cy.get('@register.all').should('have.length', 0)
+    cy.contains('a', 'privacy policy').should('have.attr', 'href', '/privacy')
   })
 
   it('refuses a weak password before asking the server', () => {

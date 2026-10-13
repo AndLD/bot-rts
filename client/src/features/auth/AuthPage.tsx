@@ -8,7 +8,8 @@ import SignupForm from './SignupForm'
 
 export default function AuthPage() {
   const t = useTranslations('auth')
-  const [isSignUp, setIsSignUp] = useState(false)
+  // The landing page links to the sign-up form directly
+  const [isSignUp, setIsSignUp] = useState(() => new URLSearchParams(window.location.search).get('mode') === 'signup')
 
   const title = isSignUp ? t('signup.title') : t('login.title')
   const form = isSignUp ? <SignupForm /> : <SigninForm />

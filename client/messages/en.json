@@ -4,8 +4,89 @@
     "language": "Language"
   },
   "marketing": {
-    "tagline": "Program your bots. Conquer the map.",
-    "play": "Play"
+    "meta": {
+      "title": "Bot RTS — program your bots, conquer the map",
+      "description": "A real-time strategy game in your browser where you build bots, write the scripts that run them 24/7, and compete on a persistent shared map."
+    },
+    "hero": {
+      "title": "Program your bots. Conquer the map.",
+      "subtitle": "Build bots from modules, write the scripts that run them day and night, and take on other players on one persistent world.",
+      "play": "Play for free",
+      "docs": "Read the docs"
+    },
+    "how": {
+      "title": "How it works",
+      "steps": {
+        "build": {
+          "title": "Build",
+          "text": "Deploy a base, craft modules in the factory and assemble them into bots: drills, scanners, guns, repair arms."
+        },
+        "program": {
+          "title": "Program",
+          "text": "Write JavaScript that drives your bots through a small API. Scripts keep running while you are away."
+        },
+        "compete": {
+          "title": "Compete",
+          "text": "Mine, trade, fight and rebuild on a shared map where every other base is a player like you."
+        }
+      }
+    },
+    "features": {
+      "title": "Made for tinkerers",
+      "items": {
+        "modules": {
+          "title": "Modules",
+          "text": "Every ability comes from a module you craft and fit. No drill, no digging: a bot is what you build it to be."
+        },
+        "scripts": {
+          "title": "Real scripts",
+          "text": "A real programming language in a sandbox, with a terminal, a file system on every bot and a typed API."
+        },
+        "manual": {
+          "title": "Manual control",
+          "text": "Prefer to play by hand? Every action a script can take is also a button, and the game tells you what the bot sees."
+        },
+        "world": {
+          "title": "A persistent world",
+          "text": "The map never resets. Fog of war, radio links and limited energy make scouting and logistics matter."
+        }
+      }
+    },
+    "showcase": {
+      "title": "A first miner in ten lines",
+      "text": "This is all it takes to put a bot to work. The result of every call is a value, so a script handles an empty deposit instead of crashing.",
+      "more": "More example scripts",
+      "codeLabel": "Example script"
+    },
+    "faq": {
+      "title": "Questions",
+      "items": {
+        "free": {
+          "q": "Is it free?",
+          "a": "Yes. You play in the browser; there is nothing to install or buy."
+        },
+        "language": {
+          "q": "Which language do I write scripts in?",
+          "a": "JavaScript, or TypeScript. The editor knows the whole API, and the documentation lists every call."
+        },
+        "offline": {
+          "q": "Do my bots keep working when I close the page?",
+          "a": "Yes. Scripts run on the server around the clock, and you get notified about what happened while you were away."
+        },
+        "api": {
+          "q": "Can I use my own tools?",
+          "a": "The game has a public API with API keys, so you can build your own client or let an AI assistant play through it."
+        },
+        "phone": {
+          "q": "Does it work on a phone?",
+          "a": "This site does. The game itself is built for a desktop screen, with windows, a map and a terminal."
+        }
+      }
+    },
+    "cta": {
+      "title": "Your first bot is one click away",
+      "button": "Start playing"
+    }
   },
   "auth": {
     "login": {
@@ -399,5 +480,17 @@
         "hint": "In the factory, choose finished modules on the Assemble tab and assemble a bot."
       }
     }
+  },
+  "site": {
+    "brand": "Bot RTS",
+    "navigation": "Main",
+    "footer": "Footer",
+    "language": "Language",
+    "docs": "Docs",
+    "api": "API",
+    "privacy": "Privacy policy",
+    "login": "Log in",
+    "signup": "Sign up",
+    "copyright": "© Bot RTS"
   }
 }

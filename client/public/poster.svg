@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 384" preserveAspectRatio="xMidYMid slice">
+  <rect width="640" height="384" fill="#0b0f14"/>
+  <g stroke="#121a23" stroke-width="1">
+    <path d="M0 32H640M0 64H640M0 96H640M0 128H640M0 160H640M0 192H640M0 224H640M0 256H640M0 288H640M0 320H640M0 352H640"/>
+    <path d="M32 0V384M64 0V384M96 0V384M128 0V384M160 0V384M192 0V384M224 0V384M256 0V384M288 0V384M320 0V384M352 0V384M384 0V384M416 0V384M448 0V384M480 0V384M512 0V384M544 0V384M576 0V384M608 0V384"/>
+  </g>
+  <rect x="68" y="68" width="24" height="24" fill="#38bdf8"/>
+  <rect x="260" y="68" width="24" height="24" fill="#f59e0b"/>
+  <rect x="228" y="68" width="24" height="24" fill="#22c55e"/>
+  <rect x="388" y="228" width="24" height="24" fill="#22c55e"/>
+  <rect x="548" y="228" width="24" height="24" fill="#ef4444"/>
+  <rect x="132" y="228" width="24" height="24" fill="#a78bfa"/>
+  <rect x="484" y="100" width="24" height="24" fill="#94a3b8"/>
+  <path d="M412 240H548" stroke="#fde047" stroke-width="2" stroke-dasharray="6 6"/>
+</svg>

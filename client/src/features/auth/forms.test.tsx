@@ -154,3 +154,21 @@ describe('ForbiddenPage', () => {
     await waitFor(() => expect(errorNotification).toHaveBeenCalled())
   })
 })
+
+describe('AuthPage opened from the landing page', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'))
+
+  it('opens the sign-up form when the link asks for it', () => {
+    window.history.replaceState(null, '', '/auth?mode=signup')
+
+    renderApp(<AuthPage />)
+
+    expect(screen.getByRole('heading', { name: 'Sign Up' })).toBeInTheDocument()
+  })
+
+  it('opens the login form otherwise', () => {
+    renderApp(<AuthPage />)
+
+    expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument()
+  })
+})

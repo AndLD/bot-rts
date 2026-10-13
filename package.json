@@ -25,11 +25,14 @@
     "postinstall": "npm run prisma:generate -w api",
     "i18n:check": "node scripts/check-i18n.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
-    "e2e": "node scripts/e2e.mjs"
+    "e2e": "node scripts/e2e.mjs",
+    "lighthouse": "lhci autorun --config=lighthouserc.json"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "pg": "^8.23.1",
     "prettier": "^3.3.3",
-    "pg": "^8.23.1"
+    "wait-on": "^9.5.1"
   },
   "overrides": {
     "react": "19.3.0",

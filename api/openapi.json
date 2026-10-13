@@ -4140,7 +4140,20 @@
           },
           "params": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "description": "What the text needs, such as the module or the number of bars"
           },
           "botId": {
             "type": "string",

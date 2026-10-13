@@ -57,7 +57,11 @@ export class NotificationResponse implements INotification {
   @ApiProperty({ description: 'What happened, for example `underAttack`; the translation key of its text' })
   kind!: string
 
-  @ApiProperty({ type: 'object', additionalProperties: true })
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { oneOf: [{ type: 'string' }, { type: 'number' }, { type: 'boolean' }] },
+    description: 'What the text needs, such as the module or the number of bars'
+  })
   params!: Record<string, string | number | boolean>
 
   @ApiProperty({ type: String, nullable: true })

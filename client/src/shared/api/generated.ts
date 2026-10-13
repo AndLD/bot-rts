@@ -949,8 +949,9 @@ export type NotificationResponse = {
   category: 'attacks' | 'damage' | 'scripts' | 'security' | 'fabrication' | 'trade' | 'achievements' | 'system'
   /** What happened, for example `underAttack`; the translation key of its text */
   kind: string
+  /** What the text needs, such as the module or the number of bars */
   params: {
-    [key: string]: any
+    [key: string]: string | number | boolean
   }
   botId: string | null
   /** How many times it happened (repeated events are coalesced) */

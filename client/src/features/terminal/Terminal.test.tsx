@@ -1,5 +1,5 @@
 import { BOT_TYPE } from '@lib/utils/interfaces/bots'
-import { act, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '../../../tests/render'
 import { GameSocket, SocketContext } from '../../shared/socket/socket-context'
@@ -69,6 +69,21 @@ describe('Terminal', () => {
     await userEvent.type(screen.getByRole('textbox'), 'what')
 
     expect(screen.queryByText('Error: Unknown command')).not.toBeInTheDocument()
+  })
+
+  it('leaves a reader who scrolled up where they are, until they type a command of their own', async () => {
+    renderTerminal(socketWith(base))
+    const scroller = screen.getByTestId('terminal-scroll')
+    Object.defineProperty(scroller, 'scrollHeight', { configurable: true, get: () => 1000 })
+    Object.defineProperty(scroller, 'clientHeight', { configurable: true, get: () => 300 })
+    scroller.scrollTop = 100
+    fireEvent.scroll(scroller)
+
+    expect(scroller.scrollTop).toBe(100)
+
+    await userEvent.type(screen.getByRole('textbox'), 'shell{Enter}')
+
+    expect(scroller.scrollTop).toBe(1000)
   })
 
   it('shows the shell header in shell mode', async () => {

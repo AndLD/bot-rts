@@ -270,6 +270,8 @@ A feature is done only when **all** of these hold:
 - [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
       criteria are met, in the summary table and in the phase file), and the branch and PR of the task are added to the
       phase's implementation log.
+- [ ] If the change adds a Prisma migration, it is applied to the local development database
+      (`npm run db:migrate -w api`; see §7.6 for the end-of-phase rule).
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
       file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
 - [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
@@ -364,6 +366,12 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   the file): tasks, branch and its state, decisions and deviations from the plan, problems and findings, the exact next
   step, and the commands that verify the current state. Commit and push it on the task branch, in the same pull request
   as the work.
+- **Local database after a phase:** when a phase's exit criteria are met (and the task PRs are merged into `develop`), bring
+  the developer's local database up to date before reporting the phase as done: `npm run db:up`, then
+  `npm run db:migrate -w api` (and `npm run db:seed -w api` when the phase changed the seed data). Run it from the
+  updated `develop`, never against a shared or production database. Record the result in the phase's work log and tell
+  the user in the final summary; if the database is not reachable, say so and give the commands instead of skipping the step.
+  Without it the API starts with an outdated schema (for example the engine fails on a missing table).
 - Decisions that change the design or the plan go into the matching file in `docs/` in the same pull request, not only
   into the log.
 

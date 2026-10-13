@@ -73,9 +73,9 @@ describe('HelpPanel', () => {
     renderApp(<HelpPanel />, { store: storeWithToken(makeJwt(60)) })
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bot RTS documentation' })).toBeInTheDocument()
-    fireEvent.click(screen.getAllByRole('link', { name: 'Energy' })[0])
+    fireEvent.click(screen.getAllByRole('link', { name: 'Energy and time' })[0])
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Energy' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Energy and time' })).toBeInTheDocument()
   })
 
   it('goes to the page that another part of the game asked for, each time it asks', () => {
@@ -85,8 +85,8 @@ describe('HelpPanel', () => {
     store.dispatch(showHelp('concepts/ticks'))
     return waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Ticks' })).toBeInTheDocument()).then(
       () => {
-        fireEvent.click(screen.getAllByRole('link', { name: 'Energy' })[0])
-        expect(screen.getByRole('heading', { level: 1, name: 'Energy' })).toBeInTheDocument()
+        fireEvent.click(screen.getAllByRole('link', { name: 'Energy and time' })[0])
+        expect(screen.getByRole('heading', { level: 1, name: 'Energy and time' })).toBeInTheDocument()
 
         store.dispatch(showHelp('concepts/ticks'))
 

@@ -2,7 +2,7 @@
 
 # Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-11-log](./work-logs/phase-11-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-11-log](./work-logs/phase-11-log.md)
 
 **Development order:** this phase is numbered after Phase 10 so that the task numbers of Phases 8–10 stay unchanged, but it
 is **developed right after Phase 7**, before Phases 8–10 (see "Order of development" in the [plan index](../DEVELOPMENT-PLAN.md)).
@@ -30,7 +30,7 @@ page layout. Task 11.1 builds on that and covers everything else.
 | 11.7 | **Automatic reconnection.** The client reconnects when the server goes down or the network drops, without a page refresh: Socket.IO reconnection with backoff, re-subscription of everything that was open (map stream, terminal sessions, notifications, live scan), the engine's view of the bot resumes, a connection banner (lost / reconnecting / restored) in both languages, RTK Query retries and refetch on reconnect, no duplicate toasts or windows after it. Cypress spec that stops and restarts the API | 5 | ✅ |
 | 11.8 | **Control window layout.** Wider default window and a wider inputs column (the inputs share the free width, with a sensible minimum), so placeholders and values are readable; the saved layout of an old narrow window is migrated | 2 | ✅ |
 | 11.9 | **Terminal auto-scroll.** New output scrolls the terminal down **only if it was already scrolled to the bottom** just before the lines arrived; a player who scrolled up to read is not pulled down, and scrolling to the bottom again resumes following. Component tests | 2 | ✅ |
-| 11.10 | **E2E and documentation.** Cypress specs for the day/night filter that does not block map clicks and the clock, solar panel versus oil generator behaviour in the base, no event repeated while the state lasts, the power-on hysteresis, the reconnection (11.7), the control window layout and the terminal scrolling; the end-to-end matrix in `testing-strategy.md`, design docs (§4, §6, §7, §12.5, §15, §24), the player documentation concepts page "Energy and time", and the Russian translation updated; the work log closed | 5 | ⬜ |
+| 11.10 | **E2E and documentation.** Cypress specs for the day/night filter that does not block map clicks and the clock, solar panel versus oil generator behaviour in the base, no event repeated while the state lasts, the power-on hysteresis, the reconnection (11.7), the control window layout and the terminal scrolling; the end-to-end matrix in `testing-strategy.md`, design docs (§4, §6, §7, §12.5, §15, §24), the player documentation concepts page "Energy and time", and the Russian translation updated; the work log closed | 5 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
@@ -79,4 +79,5 @@ AGENTS.md §7.1).
 | `feature/11.5-power-on-hysteresis` | 11.5 | [#122](https://github.com/AndLD/bot-rts/pull/122) | ✅ merged |
 | `feature/11.6-day-night-ui` | 11.6 | [#123](https://github.com/AndLD/bot-rts/pull/123) | ✅ merged |
 | `feature/11.7-auto-reconnection` | 11.7 | [#124](https://github.com/AndLD/bot-rts/pull/124) | ✅ merged |
-| `feature/11.8-control-window-layout` | 11.8, 11.9 | [#125](https://github.com/AndLD/bot-rts/pull/125) | 🟡 |
+| `feature/11.8-control-window-layout` | 11.8, 11.9 | [#125](https://github.com/AndLD/bot-rts/pull/125) | ✅ merged |
+| `feature/11.10-e2e-and-docs` | 11.10 | _this PR_ | 🟡 |

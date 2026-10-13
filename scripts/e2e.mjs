@@ -101,7 +101,12 @@ try {
 
   if (shouldBuild) {
     run('npm', ['run', 'build', '-w', 'client'], {
-      env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl, NEXT_DIST_DIR: DIST_DIR }
+      env: {
+        ...process.env,
+        NEXT_PUBLIC_API_URL: apiUrl,
+        NEXT_DIST_DIR: DIST_DIR,
+        NEXT_TSCONFIG_PATH: 'tsconfig.typecheck.json'
+      }
     })
   }
 
@@ -132,7 +137,12 @@ try {
   start('api', apiLaunch.command, apiLaunch.args, { cwd: apiLaunch.cwd, env: { ...process.env, ...apiLaunch.env } })
   start('client', 'npx', ['next', 'start', '--port', String(CLIENT_PORT)], {
     cwd: resolve(root, 'client'),
-    env: { ...process.env, NEXT_PUBLIC_API_URL: apiUrl, NEXT_DIST_DIR: DIST_DIR }
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_API_URL: apiUrl,
+      NEXT_DIST_DIR: DIST_DIR,
+      NEXT_TSCONFIG_PATH: 'tsconfig.typecheck.json'
+    }
   })
 
   await waitFor(`${apiUrl}/api/v1/health`, 'The API')

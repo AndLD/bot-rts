@@ -5,6 +5,7 @@ import { useRef, useState } from 'react'
 import HelpLink from '../../docs/HelpLink'
 import './Terminal.scss'
 import { TerminalOptions, useTerminal } from './useTerminal'
+import { useStickyScroll } from './useStickyScroll'
 
 const FONT_SIZE = 18
 
@@ -14,6 +15,8 @@ export default function Terminal(options: TerminalOptions) {
     useTerminal(options)
   const [input, setInput] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+  // New output scrolls the terminal down only for a reader who was at the bottom; their own command always does
+  const { ref: scrollRef, onScroll, follow } = useStickyScroll<HTMLDivElement>(lines)
 
   const heading = !currentBotId
     ? isLoading
@@ -28,6 +31,7 @@ export default function Terminal(options: TerminalOptions) {
   }
 
   function submit() {
+    follow()
     run(input)
     setInput('')
     focusInput()
@@ -35,10 +39,14 @@ export default function Terminal(options: TerminalOptions) {
 
   return (
     <div
+      ref={scrollRef}
+      onScroll={onScroll}
+      data-testid="terminal-scroll"
       style={{
         background: 'black',
         fontSize: FONT_SIZE,
-        minHeight: 400,
+        boxSizing: 'border-box',
+        overflowY: 'auto',
         height: '100%',
         color: '#fff',
         padding: 10,

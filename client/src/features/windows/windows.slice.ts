@@ -28,6 +28,9 @@ interface WindowsState {
 }
 
 export const LAYOUT_KEY = 'windows-layout'
+// The version of the saved layouts; raised when a default size changes so that places saved with the old one are adjusted once
+export const LAYOUT_VERSION_KEY = 'windows-layout-version'
+const LAYOUT_VERSION = '2'
 export const MIN_WIDTH = 260
 export const MIN_HEIGHT = 140
 const CASCADE_STEP = 28
@@ -36,7 +39,7 @@ export const DEFAULT_SIZES: Record<WindowKind, { width: number; height: number }
   terminal: { width: 640, height: 420 },
   storage: { width: 360, height: 420 },
   factory: { width: 480, height: 520 },
-  control: { width: 480, height: 520 },
+  control: { width: 640, height: 520 },
   settings: { width: 420, height: 440 },
   editor: { width: 640, height: 480 },
   achievements: { width: 420, height: 520 },
@@ -46,15 +49,32 @@ export const DEFAULT_SIZES: Record<WindowKind, { width: number; height: number }
 
 function readLayouts(): Record<string, Rect> {
   try {
-    return JSON.parse(localStorage.getItem(LAYOUT_KEY) ?? '{}')
+    const layouts: Record<string, Rect> = JSON.parse(localStorage.getItem(LAYOUT_KEY) ?? '{}')
+
+    return localStorage.getItem(LAYOUT_VERSION_KEY) === LAYOUT_VERSION ? layouts : migrateLayouts(layouts)
   } catch {
     return {}
   }
 }
 
+// The control window got wider (its inputs did not fit): the one saved narrower than the new default is widened, once.
+// What the player does with the width afterwards is kept.
+function migrateLayouts(layouts: Record<string, Rect>): Record<string, Rect> {
+  const migrated = Object.fromEntries(
+    Object.entries(layouts).map(([id, rect]) => [
+      id,
+      id.startsWith('control:') ? { ...rect, width: Math.max(rect.width, DEFAULT_SIZES.control.width) } : rect
+    ])
+  )
+  storeLayouts(migrated)
+
+  return migrated
+}
+
 function storeLayouts(layouts: Record<string, Rect>) {
   try {
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(layouts))
+    localStorage.setItem(LAYOUT_VERSION_KEY, LAYOUT_VERSION)
   } catch {
     // The places are then forgotten when the page closes
   }

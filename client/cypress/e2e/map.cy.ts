@@ -48,6 +48,9 @@ describe('the map', () => {
   const clickCell = (offsetCells = 0, offsetRows = 0) =>
     middle(offsetCells, offsetRows).then(({ x, y }) => canvas().click(x, y))
 
+  // Clicking the own base opened its control window, which lies over the middle of the map
+  const closeControl = () => cy.get('button[aria-label="Close window"]').click()
+
   it('shows the own base in the middle, opens its control panel and tells what the cell holds', () => {
     clickCell()
 
@@ -83,6 +86,7 @@ describe('the map', () => {
 
   it('pans by dragging and reaches cells with negative coordinates', () => {
     clickCell()
+    closeControl()
     inspectedCell().then((start) => {
       // Dragging the map to the left shows cells further to the right
       middle().then(({ x, y }) => {
@@ -102,6 +106,7 @@ describe('the map', () => {
 
   it('zooms with the wheel: the same distance from the middle then reaches fewer cells', () => {
     clickCell()
+    closeControl()
     inspectedCell().then((start) => {
       // 20 px right of the middle of a cell of 32 px is in the next cell
       middle().then(({ x, y }) => canvas().click(x + 20, y))

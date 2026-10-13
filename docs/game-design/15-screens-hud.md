@@ -138,11 +138,11 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   the front. Windows remember their place and size per window id.
 - ✅ **Control panel layout.** Each action is a row of three columns: the action name, the inputs (they share the free width and
   keep a readable minimum), and the button; the result of the action shows under the row.
-- 🔴 **Wider control panel** (Phase 11, task 11.8): a wider default window and a wider inputs column, so placeholders and values
-  are readable; the saved layout of an old narrow window is migrated.
-- 🔴 **Terminal follows new output only at the bottom** (task 11.9): when lines arrive, the terminal scrolls down **only if it was
+- ✅ **Wider control panel** (Phase 11, task 11.8): a wider default window and a wider inputs column, so placeholders and values
+  are readable; the saved layout of an old narrow window is migrated. Implementation: the default control window is 640 px wide, its inputs are a grid that shares the free width with at least 7 em each (14 em for the column), and a control window saved narrower than the new default is widened once (the layouts carry a version, `windows-layout-version`).
+- ✅ **Terminal follows new output only at the bottom** (task 11.9): when lines arrive, the terminal scrolls down **only if it was
   already scrolled to the bottom** just before; a player who scrolled up to read is not pulled down, and scrolling to the bottom
-  again resumes following.
+  again resumes following. Implementation: `useStickyScroll` remembers from the last scroll event whether the reader was within 4 px of the end; a command the player types always follows.
 - ✅ **Automatic reconnection** (task 11.7): when the server goes down or the network drops, the client reconnects with backoff
   without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
   the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or

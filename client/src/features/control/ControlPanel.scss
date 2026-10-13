@@ -12,17 +12,19 @@
 
   .control-action-line {
     display: grid;
-    grid-template-columns: 9em minmax(0, 1fr) auto;
+    // The name, the inputs (which never get narrower than they can be read) and the button
+    grid-template-columns: 9em minmax(14em, 1fr) auto;
     align-items: center;
     column-gap: 8px;
   }
 
+  // The inputs share the free width equally, each at least wide enough for its placeholder; they wrap in a narrow window
   .control-action-inputs {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7em, 1fr));
     gap: 6px;
 
     > * {
-      flex: 1 1 0;
       min-width: 0;
     }
   }

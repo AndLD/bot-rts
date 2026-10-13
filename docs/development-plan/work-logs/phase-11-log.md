@@ -85,3 +85,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the reconnection Cypress spec could not be run locally because the developer's servers hold ports 8080 and 5173; it runs in CI. The e2e `map.cy.ts` was made to wait until the base is drawn before it clicks (a flake seen in PR 123).
 - **Next step:** 11.8, control window layout.
 - **Verify with:** `npm test -w client -- SocketProvider ConnectionBanner useTerminal empty-api GamePage`; `npm run e2e -- --skip-build -- --spec cypress/e2e/reconnection.cy.ts`
+### 2026-10-14 — tasks 11.8 control window layout and 11.9 terminal auto-scroll
+- **Tasks:** 11.8, 11.9 (one branch: both are small and independent of the rest)
+- **Branch:** `feature/11.8-control-window-layout` — done
+- **Decisions / deviations from the plan:** the old narrow windows are migrated once, by a version key next to the saved layouts, so a width the player sets afterwards is kept. The terminal now scrolls inside itself (it was the window body that scrolled, with nothing following new lines); `useStickyScroll` decides from the last scroll event, so the position "just before the lines arrived" is what counts.
+- **Problems / blockers / findings:** the CSS of the control window was not looked at in a browser (the developer's database has no base); the layout rules are plain grid rules.
+- **Next step:** 11.10, the Cypress specs of the phase, the end-to-end matrix, the docs and the Russian translation; then the end-of-phase database step of AGENTS.md §7.6.
+- **Verify with:** `npm test -w client -- windows.slice useStickyScroll Terminal`

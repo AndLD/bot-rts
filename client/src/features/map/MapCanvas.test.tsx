@@ -39,19 +39,20 @@ class FakeResizeObserver {
   disconnect() {}
 }
 
-function setup(center?: { x: number; y: number }, onOpenBot?: (id: string) => void, isReducedMotion = false) {
+function setup(
+  center?: { x: number; y: number },
+  onOpenBot?: (id: string) => void,
+  isReducedMotion = false,
+  layer?: React.ReactNode
+) {
   const store = new MapStore()
   const loader = new TileLoader(jest.fn().mockResolvedValue({ now: 1, cells: [], liveAreas: [] }), store)
   const ensure = jest.spyOn(loader, 'ensure').mockResolvedValue()
   const view = (
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
-      <MapCanvas
-        store={store}
-        loader={loader}
-        center={center}
-        onOpenBot={onOpenBot}
-        isReducedMotion={isReducedMotion}
-      />
+      <MapCanvas store={store} loader={loader} center={center} onOpenBot={onOpenBot} isReducedMotion={isReducedMotion}>
+        {layer}
+      </MapCanvas>
     </NextIntlClientProvider>
   )
 
@@ -145,6 +146,15 @@ describe('MapCanvas', () => {
 
     expect(renderer.zoomAt.mock.calls[0][2]).toBeGreaterThan(1)
     expect(renderer.zoomAt.mock.calls[1][2]).toBeLessThan(1)
+  })
+
+  it('draws a layer over the canvas that does not stop a click from selecting a cell', () => {
+    setup(undefined, undefined, false, <div data-testid="layer" style={{ pointerEvents: 'none' }} />)
+
+    expect(screen.getByTestId('layer')).toBeInTheDocument()
+    fireEvent.pointerDown(canvas(), { clientX: 10, clientY: 10 })
+    fireEvent.pointerUp(canvas(), { clientX: 10, clientY: 10 })
+    expect(screen.getByText('Cell 2, 3')).toBeInTheDocument()
   })
 
   it('selects the clicked cell and describes it, unknown cells included', () => {

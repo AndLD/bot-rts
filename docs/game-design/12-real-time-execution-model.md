@@ -181,9 +181,9 @@ level-triggered event is in §24.1.
 energy model runs every working, enabled source on its own cycle (`delay`), so adding a kind does not change the others. A
 solar panel burns nothing and adds `energyPerCycle × sunlight(now)` per cycle (§12.5.1).
 
-### 12.5.1 Game time and day/night 🟡
+### 12.5.1 Game time and day/night ✅
 
-✅ _The clock (task 11.2)_ and 🔴 _the presentation (task 11.6)._ The world has one shared clock derived from the engine's injected clock (never
+The world has one shared clock derived from the engine's injected clock (never
 `Date.now()` in game logic, §12.4); every player sees the same time.
 
 - **Scale (tunable config):** one in-game hour is one real minute, so a **day lasts 24 real minutes**; the world clock counts

@@ -68,7 +68,10 @@ describe.each(LANGUAGES)('the links of the documentation in %s', (language) => {
 
   it('have anchors that are in the page, and no id twice', () => {
     for (const page of DOC_PAGES) {
-      const { container, unmount } = renderPage(page.slug, language, { hrefOf: (slug) => docPath(slug), apiUrl: API_URL })
+      const { container, unmount } = renderPage(page.slug, language, {
+        hrefOf: (slug) => docPath(slug),
+        apiUrl: API_URL
+      })
       const ids = Array.from(container.querySelectorAll('[id]')).map((element) => element.id)
 
       expect(new Set(ids).size).toBe(ids.length)

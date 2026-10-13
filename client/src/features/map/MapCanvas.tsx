@@ -1,7 +1,7 @@
 'use client'
 
 import { capturePointer } from '../../shared/pointer'
-import { PointerEvent, useEffect, useRef, useState } from 'react'
+import { PointerEvent, ReactNode, useEffect, useRef, useState } from 'react'
 import { AnimationSystem } from './animation/AnimationSystem'
 import { describeCell } from './describeCell'
 import CellInspector from './CellInspector'
@@ -29,9 +29,11 @@ interface Props {
   onOpenBot?: (botId: string) => void
   // Movement and effects are replaced by instant changes (design §15.2)
   isReducedMotion: boolean
+  // Layers over the map that let pointer events through (the night filter), under the cell inspector
+  children?: ReactNode
 }
 
-export default function MapCanvas({ store, loader, center, onOpenBot, isReducedMotion }: Props) {
+export default function MapCanvas({ store, loader, center, onOpenBot, isReducedMotion, children }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<MapRenderer | null>(null)
   // Asks for the part of the map that is on screen, a moment after the view stopped changing
@@ -159,6 +161,7 @@ export default function MapCanvas({ store, loader, center, onOpenBot, isReducedM
         onPointerUp={onPointerUp}
         onWheel={onWheel}
       />
+      {children}
       {selected && (
         <CellInspector
           x={selected.x}

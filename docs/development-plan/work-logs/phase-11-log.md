@@ -69,3 +69,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 11.6, day/night UI (HUD clock and night filter).
 - **Verify with:** `npm test -w api -- energy-model radio-network`
+
+### 2026-10-14 — task 11.6 day/night UI
+- **Tasks:** 11.6
+- **Branch:** `feature/11.6-day-night-ui` — done
+- **Decisions / deviations from the plan:** the night filter is a child layer of `MapCanvas` (a new `children` prop, drawn under the cell inspector), not a canvas effect, so it is plain CSS with `pointer-events: none` (also set inline so a stylesheet change cannot make it swallow clicks). The smooth transition is a 20 s linear CSS opacity fade (a third of the in-game hour is a real minute), off under reduced motion. Strengths are in `nightFilterStyle.ts` (client presentation constants).
+- **Problems / blockers / findings:** none.
+- **Next step:** 11.7, automatic reconnection.
+- **Verify with:** `npm test -w client -- daynight GameMap MapCanvas`

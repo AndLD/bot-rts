@@ -46,6 +46,7 @@ export const {
   useAdminSettingsUpdateMutation,
   useSettingsGetQuery,
   useTutorialGetQuery,
+  useGameTimeCurrentQuery,
   useTutorialRestartMutation,
   useTutorialSkipMutation,
   useSettingsUpdateMutation,

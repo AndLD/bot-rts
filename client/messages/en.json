@@ -935,5 +935,14 @@
       "learnMore": "Learn more",
       "what": "Open the help page"
     }
+  },
+  "daynight": {
+    "label": "Game time",
+    "phases": {
+      "night": "Night",
+      "morning": "Morning",
+      "day": "Day",
+      "evening": "Evening"
+    }
   }
 }

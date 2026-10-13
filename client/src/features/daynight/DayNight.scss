@@ -1,0 +1,19 @@
+.night-filter {
+  position: absolute;
+  inset: 0;
+  background: #06103a;
+  // Clicks, hover and the cell inspector underneath work as usual
+  pointer-events: none;
+}
+
+.game-clock {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #555;
+  color: #fff;
+  font-size: 14px;
+  z-index: 1000;
+}

@@ -53,7 +53,7 @@ describe('HelpLink', () => {
 })
 
 describe('ModuleHelpName', () => {
-  it('names the module in the player\'s language, and offers the catalogue in a tooltip', async () => {
+  it("names the module in the player's language, and offers the catalogue in a tooltip", async () => {
     renderApp(<ModuleHelpName module="drill-class2" />)
 
     expect(screen.getByText('Drill, class 2')).toBeInTheDocument()
@@ -83,14 +83,16 @@ describe('HelpPanel', () => {
     renderApp(<HelpPanel />, { store })
 
     store.dispatch(showHelp('concepts/ticks'))
-    return waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Ticks' })).toBeInTheDocument()).then(() => {
-      fireEvent.click(screen.getAllByRole('link', { name: 'Energy' })[0])
-      expect(screen.getByRole('heading', { level: 1, name: 'Energy' })).toBeInTheDocument()
+    return waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Ticks' })).toBeInTheDocument()).then(
+      () => {
+        fireEvent.click(screen.getAllByRole('link', { name: 'Energy' })[0])
+        expect(screen.getByRole('heading', { level: 1, name: 'Energy' })).toBeInTheDocument()
 
-      store.dispatch(showHelp('concepts/ticks'))
+        store.dispatch(showHelp('concepts/ticks'))
 
-      return waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Ticks' })).toBeInTheDocument())
-    })
+        return waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Ticks' })).toBeInTheDocument())
+      }
+    )
   })
 
   it('searches the documentation', () => {

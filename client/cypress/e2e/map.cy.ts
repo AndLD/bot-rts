@@ -11,6 +11,13 @@ function inspectedCell(): Cypress.Chainable<{ x: number; y: number }> {
 
 const canvas = () => cy.get('[data-testid=map] canvas')
 
+// How many colour values of the canvas are not black
+const litValues = (element: HTMLCanvasElement) => {
+  const { data } = element.getContext('2d')!.getImageData(0, 0, element.width, element.height)
+
+  return data.reduce((count, value, index) => (index % 4 !== 3 && value > 0 ? count + 1 : count), 0)
+}
+
 // A 32 px cell at zoom 1; the base is in the middle of the map when the game opens
 const CELL = 32
 
@@ -27,6 +34,8 @@ describe('the map', () => {
     // The terminal window lies over the middle of the map
     cy.get('button[aria-label="Close window"]').click()
     canvas().should(($canvas) => expect($canvas[0].clientWidth).to.be.greaterThan(500))
+    // The own base is drawn: from then on a click on the middle reaches it
+    canvas().should(($canvas) => expect(litValues($canvas[0] as HTMLCanvasElement)).to.be.greaterThan(0))
   })
 
   // The middle of the canvas in its own pixels
@@ -114,13 +123,7 @@ describe('the map', () => {
       cy.contains('code', 'scan').parent().contains('button', 'Do').click()
     })
 
-    canvas().should(($canvas) => {
-      const element = $canvas[0] as HTMLCanvasElement
-      const { data } = element.getContext('2d')!.getImageData(0, 0, element.width, element.height)
-      const lit = data.reduce((count, value, index) => (index % 4 !== 3 && value > 0 ? count + 1 : count), 0)
-
-      expect(lit).to.be.greaterThan(0)
-    })
+    canvas().should(($canvas) => expect(litValues($canvas[0] as HTMLCanvasElement)).to.be.greaterThan(0))
   })
 
   it("is the player's own: another player's map does not show this base", () => {

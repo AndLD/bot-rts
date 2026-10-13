@@ -90,7 +90,7 @@ enforces the layer rules.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.
-- `client/` is a Next.js (App Router) application: the public landing page is a static `(marketing)` route and the game (`(game)` routes) is rendered on the client only. It talks to the API at `NEXT_PUBLIC_API_URL`.
+- `client/` is a Next.js (App Router) application: the public pages (landing, later the privacy policy and the documentation) are static routes in two language trees (`(site-en)` at `/`, `(site-ru)` at `/ru`), each with its own root layout, and the game (`(game)` routes) is rendered on the client only. It talks to the API at `NEXT_PUBLIC_API_URL`.
 
 ---
 
@@ -243,6 +243,7 @@ pm2 start ecosystem.config.json
 | `SMTP_USER` / `SMTP_PASS`                           | api     | SMTP credentials; without them the email service is a no-op                                                                                                    | —                                                  |
 | `ROOT_USER_EMAIL` / `ROOT_USER_PASSWORD`            | api     | Auto-created root/admin user                                                                                                                                   | `root@root.root` / none                            |
 | `NEXT_PUBLIC_API_URL`                               | client  | Backend base URL (read in the browser)                                                                                                                         | `http://localhost:8080`                            |
+| `NEXT_PUBLIC_SITE_URL`                              | client  | Public address of the site, for canonical links, the sitemap and social previews (read at build time)                                                           | `http://localhost:5173`                            |
 
 ---
 

@@ -183,3 +183,38 @@ jobs:
             client/cypress/screenshots
             .e2e/*.log
           if-no-files-found: ignore
+
+  lighthouse:
+    # The public pages are for search engines and first-time visitors: SEO at least 95 and performance at least 90 (lighthouserc.json)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Detect markdown-only changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
+            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          else
+            files="unknown.ts"
+          fi
+          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Install dependencies
+        if: steps.changes.outputs.code == 'true'
+        run: npm ci
+      - name: Build the client
+        if: steps.changes.outputs.code == 'true'
+        run: npm run build -w client
+      - name: Lighthouse on the public pages
+        if: steps.changes.outputs.code == 'true'
+        run: |
+          npm run start -w client &
+          npx wait-on http://localhost:5173/ --timeout 60000
+          npm run lighthouse

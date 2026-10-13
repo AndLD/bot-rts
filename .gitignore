@@ -38,3 +38,4 @@ out
 .e2e/
 client/cypress/screenshots
 client/cypress/videos
+.lighthouseci

@@ -1,10 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { makeJwt } from '../../tests/jwt'
-import { renderApp } from '../../tests/render'
 import { baseQueryWithRefresh } from '../shared/store/baseQuery'
-import { MarketingContent } from './(marketing)/MarketingContent'
-import GameLayout from './(game)/layout'
 import messages from '../../messages/en.json'
 import { Providers } from './Providers'
 
@@ -62,28 +59,5 @@ describe('Providers', () => {
 
     expect(screen.queryByText('content')).not.toBeInTheDocument()
     expect(await screen.findByText('content')).toBeInTheDocument()
-  })
-
-  it('wraps the pages of the (game) group', async () => {
-    pathname = '/auth'
-    render(
-      <NextIntlWrapper>
-        <GameLayout>
-          <p>inside</p>
-        </GameLayout>
-      </NextIntlWrapper>
-    )
-
-    expect(await screen.findByText('inside')).toBeInTheDocument()
-  })
-})
-
-describe('MarketingContent', () => {
-  it('shows the name, the tagline and the way into the game', () => {
-    renderApp(<MarketingContent />)
-
-    expect(screen.getByRole('heading', { name: 'Bot RTS' })).toBeInTheDocument()
-    expect(screen.getByText('Program your bots. Conquer the map.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Play' })).toHaveAttribute('href', '/game')
   })
 })

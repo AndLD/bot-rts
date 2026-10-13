@@ -5,6 +5,8 @@
     url('/fonts/clacon2.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  // The text is readable at once in a fallback font, which keeps the first paint of the public pages quick
+  font-display: swap;
 }
 
 * {

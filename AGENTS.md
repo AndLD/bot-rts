@@ -45,7 +45,7 @@ Non-negotiables (a PR that violates these is rejected):
   `@lib` alias and style files, and `NEXT_PUBLIC_*` env for `client`. Vitest is not used.
 - **Script sandbox:** player scripts run in **QuickJS compiled to WASM** behind a `ScriptRuntime` interface, in the engine
   (never Node's `vm`, which is not a security boundary).
-- **Monorepo:** npm workspaces for `api`, `client` and `lib` (plus the `mcp/` MCP-server package when it is added).
+- **Monorepo:** npm workspaces for `api`, `client` and `lib` and `mcp` (the MCP server).
 - **Database:** PostgreSQL with a pinned version; locally and in CI it runs in **Docker** (`docker-compose.yml`), with the
   same image and version as production.
 - **Integration DB:** a **real PostgreSQL in Docker** — never a shared or production database in tests. Each Jest worker
@@ -54,8 +54,10 @@ Non-negotiables (a PR that violates these is rejected):
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
-If a tool is not yet installed, the [development plan](./docs/DEVELOPMENT-PLAN.md) schedules it (Jest and
-the Docker PostgreSQL setup in Phase 0, Cypress in Phase 2, and so on) — install it, don't hand-roll an alternative.
+All of this tooling is installed (see the root `package.json` scripts). To add a capability, extend these tools rather than
+hand-rolling an alternative; the [development plan](./docs/DEVELOPMENT-PLAN.md) lists what is still scheduled.
+Redis is used only for scaled deployments (the Socket.IO adapter and the API-to-engine link, `docs/operations/DEPLOYMENT.md`);
+local development and tests run without it unless the test needs it.
 
 ---
 
@@ -118,12 +120,8 @@ infrastructure → application (implements its ports) → domain
 | infrastructure | business rules (it only adapts: persistence, tokens, email, messaging)                      |
 | `lib`          | importing persistence types, runtime dependencies, I/O, Node- or browser-specific APIs       |
 
-**Legacy anti-patterns in the current Express code (eliminated by Phase 1; fix them whenever you touch a file):**
-
-- `usersService.addUser(body, res)` — a service must **never** receive an Express `Response`. Split into a pure
-  `addUser(body, status, active)` returning the user, and let the controller handle HTTP responses.
-- Services calling `apiUtils.sendError(res, …)` — return domain errors / throw typed exceptions instead.
-- Controllers reaching into `usersCollection` / `db.collection(...)` — move all data access to repositories.
+The legacy Express code is gone (Phase 1). Do not bring its anti-patterns back: a use case never receives a `Response` or
+sends HTTP errors (it returns a value or throws a typed `AppError`), and a controller never touches a repository or the database.
 
 ### 3.3 Identity provider abstraction
 
@@ -206,8 +204,7 @@ The database is an implementation detail that must stay replaceable (clean archi
 - TypeScript `strict: true`; no `any` unless documented with a `// TODO(type)` and a reason.
 - Errors: typed error classes extending a base `AppError(statusCode, code, message)`; don't throw raw `Error` with
   human-facing messages, don't string-match error messages.
-- Logging: inject the logger provider (log4js-backed, set up in Phase 1 task 1.10) — no `console.log`. (Until then the
-  legacy `getLogger('module')` from `api/utils/logger` is used.)
+- Logging: inject the `Logger` port (`api/src/shared/application/logger.ts`, log4js-backed) — no `console.log`.
 
 ### 5.3 Shared code
 
@@ -227,9 +224,8 @@ The database is an implementation detail that must stay replaceable (clean archi
 - Scope: all source code is counted, including the engine, sandbox and React components. Only entry/bootstrap files
   (`index.ts`, `main.tsx`), config files, type-only files and generated code are excluded, and every exclusion is listed
   with its reason in a single coverage config file.
-- The gate is enforced in CI. A PR that drops below 97 % is blocked. Until the full per-package gate is switched on
-  (tasks 2.2 and 2.8), CI reports coverage and **blocks PRs whose changed files are below 97 %** (check added in task 0.5,
-  blocking from Phase 1). The per-phase test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+- The gate is enforced in CI (`npm run test:coverage`) and in the pre-push hook, for `api`, `client` and `mcp`. A PR that drops
+  below 97 %, or whose changed files are below 97 % (`scripts/check-changed-coverage.mjs`), is blocked. The per-phase test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
 - Exclusions are only allowed via targeted `/* istanbul ignore next */` with a comment explaining why, and must be
   justified in the PR.
 
@@ -264,7 +260,10 @@ A feature is done only when **all** of these hold:
 - [ ] Integration tests exercise the new data access/use cases against PostgreSQL (Docker).
 - [ ] E2E test added for any new user-visible flow.
 - [ ] Coverage ≥ 97 % (CI green).
-- [ ] `npm run lint` and `npm run typecheck` pass (both packages).
+- [ ] `npm run lint`, `npm run typecheck` and `npm run check:boundaries` pass (every package).
+- [ ] Generated files are current: after an endpoint or DTO change run `npm run openapi:generate -w api` and
+      `npm run api:generate -w client` and commit the result (CI fails on a stale `api/openapi.json` or client).
+- [ ] `npm run i18n:check` (English and Russian catalogues) and `npm run docs:check` (Markdown links) pass.
 - [ ] No dead code, no commented-out blocks, no `console.log`.
 - [ ] The task is marked ✅ in its phase file and the work log has an entry for it (§7.6).
 - [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
@@ -314,8 +313,8 @@ A feature is done only when **all** of these hold:
 - **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks (branch
-  protection and CI are set up in Phase 0, tasks 0.5–0.6; until then these rules are followed by convention).
+- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks (`.github/workflows/ci.yml`:
+  lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, build, e2e, Lighthouse).
 
 ### 7.4 Commit & PR rules
 
@@ -408,8 +407,8 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
   terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
-  (design §14.2). Until the engine exists (Phase 5), world-mutating use cases run in the API process behind the same
-  command-handler interface the engine will implement.
+  (design §14.2). The engine (`api/src/engine`) is the only writer: use cases send it commands through the engine port, and it
+  runs in a worker thread of the API process or, when scaled, on its own node (`APP_ROLE`, `docs/operations/DEPLOYMENT.md`).
 - **Determinism:** game logic must not call `Date.now()` or `Math.random()`; use the injected clock and the seeded RNG
   (design §12.4).
 - **Tunable balance:** gameplay numbers (costs, ranges, tick rate, limits) live in config, not in code.
@@ -420,8 +419,15 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Events are edges, not levels:** an event is raised when something happens or a state begins, never on every tick or cycle a
   state lasts; keep such a state in persisted data (module properties, not engine memory) so a restart does not repeat the
   event, and cover it with a test that runs many ticks in the unchanged state (design §24.1).
-- **Admin endpoints** (`/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
+- **Public API stability:** changes inside `/api/v1` must stay compatible; breaking changes ship as `/api/v2`, and a
+  deprecated route is marked and announced per `docs/integrations/API.md`. New player-facing endpoints declare their API-key scope,
+  and the MCP server (`mcp/`) only calls the public API.
+- **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
+  (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`,
+  `LOAD-TESTING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `CHANGELOG.md`.
+- **Admin endpoints** (planned, Phase 9; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
-- **Money and goods:** credits and traded items move only through engine commands that write double-entry **ledger**
+- **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**
   entries (design §26.1); nothing updates a wallet, escrow or inbox directly, and a reconciliation test must prove that the
   money supply and item counts are conserved.

@@ -89,6 +89,81 @@ const injectedRtkApi = api.injectEndpoints({
         }
       })
     }),
+    playersSearch: build.query<PlayersSearchApiResponse, PlayersSearchApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players`,
+        params: {
+          page: queryArg.page,
+          results: queryArg.results,
+          q: queryArg.q,
+          status: queryArg.status,
+          isEmailVerified: queryArg.isEmailVerified,
+          registeredFrom: queryArg.registeredFrom,
+          registeredTo: queryArg.registeredTo,
+          sort: queryArg.sort,
+          order: queryArg.order
+        }
+      })
+    }),
+    playersProfile: build.query<PlayersProfileApiResponse, PlayersProfileApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/players/${queryArg.id}` })
+    }),
+    playersRemove: build.mutation<PlayersRemoveApiResponse, PlayersRemoveApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}`,
+        method: 'DELETE',
+        body: queryArg.deletePlayerDto
+      })
+    }),
+    playersBan: build.mutation<PlayersBanApiResponse, PlayersBanApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/ban`,
+        method: 'POST',
+        body: queryArg.banPlayerDto
+      })
+    }),
+    playersUnban: build.mutation<PlayersUnbanApiResponse, PlayersUnbanApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/unban`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    playersLogout: build.mutation<PlayersLogoutApiResponse, PlayersLogoutApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/logout`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    playersResendVerification: build.mutation<PlayersResendVerificationApiResponse, PlayersResendVerificationApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/resend-verification`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    playersResetPassword: build.mutation<PlayersResetPasswordApiResponse, PlayersResetPasswordApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/reset-password`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    playersChangeRole: build.mutation<PlayersChangeRoleApiResponse, PlayersChangeRoleApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/role`,
+        method: 'PUT',
+        body: queryArg.changeRoleDto
+      })
+    }),
+    playersAddNote: build.mutation<PlayersAddNoteApiResponse, PlayersAddNoteApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/notes`,
+        method: 'POST',
+        body: queryArg.addNoteDto
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -423,6 +498,63 @@ export type AuditListApiArg = {
   outcome?: 'success' | 'denied' | 'failed'
   from?: string
   to?: string
+}
+export type PlayersSearchApiResponse = /** status 200  */ PlayersPageResponse
+export type PlayersSearchApiArg = {
+  page?: number
+  results?: number
+  /** Part of the name or email, or the exact id */
+  q?: string
+  status?: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+  isEmailVerified?: boolean
+  registeredFrom?: string
+  registeredTo?: string
+  sort?: 'createdAt' | 'name' | 'email'
+  order?: 'asc' | 'desc'
+}
+export type PlayersProfileApiResponse = /** status 200  */ PlayerProfileResponse
+export type PlayersProfileApiArg = {
+  id: string
+}
+export type PlayersRemoveApiResponse = unknown
+export type PlayersRemoveApiArg = {
+  id: string
+  deletePlayerDto: DeletePlayerDto
+}
+export type PlayersBanApiResponse = unknown
+export type PlayersBanApiArg = {
+  id: string
+  banPlayerDto: BanPlayerDto
+}
+export type PlayersUnbanApiResponse = unknown
+export type PlayersUnbanApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type PlayersLogoutApiResponse = unknown
+export type PlayersLogoutApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type PlayersResendVerificationApiResponse = unknown
+export type PlayersResendVerificationApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type PlayersResetPasswordApiResponse = unknown
+export type PlayersResetPasswordApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type PlayersChangeRoleApiResponse = unknown
+export type PlayersChangeRoleApiArg = {
+  id: string
+  changeRoleDto: ChangeRoleDto
+}
+export type PlayersAddNoteApiResponse = /** status 201  */ PlayerNoteResponse
+export type PlayersAddNoteApiArg = {
+  id: string
+  addNoteDto: AddNoteDto
 }
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
@@ -837,6 +969,100 @@ export type AuditMetaModel = {
 export type AuditPageResponse = {
   result: AuditEntryResponse[]
   meta: AuditMetaModel
+}
+export type PlayerListItemResponse = {
+  _id: string
+  name: string
+  email: string
+  status: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+  isEmailVerified: boolean
+  /** Milliseconds since the epoch */
+  createdAt: number
+  lastLoginAt: number | null
+}
+export type PlayersMetaModel = {
+  pagination: PaginationModel
+}
+export type PlayersPageResponse = {
+  result: PlayerListItemResponse[]
+  meta: PlayersMetaModel
+}
+export type PlayerSessionModel = {
+  _id: string
+  userAgent: string | null
+  createdAt: number
+  lastUsedAt: number
+  expiresAt: number
+  isActive: boolean
+}
+export type PlayerBaseModel = {
+  _id: string
+  label: string | null
+  botCount: number
+}
+export type PlayerResourceModel = {
+  resource: string
+  amount: number
+}
+export type PlayerBanResponse = {
+  _id: string
+  reason: string
+  bannedBy: string
+  createdAt: number
+  expiresAt: number | null
+  liftedAt: number | null
+  liftedBy: string | null
+}
+export type PlayerNoteResponse = {
+  _id: string
+  authorId: string
+  text: string
+  createdAt: number
+}
+export type TimelineEntryModel = {
+  at: number
+  kind: 'registered' | 'login' | 'ban' | 'unban' | 'admin-action'
+  detail: string | null
+}
+export type PlayerProfileResponse = {
+  _id: string
+  name: string
+  email: string
+  status: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+  isEmailVerified: boolean
+  /** Milliseconds since the epoch */
+  createdAt: number
+  lastLoginAt: number | null
+  isDeleted: boolean
+  sessions: PlayerSessionModel[]
+  bases: PlayerBaseModel[]
+  botCount: number
+  resources: PlayerResourceModel[]
+  runningExecutions: number
+  activeBan: PlayerBanResponse | null
+  bans: PlayerBanResponse[]
+  notes: PlayerNoteResponse[]
+  timeline: TimelineEntryModel[]
+}
+export type DeletePlayerDto = {
+  reason: string
+  /** The player's current email, typed to confirm */
+  confirmEmail: string
+}
+export type BanPlayerDto = {
+  reason: string
+  /** Omitted: until an admin lifts the ban */
+  durationHours?: number
+}
+export type ReasonDto = {
+  reason: string
+}
+export type ChangeRoleDto = {
+  reason: string
+  role: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+}
+export type AddNoteDto = {
+  text: string
 }
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
@@ -1410,6 +1636,16 @@ export const {
   useAdminConfirmMutation,
   useAdminVerifyMutation,
   useAuditListQuery,
+  usePlayersSearchQuery,
+  usePlayersProfileQuery,
+  usePlayersRemoveMutation,
+  usePlayersBanMutation,
+  usePlayersUnbanMutation,
+  usePlayersLogoutMutation,
+  usePlayersResendVerificationMutation,
+  usePlayersResetPasswordMutation,
+  usePlayersChangeRoleMutation,
+  usePlayersAddNoteMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

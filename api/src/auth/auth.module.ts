@@ -166,6 +166,6 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
     { provide: APP_GUARD, useClass: RolesGuard },
     SocketAuthGateway
   ],
-  exports: [AuthService, PASSWORD_HASHER]
+  exports: [AuthService, PASSWORD_HASHER, CREDENTIAL_AUTH]
 })
 export class AuthModule {}

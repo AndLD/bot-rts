@@ -5,6 +5,7 @@ import { FileRepository } from '../../files/application/file.repository'
 import { MapRepository } from '../../map/application/map.repository'
 import { ModuleRepository } from '../../modules/application/module.repository'
 import { SpawnSeedRepository } from '../../spawn/application/spawn-seed.repository'
+import { PlayerModerationRepository } from '../../players/application/ports'
 import { UserRepository } from '../../users/application/user.repository'
 import {
   AuthTokenRepository,
@@ -28,6 +29,7 @@ export interface Repositories {
   credentials: CredentialRepository
   sessions: SessionRepository
   authTokens: AuthTokenRepository
+  moderation: PlayerModerationRepository
 }
 
 export interface UnitOfWork {

@@ -43,3 +43,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 9.4, the Players page.
 - **Verify with:** `npx jest --selectProjects integration --testPathPattern monitoring.int` from `api`; `npx jest src/features/admin` from `client`
 
+### 2026-10-15 — task 9.4 players page
+- **Tasks:** 9.4
+- **Branch:** `feature/9.4-players` (stacked on 9.3) — done
+- **Decisions / deviations from the plan:** a `players` feature module. Search is server-side (`q` matches name, email or the exact id; filters for status, email verification and registration dates; sort by name, email or registration). The profile is built by a read model (`PlayerDirectory`), and the moderation records (`player_bans`, `player_notes`) are part of the unit of work. Rank rule: an admin may act only on a lower rank (owner > admin > moderator > analyst > player), never on themselves; notes may be added to any account. A ban sets the status to `banned`, ends the player's sessions at once and remembers the previous status for the unban; a ban with a duration is lifted by a minute timer on the nodes that run the data lifecycle (`LIFECYCLE_ENABLED`); a ban does not stop running scripts: that is the quarantine of 9.6. A banned player's old token answers 401 (the session ended), signing in answers `USER_BANNED`. Role change is owner-only and never gives `banned`. Deleting uses the account erasure of the data lifecycle and needs the player's current email typed; the profile of an erased account stays for the trail, marked deleted. Every action needs a reason (3 to 500 characters) and writes the audit entry with before and after values (`AuditDetailParam`). Resource totals come from the storage modules in the database (the engine writes behind, so they can lag by a flush). The page is `/admin/players` and `/admin/players/[id]`.
+- **Problems / blockers / findings:** none.
+- **Next step:** 9.5, the inspector and the world map.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern players.int` and `npx jest src/players` from `api`; `npx jest src/features/admin/players` from `client`
+

@@ -33,6 +33,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   health per area, configurable alert thresholds, in-console alerts that can be acknowledged, and email for red alerts
   (`/api/v1/admin/monitoring/*`, `botrts_alerts_open` on `/metrics`).
 - The admin dashboard: status per area, charts over a time range, open alerts, and live updates over the `/admin` Socket.IO namespace.
+- The Players page: search with filters, a profile with sessions, bases, resources and an activity timeline, notes, and the moderation
+  actions (ban with a duration, unban, sign out everywhere, resend verification, reset password, change role, delete), each with a
+  reason, a rank check and an audit entry (`/api/v1/admin/players/*`).
 
 ### Changed
 

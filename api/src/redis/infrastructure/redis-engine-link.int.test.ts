@@ -4,6 +4,7 @@ import { ServiceUnavailableError } from '../../engine/domain/engine.errors'
 import { EnginePort } from '../../engine/application/engine-port'
 import { Logger } from '../../shared/application/logger'
 import { RedisEngineBridge } from './redis-engine-bridge'
+import { encode } from './engine-link'
 import { RedisEnginePort } from './redis-engine-port'
 
 const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379'
@@ -107,5 +108,13 @@ describe('the engine link over Redis', () => {
     port.close()
 
     await expect(waiting).rejects.toBeInstanceOf(ServiceUnavailableError)
+  })
+
+  it('ignores an answer nobody is waiting for', async () => {
+    const subscriber = connect()
+    const port = new RedisEnginePort(connect(), subscriber, 2000)
+
+    expect(() => subscriber.emit('messageBuffer', Buffer.from('x'), encode({ id: 'late', data: 1 }))).not.toThrow()
+    port.close()
   })
 })

@@ -15,7 +15,7 @@ shared, persistent world.
 > ✅ Decided / implemented · 🟡 Partially implemented · 🔴 Not implemented (planned)
 >
 > This is a design document, not an engineering spec. For architecture, quality rules, and roadmap see
-> [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md), [`CODE-QUALITY-REVIEW.md`](./CODE-QUALITY-REVIEW.md),
+> [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md), [`2026-10-10.md`](./code-quality-reviews/2026-10-10.md),
 > [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md).
 
 ---

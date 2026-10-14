@@ -143,6 +143,14 @@ describe('InspectorService.bot', () => {
     const [orphan] = [...repositories.bots.items.values()]
 
     expect((await service.bot(orphan.id)).ownerName).toBeNull()
+    await repositories.bots.add({
+      ...buildBase(randomUUID()),
+      type: BOT_TYPE.WORKER,
+      userId: null,
+      baseId: randomUUID()
+    })
+    const worker = [...repositories.bots.items.values()].find((bot) => bot.type === BOT_TYPE.WORKER)
+    expect((await service.bot(worker?.id as string)).ownerId).toBeNull()
     await expect(service.bot(randomUUID())).rejects.toThrow(NotFoundError)
   })
 })

@@ -10,6 +10,7 @@ import { storeWithToken } from '../../../../tests/render'
 import { baseQueryWithRefresh } from '../../../shared/store/baseQuery'
 import { AdminMeContext } from '../admin-me-context'
 import BotInspectorPage from './BotInspectorPage'
+import FileBrowser from './FileBrowser'
 import HeatGrid from './HeatGrid'
 import InspectorPage from './InspectorPage'
 import WorldMapPage from './WorldMapPage'
@@ -143,6 +144,7 @@ function renderAs(role: IAdminMe['role'], ui: React.ReactNode, token: string | n
 
 beforeEach(() => {
   jest.clearAllMocks()
+  localStorage.clear()
   sockets.length = 0
   mapProps = null
   search = ''
@@ -252,9 +254,9 @@ describe('BotInspectorPage', () => {
 })
 
 describe('FileBrowser', () => {
+  // The browser alone: a whole inspector page is a large DOM and slow to query
   async function openFiles(role: IAdminMe['role']) {
-    renderAs(role, <BotInspectorPage />)
-    fireEvent.click(await screen.findByText('Drives and files'))
+    renderAs(role, <FileBrowser botId="bot-1" driveId="d1" />)
   }
 
   it('lists the files and goes into a directory and back', async () => {

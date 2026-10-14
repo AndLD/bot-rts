@@ -104,7 +104,7 @@ export class InspectorService {
           _id: module.id,
           name: module.name,
           quota: new DriveModule(module).quota,
-          usedBytes: files.get(module.id) ?? 0
+          usedBytes: files.get(module.id) as number
         })),
       executions: executions.map((execution) => ({
         _id: execution.id,

@@ -17,7 +17,12 @@ function setup() {
   const gateway = new MonitoringGateway(monitoring)
   gateway.afterInit(namespace)
 
-  return { gateway, emitted, sample: () => listener({} as never), off }
+  return {
+    gateway,
+    emitted,
+    sample: () => listener({ sampledAt: null, status: 'green', areas: [], alerts: [] } as never),
+    off
+  }
 }
 
 const socketOf = (status: 'analyst' | 'user') =>

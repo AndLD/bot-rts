@@ -183,9 +183,12 @@ export class InspectorService {
   }
 
   async heatmap({ kind, range, bucket }: HeatmapQuery): Promise<IHeatmap> {
-    const side = Math.max(range.maxX - range.minX, range.maxY - range.minY) + 1
+    const sides = [range.maxX - range.minX + 1, range.maxY - range.minY + 1]
 
-    if (!(HEATMAP_BUCKETS as readonly number[]).includes(bucket) || side > HEATMAP_MAX_SIDE || side < 1) {
+    if (
+      !(HEATMAP_BUCKETS as readonly number[]).includes(bucket) ||
+      sides.some((side) => side < 1 || side > HEATMAP_MAX_SIDE)
+    ) {
       throw new ValidationError('Invalid heatmap area or bucket size')
     }
     const area = { from: { x: range.minX, y: range.minY, z: 0 }, to: { x: range.maxX, y: range.maxY, z: 0 } }

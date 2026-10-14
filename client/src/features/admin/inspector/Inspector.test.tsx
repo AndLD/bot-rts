@@ -129,10 +129,10 @@ function serve(handler: (call: Call) => unknown = () => undefined, data: { bot?:
   return calls
 }
 
-function renderAs(role: IAdminMe['role'], ui: React.ReactNode) {
+function renderAs(role: IAdminMe['role'], ui: React.ReactNode, token: string | null = makeJwt(60)) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
-      <Provider store={storeWithToken(makeJwt(60))}>
+      <Provider store={storeWithToken(token)}>
         <AdminMeContext.Provider value={{ role, permissions: [], twoFactor: { isEnrolled: true, isVerified: true } }}>
           {ui}
         </AdminMeContext.Provider>
@@ -380,6 +380,14 @@ describe('WorldMapPage', () => {
     fireEvent.mouseDown(document.querySelector('.ant-select-selector') as Element)
     fireEvent.click(await screen.findByText('32 cells', { selector: '.ant-select-item-option-content' }))
     await waitFor(() => expect(calls.some((call) => call.params?.bucket === 32)).toBe(true))
+  })
+
+  it('does not listen for events without a session', async () => {
+    serve()
+    renderAs('moderator', <WorldMapPage />, null)
+    await screen.findByTestId('map')
+
+    expect(sockets).toHaveLength(0)
   })
 
   it('lists the game events pushed over the admin namespace, newest first, and stops listening', async () => {

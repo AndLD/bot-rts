@@ -1,3 +1,4 @@
+import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
 import { randomUUID } from 'crypto'
 import {
   FakeUnitOfWork,
@@ -75,7 +76,7 @@ async function seedBase() {
   await ctx.repositories.users.add(owner)
   const base = buildBase(owner.id, { label: 'Home' })
   await ctx.repositories.bots.add(base)
-  const worker = { ...buildBase(owner.id), type: 'worker' as const, userId: null, baseId: base.id, label: null }
+  const worker = { ...buildBase(owner.id), type: BOT_TYPE.WORKER, userId: null, baseId: base.id, label: null }
   await ctx.repositories.bots.add(worker)
   const drive = buildModule(base.id, { type: 'drive', name: 'main', props: { quota: 1000 } })
   await ctx.repositories.modules.addMany([
@@ -222,7 +223,7 @@ describe('InspectorService maps', () => {
     const density = await service.heatmap({ kind: 'density', range, bucket: 16 })
     expect(density.buckets).toEqual([
       { x: 0, y: 0, value: 2, intensity: 1 },
-      { x: 16, y: 16, value: 1, intensity: 0.5 }
+      { x: 16, y: 16, value: 2, intensity: 1 }
     ])
     const depletion = await service.heatmap({ kind: 'depletion', range, bucket: 16 })
     expect(depletion.buckets).toEqual([{ x: 16, y: 16, value: 1, intensity: 1 }])
@@ -238,8 +239,8 @@ describe('InspectorService maps', () => {
     await expect(service.heatmap({ kind: 'density', range: { ...range, maxX: 600 }, bucket: 8 })).rejects.toThrow(
       ValidationError
     )
-    await expect(service.heatmap({ kind: 'density', range: { ...range, maxX: -5 }, bucket: 8 })).rejects.toThrow(
-      ValidationError
-    )
+    await expect(
+      service.heatmap({ kind: 'density', range: { ...range, maxX: -5, maxY: -5 }, bucket: 8 })
+    ).rejects.toThrow(ValidationError)
   })
 })

@@ -13,8 +13,7 @@ export default function BotInspectorPage() {
   const format = useFormatter()
   const { id } = useParams<{ id: string }>()
   const { data: bot, isLoading, isError } = useInspectorBotQuery({ id })
-  const date = (ms: number | null) =>
-    ms === null ? '–' : format.dateTime(new Date(ms), { dateStyle: 'medium', timeStyle: 'medium' })
+  const date = (ms: number) => format.dateTime(new Date(ms), { dateStyle: 'medium', timeStyle: 'medium' })
 
   if (isLoading) {
     return <Spin />

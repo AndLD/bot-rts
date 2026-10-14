@@ -128,6 +128,14 @@ describe('executions and bots', () => {
       .expect(403)
   })
 
+  it('refuses an id that is not a UUID', async () => {
+    await api()
+      .post(`${base}/executions/not-a-uuid/kill`)
+      .set(bearer(admin))
+      .send({ reason: 'runaway script' })
+      .expect(400)
+  })
+
   it('reboots a bot', async () => {
     const botId = randomUUID()
 

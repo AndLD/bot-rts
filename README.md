@@ -47,7 +47,13 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
   quota, directories, `.js` / `.ts` / `.json` / `.txt` files) over REST and the terminal.
 - **BotOS commands on the server** (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`) over
   Socket.IO; every terminal session and its lines are stored in the database (30 days, 5,000 lines per bot).
-- OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code; the web client's endpoints are generated from it.
+- OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code, with examples and `curl` samples; the web client's endpoints
+  are generated from it. Third-party clients and AI assistants use **API keys** with scopes ([docs/API.md](./docs/API.md)), and the
+  **MCP server** in `mcp/` lets an AI play as a regular player ([docs/MCP.md](./docs/MCP.md)).
+- Production hardening: rate limits, request limits and security headers, request ids, JSON logs, Prometheus metrics, health checks, a
+  scheduled data-lifecycle job, and a horizontally scalable API tier with one engine node ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md),
+  measured in [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)); a Docker image, a release flow ([docs/RELEASING.md](./docs/RELEASING.md)),
+  and the web client on Vercel.
 
 **Frontend (`client`)**
 

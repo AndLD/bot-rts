@@ -138,7 +138,8 @@ describe('notifications', () => {
 
   it('marks all as read, and lets the player switch a category off in the settings', () => {
     command('run job.js')
-    list((body) => body.unread > 0)
+    // The script has finished and the game has said so: one that is still to come would not be marked read below
+    list((body) => body.items.some((item) => item.kind === 'scriptFinished'))
 
     cy.contains('.game-toolbar button', 'Notifications').click()
     windowWith('Notifications').contains('button', 'Mark all as read').click()

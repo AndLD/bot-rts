@@ -2,7 +2,7 @@
 
 # Phase 8 — Multiplayer, public API & production hardening (71 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
 
 | # | Task                                                                                                        | SP | Status |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- | --- |
@@ -13,7 +13,7 @@
 | 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 | ✅ |
 | 8.6 | Load/soak testing (many players × bots) and tuning the scheduler budget | 5 | ✅ |
 | 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, PostgreSQL) alongside the PM2 setup | 6 | ✅ |
-| 8.8 | Final coverage & quality sweep to ≥ 97 % per package | 5 | ⬜ |
+| 8.8 | Final coverage & quality sweep to ≥ 97 % per package | 5 | ✅ |
 | 8.9 | API keys: per-player keys (shown once, stored hashed), scopes that only narrow the player's rights, per-key rate limit, revocation, profile UI; Nest API-key guard and scope decorators for HTTP and WebSocket | 8 | ✅ |
 | 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 | ✅ |
 | 8.11 | MCP server (`mcp/` workspace package): tools for observation, manual control per category, files, scripts, fabrication; calls only `/api/v1` with an API key; stdio + streamable HTTP transports; tests against a seeded test backend | 8 | ✅ |
@@ -43,4 +43,5 @@ AGENTS.md §7.1).
 | `feature/8.10-public-api-hardening` | 8.10 | [#136](https://github.com/AndLD/bot-rts/pull/136) | ✅ merged |
 | `feature/8.11-mcp-server` | 8.11 | [#137](https://github.com/AndLD/bot-rts/pull/137) | ✅ merged |
 | `feature/8.12-vercel-deployment` | 8.12 | [#138](https://github.com/AndLD/bot-rts/pull/138) | ✅ merged |
-| `feature/8.13-e2e` | 8.13 | [#139](https://github.com/AndLD/bot-rts/pull/139) | 🟡 |
+| `feature/8.13-e2e` | 8.13 | [#139](https://github.com/AndLD/bot-rts/pull/139) | ✅ merged |
+| `feature/8.8-quality-sweep` | 8.8 | [#140](https://github.com/AndLD/bot-rts/pull/140) | 🟡 |

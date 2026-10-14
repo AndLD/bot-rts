@@ -12,6 +12,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserInfoResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "name": "string",
+                  "email": "player@example.com",
+                  "status": "admin",
+                  "active": false,
+                  "subscription": "free",
+                  "createdAt": 1,
+                  "updatedAt": 1
                 }
               }
             }
@@ -35,7 +45,14 @@
         "tags": [
           "users"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/users/me\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/users": {
@@ -104,6 +121,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UsersPageResponse"
+                },
+                "example": {
+                  "result": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "name": "string",
+                      "email": "player@example.com",
+                      "status": "admin",
+                      "active": false,
+                      "subscription": "free",
+                      "createdAt": 1,
+                      "updatedAt": 1
+                    }
+                  ],
+                  "meta": {
+                    "pagination": {
+                      "page": null,
+                      "results": null,
+                      "total": null
+                    }
+                  }
                 }
               }
             }
@@ -127,7 +165,14 @@
         "tags": [
           "users"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/users\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/users/{id}": {
@@ -149,6 +194,11 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateUserDto"
+              },
+              "example": {
+                "name": "string",
+                "subscription": "free",
+                "status": "admin"
               }
             }
           }
@@ -160,6 +210,18 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserUpdatedResponse"
+                },
+                "example": {
+                  "result": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "name": "string",
+                    "email": "player@example.com",
+                    "status": "admin",
+                    "active": false,
+                    "subscription": "free",
+                    "createdAt": 1,
+                    "updatedAt": 1
+                  }
                 }
               }
             }
@@ -183,7 +245,14 @@
         "tags": [
           "users"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PUT \"$BOTRTS_URL/api/v1/users/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"string\",\"subscription\":\"free\",\"status\":\"admin\"}'"
+          }
+        ]
       }
     },
     "/api/v1/admin/statistics": {
@@ -197,6 +266,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StatisticsResponse"
+                },
+                "example": {
+                  "usersByStatus": {
+                    "admin": 1,
+                    "owner": 1,
+                    "user": 1,
+                    "unlimited": 1,
+                    "banned": 1
+                  },
+                  "startedAt": "2026-01-01T00:00:00.000Z"
                 }
               }
             }
@@ -220,7 +299,14 @@
         "tags": [
           "admin"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/statistics\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/auth/register": {
@@ -233,6 +319,12 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterDto"
+              },
+              "example": {
+                "name": "string",
+                "email": "player@example.com",
+                "password": "string",
+                "acceptedPrivacyVersion": "2026-10-14"
               }
             }
           }
@@ -244,6 +336,9 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthTokenResponse"
+                },
+                "example": {
+                  "accessToken": "string"
                 }
               }
             }
@@ -261,6 +356,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/register\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"string\",\"email\":\"player@example.com\",\"password\":\"string\",\"acceptedPrivacyVersion\":\"2026-10-14\"}'"
+          }
         ]
       }
     },
@@ -274,6 +376,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginDto"
+              },
+              "example": {
+                "email": "player@example.com",
+                "password": "string"
               }
             }
           }
@@ -285,6 +391,9 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthTokenResponse"
+                },
+                "example": {
+                  "accessToken": "string"
                 }
               }
             }
@@ -302,6 +411,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/login\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\":\"player@example.com\",\"password\":\"string\"}'"
+          }
         ]
       }
     },
@@ -316,6 +432,9 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AuthTokenResponse"
+                },
+                "example": {
+                  "accessToken": "string"
                 }
               }
             }
@@ -338,6 +457,13 @@
         ],
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/refresh\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
         ]
       }
     },
@@ -362,6 +488,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/logout\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
         ]
       }
     },
@@ -375,6 +508,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TokenDto"
+              },
+              "example": {
+                "token": "string"
               }
             }
           }
@@ -396,6 +532,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/email/verify\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"token\":\"string\"}'"
+          }
         ]
       }
     },
@@ -409,6 +552,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EmailDto"
+              },
+              "example": {
+                "email": "player@example.com"
               }
             }
           }
@@ -430,6 +576,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/email/resend\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\":\"player@example.com\"}'"
+          }
         ]
       }
     },
@@ -443,6 +596,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EmailDto"
+              },
+              "example": {
+                "email": "player@example.com"
               }
             }
           }
@@ -464,6 +620,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/password/forgot\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\":\"player@example.com\"}'"
+          }
         ]
       }
     },
@@ -477,6 +640,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ResetPasswordDto"
+              },
+              "example": {
+                "token": "string",
+                "password": "string"
               }
             }
           }
@@ -498,6 +665,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/password/reset\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"token\":\"string\",\"password\":\"string\"}'"
+          }
         ]
       }
     },
@@ -511,6 +685,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ChangePasswordDto"
+              },
+              "example": {
+                "currentPassword": "string",
+                "newPassword": "string"
               }
             }
           }
@@ -533,7 +711,14 @@
         "tags": [
           "auth"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/password/change\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"currentPassword\":\"string\",\"newPassword\":\"string\"}'"
+          }
+        ]
       }
     },
     "/api/v1/auth/email/change": {
@@ -546,6 +731,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ChangeEmailDto"
+              },
+              "example": {
+                "password": "string",
+                "newEmail": "player@example.com"
               }
             }
           }
@@ -568,7 +757,14 @@
         "tags": [
           "auth"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/email/change\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"password\":\"string\",\"newEmail\":\"player@example.com\"}'"
+          }
+        ]
       }
     },
     "/api/v1/auth/email/change/confirm": {
@@ -581,6 +777,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TokenDto"
+              },
+              "example": {
+                "token": "string"
               }
             }
           }
@@ -602,6 +801,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/email/change/confirm\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"token\":\"string\"}'"
+          }
         ]
       }
     },
@@ -615,6 +821,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordDto"
+              },
+              "example": {
+                "password": "string"
               }
             }
           }
@@ -637,7 +846,14 @@
         "tags": [
           "auth"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/account/delete\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"password\":\"string\"}'"
+          }
+        ]
       }
     },
     "/api/v1/auth/account/delete/confirm": {
@@ -650,6 +866,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TokenDto"
+              },
+              "example": {
+                "token": "string"
               }
             }
           }
@@ -671,6 +890,13 @@
         },
         "tags": [
           "auth"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/account/delete/confirm\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"token\":\"string\"}'"
+          }
         ]
       }
     },
@@ -688,7 +914,26 @@
                   "items": {
                     "$ref": "#/components/schemas/RecipeResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "module": "scanner-class1",
+                    "classLevel": 1,
+                    "resources": [
+                      {
+                        "resource": null,
+                        "amount": null
+                      }
+                    ],
+                    "craftTimeMs": 1,
+                    "isKnown": false,
+                    "canResearch": false,
+                    "research": {
+                      "resources": null,
+                      "timeMs": null
+                    }
+                  }
+                ]
               }
             }
           },
@@ -711,7 +956,14 @@
         "tags": [
           "crafting"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/crafting/recipes\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/drives": {
@@ -737,7 +989,16 @@
                   "items": {
                     "$ref": "#/components/schemas/DriveResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "botId": "00000000-0000-4000-8000-000000000000",
+                    "name": "string",
+                    "quota": 1,
+                    "used": 1
+                  }
+                ]
               }
             }
           },
@@ -760,7 +1021,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/drives/{driveId}/files": {
@@ -802,7 +1070,17 @@
                   "items": {
                     "$ref": "#/components/schemas/FileResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "driveId": "00000000-0000-4000-8000-000000000000",
+                    "path": "scripts/mine.js",
+                    "kind": "file",
+                    "size": 1,
+                    "content": "string"
+                  }
+                ]
               }
             }
           },
@@ -825,7 +1103,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/files\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/drives/{driveId}/file": {
@@ -864,6 +1149,14 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FileResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "driveId": "00000000-0000-4000-8000-000000000000",
+                  "path": "scripts/mine.js",
+                  "kind": "file",
+                  "size": 1,
+                  "content": "string"
                 }
               }
             }
@@ -887,7 +1180,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/file\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       },
       "put": {
         "operationId": "filesWrite",
@@ -915,6 +1215,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/WriteFileDto"
+              },
+              "example": {
+                "path": "string",
+                "content": "string"
               }
             }
           }
@@ -926,6 +1230,14 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FileResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "driveId": "00000000-0000-4000-8000-000000000000",
+                  "path": "scripts/mine.js",
+                  "kind": "file",
+                  "size": 1,
+                  "content": "string"
                 }
               }
             }
@@ -949,7 +1261,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "files"
+        "x-api-key-scope": "files",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PUT \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/file\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"path\":\"string\",\"content\":\"string\"}'"
+          }
+        ]
       },
       "delete": {
         "operationId": "filesRemove",
@@ -1002,7 +1321,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "files"
+        "x-api-key-scope": "files",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X DELETE \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/file\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/drives/{driveId}/directories": {
@@ -1032,6 +1358,9 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MakeDirectoryDto"
+              },
+              "example": {
+                "path": "string"
               }
             }
           }
@@ -1043,6 +1372,14 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FileResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "driveId": "00000000-0000-4000-8000-000000000000",
+                  "path": "scripts/mine.js",
+                  "kind": "file",
+                  "size": 1,
+                  "content": "string"
                 }
               }
             }
@@ -1066,7 +1403,14 @@
         "tags": [
           "files"
         ],
-        "x-api-key-scope": "files"
+        "x-api-key-scope": "files",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/directories\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"path\":\"string\"}'"
+          }
+        ]
       }
     },
     "/api/v1/bots/base": {
@@ -1079,6 +1423,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DeployBaseDto"
+              },
+              "example": {
+                "password": "string",
+                "spawnSeed": "ALPHA-7K2"
               }
             }
           }
@@ -1090,6 +1438,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DeployedBaseResponse"
+                },
+                "example": {
+                  "bot": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "label": "string",
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "baseId": "00000000-0000-4000-8000-000000000000",
+                    "type": "base",
+                    "lastPosition": {}
+                  },
+                  "modules": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "type": "engine",
+                      "name": "string",
+                      "condition": 1,
+                      "maxCondition": 1,
+                      "weight": 1,
+                      "operationCost": 1,
+                      "idleCost": 1
+                    }
+                  ],
+                  "mapPoint": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "location": {
+                      "x": null,
+                      "y": null,
+                      "z": null
+                    },
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "contentId": "00000000-0000-4000-8000-000000000000",
+                    "type": "resource",
+                    "resource": {
+                      "resource": null,
+                      "amount": null
+                    },
+                    "seenAt": 1
+                  }
                 }
               }
             }
@@ -1113,7 +1500,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "base"
+        "x-api-key-scope": "base",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/base\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"password\":\"string\",\"spawnSeed\":\"ALPHA-7K2\"}'"
+          }
+        ]
       }
     },
     "/api/v1/bots": {
@@ -1143,7 +1537,21 @@
                   "items": {
                     "$ref": "#/components/schemas/BotResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "label": "string",
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "baseId": "00000000-0000-4000-8000-000000000000",
+                    "type": "base",
+                    "lastPosition": {
+                      "x": null,
+                      "y": null,
+                      "z": null
+                    }
+                  }
+                ]
               }
             }
           },
@@ -1166,7 +1574,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{id}/bots": {
@@ -1192,7 +1607,21 @@
                   "items": {
                     "$ref": "#/components/schemas/BotResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "label": "string",
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "baseId": "00000000-0000-4000-8000-000000000000",
+                    "type": "base",
+                    "lastPosition": {
+                      "x": null,
+                      "y": null,
+                      "z": null
+                    }
+                  }
+                ]
               }
             }
           },
@@ -1215,7 +1644,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/bots\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{id}/modules": {
@@ -1241,7 +1677,20 @@
                   "items": {
                     "$ref": "#/components/schemas/ModuleResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "botId": "00000000-0000-4000-8000-000000000000",
+                    "type": "engine",
+                    "name": "string",
+                    "condition": 1,
+                    "maxCondition": 1,
+                    "weight": 1,
+                    "operationCost": 1,
+                    "idleCost": 1
+                  }
+                ]
               }
             }
           },
@@ -1264,7 +1713,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/modules\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{id}/scan": {
@@ -1290,7 +1746,25 @@
                   "items": {
                     "$ref": "#/components/schemas/MapPointResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "location": {
+                      "x": 1,
+                      "y": 1,
+                      "z": 1
+                    },
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "contentId": "00000000-0000-4000-8000-000000000000",
+                    "type": "resource",
+                    "resource": {
+                      "resource": "iron",
+                      "amount": 1
+                    },
+                    "seenAt": 1
+                  }
+                ]
               }
             }
           },
@@ -1313,7 +1787,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/scan\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/storage": {
@@ -1336,6 +1817,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BotStorageResponse"
+                },
+                "example": {
+                  "capacity": 1,
+                  "used": 1,
+                  "resources": [
+                    {
+                      "resource": "iron",
+                      "amount": 1
+                    }
+                  ],
+                  "items": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "type": "blueprint",
+                      "name": "string",
+                      "weight": 1
+                    }
+                  ],
+                  "carriedWeight": 1,
+                  "loadCapacity": 1
                 }
               }
             }
@@ -1359,7 +1860,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/storage\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/actions": {
@@ -1381,6 +1889,12 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ManualActionDto"
+              },
+              "example": {
+                "fn": "drop",
+                "args": [
+                  {}
+                ]
               }
             }
           }
@@ -1392,6 +1906,12 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ManualActionResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "data": {},
+                  "code": "string",
+                  "msg": "string"
                 }
               }
             }
@@ -1415,7 +1935,14 @@
         "tags": [
           "bots"
         ],
-        "x-api-key-scope": "depends on the request"
+        "x-api-key-scope": "depends on the request",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/actions\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"fn\":\"drop\",\"args\":[{}]}'"
+          }
+        ]
       }
     },
     "/api/v1/bots/{baseId}/factory": {
@@ -1438,6 +1965,32 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FactoryStatusResponse"
+                },
+                "example": {
+                  "now": 1,
+                  "jobs": [
+                    {
+                      "kind": "craft",
+                      "module": "scanner-class1",
+                      "readyAt": 1
+                    }
+                  ],
+                  "parts": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "type": "blueprint",
+                      "name": "string",
+                      "weight": 1
+                    }
+                  ],
+                  "blueprintItems": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "type": "blueprint",
+                      "name": "string",
+                      "weight": 1
+                    }
+                  ]
                 }
               }
             }
@@ -1461,7 +2014,14 @@
         "tags": [
           "factory"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/factory\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{baseId}/factory/craft": {
@@ -1483,6 +2043,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CraftDto"
+              },
+              "example": {
+                "module": "scanner-class1",
+                "count": 1
               }
             }
           }
@@ -1496,6 +2060,263 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/FactoryJobResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "kind": "craft",
+                    "module": "scanner-class1",
+                    "readyAt": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ],
+        "x-api-key-scope": "fabrication",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/factory/craft\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"module\":\"scanner-class1\",\"count\":1}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/research": {
+      "post": {
+        "operationId": "factoryResearch",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchDto"
+              },
+              "example": {
+                "module": "scanner-class2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FactoryJobResponse"
+                },
+                "example": {
+                  "kind": "craft",
+                  "module": "scanner-class1",
+                  "readyAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ],
+        "x-api-key-scope": "fabrication",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/factory/research\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"module\":\"scanner-class2\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/learn": {
+      "post": {
+        "operationId": "factoryLearn",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnDto"
+              },
+              "example": {
+                "itemId": "00000000-0000-4000-8000-000000000000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlueprintResponse"
+                },
+                "example": {
+                  "userId": "00000000-0000-4000-8000-000000000000",
+                  "module": "scanner-class2",
+                  "source": "research"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "factory"
+        ],
+        "x-api-key-scope": "fabrication",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/factory/learn\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"itemId\":\"00000000-0000-4000-8000-000000000000\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/bots/{baseId}/factory/assemble": {
+      "post": {
+        "operationId": "factoryAssemble",
+        "parameters": [
+          {
+            "name": "baseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssembleDto"
+              },
+              "example": {
+                "label": "string",
+                "partIds": [
+                  "00000000-0000-4000-8000-000000000000"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssembledBotResponse"
+                },
+                "example": {
+                  "bot": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "label": "string",
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "baseId": "00000000-0000-4000-8000-000000000000",
+                    "type": "base",
+                    "lastPosition": {}
+                  },
+                  "modules": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "type": "engine",
+                      "name": "string",
+                      "condition": 1,
+                      "maxCondition": 1,
+                      "weight": 1,
+                      "operationCost": 1,
+                      "idleCost": 1
+                    }
+                  ],
+                  "mapPoint": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "location": {
+                      "x": null,
+                      "y": null,
+                      "z": null
+                    },
+                    "userId": "00000000-0000-4000-8000-000000000000",
+                    "contentId": "00000000-0000-4000-8000-000000000000",
+                    "type": "resource",
+                    "resource": {
+                      "resource": null,
+                      "amount": null
+                    },
+                    "seenAt": 1
                   }
                 }
               }
@@ -1520,175 +2341,14 @@
         "tags": [
           "factory"
         ],
-        "x-api-key-scope": "fabrication"
-      }
-    },
-    "/api/v1/bots/{baseId}/factory/research": {
-      "post": {
-        "operationId": "factoryResearch",
-        "parameters": [
+        "x-api-key-scope": "fabrication",
+        "x-codeSamples": [
           {
-            "name": "baseId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/factory/assemble\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"label\":\"string\",\"partIds\":[\"00000000-0000-4000-8000-000000000000\"]}'"
           }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ResearchDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FactoryJobResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "factory"
-        ],
-        "x-api-key-scope": "fabrication"
-      }
-    },
-    "/api/v1/bots/{baseId}/factory/learn": {
-      "post": {
-        "operationId": "factoryLearn",
-        "parameters": [
-          {
-            "name": "baseId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LearnDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BlueprintResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "factory"
-        ],
-        "x-api-key-scope": "fabrication"
-      }
-    },
-    "/api/v1/bots/{baseId}/factory/assemble": {
-      "post": {
-        "operationId": "factoryAssemble",
-        "parameters": [
-          {
-            "name": "baseId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssembleDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AssembledBotResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "factory"
-        ],
-        "x-api-key-scope": "fabrication"
+        ]
       }
     },
     "/api/v1/bots/{botId}/maintenance/repair": {
@@ -1710,6 +2370,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MaintenanceDto"
+              },
+              "example": {
+                "targetBotId": "00000000-0000-4000-8000-000000000000",
+                "moduleId": "00000000-0000-4000-8000-000000000000"
               }
             }
           }
@@ -1721,6 +2385,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ModuleResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "botId": "00000000-0000-4000-8000-000000000000",
+                  "type": "engine",
+                  "name": "string",
+                  "condition": 1,
+                  "maxCondition": 1,
+                  "weight": 1,
+                  "operationCost": 1,
+                  "idleCost": 1
                 }
               }
             }
@@ -1744,7 +2419,14 @@
         "tags": [
           "maintenance"
         ],
-        "x-api-key-scope": "maintenance"
+        "x-api-key-scope": "maintenance",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/maintenance/repair\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"targetBotId\":\"00000000-0000-4000-8000-000000000000\",\"moduleId\":\"00000000-0000-4000-8000-000000000000\"}'"
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/maintenance/disassemble": {
@@ -1766,6 +2448,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MaintenanceDto"
+              },
+              "example": {
+                "targetBotId": "00000000-0000-4000-8000-000000000000",
+                "moduleId": "00000000-0000-4000-8000-000000000000"
               }
             }
           }
@@ -1777,6 +2463,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DisassemblyResponse"
+                },
+                "example": {
+                  "scrap": [
+                    {
+                      "resource": "iron",
+                      "amount": 1
+                    }
+                  ],
+                  "blueprint": {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "type": "blueprint",
+                    "name": "string",
+                    "weight": 1
+                  }
                 }
               }
             }
@@ -1800,7 +2500,14 @@
         "tags": [
           "maintenance"
         ],
-        "x-api-key-scope": "maintenance"
+        "x-api-key-scope": "maintenance",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/maintenance/disassemble\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"targetBotId\":\"00000000-0000-4000-8000-000000000000\",\"moduleId\":\"00000000-0000-4000-8000-000000000000\"}'"
+          }
+        ]
       }
     },
     "/api/v1/map": {
@@ -1847,6 +2554,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MapViewResponse"
+                },
+                "example": {
+                  "now": 1,
+                  "cells": [
+                    {
+                      "x": 1,
+                      "y": 1,
+                      "type": "resource",
+                      "contentId": "00000000-0000-4000-8000-000000000000",
+                      "seenAt": 1,
+                      "resource": null,
+                      "capacity": 1,
+                      "isOwn": false,
+                      "chassis": "wheels",
+                      "icons": [
+                        null
+                      ],
+                      "isDamaged": false,
+                      "item": "blueprint"
+                    }
+                  ],
+                  "liveAreas": [
+                    {
+                      "scannerId": "00000000-0000-4000-8000-000000000000",
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "x": 1,
+                      "y": 1,
+                      "radius": 1
+                    }
+                  ]
                 }
               }
             }
@@ -1870,7 +2607,14 @@
         "tags": [
           "map"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/map\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/map/bots/{botId}": {
@@ -1893,6 +2637,10 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BotPositionResponse"
+                },
+                "example": {
+                  "x": 1,
+                  "y": 1
                 }
               }
             }
@@ -1916,7 +2664,14 @@
         "tags": [
           "map"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/map/bots/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/settings": {
@@ -1930,283 +2685,42 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SettingsResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "settings"
-        ],
-        "x-api-key-scope": "none (session only)"
-      },
-      "patch": {
-        "operationId": "settingsUpdate",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUserSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SettingsResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "settings"
-        ],
-        "x-api-key-scope": "none (session only)"
-      }
-    },
-    "/api/v1/admin/settings": {
-      "get": {
-        "operationId": "adminSettingsGet",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameSettingsResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin"
-        ],
-        "x-api-key-scope": "none (session only)"
-      },
-      "patch": {
-        "operationId": "adminSettingsUpdate",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGameSettingsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameSettingsResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin"
-        ],
-        "x-api-key-scope": "none (session only)"
-      }
-    },
-    "/api/v1/tutorial": {
-      "get": {
-        "operationId": "tutorialGet",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TutorialResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "tutorial"
-        ],
-        "x-api-key-scope": "read"
-      }
-    },
-    "/api/v1/tutorial/skip": {
-      "post": {
-        "operationId": "tutorialSkip",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TutorialResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "tutorial"
-        ],
-        "x-api-key-scope": "none (session only)"
-      }
-    },
-    "/api/v1/tutorial/restart": {
-      "post": {
-        "operationId": "tutorialRestart",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TutorialResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "tutorial"
-        ],
-        "x-api-key-scope": "none (session only)"
-      }
-    },
-    "/api/v1/achievements": {
-      "get": {
-        "operationId": "achievementsList",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AchievementResponse"
+                },
+                "example": {
+                  "global": {
+                    "categories": {
+                      "movement": null,
+                      "combat": null,
+                      "extraction": null,
+                      "logistics": null,
+                      "fabrication": null,
+                      "maintenance": null,
+                      "communication": null,
+                      "trade": null
+                    }
+                  },
+                  "user": {
+                    "categories": {
+                      "movement": null,
+                      "combat": null,
+                      "extraction": null,
+                      "logistics": null,
+                      "fabrication": null,
+                      "maintenance": null,
+                      "communication": null,
+                      "trade": null
+                    },
+                    "reducedMotion": false
+                  },
+                  "effective": {
+                    "movement": false,
+                    "combat": false,
+                    "extraction": false,
+                    "logistics": false,
+                    "fabrication": false,
+                    "maintenance": false,
+                    "communication": false,
+                    "trade": false
                   }
                 }
               }
@@ -2229,9 +2743,470 @@
           }
         ],
         "tags": [
+          "settings"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/settings\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "settingsUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserSettingsDto"
+              },
+              "example": {
+                "categories": {
+                  "movement": false,
+                  "combat": false,
+                  "extraction": false,
+                  "logistics": false,
+                  "fabrication": false,
+                  "maintenance": false,
+                  "communication": false,
+                  "trade": false
+                },
+                "reducedMotion": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                },
+                "example": {
+                  "global": {
+                    "categories": {
+                      "movement": null,
+                      "combat": null,
+                      "extraction": null,
+                      "logistics": null,
+                      "fabrication": null,
+                      "maintenance": null,
+                      "communication": null,
+                      "trade": null
+                    }
+                  },
+                  "user": {
+                    "categories": {
+                      "movement": null,
+                      "combat": null,
+                      "extraction": null,
+                      "logistics": null,
+                      "fabrication": null,
+                      "maintenance": null,
+                      "communication": null,
+                      "trade": null
+                    },
+                    "reducedMotion": false
+                  },
+                  "effective": {
+                    "movement": false,
+                    "combat": false,
+                    "extraction": false,
+                    "logistics": false,
+                    "fabrication": false,
+                    "maintenance": false,
+                    "communication": false,
+                    "trade": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "settings"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/settings\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"categories\":{\"movement\":false,\"combat\":false,\"extraction\":false,\"logistics\":false,\"fabrication\":false,\"maintenance\":false,\"communication\":false,\"trade\":false},\"reducedMotion\":false}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "operationId": "adminSettingsGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameSettingsResponse"
+                },
+                "example": {
+                  "categories": {
+                    "movement": false,
+                    "combat": false,
+                    "extraction": false,
+                    "logistics": false,
+                    "fabrication": false,
+                    "maintenance": false,
+                    "communication": false,
+                    "trade": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/settings\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "adminSettingsUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGameSettingsDto"
+              },
+              "example": {
+                "categories": {
+                  "movement": false,
+                  "combat": false,
+                  "extraction": false,
+                  "logistics": false,
+                  "fabrication": false,
+                  "maintenance": false,
+                  "communication": false,
+                  "trade": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameSettingsResponse"
+                },
+                "example": {
+                  "categories": {
+                    "movement": false,
+                    "combat": false,
+                    "extraction": false,
+                    "logistics": false,
+                    "fabrication": false,
+                    "maintenance": false,
+                    "communication": false,
+                    "trade": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/admin/settings\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"categories\":{\"movement\":false,\"combat\":false,\"extraction\":false,\"logistics\":false,\"fabrication\":false,\"maintenance\":false,\"communication\":false,\"trade\":false}}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/tutorial": {
+      "get": {
+        "operationId": "tutorialGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                },
+                "example": {
+                  "status": "active",
+                  "steps": [
+                    {
+                      "id": "openTerminal",
+                      "isDone": false
+                    }
+                  ],
+                  "current": "openTerminal"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ],
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/tutorial\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/tutorial/skip": {
+      "post": {
+        "operationId": "tutorialSkip",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                },
+                "example": {
+                  "status": "active",
+                  "steps": [
+                    {
+                      "id": "openTerminal",
+                      "isDone": false
+                    }
+                  ],
+                  "current": "openTerminal"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/tutorial/skip\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/tutorial/restart": {
+      "post": {
+        "operationId": "tutorialRestart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TutorialResponse"
+                },
+                "example": {
+                  "status": "active",
+                  "steps": [
+                    {
+                      "id": "openTerminal",
+                      "isDone": false
+                    }
+                  ],
+                  "current": "openTerminal"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "tutorial"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/tutorial/restart\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/achievements": {
+      "get": {
+        "operationId": "achievementsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "string",
+                    "family": "string",
+                    "level": 1,
+                    "levels": 1,
+                    "threshold": 1,
+                    "progress": 1,
+                    "unlockedAt": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
           "achievements"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/achievements\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/notifications": {
@@ -2275,6 +3250,21 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotificationListResponse"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "id": "string",
+                      "category": "attacks",
+                      "kind": "string",
+                      "params": {},
+                      "botId": "string",
+                      "count": 1,
+                      "createdAt": 1,
+                      "readAt": 1
+                    }
+                  ],
+                  "unread": 1
                 }
               }
             }
@@ -2298,7 +3288,14 @@
         "tags": [
           "notifications"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/notifications\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/notifications/summary": {
@@ -2312,6 +3309,10 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotificationSummaryResponse"
+                },
+                "example": {
+                  "unread": 1,
+                  "byCategory": {}
                 }
               }
             }
@@ -2335,7 +3336,14 @@
         "tags": [
           "notifications"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/notifications/summary\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/notifications/read": {
@@ -2348,6 +3356,11 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MarkReadDto"
+              },
+              "example": {
+                "ids": [
+                  "string"
+                ]
               }
             }
           }
@@ -2359,6 +3372,9 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MarkedReadResponse"
+                },
+                "example": {
+                  "marked": 1
                 }
               }
             }
@@ -2382,7 +3398,14 @@
         "tags": [
           "notifications"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/notifications/read\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"ids\":[\"string\"]}'"
+          }
+        ]
       }
     },
     "/api/v1/notifications/preferences": {
@@ -2396,90 +3419,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotificationPreferencesResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "notifications"
-        ],
-        "x-api-key-scope": "read"
-      },
-      "patch": {
-        "operationId": "notificationsUpdatePreferences",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateNotificationPreferencesDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "notifications"
-        ],
-        "x-api-key-scope": "none (session only)"
-      }
-    },
-    "/api/v1/executions": {
-      "get": {
-        "operationId": "executionsList",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "The scripts of the player that are still running",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ExecutionResponse"
+                },
+                "example": {
+                  "categories": {
+                    "attacks": false,
+                    "damage": false,
+                    "scripts": false,
+                    "security": false,
+                    "fabrication": false,
+                    "trade": false,
+                    "achievements": false,
+                    "system": false
                   }
                 }
               }
@@ -2502,9 +3452,152 @@
           }
         ],
         "tags": [
+          "notifications"
+        ],
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/notifications/preferences\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "notificationsUpdatePreferences",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesDto"
+              },
+              "example": {
+                "categories": {
+                  "attacks": false,
+                  "damage": false,
+                  "scripts": false,
+                  "security": false,
+                  "fabrication": false,
+                  "trade": false,
+                  "achievements": false,
+                  "system": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                },
+                "example": {
+                  "categories": {
+                    "attacks": false,
+                    "damage": false,
+                    "scripts": false,
+                    "security": false,
+                    "fabrication": false,
+                    "trade": false,
+                    "achievements": false,
+                    "system": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/notifications/preferences\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"categories\":{\"attacks\":false,\"damage\":false,\"scripts\":false,\"security\":false,\"fabrication\":false,\"trade\":false,\"achievements\":false,\"system\":false}}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/executions": {
+      "get": {
+        "operationId": "executionsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The scripts of the player that are still running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "string",
+                    "botId": "string",
+                    "file": "string",
+                    "args": [
+                      "string"
+                    ],
+                    "state": "queued",
+                    "reason": "string",
+                    "restarts": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
           "scripts"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/executions\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/bots/{botId}/executions": {
@@ -2526,6 +3619,12 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/StartExecutionDto"
+              },
+              "example": {
+                "file": "/memory-class1/main.js",
+                "args": [
+                  "string"
+                ]
               }
             }
           }
@@ -2537,6 +3636,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionResponse"
+                },
+                "example": {
+                  "id": "string",
+                  "botId": "string",
+                  "file": "string",
+                  "args": [
+                    "string"
+                  ],
+                  "state": "queued",
+                  "reason": "string",
+                  "restarts": 1
                 }
               }
             }
@@ -2560,7 +3670,14 @@
         "tags": [
           "scripts"
         ],
-        "x-api-key-scope": "scripts"
+        "x-api-key-scope": "scripts",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/executions\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"file\":\"/memory-class1/main.js\",\"args\":[\"string\"]}'"
+          }
+        ]
       }
     },
     "/api/v1/executions/{executionId}": {
@@ -2583,6 +3700,17 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionResponse"
+                },
+                "example": {
+                  "id": "string",
+                  "botId": "string",
+                  "file": "string",
+                  "args": [
+                    "string"
+                  ],
+                  "state": "queued",
+                  "reason": "string",
+                  "restarts": 1
                 }
               }
             }
@@ -2606,7 +3734,14 @@
         "tags": [
           "scripts"
         ],
-        "x-api-key-scope": "scripts"
+        "x-api-key-scope": "scripts",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X DELETE \"$BOTRTS_URL/api/v1/executions/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/health": {
@@ -2620,6 +3755,12 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "database": "up",
+                  "redis": "up",
+                  "engine": "up"
                 }
               }
             }
@@ -2638,6 +3779,13 @@
         "summary": "Readiness: the database, Redis and the engine, each when the node uses it",
         "tags": [
           "health"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/health\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
         ]
       }
     },
@@ -2652,6 +3800,12 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "database": "up",
+                  "redis": "up",
+                  "engine": "up"
                 }
               }
             }
@@ -2670,6 +3824,13 @@
         "summary": "Liveness: the process answers",
         "tags": [
           "health"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/health/live\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
         ]
       }
     },
@@ -2684,6 +3845,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GameTimeResponse"
+                },
+                "example": {
+                  "now": 1,
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ]
+                  }
                 }
               }
             }
@@ -2708,7 +3879,14 @@
         "tags": [
           "time"
         ],
-        "x-api-key-scope": "read"
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/time\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     },
     "/api/v1/api-keys": {
@@ -2725,7 +3903,22 @@
                   "items": {
                     "$ref": "#/components/schemas/ApiKeyResponse"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "_id": "string",
+                    "name": "string",
+                    "prefix": "botrts_ab12",
+                    "scopes": [
+                      "read"
+                    ],
+                    "ratePerMinute": 1,
+                    "createdAt": 1,
+                    "lastUsedAt": 1,
+                    "expiresAt": 1,
+                    "revokedAt": 1
+                  }
+                ]
               }
             }
           },
@@ -2748,7 +3941,14 @@
         "tags": [
           "api-keys"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/api-keys\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       },
       "post": {
         "operationId": "apiKeysCreate",
@@ -2759,6 +3959,14 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateApiKeyDto"
+              },
+              "example": {
+                "name": "My dashboard",
+                "scopes": [
+                  "read"
+                ],
+                "ratePerMinute": 120,
+                "expiresInDays": 1
               }
             }
           }
@@ -2770,6 +3978,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreatedApiKeyResponse"
+                },
+                "example": {
+                  "_id": "string",
+                  "name": "string",
+                  "prefix": "botrts_ab12",
+                  "scopes": [
+                    "read"
+                  ],
+                  "ratePerMinute": 1,
+                  "createdAt": 1,
+                  "lastUsedAt": 1,
+                  "expiresAt": 1,
+                  "revokedAt": 1,
+                  "secret": "string"
                 }
               }
             }
@@ -2793,7 +4015,14 @@
         "tags": [
           "api-keys"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/api-keys\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"My dashboard\",\"scopes\":[\"read\"],\"ratePerMinute\":120,\"expiresInDays\":1}'"
+          }
+        ]
       }
     },
     "/api/v1/api-keys/{id}": {
@@ -2816,6 +4045,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiKeyResponse"
+                },
+                "example": {
+                  "_id": "string",
+                  "name": "string",
+                  "prefix": "botrts_ab12",
+                  "scopes": [
+                    "read"
+                  ],
+                  "ratePerMinute": 1,
+                  "createdAt": 1,
+                  "lastUsedAt": 1,
+                  "expiresAt": 1,
+                  "revokedAt": 1
                 }
               }
             }
@@ -2839,7 +4081,14 @@
         "tags": [
           "api-keys"
         ],
-        "x-api-key-scope": "none (session only)"
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X DELETE \"$BOTRTS_URL/api/v1/api-keys/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
       }
     }
   },
@@ -4976,6 +6225,8 @@
           "ratePerMinute": {
             "type": "number",
             "default": 120,
+            "minimum": 1,
+            "maximum": 6000,
             "description": "Requests per minute"
           },
           "expiresInDays": {

@@ -1,5 +1,5 @@
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common'
-import { NestFactory } from '@nestjs/core'
+import { NestFactory, Reflector } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
@@ -14,6 +14,8 @@ import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
 import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
 import { HttpMetrics } from './metrics/application/http-metrics'
 import { REDIS_CONNECTOR, RedisConnector } from './redis/redis.module'
+import { DeprecationInterceptor } from './shared/presentation/api-deprecation'
+import { addExamples } from './shared/presentation/openapi-examples'
 import { RequestTimeoutInterceptor } from './shared/presentation/request-timeout.interceptor'
 import { corsOptions, helmetOptions } from './shared/presentation/security-headers'
 import { createRequestLogger } from './shared/presentation/request-logger.middleware'
@@ -45,12 +47,14 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     })
     .addCookieAuth(REFRESH_COOKIE)
 
-  return SwaggerModule.createDocument(app, builder.build(), {
+  const document = SwaggerModule.createDocument(app, builder.build(), {
     operationIdFactory: (controllerKey, methodKey) => {
       const controller = controllerKey.replace(/Controller$/, '')
       return `${controller[0].toLowerCase()}${controller.slice(1)}${methodKey[0].toUpperCase()}${methodKey.slice(1)}`
     }
   })
+
+  return addExamples(document)
 }
 
 // Everything that turns a Nest application into the API; shared by the real server and the tests
@@ -86,7 +90,10 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
         new ValidationError(errors.flatMap((error) => Object.values(error.constraints as object)).join('; '))
     })
   )
-  app.useGlobalInterceptors(new RequestTimeoutInterceptor(config.http.handlerTimeoutMs))
+  app.useGlobalInterceptors(
+    new RequestTimeoutInterceptor(config.http.handlerTimeoutMs),
+    new DeprecationInterceptor(app.get(Reflector))
+  )
   app.useGlobalFilters(new AppExceptionFilter(logger))
 
   SwaggerModule.setup('api/docs', app, buildOpenApiDocument(app))

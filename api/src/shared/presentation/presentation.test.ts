@@ -35,14 +35,25 @@ describe('guarded', () => {
 })
 
 describe('ConfiguredIoAdapter', () => {
-  it('takes the CORS origin from the configuration', () => {
-    const adapter = new ConfiguredIoAdapter({ get: jest.fn(), resolve: jest.fn() } as never, 'https://play.example')
+  it('takes the CORS origins from the configuration', () => {
+    const allowed = (origin: string | undefined) => origin === 'https://play.example'
+    const adapter = new ConfiguredIoAdapter({ get: jest.fn(), resolve: jest.fn() } as never, allowed)
     const create = jest
       .spyOn(Object.getPrototypeOf(ConfiguredIoAdapter.prototype), 'createIOServer')
       .mockReturnValue({} as never)
 
     adapter.createIOServer(0, { path: '/x' } as never)
 
-    expect(create).toHaveBeenCalledWith(0, { path: '/x', cors: { origin: 'https://play.example', credentials: true } })
+    const options = create.mock.calls[0][1] as {
+      cors: { origin: (origin: string, callback: (error: Error | null, allow: boolean) => void) => void }
+    }
+    expect(options).toMatchObject({ path: '/x', cors: { credentials: true } })
+    const answers: unknown[] = []
+    options.cors.origin('https://play.example', (error: Error | null, allow: boolean) => answers.push([error, allow]))
+    options.cors.origin('https://evil.example', (error: Error | null, allow: boolean) => answers.push([error, allow]))
+    expect(answers).toEqual([
+      [null, true],
+      [null, false]
+    ])
   })
 })

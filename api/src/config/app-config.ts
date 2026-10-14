@@ -14,11 +14,14 @@ import {
 } from '../player-notifications/domain/notification-policy'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 import { DEFAULT_LIFECYCLE_POLICY, LifecyclePolicy } from '../lifecycle/domain/lifecycle-policy'
+import { invalidOrigins } from '../shared/presentation/origin-matcher'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
 
 export const APP_CONFIG = Symbol('AppConfig')
 
 export type NodeEnv = 'development' | 'test' | 'production'
+
+export type CookieSameSite = 'lax' | 'strict' | 'none'
 
 export interface AuthConfig {
   // Which identity adapter verifies tokens (AGENTS.md §3.3); `local` is the custom email + password provider
@@ -28,6 +31,12 @@ export interface AuthConfig {
   policy: AuthPolicy
   // How long a token's owner is remembered between requests (0: not at all); a ban takes effect this much later
   principalCacheMs: number
+  cookie: {
+    // `none` lets a web client on another site (a preview deployment) use the cookie; on one registrable domain `lax` is enough
+    sameSite: CookieSameSite
+    // Set to the shared parent domain (example.com) to let the cookie reach sibling hosts; empty: the API host only
+    domain: string | undefined
+  }
 }
 
 export interface RateLimitConfig {
@@ -108,6 +117,7 @@ export class ConfigError extends Error {
 
 const NODE_ENVS: readonly NodeEnv[] = ['development', 'test', 'production']
 const AUTH_PROVIDERS = ['local'] as const
+const COOKIE_SAME_SITES: readonly CookieSameSite[] = ['lax', 'strict', 'none']
 const APP_ROLES: readonly AppRole[] = ['all', 'api', 'engine']
 const DEV_ACCESS_SECRET = 'development-only-access-secret'
 
@@ -180,8 +190,10 @@ export function loadConfig(env: Env): AppConfig {
   if (!APP_ROLES.includes(role)) {
     problems.push(`APP_ROLE must be one of ${APP_ROLES.join(', ')}`)
   }
-  if (list(env.WHITELIST_URLS).includes('*')) {
-    problems.push('WHITELIST_URLS must list origins; * is not allowed because the API uses credentials')
+  problems.push(...invalidOrigins(list(env.WHITELIST_URLS)).map((problem) => `WHITELIST_URLS: ${problem}`))
+  const sameSite = env.COOKIE_SAME_SITE
+  if (sameSite !== undefined && sameSite !== '' && !COOKIE_SAME_SITES.includes(sameSite as CookieSameSite)) {
+    problems.push(`COOKIE_SAME_SITE must be one of ${COOKIE_SAME_SITES.join(', ')}`)
   }
   const redisUrl = env.REDIS_URL || undefined
   if (role !== 'all' && !redisUrl) {
@@ -237,7 +249,11 @@ export function loadConfig(env: Env): AppConfig {
       accessSecret: env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
       accessTtlSeconds: Math.floor(accessTtl / 1000),
       policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl },
-      principalCacheMs: nonNegativeInt(env.AUTH_CACHE_TTL_MS, nodeEnv === 'test' ? 0 : 2000)
+      principalCacheMs: nonNegativeInt(env.AUTH_CACHE_TTL_MS, nodeEnv === 'test' ? 0 : 2000),
+      cookie: {
+        sameSite: (sameSite || (nodeEnv === 'production' ? 'none' : 'lax')) as CookieSameSite,
+        domain: env.COOKIE_DOMAIN || undefined
+      }
     },
     rateLimit: {
       windowMs: rateWindow,

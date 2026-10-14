@@ -153,7 +153,11 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
       provide: REFRESH_COOKIE_OPTIONS,
       inject: [APP_CONFIG],
       useFactory: (config: AppConfig) =>
-        createRefreshCookieOptions({ nodeEnv: config.nodeEnv, sessionTtlMs: config.auth.policy.sessionTtlMs })
+        createRefreshCookieOptions({
+          nodeEnv: config.nodeEnv,
+          sessionTtlMs: config.auth.policy.sessionTtlMs,
+          ...config.auth.cookie
+        })
     },
     // Deny by default: every route needs a signed-in player unless it is @Public(); roles are checked after that
     { provide: APP_GUARD, useClass: AuthGuard },

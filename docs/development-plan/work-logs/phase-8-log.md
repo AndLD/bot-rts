@@ -99,3 +99,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.12 (frontend on Vercel, API on a long-running host), then 8.13 (e2e) and 8.8 (the final coverage sweep).
 - **Verify with:** `npm test -w mcp`; `npx jest src/mcp.int src/apikeys` from `api`; `npm run build -w mcp`
 
+### 2026-10-14 — task 8.12 frontend on Vercel
+- **Tasks:** 8.12
+- **Branch:** `feature/8.12-vercel-deployment` — done
+- **Decisions / deviations from the plan:** the client already talked to the API host directly (`NEXT_PUBLIC_API_URL`, Socket.IO to the API); what was missing is the configuration around it. The refresh cookie's `SameSite` and `Domain` are now settings (`COOKIE_SAME_SITE`, `COOKIE_DOMAIN`; `none` stays the production default, which is what preview deployments on another site need; `lax` is advised on one registrable domain). CORS and Socket.IO now share one origin list with a safe wildcard for previews (`https://bot-rts-*.vercel.app`; the config refuses a bare `https://*.vercel.app` and a wildcard anywhere but in the first host label); before, the socket accepted only `ADMIN_URL`. The CSRF risk of a `SameSite=None` cookie needs no extra guard: CORS answers a request with a foreign `Origin` with 403 before the handler runs, including simple POSTs. `vercel.json` at the root, security headers for the client's pages (`client/src/shared/security-headers.ts`; a CSP is left for later and said so), and the deployment guide with a checklist in `docs/DEPLOYMENT.md`. Not done here: creating the Vercel project and the DNS records, which belong to the owner; so nothing was deployed.
+- **Problems / blockers / findings:** none.
+- **Next step:** 8.13, the Cypress specs of the phase (API keys, two players, the read-only key, the MCP smoke test), then 8.8, the final coverage and quality sweep, and the end-of-phase database step.
+- **Verify with:** `npx jest src/config src/shared/presentation src/auth` from `api`; `npm test -w client -- security-headers`
+

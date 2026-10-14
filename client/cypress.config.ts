@@ -97,6 +97,20 @@ export default defineConfig({
           return null
         },
 
+        // The MCP server of mcp/ plays a few tools over stdio against this game with the given key (scripts/mcp-smoke.mjs)
+        mcpSmoke({ apiKey, botId }: { apiKey: string; botId: string }) {
+          const output = execFileSync(
+            process.execPath,
+            [join(process.cwd(), '..', 'scripts', 'mcp-smoke.mjs'), `http://localhost:${API_PORT}`, apiKey, botId],
+            { encoding: 'utf8', timeout: 60_000 }
+          )
+
+          return JSON.parse(output.trim().split('\n').at(-1) as string) as Record<
+            string,
+            { isError: boolean; text: string }
+          >
+        },
+
         // The links of the newest email to an address with the given subject, or null while none has arrived
         mailLink({ to, subject }: { to: string; subject: string }) {
           const mail = readOutbox()

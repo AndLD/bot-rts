@@ -90,6 +90,8 @@ model User {
   privacyAcceptedAt      DateTime?    @map("privacy_accepted_at") @db.Timestamptz(3)
   // Set when the player deleted the account: personal data is erased, the row stays for the player's base
   deletedAt              DateTime?    @map("deleted_at") @db.Timestamptz(3)
+  // Set when the player was told by email that the account is erased for inactivity (data lifecycle, Phase 8.4)
+  inactivityNoticeAt     DateTime?    @map("inactivity_notice_at") @db.Timestamptz(3)
 
   identities           Identity[]
   credential           LocalCredential?
@@ -424,6 +426,7 @@ model Execution {
   // What a restarted engine relaunches, oldest first; `top` of a player
   @@index([status, createdAt])
   @@index([userId, status])
+  @@index([endedAt])
   @@map("executions")
 }
 

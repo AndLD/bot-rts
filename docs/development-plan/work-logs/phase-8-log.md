@@ -43,3 +43,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.4, data lifecycle (cleanup of inactive users and bots, terminal log retention).
 - **Verify with:** `npx jest src/metrics src/health src/shared src/app.int src/redis` from `api`
 
+### 2026-10-14 — task 8.4 data lifecycle
+- **Tasks:** 8.4
+- **Branch:** `feature/8.4-data-lifecycle` — done
+- **Decisions / deviations from the plan:** a scheduled job (`lifecycle` module, a plain timer on the `all`/`engine` node; no partitioned tables) instead of the lazy cleanup on session open. Retention of terminal lines, ended executions, notifications and expired logins; unverified accounts without a base are deleted after 7 days; free `user`-role players inactive for 365 days get an email and are erased 30 days later, with the erasure shared with the player's own account deletion (`eraseAccount`). A player with an active execution is never inactive (offline scripts run on), and one who returns after the notice keeps the account. New column `users.inactivity_notice_at` (migration `data_lifecycle`, applied locally) and an index on `executions.ended_at`. The job's work is exported as `botrts_lifecycle_*` metrics through a `MetricCollectors` hook. The privacy policy retention text now says this and `PRIVACY_POLICY_VERSION` is `2026-10-14`. "Inactive bots" are not deleted: a base of an erased player stays for the corpse-base rules (8.13); the per-bot line cap stays enforced at write time.
+- **Problems / blockers / findings:** none.
+- **Next step:** 8.5, performance pass (map queries, batching, caching, index verification).
+- **Verify with:** `npx jest src/lifecycle src/config` from `api`
+

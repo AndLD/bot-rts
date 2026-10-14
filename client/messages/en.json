@@ -539,7 +539,7 @@
     },
     "retention": {
       "title": "How long we keep it",
-      "text": "Account and game data are kept while your account exists. Terminal logs and notifications are kept for a limited time (notifications for 30 days). When you delete your account, your name, email, credentials and sessions are erased; the game data that the world depends on, such as the place of your base, stays without any link to you."
+      "text": "Account and game data are kept while your account exists. Terminal logs and notifications are kept for a limited time (notifications for 30 days). An account whose email was never confirmed is deleted after 7 days, and an account that has not been used for a year is erased after we have emailed you a notice 30 days ahead; an account that runs scripts, or has a paid plan, is not erased for inactivity. When you delete your account, your name, email, credentials and sessions are erased; the game data that the world depends on, such as the place of your base, stays without any link to you."
     },
     "sharing": {
       "title": "Who receives it",

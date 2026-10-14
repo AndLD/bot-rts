@@ -21,12 +21,14 @@ beforeAll(async () => {
     APP_ROLE: 'engine',
     REDIS_URL,
     ENGINE_ENABLED: 'true',
+    LIFECYCLE_ENABLED: 'true',
     ENGINE_TICK_INTERVAL_MS: '20'
   })
   apiNode = await startTestApp(database, {
     APP_ROLE: 'api',
     REDIS_URL,
     ENGINE_ENABLED: 'true',
+    LIFECYCLE_ENABLED: 'true',
     METRICS_TOKEN: 'scrape'
   })
 }, 90000)
@@ -70,6 +72,7 @@ describe('an API node next to an engine node', () => {
     expect(metrics.text).toContain('botrts_engine_up 1')
     expect(metrics.text).toMatch(/botrts_engine_tick \d+/)
     expect(metrics.text).toContain('botrts_engine_queued_executions 0')
+    expect(metrics.text).toContain('botrts_lifecycle_last_run_timestamp_seconds 0')
   })
 
   it('delivers what one node pushes to a player who is connected to the other', async () => {

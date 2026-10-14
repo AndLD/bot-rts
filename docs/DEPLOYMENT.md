@@ -82,3 +82,27 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
 
   A scrape config: `bearer_token: <METRICS_TOKEN>`, `metrics_path: /api/v1/metrics`. Alert on `botrts_engine_up == 0`, on
   `botrts_engine_tick_p95_milliseconds` near the tick interval (100 ms by default), and on a growing `botrts_engine_max_wait_ticks`.
+
+## Data lifecycle (Phase 8.4)
+
+A job on the node that owns the engine (`all` or `engine`; never on `api` nodes) runs `LIFECYCLE_INTERVAL_MS` after a first pass
+a minute after start. Each step is independent, and a failing one is logged and counted
+(`botrts_lifecycle_step_failures_total`); `botrts_lifecycle_*` series show the last run and what was removed.
+
+| Data                                              | Kept for                                                        |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| Terminal lines (input, output, errors)            | 30 days, and 5,000 per bot (the cap is enforced when a line is written) |
+| Security lines (failed attempts, lockouts, adopt) | 90 days                                                         |
+| Ended terminal sessions without lines             | as long as ordinary lines                                       |
+| Finished and killed script executions             | `EXECUTION_RETENTION_DAYS` (30)                                 |
+| Notifications                                     | `NOTIFICATION_RETENTION_DAYS` (30)                              |
+| Expired, revoked or used logins and links         | `AUTH_DATA_RETENTION_DAYS` (7)                                  |
+| Accounts whose email was never confirmed, no base | deleted after `UNVERIFIED_ACCOUNT_DAYS` (7)                     |
+| Inactive accounts                                 | emailed after `INACTIVE_ACCOUNT_DAYS - INACTIVE_ACCOUNT_NOTICE_DAYS`, personal data erased `INACTIVE_ACCOUNT_NOTICE_DAYS` later |
+
+Inactivity is the newest login activity (sign-up for a player who never logged in). **Offline scripts keep running, so a player
+with an active execution is never inactive**; paid plans and the roles other than `user` are never erased for inactivity, and a
+player who signs in after the notice keeps the account. Erasure is the same as a player's own account deletion (name, email,
+credentials and logins removed; the row and the base stay, so the base can become a corpse base). Bots and bases are not
+deleted by the job. `INACTIVE_ACCOUNT_DAYS=0` switches the inactivity steps off.
+

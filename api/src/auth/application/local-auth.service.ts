@@ -11,6 +11,7 @@ import {
   EmailAlreadyExistsError,
   PrivacyNotAcceptedError
 } from '../../users/domain/user.errors'
+import { eraseAccount } from './account-erasure'
 import { AuthPolicy } from '../domain/auth-policy'
 import { AuthTokenKind, isAuthTokenUsable } from '../domain/auth-token'
 import { InvalidTokenError, WrongPasswordError } from '../domain/auth.errors'
@@ -31,8 +32,6 @@ export interface LocalAuthDependencies {
   policy: AuthPolicy
   logger: Logger
 }
-
-const DELETED_PLAYER_NAME = 'Deleted player'
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
@@ -290,17 +289,7 @@ export class LocalAuthService implements CredentialAuthService {
         throw new InvalidTokenError()
       }
 
-      // Personal data is erased; the row stays so the player's base can become a corpse base
-      await repositories.users.update({
-        ...user,
-        name: DELETED_PLAYER_NAME,
-        email: `deleted-${user.id}@deleted.invalid`,
-        deletedAt: this.deps.clock.now()
-      })
-      await repositories.sessions.deleteByUserId(userId)
-      await repositories.authTokens.deleteByUserId(userId)
-      await repositories.credentials.deleteByUserId(userId)
-      await repositories.identities.deleteByUserId(userId)
+      await eraseAccount(repositories, user, this.deps.clock.now())
     })
   }
 

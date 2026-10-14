@@ -44,6 +44,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   (`/api/v1/admin/supervision/*`). Validation errors of nested request bodies now name the field.
 - Logs and audit in the admin console: a search of the node's recent log by text (a player or bot id) or by request id, slow-tick
   traces of the engine, audit filters and a CSV export of the trail (`LOG_BUFFER_SIZE`; `/api/v1/admin/logs`, `/api/v1/admin/audit/export`).
+- Security monitoring in the admin console: every sign-in attempt is recorded (address, agent, outcome; removed by the data lifecycle), and
+  the Security page shows failed sign-ins, accounts sharing an address or using many, locked bots, API keys with the times their rate limit
+  held them back, scripts the sandbox stopped, and the scripts using the most ops; an admin can revoke any API key (`/api/v1/admin/security`).
 
 ### Changed
 

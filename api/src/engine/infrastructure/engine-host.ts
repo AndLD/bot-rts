@@ -85,6 +85,8 @@ export class EngineHost {
         return this.core.control(request.command)
       case 'reboot':
         return this.core.reboot(request.botId)
+      case 'top':
+        return this.core.top(request.limit)
       default:
         return Promise.resolve(this.core.snapshot())
     }

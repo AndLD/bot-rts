@@ -1,5 +1,6 @@
 import { AuthToken, AuthTokenKind } from '../domain/auth-token'
 import { IdentityLink } from '../domain/identity'
+import { LoginAttempt } from '../domain/login-attempt'
 import { LocalCredential } from '../domain/local-credential'
 import { Session } from '../domain/session'
 
@@ -11,6 +12,7 @@ export const ACCESS_TOKEN_SERVICE = Symbol('AccessTokenService')
 export const SECRET_GENERATOR = Symbol('SecretGenerator')
 export const PASSWORD_HASHER = Symbol('PasswordHasher')
 export const AUTH_MAILER = Symbol('AuthMailer')
+export const LOGIN_ATTEMPT_LOG = Symbol('LoginAttemptLog')
 
 export interface IdentityRepository {
   findByIdentity(provider: string, subject: string): Promise<IdentityLink | null>
@@ -73,4 +75,10 @@ export interface AuthMailer {
   sendPasswordReset(to: string, token: string): Promise<void>
   sendEmailChange(to: string, token: string): Promise<void>
   sendAccountDeletion(to: string, token: string): Promise<void>
+}
+
+// Where sign-in attempts are kept. It is not part of the unit of work: a failed attempt must be written although the sign-in is
+// rolled back.
+export interface LoginAttemptLog {
+  record(attempt: LoginAttempt): Promise<void>
 }

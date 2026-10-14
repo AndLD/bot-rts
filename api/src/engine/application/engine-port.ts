@@ -1,5 +1,5 @@
 import { JsonValue } from '../domain/json-value'
-import { ExecutionView } from '../domain/execution'
+import { ExecutionUsage, ExecutionView } from '../domain/execution'
 import { ControlState, EngineControl } from '../domain/engine-control'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { LinkStatus } from './radio-network'
@@ -25,6 +25,8 @@ export interface EnginePort {
   control(command: EngineControl): Promise<ControlState>
   // Kills and starts again the scripts of a bot
   reboot(botId: string): Promise<ExecutionView[]>
+  // The running scripts that used the most ops, the biggest first
+  top(limit: number): Promise<ExecutionUsage[]>
   metrics(): Promise<EngineMetricsSnapshot>
   // Returns the function that removes the listener
   onEvent(listener: (event: EngineEvent) => void): () => void

@@ -13,6 +13,8 @@ export interface LoginInput {
   email: string
   password: string
   userAgent?: string
+  // The address the request came from, for the security page of the admin console
+  ip?: string
 }
 
 // An access token for the Authorization header and the opaque refresh token for the HTTP-only cookie

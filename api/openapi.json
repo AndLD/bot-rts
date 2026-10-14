@@ -3594,6 +3594,211 @@
         ]
       }
     },
+    "/api/v1/admin/security": {
+      "get": {
+        "operationId": "securityOverview",
+        "parameters": [
+          {
+            "name": "hours",
+            "required": true,
+            "in": "query",
+            "description": "How far back to look, in hours",
+            "schema": {
+              "default": 24,
+              "type": "number",
+              "enum": [
+                1,
+                6,
+                24,
+                72,
+                168
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityOverviewResponse"
+                },
+                "example": {
+                  "hours": 1,
+                  "failedLoginsByIp": [
+                    {
+                      "key": "string",
+                      "failures": 1,
+                      "distinctEmails": 1,
+                      "lastAt": 1
+                    }
+                  ],
+                  "failedLoginsByEmail": [
+                    {
+                      "key": "string",
+                      "failures": 1,
+                      "distinctEmails": 1,
+                      "lastAt": 1
+                    }
+                  ],
+                  "sameIpAccounts": [
+                    {
+                      "ip": "string",
+                      "accounts": [
+                        null
+                      ]
+                    }
+                  ],
+                  "multiIpAccounts": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "name": "string",
+                      "ips": 1
+                    }
+                  ],
+                  "botLockouts": [
+                    {
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "label": "string",
+                      "ownerId": "string",
+                      "ownerName": "string",
+                      "failures": 1,
+                      "lockedUntil": 1
+                    }
+                  ],
+                  "apiKeys": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "name": "string",
+                      "prefix": "string",
+                      "owner": null,
+                      "scopes": [
+                        null
+                      ],
+                      "ratePerMinute": 1,
+                      "createdAt": 1,
+                      "lastUsedAt": 1,
+                      "expiresAt": 1,
+                      "isRevoked": false,
+                      "rateLimitHits": 1
+                    }
+                  ],
+                  "suspiciousScripts": [
+                    {
+                      "executionId": "00000000-0000-4000-8000-000000000000",
+                      "owner": null,
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "file": "string",
+                      "code": "string",
+                      "reason": "string",
+                      "endedAt": 1
+                    }
+                  ],
+                  "topConsumers": [
+                    {
+                      "executionId": "00000000-0000-4000-8000-000000000000",
+                      "userId": "00000000-0000-4000-8000-000000000000",
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "file": "string",
+                      "opsUsed": 1,
+                      "ticks": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "security.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/security\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/security/api-keys/{id}/revoke": {
+      "post": {
+        "operationId": "securityRevokeKey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "security.revoke-key",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/security/api-keys/00000000-0000-4000-8000-000000000000/revoke\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/crafting/recipes": {
       "get": {
         "operationId": "craftingRecipeList",
@@ -9007,6 +9212,314 @@
           "isCut",
           "queuedExecutions",
           "deferredExecutions"
+        ]
+      },
+      "FailedLoginModel": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "failures": {
+            "type": "number"
+          },
+          "distinctEmails": {
+            "type": "number"
+          },
+          "lastAt": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "failures",
+          "distinctEmails",
+          "lastAt"
+        ]
+      },
+      "PlayerRefModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "_id",
+          "name"
+        ]
+      },
+      "SameIpModel": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerRefModel"
+            }
+          }
+        },
+        "required": [
+          "ip",
+          "accounts"
+        ]
+      },
+      "MultiIpModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ips": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "ips"
+        ]
+      },
+      "BotLockoutModel": {
+        "type": "object",
+        "properties": {
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "ownerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "ownerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "failures": {
+            "type": "number"
+          },
+          "lockedUntil": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "botId",
+          "label",
+          "ownerId",
+          "ownerName",
+          "failures",
+          "lockedUntil"
+        ]
+      },
+      "SecurityKeyModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/PlayerRefModel"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ratePerMinute": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "lastUsedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "isRevoked": {
+            "type": "boolean"
+          },
+          "rateLimitHits": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "prefix",
+          "owner",
+          "scopes",
+          "ratePerMinute",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt",
+          "isRevoked",
+          "rateLimitHits"
+        ]
+      },
+      "SuspiciousScriptModel": {
+        "type": "object",
+        "properties": {
+          "executionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/PlayerRefModel"
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "file": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "endedAt": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "executionId",
+          "owner",
+          "botId",
+          "file",
+          "code",
+          "reason",
+          "endedAt"
+        ]
+      },
+      "ConsumerModel": {
+        "type": "object",
+        "properties": {
+          "executionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "file": {
+            "type": "string"
+          },
+          "opsUsed": {
+            "type": "number"
+          },
+          "ticks": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "executionId",
+          "userId",
+          "botId",
+          "file",
+          "opsUsed",
+          "ticks"
+        ]
+      },
+      "SecurityOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "type": "number"
+          },
+          "failedLoginsByIp": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailedLoginModel"
+            }
+          },
+          "failedLoginsByEmail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailedLoginModel"
+            }
+          },
+          "sameIpAccounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SameIpModel"
+            }
+          },
+          "multiIpAccounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MultiIpModel"
+            }
+          },
+          "botLockouts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BotLockoutModel"
+            }
+          },
+          "apiKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityKeyModel"
+            }
+          },
+          "suspiciousScripts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuspiciousScriptModel"
+            }
+          },
+          "topConsumers": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerModel"
+            }
+          }
+        },
+        "required": [
+          "hours",
+          "failedLoginsByIp",
+          "failedLoginsByEmail",
+          "sameIpAccounts",
+          "multiIpAccounts",
+          "botLockouts",
+          "apiKeys",
+          "suspiciousScripts",
+          "topConsumers"
         ]
       },
       "RecipeResourceResponse": {

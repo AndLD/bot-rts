@@ -19,6 +19,9 @@ class InMemoryApiKeys implements ApiKeyRepository {
   async findByHash(hash: string) {
     return this.items.find((key) => key.keyHash === hash) ?? null
   }
+  async findById(id: string) {
+    return this.items.find((key) => key.id === id) ?? null
+  }
   async findOfUser(userId: string, id: string) {
     return this.items.find((key) => key.id === id && key.userId === userId) ?? null
   }
@@ -139,6 +142,20 @@ describe('ApiKeyService: listing and revoking', () => {
     expect(revoked.revokedAt).not.toBeNull()
     expect(again.revokedAt).toEqual(revoked.revokedAt)
     await expect(service.revoke(bob.id, key.id)).rejects.toMatchObject({ statusCode: 404 })
+  })
+})
+
+describe('ApiKeyService: revoking as an admin', () => {
+  it('ends the key of any player, accepts a second revocation, and does not know a key that is not there', async () => {
+    const { service, alice } = await setup()
+    const { key } = await service.create(alice.id, { name: 'k', scopes: ['read'] })
+
+    const revoked = await service.revokeAsAdmin(key.id)
+    const again = await service.revokeAsAdmin(key.id)
+
+    expect(revoked.revokedAt).not.toBeNull()
+    expect(again.revokedAt).toEqual(revoked.revokedAt)
+    await expect(service.revokeAsAdmin('missing')).rejects.toMatchObject({ statusCode: 404 })
   })
 })
 

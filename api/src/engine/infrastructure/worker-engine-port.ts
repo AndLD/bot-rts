@@ -1,5 +1,5 @@
 import { AppError } from '../../shared/domain/app-error'
-import { ExecutionView } from '../domain/execution'
+import { ExecutionUsage, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { StartRequest } from '../application/engine-core'
 import { ControlState, EngineControl } from '../domain/engine-control'
@@ -63,6 +63,10 @@ export class ChannelEnginePort implements EnginePort {
 
   reboot(botId: string): Promise<ExecutionView[]> {
     return this.ask({ op: 'reboot', botId }) as Promise<ExecutionView[]>
+  }
+
+  top(limit: number): Promise<ExecutionUsage[]> {
+    return this.ask({ op: 'top', limit }) as Promise<ExecutionUsage[]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {
@@ -144,6 +148,10 @@ export class DisabledEnginePort implements EnginePort {
   }
 
   reboot(): Promise<ExecutionView[]> {
+    return Promise.reject(new ServiceUnavailableError())
+  }
+
+  top(): Promise<ExecutionUsage[]> {
     return Promise.reject(new ServiceUnavailableError())
   }
 

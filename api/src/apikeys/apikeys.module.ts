@@ -6,6 +6,7 @@ import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { USER_REPOSITORY, UserRepository } from '../users/application/user.repository'
 import { UsersModule } from '../users/users.module'
 import { API_KEY_AUTHENTICATOR } from '../auth/application/api-key-authenticator'
+import { RateLimitHits } from './application/rate-limit-hits'
 import { API_KEY_REPOSITORY, ApiKeyRepository } from './application/api-key.repository'
 import { ApiKeyService } from './application/api-key.service'
 import { KEY_SECRETS, KeySecrets } from './application/key-secrets'
@@ -19,6 +20,7 @@ import { API_KEY_SERVICE, ApiKeysController } from './presentation/api-keys.cont
   imports: [UsersModule],
   controllers: [ApiKeysController],
   providers: [
+    RateLimitHits,
     { provide: KEY_SECRETS, useClass: CryptoKeySecrets },
     {
       provide: API_KEY_REPOSITORY,
@@ -38,6 +40,6 @@ import { API_KEY_SERVICE, ApiKeysController } from './presentation/api-keys.cont
     },
     { provide: API_KEY_AUTHENTICATOR, useExisting: API_KEY_SERVICE }
   ],
-  exports: [API_KEY_AUTHENTICATOR]
+  exports: [API_KEY_AUTHENTICATOR, API_KEY_SERVICE, RateLimitHits]
 })
 export class ApiKeysModule {}

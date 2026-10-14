@@ -329,6 +329,21 @@ const injectedRtkApi = api.injectEndpoints({
     logsSlowTicks: build.query<LogsSlowTicksApiResponse, LogsSlowTicksApiArg>({
       query: () => ({ url: `/api/v1/admin/logs/slow-ticks` })
     }),
+    securityOverview: build.query<SecurityOverviewApiResponse, SecurityOverviewApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/security`,
+        params: {
+          hours: queryArg.hours
+        }
+      })
+    }),
+    securityRevokeKey: build.mutation<SecurityRevokeKeyApiResponse, SecurityRevokeKeyApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/security/api-keys/${queryArg.id}/revoke`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -838,6 +853,16 @@ export type LogsSearchApiArg = {
 }
 export type LogsSlowTicksApiResponse = /** status 200  */ SlowTickResponse[]
 export type LogsSlowTicksApiArg = void
+export type SecurityOverviewApiResponse = /** status 200  */ SecurityOverviewResponse
+export type SecurityOverviewApiArg = {
+  /** How far back to look, in hours */
+  hours: 1 | 6 | 24 | 72 | 168
+}
+export type SecurityRevokeKeyApiResponse = unknown
+export type SecurityRevokeKeyApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
@@ -1526,6 +1551,74 @@ export type SlowTickResponse = {
   queuedExecutions: number
   deferredExecutions: number
 }
+export type FailedLoginModel = {
+  key: string
+  failures: number
+  distinctEmails: number
+  lastAt: number
+}
+export type PlayerRefModel = {
+  _id: string
+  name: string
+}
+export type SameIpModel = {
+  ip: string
+  accounts: PlayerRefModel[]
+}
+export type MultiIpModel = {
+  _id: string
+  name: string
+  ips: number
+}
+export type BotLockoutModel = {
+  botId: string
+  label: string | null
+  ownerId: string | null
+  ownerName: string | null
+  failures: number
+  lockedUntil: number
+}
+export type SecurityKeyModel = {
+  _id: string
+  name: string
+  prefix: string
+  owner: PlayerRefModel
+  scopes: string[]
+  ratePerMinute: number
+  createdAt: number
+  lastUsedAt: number | null
+  expiresAt: number | null
+  isRevoked: boolean
+  rateLimitHits: number
+}
+export type SuspiciousScriptModel = {
+  executionId: string
+  owner: PlayerRefModel
+  botId: string
+  file: string
+  code: string
+  reason: string
+  endedAt: number
+}
+export type ConsumerModel = {
+  executionId: string
+  userId: string
+  botId: string
+  file: string
+  opsUsed: number
+  ticks: number
+}
+export type SecurityOverviewResponse = {
+  hours: number
+  failedLoginsByIp: FailedLoginModel[]
+  failedLoginsByEmail: FailedLoginModel[]
+  sameIpAccounts: SameIpModel[]
+  multiIpAccounts: MultiIpModel[]
+  botLockouts: BotLockoutModel[]
+  apiKeys: SecurityKeyModel[]
+  suspiciousScripts: SuspiciousScriptModel[]
+  topConsumers: ConsumerModel[] | null
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -2096,6 +2189,8 @@ export const {
   useSupervisionRestoreMutation,
   useLogsSearchQuery,
   useLogsSlowTicksQuery,
+  useSecurityOverviewQuery,
+  useSecurityRevokeKeyMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

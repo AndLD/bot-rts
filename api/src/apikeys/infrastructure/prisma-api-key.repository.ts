@@ -17,6 +17,11 @@ export class PrismaApiKeyRepository implements ApiKeyRepository {
     return row && toEntity(row)
   }
 
+  async findById(id: string): Promise<ApiKey | null> {
+    const row = await this.db.apiKey.findUnique({ where: { id } })
+    return row && toEntity(row)
+  }
+
   async findOfUser(userId: string, id: string): Promise<ApiKey | null> {
     const row = await this.db.apiKey.findFirst({ where: { id, userId } })
     return row && toEntity(row)

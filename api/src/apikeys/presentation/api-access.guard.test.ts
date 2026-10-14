@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core'
 import { IS_PUBLIC_KEY } from '../../auth/presentation/public.decorator'
 import { RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { TooManyRequestsError } from '../../shared/domain/errors'
+import { RateLimitHits } from '../application/rate-limit-hits'
 import { ApiAccessGuard } from './api-access.guard'
 import { REQUIRED_SCOPE_KEY, SESSION_ONLY_KEY } from './scope.decorator'
 
@@ -33,8 +34,11 @@ function setup(
     [REQUIRED_SCOPE_KEY]: route.scope
   }
   const reflector = { getAllAndOverride: (key: string) => metadata[key] } as unknown as Reflector
-  const guard = new ApiAccessGuard(reflector, { consume } as unknown as RateLimiter)
-  return { guard, context, headers, consume }
+  const hits = new RateLimitHits()
+  const guard = new ApiAccessGuard(reflector, { consume } as unknown as RateLimiter, hits, {
+    now: () => new Date(5000)
+  })
+  return { guard, context, headers, consume, hits }
 }
 
 const session = { user: { id: 'u' }, identity: {} }
@@ -92,6 +96,7 @@ describe('ApiAccessGuard', () => {
     const limited = setup({ scope: 'read' }, key(['read']), jest.fn().mockRejectedValue(new TooManyRequestsError(17)))
     await expect(limited.guard.canActivate(limited.context)).rejects.toBeInstanceOf(TooManyRequestsError)
     expect(limited.headers['Retry-After']).toBe(17)
+    expect(limited.hits.since(0)).toEqual(new Map([['k1', 1]]))
 
     const broken = setup({ scope: 'read' }, key(['read']), jest.fn().mockRejectedValue(new Error('boom')))
     await expect(broken.guard.canActivate(broken.context)).rejects.toThrow('boom')

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import Redis from 'ioredis'
 import { AppError } from '../../shared/domain/app-error'
-import { ExecutionView } from '../../engine/domain/execution'
+import { ExecutionUsage, ExecutionView } from '../../engine/domain/execution'
 import { JsonValue } from '../../engine/domain/json-value'
 import { ServiceUnavailableError } from '../../engine/domain/engine.errors'
 import { StartRequest } from '../../engine/application/engine-core'
@@ -69,6 +69,10 @@ export class RedisEnginePort implements EnginePort {
 
   reboot(botId: string): Promise<ExecutionView[]> {
     return this.ask({ op: 'reboot', botId }) as Promise<ExecutionView[]>
+  }
+
+  top(limit: number): Promise<ExecutionUsage[]> {
+    return this.ask({ op: 'top', limit }) as Promise<ExecutionUsage[]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {

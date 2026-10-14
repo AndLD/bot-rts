@@ -83,6 +83,17 @@ export class ApiKeyService implements ApiKeyAuthenticator {
     return { ...key, revokedAt: at }
   }
 
+  // An admin ends a key whoever owns it (design §25.3, Security); ending an ended key is not an error
+  async revokeAsAdmin(id: string): Promise<ApiKey> {
+    const key = await this.keys.findById(id)
+
+    if (!key) {
+      throw new NotFoundError('API key not found')
+    }
+
+    return key.revokedAt ? key : this.revoke(key.userId, id)
+  }
+
   // Who the key is: its player, checked against our store like for a session (bans, deleted accounts), with the key's grant
   async authenticate(secret: string): Promise<Principal> {
     const key = await this.keys.findByHash(this.secrets.hash(secret))

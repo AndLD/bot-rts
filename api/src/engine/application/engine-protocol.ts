@@ -19,6 +19,7 @@ export type EngineRequest =
   | { op: 'manual'; userId: string; botId: string; fn: string; args: JsonValue[] }
   | { op: 'control'; command: EngineControl }
   | { op: 'reboot'; botId: string }
+  | { op: 'top'; limit: number }
   | { op: 'metrics' }
 
 // What an action returns is plain data too (structured clone keeps dates)

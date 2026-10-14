@@ -31,6 +31,7 @@ function echoEngine(): EchoEngine {
     metrics: jest.fn(async () => ({ ticks: 7 }) as never),
     control: jest.fn(async (command) => ({ controlled: command }) as never),
     reboot: jest.fn(async (botId) => [{ rebooted: botId }] as never),
+    top: jest.fn(async (limit) => [{ top: limit }] as never),
     onEvent: jest.fn(() => () => undefined)
   } as unknown as EchoEngine
 }
@@ -65,6 +66,7 @@ describe('the engine link over Redis', () => {
     await expect(port.metrics()).resolves.toEqual({ ticks: 7 })
     await expect(port.control({ type: 'pause' })).resolves.toEqual({ controlled: { type: 'pause' } })
     await expect(port.reboot('b')).resolves.toEqual([{ rebooted: 'b' }])
+    await expect(port.top(2)).resolves.toEqual([{ top: 2 }])
     port.onEvent()()
     port.close()
   })

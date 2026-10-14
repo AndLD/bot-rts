@@ -50,6 +50,8 @@ export class RedisEngineBridge {
         return this.engine.control(request.command)
       case 'reboot':
         return this.engine.reboot(request.botId)
+      case 'top':
+        return this.engine.top(request.limit)
       default:
         return this.engine.metrics()
     }

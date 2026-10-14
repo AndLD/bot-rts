@@ -20,7 +20,7 @@ import { EventParty } from '../domain/game-event'
 import { capacityOf } from '../domain/bot-capacity'
 import { shuffled } from '../domain/shuffle'
 import { EngineConfig } from '../domain/engine-config'
-import { Execution, ExecutionState, ExecutionStatus, ExecutionView } from '../domain/execution'
+import { Execution, ExecutionState, ExecutionStatus, ExecutionUsage, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { ScriptFailure } from '../domain/script-failure'
 import { SHELL_FILE, shellSource } from '../domain/shell-script'
@@ -381,6 +381,23 @@ export class EngineCore {
   list(userId: string): Promise<ExecutionView[]> {
     return this.submit(async () =>
       [...this.live.values()].filter((live) => live.record.userId === userId).map((live) => live.view())
+    )
+  }
+
+  // The running scripts that made the most calls, the biggest first
+  top(limit: number): Promise<ExecutionUsage[]> {
+    return this.submit(async () =>
+      [...this.live.values()]
+        .sort((a, b) => b.opsUsed - a.opsUsed)
+        .slice(0, limit)
+        .map((live) => ({
+          id: live.record.id,
+          userId: live.record.userId,
+          botId: live.record.botId,
+          file: live.record.file,
+          opsUsed: live.opsUsed,
+          ticks: this.tickNumber - live.sinceTick
+        }))
     )
   }
 

@@ -57,7 +57,7 @@ function serve(handlers: (call: Call) => unknown = () => undefined, data: { prof
     if (args.url === '/api/v1/admin/players') {
       return {
         data: {
-          result: [item(), item({ _id: 'p2', name: 'Bob', status: 'banned' })],
+          result: [item(), item({ _id: 'p2', name: 'Bob', status: 'banned', isEmailVerified: false })],
           meta: { pagination: { page: 1, results: 20, total: 45 } }
         }
       }

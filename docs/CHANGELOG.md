@@ -39,6 +39,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - The Inspector and the world map of the admin console: any base or bot with modules, energy, storage, drives, executions and logs;
   opening a file is a separate permission and an audit entry; search by id or coordinates; the whole map without fog of war on the
   game's map renderer; density, depletion and activity heatmaps; a live tail of game events (`/api/v1/admin/inspector/*`).
+- Supervision: kill an execution, reboot a bot, quarantine a player (their scripts are held), pause the world for maintenance, a global
+  script kill-switch, and support actions (grant, remove, compensate, restore a module), each with a reason and an audit entry
+  (`/api/v1/admin/supervision/*`). Validation errors of nested request bodies now name the field.
 
 ### Changed
 

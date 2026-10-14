@@ -21,7 +21,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | 9.3 | Dashboard page: live health and performance charts for engine, scripts, world, API and sockets, database, jobs and infrastructure, status tiles, alert list, time-range picker; live updates over an admin Socket.IO namespace | 8 | ✅ |
 | 9.4 | Players page: server-side search and typed filters, profile with sessions, bases, bots, resources and activity timeline, moderation actions (ban / unban with reason and duration, force logout, resend verification, trigger password reset, change role, delete account), notes | 8 | ✅ |
 | 9.5 | Inspector and world map: read-only inspection of any base or bot (modules, energy, position, storage, drives, executions, logs), file viewing behind a permission and an audit entry, map without fog of war reusing the map renderer, entity search by id or coordinates, heatmaps (density, depletion, activity), live game-event tail | 13 | ✅ |
-| 9.6 | Supervision actions, each with reason, confirmation and audit: kill an execution, reboot a bot, quarantine a player (suspend all executions), pause and resume the world (maintenance mode), global script kill-switch, support actions (grant or remove resources, restore a module, compensation) | 8 | ⬜ |
+| 9.6 | Supervision actions, each with reason, confirmation and audit: kill an execution, reboot a bot, quarantine a player (suspend all executions), pause and resume the world (maintenance mode), global script kill-switch, support actions (grant or remove resources, restore a module, compensation) | 8 | ✅ |
 | 9.7 | Security and abuse monitoring: failed-password and lockout view, suspicious scripts (top ops consumers, wall-clock kills, sandbox violations), API-key usage and rate-limit hits, login anomalies and same-IP accounts, actions from the page (ban, quarantine, revoke key) | 8 | ⬜ |
 | 9.8 | Economy and balance: world economy dashboard (resource totals, depletion, crafting and blueprint statistics), balance configuration editor with validation, diff, versions and rollback, global feature and category switches (moved here from the settings of 6.8) | 8 | ⬜ |
 | 9.9 | Operations: announcements broadcast through the notification system (7.6), scheduled maintenance banners, engine status and script-runtime restart, status of retention and cleanup jobs, backup status | 5 | ⬜ |
@@ -49,4 +49,5 @@ AGENTS.md §7.1).
 | `feature/9.2-metrics-history-alerting` | 9.2 | [#152](https://github.com/AndLD/bot-rts/pull/152) | merged |
 | `feature/9.3-dashboard` | 9.3 | [#153](https://github.com/AndLD/bot-rts/pull/153) | merged |
 | `feature/9.4-players` | 9.4 | [#154](https://github.com/AndLD/bot-rts/pull/154) | merged |
-| `feature/9.5-inspector-map` | 9.5 | [#155](https://github.com/AndLD/bot-rts/pull/155) | open |
+| `feature/9.5-inspector-map` | 9.5 | [#155](https://github.com/AndLD/bot-rts/pull/155) | merged |
+| `feature/9.6-supervision` | 9.6 | _this PR_ | open |

@@ -8,10 +8,10 @@ import { RateLimitGuard } from './rate-limit.guard'
 
 const config = { rateLimit: { windowMs: 900, authMax: 3, apiWindowMs: 60, apiMax: 7 } } as AppConfig
 
-function setup(bucket: string | undefined, consume: jest.Mock) {
+function setup(bucket: string | undefined, consume: jest.Mock, ip: string | undefined = '9.9.9.9') {
   const headers: Record<string, unknown> = {}
   const response = { setHeader: (name: string, value: unknown) => (headers[name] = value) }
-  const request = { ip: '9.9.9.9' }
+  const request = { ip }
   const context = {
     getHandler: () => 'handler',
     getClass: () => 'class',
@@ -33,6 +33,15 @@ describe('RateLimitGuard', () => {
 
     expect(consume).toHaveBeenCalledWith('api', '9.9.9.9', { limit: 7, windowMs: 60 })
     expect(headers).toEqual({ 'X-RateLimit-Limit': 7, 'X-RateLimit-Remaining': 6 })
+  })
+
+  it('counts a request without a known address under one shared subject', async () => {
+    const consume = jest.fn(async () => ({ limit: 7, remaining: 6, resetInSeconds: 60 }))
+    const { guard, context } = setup(undefined, consume, undefined)
+
+    await guard.canActivate(context)
+
+    expect(consume).toHaveBeenCalledWith('api', 'unknown', expect.anything())
   })
 
   it('applies the auth rule to routes marked for it', async () => {

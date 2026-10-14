@@ -24,3 +24,18 @@ export class ValidationError extends AppError {
     super(400, ErrorCode.VALIDATION_FAILED, message)
   }
 }
+
+export class TooManyRequestsError extends AppError {
+  constructor(
+    readonly retryAfterSeconds: number,
+    message = 'Too many requests'
+  ) {
+    super(429, ErrorCode.TOO_MANY_REQUESTS, message)
+  }
+}
+
+export class RequestTimeoutError extends AppError {
+  constructor(message = 'The request took too long') {
+    super(503, ErrorCode.REQUEST_TIMEOUT, message)
+  }
+}

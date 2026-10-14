@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { APP_GUARD } from '@nestjs/core'
-import { ThrottlerModule } from '@nestjs/throttler'
 import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { NotificationsModule } from '../notifications/notifications.module'
@@ -50,16 +49,7 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
 // The adapter that verifies tokens is chosen by AUTH_PROVIDER. Only the custom (`local`) provider exists today; a hosted
 // provider would add its own IdentityVerifier here and would not provide CREDENTIAL_AUTH.
 @Module({
-  imports: [
-    UsersModule,
-    NotificationsModule,
-    ThrottlerModule.forRootAsync({
-      inject: [APP_CONFIG],
-      useFactory: (config: AppConfig) => ({
-        throttlers: [{ ttl: config.rateLimit.windowMs, limit: config.rateLimit.authMax }]
-      })
-    })
-  ],
+  imports: [UsersModule, NotificationsModule],
   controllers: [AuthController],
   providers: [
     {

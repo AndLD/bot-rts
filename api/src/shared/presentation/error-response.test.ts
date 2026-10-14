@@ -26,7 +26,7 @@ describe('toErrorResponse', () => {
 
   it('maps client errors raised by Express and falls back to a generic code', () => {
     expect(toErrorResponse({ status: 429 }).code).toBe('TOO_MANY_REQUESTS')
-    expect(toErrorResponse({ status: 418 })).toMatchObject({ statusCode: 418, code: 'VALIDATION_FAILED' })
+    expect(toErrorResponse({ status: 413 }).code).toBe('PAYLOAD_TOO_LARGE')    expect(toErrorResponse({ status: 418 })).toMatchObject({ statusCode: 418, code: 'VALIDATION_FAILED' })
   })
 
   it('hides unexpected errors', () => {

@@ -14,6 +14,7 @@ const CODE_BY_STATUS: Record<number, string> = {
   401: ErrorCode.UNAUTHORIZED,
   403: ErrorCode.FORBIDDEN,
   404: ErrorCode.NOT_FOUND,
+  413: ErrorCode.PAYLOAD_TOO_LARGE,
   429: ErrorCode.TOO_MANY_REQUESTS
 }
 

@@ -35,7 +35,14 @@ describe('loadConfig', () => {
         accessTtlSeconds: 600,
         policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 }
       },
-      rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20 },
+      rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20, apiWindowMs: 60_000, apiMax: 600 },
+      http: {
+        bodyLimitBytes: 262144,
+        handlerTimeoutMs: 30000,
+        requestTimeoutMs: 60000,
+        headersTimeoutMs: 15000,
+        keepAliveTimeoutMs: 65000
+      },
       trustProxy: false,
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
@@ -161,5 +168,33 @@ describe('loadConfig', () => {
         /APP_ROLE must be one of all, api, engine[\s\S]*REDIS_URL must be a redis:\/\/ connection string/
       )
     })
+  })
+
+  it('reads the rate limits and the HTTP limits', () => {
+    const config = loadConfig({
+      ...base,
+      RATE_LIMIT_API_MAX: '50',
+      RATE_LIMIT_API_WINDOW_MS: '1000',
+      HTTP_BODY_LIMIT_BYTES: '1024',
+      HTTP_HANDLER_TIMEOUT_MS: '2000',
+      HTTP_REQUEST_TIMEOUT_MS: '3000',
+      HTTP_HEADERS_TIMEOUT_MS: '4000',
+      HTTP_KEEP_ALIVE_TIMEOUT_MS: '5000'
+    })
+
+    expect(config.rateLimit).toMatchObject({ apiMax: 50, apiWindowMs: 1000 })
+    expect(config.http).toEqual({
+      bodyLimitBytes: 1024,
+      handlerTimeoutMs: 2000,
+      requestTimeoutMs: 3000,
+      headersTimeoutMs: 4000,
+      keepAliveTimeoutMs: 5000
+    })
+  })
+
+  it('refuses a wildcard CORS origin, which cannot be combined with credentials', () => {
+    expect(() => loadConfig({ ...base, WHITELIST_URLS: 'https://a.example,*' })).toThrow(
+      /WHITELIST_URLS must list origins/
+    )
   })
 })

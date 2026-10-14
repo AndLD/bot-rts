@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiDefaultResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { SkipRateLimit } from '../../ratelimit/presentation/rate-limit.decorator'
 import { Public } from '../../auth/presentation/public.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { HealthResponse } from './health.response'
@@ -12,6 +13,7 @@ export class HealthController {
   constructor(private readonly health: HealthService) {}
 
   @Public()
+  @SkipRateLimit()
   @Get()
   @ApiOperation({ summary: 'Liveness and database readiness' })
   @ApiOkResponse({ type: HealthResponse })

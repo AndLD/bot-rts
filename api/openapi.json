@@ -2824,7 +2824,7 @@
           "acceptedPrivacyVersion": {
             "type": "string",
             "description": "The version of the privacy policy the player accepted",
-            "example": "2026-10-13"
+            "example": "2026-10-14"
           }
         },
         "required": [

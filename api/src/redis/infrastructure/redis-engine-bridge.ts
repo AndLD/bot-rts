@@ -46,6 +46,10 @@ export class RedisEngineBridge {
         return this.engine.linkStatus(request.userId, request.botId)
       case 'manual':
         return this.engine.manual(request.userId, request.botId, request.fn, request.args)
+      case 'control':
+        return this.engine.control(request.command)
+      case 'reboot':
+        return this.engine.reboot(request.botId)
       default:
         return this.engine.metrics()
     }

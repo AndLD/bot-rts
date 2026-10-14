@@ -81,14 +81,14 @@ export default function SupervisionPage() {
   const switching = { pause: pausing, resume: resuming, halt: halting, allow: allowing }
 
   async function submitSwitch(values: ActionValues) {
-    if (!open || report(await run[open](values))) {
+    if (report(await run[open as Switch](values))) {
       return
     }
     setOpen(null)
   }
 
   async function submitRelease({ reason }: ActionValues) {
-    if (!releaseTarget || report(await release({ id: releaseTarget, reasonDto: { reason } }))) {
+    if (report(await release({ id: releaseTarget as string, reasonDto: { reason } }))) {
       return
     }
     setReleaseTarget(null)

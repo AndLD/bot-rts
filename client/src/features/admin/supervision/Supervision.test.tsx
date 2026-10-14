@@ -152,6 +152,29 @@ describe('SupervisionPage', () => {
     )
   })
 
+  it('lets the dialog of a switch be cancelled', async () => {
+    serve(state())
+    renderAs('admin')
+    fireEvent.click(await button('Pause the world'))
+    fireEvent.click(await button('Cancel'))
+
+    await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+  })
+
+  it('keeps the dialog of a release open when the server refuses it', async () => {
+    const error = jest.spyOn(notification, 'error').mockImplementation(() => undefined)
+    serve(state(), (call) =>
+      call.url.endsWith('/release') ? { error: { status: 404, data: { code: 'NOT_FOUND' } } } : undefined
+    )
+    renderAs('admin')
+    fireEvent.click(await button('Release'))
+    fireEvent.change(reasonField(), { target: { value: 'cleared' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() => expect(error).toHaveBeenCalledWith(expect.objectContaining({ description: 'Not found' })))
+    expect(dialog()).toBeInTheDocument()
+  })
+
   it('releases a quarantined player with a reason', async () => {
     const calls = serve(state())
     renderAs('admin')

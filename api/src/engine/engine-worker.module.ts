@@ -127,7 +127,7 @@ export class EngineWorkerModule {
         {
           provide: CONTROL_STATE_STORE,
           inject: [PRISMA_CLIENT, CLOCK],
-          useFactory: (client: PrismaClient, clock: Clock) => new PrismaControlStateStore(client, () => clock.now())
+          useFactory: (client: PrismaClient, clock: Clock) => new PrismaControlStateStore(client, clock)
         },
         {
           provide: EXECUTION_REPOSITORY,

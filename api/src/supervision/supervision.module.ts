@@ -22,7 +22,7 @@ import { SUPERVISION_SERVICE, SupervisionController } from './presentation/super
     {
       provide: CONTROL_STATE_STORE,
       inject: [PRISMA_CLIENT, CLOCK],
-      useFactory: (client: PrismaClient, clock: Clock) => new PrismaControlStateStore(client, () => clock.now())
+      useFactory: (client: PrismaClient, clock: Clock) => new PrismaControlStateStore(client, clock)
     },
     {
       provide: SUPERVISION_READ_MODEL,

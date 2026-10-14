@@ -43,6 +43,8 @@ function fakeCore() {
     link: jest.fn(async () => ({ isConnected: true, signal: 4, hops: 0 })),
     manual: jest.fn(async () => ({ ok: true })),
     act: jest.fn(async (name: string, args: unknown[]) => ({ ran: name, args })),
+    control: jest.fn(async (command: unknown) => ({ controlled: command })),
+    reboot: jest.fn(async (botId: string) => [{ ...view, botId }]),
     snapshot: jest.fn(() => ({
       tick: 3,
       lastTickMs: 1,
@@ -91,6 +93,13 @@ describe('EngineHost and ChannelEnginePort', () => {
       args: ['u', 'b', 'd', 'a.js']
     })
 
+    await expect(port.control({ type: 'halt-scripts', isOn: true })).resolves.toEqual({
+      controlled: { type: 'halt-scripts', isOn: true }
+    })
+    await expect(port.reboot('b9')).resolves.toEqual([{ ...view, botId: 'b9' }])
+
+    expect(core.control).toHaveBeenCalledWith({ type: 'halt-scripts', isOn: true })
+    expect(core.reboot).toHaveBeenCalledWith('b9')
     expect(core.start).toHaveBeenCalledWith({ userId: 'u', botId: 'b', file: '/m/a.js', args: [1] })
     expect(core.kill).toHaveBeenCalledWith('u', 'e1')
     expect(core.list).toHaveBeenCalledWith('u')
@@ -193,6 +202,8 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(off.manual()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.linkStatus()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.metrics()).rejects.toMatchObject({ statusCode: 503 })
+    await expect(off.control()).rejects.toMatchObject({ statusCode: 503 })
+    await expect(off.reboot()).rejects.toMatchObject({ statusCode: 503 })
     expect(off.onEvent()()).toBeUndefined()
   })
 })

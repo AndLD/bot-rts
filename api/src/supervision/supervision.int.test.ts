@@ -22,7 +22,7 @@ const base = '/api/v1/admin/supervision'
 
 beforeAll(async () => {
   database = await createTestDatabase()
-  const store = new PrismaControlStateStore(database.client, () => new Date())
+  const store = new PrismaControlStateStore(database.client, { now: () => new Date() })
   // The engine thread is off in tests; this stands in for it and keeps the control state the way the engine does
   const engine = {
     kill: async (...args: unknown[]) => void calls.push({ method: 'kill', args }),

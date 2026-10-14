@@ -281,6 +281,17 @@ describe('supervision from the inspector', () => {
     await waitFor(() => expect(calls.some((call) => call.url.endsWith('/supervision/bots/bot-1/reboot'))).toBe(true))
   })
 
+  it('lets the dialog be cancelled', async () => {
+    serve()
+    renderAs('admin', <BotInspectorPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Reboot' }))
+    fireEvent.click(
+      Array.from(document.querySelectorAll('button')).find((node) => node.textContent === 'Cancel') as HTMLElement
+    )
+
+    await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+  })
+
   it('keeps the dialog open when the server refuses, and offers nothing to a moderator', async () => {
     const error = jest.spyOn(notification, 'error').mockImplementation(() => undefined)
     serve((call) =>

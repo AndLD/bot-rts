@@ -29,6 +29,8 @@ function echoEngine(): EchoEngine {
     manual: jest.fn(async (...args) => args as never),
     linkStatus: jest.fn(async (userId, botId) => ({ userId, botId }) as never),
     metrics: jest.fn(async () => ({ ticks: 7 }) as never),
+    control: jest.fn(async (command) => ({ controlled: command }) as never),
+    reboot: jest.fn(async (botId) => [{ rebooted: botId }] as never),
     onEvent: jest.fn(() => () => undefined)
   } as unknown as EchoEngine
 }
@@ -61,6 +63,8 @@ describe('the engine link over Redis', () => {
     await expect(port.manual('u', 'b', 'move', [1])).resolves.toEqual(['u', 'b', 'move', [1]])
     await expect(port.linkStatus('u', 'b')).resolves.toEqual({ userId: 'u', botId: 'b' })
     await expect(port.metrics()).resolves.toEqual({ ticks: 7 })
+    await expect(port.control({ type: 'pause' })).resolves.toEqual({ controlled: { type: 'pause' } })
+    await expect(port.reboot('b')).resolves.toEqual([{ rebooted: 'b' }])
     port.onEvent()()
     port.close()
   })

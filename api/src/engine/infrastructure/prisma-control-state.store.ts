@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { Clock } from '../../shared/application/clock'
 import { ControlStateStore } from '../application/control-state'
 import { ControlState, INITIAL_CONTROL_STATE } from '../domain/engine-control'
 
@@ -8,7 +9,7 @@ const KEY = 'engine.control'
 export class PrismaControlStateStore implements ControlStateStore {
   constructor(
     private readonly db: Prisma.TransactionClient,
-    private readonly now: () => Date
+    private readonly clock: Clock
   ) {}
 
   async load(): Promise<ControlState> {
@@ -27,8 +28,8 @@ export class PrismaControlStateStore implements ControlStateStore {
 
     await this.db.gameSetting.upsert({
       where: { key: KEY },
-      create: { key: KEY, value, updatedAt: this.now() },
-      update: { value, updatedAt: this.now() }
+      create: { key: KEY, value, updatedAt: this.clock.now() },
+      update: { value, updatedAt: this.clock.now() }
     })
   }
 }

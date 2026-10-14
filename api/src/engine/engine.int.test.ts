@@ -1,4 +1,5 @@
 import request from 'supertest'
+import { RESOURCE } from '../../../lib/utils/interfaces/resources'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { signUpVerified, startTestApp, TestApp } from '../../tests/integration/test-app'
@@ -401,4 +402,60 @@ describe('the engine thread', () => {
     await until(() => logsOf().includes('fine after the stall'), 'the other script', 40000)
     expect(await port.list(hog.userId)).toEqual([])
   }, 120000)
+})
+
+describe('what the admins control (design §25.3)', () => {
+  const FILE = '/memory-class1/main.js'
+
+  it('pauses the world and lifts the pause, keeping the state in the database', async () => {
+    const { userId, botId } = await deployWithScript('export async function main(bot) { bot.log("controlled") }')
+
+    expect(await port.control({ type: 'pause' })).toMatchObject({ isPaused: true })
+    await expect(port.start({ userId, botId, file: FILE, args: [] })).rejects.toMatchObject({
+      code: 'MAINTENANCE_MODE'
+    })
+    expect(
+      JSON.stringify((await database.client.gameSetting.findUniqueOrThrow({ where: { key: 'engine.control' } })).value)
+    ).toContain('"isPaused":true')
+
+    expect(await port.control({ type: 'resume' })).toMatchObject({ isPaused: false })
+    await port.start({ userId, botId, file: FILE, args: [] })
+    await until(() => logsOf().includes('controlled'), 'the script after the pause')
+  })
+
+  it('refuses a quarantined player and the kill-switch, and reboots a bot', async () => {
+    const { userId, botId } = await deployWithScript('export async function main(bot) { for (;;) { await sleep(50) } }')
+
+    await port.control({ type: 'quarantine', userId, isOn: true })
+    await expect(port.start({ userId, botId, file: FILE, args: [] })).rejects.toMatchObject({
+      code: 'PLAYER_QUARANTINED'
+    })
+    await port.control({ type: 'quarantine', userId, isOn: false })
+
+    await port.start({ userId, botId, file: FILE, args: [] })
+    const restarted = await port.reboot(botId)
+    expect(restarted).toHaveLength(1)
+    expect(await port.list(userId)).toHaveLength(1)
+
+    expect(await port.control({ type: 'halt-scripts', isOn: true })).toMatchObject({ areScriptsHalted: true })
+    expect(await port.list(userId)).toEqual([])
+    await expect(port.start({ userId, botId, file: FILE, args: [] })).rejects.toMatchObject({ code: 'SCRIPTS_HALTED' })
+    await port.control({ type: 'halt-scripts', isOn: false })
+  })
+
+  it('puts resources right as a world action, all or nothing', async () => {
+    const { botId } = await deployWithScript('export async function main() {}')
+
+    await port.act('support.grantResources', [botId, [{ resource: RESOURCE.IRON, amount: 10 }]])
+    const storage = await database.client.module.findFirstOrThrow({ where: { botId, type: 'storage' } })
+    expect(JSON.stringify(storage.props)).toContain('"iron"')
+
+    await expect(
+      port.act('support.removeResources', [botId, [{ resource: RESOURCE.GOLD, amount: 999 }]])
+    ).rejects.toMatchObject({
+      statusCode: 400
+    })
+    await port.act('support.removeResources', [botId, [{ resource: RESOURCE.IRON, amount: 10 }]])
+    await port.act('support.restoreModule', [botId, storage.id])
+  })
 })

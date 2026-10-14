@@ -93,13 +93,4 @@ describe('PrismaUserRepository', () => {
     expect(await users.findListItemById(user.id)).toEqual({ ...user, isEmailVerified: true })
     expect(await users.findListItemById('11111111-1111-4111-8111-111111111111')).toBeNull()
   })
-
-  it('counts users by status without deleted ones and includes empty statuses', async () => {
-    await users.add(buildUser({ status: 'admin' }))
-    await users.add(buildUser({ status: 'user' }))
-    await users.add(buildUser({ status: 'user' }))
-    await users.add(buildUser({ status: 'user', deletedAt: new Date() }))
-
-    expect(await users.countByStatus()).toEqual({ admin: 1, owner: 0, user: 2, unlimited: 0, banned: 0 })
-  })
 })

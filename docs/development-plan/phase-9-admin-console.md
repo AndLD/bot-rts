@@ -2,7 +2,7 @@
 
 # Phase 9 — Admin console (101 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
 
 A new admin console, specified in design [§25](../game-design/25-admin-console.md), that lets admins supervise any player's
 bots and resources, monitor the health, performance and load of the game, moderate players, and operate the world safely.
@@ -16,7 +16,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
-| 9.1 | Admin foundations (design §25.2): admin roles and fine-grained permissions with server-side guards and decorators, mandatory TOTP two-factor authentication, append-only audit log (port + interceptor) and its API, `/api/v1/admin/*` namespace (rejected for API keys), the `(admin)` route group and layout in the Next.js app; the legacy statistics and debug endpoints are removed (replaced by 9.3 and 9.12) | 8 | ⬜ |
+| 9.1 | Admin foundations (design §25.2): admin roles and fine-grained permissions with server-side guards and decorators, mandatory TOTP two-factor authentication, append-only audit log (port + interceptor) and its API, `/api/v1/admin/*` namespace (rejected for API keys), the `(admin)` route group and layout in the Next.js app; the legacy statistics and debug endpoints are removed (replaced by 9.3 and 9.12) | 8 | ✅ |
 | 9.2 | Metrics history and alerting (design §25.5): a `MetricsPort` implemented over the 8.3 metrics, rolling time-series store with downsampling, health status per area, configurable alert thresholds, in-console and email alerts, Prometheus-compatible `/metrics` | 5 | ⬜ |
 | 9.3 | Dashboard page: live health and performance charts for engine, scripts, world, API and sockets, database, jobs and infrastructure, status tiles, alert list, time-range picker; live updates over an admin Socket.IO namespace | 8 | ⬜ |
 | 9.4 | Players page: server-side search and typed filters, profile with sessions, bases, bots, resources and activity timeline, moderation actions (ban / unban with reason and duration, force logout, resend verification, trigger password reset, change role, delete account), notes | 8 | ⬜ |
@@ -45,4 +45,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/9.1-admin-foundations` | 9.1 | _this PR_ | open |

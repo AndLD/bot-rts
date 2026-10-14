@@ -32,8 +32,19 @@ describe('resolveRedirect', () => {
     ['unverified', '/forbidden'],
     ['blocked', '/blocked'],
     ['active', '/game'],
-    ['active', '/account']
+    ['active', '/account'],
+    ['active', '/admin'],
+    ['active', '/admin/audit']
   ] as const)('lets a %s visitor stay on %s', (state, path) => {
     expect(resolveRedirect(state, path)).toBeNull()
+  })
+
+  it.each([
+    ['anonymous', '/admin', '/auth'],
+    ['unverified', '/admin', '/forbidden'],
+    ['blocked', '/admin/audit', '/blocked'],
+    ['active', '/administrator', '/game']
+  ] as const)('keeps a %s visitor out of %s, and does not take %s for the console', (state, path, expected) => {
+    expect(resolveRedirect(state, path)).toBe(expected)
   })
 })

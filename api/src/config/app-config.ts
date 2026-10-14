@@ -77,6 +77,18 @@ export interface ObservabilityConfig {
   metricsToken: string | undefined
 }
 
+export interface AdminConfig {
+  // Addresses the console may be used from; empty: any (design §25.2)
+  ipAllowList: string[]
+  // How long a session stays verified by the second factor
+  verificationTtlMs: number
+  // The name an authenticator app shows for the account
+  totpIssuer: string
+  recoveryCodeCount: number
+  // Encrypts the TOTP secrets at rest
+  secret: string
+}
+
 export interface AppConfig {
   nodeEnv: NodeEnv
   port: number
@@ -104,6 +116,7 @@ export interface AppConfig {
   deployment: DeploymentConfig
   observability: ObservabilityConfig
   lifecycle: LifecyclePolicy
+  admin: AdminConfig
 }
 
 type Env = Record<string, string | undefined>
@@ -167,6 +180,8 @@ export function loadConfig(env: Env): AppConfig {
   if (!env.DATABASE_URL || !/^postgres(ql)?:\/\//.test(env.DATABASE_URL)) {
     problems.push('DATABASE_URL must be a postgresql:// connection string')
   }
+
+  const adminVerificationTtl = duration(env.ADMIN_2FA_TTL, '8h', 'ADMIN_2FA_TTL', problems)
 
   if (nodeEnv === 'production' && !env.JWT_ACCESS_SECRET) {
     problems.push('JWT_ACCESS_SECRET is required in production')
@@ -277,6 +292,13 @@ export function loadConfig(env: Env): AppConfig {
       noticeDays: positiveInt(env.INACTIVE_ACCOUNT_NOTICE_DAYS, DEFAULT_LIFECYCLE_POLICY.noticeDays),
       executionDays: positiveInt(env.EXECUTION_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.executionDays),
       authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays)
+    },
+    admin: {
+      ipAllowList: list(env.ADMIN_IP_ALLOWLIST),
+      verificationTtlMs: adminVerificationTtl,
+      totpIssuer: env.ADMIN_TOTP_ISSUER || 'BotRTS',
+      recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
+      secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET
     },
     observability: { metricsToken: env.METRICS_TOKEN || undefined },
     deployment: {

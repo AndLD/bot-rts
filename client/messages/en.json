@@ -277,6 +277,9 @@
     "TOO_MANY_API_KEYS": "You already have the most API keys allowed, revoke one first",
     "API_KEY_SCOPE": "This API key is not allowed to do that",
     "SESSION_ONLY": "This is only available when you are signed in, not with an API key",
+    "TWO_FACTOR_REQUIRED": "Verify your sign-in with the authenticator code first",
+    "TWO_FACTOR_INVALID": "The code is not valid or was already used",
+    "ADMIN_IP_NOT_ALLOWED": "The admin console is not available from this address",
     "PAYLOAD_TOO_LARGE": "The request is too large",
     "REQUEST_TIMEOUT": "The server took too long to answer, try again",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
@@ -1003,6 +1006,42 @@
       "maintenance": "repair, take apart, switch modules",
       "communication": "talk to other bots and players",
       "trade": "trade with other players"
+    }
+  },
+  "admin": {
+    "title": "Admin console",
+    "backToGame": "Back to the game",
+    "signOut": "Sign out",
+    "loading": "Loading...",
+    "loadFailed": "Could not load the console",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "moderator": "Moderator",
+      "analyst": "Analyst"
+    },
+    "nav": {
+      "home": "Overview"
+    },
+    "home": {
+      "welcome": "Welcome to the admin console",
+      "role": "Your role",
+      "permissions": "{count} permissions"
+    },
+    "twoFactor": {
+      "setupTitle": "Set up two-factor authentication",
+      "setupIntro": "The admin console requires a one-time code from an authenticator app every time you sign in.",
+      "start": "Set up",
+      "scan": "Scan the code with your authenticator app, or type the key by hand:",
+      "code": "6-digit code",
+      "confirm": "Confirm",
+      "recoveryTitle": "Save your recovery codes",
+      "recoveryIntro": "Each code works once if you lose your authenticator. They are shown only now.",
+      "recoverySaved": "I have saved them",
+      "promptTitle": "Verify your sign-in",
+      "promptIntro": "Enter the code from your authenticator app, or a recovery code.",
+      "codeOrRecovery": "Code or recovery code",
+      "verify": "Verify"
     }
   }
 }

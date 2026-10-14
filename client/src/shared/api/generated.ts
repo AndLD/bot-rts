@@ -19,9 +19,6 @@ const injectedRtkApi = api.injectEndpoints({
     usersUpdate: build.mutation<UsersUpdateApiResponse, UsersUpdateApiArg>({
       query: (queryArg) => ({ url: `/api/v1/users/${queryArg.id}`, method: 'PUT', body: queryArg.updateUserDto })
     }),
-    statisticsGet: build.query<StatisticsGetApiResponse, StatisticsGetApiArg>({
-      query: () => ({ url: `/api/v1/admin/statistics` })
-    }),
     authRegister: build.mutation<AuthRegisterApiResponse, AuthRegisterApiArg>({
       query: (queryArg) => ({ url: `/api/v1/auth/register`, method: 'POST', body: queryArg.registerDto })
     }),
@@ -65,6 +62,33 @@ const injectedRtkApi = api.injectEndpoints({
         query: (queryArg) => ({ url: `/api/v1/auth/account/delete/confirm`, method: 'POST', body: queryArg.tokenDto })
       }
     ),
+    adminMe: build.query<AdminMeApiResponse, AdminMeApiArg>({
+      query: () => ({ url: `/api/v1/admin/me` })
+    }),
+    adminEnroll: build.mutation<AdminEnrollApiResponse, AdminEnrollApiArg>({
+      query: () => ({ url: `/api/v1/admin/2fa/enroll`, method: 'POST' })
+    }),
+    adminConfirm: build.mutation<AdminConfirmApiResponse, AdminConfirmApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/2fa/confirm`, method: 'POST', body: queryArg.twoFactorCodeDto })
+    }),
+    adminVerify: build.mutation<AdminVerifyApiResponse, AdminVerifyApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/2fa/verify`, method: 'POST', body: queryArg.twoFactorCodeDto })
+    }),
+    auditList: build.query<AuditListApiResponse, AuditListApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/audit`,
+        params: {
+          page: queryArg.page,
+          results: queryArg.results,
+          actorId: queryArg.actorId,
+          action: queryArg.action,
+          targetId: queryArg.targetId,
+          outcome: queryArg.outcome,
+          from: queryArg['from'],
+          to: queryArg.to
+        }
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -301,7 +325,7 @@ export type UsersListApiResponse = /** status 200  */ UsersPageResponse
 export type UsersListApiArg = {
   page?: number
   results?: number
-  status?: 'admin' | 'owner' | 'user' | 'unlimited' | 'banned'
+  status?: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
   /** The email is verified */
   active?: boolean
   email?: string
@@ -311,8 +335,6 @@ export type UsersUpdateApiArg = {
   id: string
   updateUserDto: UpdateUserDto
 }
-export type StatisticsGetApiResponse = /** status 200  */ StatisticsResponse
-export type StatisticsGetApiArg = void
 export type AuthRegisterApiResponse = /** status 201  */ AuthTokenResponse
 export type AuthRegisterApiArg = {
   registerDto: RegisterDto
@@ -360,6 +382,29 @@ export type AuthRequestAccountDeletionApiArg = {
 export type AuthConfirmAccountDeletionApiResponse = unknown
 export type AuthConfirmAccountDeletionApiArg = {
   tokenDto: TokenDto
+}
+export type AdminMeApiResponse = /** status 200  */ AdminMeResponse
+export type AdminMeApiArg = void
+export type AdminEnrollApiResponse = /** status 201  */ TwoFactorEnrollmentResponse
+export type AdminEnrollApiArg = void
+export type AdminConfirmApiResponse = /** status 200  */ TwoFactorRecoveryCodesResponse
+export type AdminConfirmApiArg = {
+  twoFactorCodeDto: TwoFactorCodeDto
+}
+export type AdminVerifyApiResponse = unknown
+export type AdminVerifyApiArg = {
+  twoFactorCodeDto: TwoFactorCodeDto
+}
+export type AuditListApiResponse = /** status 200  */ AuditPageResponse
+export type AuditListApiArg = {
+  page?: number
+  results?: number
+  actorId?: string
+  action?: string
+  targetId?: string
+  outcome?: 'success' | 'denied' | 'failed'
+  from?: string
+  to?: string
 }
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
@@ -549,7 +594,7 @@ export type UserInfoResponse = {
   _id: string
   name: string
   email: string
-  status: 'admin' | 'owner' | 'user' | 'unlimited' | 'banned'
+  status: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
   /** The email is verified */
   active: boolean
   subscription: 'free' | 'monthly' | 'yearly'
@@ -594,6 +639,9 @@ export type ErrorResponseModel = {
     | 'TOO_MANY_API_KEYS'
     | 'API_KEY_SCOPE'
     | 'SESSION_ONLY'
+    | 'TWO_FACTOR_REQUIRED'
+    | 'TWO_FACTOR_INVALID'
+    | 'ADMIN_IP_NOT_ALLOWED'
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
     | 'INTERNAL_ERROR'
@@ -640,18 +688,7 @@ export type UpdateUserDto = {
   name?: string
   subscription?: 'free' | 'monthly' | 'yearly'
   /** Only an owner may change the status */
-  status?: 'admin' | 'owner' | 'user' | 'unlimited' | 'banned'
-}
-export type StatisticsResponse = {
-  usersByStatus?: {
-    admin: number
-    owner: number
-    user: number
-    unlimited: number
-    banned: number
-  }
-  /** When this server instance started */
-  startedAt: string
+  status?: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
 }
 export type AuthTokenResponse = {
   /** The access token; the refresh token travels in an HTTP-only cookie */
@@ -689,6 +726,86 @@ export type ChangeEmailDto = {
 }
 export type PasswordDto = {
   password: string
+}
+export type TwoFactorStateModel = {
+  isEnrolled: boolean
+  isVerified: boolean
+}
+export type AdminMeResponse = {
+  role: 'owner' | 'admin' | 'moderator' | 'analyst'
+  permissions: (
+    | 'dashboard.read'
+    | 'alerts.acknowledge'
+    | 'players.read'
+    | 'players.ban'
+    | 'players.logout'
+    | 'players.resend-verification'
+    | 'players.reset-password'
+    | 'players.notes'
+    | 'players.change-role'
+    | 'players.delete'
+    | 'inspector.read'
+    | 'inspector.files.read'
+    | 'inspector.kill-execution'
+    | 'inspector.reboot-bot'
+    | 'map.read'
+    | 'supervision.read'
+    | 'supervision.quarantine'
+    | 'supervision.support'
+    | 'ops.pause-world'
+    | 'ops.kill-switch'
+    | 'ops.announce'
+    | 'ops.restart-runtime'
+    | 'security.read'
+    | 'security.revoke-key'
+    | 'economy.read'
+    | 'balance.write'
+    | 'logs.read'
+    | 'audit.read'
+    | 'audit.export'
+    | 'analytics.read'
+    | 'devtools.use'
+  )[]
+  twoFactor: TwoFactorStateModel
+}
+export type TwoFactorEnrollmentResponse = {
+  secret: string
+  otpauthUrl: string
+}
+export type TwoFactorRecoveryCodesResponse = {
+  recoveryCodes: string[]
+}
+export type TwoFactorCodeDto = {
+  /** A six-digit authenticator code or a recovery code */
+  code: string
+}
+export type AuditEntryResponse = {
+  _id: string
+  /** Milliseconds since the epoch */
+  at: number
+  actorId: string
+  actorRole: string
+  action: string
+  outcome: 'success' | 'denied' | 'failed'
+  targetType: string | null
+  targetId: string | null
+  reason: string | null
+  before: object | null
+  after: object | null
+  ip: string | null
+  requestId: string | null
+}
+export type AuditPaginationModel = {
+  page: number
+  results: number
+  total: number
+}
+export type AuditMetaModel = {
+  pagination: AuditPaginationModel
+}
+export type AuditPageResponse = {
+  result: AuditEntryResponse[]
+  meta: AuditMetaModel
 }
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
@@ -1207,7 +1324,6 @@ export const {
   useUsersMeQuery,
   useUsersListQuery,
   useUsersUpdateMutation,
-  useStatisticsGetQuery,
   useAuthRegisterMutation,
   useAuthLoginMutation,
   useAuthRefreshMutation,
@@ -1221,6 +1337,11 @@ export const {
   useAuthConfirmEmailChangeMutation,
   useAuthRequestAccountDeletionMutation,
   useAuthConfirmAccountDeletionMutation,
+  useAdminMeQuery,
+  useAdminEnrollMutation,
+  useAdminConfirmMutation,
+  useAdminVerifyMutation,
+  useAuditListQuery,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

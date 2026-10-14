@@ -46,6 +46,13 @@ describe('loadConfig', () => {
         keepAliveTimeoutMs: 65000
       },
       trustProxy: false,
+      admin: {
+        ipAllowList: [],
+        verificationTtlMs: 8 * 60 * 60 * 1000,
+        totpIssuer: 'BotRTS',
+        recoveryCodeCount: 8,
+        secret: 'development-only-access-secret'
+      },
       observability: { metricsToken: undefined },
       lifecycle: {
         isEnabled: true,
@@ -247,6 +254,28 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, NODE_ENV: 'test' }).lifecycle.isEnabled).toBe(false)
     expect(loadConfig({ ...base, NODE_ENV: 'test', LIFECYCLE_ENABLED: 'true' }).lifecycle.isEnabled).toBe(true)
     expect(loadConfig({ ...base, INACTIVE_ACCOUNT_DAYS: 'x' }).lifecycle.inactiveDays).toBe(365)
+  })
+
+  it('reads the admin console settings and takes the secret from the admin, then the access, secret', () => {
+    const admin = loadConfig({
+      ...base,
+      ADMIN_IP_ALLOWLIST: '10.0.0.1, 10.0.0.2',
+      ADMIN_2FA_TTL: '2h',
+      ADMIN_TOTP_ISSUER: 'Bot RTS',
+      ADMIN_RECOVERY_CODES: '5',
+      ADMIN_SECRET: 'admin-secret',
+      JWT_ACCESS_SECRET: 'access'
+    }).admin
+
+    expect(admin).toEqual({
+      ipAllowList: ['10.0.0.1', '10.0.0.2'],
+      verificationTtlMs: 2 * 60 * 60 * 1000,
+      totpIssuer: 'Bot RTS',
+      recoveryCodeCount: 5,
+      secret: 'admin-secret'
+    })
+    expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'access' }).admin.secret).toBe('access')
+    expect(() => loadConfig({ ...base, ADMIN_2FA_TTL: 'soon' })).toThrow('ADMIN_2FA_TTL')
   })
 
   it('remembers a token owner for 2 s outside tests, and reads the setting', () => {

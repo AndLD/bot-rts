@@ -32,7 +32,7 @@ export interface IUserPostBody {
   acceptedPrivacyVersion: string
 }
 
-export const USER_STATUSES = ['admin', 'owner', 'user', 'unlimited', 'banned'] as const
+export const USER_STATUSES = ['admin', 'owner', 'moderator', 'analyst', 'user', 'unlimited', 'banned'] as const
 
 export type UserStatus = (typeof USER_STATUSES)[number]
 

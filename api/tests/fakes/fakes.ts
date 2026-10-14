@@ -43,9 +43,8 @@ import { IdentityLink } from '../../src/auth/domain/identity'
 import { LocalCredential } from '../../src/auth/domain/local-credential'
 import { Session } from '../../src/auth/domain/session'
 import { UnauthorizedError } from '../../src/shared/domain/errors'
-import { UserCountByStatus, UserListQuery, UserPage, UserRepository } from '../../src/users/application/user.repository'
+import { UserListQuery, UserPage, UserRepository } from '../../src/users/application/user.repository'
 import { User } from '../../src/users/domain/user.entity'
-import { USER_STATUSES } from '../../../lib/utils/interfaces/users'
 
 // Hand-written fakes of the ports, for unit tests of use cases (no database, no I/O)
 
@@ -193,16 +192,6 @@ export class InMemoryUserRepository implements UserRepository {
           (email === undefined || user.email === email)
       )
     return { users: matching.slice(offset, offset + limit), total: matching.length }
-  }
-
-  async countByStatus(): Promise<UserCountByStatus> {
-    const counts = Object.fromEntries(USER_STATUSES.map((status) => [status, 0])) as UserCountByStatus
-    for (const user of this.items.values()) {
-      if (!user.deletedAt) {
-        counts[user.status] += 1
-      }
-    }
-    return counts
   }
 }
 

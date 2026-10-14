@@ -89,6 +89,8 @@
               "enum": [
                 "admin",
                 "owner",
+                "moderator",
+                "analyst",
                 "user",
                 "unlimited",
                 "banned"
@@ -251,60 +253,6 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X PUT \"$BOTRTS_URL/api/v1/users/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"string\",\"subscription\":\"free\",\"status\":\"admin\"}'"
-          }
-        ]
-      }
-    },
-    "/api/v1/admin/statistics": {
-      "get": {
-        "operationId": "statisticsGet",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StatisticsResponse"
-                },
-                "example": {
-                  "usersByStatus": {
-                    "admin": 1,
-                    "owner": 1,
-                    "user": 1,
-                    "unlimited": 1,
-                    "banned": 1
-                  },
-                  "startedAt": "2026-01-01T00:00:00.000Z"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseModel"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "admin"
-        ],
-        "x-api-key-scope": "none (session only)",
-        "x-codeSamples": [
-          {
-            "lang": "Shell",
-            "label": "curl",
-            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/statistics\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }
@@ -896,6 +844,374 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X POST \"$BOTRTS_URL/api/v1/auth/account/delete/confirm\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"token\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/me": {
+      "get": {
+        "operationId": "adminMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminMeResponse"
+                },
+                "example": {
+                  "role": "owner",
+                  "permissions": [
+                    "dashboard.read"
+                  ],
+                  "twoFactor": {
+                    "isEnrolled": false,
+                    "isVerified": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "any admin role",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/me\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/2fa/enroll": {
+      "post": {
+        "operationId": "adminEnroll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorEnrollmentResponse"
+                },
+                "example": {
+                  "secret": "string",
+                  "otpauthUrl": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "any admin role",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/2fa/enroll\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/2fa/confirm": {
+      "post": {
+        "operationId": "adminConfirm",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorCodeDto"
+              },
+              "example": {
+                "code": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorRecoveryCodesResponse"
+                },
+                "example": {
+                  "recoveryCodes": [
+                    "string"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "any admin role",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/2fa/confirm\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"code\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/2fa/verify": {
+      "post": {
+        "operationId": "adminVerify",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorCodeDto"
+              },
+              "example": {
+                "code": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "any admin role",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/2fa/verify\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"code\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/audit": {
+      "get": {
+        "operationId": "auditList",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "results",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "actorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "players.ban",
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "outcome",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "success",
+                "denied",
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPageResponse"
+                },
+                "example": {
+                  "result": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "at": 1,
+                      "actorId": "00000000-0000-4000-8000-000000000000",
+                      "actorRole": "string",
+                      "action": "string",
+                      "outcome": "success",
+                      "targetType": "string",
+                      "targetId": "string",
+                      "reason": "string",
+                      "before": {},
+                      "after": {},
+                      "ip": "string",
+                      "requestId": "string"
+                    }
+                  ],
+                  "meta": {
+                    "pagination": {
+                      "page": null,
+                      "results": null,
+                      "total": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "audit.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/audit\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }
@@ -4235,6 +4551,9 @@
               "TOO_MANY_API_KEYS",
               "API_KEY_SCOPE",
               "SESSION_ONLY",
+              "TWO_FACTOR_REQUIRED",
+              "TWO_FACTOR_INVALID",
+              "ADMIN_IP_NOT_ALLOWED",
               "REQUEST_TIMEOUT",
               "MANUAL_CATEGORY_DISABLED",
               "INTERNAL_ERROR",
@@ -4292,6 +4611,8 @@
             "enum": [
               "admin",
               "owner",
+              "moderator",
+              "analyst",
               "user",
               "unlimited",
               "banned"
@@ -4395,6 +4716,8 @@
             "enum": [
               "admin",
               "owner",
+              "moderator",
+              "analyst",
               "user",
               "unlimited",
               "banned"
@@ -4412,46 +4735,6 @@
         },
         "required": [
           "result"
-        ]
-      },
-      "StatisticsResponse": {
-        "type": "object",
-        "properties": {
-          "usersByStatus": {
-            "type": "object",
-            "properties": {
-              "admin": {
-                "type": "integer"
-              },
-              "owner": {
-                "type": "integer"
-              },
-              "user": {
-                "type": "integer"
-              },
-              "unlimited": {
-                "type": "integer"
-              },
-              "banned": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "admin",
-              "owner",
-              "user",
-              "unlimited",
-              "banned"
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When this server instance started"
-          }
-        },
-        "required": [
-          "startedAt"
         ]
       },
       "RegisterDto": {
@@ -4588,6 +4871,247 @@
         },
         "required": [
           "password"
+        ]
+      },
+      "TwoFactorStateModel": {
+        "type": "object",
+        "properties": {
+          "isEnrolled": {
+            "type": "boolean"
+          },
+          "isVerified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isEnrolled",
+          "isVerified"
+        ]
+      },
+      "AdminMeResponse": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "moderator",
+              "analyst"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "dashboard.read",
+                "alerts.acknowledge",
+                "players.read",
+                "players.ban",
+                "players.logout",
+                "players.resend-verification",
+                "players.reset-password",
+                "players.notes",
+                "players.change-role",
+                "players.delete",
+                "inspector.read",
+                "inspector.files.read",
+                "inspector.kill-execution",
+                "inspector.reboot-bot",
+                "map.read",
+                "supervision.read",
+                "supervision.quarantine",
+                "supervision.support",
+                "ops.pause-world",
+                "ops.kill-switch",
+                "ops.announce",
+                "ops.restart-runtime",
+                "security.read",
+                "security.revoke-key",
+                "economy.read",
+                "balance.write",
+                "logs.read",
+                "audit.read",
+                "audit.export",
+                "analytics.read",
+                "devtools.use"
+              ]
+            }
+          },
+          "twoFactor": {
+            "$ref": "#/components/schemas/TwoFactorStateModel"
+          }
+        },
+        "required": [
+          "role",
+          "permissions",
+          "twoFactor"
+        ]
+      },
+      "TwoFactorEnrollmentResponse": {
+        "type": "object",
+        "properties": {
+          "secret": {
+            "type": "string"
+          },
+          "otpauthUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret",
+          "otpauthUrl"
+        ]
+      },
+      "TwoFactorCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "A six-digit authenticator code or a recovery code",
+            "minLength": 6,
+            "maxLength": 16
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "TwoFactorRecoveryCodesResponse": {
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "recoveryCodes"
+        ]
+      },
+      "AuditEntryResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "at": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorRole": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "success",
+              "denied",
+              "failed"
+            ]
+          },
+          "targetType": {
+            "type": "string",
+            "nullable": true
+          },
+          "targetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "before": {
+            "type": "object",
+            "nullable": true
+          },
+          "after": {
+            "type": "object",
+            "nullable": true
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "_id",
+          "at",
+          "actorId",
+          "actorRole",
+          "action",
+          "outcome",
+          "targetType",
+          "targetId",
+          "reason",
+          "before",
+          "after",
+          "ip",
+          "requestId"
+        ]
+      },
+      "AuditPaginationModel": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number"
+          },
+          "results": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "page",
+          "results",
+          "total"
+        ]
+      },
+      "AuditMetaModel": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/AuditPaginationModel"
+          }
+        },
+        "required": [
+          "pagination"
+        ]
+      },
+      "AuditPageResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEntryResponse"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AuditMetaModel"
+          }
+        },
+        "required": [
+          "result",
+          "meta"
         ]
       },
       "RecipeResourceResponse": {

@@ -3,7 +3,7 @@ import { Clock } from '../../shared/application/clock'
 import { NotFoundError } from '../../shared/domain/errors'
 import { assertCanUpdate, UserPatch } from '../domain/user-access'
 import { User, UserListItem } from '../domain/user.entity'
-import { UserCountByStatus, UserPage, UserRepository } from './user.repository'
+import { UserPage, UserRepository } from './user.repository'
 
 export interface ListUsersInput {
   status?: UserStatus
@@ -44,9 +44,5 @@ export class UsersService {
     await this.users.update(updated)
 
     return (await this.users.findListItemById(id)) as UserListItem
-  }
-
-  countByStatus(): Promise<UserCountByStatus> {
-    return this.users.countByStatus()
   }
 }

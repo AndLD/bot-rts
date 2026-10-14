@@ -5,11 +5,10 @@ import { CLOCK, Clock } from '../shared/application/clock'
 import { USER_REPOSITORY, UserRepository } from './application/user.repository'
 import { UsersService } from './application/users.service'
 import { PrismaUserRepository } from './infrastructure/prisma-user.repository'
-import { StatisticsController } from './presentation/statistics.controller'
 import { UsersController } from './presentation/users.controller'
 
 @Module({
-  controllers: [UsersController, StatisticsController],
+  controllers: [UsersController],
   providers: [
     {
       provide: USER_REPOSITORY,

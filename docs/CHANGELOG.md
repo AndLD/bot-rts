@@ -27,10 +27,16 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- Admin console foundations: the `moderator` and `analyst` roles with fine-grained permissions, mandatory TOTP two-factor sign-in
+  with recovery codes, an append-only audit log (`GET /api/v1/admin/audit`), and the `/admin` area of the web client.
 
 ### Changed
 
 - Authentication is cached for two seconds between requests (`AUTH_CACHE_TTL_MS`).
+
+### Removed
+
+- `GET /api/v1/admin/statistics`, which only counted users by status (the admin dashboard replaces it).
 
 ### Fixed
 

@@ -51,6 +51,14 @@ describe('exampleOfSchema', () => {
   })
 })
 
+type Found = {
+  requestBody: { content: Record<string, { example?: unknown }> }
+  responses: Record<string, { content: Record<string, { example?: unknown }> }>
+  'x-codeSamples': Array<{ source: string }>
+}
+const operationsOf = (paths: OpenAPIObject['paths']) =>
+  paths['/api/v1/bots/{botId}/scan'] as unknown as Record<'post' | 'get', Found>
+
 describe('addExamples', () => {
   const spec = () =>
     document(
@@ -76,7 +84,7 @@ describe('addExamples', () => {
 
   it('adds a request and a response example and a curl sample to every operation, but not to the error response', () => {
     const { paths } = addExamples(spec())
-    const post = (paths['/api/v1/bots/{botId}/scan'] as any).post
+    const post = operationsOf(paths).post
 
     expect(post.requestBody.content['application/json'].example).toEqual({ radius: 4 })
     expect(post.responses['200'].content['application/json'].example).toEqual(['string'])
@@ -93,7 +101,7 @@ describe('addExamples', () => {
 
   it('keeps an example the code wrote, and gives an operation without a body a plain curl', () => {
     const { paths } = addExamples(spec())
-    const get = (paths['/api/v1/bots/{botId}/scan'] as any).get
+    const get = operationsOf(paths).get
 
     expect(get.responses['201'].content['application/json'].example).toBe('mine')
     expect(get['x-codeSamples'][0].source).toBe(

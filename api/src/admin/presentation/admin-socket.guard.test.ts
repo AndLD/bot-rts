@@ -3,7 +3,7 @@ import { buildUser } from '../../../tests/integration/builders'
 import { createAdminSocketGuard, SOCKET_FORBIDDEN, SOCKET_TWO_FACTOR_REQUIRED } from './admin-socket.guard'
 
 const run = async (principal: unknown, isVerified: boolean) => {
-  const guard = createAdminSocketGuard('dashboard.read', { isSessionVerified: async () => isVerified })
+  const guard = createAdminSocketGuard({ isSessionVerified: async () => isVerified })
   const next = jest.fn()
   await guard({ principal } as unknown as Socket, next)
 

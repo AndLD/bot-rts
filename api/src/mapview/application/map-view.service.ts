@@ -79,6 +79,27 @@ export class MapViewService {
     }
   }
 
+  // The whole map as it is, without fog of war, for the admin console; every body is shown as the viewer's own
+  async worldView(range: IMapRange): Promise<IMapView> {
+    this.validate(range)
+    const now = this.clock.now().getTime()
+    const points = await this.maps.findPointsInRange({
+      from: { x: range.minX, y: range.minY, z: 0 },
+      to: { x: range.maxX, y: range.maxY, z: 0 }
+    })
+    const bodies = new Set(points.flatMap((point) => (point.contentId ? [point.contentId] : [])))
+
+    return {
+      now,
+      cells: await this.compose(
+        '',
+        points.map((point) => ({ ...point, seenAt: now })),
+        bodies
+      ),
+      liveAreas: []
+    }
+  }
+
   // Where one of the player's own bots stands (a player always knows where their own bots are)
   async positionOf(userId: string, botId: string): Promise<{ x: number; y: number }> {
     const point = (await this.ownIds(userId)).has(botId) ? await this.maps.findPointByContentId(botId) : null

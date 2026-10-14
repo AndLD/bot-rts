@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { PrismaClient } from '@prisma/client'
+import { AuthModule } from '../auth/auth.module'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
@@ -26,14 +27,17 @@ import { PrismaAuditLog } from './infrastructure/prisma-audit-log'
 import { PrismaSecondFactorRepository } from './infrastructure/prisma-second-factor.repository'
 import { AdminAccessGuard } from './presentation/admin-access.guard'
 import { AdminController } from './presentation/admin.controller'
+import { AdminSocketGateway } from './presentation/admin-socket.gateway'
 import { AuditController } from './presentation/audit.controller'
 import { AuditInterceptor } from './presentation/audit.interceptor'
 
 // The admin console's foundations (design §25.2): roles and permissions, the second factor and the audit trail. The console's
 // own routes live under /api/v1/admin and name a permission with @RequirePermission().
 @Module({
+  imports: [AuthModule],
   controllers: [AdminController, AuditController],
   providers: [
+    AdminSocketGateway,
     { provide: AUDIT_LOG, inject: [PRISMA_CLIENT], useFactory: (c: PrismaClient) => new PrismaAuditLog(c) },
     {
       provide: SECOND_FACTOR_REPOSITORY,

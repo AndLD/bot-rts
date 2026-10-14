@@ -54,6 +54,11 @@ export const api = generated.enhanceEndpoints({
 
 export const {
   useAdminMeQuery,
+  useInspectorSearchQuery,
+  useInspectorBotQuery,
+  useInspectorFilesQuery,
+  useLazyInspectorFileQuery,
+  useInspectorHeatmapQuery,
   usePlayersSearchQuery,
   usePlayersProfileQuery,
   usePlayersBanMutation,

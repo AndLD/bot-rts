@@ -1022,7 +1022,9 @@
     },
     "nav": {
       "dashboard": "Dashboard",
-      "players": "Players"
+      "players": "Players",
+      "inspector": "Inspector",
+      "map": "World map"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1192,6 +1194,56 @@
           "confirm": "Type the email {email} to confirm"
         }
       }
+    },
+    "inspector": {
+      "search": "Id of a bot, base or player, or a cell like 12,-4",
+      "nothing": "Nothing found",
+      "loadFailed": "Could not load the bot",
+      "back": "← Search",
+      "kind": {
+        "bot": "Bot",
+        "base": "Base",
+        "worker": "Bot",
+        "player": "Player",
+        "cell": "Cell"
+      },
+      "owner": "Owner",
+      "position": "Position",
+      "noPosition": "Not on the map",
+      "energy": "Energy",
+      "storage": "Storage",
+      "base": "Base",
+      "modules": "Modules",
+      "executions": "Executions",
+      "logs": "Terminal log",
+      "drives": "Drives and files",
+      "columns": {
+        "type": "Type",
+        "name": "Name",
+        "condition": "Condition",
+        "weight": "Weight",
+        "props": "Properties",
+        "file": "Script",
+        "status": "Status",
+        "restarts": "Restarts",
+        "reason": "Reason",
+        "started": "Started"
+      },
+      "files": {
+        "bytes": "{count} bytes",
+        "open": "Open (audited)"
+      }
+    },
+    "map": {
+      "heatmap": "Heatmap",
+      "kind": {
+        "density": "Density",
+        "depletion": "Depletion",
+        "activity": "Activity"
+      },
+      "bucket": "{cells} cells",
+      "tail": "Live events",
+      "noEvents": "No events yet"
     }
   }
 }

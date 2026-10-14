@@ -55,6 +55,8 @@ export default function ApiKeysCard() {
     setSecret(result.data.secret)
   }
 
+  const closeSecret = () => setSecret(null)
+
   async function remove(id: string) {
     const result = await revoke({ id })
 
@@ -178,22 +180,24 @@ export default function ApiKeysCard() {
         </Form>
       </Modal>
 
-      <Modal
-        open={secret !== null}
-        title={t('created')}
-        footer={<Button onClick={() => setSecret(null)}>{t('done')}</Button>}
-        onCancel={() => setSecret(null)}
-      >
-        <Alert type="warning" showIcon message={t('shownOnce')} />
-        <Input readOnly value={secret ?? ''} aria-label={t('secret')} style={{ marginTop: 12 }} />
-        <Button
-          icon={<CopyOutlined />}
-          style={{ marginTop: 8 }}
-          onClick={() => void navigator.clipboard?.writeText(secret ?? '')}
+      {secret !== null && (
+        <Modal
+          open
+          title={t('created')}
+          footer={<Button onClick={closeSecret}>{t('done')}</Button>}
+          onCancel={closeSecret}
         >
-          {t('copy')}
-        </Button>
-      </Modal>
+          <Alert type="warning" showIcon message={t('shownOnce')} />
+          <Input readOnly value={secret} aria-label={t('secret')} style={{ marginTop: 12 }} />
+          <Button
+            icon={<CopyOutlined />}
+            style={{ marginTop: 8 }}
+            onClick={() => void navigator.clipboard?.writeText(secret)}
+          >
+            {t('copy')}
+          </Button>
+        </Modal>
+      )}
     </div>
   )
 }

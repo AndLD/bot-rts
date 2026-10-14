@@ -176,11 +176,9 @@ describe('ApiKeysCard', () => {
     await screen.findByDisplayValue('botrts_the-whole-secret')
     // Copying without a clipboard does not fail
     fireEvent.click(await button('Copy'))
-    fireEvent.click(document.querySelector('.ant-modal-close') as HTMLElement)
+    fireEvent.click(Array.from(document.querySelectorAll('.ant-modal-close')).pop() as HTMLElement)
 
-    await waitFor(() =>
-      expect(document.querySelectorAll('.ant-modal-wrap[style*="display: none"]').length).toBeGreaterThan(0)
-    )
+    await waitFor(() => expect(screen.queryByDisplayValue('botrts_the-whole-secret')).not.toBeInTheDocument())
   })
 
   it('chooses an expiry and sends it', async () => {

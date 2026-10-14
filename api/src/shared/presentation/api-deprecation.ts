@@ -20,7 +20,7 @@ export interface Deprecation {
   replacement?: string
 }
 
-// Marks a route as deprecated (docs/API.md, "Stability"): the reference shows it as deprecated, and every answer carries the
+// Marks a route as deprecated (docs/integrations/API.md, "Stability"): the reference shows it as deprecated, and every answer carries the
 // `Deprecation` and `Sunset` headers (and a `Link` to the replacement), so a client can notice without reading the changelog
 export const ApiDeprecated = (deprecation: Deprecation) =>
   applyDecorators(

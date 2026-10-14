@@ -1,8 +1,8 @@
-[← README](../README.md)
+[← README](../../README.md)
 
 # Releasing
 
-Bot RTS follows [Semantic Versioning](https://semver.org/) and the Git Flow of [AGENTS.md §7](../AGENTS.md). One version number is
+Bot RTS follows [Semantic Versioning](https://semver.org/) and the Git Flow of [AGENTS.md §7](../../AGENTS.md). One version number is
 shared by the root package, `lib`, `api` and `client`; it is tagged as `vX.Y.Z` on `main`.
 
 ## What the number means
@@ -20,7 +20,7 @@ Database migrations are part of the release; applied migrations are never edited
 
 ## The changelog
 
-[CHANGELOG.md](../CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
+[CHANGELOG.md](../../CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
 `Security`). A pull request that changes what a player, an API client or an operator sees adds a line under `## [Unreleased]` in the
 same pull request. Pull requests that only touch tests, docs or tooling need none.
 
@@ -39,7 +39,7 @@ same pull request. Pull requests that only touch tests, docs or tooling need non
 
 2. Only fixes go on the release branch (no features). Open a pull request **into `main`**; it needs the owner's approval to merge.
 3. Merge it with a **merge commit** (no squash). Then tag `main` and push the tag; the tag starts
-   [the release workflow](../.github/workflows/release.yml), which builds the Docker image, publishes it to GitHub Container Registry and
+   [the release workflow](../../.github/workflows/release.yml), which builds the Docker image, publishes it to GitHub Container Registry and
    creates the GitHub release from the changelog section:
 
    ```bash

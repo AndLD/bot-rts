@@ -29,7 +29,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # The whole stack (docs/DEPLOYMENT.md): `docker compose --profile stack up -d --build`. The services below are not started by
+  # The whole stack (docs/operations/DEPLOYMENT.md): `docker compose --profile stack up -d --build`. The services below are not started by
   # `npm run db:up`, which only starts the database and Redis for development.
   migrate:
     profiles: [stack]

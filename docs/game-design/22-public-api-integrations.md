@@ -28,7 +28,7 @@
   server can show and react to them.
 - An **OpenAPI specification** is published and kept in sync with the code. ✅ (Plan 8.10) It carries a request example, a response
   example and a `curl` sample for every operation and the scope each needs. The stability and deprecation policy is in
-  [`docs/API.md`](../API.md): changes inside `/api/v1` are compatible, breaking ones ship as `/api/v2`, and a deprecated route announces
+  [`docs/integrations/API.md`](../integrations/API.md): changes inside `/api/v1` are compatible, breaking ones ship as `/api/v2`, and a deprecated route announces
   itself with `Deprecation` and `Sunset` headers at least six months before it goes. Contract tests require that a key with enough
   scopes and a session get identical answers over HTTP and Socket.IO.
 - Account and admin operations (settings, user management, API key creation itself) are **not** available through API keys.
@@ -44,7 +44,7 @@
   cooldowns, category switches and the key's scopes. A player can give the AI a restricted key (for example read +
   movement only). The AI has no special rules and is not labelled in the game.
 - **Transport:** stdio for local use and streamable HTTP for hosted use.
-- ✅ **Implementation (Plan 8.11):** `mcp/` registers about 50 tools ([`docs/MCP.md`](../MCP.md)); the manual-control tools are generated from
+- ✅ **Implementation (Plan 8.11):** `mcp/` registers about 50 tools ([`docs/integrations/MCP.md`](../integrations/MCP.md)); the manual-control tools are generated from
   the list of script functions the engine enforces, one `bot_<function>` each, with the scope of the function's category. Over HTTP the
   server is stateless and every client brings its own key, so each plays as its own player. Tool failures are results with the game's
   error code, so the AI can react to `BLOCKED`, `NO_ENERGY` or a missing scope.

@@ -94,7 +94,7 @@ about 15 minutes it is sharded and run in parallel.
   `engine-load.test.ts` and the time a memory bomb may take in `quickjs-sandbox.test.ts` only catch a runaway; React Testing Library waits
   up to 5 s (`client/jest.setup.ts`); the follow-the-end behaviour of the terminal no longer depends on the order of a scroll event; the
   Cypress notification spec waits for the script's finished notification before it marks everything read. What a tick really costs is
-  measured by the load harness (`docs/LOAD-TESTING.md`), not by a unit test.
+  measured by the load harness (`docs/operations/LOAD-TESTING.md`), not by a unit test.
 - **The `Aborted(Assertion failed: list_empty(&rt->gc_obj_list)` line** in the test output comes from the sandbox attack tests: a sandbox
   that ran out of memory or stack cannot always be taken apart cleanly, so the engine drops its module and makes a new one (`dispose()` of
   `quickjs-script-runtime.ts`). It is expected there; it must not appear in the output of any other suite.

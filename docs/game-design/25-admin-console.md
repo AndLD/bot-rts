@@ -59,6 +59,7 @@ template, and the components they refer to were never added. What exists:
 | **Logs and audit** | Structured log search by request / user / bot, slow-tick traces, audit log | Filter and export |
 | **Analytics** | DAU / MAU, retention, onboarding funnel (sign-up → verified → base deployed → first script → first resource → tutorial completed), achievement rates | Export CSV |
 | **Dev tools** (non-production only) | Seed a world, advance the injected clock, spawn test bots, reset the database | Replaces the legacy debug endpoint |
+| **Docs** | The admin console documentation: roles and permissions, every page and action, procedures (supervision, maintenance, moderation), alert thresholds | Search; open from the "?" link of any admin page |
 
 ## 25.4 What is supervised ✅
 

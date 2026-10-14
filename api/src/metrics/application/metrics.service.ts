@@ -14,7 +14,12 @@ export interface ProcessStats {
   heapUsedBytes: number
 }
 
-const ENGINE_GAUGES: Array<[keyof EngineMetricsSnapshot, string, string]> = [
+// The numeric fields of the snapshot, which are the ones exported as gauges
+type GaugeField = {
+  [K in keyof EngineMetricsSnapshot]: EngineMetricsSnapshot[K] extends number ? K : never
+}[keyof EngineMetricsSnapshot]
+
+const ENGINE_GAUGES: Array<[GaugeField, string, string]> = [
   ['tick', 'botrts_engine_tick', 'Number of the last game tick'],
   ['lastTickMs', 'botrts_engine_last_tick_milliseconds', 'Duration of the last tick'],
   ['p95TickMs', 'botrts_engine_tick_p95_milliseconds', '95th percentile of the last hundred ticks'],

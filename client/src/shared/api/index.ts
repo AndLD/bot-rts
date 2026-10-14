@@ -67,6 +67,9 @@ export const api = generated.enhanceEndpoints({
 
 export const {
   useAdminMeQuery,
+  useAuditListQuery,
+  useLogsSearchQuery,
+  useLogsSlowTicksQuery,
   useSupervisionStateQuery,
   useSupervisionKillMutation,
   useSupervisionRebootMutation,

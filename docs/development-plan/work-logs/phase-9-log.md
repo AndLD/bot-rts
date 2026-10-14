@@ -67,3 +67,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 9.10, the logs and audit viewer (execution order of the phase: 9.6 → 9.10 → 9.7 → 9.8 → 9.9 → 9.12 → 9.11 → 9.15 → 9.14 → 9.13).
 - **Verify with:** `npx jest src/engine/application/engine-core.test.ts src/support src/supervision` and `npx jest --selectProjects integration --testPathPattern supervision.int` from `api`; `npx jest src/features/admin/supervision` from `client`
 
+### 2026-10-15 — task 9.10 logs and audit viewer
+- **Tasks:** 9.10
+- **Branch:** `feature/9.10-logs-audit` (stacked on 9.6) — done
+- **Decisions / deviations from the plan:** the logs are not structured fields in a store: the process keeps its newest lines (`LOG_BUFFER_SIZE`, default 5000) in a ring buffer filled by a `RecordingLogger` that wraps the log4js logger, with level, time and the request id of the request being served. The search matches a part of the text (so the id of a player or a bot is found where it is in the line), a level, a request id and a time range. The buffer is per node and in memory: the files and the console remain the record, and a deployment with several nodes shows the node that answers (a log store would be the follow-up). Slow-tick traces: the engine keeps its last 20 ticks over the tick interval (`slowTicks` in the metrics snapshot: tick, duration, queued, deferred, whether the cap cut it); no wall-clock time is stored, to keep the engine free of `Date.now()`. The audit trail already had filters (9.1); this task adds the viewer with the before and after of a change and `GET /api/v1/admin/audit/export` (CSV, at most 10,000 lines, formula-like cells made plain text, and the export is itself audited). `logs.read` is for admins and owners; moderators and analysts see neither the logs nor the audit.
+- **Problems / blockers / findings:** the metrics gauges are typed by the numeric fields of the snapshot now, since the snapshot has a list in it.
+- **Next step:** 9.7, security and abuse monitoring.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern logs.int` and `npx jest src/shared/application/log-buffer src/admin/domain/audit-csv` from `api`; `npx jest src/features/admin/logs` from `client`
+

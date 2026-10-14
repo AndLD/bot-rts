@@ -21,7 +21,8 @@ describe('EngineMetrics', () => {
       cutTicks: 0,
       queuedExecutions: 0,
       deferredExecutions: 0,
-      maxWaitTicks: 0
+      maxWaitTicks: 0,
+      slowTicks: []
     })
   })
 
@@ -38,8 +39,21 @@ describe('EngineMetrics', () => {
       cutTicks: 1,
       queuedExecutions: 0,
       deferredExecutions: 0,
-      maxWaitTicks: 0
+      maxWaitTicks: 0,
+      slowTicks: [
+        { tick: 21, durationMs: 150, intervalMs: 100, isCut: true, queuedExecutions: 0, deferredExecutions: 0 }
+      ]
     })
+  })
+
+  it('keeps the newest twenty slow ticks only', () => {
+    const metrics = new EngineMetrics()
+    for (let tick = 1; tick <= 25; tick++) metrics.record(sample(tick, 200))
+
+    const slow = metrics.snapshot().slowTicks
+    expect(slow).toHaveLength(20)
+    expect(slow[0].tick).toBe(6)
+    expect(slow[19].tick).toBe(25)
   })
 
   it('looks at the latest hundred ticks only', () => {

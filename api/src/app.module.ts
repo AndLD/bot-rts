@@ -15,6 +15,7 @@ import { RealtimeModule } from './engine/realtime.module'
 import { FilesModule } from './files/files.module'
 import { HealthModule } from './health/health.module'
 import { TimeModule } from './time/time.module'
+import { LogsModule } from './logs/logs.module'
 import { MapModule } from './map/map.module'
 import { MapViewModule } from './mapview/mapview.module'
 import { ModulesModule } from './modules/modules.module'
@@ -49,6 +50,7 @@ export class AppModule {
         PlayersModule,
         InspectorModule,
         SupervisionModule,
+        LogsModule,
         ModulesModule,
         CraftingModule,
         FilesModule,

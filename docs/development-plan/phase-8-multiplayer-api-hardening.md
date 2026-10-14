@@ -15,7 +15,7 @@
 | 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, PostgreSQL) alongside the PM2 setup | 6 | ✅ |
 | 8.8 | Final coverage & quality sweep to ≥ 97 % per package | 5 | ⬜ |
 | 8.9 | API keys: per-player keys (shown once, stored hashed), scopes that only narrow the player's rights, per-key rate limit, revocation, profile UI; Nest API-key guard and scope decorators for HTTP and WebSocket | 8 | ✅ |
-| 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 | ⬜ |
+| 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 | ✅ |
 | 8.11 | MCP server (`mcp/` workspace package): tools for observation, manual control per category, files, scripts, fabrication; calls only `/api/v1` with an API key; stdio + streamable HTTP transports; tests against a seeded test backend | 8 | ⬜ |
 | 8.12 | Frontend deployment on Vercel with the API/engine on a long-running host: shared registrable domain, cookie domain and CORS, Socket.IO direct to the API domain, environment configuration and preview deployments | 3 | ⬜ |
 | 8.13 | E2E (Cypress + a second API-driven player): API key create / use / revoke in the profile; two players — contested cell (`BLOCKED`), private fog of war, an attack visible to the defender, adopting a stale bot; also a read-only API key that cannot act, an MCP smoke test (scan, move), and a corpse base visible to others with stale bots | 7 | ⬜ |
@@ -39,4 +39,5 @@ AGENTS.md §7.1).
 | `feature/8.5-performance-pass` | 8.5 | [#132](https://github.com/AndLD/bot-rts/pull/132) | ✅ merged |
 | `feature/8.6-load-soak` | 8.6 | [#133](https://github.com/AndLD/bot-rts/pull/133) | ✅ merged |
 | `feature/8.7-release-management` | 8.7 | [#134](https://github.com/AndLD/bot-rts/pull/134) | ✅ merged |
-| `feature/8.9-api-keys` | 8.9 | [#135](https://github.com/AndLD/bot-rts/pull/135) | 🟡 |
+| `feature/8.9-api-keys` | 8.9 | [#135](https://github.com/AndLD/bot-rts/pull/135) | ✅ merged |
+| `feature/8.10-public-api-hardening` | 8.10 | [#136](https://github.com/AndLD/bot-rts/pull/136) | 🟡 |

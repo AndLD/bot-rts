@@ -83,3 +83,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.10, public API hardening (API keys on all routes and sockets are in; the stability / deprecation policy, OpenAPI with examples and the contract tests that a key client and the official client behave the same remain).
 - **Verify with:** `npx jest src/apikeys src/auth` from `api`; `npm test -w client -- ApiKeysCard`
 
+### 2026-10-14 — task 8.10 public API hardening
+- **Tasks:** 8.10
+- **Branch:** `feature/8.10-public-api-hardening` — done
+- **Decisions / deviations from the plan:** key authentication on every route and socket was done with 8.9 (deny-by-default guard and the route-coverage test); this task adds the policy, the reference and the contract. `docs/API.md` holds the stability and deprecation policy (compatible changes in `/api/v1`, breaking ones as `/api/v2`, six months' notice, `Deprecation` / `Sunset` / `Link` headers set by `@ApiDeprecated` and `DeprecationInterceptor`; no route is deprecated yet). The OpenAPI document gets a request example, a response example and a curl sample for every operation, generated from the schemas by `addExamples` (so a DTO's own `@ApiProperty` example wins). `contract.int.test.ts` asks a session and an all-scopes key the same questions and requires identical answers: every parameter-free-or-known-id `read` route of the document, a set of identical mistakes, malformed tokens, and the read events of the socket (the server clock `now` is ignored).
+- **Problems / blockers / findings:** none.
+- **Next step:** 8.11, the MCP server (`mcp/` workspace package) on top of the API keys and the HTTP script endpoints.
+- **Verify with:** `npx jest src/apikeys src/shared/presentation src/openapi` from `api`
+

@@ -40,7 +40,12 @@ export class CreateApiKeyDto {
   @IsInt()
   @Min(1)
   @Max(API_KEY_LIMITS.maxRatePerMinute)
-  @ApiPropertyOptional({ default: API_KEY_LIMITS.defaultRatePerMinute, description: 'Requests per minute' })
+  @ApiPropertyOptional({
+    default: API_KEY_LIMITS.defaultRatePerMinute,
+    minimum: 1,
+    maximum: API_KEY_LIMITS.maxRatePerMinute,
+    description: 'Requests per minute'
+  })
   ratePerMinute?: number
 
   @IsOptional()

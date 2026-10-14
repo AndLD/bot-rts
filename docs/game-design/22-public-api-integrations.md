@@ -26,7 +26,11 @@
   switches (§15.1), and the single-writer engine (§14.2). An API client never gets an advantage over the official one.
 - Notifications (§24) and achievements (§23) are available through the API (scope `read`), so custom clients and the MCP
   server can show and react to them.
-- An **OpenAPI specification** is published and kept in sync with the code.
+- An **OpenAPI specification** is published and kept in sync with the code. ✅ (Plan 8.10) It carries a request example, a response
+  example and a `curl` sample for every operation and the scope each needs. The stability and deprecation policy is in
+  [`docs/API.md`](../API.md): changes inside `/api/v1` are compatible, breaking ones ship as `/api/v2`, and a deprecated route announces
+  itself with `Deprecation` and `Sunset` headers at least six months before it goes. Contract tests require that a key with enough
+  scopes and a session get identical answers over HTTP and Socket.IO.
 - Account and admin operations (settings, user management, API key creation itself) are **not** available through API keys.
 
 ## 22.2 MCP server ✅

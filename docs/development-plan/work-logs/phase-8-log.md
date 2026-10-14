@@ -51,3 +51,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.5, performance pass (map queries, batching, caching, index verification).
 - **Verify with:** `npx jest src/lifecycle src/config` from `api`
 
+### 2026-10-14 — task 8.5 performance pass
+- **Tasks:** 8.5 (and a fix of the flaky terminal-follow Cypress spec, found in the PRs of 8.1-8.4)
+- **Branch:** `feature/8.5-performance-pass` — done
+- **Decisions / deviations from the plan:** the engine flush was already batched except for modules (a statement per module); modules, the scan's known-point snapshots and the energy / factory / repair saves now write in one statement (`ModuleRepository.updateMany`, `writeModules`, `writeKnownPoints`). The only missing index was for bases (`map_points (type, x, y)`, migration `map_points_type_index`); `query-plans.int.test.ts` now checks 21 hot queries can use an index, and every other one passed already. Caching: only authentication is cached (`PrincipalCache`, 2 s, off in tests and the e2e stack), which cuts about five queries per request to one per burst; map data is not cached beyond the engine's chunk cache. `useStickyScroll` now judges "was at the bottom" when the content changes, from the live scroll position (a scroll event arriving after a new line made the terminal stop following, which failed the `interface.cy.ts` spec in most first CI runs).
+- **Problems / blockers / findings:** no benchmark numbers yet: 8.6 measures them under load.
+- **Next step:** 8.6, load and soak testing, and tuning the scheduler budget.
+- **Verify with:** `npx jest src/persistence src/modules src/map tests/integration/query-plans src/auth` from `api`
+

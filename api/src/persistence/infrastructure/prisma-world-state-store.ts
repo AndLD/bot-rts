@@ -1,6 +1,7 @@
-import { Prisma, PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { WorldStateBatch, WorldStateStore } from '../application/world-state-store'
-import { toModuleRow } from '../../modules/infrastructure/prisma-module.repository'
+import { writeModules } from '../../modules/infrastructure/prisma-module.repository'
+import { writeKnownPoints } from '../../map/infrastructure/prisma-map.repository'
 
 export class PrismaWorldStateStore implements WorldStateStore {
   constructor(private readonly client: PrismaClient) {}
@@ -27,27 +28,7 @@ export class PrismaWorldStateStore implements WorldStateStore {
                 amount = EXCLUDED.amount`
       }
 
-      if (knownPoints.length) {
-        const rows = knownPoints.map(({ id, userId, location, type, contentId, resource, seenAt }) => ({
-          id,
-          userId,
-          ...location,
-          type,
-          contentId,
-          resource: resource?.resource ?? null,
-          amount: resource?.amount ?? null,
-          seenAt
-        }))
-        await tx.$executeRaw`
-          INSERT INTO known_points (id, user_id, x, y, z, type, content_id, resource, amount, seen_at)
-          SELECT id, "userId", x, y, z, type::map_point_type, "contentId", resource::resource_type, amount, "seenAt"
-          FROM jsonb_to_recordset(${JSON.stringify(rows)}::jsonb)
-            AS r(id uuid, "userId" uuid, x int, y int, z int, type text, "contentId" uuid, resource text,
-                 amount int, "seenAt" bigint)
-          ON CONFLICT (user_id, x, y, z) DO UPDATE
-            SET type = EXCLUDED.type, content_id = EXCLUDED.content_id, resource = EXCLUDED.resource,
-                amount = EXCLUDED.amount, seen_at = EXCLUDED.seen_at`
-      }
+      await writeKnownPoints(tx, knownPoints)
 
       if (items.length) {
         await tx.$executeRaw`
@@ -69,10 +50,7 @@ export class PrismaWorldStateStore implements WorldStateStore {
           WHERE bots.id = r."botId"`
       }
 
-      for (const module of modules) {
-        const { id, ...data } = toModuleRow(module) as Prisma.ModuleUncheckedCreateInput
-        await tx.module.upsert({ where: { id }, create: { id, ...data }, update: data })
-      }
+      await writeModules(tx, modules, true)
     })
   }
 }

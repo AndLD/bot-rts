@@ -267,6 +267,8 @@ model MapPoint {
 
   @@unique([x, y, z])
   @@index([contentId])
+  // Bases in an area (spawn placement, the map of bases) and the count of bases
+  @@index([type, x, y])
   @@map("map_points")
 }
 

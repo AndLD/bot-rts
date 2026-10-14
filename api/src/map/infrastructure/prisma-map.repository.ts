@@ -31,17 +31,34 @@ function inRange({ from, to }: LocationRange) {
   return { x: { gte: from.x, lte: to.x }, y: { gte: from.y, lte: to.y }, z: { gte: from.z, lte: to.z } }
 }
 
-function toKnownRow(point: KnownPoint): KnownPointRow {
-  const { x, y, z } = point.location
-  return {
-    id: point.id,
-    userId: point.userId,
-    x,
-    y,
-    z,
-    ...contentOf(point),
-    seenAt: BigInt(point.seenAt)
+// Inserts or updates the snapshots of what players know in one statement; the rows travel as one JSON document (typed arrays
+// with NULL elements are not inferred reliably by the driver). A cell named twice keeps its last snapshot.
+export async function writeKnownPoints(db: Prisma.TransactionClient, points: readonly KnownPoint[]): Promise<void> {
+  if (!points.length) {
+    return
   }
+  const latest = new Map(
+    points.map((point) => [`${point.userId}:${point.location.x}:${point.location.y}:${point.location.z}`, point])
+  )
+  const rows = [...latest.values()].map(({ id, userId, location, type, contentId, resource, seenAt }) => ({
+    id,
+    userId,
+    ...location,
+    type,
+    contentId,
+    resource: resource?.resource ?? null,
+    amount: resource?.amount ?? null,
+    seenAt
+  }))
+  await db.$executeRaw`
+    INSERT INTO known_points (id, user_id, x, y, z, type, content_id, resource, amount, seen_at)
+    SELECT id, "userId", x, y, z, type::map_point_type, "contentId", resource::resource_type, amount, "seenAt"
+    FROM jsonb_to_recordset(${JSON.stringify(rows)}::jsonb)
+      AS r(id uuid, "userId" uuid, x int, y int, z int, type text, "contentId" uuid, resource text,
+           amount int, "seenAt" bigint)
+    ON CONFLICT (user_id, x, y, z) DO UPDATE
+      SET type = EXCLUDED.type, content_id = EXCLUDED.content_id, resource = EXCLUDED.resource,
+          amount = EXCLUDED.amount, seen_at = EXCLUDED.seen_at`
 }
 
 export class PrismaMapRepository implements MapRepository {
@@ -95,20 +112,7 @@ export class PrismaMapRepository implements MapRepository {
   }
 
   async upsertKnownPoints(points: KnownPoint[]): Promise<void> {
-    for (const point of points) {
-      const { id, ...row } = toKnownRow(point)
-      await this.db.knownPoint.upsert({
-        where: { userId_x_y_z: { userId: row.userId, x: row.x, y: row.y, z: row.z } },
-        create: { id, ...row },
-        update: {
-          type: row.type,
-          contentId: row.contentId,
-          resource: row.resource,
-          amount: row.amount,
-          seenAt: row.seenAt
-        }
-      })
-    }
+    await writeKnownPoints(this.db, points)
   }
 
   async findKnownPoint(userId: string, location: Location): Promise<KnownPoint | null> {

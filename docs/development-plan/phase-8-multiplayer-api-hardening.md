@@ -10,7 +10,7 @@
 | 8.2 | Rate limiting (login/signup), request timeouts, input size limits, helmet/CORS review | 5 | ✅ |
 | 8.3 | Observability: structured logs, request IDs, metrics (tick latency, scheduler fairness, queue depth), health checks | 5 | ✅ |
 | 8.4 | Data lifecycle: cleanup inactive users/bots, terminal session retention (30 days / 5,000 lines per bot via a scheduled cleanup job or time-partitioned tables; security events 90 days); offline-player executions continue, so account-inactivity policy must account for running scripts | 3 | ✅ |
-| 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 | ⬜ |
+| 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 | ✅ |
 | 8.6 | Load/soak testing (many players × bots) and tuning the scheduler budget | 5 | ⬜ |
 | 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, PostgreSQL) alongside the PM2 setup | 6 | ⬜ |
 | 8.8 | Final coverage & quality sweep to ≥ 97 % per package | 5 | ⬜ |
@@ -35,4 +35,5 @@ AGENTS.md §7.1).
 | `feature/8.1-scalable-api-tier` | 8.1 | [#128](https://github.com/AndLD/bot-rts/pull/128) | ✅ merged |
 | `feature/8.2-request-hardening` | 8.2 | [#129](https://github.com/AndLD/bot-rts/pull/129) | ✅ merged |
 | `feature/8.3-observability` | 8.3 | [#130](https://github.com/AndLD/bot-rts/pull/130) | ✅ merged |
-| `feature/8.4-data-lifecycle` | 8.4 | [#131](https://github.com/AndLD/bot-rts/pull/131) | 🟡 |
+| `feature/8.4-data-lifecycle` | 8.4 | [#131](https://github.com/AndLD/bot-rts/pull/131) | ✅ merged |
+| `feature/8.5-performance-pass` | 8.5 | [#132](https://github.com/AndLD/bot-rts/pull/132) | 🟡 |

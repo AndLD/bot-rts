@@ -12,6 +12,7 @@ import { LOGGER, Logger } from '../shared/application/logger'
 import { USER_REPOSITORY, UserRepository } from '../users/application/user.repository'
 import { UsersModule } from '../users/users.module'
 import { AuthService } from './application/auth.service'
+import { PrincipalCache } from './application/principal-cache'
 import { CREDENTIAL_AUTH } from './application/credential-auth.service'
 import { IDENTITY_VERIFIER, IdentityVerifier } from './application/identity-verifier'
 import { LocalAuthService } from './application/local-auth.service'
@@ -136,8 +137,9 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
     },
     {
       provide: AuthService,
-      inject: [IDENTITY_VERIFIER, UserProvisioner],
-      useFactory: (verifier: IdentityVerifier, provisioner: UserProvisioner) => new AuthService(verifier, provisioner)
+      inject: [IDENTITY_VERIFIER, UserProvisioner, CLOCK, APP_CONFIG],
+      useFactory: (verifier: IdentityVerifier, provisioner: UserProvisioner, clock: Clock, config: AppConfig) =>
+        new AuthService(verifier, provisioner, new PrincipalCache(clock, config.auth.principalCacheMs))
     },
     {
       provide: REFRESH_COOKIE_OPTIONS,

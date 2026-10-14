@@ -39,6 +39,25 @@ describe('PrismaModuleRepository', () => {
     expect(stored).toEqual(expect.arrayContaining([gun, battery]))
   })
 
+  it('updates several existing modules in one statement, leaving the others and unknown ids alone', async () => {
+    const [a, b, untouched] = [buildModule(baseId), buildModule(baseId), buildModule(baseId)]
+    await modules.addMany([a, b, untouched])
+    const ghost = buildModule(baseId)
+
+    await modules.updateMany([
+      { ...a, condition: 40, props: { damage: 1, nested: { x: [3] } } },
+      { ...b, name: 'renamed', idleCost: 0.5 },
+      ghost
+    ])
+    await modules.updateMany([])
+
+    const stored = await modules.listOfBot(baseId)
+    expect(stored).toHaveLength(3)
+    expect(stored.find((m) => m.id === a.id)).toMatchObject({ condition: 40, props: { damage: 1, nested: { x: [3] } } })
+    expect(stored.find((m) => m.id === b.id)).toMatchObject({ name: 'renamed', idleCost: 0.5 })
+    expect(stored.find((m) => m.id === untouched.id)).toEqual(untouched)
+  })
+
   it('lists the modules of several bots at once', async () => {
     const user = buildUser()
     await new PrismaUserRepository(database.client).add(user)

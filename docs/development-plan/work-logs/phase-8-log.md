@@ -67,3 +67,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.7, release management (semantic versioning, release / hotfix flow, CHANGELOG, deploy docs, Dockerfile and compose).
 - **Verify with:** `npm run db:up && npm run load -- --players 50 --duration 30`; `npx jest src/terminal src/engine/application/engine-core` from `api`
 
+### 2026-10-14 — task 8.7 release management and Docker
+- **Tasks:** 8.7
+- **Branch:** `feature/8.7-release-management` — done
+- **Decisions / deviations from the plan:** one shared version for the root package, `lib`, `api` and `client`, all reset to `0.0.0` (the first release, 1.0.0, is cut from `release/1.0.0` when the owner decides). `scripts/release.mjs` (pure parts in `release-lib.mjs`, tested with `node --test`, run in CI as `npm run test:scripts`) takes the version from the branch name, sets it in every manifest and the lock file, and moves the changelog entries. `.github/workflows/release.yml` runs on a `vX.Y.Z` tag: it checks the tag against the version and the changelog, publishes `ghcr.io/<owner>/bot-rts-api:<version>` and creates the GitHub release. Nothing publishes until the owner pushes a tag. One image (`api/Dockerfile`) serves all roles; the `stack` compose profile adds `migrate`, `api` and `engine` next to the existing `db` and `redis`, so `npm run db:up` is unchanged. The image keeps the dev dependencies on purpose (the Prisma CLI applies the migrations). CI builds the image on every pull request (`docker` job). I built the image and ran the stack locally: `/api/v1/health` answered with the database, Redis and the engine up, the API node reaching the engine node through Redis.
+- **Problems / blockers / findings:** the first image failed to start because `npm ci --ignore-scripts` skipped the native build of bcrypt, and a package that npm did not hoist (`api/node_modules/helmet`) was not copied; both fixed. A required-variable compose default would have broken `docker compose up db` for everyone, so a missing `JWT_ACCESS_SECRET` is refused by the application instead.
+- **Next step:** 8.8 is the final coverage sweep and comes last in the phase; the order continues with 8.9 (API keys).
+- **Verify with:** `npm run test:scripts`; `docker build -f api/Dockerfile -t botrts-api .`; `docker compose --profile stack config -q`
+

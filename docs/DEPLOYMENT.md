@@ -14,6 +14,25 @@
 The game world has one authoritative owner, the engine (design §12.2.2, §14.2), so the engine node is never replicated:
 two engine nodes would both write the world. The API tier is stateless and scales horizontally.
 
+## Running it
+
+**Docker** (the image is built from `api/Dockerfile`; one image runs every role, chosen by `APP_ROLE`):
+
+```bash
+JWT_ACCESS_SECRET=$(openssl rand -hex 32) METRICS_TOKEN=... \
+  docker compose --profile stack up -d --build      # db, redis, migrate (one-shot), engine, api
+docker compose --profile stack up -d --scale api=3  # more API nodes (put a load balancer in front; publish no fixed port for them)
+```
+
+`migrate` applies the Prisma migrations before the others start. Settings come from the environment (`FRONTEND_URL`,
+`WHITELIST_URLS`, `SMTP_*`, `TRUST_PROXY`, … see `api/.env.example`); a production start without `JWT_ACCESS_SECRET` is refused. A
+release publishes `ghcr.io/<owner>/bot-rts-api:<version>` ([RELEASING.md](./RELEASING.md)). The development `npm run db:up` starts only
+the database and Redis.
+
+**PM2** (`ecosystem.config.json`, one process of each kind, `APP_ROLE=all`): `npm run build -w api`, apply the migrations with
+`npm run db:migrate -w api` against the production `DATABASE_URL`, then `pm2 start ecosystem.config.json`. To scale out with PM2, add a
+second app entry with `APP_ROLE=engine` (exactly one) and set `APP_ROLE=api` on the others.
+
 ## How the nodes work together
 
 - **Requests that change the world** (deploying a base, crafting, scripts, manual control) are sent by an `api` node to the

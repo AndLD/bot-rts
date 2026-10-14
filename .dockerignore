@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+.e2e
+.load
+.lighthouseci
+**/node_modules
+**/coverage
+**/logs
+**/.env*
+!**/.env.example
+api/ts-built
+client/*
+!client/package.json
+docs

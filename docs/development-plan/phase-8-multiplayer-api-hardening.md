@@ -12,7 +12,7 @@
 | 8.4 | Data lifecycle: cleanup inactive users/bots, terminal session retention (30 days / 5,000 lines per bot via a scheduled cleanup job or time-partitioned tables; security events 90 days); offline-player executions continue, so account-inactivity policy must account for running scripts | 3 | ✅ |
 | 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 | ✅ |
 | 8.6 | Load/soak testing (many players × bots) and tuning the scheduler budget | 5 | ✅ |
-| 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, PostgreSQL) alongside the PM2 setup | 6 | ⬜ |
+| 8.7 | Release management: semantic versioning, `release/*`/`hotfix/*` flow, CHANGELOG, deploy docs; Dockerfile + compose (API, engine, PostgreSQL) alongside the PM2 setup | 6 | ✅ |
 | 8.8 | Final coverage & quality sweep to ≥ 97 % per package | 5 | ⬜ |
 | 8.9 | API keys: per-player keys (shown once, stored hashed), scopes that only narrow the player's rights, per-key rate limit, revocation, profile UI; Nest API-key guard and scope decorators for HTTP and WebSocket | 8 | ⬜ |
 | 8.10 | Public API hardening: API-key authentication on all `/api/v1` routes and sockets, stability/deprecation policy, OpenAPI published with examples, contract tests that the official client and key clients get identical behavior | 3 | ⬜ |
@@ -37,4 +37,5 @@ AGENTS.md §7.1).
 | `feature/8.3-observability` | 8.3 | [#130](https://github.com/AndLD/bot-rts/pull/130) | ✅ merged |
 | `feature/8.4-data-lifecycle` | 8.4 | [#131](https://github.com/AndLD/bot-rts/pull/131) | ✅ merged |
 | `feature/8.5-performance-pass` | 8.5 | [#132](https://github.com/AndLD/bot-rts/pull/132) | ✅ merged |
-| `feature/8.6-load-soak` | 8.6 | [#133](https://github.com/AndLD/bot-rts/pull/133) | 🟡 |
+| `feature/8.6-load-soak` | 8.6 | [#133](https://github.com/AndLD/bot-rts/pull/133) | ✅ merged |
+| `feature/8.7-release-management` | 8.7 | [#134](https://github.com/AndLD/bot-rts/pull/134) | 🟡 |

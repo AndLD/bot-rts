@@ -121,6 +121,8 @@ jobs:
         run: npm run i18n:check
       - name: Markdown links
         run: npm run docs:check
+      - name: Release scripts
+        run: npm run test:scripts
       - name: Unit and integration tests with the 97 % coverage gate
         if: steps.changes.outputs.code == 'true'
         run: npm run test:coverage
@@ -142,6 +144,16 @@ jobs:
       - name: Build
         if: steps.changes.outputs.code == 'true'
         run: npm run build
+
+  docker:
+    # The API image must keep building (the release workflow publishes it)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the API image
+        run: docker build -f api/Dockerfile -t botrts-api .
+      - name: The compose file is valid
+        run: docker compose config -q && docker compose --profile stack config -q
 
   e2e:
     # Cypress against a throwaway stack: fresh database, the API and the built client (scripts/e2e.mjs)

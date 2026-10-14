@@ -96,7 +96,9 @@ describe('two players in one world', () => {
     cy.historyHas({ token: who.token, botId, line }).then((lines) => lines.find((text) => line.test(text)) ?? '')
 
   it('lets one of two bots that move onto the same cell win it, and tells the other BLOCKED', () => {
-    // Alice's bot faces north and stands just south of the contested cell; Bob's stands just east of it and turns west
+    // Alice's bot faces north and stands just south of the contested cell; Bob's stands just east of it and turns west.
+    // The cell is empty on the map, so that no deposit the world generated there makes both moves fail.
+    cy.task('emptyCell', spot)
     bot(alice, DRIVER, { x: spot.x, y: spot.y + 1 }, 'North').then((aliceBot) => {
       bot(bob, DRIVER, { x: spot.x + 1, y: spot.y }, 'East').then((bobBot) => {
         script(

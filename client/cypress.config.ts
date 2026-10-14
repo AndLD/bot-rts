@@ -327,6 +327,18 @@ export default defineConfig({
           )
         },
 
+        // The cell is on the map and empty (a cell that is missing is generated again, with whatever the world seed puts there)
+        async emptyCell({ x, y }: { x: number; y: number }) {
+          await sql(
+            `INSERT INTO map_points (id, x, y, z, type, content_id, resource, amount)
+             VALUES (gen_random_uuid(), $1, $2, 0, NULL, NULL, NULL, NULL)
+             ON CONFLICT (x, y, z) DO UPDATE SET type = NULL, content_id = NULL, resource = NULL, amount = NULL`,
+            [x, y]
+          )
+
+          return null
+        },
+
         // Whatever lay on a cell is gone
         async removeCell({ x, y }: { x: number; y: number }) {
           await sql(`DELETE FROM map_points WHERE x = $1 AND y = $2 AND z = 0`, [x, y])

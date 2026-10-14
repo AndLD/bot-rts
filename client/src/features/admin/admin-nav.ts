@@ -9,4 +9,6 @@ export interface AdminNavItem {
 }
 
 // The pages of the console, in the order of the menu. A page is added here when it exists.
-export const ADMIN_NAV: readonly AdminNavItem[] = [{ path: '/admin', labelKey: 'home' }]
+export const ADMIN_NAV: readonly AdminNavItem[] = [
+  { path: '/admin', labelKey: 'dashboard', permission: 'dashboard.read' }
+]

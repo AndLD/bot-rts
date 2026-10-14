@@ -1,4 +1,5 @@
 import request from 'supertest'
+import { io, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { signUpVerified, SignedUp, startTestApp, TestApp } from '../../tests/integration/test-app'
 import { totpCodeAt } from '../admin/infrastructure/crypto-totp'
@@ -136,6 +137,53 @@ describe('the monitoring endpoints', () => {
       expect(text.text).toContain('botrts_alerts_open{severity="red"} 1')
     } finally {
       await app.close()
+    }
+  })
+})
+
+describe('the live dashboard namespace', () => {
+  const connect = (token?: string) =>
+    io(`${testApp.url}/admin`, { transports: ['websocket'], auth: token ? { token } : {}, reconnection: false })
+
+  const outcome = (socket: Socket) =>
+    new Promise<string>((resolve) => {
+      socket.on('connect', () => resolve('connected'))
+      socket.on('connect_error', (error) => resolve(error.message))
+    })
+
+  it('turns away a stranger, a player and an admin who has not passed the second factor', async () => {
+    counter += 1
+    const player = await signUpVerified(testApp, database, `live-player${counter}@example.com`)
+    counter += 1
+    const unverified = await signUpVerified(testApp, database, `live-admin${counter}@example.com`)
+    await database.client.user.update({ where: { id: unverified.userId }, data: { status: 'analyst' } })
+
+    for (const [token, message] of [
+      [undefined, 'Unauthorized'],
+      [player.accessToken, 'Forbidden'],
+      [unverified.accessToken, 'Two-factor verification required']
+    ] as const) {
+      const socket = connect(token)
+      expect(await outcome(socket)).toBe(message)
+      socket.close()
+    }
+  })
+
+  it('sends the current health on connect and again after every sample', async () => {
+    const analyst = await admin('analyst')
+    const socket = connect(analyst.accessToken)
+    const reports: Array<{ sampledAt: number | null }> = []
+    socket.on('monitoring-health', (report) => reports.push(report))
+
+    try {
+      expect(await outcome(socket)).toBe('connected')
+      await waitUntil(() => reports.length === 1)
+      await monitoring.sampleOnce()
+      await waitUntil(() => reports.length === 2)
+
+      expect(reports[1].sampledAt).toEqual(expect.any(Number))
+    } finally {
+      socket.close()
     }
   })
 })

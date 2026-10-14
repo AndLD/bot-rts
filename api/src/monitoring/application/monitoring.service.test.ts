@@ -102,6 +102,21 @@ describe('MonitoringService sampling', () => {
   })
 })
 
+describe('MonitoringService listeners', () => {
+  it('tells a listener the health after each sample until it is removed', async () => {
+    const { service, sample } = setup()
+    const heard: string[] = []
+    const off = service.onSample((health) => heard.push(health.status))
+
+    await sample({ 'engine.up': 0 })
+    await sample({ 'engine.up': 1 })
+    off()
+    await sample({ 'engine.up': 0 })
+
+    expect(heard).toEqual(['red', 'green'])
+  })
+})
+
 describe('alerts', () => {
   it('opens once, emails a red one, escalates, and closes when the metric recovers', async () => {
     const { service, notifier, clock, sample } = setup()

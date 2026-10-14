@@ -32,6 +32,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - Health monitoring for the admin console: metrics sampled every 10 s with a rolling history (7 days fine, 30 days at one minute),
   health per area, configurable alert thresholds, in-console alerts that can be acknowledged, and email for red alerts
   (`/api/v1/admin/monitoring/*`, `botrts_alerts_open` on `/metrics`).
+- The admin dashboard: status per area, charts over a time range, open alerts, and live updates over the `/admin` Socket.IO namespace.
 
 ### Changed
 

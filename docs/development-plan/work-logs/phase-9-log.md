@@ -35,3 +35,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 9.3, the dashboard page.
 - **Verify with:** `npx jest --selectProjects integration --testPathPattern monitoring.int` and `npx jest src/monitoring` from `api`
 
+### 2026-10-15 — task 9.3 dashboard
+- **Tasks:** 9.3
+- **Branch:** `feature/9.3-dashboard` (stacked on 9.2) — done
+- **Decisions / deviations from the plan:** the admin Socket.IO namespace `/admin` has its own handshake (the access token of the game, then `createAdminSocketGuard`: a session, never an API key, with `dashboard.read` and a verified second factor); it pushes `monitoring-health` on connect and after every sample (`MonitoringService.onSample`). The client keeps the health report in the RTK Query cache and replaces it with each pushed report; it also polls every 30 s, so the dashboard works while the socket is down. Charts are a small SVG component (no charting dependency). The headline numbers "players online" and "active bots" of design §25.3 are not shown: there is no world metric for them yet (they join the metric catalog with the world metrics). Metric names for the page are the nested keys `admin.dashboard.metrics.<area>.<name>`. `AdminHome` is gone: the dashboard is the landing page.
+- **Problems / blockers / findings:** next-intl reads a dot in a key as nesting, so a catalog id such as `engine.tickP95Ms` must be a nested key, not a flat one.
+- **Next step:** 9.4, the Players page.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern monitoring.int` from `api`; `npx jest src/features/admin` from `client`
+

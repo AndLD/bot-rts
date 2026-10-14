@@ -6,7 +6,7 @@ import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
-import { MONITORING_SERVICE, MonitoringService } from '../application/monitoring.service'
+import { HealthView, MONITORING_SERVICE, MonitoringService } from '../application/monitoring.service'
 import { Alert } from '../domain/alert'
 import { AlertResponse, HealthReportResponse, MetricSeriesResponse, SeriesQueryDto } from './dto/monitoring.dto'
 
@@ -16,6 +16,13 @@ const toAlertDto = ({ id, openedAt, clearedAt, acknowledgedAt, ...alert }: Alert
   openedAt: openedAt.getTime(),
   clearedAt: clearedAt?.getTime() ?? null,
   acknowledgedAt: acknowledgedAt?.getTime() ?? null
+})
+
+export const toHealthReport = ({ sampledAt, status, areas, alerts }: HealthView): IHealthReport => ({
+  sampledAt: sampledAt?.getTime() ?? null,
+  status,
+  areas,
+  alerts: alerts.map(toAlertDto)
 })
 
 // The health and performance numbers of the dashboard (design §25.5)
@@ -30,9 +37,7 @@ export class MonitoringController {
   @ApiOkResponse({ type: HealthReportResponse })
   @Get('health')
   health(): IHealthReport {
-    const { sampledAt, status, areas, alerts } = this.monitoring.health()
-
-    return { sampledAt: sampledAt?.getTime() ?? null, status, areas, alerts: alerts.map(toAlertDto) }
+    return toHealthReport(this.monitoring.health())
   }
 
   @RequirePermission('dashboard.read')

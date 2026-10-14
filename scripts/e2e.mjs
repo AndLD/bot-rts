@@ -129,6 +129,8 @@ try {
       // The browser's requests share one address; the rate-limit spec uses addresses of its own
       RATE_LIMIT_AUTH_MAX: '200',
       RATE_LIMIT_API_MAX: '100000',
+      // A ban or a logout must show at once in the specs
+      AUTH_CACHE_TTL_MS: '0',
       // A spawn seed takes two players, so that a full seed can be shown
       SPAWN_SEED_MAX_PLAYERS: '2',
       // Guessing a bot password takes a tenth of a second and three wrong tries lock the bot out, so that a spec can show it

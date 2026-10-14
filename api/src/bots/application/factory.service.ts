@@ -208,8 +208,6 @@ export class FactoryService {
 
   // Writes the records that changed since `before`
   private async save(repositories: Repositories, before: readonly Module[], after: readonly Module[]): Promise<void> {
-    for (const record of after.filter((candidate) => !before.includes(candidate))) {
-      await repositories.modules.update(record)
-    }
+    await repositories.modules.updateMany(after.filter((candidate) => !before.includes(candidate)))
   }
 }

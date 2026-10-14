@@ -33,7 +33,8 @@ describe('loadConfig', () => {
         provider: 'local',
         accessSecret: 'development-only-access-secret',
         accessTtlSeconds: 600,
-        policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 }
+        policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 },
+        principalCacheMs: 2000
       },
       rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20, apiWindowMs: 60_000, apiMax: 600 },
       http: {
@@ -231,5 +232,11 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, NODE_ENV: 'test' }).lifecycle.isEnabled).toBe(false)
     expect(loadConfig({ ...base, NODE_ENV: 'test', LIFECYCLE_ENABLED: 'true' }).lifecycle.isEnabled).toBe(true)
     expect(loadConfig({ ...base, INACTIVE_ACCOUNT_DAYS: 'x' }).lifecycle.inactiveDays).toBe(365)
+  })
+
+  it('remembers a token owner for 2 s outside tests, and reads the setting', () => {
+    expect(loadConfig({ ...base, NODE_ENV: 'test' }).auth.principalCacheMs).toBe(0)
+    expect(loadConfig({ ...base, AUTH_CACHE_TTL_MS: '500' }).auth.principalCacheMs).toBe(500)
+    expect(loadConfig({ ...base, AUTH_CACHE_TTL_MS: '0' }).auth.principalCacheMs).toBe(0)
   })
 })

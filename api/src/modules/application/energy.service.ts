@@ -25,8 +25,6 @@ export class EnergyService {
   }
 
   private async save(changed: Module[]): Promise<void> {
-    for (const record of changed) {
-      await this.modules.update(record)
-    }
+    await this.modules.updateMany(changed)
   }
 }

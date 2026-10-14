@@ -26,6 +26,8 @@ export interface AuthConfig {
   accessSecret: string
   accessTtlSeconds: number
   policy: AuthPolicy
+  // How long a token's owner is remembered between requests (0: not at all); a ban takes effect this much later
+  principalCacheMs: number
 }
 
 export interface RateLimitConfig {
@@ -234,7 +236,8 @@ export function loadConfig(env: Env): AppConfig {
       provider: provider as AuthConfig['provider'],
       accessSecret: env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
       accessTtlSeconds: Math.floor(accessTtl / 1000),
-      policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl }
+      policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl },
+      principalCacheMs: nonNegativeInt(env.AUTH_CACHE_TTL_MS, nodeEnv === 'test' ? 0 : 2000)
     },
     rateLimit: {
       windowMs: rateWindow,

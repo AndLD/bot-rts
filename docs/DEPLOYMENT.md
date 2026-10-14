@@ -106,3 +106,16 @@ player who signs in after the notice keeps the account. Erasure is the same as a
 credentials and logins removed; the row and the base stay, so the base can become a corpse base). Bots and bases are not
 deleted by the job. `INACTIVE_ACCOUNT_DAYS=0` switches the inactivity steps off.
 
+## Performance notes (Phase 8.5)
+
+- **Writes are batched.** The engine's flush writes map cells, what players know, items, headings and modules each as one
+  statement per kind, in one transaction. The use cases that touch several modules (energy, the factory, repairs) and the
+  scan's knowledge snapshots use the same one-statement writes instead of a statement per row.
+- **Indexes are verified** by `tests/integration/query-plans.int.test.ts`: for the hot queries (map areas, bases in an area and
+  their count, knowledge of an area, bots, modules, files, executions, terminal lines, notifications, logins) the planner must be
+  able to answer from an index. A new hot query goes into that list. `map_points (type, x, y)` serves the base queries.
+- **Authentication is cached for `AUTH_CACHE_TTL_MS`** (2 s): a screen that loads with a dozen requests checks the session,
+  the user and the identity once. The price is that a ban or a logout takes effect up to that long later; set `0` to check on
+  every request.
+- The world map is read and written by chunk, and the engine keeps hot chunks in memory (`ENGINE_MAX_CHUNKS`).
+

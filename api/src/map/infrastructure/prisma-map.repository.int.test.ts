@@ -143,6 +143,16 @@ describe('PrismaMapRepository: known points', () => {
     expect(await map.findKnownPoint(userId, { x: 9, y: 9, z: 0 })).toBeNull()
   })
 
+  it('keeps the last snapshot of a cell named twice in one batch, and accepts an empty batch', async () => {
+    const early = buildKnownPoint(userId, 1, 1, { seenAt: 1 })
+    const late = { ...early, id: randomUUID(), seenAt: 8, type: MapPointType.ITEM, contentId: randomUUID() }
+
+    await map.upsertKnownPoints([early, late])
+    await map.upsertKnownPoints([])
+
+    expect(await map.findKnownPoint(userId, early.location)).toEqual(late)
+  })
+
   it('keeps the knowledge of users apart', async () => {
     const other = buildUser()
     await new PrismaUserRepository(database.client).add(other)

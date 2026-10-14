@@ -371,6 +371,12 @@ export class InMemoryModuleRepository implements ModuleRepository {
     this.items[index] = module
   }
 
+  async updateMany(modules: readonly Module[]) {
+    for (const module of modules) {
+      await this.update(module)
+    }
+  }
+
   async remove(id: string) {
     const index = this.items.findIndex((candidate) => candidate.id === id)
     if (index >= 0) {

@@ -1,7 +1,7 @@
-// Calls `run` after `firstDelayMs` and then every `intervalMs`, never two at once; a pass that fails is the job's own business
+// Calls `run` after `firstDelayMs` and then `intervalMs` after each pass has ended, so two passes never overlap; a pass that
+// fails does not end the schedule
 export class LifecycleScheduler {
   private timer: NodeJS.Timeout | null = null
-  private isRunning = false
 
   constructor(
     private readonly run: () => Promise<unknown>,
@@ -22,18 +22,10 @@ export class LifecycleScheduler {
   }
 
   private async tick(): Promise<void> {
-    if (!this.timer) {
-      return
-    }
-    if (!this.isRunning) {
-      this.isRunning = true
-      try {
-        await this.run()
-      } catch {
-        // The service records and logs its failures; a thrown one must not end the schedule
-      } finally {
-        this.isRunning = false
-      }
+    try {
+      await this.run()
+    } catch {
+      // The service records and logs its failures; a thrown one must not end the schedule
     }
     if (this.timer) {
       this.timer = setTimeout(() => void this.tick(), this.intervalMs)

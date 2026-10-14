@@ -100,7 +100,11 @@ export class LifecycleModule implements OnModuleInit, OnApplicationBootstrap, On
 
   onApplicationBootstrap() {
     if (this.policy.isEnabled && this.config.deployment.role !== 'api') {
-      this.scheduler = new LifecycleScheduler(() => this.service.runOnce(), this.policy.intervalMs, FIRST_RUN_DELAY_MS)
+      this.scheduler = new LifecycleScheduler(
+        this.service.runOnce.bind(this.service),
+        this.policy.intervalMs,
+        FIRST_RUN_DELAY_MS
+      )
       this.scheduler.start()
     }
   }

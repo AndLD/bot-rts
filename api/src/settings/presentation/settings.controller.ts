@@ -3,7 +3,9 @@ import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nest
 import { IGameSettings, ISettings } from '../../../../lib/utils/interfaces/settings'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
-import { RequireRole } from '../../auth/presentation/roles.decorator'
+import { Audited, RequirePermission } from '../../admin/presentation/admin-permission.decorator'
+import { AuditDetail } from '../../admin/presentation/admin-request'
+import { AuditDetailParam } from '../../admin/presentation/audit-detail.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { SettingsService } from '../application/settings.service'
 import { GameSettingsResponse, SettingsResponse, UpdateGameSettingsDto, UpdateUserSettingsDto } from './settings.dto'
@@ -32,7 +34,8 @@ export class SettingsController {
   }
 }
 
-// The settings of the whole game: what a player can switch on is at most what is on here (design §15.1)
+// The settings of the whole game: what a player can switch on is at most what is on here (design §15.1). They are part of the
+// Economy and balance page of the admin console.
 @ApiTags('admin')
 @ApiDefaultResponse({ type: ErrorResponseModel })
 @ApiBearerAuth()
@@ -41,18 +44,21 @@ export class AdminSettingsController {
   constructor(private readonly settings: SettingsService) {}
 
   @ApiOkResponse({ type: GameSettingsResponse })
-  @RequireRole('admin')
-  @SessionOnly()
+  @RequirePermission('economy.read')
   @Get()
   get(): Promise<IGameSettings> {
     return this.settings.getGame()
   }
 
   @ApiOkResponse({ type: GameSettingsResponse })
-  @RequireRole('admin')
-  @SessionOnly()
+  @RequirePermission('balance.write')
+  @Audited({ action: 'settings.update-categories', targetType: 'settings' })
   @Patch()
-  update(@Body() body: UpdateGameSettingsDto): Promise<IGameSettings> {
-    return this.settings.updateGame(body.categories)
+  async update(@AuditDetailParam() detail: AuditDetail, @Body() body: UpdateGameSettingsDto): Promise<IGameSettings> {
+    const before = await this.settings.getGame()
+    const after = await this.settings.updateGame(body.categories)
+    Object.assign(detail, { targetId: 'categories', before: before.categories, after: after.categories })
+
+    return after
   }
 }

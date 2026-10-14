@@ -14,6 +14,7 @@ import {
 } from '../player-notifications/domain/notification-policy'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 import { DEFAULT_LIFECYCLE_POLICY, LifecyclePolicy } from '../lifecycle/domain/lifecycle-policy'
+import { BalanceConfig } from '../balance/domain/balance'
 import { ALERT_RULES } from '../monitoring/domain/metric-catalog'
 import { invalidOrigins } from '../shared/presentation/origin-matcher'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
@@ -108,6 +109,14 @@ export interface MonitoringConfig {
   thresholds: Record<string, { yellow?: number; red?: number }>
 }
 
+// The balance an admin can edit (design §25.3): what the server starts with before any version is laid over it, the version laid over
+// it now, and why a stored version could not be used
+export interface BalanceSettings {
+  base: BalanceConfig
+  version: number | null
+  problem: string | null
+}
+
 export interface AppConfig {
   nodeEnv: NodeEnv
   port: number
@@ -137,6 +146,7 @@ export interface AppConfig {
   lifecycle: LifecyclePolicy
   admin: AdminConfig
   monitoring: MonitoringConfig
+  balance: BalanceSettings
 }
 
 type Env = Record<string, string | undefined>
@@ -360,6 +370,7 @@ export function loadConfig(env: Env): AppConfig {
       alertEmails: list(env.ADMIN_ALERT_EMAILS),
       thresholds
     },
+    balance: { base: { resources: world.resources, crafting }, version: null, problem: null },
     observability: {
       metricsToken: env.METRICS_TOKEN || undefined,
       logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000)

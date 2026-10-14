@@ -35,6 +35,10 @@ export class PrismaTerminalSessionRepository implements TerminalSessionRepositor
     await this.db.terminalLog.create({ data: entry })
   }
 
+  async appendLogs(entries: readonly TerminalLogEntry[]): Promise<void> {
+    await this.db.terminalLog.createMany({ data: [...entries] })
+  }
+
   async listLogsOfBot(botId: string, limit: number): Promise<TerminalLogEntry[]> {
     const rows = await this.db.terminalLog.findMany({
       where: { botId },

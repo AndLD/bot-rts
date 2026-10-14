@@ -668,7 +668,7 @@ describe('EngineCore', () => {
       await ticks(1)
       expect(sink.logs()).toEqual(['one'])
       expect((await listNow(core)).map((e) => e.state)).toEqual(['suspended', 'queued'])
-      expect(core.snapshot()).toMatchObject({ queuedExecutions: 1, deferredExecutions: 0 })
+      expect(core.snapshot()).toMatchObject({ queuedExecutions: 1, deferredExecutions: 0, maxWaitTicks: 0 })
       await ticks(8)
       expect(sink.logs()).toEqual(['one', 'one'])
     })

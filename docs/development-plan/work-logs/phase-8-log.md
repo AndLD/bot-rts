@@ -59,3 +59,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.6, load and soak testing, and tuning the scheduler budget.
 - **Verify with:** `npx jest src/persistence src/modules src/map tests/integration/query-plans src/auth` from `api`
 
+### 2026-10-14 — task 8.6 load and soak testing
+- **Tasks:** 8.6
+- **Branch:** `feature/8.6-load-soak` — done
+- **Decisions / deviations from the plan:** `scripts/load-test.mjs` (`npm run load`) plays N players against a throwaway stack and scrapes the metrics of 8.3; results and tuning in `docs/LOAD-TESTING.md`. Because "bots" per player are limited by the processor's parallel limit, the load is players with a script each (extra scripts queue). The scheduler budget default (0.8) is kept: the data shows it only matters at the knee (about 600 scripts on a laptop) and fairness held with 0.6. The fairness metric `maxWaitTicks` now counts only executions the tick cap kept from running (those queued behind another script of their bot are not waiting for the scheduler).
+- **Problems / blockers / findings:** the soak run found a real leak: `ScriptLogRecorder` stored every script line with several statements through one growing promise chain, so the API heap grew about 1 MB/s at 1,400 lines/s. Fixed in this task: lines are collected per bot, capped, and stored every 250 ms in one batch (`TerminalSessionRepository.appendLogs`); the repeat soak is flat.
+- **Next step:** 8.7, release management (semantic versioning, release / hotfix flow, CHANGELOG, deploy docs, Dockerfile and compose).
+- **Verify with:** `npm run db:up && npm run load -- --players 50 --duration 30`; `npx jest src/terminal src/engine/application/engine-core` from `api`
+

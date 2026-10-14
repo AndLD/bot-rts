@@ -6,7 +6,7 @@ import { ForbiddenError, NotFoundError } from '../../shared/domain/errors'
 import { TerminalRetention } from '../domain/terminal-retention'
 import { TerminalSession, TerminalLogEntry } from '../domain/terminal-session'
 import { TerminalSessionClosedError } from '../domain/terminal.errors'
-import { SessionLogWriter } from './session-log-writer'
+import { PendingLine, SessionLogWriter } from './session-log-writer'
 import { LinkGate } from './link-gate'
 import { TerminalSessionRepository } from './terminal-session.repository'
 
@@ -97,6 +97,11 @@ export class TerminalService {
   // session of the bot, or in one of its own when the bot never had a terminal
   async recordScriptOutput(userId: string, botId: string, kind: TERMINAL_LOG_KIND, text: string): Promise<void> {
     await this.writer.write(botId, userId, kind, text)
+  }
+
+  // The same for a batch of lines of one bot
+  async recordScriptOutputs(userId: string, botId: string, lines: ReadonlyArray<PendingLine>): Promise<void> {
+    await this.writer.writeMany(botId, userId, lines)
   }
 
   async history(userId: string, botId: string, limit: number): Promise<TerminalLogEntry[]> {

@@ -40,3 +40,4 @@ out
 client/cypress/screenshots
 client/cypress/videos
 .lighthouseci
+.load/

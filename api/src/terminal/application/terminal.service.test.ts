@@ -193,4 +193,21 @@ describe('TerminalService script output', () => {
       [session.id, 'three']
     ])
   })
+
+  it('stores a batch of lines at once, within the line cap, and does nothing for an empty batch', async () => {
+    const { terminalService, bot, terminalSessions, clock } = await setup({ maxLinesPerBot: 3 })
+    const at = clock.now()
+
+    await terminalService.recordScriptOutputs(alice.id, bot.id, [])
+    expect(terminalSessions.sessions.size).toBe(0)
+
+    await terminalService.recordScriptOutputs(
+      alice.id,
+      bot.id,
+      ['a', 'b', 'c', 'd'].map((text) => ({ kind: TERMINAL_LOG_KIND.OUTPUT, text, at }))
+    )
+
+    expect(terminalSessions.sessions.size).toBe(1)
+    expect(terminalSessions.logs.map((entry) => entry.text)).toEqual(['b', 'c', 'd'])
+  })
 })

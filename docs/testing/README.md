@@ -12,7 +12,7 @@ works in practice.
 | [load-testing.md](./load-testing.md) | The load and soak harness, measured capacity, tuning |
 | [known-issues.md](./known-issues.md) | Flaky-test notes and output that looks like an error but is expected |
 | [reports/](./reports) | Dated one-off reports, such as the quality sweep of a phase |
-| [Testing work by phase](../development-plan/testing-by-phase.md) | Historical: what each phase scheduled |
+| [by-phase.md](./by-phase.md) | Historical: what each phase scheduled |
 
 ## Test types
 

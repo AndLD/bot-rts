@@ -1,9 +1,9 @@
-[← Development plan index](../DEVELOPMENT-PLAN.md)
+[← Testing](./README.md)
 
 # Testing work by phase
 
-> **Historical page.** It records which testing work each phase scheduled. The current testing documentation (types, gates,
-> conventions, the end-to-end coverage matrix, known issues) is in [`docs/testing/`](../testing/README.md).
+> **Historical page.** It records which testing work each phase scheduled; the current state is in the [testing README](./README.md).
+> The [development plan](../DEVELOPMENT-PLAN.md) has the phases themselves.
 
 ## By phase
 

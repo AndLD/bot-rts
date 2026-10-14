@@ -85,7 +85,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 9 — Admin console (101 SP)](./development-plan/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./development-plan/phase-11-energy-time-ux.md)
-- [Testing](./testing/README.md) (current documentation) and [testing work by phase](./development-plan/testing-by-phase.md) (historical)
+- [Testing](./testing/README.md) (current documentation) and [testing work by phase](./testing/by-phase.md) (historical)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
 - Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md), [phase 11](./development-plan/work-logs/phase-11-log.md)

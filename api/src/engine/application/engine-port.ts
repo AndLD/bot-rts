@@ -1,5 +1,6 @@
 import { JsonValue } from '../domain/json-value'
 import { ExecutionView } from '../domain/execution'
+import { ControlState, EngineControl } from '../domain/engine-control'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { LinkStatus } from './radio-network'
 import { EngineEvent } from './engine-ports'
@@ -20,6 +21,10 @@ export interface EnginePort {
   manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue>
   // Whether a bot reaches its base through the radio network, and how well
   linkStatus(userId: string, botId: string): Promise<LinkStatus>
+  // Maintenance, the script kill-switch and quarantine (design §25.3); answers the state after the change
+  control(command: EngineControl): Promise<ControlState>
+  // Kills and starts again the scripts of a bot
+  reboot(botId: string): Promise<ExecutionView[]>
   metrics(): Promise<EngineMetricsSnapshot>
   // Returns the function that removes the listener
   onEvent(listener: (event: EngineEvent) => void): () => void

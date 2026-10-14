@@ -40,7 +40,12 @@ export interface TestApp {
 }
 
 // The whole application on a random port, wired to the test database and a recording mail sender
-export async function startTestApp(database: TestDatabase, env: Record<string, string> = {}): Promise<TestApp> {
+export async function startTestApp(
+  database: TestDatabase,
+  env: Record<string, string> = {},
+  // Providers to replace with fakes, by token
+  overrides: Array<{ provide: unknown; useValue: unknown }> = []
+): Promise<TestApp> {
   const [{ db }] = await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`
   const config = loadConfig({
     DATABASE_URL: urlForDatabase(db),
@@ -50,10 +55,13 @@ export async function startTestApp(database: TestDatabase, env: Record<string, s
     ...env
   })
   const emails = new RecordingEmailSender()
-  const module = await Test.createTestingModule({ imports: [AppModule.register(config)] })
+  let builder = Test.createTestingModule({ imports: [AppModule.register(config)] })
     .overrideProvider(EMAIL_SENDER)
     .useValue(emails)
-    .compile()
+  for (const { provide, useValue } of overrides) {
+    builder = builder.overrideProvider(provide).useValue(useValue)
+  }
+  const module = await builder.compile()
   const app = await configureApp(module.createNestApplication<NestExpressApplication>(), config)
 
   await app.listen(0)

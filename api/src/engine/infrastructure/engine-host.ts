@@ -81,6 +81,10 @@ export class EngineHost {
         return this.core.manual(request.userId, request.botId, request.fn, request.args)
       case 'act':
         return this.core.act(request.name, request.args)
+      case 'control':
+        return this.core.control(request.command)
+      case 'reboot':
+        return this.core.reboot(request.botId)
       default:
         return Promise.resolve(this.core.snapshot())
     }

@@ -1,10 +1,15 @@
 'use client'
 
-import { Alert, Card, Descriptions, Empty, List, Space, Spin, Table, Tabs, Tag } from 'antd'
+import { Alert, Button, Card, Descriptions, Empty, List, Space, Spin, Table, Tabs, Tag } from 'antd'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
-import { useInspectorBotQuery } from '../../../shared/api'
+import { hasPermission } from '@lib/utils/admin'
+import { useInspectorBotQuery, useSupervisionKillMutation, useSupervisionRebootMutation } from '../../../shared/api'
+import { useAdminMe } from '../admin-me-context'
+import ActionModal, { ActionValues } from '../players/ActionModal'
+import { useReportFailure } from '../use-report-failure'
 import FileBrowser from './FileBrowser'
 
 // One base or bot, as the server has it (design §25.3): read-only
@@ -12,7 +17,12 @@ export default function BotInspectorPage() {
   const t = useTranslations('admin.inspector')
   const format = useFormatter()
   const { id } = useParams<{ id: string }>()
+  const { role } = useAdminMe()
+  const report = useReportFailure()
   const { data: bot, isLoading, isError } = useInspectorBotQuery({ id })
+  const [kill, killState] = useSupervisionKillMutation()
+  const [reboot, rebootState] = useSupervisionRebootMutation()
+  const [action, setAction] = useState<{ type: 'reboot' } | { type: 'kill'; executionId: string } | null>(null)
   const date = (ms: number) => format.dateTime(new Date(ms), { dateStyle: 'medium', timeStyle: 'medium' })
 
   if (isLoading) {
@@ -22,10 +32,31 @@ export default function BotInspectorPage() {
     return <Alert type="error" message={t('loadFailed')} />
   }
 
+  async function submitAction({ reason }: ActionValues) {
+    const result =
+      action?.type === 'kill'
+        ? await kill({ id: action.executionId, reasonDto: { reason } })
+        : await reboot({ id, reasonDto: { reason } })
+
+    if (!report(result)) {
+      setAction(null)
+    }
+  }
+
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
       <Link href="/admin/inspector">{t('back')}</Link>
-      <Card title={bot.label ?? bot._id} extra={<Tag>{t(`kind.${bot.type}`)}</Tag>}>
+      <Card
+        title={bot.label ?? bot._id}
+        extra={
+          <Space>
+            <Tag>{t(`kind.${bot.type}`)}</Tag>
+            {hasPermission(role, 'inspector.reboot-bot') ? (
+              <Button onClick={() => setAction({ type: 'reboot' })}>{t('reboot')}</Button>
+            ) : null}
+          </Space>
+        }
+      >
         <Descriptions column={{ xs: 1, md: 2 }}>
           <Descriptions.Item label={t('owner')}>
             {bot.ownerId ? <Link href={`/admin/players/${bot.ownerId}`}>{bot.ownerName}</Link> : '–'}
@@ -102,7 +133,20 @@ export default function BotInspectorPage() {
                   { title: t('columns.status'), dataIndex: 'status' },
                   { title: t('columns.restarts'), dataIndex: 'restarts' },
                   { title: t('columns.reason'), dataIndex: 'reason', render: (value: string | null) => value ?? '–' },
-                  { title: t('columns.started'), dataIndex: 'createdAt', render: date }
+                  { title: t('columns.started'), dataIndex: 'createdAt', render: date },
+                  {
+                    title: '',
+                    render: (_, execution) =>
+                      execution.status === 'active' && hasPermission(role, 'inspector.kill-execution') ? (
+                        <Button
+                          size="small"
+                          danger
+                          onClick={() => setAction({ type: 'kill', executionId: execution._id })}
+                        >
+                          {t('kill')}
+                        </Button>
+                      ) : null
+                  }
                 ]}
               />
             )
@@ -141,6 +185,15 @@ export default function BotInspectorPage() {
           }
         ]}
       />
+      {action ? (
+        <ActionModal
+          title={t(`${action.type}Title`)}
+          isOpen
+          isLoading={killState.isLoading || rebootState.isLoading}
+          onSubmit={submitAction}
+          onCancel={() => setAction(null)}
+        />
+      ) : null}
     </Space>
   )
 }

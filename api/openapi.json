@@ -2563,6 +2563,736 @@
         ]
       }
     },
+    "/api/v1/admin/supervision/state": {
+      "get": {
+        "operationId": "supervisionState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisionStateResponse"
+                },
+                "example": {
+                  "isPaused": false,
+                  "areScriptsHalted": false,
+                  "quarantined": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "name": "string"
+                    }
+                  ],
+                  "activeExecutions": 1,
+                  "heldExecutions": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/supervision/state\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/executions/{id}/kill": {
+      "post": {
+        "operationId": "supervisionKill",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.kill-execution",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/executions/00000000-0000-4000-8000-000000000000/kill\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/bots/{id}/reboot": {
+      "post": {
+        "operationId": "supervisionReboot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.reboot-bot",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/bots/00000000-0000-4000-8000-000000000000/reboot\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/players/{id}/quarantine": {
+      "post": {
+        "operationId": "supervisionQuarantine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.quarantine",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/players/00000000-0000-4000-8000-000000000000/quarantine\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/players/{id}/release": {
+      "post": {
+        "operationId": "supervisionRelease",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.quarantine",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/players/00000000-0000-4000-8000-000000000000/release\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/world/pause": {
+      "post": {
+        "operationId": "supervisionPause",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseWorldDto"
+              },
+              "example": {
+                "reason": "string",
+                "confirm": "PAUSE"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.pause-world",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/world/pause\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"confirm\":\"PAUSE\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/world/resume": {
+      "post": {
+        "operationId": "supervisionResume",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.pause-world",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/world/resume\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/scripts/halt": {
+      "post": {
+        "operationId": "supervisionHalt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HaltScriptsDto"
+              },
+              "example": {
+                "reason": "string",
+                "confirm": "HALT"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.kill-switch",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/scripts/halt\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"confirm\":\"HALT\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/scripts/allow": {
+      "post": {
+        "operationId": "supervisionAllow",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.kill-switch",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/scripts/allow\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/support/grant-resources": {
+      "post": {
+        "operationId": "supervisionGrant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportResourcesDto"
+              },
+              "example": {
+                "reason": "string",
+                "botId": "00000000-0000-4000-8000-000000000000",
+                "stacks": [
+                  {
+                    "resource": "iron",
+                    "amount": 0
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.support",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/support/grant-resources\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"botId\":\"00000000-0000-4000-8000-000000000000\",\"stacks\":[{\"resource\":\"iron\",\"amount\":0}]}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/support/compensate": {
+      "post": {
+        "operationId": "supervisionCompensate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportResourcesDto"
+              },
+              "example": {
+                "reason": "string",
+                "botId": "00000000-0000-4000-8000-000000000000",
+                "stacks": [
+                  {
+                    "resource": "iron",
+                    "amount": 0
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.support",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/support/compensate\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"botId\":\"00000000-0000-4000-8000-000000000000\",\"stacks\":[{\"resource\":\"iron\",\"amount\":0}]}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/support/remove-resources": {
+      "post": {
+        "operationId": "supervisionRemove",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportResourcesDto"
+              },
+              "example": {
+                "reason": "string",
+                "botId": "00000000-0000-4000-8000-000000000000",
+                "stacks": [
+                  {
+                    "resource": "iron",
+                    "amount": 0
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.support",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/support/remove-resources\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"botId\":\"00000000-0000-4000-8000-000000000000\",\"stacks\":[{\"resource\":\"iron\",\"amount\":0}]}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/supervision/support/restore-module": {
+      "post": {
+        "operationId": "supervisionRestore",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreModuleDto"
+              },
+              "example": {
+                "reason": "string",
+                "botId": "00000000-0000-4000-8000-000000000000",
+                "moduleId": "00000000-0000-4000-8000-000000000000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "supervision.support",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/support/restore-module\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"botId\":\"00000000-0000-4000-8000-000000000000\",\"moduleId\":\"00000000-0000-4000-8000-000000000000\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/crafting/recipes": {
       "get": {
         "operationId": "craftingRecipeList",
@@ -6180,6 +6910,9 @@
               "TWO_FACTOR_REQUIRED",
               "TWO_FACTOR_INVALID",
               "ADMIN_IP_NOT_ALLOWED",
+              "MAINTENANCE_MODE",
+              "SCRIPTS_HALTED",
+              "PLAYER_QUARANTINED",
               "REQUEST_TIMEOUT",
               "MANUAL_CATEGORY_DISABLED",
               "INTERNAL_ERROR",
@@ -7727,6 +8460,169 @@
           "kind",
           "bucket",
           "buckets"
+        ]
+      },
+      "QuarantinedPlayerModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "_id",
+          "name"
+        ]
+      },
+      "SupervisionStateResponse": {
+        "type": "object",
+        "properties": {
+          "isPaused": {
+            "type": "boolean"
+          },
+          "areScriptsHalted": {
+            "type": "boolean"
+          },
+          "quarantined": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuarantinedPlayerModel"
+            }
+          },
+          "activeExecutions": {
+            "type": "number"
+          },
+          "heldExecutions": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPaused",
+          "areScriptsHalted",
+          "quarantined",
+          "activeExecutions",
+          "heldExecutions"
+        ]
+      },
+      "PauseWorldDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "confirm": {
+            "type": "string",
+            "enum": [
+              "PAUSE"
+            ],
+            "description": "Typed to confirm"
+          }
+        },
+        "required": [
+          "reason",
+          "confirm"
+        ]
+      },
+      "HaltScriptsDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "confirm": {
+            "type": "string",
+            "enum": [
+              "HALT"
+            ],
+            "description": "Typed to confirm"
+          }
+        },
+        "required": [
+          "reason",
+          "confirm"
+        ]
+      },
+      "ResourceStackDto": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "iron",
+              "stone",
+              "wood",
+              "oil",
+              "crystal",
+              "gold"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 100000
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "SupportResourcesDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The bot or base whose storage changes"
+          },
+          "stacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResourceStackDto"
+            }
+          }
+        },
+        "required": [
+          "reason",
+          "botId",
+          "stacks"
+        ]
+      },
+      "RestoreModuleDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "moduleId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "reason",
+          "botId",
+          "moduleId"
         ]
       },
       "RecipeResourceResponse": {

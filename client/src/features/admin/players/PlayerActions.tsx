@@ -13,14 +13,16 @@ import {
   usePlayersRemoveMutation,
   usePlayersResendVerificationMutation,
   usePlayersResetPasswordMutation,
-  usePlayersUnbanMutation
+  usePlayersUnbanMutation,
+  useSupervisionQuarantineMutation
 } from '../../../shared/api'
 import { useErrorMessage } from '../../../shared/errors'
 import { errorNotification } from '../../../shared/notifications'
 import { useAdminMe } from '../admin-me-context'
 import ActionModal, { ActionValues } from './ActionModal'
 
-type ActionName = 'ban' | 'unban' | 'logout' | 'resendVerification' | 'resetPassword' | 'changeRole' | 'delete'
+type ActionName =
+  'ban' | 'unban' | 'quarantine' | 'logout' | 'resendVerification' | 'resetPassword' | 'changeRole' | 'delete'
 
 // How long a ban lasts, in hours; 0 is until an admin lifts it
 const BAN_HOURS = [1, 24, 24 * 7, 24 * 30, 0] as const
@@ -30,6 +32,7 @@ const ROLES = USER_STATUSES.filter((status) => status !== 'banned')
 const PERMISSION: Record<ActionName, AdminPermission> = {
   ban: 'players.ban',
   unban: 'players.ban',
+  quarantine: 'supervision.quarantine',
   logout: 'players.logout',
   resendVerification: 'players.resend-verification',
   resetPassword: 'players.reset-password',
@@ -45,6 +48,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   const [open, setOpen] = useState<ActionName | null>(null)
   const [ban, banState] = usePlayersBanMutation()
   const [unban, unbanState] = usePlayersUnbanMutation()
+  const [quarantine, quarantineState] = useSupervisionQuarantineMutation()
   const [logout, logoutState] = usePlayersLogoutMutation()
   const [resendVerification, resendState] = usePlayersResendVerificationMutation()
   const [resetPassword, resetState] = usePlayersResetPasswordMutation()
@@ -56,6 +60,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   const run: Record<ActionName, (values: ActionValues) => Promise<{ error?: unknown }>> = {
     ban: ({ reason, hours }) => ban({ id, banPlayerDto: { reason, durationHours: (hours as number) || undefined } }),
     unban: ({ reason }) => unban({ id, reasonDto: { reason } }),
+    quarantine: ({ reason }) => quarantine({ id, reasonDto: { reason } }),
     logout: ({ reason }) => logout({ id, reasonDto: { reason } }),
     resendVerification: ({ reason }) => resendVerification({ id, reasonDto: { reason } }),
     resetPassword: ({ reason }) => resetPassword({ id, reasonDto: { reason } }),
@@ -67,6 +72,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   const loading: Record<ActionName, boolean> = {
     ban: banState.isLoading,
     unban: unbanState.isLoading,
+    quarantine: quarantineState.isLoading,
     logout: logoutState.isLoading,
     resendVerification: resendState.isLoading,
     resetPassword: resetState.isLoading,
@@ -102,6 +108,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
       <Space wrap>
         {button('ban', true)}
         {button('unban')}
+        {button('quarantine')}
         {button('logout')}
         {button('resendVerification')}
         {button('resetPassword')}

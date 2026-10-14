@@ -6,7 +6,14 @@ import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
 import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
-import { ManualCategoryDisabledError } from '../domain/engine.errors'
+import { ControlState, EngineControl, INITIAL_CONTROL_STATE } from '../domain/engine-control'
+import {
+  ManualCategoryDisabledError,
+  MaintenanceModeError,
+  PlayerQuarantinedError,
+  ScriptsHaltedError
+} from '../domain/engine.errors'
+import { ControlStateStore } from './control-state'
 import { ENERGY_EVENT, EnergyEvent } from '../../modules/domain/energy-model'
 import { BotState } from '../domain/bot-state'
 import { EventParty } from '../domain/game-event'
@@ -67,6 +74,7 @@ export interface EngineDependencies {
   // A seeded random generator for the given seed (design §12.4)
   createRng: (seed: number) => Rng
   executions: ExecutionRepository
+  controls: ControlStateStore
   bots: BotStateSource
   modules: ModuleLoader
   // Tells the supervising thread which execution is being stepped, so that it can tell when one has stalled the engine
@@ -114,6 +122,7 @@ export class EngineCore {
   private readonly metrics = new EngineMetrics()
   private readonly waitedTicks = new Map<string, number>()
   private tickNumber = 0
+  private controlState: ControlState = INITIAL_CONTROL_STATE
 
   constructor(private readonly deps: EngineDependencies) {}
 
@@ -124,6 +133,7 @@ export class EngineCore {
   // After a restart: relaunches the executions that were active from the beginning of `main` (design §12.3.1), or
   // kills the ones that keep dying with the engine
   async recover(): Promise<void> {
+    this.controlState = await this.deps.controls.load()
     await this.deps.vision.restore()
     for (const record of await this.deps.executions.listActive()) {
       if (record.restarts >= this.deps.config.maxRestarts) {
@@ -156,32 +166,109 @@ export class EngineCore {
   }
 
   start(request: StartRequest): Promise<ExecutionView> {
+    return this.submit(() => {
+      this.assertMayStart(request.userId)
+      return this.launch(request)
+    })
+  }
+
+  private async launch(request: StartRequest): Promise<ExecutionView> {
+    const state = await this.deps.bots.loadControlled(request.userId, request.botId)
+    if (!canRunScripts(this.deps.registry.instantiateAll(state.modules))) {
+      throw new AppError(409, ResultCode.NO_MODULE, 'The bot has no working processor')
+    }
+    const record: Execution = {
+      id: this.deps.ids.next(),
+      botId: request.botId,
+      userId: request.userId,
+      file: request.file,
+      args: request.args,
+      status: ExecutionStatus.ACTIVE,
+      restarts: 0,
+      reason: null,
+      createdAt: this.deps.clock.now(),
+      endedAt: null
+    }
+    const live = await this.build(record, state)
+    try {
+      await this.deps.executions.add(record)
+    } catch (error) {
+      live.dispose()
+      throw error
+    }
+    this.register(live)
+    return live.view()
+  }
+
+  // A script may start unless the world is paused, scripts are halted, or the player is quarantined (design §25.3)
+  private assertMayStart(userId: string): void {
+    this.assertMayAct(userId)
+    if (this.controlState.areScriptsHalted) {
+      throw new ScriptsHaltedError()
+    }
+  }
+
+  private assertMayAct(userId: string): void {
+    if (this.controlState.isPaused) {
+      throw new MaintenanceModeError()
+    }
+    if (this.controlState.quarantined.includes(userId)) {
+      throw new PlayerQuarantinedError()
+    }
+  }
+
+  // Maintenance, the script kill-switch and quarantine, from the console. Switching the kill-switch on kills every running
+  // script; a quarantined player's scripts are only held, and go on when the quarantine ends.
+  control(command: EngineControl): Promise<ControlState> {
     return this.submit(async () => {
-      const state = await this.deps.bots.loadControlled(request.userId, request.botId)
-      if (!canRunScripts(this.deps.registry.instantiateAll(state.modules))) {
-        throw new AppError(409, ResultCode.NO_MODULE, 'The bot has no working processor')
+      const next = this.nextControl(command)
+      await this.deps.controls.save(next)
+      const wasHalted = this.controlState.areScriptsHalted
+      this.controlState = next
+      if (next.areScriptsHalted && !wasHalted) {
+        for (const live of [...this.live.values()]) {
+          await this.finish(live, ExecutionStatus.KILLED, 'killed: scripts were switched off by an admin')
+        }
       }
-      const record: Execution = {
-        id: this.deps.ids.next(),
-        botId: request.botId,
-        userId: request.userId,
-        file: request.file,
-        args: request.args,
-        status: ExecutionStatus.ACTIVE,
-        restarts: 0,
-        reason: null,
-        createdAt: this.deps.clock.now(),
-        endedAt: null
+
+      return { ...next, quarantined: [...next.quarantined] }
+    })
+  }
+
+  private nextControl(command: EngineControl): ControlState {
+    const current = this.controlState
+    switch (command.type) {
+      case 'pause':
+        return { ...current, isPaused: true }
+      case 'resume':
+        return { ...current, isPaused: false }
+      case 'halt-scripts':
+        return { ...current, areScriptsHalted: command.isOn }
+      default:
+        return {
+          ...current,
+          quarantined: command.isOn
+            ? [...new Set([...current.quarantined, command.userId])]
+            : current.quarantined.filter((userId) => userId !== command.userId)
+        }
+    }
+  }
+
+  // Restarts what runs on a bot: each script is killed and started again from the beginning
+  reboot(botId: string): Promise<ExecutionView[]> {
+    return this.submit(async () => {
+      const running = [...this.live.values()].filter((live) => live.record.botId === botId)
+      for (const { record } of running) {
+        this.assertMayStart(record.userId)
       }
-      const live = await this.build(record, state)
-      try {
-        await this.deps.executions.add(record)
-      } catch (error) {
-        live.dispose()
-        throw error
+      const restarted: ExecutionView[] = []
+      for (const live of running) {
+        const { userId, file, args } = live.record
+        await this.finish(live, ExecutionStatus.KILLED, 'killed: the bot was rebooted by an admin')
+        restarted.push(await this.launch({ userId, botId, file, args: [...args] }))
       }
-      this.register(live)
-      return live.view()
+
+      return restarted
     })
   }
 
@@ -191,6 +278,7 @@ export class EngineCore {
   manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue> {
     return new Promise<JsonValue>((resolve, reject) => {
       this.submit(async () => {
+        this.assertMayAct(userId)
         const spec = findScriptFunction(fn)
         if (!spec || spec.isScheduled) {
           throw new ValidationError(`Unknown action: ${fn}`)
@@ -226,6 +314,10 @@ export class EngineCore {
   // forgotten afterwards, since the use case may have changed any of it (design §14.2)
   act(name: WorldActionName, args: unknown[]): Promise<unknown> {
     return this.submit(async () => {
+      // The support actions of the admins are the way back from a pause or a quarantine, so they are not held by either
+      if (!name.startsWith('support.')) {
+        this.assertMayAct(String(args[0]))
+      }
       const controlled = controlledBotOf(name, args)
       if (controlled) {
         await this.requireCategory(controlled.userId, ACTION_CATEGORIES[name])
@@ -300,6 +392,11 @@ export class EngineCore {
 
   // One game tick
   async runTick(): Promise<void> {
+    if (this.controlState.isPaused) {
+      // Maintenance: requests are still answered (the console resumes the world through one), but nothing moves
+      await this.drainInbox()
+      return
+    }
     const { config } = this.deps
     const startedAt = this.deps.monotonicMs()
     this.tickNumber += 1
@@ -308,7 +405,11 @@ export class EngineCore {
     this.deps.world.beginTick(tick)
     await this.drainInbox()
 
-    const planned = this.deps.scheduler.plan([...this.live.values()], tick)
+    const held = new Set(this.controlState.quarantined)
+    const planned = this.deps.scheduler.plan(
+      [...this.live.values()].filter((live) => !held.has(live.record.userId)),
+      tick
+    )
     const cutoff = startedAt + config.tickIntervalMs * config.tickCapRatio
     const hasTime = () => this.deps.monotonicMs() < cutoff
 

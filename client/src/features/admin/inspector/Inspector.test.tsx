@@ -253,6 +253,59 @@ describe('BotInspectorPage', () => {
   })
 })
 
+describe('supervision from the inspector', () => {
+  const dialog = () => document.querySelector('.ant-modal') as HTMLElement
+  const confirm = async () => {
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'runaway script' } })
+    fireEvent.click(
+      Array.from(document.querySelectorAll('button')).find((node) => node.textContent === 'Confirm') as HTMLElement
+    )
+  }
+
+  it('lets an admin kill an active execution and reboot the bot', async () => {
+    const calls = serve()
+    renderAs('admin', <BotInspectorPage />)
+    fireEvent.click(await screen.findByText('Executions'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Kill' }))
+    await confirm()
+    await waitFor(() =>
+      expect(calls.find((call) => call.url.endsWith('/supervision/executions/e1/kill'))).toMatchObject({
+        method: 'POST',
+        body: { reason: 'runaway script' }
+      })
+    )
+    await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reboot' }))
+    await confirm()
+    await waitFor(() => expect(calls.some((call) => call.url.endsWith('/supervision/bots/bot-1/reboot'))).toBe(true))
+  })
+
+  it('keeps the dialog open when the server refuses, and offers nothing to a moderator', async () => {
+    const error = jest.spyOn(notification, 'error').mockImplementation(() => undefined)
+    serve((call) =>
+      call.url.endsWith('/reboot') ? { error: { status: 503, data: { code: 'MAINTENANCE_MODE' } } } : undefined
+    )
+    const { unmount } = renderAs('admin', <BotInspectorPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Reboot' }))
+    await confirm()
+    await waitFor(() =>
+      expect(error).toHaveBeenCalledWith(
+        expect.objectContaining({ description: 'The game is paused for maintenance, try again later' })
+      )
+    )
+    expect(dialog()).toBeInTheDocument()
+    unmount()
+
+    serve()
+    renderAs('moderator', <BotInspectorPage />)
+    await screen.findByText('Home')
+    expect(screen.queryByRole('button', { name: 'Reboot' })).toBeNull()
+    fireEvent.click(screen.getByText('Executions'))
+    expect(screen.queryByRole('button', { name: 'Kill' })).toBeNull()
+  })
+})
+
 describe('FileBrowser', () => {
   // The browser alone: a whole inspector page is a large DOM and slow to query
   async function openFiles(role: IAdminMe['role']) {

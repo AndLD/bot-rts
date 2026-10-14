@@ -5,6 +5,7 @@ import { ExecutionView } from '../../engine/domain/execution'
 import { JsonValue } from '../../engine/domain/json-value'
 import { ServiceUnavailableError } from '../../engine/domain/engine.errors'
 import { StartRequest } from '../../engine/application/engine-core'
+import { ControlState, EngineControl } from '../../engine/domain/engine-control'
 import { EngineMetricsSnapshot } from '../../engine/application/engine-metrics'
 import { EnginePort } from '../../engine/application/engine-port'
 import { EngineReplyData, EngineRequest } from '../../engine/application/engine-protocol'
@@ -60,6 +61,14 @@ export class RedisEnginePort implements EnginePort {
 
   linkStatus(userId: string, botId: string): Promise<LinkStatus> {
     return this.ask({ op: 'link', userId, botId }) as Promise<LinkStatus>
+  }
+
+  control(command: EngineControl): Promise<ControlState> {
+    return this.ask({ op: 'control', command }) as Promise<ControlState>
+  }
+
+  reboot(botId: string): Promise<ExecutionView[]> {
+    return this.ask({ op: 'reboot', botId }) as Promise<ExecutionView[]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {

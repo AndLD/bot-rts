@@ -4,6 +4,7 @@ import { ConfigModule } from './config/config.module'
 import { AdminModule } from './admin/admin.module'
 import { AchievementsModule } from './achievements/achievements.module'
 import { InspectorModule } from './inspector/inspector.module'
+import { SupervisionModule } from './supervision/supervision.module'
 import { PlayersModule } from './players/players.module'
 import { PlayerNotificationsModule } from './player-notifications/player-notifications.module'
 import { AuthModule } from './auth/auth.module'
@@ -47,6 +48,7 @@ export class AppModule {
         AdminModule,
         PlayersModule,
         InspectorModule,
+        SupervisionModule,
         ModulesModule,
         CraftingModule,
         FilesModule,

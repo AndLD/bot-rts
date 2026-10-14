@@ -83,3 +83,22 @@ export interface IPlayerProfile extends IPlayerListItem {
   notes: IPlayerNote[]
   timeline: ITimelineEntry[]
 }
+
+// The Supervision page of the admin console (design §25.3)
+export interface IQuarantinedPlayer {
+  _id: string
+  name: string
+}
+
+export interface ISupervisionState {
+  isPaused: boolean
+  areScriptsHalted: boolean
+  quarantined: IQuarantinedPlayer[]
+  // Scripts that are running now, and the ones among them held by a quarantine
+  activeExecutions: number
+  heldExecutions: number
+}
+
+// The words an admin types to confirm the two world-wide switches
+export const PAUSE_CONFIRMATION = 'PAUSE'
+export const HALT_CONFIRMATION = 'HALT'

@@ -3,15 +3,19 @@ import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { LOGGER, Logger } from '../shared/application/logger'
-import { ENGINE_PORT } from './application/engine-port'
+import { ENGINE_PORT, EnginePort } from './application/engine-port'
 import { PrismaExecutionRepository } from './infrastructure/prisma-execution.repository'
 import { killStalled } from './infrastructure/kill-stalled'
 import { createStepWatchBuffer, StepWatchReader } from './infrastructure/step-watch'
 import { EngineProcess } from './infrastructure/engine-process'
 import { spawnEngineWorker } from './infrastructure/engine-worker-launcher'
 import { DisabledEnginePort } from './infrastructure/worker-engine-port'
+import { REDIS_CONNECTOR, RedisConnector } from '../redis/redis.module'
+import { RedisEngineBridge } from '../redis/infrastructure/redis-engine-bridge'
+import { RedisEnginePort } from '../redis/infrastructure/redis-engine-port'
 
 export const ENGINE_PROCESS = Symbol('EngineProcess')
+const ENGINE_BRIDGE = Symbol('EngineBridge')
 
 const READY_TIMEOUT_MS = 60_000
 const STOP_TIMEOUT_MS = 10_000
@@ -26,11 +30,17 @@ const RESPAWN_DELAY_MS = 1_000
       provide: ENGINE_PROCESS,
       inject: [APP_CONFIG, LOGGER, PRISMA_CLIENT],
       useFactory: async (config: AppConfig, logger: Logger, client: PrismaClient) => {
-        if (!config.engine.isEnabled) {
+        // An `api` node leaves the engine to the engine node (design §12.2.2)
+        if (!config.engine.isEnabled || config.deployment.role === 'api') {
           return null
         }
         // The engine thread must not start an engine of its own
-        const workerConfig = { ...config, engine: { ...config.engine, isEnabled: false }, smtp: undefined }
+        const workerConfig = {
+          ...config,
+          engine: { ...config.engine, isEnabled: false },
+          deployment: { ...config.deployment, role: 'all' as const, redisUrl: undefined },
+          smtp: undefined
+        }
         const stepWatch = createStepWatchBuffer()
         const executions = new PrismaExecutionRepository(client)
         const process: EngineProcess = new EngineProcess({
@@ -52,16 +62,42 @@ const RESPAWN_DELAY_MS = 1_000
     },
     {
       provide: ENGINE_PORT,
-      inject: [ENGINE_PROCESS],
-      useFactory: (process: EngineProcess | null) => process?.port ?? new DisabledEnginePort()
+      inject: [ENGINE_PROCESS, APP_CONFIG, REDIS_CONNECTOR],
+      useFactory: async (process: EngineProcess | null, config: AppConfig, connect: RedisConnector) => {
+        if (config.deployment.role === 'api' && config.engine.isEnabled && connect) {
+          const port = new RedisEnginePort(connect(), connect(), config.deployment.engineRequestTimeoutMs)
+          await port.open()
+          return port
+        }
+        return process?.port ?? new DisabledEnginePort()
+      }
+    },
+    {
+      provide: ENGINE_BRIDGE,
+      inject: [ENGINE_PORT, APP_CONFIG, REDIS_CONNECTOR, LOGGER],
+      useFactory: async (engine: EnginePort, config: AppConfig, connect: RedisConnector, logger: Logger) => {
+        if (config.deployment.role !== 'engine' || !config.engine.isEnabled || !connect) {
+          return null
+        }
+        const bridge = new RedisEngineBridge(engine, connect(), connect(), logger)
+        await bridge.open()
+        return bridge
+      }
     }
   ],
   exports: [ENGINE_PORT]
 })
 export class EngineModule implements OnApplicationShutdown {
-  constructor(@Inject(ENGINE_PROCESS) private readonly process: EngineProcess | null) {}
+  constructor(
+    @Inject(ENGINE_PROCESS) private readonly process: EngineProcess | null,
+    @Inject(ENGINE_PORT) private readonly port: EnginePort,
+    @Inject(ENGINE_BRIDGE) _bridge: RedisEngineBridge | null
+  ) {}
 
   async onApplicationShutdown() {
+    if (this.port instanceof RedisEnginePort) {
+      this.port.close()
+    }
     await this.process?.close()
   }
 }

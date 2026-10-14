@@ -89,7 +89,12 @@ commands", so QuickJS execution can later move to a worker pool (sharded by `bot
 changing game logic.
 
 **Scaling:** ✅ there is **one authoritative engine process** for the whole world. The API tier scales horizontally;
-the engine scales vertically. The map is addressed in **chunks** so that sharding the world by region across several
+the engine scales vertically. ✅ **Implementation (Plan 8.1):** a process runs with `APP_ROLE` `all` (API and engine
+thread together, the default), `api` (HTTP and sockets only) or `engine` (owns the engine thread and answers the API nodes).
+`api` nodes send the engine's requests over Redis (the same request/reply protocol as between the two threads) and the
+engine node pushes events to the players' sockets through the Socket.IO Redis adapter, so a player's room spans every node.
+Sockets hold no state beyond the player identified at the handshake, and the client uses the WebSocket transport only, so no
+sticky routing is needed. There must be exactly one `engine` node (see `docs/DEPLOYMENT.md`). The map is addressed in **chunks** so that sharding the world by region across several
 engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
 until it restarts and reloads the world from the database.
 

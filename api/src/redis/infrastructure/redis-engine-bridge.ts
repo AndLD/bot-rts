@@ -1,0 +1,61 @@
+import Redis from 'ioredis'
+import { Logger } from '../../shared/application/logger'
+import { AppError } from '../../shared/domain/app-error'
+import { EnginePort } from '../../engine/application/engine-port'
+import { EngineReplyData, EngineRequest, SerializedError } from '../../engine/application/engine-protocol'
+import { decode, encode, ENGINE_REQUEST_CHANNEL, LinkRequest } from './engine-link'
+
+// The engine node's side of the link: answers the requests the API nodes publish by calling the local engine
+export class RedisEngineBridge {
+  constructor(
+    private readonly engine: EnginePort,
+    private readonly publisher: Redis,
+    private readonly subscriber: Redis,
+    private readonly logger: Logger
+  ) {}
+
+  async open(): Promise<void> {
+    this.subscriber.on(
+      'messageBuffer',
+      (_channel: Buffer, payload: Buffer) => void this.handle(decode<LinkRequest>(payload))
+    )
+    await this.subscriber.subscribe(ENGINE_REQUEST_CHANNEL)
+  }
+
+  private async handle({ id, replyTo, request }: LinkRequest): Promise<void> {
+    let reply
+    try {
+      reply = { id, data: await this.serve(request) }
+    } catch (error) {
+      reply = { id, error: this.serialize(error) }
+    }
+    await this.publisher.publish(replyTo, encode(reply))
+  }
+
+  private serve(request: EngineRequest): Promise<EngineReplyData> {
+    switch (request.op) {
+      case 'start':
+        return this.engine.start(request.request)
+      case 'kill':
+        return this.engine.kill(request.userId, request.executionId)
+      case 'list':
+        return this.engine.list(request.userId)
+      case 'act':
+        return this.engine.act(request.name, request.args as never) as Promise<EngineReplyData>
+      case 'link':
+        return this.engine.linkStatus(request.userId, request.botId)
+      case 'manual':
+        return this.engine.manual(request.userId, request.botId, request.fn, request.args)
+      default:
+        return this.engine.metrics()
+    }
+  }
+
+  private serialize(error: unknown): SerializedError {
+    if (error instanceof AppError) {
+      return { statusCode: error.statusCode, code: error.code, message: error.message }
+    }
+    this.logger.error(error)
+    return { statusCode: 500, code: 'INTERNAL_ERROR', message: 'Internal error' }
+  }
+}

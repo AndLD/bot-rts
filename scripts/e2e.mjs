@@ -122,6 +122,8 @@ try {
       DATABASE_URL: databaseUrl.href,
       FRONTEND_URL: `http://localhost:${CLIENT_PORT}`,
       WHITELIST_URLS: `http://localhost:${CLIENT_PORT}`,
+      // The socket origin: without it a developer's api/.env.development would decide, and the page could not connect on another port
+      ADMIN_URL: `http://localhost:${CLIENT_PORT}`,
       EMAIL_OUTBOX_DIR: outbox,
       TRUST_PROXY: 'true',
       // The browser's requests share one address; the rate-limit spec uses addresses of its own

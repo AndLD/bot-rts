@@ -158,14 +158,14 @@ describe('two players in one world', () => {
   it('shows an attack to the defender: a notification that his bot is under attack', () => {
     bot(alice, GUNNER, spot, 'Gunner').then((gunner) => {
       bot(bob, DRIVER, { x: spot.x, y: spot.y - 2 }, 'Target').then((target) => {
-        // A sure hit
+        // A sure hit, and several shots: the distance still takes some of the accuracy
         cy.task('setModuleProps', { botId: gunner, type: 'weapon', props: { accuracy: 1 } })
         // The engine reads the module again after an action of the base
         lookFrom(alice)
         script(
           alice,
           gunner,
-          `export async function main(bot) { const r = await bot.shoot(${spot.x}, ${spot.y - 2}); bot.log("shot " + (r.ok ? "ok" : r.code)) }`
+          `export async function main(bot) { const r = await bot.shoot(${spot.x}, ${spot.y - 2}); bot.log("shot " + (r.ok ? "ok" : r.code)); for (let i = 0; i < 5; i++) { await bot.sleep(2100); await bot.shoot(${spot.x}, ${spot.y - 2}) } }`
         )
 
         cy.runScript({ token: alice.token, botId: gunner })
@@ -178,7 +178,7 @@ describe('two players in one world', () => {
               .apiRequest({ path: '/api/v1/notifications', headers: headers(bob) })
               .its('body.items') as unknown as Cypress.Chainable<Array<{ kind: string; botId: string | null }>>,
           (items) => items.some((item) => item.kind === 'underAttack'),
-          60
+          120
         ).then((items) => {
           expect(items.find((item) => item.kind === 'underAttack')?.botId).to.equal(target)
         })

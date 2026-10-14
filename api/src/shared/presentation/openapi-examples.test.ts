@@ -43,6 +43,11 @@ describe('exampleOfSchema', () => {
     expect(exampleOfSchema({ anyOf: [{ type: 'string' }] }, doc)).toBe('string')
   })
 
+  it('makes an empty object of a schema that says nothing, also behind a reference nobody defined', () => {
+    expect(exampleOfSchema({}, doc)).toEqual({})
+    expect(exampleOfSchema({ $ref: '#/components/schemas/Missing' }, doc)).toEqual({})
+  })
+
   it('stops at a schema that contains itself', () => {
     const value = exampleOfSchema({ $ref: '#/components/schemas/Loop' }, doc)
 

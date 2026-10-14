@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { of } from 'rxjs'
-import { DEPRECATION_KEY, DeprecationInterceptor } from './api-deprecation'
+import { ApiDeprecated, DEPRECATION_KEY, DeprecationInterceptor } from './api-deprecation'
 
 function run(deprecation: unknown) {
   const headers: Record<string, string> = {}
@@ -38,5 +38,23 @@ describe('DeprecationInterceptor', () => {
 
   it('leaves a route that is not deprecated alone', () => {
     expect(run(undefined).headers).toEqual({})
+  })
+})
+
+describe('ApiDeprecated', () => {
+  class Routes {
+    @ApiDeprecated({ sunset: '2027-06-30', replacement: '/api/v2/things' })
+    old() {}
+  }
+
+  it('records the sunset and the replacement for the interceptor, and marks the operation in the reference', () => {
+    const handler = Routes.prototype.old
+
+    expect(Reflect.getMetadata(DEPRECATION_KEY, handler)).toEqual({
+      sunset: '2027-06-30',
+      replacement: '/api/v2/things'
+    })
+    expect(Reflect.getMetadata('swagger/apiOperation', handler)).toMatchObject({ deprecated: true })
+    expect(Reflect.getMetadata('swagger/apiExtension', handler)).toMatchObject({ 'x-sunset': '2027-06-30' })
   })
 })

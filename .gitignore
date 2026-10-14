@@ -41,3 +41,4 @@ client/cypress/screenshots
 client/cypress/videos
 .lighthouseci
 .load/
+mcp/ts-built

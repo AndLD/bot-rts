@@ -1,5 +1,6 @@
 import { Principal } from '../../auth/application/auth.service'
 import { ValidationError } from '../../shared/domain/errors'
+import { TerminalService } from '../application/terminal.service'
 import { ScriptRunner } from '../application/script-runner'
 import { ExecutionsController } from './executions.controller'
 
@@ -21,7 +22,12 @@ function setup() {
     kill: jest.fn(async () => ({ ...execution, state: 'killed' as const })),
     evaluate: jest.fn()
   } as unknown as jest.Mocked<ScriptRunner>
-  return { runner, controller: new ExecutionsController(runner) }
+  const terminal = {
+    history: jest.fn(async () => [
+      { id: 'l1', sessionId: 's1', botId: 'b1', at: new Date(5), kind: 'output', text: 'hi' }
+    ])
+  }
+  return { runner, terminal, controller: new ExecutionsController(runner, terminal as unknown as TerminalService) }
 }
 
 describe('ExecutionsController', () => {
@@ -56,5 +62,16 @@ describe('ExecutionsController', () => {
 
     expect((await controller.kill(principal, 'e1')).state).toBe('killed')
     expect(runner.kill).toHaveBeenCalledWith('u1', 'e1')
+  })
+
+  it('reads the history of a bot, the newest 100 lines unless asked for another number', async () => {
+    const { controller, terminal } = setup()
+
+    const lines = await controller.history(principal, 'b1', {})
+    await controller.history(principal, 'b1', { limit: 7 })
+
+    expect(lines).toEqual([{ _id: 'l1', sessionId: 's1', botId: 'b1', at: 5, kind: 'output', text: 'hi' }])
+    expect(terminal.history).toHaveBeenNthCalledWith(1, 'u1', 'b1', 100)
+    expect(terminal.history).toHaveBeenNthCalledWith(2, 'u1', 'b1', 7)
   })
 })

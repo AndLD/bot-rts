@@ -179,6 +179,23 @@ describe('using an API key', () => {
       .expect(400)
   })
 
+  it('reads the terminal history over HTTP with the read scope', async () => {
+    const base = (await request(testApp.url).get('/api/v1/bots').set(bearer(alice.accessToken))).body[0]._id
+    const reader = await createKey({ name: 'r', scopes: ['read'] })
+    const writer = await createKey({ name: 'w', scopes: ['files'] })
+
+    const history = await request(testApp.url)
+      .get(`/api/v1/bots/${base}/terminal-history?limit=5`)
+      .set(bearer(reader.secret))
+      .expect(200)
+    expect(Array.isArray(history.body)).toBe(true)
+    await request(testApp.url).get(`/api/v1/bots/${base}/terminal-history`).set(bearer(writer.secret)).expect(403)
+    await request(testApp.url)
+      .get(`/api/v1/bots/${base}/terminal-history?limit=0`)
+      .set(bearer(reader.secret))
+      .expect(400)
+  })
+
   it('stops working when it is revoked, expires, or is not a key at all', async () => {
     const key = await createKey({ name: 'temporary', scopes: ['read'] })
     await request(testApp.url).get('/api/v1/bots').set(bearer(key.secret)).expect(200)

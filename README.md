@@ -135,6 +135,7 @@ bot-rts/
 │       ├── routes/     (public, private, inactive)
 │       ├── store/      (Redux slice + RTK Query APIs)
 │       └── utils/
+├── mcp/                          # MCP server: lets an AI play with an API key (docs/MCP.md)
 ├── lib/                          # Shared TS interfaces
 │   └── utils/ (types.ts, interfaces/{auth,bots,files,map,modules,users}.ts)
 ├── docs/                         # Game design, development plan, quality review
@@ -317,6 +318,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
   screens, in-game scenarios, and examples.
 - [`docs/LOAD-TESTING.md`](./docs/LOAD-TESTING.md) — the load and soak harness, measured capacity and tuning of the scheduler budget.
+- [`docs/MCP.md`](./docs/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
 - [`docs/API.md`](./docs/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
 - [`docs/RELEASING.md`](./docs/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
 - [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).

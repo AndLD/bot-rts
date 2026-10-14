@@ -1,14 +1,23 @@
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, ParseUUIDPipe, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { IExecution } from '../../../../lib/utils/interfaces/executions'
+import { ITerminalLogEntry } from '../../../../lib/utils/interfaces/terminal'
 import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { SCRIPT_RUNNER, ScriptArgument, ScriptRunner } from '../application/script-runner'
-import { ExecutionResponse, StartExecutionDto } from './executions.dto'
+import { TerminalService } from '../application/terminal.service'
+import { toLogEntryDto } from './terminal.mapper'
+import {
+  ExecutionResponse,
+  StartExecutionDto,
+  TerminalHistoryQueryDto,
+  TerminalLogEntryResponse
+} from './executions.dto'
 
+const DEFAULT_HISTORY_LINES = 100
 const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
 
 // Scripts over HTTP, for clients that do not drive a terminal (design §22.1). The same engine runs them under the same rules
@@ -18,7 +27,10 @@ const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('
 @ApiBearerAuth()
 @Controller({ version: '1' })
 export class ExecutionsController {
-  constructor(@Inject(SCRIPT_RUNNER) private readonly runner: ScriptRunner) {}
+  constructor(
+    @Inject(SCRIPT_RUNNER) private readonly runner: ScriptRunner,
+    private readonly terminal: TerminalService
+  ) {}
 
   @ApiOkResponse({
     type: ExecutionResponse,
@@ -59,5 +71,17 @@ export class ExecutionsController {
     @Param('executionId', idPipe) executionId: string
   ): Promise<IExecution> {
     return this.runner.kill(user.id, executionId)
+  }
+
+  // What a bot's terminal sessions and its scripts wrote, oldest first (the `get-terminal-history` event of the socket)
+  @ApiOkResponse({ type: TerminalLogEntryResponse, isArray: true })
+  @RequireScope('read')
+  @Get('bots/:botId/terminal-history')
+  async history(
+    @CurrentPrincipal() { user }: Principal,
+    @Param('botId', idPipe) botId: string,
+    @Query() query: TerminalHistoryQueryDto
+  ): Promise<ITerminalLogEntry[]> {
+    return (await this.terminal.history(user.id, botId, query.limit ?? DEFAULT_HISTORY_LINES)).map(toLogEntryDto)
   }
 }

@@ -11,6 +11,7 @@ COPY package.json package-lock.json ./
 COPY lib/package.json lib/
 COPY api/package.json api/
 COPY client/package.json client/
+COPY mcp/package.json mcp/
 COPY api/prisma api/prisma
 # The install scripts build bcrypt and generate the Prisma client
 RUN npm ci --workspace lib --workspace api

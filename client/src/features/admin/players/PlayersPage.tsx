@@ -1,6 +1,7 @@
 'use client'
 
 import { Alert, Input, Select, Space, Table, Tag } from 'antd'
+import type { SorterResult } from 'antd/es/table/interface'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
@@ -89,8 +90,8 @@ export default function PlayersPage() {
           showSizeChanger: false
         }}
         onChange={(pagination, _filters, sorter) => {
-          setPage(pagination.current ?? 1)
-          const single = Array.isArray(sorter) ? sorter[0] : sorter
+          setPage(pagination.current as number)
+          const single = ([] as SorterResult<IPlayerListItem>[]).concat(sorter)[0]
           if (single?.order && single.field) {
             setSort({ field: single.field as PlayerSort, order: single.order === 'ascend' ? 'asc' : 'desc' })
           }

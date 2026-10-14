@@ -104,8 +104,6 @@ export class PrismaPlayerDirectory implements PlayerDirectory {
       _max: { createdAt: true }
     })
 
-    return new Map(
-      groups.flatMap((group) => (group._max.createdAt ? [[group.userId, group._max.createdAt] as const] : []))
-    )
+    return new Map(groups.map((group) => [group.userId, group._max.createdAt as Date]))
   }
 }

@@ -46,7 +46,8 @@ import { PLAYERS_SERVICE, PlayersController } from './presentation/players.contr
         AuditService,
         { token: CREDENTIAL_AUTH, optional: true },
         ID_GENERATOR,
-        CLOCK
+        CLOCK,
+        LOGGER
       ],
       useFactory: (
         directory: PlayerDirectory,
@@ -55,8 +56,9 @@ import { PLAYERS_SERVICE, PlayersController } from './presentation/players.contr
         audit: AuditService,
         credentials: CredentialAuthService | undefined,
         ids: IdGenerator,
-        clock: Clock
-      ) => new PlayersService(directory, moderation, unitOfWork, audit, credentials, ids, clock)
+        clock: Clock,
+        logger: Logger
+      ) => new PlayersService(directory, moderation, unitOfWork, audit, credentials, ids, clock, logger)
     }
   ]
 })
@@ -65,16 +67,12 @@ export class PlayersModule implements OnApplicationBootstrap, OnApplicationShutd
 
   constructor(
     @Inject(PLAYERS_SERVICE) private readonly players: PlayersService,
-    @Inject(APP_CONFIG) private readonly config: AppConfig,
-    @Inject(LOGGER) private readonly logger: Logger
+    @Inject(APP_CONFIG) private readonly config: AppConfig
   ) {}
 
   onApplicationBootstrap() {
     if (this.config.lifecycle.isEnabled && this.config.deployment.role !== 'api') {
-      this.timer = setInterval(
-        () => void this.players.liftExpiredBans().catch((error: unknown) => this.logger.error(error)),
-        this.config.admin.banCheckIntervalMs
-      )
+      this.timer = setInterval(() => void this.players.sweepExpiredBans(), this.config.admin.banCheckIntervalMs)
       this.timer.unref()
     }
   }

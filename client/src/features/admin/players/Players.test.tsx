@@ -3,7 +3,7 @@ import { notification } from 'antd'
 import { NextIntlClientProvider } from 'next-intl'
 import { Provider } from 'react-redux'
 import type { IAdminMe } from '@lib/utils/admin'
-import type { IPlayerProfile } from '@lib/utils/admin-players'
+import type { IPlayerListItem, IPlayerProfile } from '@lib/utils/admin-players'
 import messages from '../../../../messages/en.json'
 import { makeJwt } from '../../../../tests/jwt'
 import { storeWithToken } from '../../../../tests/render'
@@ -19,7 +19,7 @@ const query = jest.mocked(baseQueryWithRefresh)
 
 type Call = { url: string; method?: string; params?: Record<string, unknown>; body?: Record<string, unknown> }
 
-const item = (overrides = {}) => ({
+const item = (overrides: Partial<IPlayerListItem> = {}): IPlayerListItem => ({
   _id: 'p1',
   name: 'Alice',
   email: 'alice@example.com',
@@ -275,6 +275,7 @@ describe('PlayerProfilePage with little to show', () => {
         resources: [],
         sessions: [{ _id: 's1', userAgent: null, createdAt: 1, lastUsedAt: 2, expiresAt: 3, isActive: false }],
         notes: [],
+        isEmailVerified: false,
         lastLoginAt: 5
       })
     })

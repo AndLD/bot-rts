@@ -8,6 +8,7 @@ import { StorageModule } from '../../modules/domain/game-module'
 import { UnitOfWork } from '../../persistence/application/unit-of-work'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
+import { Logger } from '../../shared/application/logger'
 import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { User } from '../../users/domain/user.entity'
 import { assertAssignableRole, assertOutranks, isBanActive, PlayerBan, PlayerNote } from '../domain/player-moderation'
@@ -45,7 +46,8 @@ export class PlayersService {
     private readonly audit: AuditService,
     private readonly credentials: CredentialAuthService | undefined,
     private readonly ids: IdGenerator,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly logger: Logger
   ) {}
 
   search(filter: PlayerFilter, page: number, pageSize: number) {
@@ -113,6 +115,15 @@ export class PlayersService {
 
       return { before: { status: 'banned' }, after: { status: ban.previousStatus } }
     })
+  }
+
+  // One pass of the timer: a failure is logged and never ends the schedule
+  async sweepExpiredBans(): Promise<void> {
+    try {
+      await this.liftExpiredBans()
+    } catch (error) {
+      this.logger.error(error)
+    }
   }
 
   // Ends the bans whose time has passed; run by a timer, not by an admin

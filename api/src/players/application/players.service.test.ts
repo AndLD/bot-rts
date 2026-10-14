@@ -45,6 +45,7 @@ function setup(options: { withCredentials?: boolean } = {}) {
     search: jest.fn(async () => ({ players: [], total: 0 })),
     activityOf: async () => activity
   }
+  const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() }
   const service = new PlayersService(
     directory,
     moderation,
@@ -52,7 +53,8 @@ function setup(options: { withCredentials?: boolean } = {}) {
     audit,
     options.withCredentials === false ? undefined : (credentials as unknown as CredentialAuthService),
     new SequentialIdGenerator(),
-    clock
+    clock,
+    logger
   )
 
   return {
@@ -60,6 +62,7 @@ function setup(options: { withCredentials?: boolean } = {}) {
     sessions,
     moderation,
     clock,
+    logger,
     credentials,
     service,
     directory,
@@ -136,6 +139,16 @@ describe('PlayersService moderation', () => {
     expect((await users.findById(first.id))?.status).toBe('user')
     expect(moderation.bans.every((ban) => ban.liftedAt !== null && ban.liftedBy === null)).toBe(true)
     expect(await service.liftExpiredBans()).toBe(0)
+  })
+
+  it('logs a failed sweep and does not throw', async () => {
+    const { moderation, service, logger } = setup()
+    moderation.listExpiredBans = async () => {
+      throw new Error('database down')
+    }
+
+    await expect(service.sweepExpiredBans()).resolves.toBeUndefined()
+    expect(logger.error).toHaveBeenCalled()
   })
 
   it('does not let an admin act on themselves, an equal or a higher rank, or on nobody', async () => {

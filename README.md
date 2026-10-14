@@ -155,11 +155,10 @@ bot-rts/
 │   └── cypress/                  # End-to-end specs
 ├── mcp/                          # MCP server: lets an AI play with an API key (docs/integrations/MCP.md)
 ├── lib/                          # Shared types, constants, pure functions
-├── docs/                         # Game design, development plan (with work logs), API, MCP, deployment
+├── docs/                         # Game design, development plan, testing, API, MCP, deployment, CHANGELOG.md
 ├── scripts/                      # e2e, load test, release, docs and i18n checks
 ├── docker-compose.yml            # PostgreSQL, Redis; optional full stack (profile `stack`)
 ├── ecosystem.config.json         # PM2 process definition (prod)
-├── CHANGELOG.md
 ├── AGENTS.md                     # Engineering rules for contributors and agents
 └── README.md
 ```
@@ -338,7 +337,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/integrations/MCP.md`](./docs/integrations/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
 - [`docs/integrations/API.md`](./docs/integrations/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
 - [`docs/operations/RELEASING.md`](./docs/operations/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
-- [`CHANGELOG.md`](./CHANGELOG.md) — release notes.
+- [`docs/CHANGELOG.md`](./docs/CHANGELOG.md) — release notes.
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/code-quality-reviews/2026-10-10.md`](./docs/code-quality-reviews/2026-10-10.md) — quality assessment of the original prototype (historical).

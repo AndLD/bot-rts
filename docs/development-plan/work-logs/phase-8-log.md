@@ -123,4 +123,5 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Exit criteria of the phase:** the game runs under realistic multi-player load (8.6, with the leak the soak run found fixed), has a horizontally scalable API tier (8.1), is observable (8.3) and is released via full Git Flow (8.7; no release has been cut: that is the owner's decision).
 - **Next step:** none in this phase; the end-of-phase database step (`npm run db:up`, `npm run db:migrate -w api`) is run from the updated `develop` after the merge. Phases 9 and 10 are next in the plan.
 - **Verify with:** `npm run lint && npm run typecheck && npm run docs:check && npm run test:coverage`
+- **Local database (AGENTS.md §7.6):** run from the updated `develop` after the last merge: `npm run db:up` started PostgreSQL and Redis, and `npm run db:migrate -w api` reported "No pending migrations to apply" (the three migrations of this phase, `data_lifecycle`, `map_points_type_index` and `api_keys`, were applied while the tasks were developed). `npm run db:seed` was not needed: the phase changed no seed data.
 

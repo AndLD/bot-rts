@@ -1,4 +1,4 @@
-[← README](../README.md)
+[← README](../../README.md)
 
 # The public API
 
@@ -6,7 +6,7 @@ Everything the web client does goes through one versioned API, `/api/v1` (REST a
 clients, scripts and AI assistants. There are no private endpoints for the official client.
 
 - **Reference:** the live Swagger UI is at `/api/docs`, and the OpenAPI document at `/api/docs-json`; the document is also kept in
-  the repository as [`api/openapi.json`](../api/openapi.json) and checked against the code in CI. Every operation has a request
+  the repository as [`api/openapi.json`](../../api/openapi.json) and checked against the code in CI. Every operation has a request
   example, a response example and a `curl` sample (`x-codeSamples`), and names the key scope it needs (`x-api-key-scope`).
 - **Rules:** a client has no advantage over the web client. The same energy, operations budget, cooldowns and category switches
   apply, and the single authoritative engine decides every conflict.
@@ -73,7 +73,7 @@ The API is versioned in the path. Within `/api/v1`:
   never made in place. They ship as a new version (`/api/v2`) next to the old one.
 - **Deprecation.** A route that is going away is marked in the reference (`deprecated: true`, `x-sunset`), and every answer from it
   carries the headers `Deprecation: true`, `Sunset: <date>` and, when there is one, `Link: <replacement>; rel="successor-version"`.
-  The sunset date is **at least six months** after the announcement in the [changelog](../CHANGELOG.md), and a deprecated route keeps
+  The sunset date is **at least six months** after the announcement in the [changelog](../../CHANGELOG.md), and a deprecated route keeps
   working, with the same behaviour, until then.
 - **What is covered:** the routes and events of the reference, the scopes, the error codes, and the script API. Not covered: the
   `x-` extensions, the order of fields, the text of messages, the exact ids of generated content.

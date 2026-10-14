@@ -1,4 +1,4 @@
-// Prepares a release on its branch (docs/RELEASING.md): sets the version in every package.json and in the lock file, and moves the
+// Prepares a release on its branch (docs/operations/RELEASING.md): sets the version in every package.json and in the lock file, and moves the
 // entries of CHANGELOG.md under "Unreleased" to a section of the version. It commits and tags nothing.
 // Usage (on branch release/<x.y.z> or hotfix/<x.y.z>):  node scripts/release.mjs [--dry-run]
 import { spawnSync } from 'node:child_process'

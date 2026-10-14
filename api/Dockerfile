@@ -1,4 +1,4 @@
-# The API and the engine: one image, started with APP_ROLE=all | api | engine (docs/DEPLOYMENT.md).
+# The API and the engine: one image, started with APP_ROLE=all | api | engine (docs/operations/DEPLOYMENT.md).
 # Build from the repository root:  docker build -f api/Dockerfile -t botrts-api .
 FROM node:20-bookworm-slim AS build
 WORKDIR /app

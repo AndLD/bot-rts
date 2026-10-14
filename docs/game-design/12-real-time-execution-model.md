@@ -94,7 +94,7 @@ thread together, the default), `api` (HTTP and sockets only) or `engine` (owns t
 `api` nodes send the engine's requests over Redis (the same request/reply protocol as between the two threads) and the
 engine node pushes events to the players' sockets through the Socket.IO Redis adapter, so a player's room spans every node.
 Sockets hold no state beyond the player identified at the handshake, and the client uses the WebSocket transport only, so no
-sticky routing is needed. There must be exactly one `engine` node (see `docs/DEPLOYMENT.md`). The map is addressed in **chunks** so that sharding the world by region across several
+sticky routing is needed. There must be exactly one `engine` node (see `docs/operations/DEPLOYMENT.md`). The map is addressed in **chunks** so that sharding the world by region across several
 engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
 until it restarts and reloads the world from the database.
 

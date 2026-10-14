@@ -113,7 +113,7 @@ describe('the engine under load', () => {
 
     // Ticks may run over the interval a little (the cap defers the rest), but not by many multiples of it. The durations are real
     // time and this test shares the machine with the whole suite, so the bound only catches a runaway tick; the real budget
-    // is measured by the load harness (docs/LOAD-TESTING.md).
+    // is measured by the load harness (docs/operations/LOAD-TESTING.md).
     expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * TICK_BOUND)
     const counts = [...progress.values()]
     expect(Math.min(...counts)).toBeGreaterThan(5)

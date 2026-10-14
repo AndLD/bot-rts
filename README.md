@@ -53,12 +53,12 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 - NestJS on a clean-architecture layout, versioned `/api/v1`, PostgreSQL through Prisma, JWT access + refresh tokens with
   email verification, privacy consent and database-checked roles.
 - OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code; the web client's endpoints are generated from it.
-  Third-party clients and AI assistants use **API keys** with scopes ([docs/API.md](./docs/API.md)), and the **MCP server** in
-  `mcp/` lets an AI play as a regular player ([docs/MCP.md](./docs/MCP.md)).
+  Third-party clients and AI assistants use **API keys** with scopes ([docs/integrations/API.md](./docs/integrations/API.md)), and the **MCP server** in
+  `mcp/` lets an AI play as a regular player ([docs/integrations/MCP.md](./docs/integrations/MCP.md)).
 - Production hardening: rate limits, request limits and security headers, request ids, JSON logs, Prometheus metrics, health
   checks, a scheduled data-lifecycle job, and a horizontally scalable API tier with one engine node
-  ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md), measured in [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)); a Docker image, a
-  release flow ([docs/RELEASING.md](./docs/RELEASING.md)), and the web client on Vercel.
+  ([docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md), measured in [docs/operations/LOAD-TESTING.md](./docs/operations/LOAD-TESTING.md)); a Docker image, a
+  release flow ([docs/operations/RELEASING.md](./docs/operations/RELEASING.md)), and the web client on Vercel.
 
 **Frontend (`client`)**
 
@@ -98,7 +98,7 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
        └──────────► lib/ (shared types, game clock, pure functions)
 ```
 
-The engine is the single writer of world state. In a scaled deployment the API nodes reach it through Redis ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)); PostgreSQL sits behind repository ports, accessed with Prisma and run in Docker locally.
+The engine is the single writer of world state. In a scaled deployment the API nodes reach it through Redis ([docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md)); PostgreSQL sits behind repository ports, accessed with Prisma and run in Docker locally.
 
 **Layering (see `AGENTS.md`):** clean architecture on NestJS.
 
@@ -153,7 +153,7 @@ bot-rts/
 │   ├── src/features/             # map, terminal, windows, control, factory, storage, achievements, …
 │   ├── messages/                 # English and Russian strings
 │   └── cypress/                  # End-to-end specs
-├── mcp/                          # MCP server: lets an AI play with an API key (docs/MCP.md)
+├── mcp/                          # MCP server: lets an AI play with an API key (docs/integrations/MCP.md)
 ├── lib/                          # Shared types, constants, pure functions
 ├── docs/                         # Game design, development plan (with work logs), API, MCP, deployment
 ├── scripts/                      # e2e, load test, release, docs and i18n checks
@@ -259,7 +259,7 @@ pm2 start ecosystem.config.json
 | `AUTH_CACHE_TTL_MS`                                 | api     | How long a token's owner is remembered between requests (0 = off; a ban takes effect this much later) | `2000` (`0` in tests) |
 | `COOKIE_SAME_SITE` / `COOKIE_DOMAIN`                | api     | `lax` \| `strict` \| `none` for the refresh cookie (default `none` in production, `lax` otherwise) / parent domain to share it with sibling hosts | – |
 | `TRUST_PROXY`                                       | api     | `true` behind a reverse proxy (client IPs for rate limits)                                                                                                     | `false`                                            |
-| `APP_ROLE`                                          | api     | `all` (default), `api` or `engine`: what this process does in a scaled deployment, see [DEPLOYMENT.md](./docs/DEPLOYMENT.md) | `all`                                              |
+| `APP_ROLE`                                          | api     | `all` (default), `api` or `engine`: what this process does in a scaled deployment, see [DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md) | `all`                                              |
 | `REDIS_URL` / `ENGINE_REQUEST_TIMEOUT_MS`           | api     | Redis for the Socket.IO adapter and the link to the engine node (required for `api` and `engine`) / how long an API node waits for it | – / `15000`                                        |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_AUTH_MAX`      | api     | Rate limit of the auth routes (per IP; shared across nodes with Redis)                                                                                                              | `900000` / `20`                                    |
 | `RATE_LIMIT_API_WINDOW_MS` / `RATE_LIMIT_API_MAX`    | api     | Rate limit of every other route (per IP; default 600 per minute) | `60000` / `600` |
@@ -315,7 +315,7 @@ pm2 start ecosystem.config.json
   (`.githooks/pre-push`) runs the coverage gate.
 - **Coverage gate:** ≥ 97 % per package, enforced in CI.
 - **Other gates:** `npm run i18n:check` (translations), `npm run docs:check` (links), Lighthouse on the landing page, and the
-  load and soak harness (`npm run load`, see [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)).
+  load and soak harness (`npm run load`, see [docs/operations/LOAD-TESTING.md](./docs/operations/LOAD-TESTING.md)).
 
 The test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
 
@@ -339,12 +339,12 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
   screens, in-game scenarios, and examples.
-- [`docs/LOAD-TESTING.md`](./docs/LOAD-TESTING.md) — the load and soak harness, measured capacity and tuning of the scheduler budget.
-- [`docs/MCP.md`](./docs/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
-- [`docs/API.md`](./docs/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
-- [`docs/RELEASING.md`](./docs/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
+- [`docs/operations/LOAD-TESTING.md`](./docs/operations/LOAD-TESTING.md) — the load and soak harness, measured capacity and tuning of the scheduler budget.
+- [`docs/integrations/MCP.md`](./docs/integrations/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
+- [`docs/integrations/API.md`](./docs/integrations/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
+- [`docs/operations/RELEASING.md`](./docs/operations/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
 - [`CHANGELOG.md`](./CHANGELOG.md) — release notes.
-- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
+- [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
 - [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done).

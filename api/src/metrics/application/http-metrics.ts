@@ -9,6 +9,15 @@ interface Series {
   buckets: number[]
 }
 
+// Totals since the process started, enough to work out rates and a percentile between two readings
+export interface HttpTotals {
+  count: number
+  errors5xx: number
+  errors4xx: number
+  // Cumulative request counts per latency bound, with the bound in seconds
+  buckets: Array<{ le: number; count: number }>
+}
+
 export interface HttpObservation {
   method: string
   route: string
@@ -41,6 +50,24 @@ export class HttpMetrics {
       }
     })
     this.series.set(key, series)
+  }
+
+  totals(): HttpTotals {
+    const totals: HttpTotals = {
+      count: 0,
+      errors5xx: 0,
+      errors4xx: 0,
+      buckets: BUCKETS.map((le) => ({ le, count: 0 }))
+    }
+
+    for (const series of this.series.values()) {
+      totals.count += series.count
+      totals.errors5xx += series.statusClass === '5xx' ? series.count : 0
+      totals.errors4xx += series.statusClass === '4xx' ? series.count : 0
+      series.buckets.forEach((count, index) => (totals.buckets[index].count += count))
+    }
+
+    return totals
   }
 
   render(text: PrometheusText): void {

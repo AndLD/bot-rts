@@ -14,6 +14,7 @@ import {
 } from '../player-notifications/domain/notification-policy'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
 import { DEFAULT_LIFECYCLE_POLICY, LifecyclePolicy } from '../lifecycle/domain/lifecycle-policy'
+import { ALERT_RULES } from '../monitoring/domain/metric-catalog'
 import { invalidOrigins } from '../shared/presentation/origin-matcher'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
 
@@ -89,6 +90,20 @@ export interface AdminConfig {
   secret: string
 }
 
+export interface MonitoringConfig {
+  // Whether this process samples its metrics; the integration tests drive the sampler by hand
+  isEnabled: boolean
+  sampleIntervalMs: number
+  // History: the finest resolution is the sample interval; the coarse tier keeps one-minute averages (design §25.5)
+  fineRetentionMs: number
+  coarseStepMs: number
+  coarseRetentionMs: number
+  // Who is emailed about a red alert
+  alertEmails: string[]
+  // Overrides of the default alert thresholds, by metric id
+  thresholds: Record<string, { yellow?: number; red?: number }>
+}
+
 export interface AppConfig {
   nodeEnv: NodeEnv
   port: number
@@ -117,6 +132,7 @@ export interface AppConfig {
   observability: ObservabilityConfig
   lifecycle: LifecyclePolicy
   admin: AdminConfig
+  monitoring: MonitoringConfig
 }
 
 type Env = Record<string, string | undefined>
@@ -163,6 +179,32 @@ function list(value: string | undefined): string[] {
     .filter(Boolean)
 }
 
+// ADMIN_ALERT_THRESHOLDS: {"api.errorRate5xx":{"yellow":0.02,"red":0.1}} overrides the defaults of those metrics
+function readThresholds(raw: string | undefined, problems: string[]): MonitoringConfig['thresholds'] {
+  if (!raw) {
+    return {}
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    const entries = Object.entries(parsed as Record<string, Record<string, unknown>>)
+    const valid = entries.every(
+      ([metric, limits]) =>
+        ALERT_RULES.some((rule) => rule.metric === metric) &&
+        Object.entries(limits).every(([level, value]) => ['yellow', 'red'].includes(level) && typeof value === 'number')
+    )
+    if (valid && parsed && typeof parsed === 'object') {
+      return parsed as MonitoringConfig['thresholds']
+    }
+  } catch {
+    // reported below
+  }
+  problems.push(
+    'ADMIN_ALERT_THRESHOLDS must be JSON like {"api.errorRate5xx":{"yellow":0.02,"red":0.1}} for known metrics'
+  )
+
+  return {}
+}
+
 // Reads the environment into a typed, validated configuration; throws one ConfigError listing every problem
 export function loadConfig(env: Env): AppConfig {
   const problems: string[] = []
@@ -182,6 +224,10 @@ export function loadConfig(env: Env): AppConfig {
   }
 
   const adminVerificationTtl = duration(env.ADMIN_2FA_TTL, '8h', 'ADMIN_2FA_TTL', problems)
+
+  const fineRetention = duration(env.MONITORING_FINE_RETENTION, '7d', 'MONITORING_FINE_RETENTION', problems)
+  const coarseRetention = duration(env.MONITORING_COARSE_RETENTION, '30d', 'MONITORING_COARSE_RETENTION', problems)
+  const thresholds = readThresholds(env.ADMIN_ALERT_THRESHOLDS, problems)
 
   if (nodeEnv === 'production' && !env.JWT_ACCESS_SECRET) {
     problems.push('JWT_ACCESS_SECRET is required in production')
@@ -299,6 +345,15 @@ export function loadConfig(env: Env): AppConfig {
       totpIssuer: env.ADMIN_TOTP_ISSUER || 'BotRTS',
       recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
       secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET
+    },
+    monitoring: {
+      isEnabled: env.MONITORING_ENABLED ? env.MONITORING_ENABLED === 'true' : nodeEnv !== 'test',
+      sampleIntervalMs: positiveInt(env.MONITORING_INTERVAL_MS, 10_000),
+      fineRetentionMs: fineRetention,
+      coarseStepMs: 60_000,
+      coarseRetentionMs: coarseRetention,
+      alertEmails: list(env.ADMIN_ALERT_EMAILS),
+      thresholds
     },
     observability: { metricsToken: env.METRICS_TOKEN || undefined },
     deployment: {

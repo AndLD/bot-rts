@@ -29,6 +29,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
 - Admin console foundations: the `moderator` and `analyst` roles with fine-grained permissions, mandatory TOTP two-factor sign-in
   with recovery codes, an append-only audit log (`GET /api/v1/admin/audit`), and the `/admin` area of the web client.
+- Health monitoring for the admin console: metrics sampled every 10 s with a rolling history (7 days fine, 30 days at one minute),
+  health per area, configurable alert thresholds, in-console alerts that can be acknowledged, and email for red alerts
+  (`/api/v1/admin/monitoring/*`, `botrts_alerts_open` on `/metrics`).
 
 ### Changed
 

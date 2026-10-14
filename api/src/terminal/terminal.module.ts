@@ -30,6 +30,9 @@ import { ScriptRunner } from './application/script-runner'
 import { TerminalCoreModule } from './terminal-core.module'
 import { TerminalGateway } from './presentation/terminal.gateway'
 
+// Lines a script wrote are stored this often (a busy script writes hundreds a second)
+const SCRIPT_LOG_FLUSH_MS = 250
+
 @Module({
   imports: [BotsModule, FilesModule, CraftingModule, TerminalCoreModule],
   providers: [
@@ -61,9 +64,18 @@ import { TerminalGateway } from './presentation/terminal.gateway'
     { provide: SCRIPT_OUTPUT_FEED, useExisting: SCRIPT_RUNNER },
     {
       provide: ScriptLogRecorder,
-      inject: [SCRIPT_OUTPUT_FEED, TerminalService, LOGGER],
-      useFactory: (feed: ScriptOutputFeed, terminal: TerminalService, logger: Logger) =>
-        new ScriptLogRecorder(feed, terminal, logger)
+      inject: [SCRIPT_OUTPUT_FEED, TerminalService, CLOCK, LOGGER, TERMINAL_RETENTION],
+      useFactory: (
+        feed: ScriptOutputFeed,
+        terminal: TerminalService,
+        clock: Clock,
+        logger: Logger,
+        retention: TerminalRetention
+      ) =>
+        new ScriptLogRecorder(feed, terminal, clock, logger, {
+          flushMs: SCRIPT_LOG_FLUSH_MS,
+          maxLinesPerBot: retention.maxLinesPerBot
+        })
     },
     {
       provide: TerminalShell,

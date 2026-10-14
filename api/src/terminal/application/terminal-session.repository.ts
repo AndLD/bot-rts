@@ -10,6 +10,8 @@ export interface TerminalSessionRepository {
   findLatestOfBot(botId: string): Promise<TerminalSession | null>
   close(id: string, endedAt: Date): Promise<void>
   appendLog(entry: TerminalLogEntry): Promise<void>
+  // Several lines in one statement (what scripts write arrives in batches)
+  appendLogs(entries: readonly TerminalLogEntry[]): Promise<void>
   // The newest `limit` lines of a bot over all its sessions, oldest first
   listLogsOfBot(botId: string, limit: number): Promise<TerminalLogEntry[]>
   // Retention (design §11.2.3): drops lines of the given kinds older than `before`, and the oldest ordinary lines of a

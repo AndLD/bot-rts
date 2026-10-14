@@ -511,6 +511,10 @@ export class InMemoryTerminalSessionRepository implements TerminalSessionReposit
     this.logs.push(entry)
   }
 
+  async appendLogs(entries: readonly TerminalLogEntry[]) {
+    this.logs.push(...entries)
+  }
+
   async listLogsOfBot(botId: string, limit: number) {
     return this.logs.filter((entry) => entry.botId === botId).slice(-limit)
   }

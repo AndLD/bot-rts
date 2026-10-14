@@ -316,6 +316,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
   screens, in-game scenarios, and examples.
+- [`docs/LOAD-TESTING.md`](./docs/LOAD-TESTING.md) — the load and soak harness, measured capacity and tuning of the scheduler budget.
 - [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).

@@ -26,6 +26,7 @@
     "i18n:check": "node scripts/check-i18n.mjs",
     "prepare": "git config core.hooksPath .githooks || true",
     "e2e": "node scripts/e2e.mjs",
+    "load": "node scripts/load-test.mjs",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "docs:generate": "npm run docs:generate -w api"
   },

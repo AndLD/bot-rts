@@ -57,9 +57,9 @@ async function deployWithScript(source: string) {
   return { ...player, botId }
 }
 
-async function until(condition: () => boolean, what: string, timeoutMs = 20000) {
+async function until(condition: () => boolean | Promise<boolean>, what: string, timeoutMs = 20000) {
   const deadline = Date.now() + timeoutMs
-  while (!condition()) {
+  while (!(await condition())) {
     if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`)
     await new Promise((resolve) => setTimeout(resolve, 20))
   }
@@ -288,10 +288,14 @@ describe('scripts from the terminal', () => {
     expect(lines(await command(`kill ${looping.slice(0, 8)}`))).toEqual([`killed ${looping}`])
     expect(lines(await command('top'))).toEqual([])
 
-    const history = await ask<Array<{ text: string }>>(socket, 'get-terminal-history', botId, 100)
-    expect(history.map((entry) => entry.text)).toEqual(
-      expect.arrayContaining([expect.stringMatching(/^\[[0-9a-f]{8}\] ran 7$/)])
-    )
+    // The log is written in batches a moment after the lines were heard
+    let history: string[] = []
+    await until(async () => {
+      const entries = await ask<Array<{ text: string }>>(socket, 'get-terminal-history', botId, 100)
+      history = entries.map((entry) => entry.text)
+      return history.some((text) => /^\[[0-9a-f]{8}\] ran 7$/.test(text))
+    }, 'the lines to be stored')
+    expect(history).toEqual(expect.arrayContaining([expect.stringMatching(/^\[[0-9a-f]{8}\] ran 7$/)]))
     socket.close()
   })
 })

@@ -114,4 +114,15 @@ describe('PrismaTerminalSessionRepository', () => {
     expect(await database.client.terminalSession.count()).toBe(0)
     expect(await database.client.terminalLog.count()).toBe(0)
   })
+
+  it('appends several lines in one statement', async () => {
+    await repository.appendLogs([line(1), line(2), line(3)])
+    await repository.appendLogs([])
+
+    expect((await repository.listLogsOfBot(botId, 10)).map((entry) => entry.text)).toEqual([
+      'line 1',
+      'line 2',
+      'line 3'
+    ])
+  })
 })

@@ -225,7 +225,7 @@ The database is an implementation detail that must stay replaceable (clean archi
   (`index.ts`, `main.tsx`), config files, type-only files and generated code are excluded, and every exclusion is listed
   with its reason in a single coverage config file.
 - The gate is enforced in CI (`npm run test:coverage`) and in the pre-push hook, for `api`, `client` and `mcp`. A PR that drops
-  below 97 %, or whose changed files are below 97 % (`scripts/check-changed-coverage.mjs`), is blocked. The per-phase test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+  below 97 %, or whose changed files are below 97 % (`scripts/check-changed-coverage.mjs`), is blocked. How testing works in practice (commands, CI gates, conventions): [`docs/testing/`](./docs/testing/README.md).
 - Exclusions are only allowed via targeted `/* istanbul ignore next */` with a comment explaining why, and must be
   justified in the PR.
 
@@ -246,7 +246,7 @@ The database is an implementation detail that must stay replaceable (clean archi
 ### 6.4 E2E tests (Cypress)
 
 - **Every core user and game flow has a Cypress spec.** The list of flows and the plan task that owns each spec is the
-  end-to-end coverage matrix in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+  end-to-end coverage matrix in [`docs/testing/e2e-matrix.md`](./docs/testing/e2e-matrix.md).
   A PR that adds or changes a user-visible flow adds or updates its spec and the matrix.
 - Use a seeded test backend with deterministic data (seeded RNG and injected clock); never depend on a production DB.
 - The full suite runs in CI on every PR into `develop`; shard it when it grows slow.
@@ -424,8 +424,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   and the MCP server (`mcp/`) only calls the public API.
 - **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
-- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`,
-  `LOAD-TESTING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `CHANGELOG.md`.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `CHANGELOG.md`.
 - **Admin endpoints** (planned, Phase 9; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
 - **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**

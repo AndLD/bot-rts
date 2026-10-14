@@ -21,7 +21,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   request ids, JSON logs, Prometheus metrics, liveness and readiness checks.
 - A scheduled data lifecycle job (retention of terminal logs, executions, notifications and expired logins; deletion of accounts
   that never confirmed their email; notice and erasure of long-inactive accounts).
-- A load and soak test harness (`npm run load`) and measured capacity figures (docs/operations/LOAD-TESTING.md).
+- A load and soak test harness (`npm run load`) and measured capacity figures (docs/testing/load-testing.md).
 - A Docker image of the API and engine, and a compose stack for the whole backend.
 - API keys with scopes, per-key rate limits and a profile page; HTTP endpoints for scripts and the terminal history; an OpenAPI
   document with examples; the stability and deprecation policy (docs/integrations/API.md).

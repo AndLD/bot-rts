@@ -57,7 +57,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
   `mcp/` lets an AI play as a regular player ([docs/integrations/MCP.md](./docs/integrations/MCP.md)).
 - Production hardening: rate limits, request limits and security headers, request ids, JSON logs, Prometheus metrics, health
   checks, a scheduled data-lifecycle job, and a horizontally scalable API tier with one engine node
-  ([docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md), measured in [docs/operations/LOAD-TESTING.md](./docs/operations/LOAD-TESTING.md)); a Docker image, a
+  ([docs/operations/DEPLOYMENT.md](./docs/operations/DEPLOYMENT.md), measured in [docs/testing/load-testing.md](./docs/testing/load-testing.md)); a Docker image, a
   release flow ([docs/operations/RELEASING.md](./docs/operations/RELEASING.md)), and the web client on Vercel.
 
 **Frontend (`client`)**
@@ -306,18 +306,12 @@ pm2 start ecosystem.config.json
 
 ## Testing
 
-- **Unit tests:** Jest in `api`, `client` and `mcp` (`*.test.ts`, fakes of the ports, no I/O).
-- **Integration tests:** `*.int.test.ts` run against a real PostgreSQL in Docker (`npm run db:up`); every test file gets its own
-  database cloned from a migrated template, and no in-memory database is used. They include the safety-net suite that drives
-  the whole API over HTTP and Socket.IO.
-- **E2E:** Cypress in `client/cypress/e2e` covers the user and game flows (deploy, terminal, scripts, map, factory, day/night,
-  reconnection, API keys, the MCP server, two players in one world, …); run it with `npm run e2e`. A pre-push hook
-  (`.githooks/pre-push`) runs the coverage gate.
-- **Coverage gate:** ≥ 97 % per package, enforced in CI.
-- **Other gates:** `npm run i18n:check` (translations), `npm run docs:check` (links), Lighthouse on the landing page, and the
-  load and soak harness (`npm run load`, see [docs/operations/LOAD-TESTING.md](./docs/operations/LOAD-TESTING.md)).
+- **Unit tests:** Jest in `api`, `client` and `mcp`. **Integration tests:** `*.int.test.ts` on a real PostgreSQL in Docker
+  (`npm run db:up`), no in-memory database. **E2E:** Cypress (`npm run e2e`).
+- **Coverage gate:** ≥ 97 % per package, enforced in CI and by the pre-push hook. Further gates: import boundaries, OpenAPI drift,
+  translations, Markdown links, Lighthouse, and the load and soak harness (`npm run load`).
 
-The test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
+Commands, conventions, the end-to-end coverage matrix and known issues: [`docs/testing/`](./docs/testing/README.md).
 
 ---
 
@@ -339,7 +333,8 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
   screens, in-game scenarios, and examples.
-- [`docs/operations/LOAD-TESTING.md`](./docs/operations/LOAD-TESTING.md) — the load and soak harness, measured capacity and tuning of the scheduler budget.
+- [`docs/testing/`](./docs/testing/README.md) — testing: types, commands, CI gates, the end-to-end coverage matrix, known issues, and the
+  [load and soak harness](./docs/testing/load-testing.md) with measured capacity and tuning of the scheduler budget.
 - [`docs/integrations/MCP.md`](./docs/integrations/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
 - [`docs/integrations/API.md`](./docs/integrations/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
 - [`docs/operations/RELEASING.md`](./docs/operations/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.

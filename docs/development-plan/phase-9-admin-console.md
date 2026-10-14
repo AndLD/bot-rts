@@ -47,5 +47,5 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/9.1-admin-foundations` | 9.1 | [#151](https://github.com/AndLD/bot-rts/pull/151) | merged |
 | `feature/9.2-metrics-history-alerting` | 9.2 | [#152](https://github.com/AndLD/bot-rts/pull/152) | merged |
-| `feature/9.3-dashboard` | 9.3 | [#153](https://github.com/AndLD/bot-rts/pull/153) | open |
-| `feature/9.4-players` | 9.4 | _this PR_ | open |
+| `feature/9.3-dashboard` | 9.3 | [#153](https://github.com/AndLD/bot-rts/pull/153) | merged |
+| `feature/9.4-players` | 9.4 | [#154](https://github.com/AndLD/bot-rts/pull/154) | open |

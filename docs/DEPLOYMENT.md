@@ -138,3 +138,52 @@ deleted by the job. `INACTIVE_ACCOUNT_DAYS=0` switches the inactivity steps off.
   every request.
 - The world map is read and written by chunk, and the engine keeps hot chunks in memory (`ENGINE_MAX_CHUNKS`).
 
+## The web client on Vercel (Phase 8.12)
+
+The client is a Next.js app and runs on Vercel; the API and the engine need a long-running host (Socket.IO and the engine thread cannot
+run on Vercel), so they stay on the Docker / PM2 side described above. The two sides meet only through the public API.
+
+```text
+https://play.example.com      Vercel   the Next.js client (pages, no business logic)
+https://api.example.com       host     the API (HTTP and Socket.IO), behind TLS
+```
+
+### Project settings
+
+- Import the repository in Vercel; the root `vercel.json` sets the framework, `npm ci` and `npm run build -w client`. Leave the
+  Root Directory empty (the repository root) so that the shared `lib/` package is part of the build, and keep
+  "Include source files outside of the Root Directory" on.
+- Environment variables (Project → Settings → Environment Variables):
+
+  | Variable | Production | Preview |
+  | --- | --- | --- |
+  | `NEXT_PUBLIC_API_URL` | `https://api.example.com` | the staging API, `https://staging-api.example.com` |
+  | `NEXT_PUBLIC_SITE_URL` | `https://play.example.com` | the preview's own address, or the staging one |
+  | `NEXT_PUBLIC_CONTACT_EMAIL` | the privacy contact | the same |
+
+  They are read at build time, so a change needs a new deployment.
+- The `main` and `develop` branches deploy (production and a stable staging); every pull request gets a preview deployment.
+
+### Domains, cookies and CORS
+
+- **Socket.IO goes straight to the API host.** The client connects to `NEXT_PUBLIC_API_URL`; nothing is proxied through Vercel, and the
+  client uses the WebSocket transport only, so any number of API nodes behind a load balancer work without sticky sessions.
+- **One registrable domain** (`play.example.com` and `api.example.com`) makes the client and the API *same-site*. Set on the API
+  `COOKIE_SAME_SITE=lax` (so third-party sites can never use the refresh cookie) and, if you want the cookie visible to sibling hosts,
+  `COOKIE_DOMAIN=example.com`. The refresh cookie is HTTP-only, `Secure`, and limited to `/api/v1/auth`.
+- **Preview deployments live on another site** (`*.vercel.app`), so for them the API needs `COOKIE_SAME_SITE=none` (the production
+  default, HTTPS only) and the preview origins in `WHITELIST_URLS`. Point previews at a *staging* API, never at production:
+  `WHITELIST_URLS=https://play.example.com,https://bot-rts-*.vercel.app`. A wildcard may stand only in the first label of the host and
+  a bare `https://*.vercel.app` is refused, because it would let every project on Vercel call the API with a player's cookie.
+- **CORS and Socket.IO use one list**, `WHITELIST_URLS` (and `ADMIN_URL` for the socket). A request with a disallowed `Origin` is answered
+  `403` before any handler runs, which is also what stops other sites from using the cookie routes (`/auth/refresh`, `/auth/logout`).
+- Set `TRUST_PROXY=true` on the API behind the load balancer so that rate limits see the players' addresses.
+
+### Checklist
+
+1. API deployed with `NODE_ENV=production`, `JWT_ACCESS_SECRET`, `FRONTEND_URL`, `WHITELIST_URLS`, `COOKIE_*`, HTTPS.
+2. `GET https://api.example.com/api/v1/health` answers `{"status":"ok", …}`.
+3. Vercel variables set, production deployed from `main`.
+4. Sign in on the client, deploy a base, open the terminal (the socket connects to the API host), reload (the refresh cookie works).
+5. Open a preview deployment of a pull request and repeat step 4 against the staging API.
+

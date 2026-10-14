@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { SECURITY_HEADERS } from './src/shared/security-headers'
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -9,6 +10,9 @@ const config: NextConfig = {
   // The end-to-end run builds into a folder of its own, so that it never overwrites a running `next dev`
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
   // ... and type-checks with the configuration that leaves out the files of a running `next dev`
+  async headers() {
+    return [{ source: '/:path*', headers: SECURITY_HEADERS.map((header) => ({ ...header })) }]
+  },
   typescript: { tsconfigPath: process.env.NEXT_TSCONFIG_PATH ?? 'tsconfig.json' }
 }
 

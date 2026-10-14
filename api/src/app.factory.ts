@@ -17,12 +17,9 @@ import { REDIS_CONNECTOR, RedisConnector } from './redis/redis.module'
 import { DeprecationInterceptor } from './shared/presentation/api-deprecation'
 import { addExamples } from './shared/presentation/openapi-examples'
 import { RequestTimeoutInterceptor } from './shared/presentation/request-timeout.interceptor'
+import { originMatcher } from './shared/presentation/origin-matcher'
 import { corsOptions, helmetOptions } from './shared/presentation/security-headers'
 import { createRequestLogger } from './shared/presentation/request-logger.middleware'
-
-function isAllowedOrigin(origin: string | undefined, allowed: string[]) {
-  return !origin || allowed.includes(origin)
-}
 
 export async function createApp(config: AppConfig): Promise<NestExpressApplication> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule.register(config), {
@@ -67,14 +64,18 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   server.keepAliveTimeout = config.http.keepAliveTimeoutMs
 
   app.use(helmet(helmetOptions(config.nodeEnv === 'production')))
-  app.enableCors(corsOptions((origin) => isAllowedOrigin(origin, config.corsOrigins)))
+  app.enableCors(corsOptions(originMatcher(config.corsOrigins)))
   app.useBodyParser('json', { limit: config.http.bodyLimitBytes })
   app.use(cookieParser())
   const httpMetrics = app.get(HttpMetrics)
   app.use(createRequestLogger(logger, (request) => httpMetrics.observe(request)))
   const connect = app.get<RedisConnector>(REDIS_CONNECTOR)
   app.useWebSocketAdapter(
-    new ConfiguredIoAdapter(app, config.adminUrl, connect ? { publisher: connect(), subscriber: connect() } : undefined)
+    new ConfiguredIoAdapter(
+      app,
+      originMatcher([...config.corsOrigins, config.adminUrl]),
+      connect ? { publisher: connect(), subscriber: connect() } : undefined
+    )
   )
 
   app.set('trust proxy', config.trustProxy)

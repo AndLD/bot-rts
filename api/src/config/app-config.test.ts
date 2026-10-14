@@ -34,7 +34,8 @@ describe('loadConfig', () => {
         accessSecret: 'development-only-access-secret',
         accessTtlSeconds: 600,
         policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 },
-        principalCacheMs: 2000
+        principalCacheMs: 2000,
+        cookie: { sameSite: 'lax', domain: undefined }
       },
       rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20, apiWindowMs: 60_000, apiMax: 600 },
       http: {
@@ -203,10 +204,24 @@ describe('loadConfig', () => {
     })
   })
 
-  it('refuses a wildcard CORS origin, which cannot be combined with credentials', () => {
+  it('refuses origins that are not exact and not a safe wildcard', () => {
     expect(() => loadConfig({ ...base, WHITELIST_URLS: 'https://a.example,*' })).toThrow(
-      /WHITELIST_URLS must list origins/
+      /WHITELIST_URLS: \*: a wildcard may only stand/
     )
+    expect(() => loadConfig({ ...base, WHITELIST_URLS: 'https://*.vercel.app' })).toThrow(/too many sites/)
+    expect(loadConfig({ ...base, WHITELIST_URLS: 'https://bot-rts-*.vercel.app' }).corsOrigins).toEqual([
+      'https://bot-rts-*.vercel.app'
+    ])
+  })
+
+  it('sets the cookie for one site by default, for any site in production, and reads the settings', () => {
+    expect(loadConfig(base).auth.cookie).toEqual({ sameSite: 'lax', domain: undefined })
+    expect(loadConfig({ ...base, NODE_ENV: 'production', JWT_ACCESS_SECRET: 'x' }).auth.cookie.sameSite).toBe('none')
+    expect(loadConfig({ ...base, COOKIE_SAME_SITE: 'strict', COOKIE_DOMAIN: 'example.com' }).auth.cookie).toEqual({
+      sameSite: 'strict',
+      domain: 'example.com'
+    })
+    expect(() => loadConfig({ ...base, COOKIE_SAME_SITE: 'sometimes' })).toThrow(/COOKIE_SAME_SITE must be one of/)
   })
 
   it('reads the data lifecycle policy, where 0 switches inactivity erasure off and tests do not schedule', () => {

@@ -90,7 +90,7 @@ export class AuthController {
     if (typeof refreshToken === 'string' && refreshToken) {
       await this.auth.logout(refreshToken)
     }
-    response.clearCookie(REFRESH_COOKIE, { path: this.cookie.path })
+    response.clearCookie(REFRESH_COOKIE, { path: this.cookie.path, domain: this.cookie.domain })
   }
 
   @Public()
@@ -175,6 +175,7 @@ export class AuthController {
       httpOnly: true,
       secure: this.cookie.secure,
       sameSite: this.cookie.sameSite,
+      domain: this.cookie.domain,
       path: this.cookie.path,
       maxAge: this.cookie.maxAgeMs
     })

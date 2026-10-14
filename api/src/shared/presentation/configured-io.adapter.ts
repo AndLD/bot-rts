@@ -10,20 +10,27 @@ export interface RoomSharing {
   subscriber: Redis
 }
 
-// Socket.IO with the CORS origin taken from the configuration instead of a decorator constant. With `sharing` the rooms
+// Socket.IO with the allowed origins taken from the configuration instead of a decorator constant (the same list as CORS). With `sharing` the rooms
 // and broadcasts span every API node (Redis adapter), which keeps a socket stateless: its player's room is rejoined on
 // whichever node accepts the connection.
 export class ConfiguredIoAdapter extends IoAdapter {
   constructor(
     app: INestApplicationContext,
-    private readonly origin: string,
+    private readonly isAllowedOrigin: (origin: string | undefined) => boolean,
     private readonly sharing?: RoomSharing
   ) {
     super(app)
   }
 
   createIOServer(port: number, options?: ServerOptions) {
-    const server = super.createIOServer(port, { ...options, cors: { origin: this.origin, credentials: true } })
+    const server = super.createIOServer(port, {
+      ...options,
+      cors: {
+        origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) =>
+          callback(null, this.isAllowedOrigin(origin)),
+        credentials: true
+      }
+    })
 
     if (this.sharing) {
       server.adapter(createAdapter(this.sharing.publisher, this.sharing.subscriber))

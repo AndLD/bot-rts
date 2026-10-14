@@ -47,13 +47,13 @@ describe('the terminal while a script writes to it', () => {
       token = player.token
       cy.deployBaseViaApi(token).then((deployed) => {
         baseId = deployed.id
-        // Plenty of lines at once, then one every 250 ms for a while
+        // A line every 100 ms for seven seconds (a script may write twenty lines in a tick)
         cy.writeScriptFile({
           token,
           botId: baseId,
           path: 'job.js',
           content:
-            'export async function main(bot) { for (let i = 0; i < 40; i++) bot.log("early " + i); for (let i = 0; i < 40; i++) { bot.log("late " + i); await bot.sleep(250) } }'
+            'export async function main(bot) { for (let i = 0; i < 70; i++) { bot.log("line " + i); await bot.sleep(100) } }'
         })
       })
       cy.visit('/game', { onBeforeLoad: (win) => win.localStorage.setItem('token', token) })
@@ -61,7 +61,7 @@ describe('the terminal while a script writes to it', () => {
     cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
     cy.get('input.terminal-input').first().type('cd memory-class1{enter}')
     cy.get('input.terminal-input').first().type('run job.js{enter}')
-    cy.contains('early 39')
+    cy.contains('line 25', { timeout: 15000 })
   })
 
   const isAtBottom = ($element: JQuery<HTMLElement>) => {
@@ -86,7 +86,7 @@ describe('the terminal while a script writes to it', () => {
 
     cy.get(scroller).scrollTo('bottom')
     cy.get(scroller).should(($element) => expect(isAtBottom($element)).to.equal(true))
-    cy.contains('late 39', { timeout: 15000 })
+    cy.contains('line 69', { timeout: 20000 })
     cy.get(scroller).should(($element) => expect(isAtBottom($element)).to.equal(true))
   })
 })

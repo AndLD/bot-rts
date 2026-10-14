@@ -135,6 +135,25 @@ describe('AuditInterceptor', () => {
     expect(read.log.entries).toEqual([])
   })
 
+  it('audits a change that has no detail and no named target with empty fields', async () => {
+    const { reflector, audit, log } = setup({ [ADMIN_PERMISSION_KEY]: 'players.ban' })
+
+    await lastValueFrom(
+      new AuditInterceptor(reflector, audit).intercept(contextOf(request('POST', { ip: undefined })), {
+        handle: () => of(1)
+      })
+    )
+
+    expect(log.entries[0]).toMatchObject({
+      ip: null,
+      targetType: null,
+      targetId: null,
+      reason: null,
+      before: null,
+      after: null
+    })
+  })
+
   it('audits a change under the method and route, with the detail the handler filled in', async () => {
     const { reflector, audit, log } = setup({ [ADMIN_PERMISSION_KEY]: 'players.ban' })
     const detailed = request('PUT', {

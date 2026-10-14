@@ -1,6 +1,8 @@
+import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { PASSWORD, signUpVerified, SignedUp, startTestApp, TestApp } from '../../tests/integration/test-app'
+import { PrismaAuditLog } from './infrastructure/prisma-audit-log'
 import { totpCodeAt } from './infrastructure/crypto-totp'
 
 let database: TestDatabase
@@ -193,5 +195,38 @@ describe('the audit trail', () => {
     await database.client.user.delete({ where: { id: owner.userId } })
 
     expect((await auditOf(owner)).length).toBeGreaterThan(0)
+  })
+})
+
+describe('PrismaAuditLog', () => {
+  it('stores before and after values, treats a missing one as null, and filters by actor and target', async () => {
+    const log = new PrismaAuditLog(database.client)
+    const actorId = randomUUID()
+    const base = {
+      at: new Date('2026-06-01T00:00:00.000Z'),
+      actorId,
+      actorRole: 'admin',
+      action: 'players.ban',
+      outcome: 'success' as const,
+      targetType: 'player',
+      targetId: 'p1',
+      reason: 'spam',
+      ip: null,
+      requestId: null
+    }
+    await log.append({ ...base, id: randomUUID(), before: { status: 'user' }, after: { status: 'banned' } })
+    await log.append({
+      ...base,
+      id: randomUUID(),
+      at: new Date('2026-06-02T00:00:00.000Z'),
+      before: undefined,
+      after: null
+    })
+
+    const { entries, total } = await log.list({ actorId, targetId: 'p1' }, { page: 1, pageSize: 10 })
+
+    expect(total).toBe(2)
+    expect(entries[0]).toMatchObject({ before: null, after: null })
+    expect(entries[1]).toMatchObject({ before: { status: 'user' }, after: { status: 'banned' }, reason: 'spam' })
   })
 })

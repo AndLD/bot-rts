@@ -49,7 +49,7 @@ export class AdminAccessGuard implements CanActivate {
         outcome: 'denied',
         targetType: null,
         targetId: null,
-        reason: error instanceof Error ? error.message : null,
+        reason: (error as Error).message,
         before: null,
         after: null,
         ip: request.ip ?? null,

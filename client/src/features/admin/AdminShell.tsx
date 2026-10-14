@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl'
 import { hasPermission } from '@lib/utils/admin'
 import { useAdminMeQuery } from '../../shared/api'
 import { useLogout } from '../auth/hooks'
-import { ADMIN_NAV } from './admin-nav'
+import { ADMIN_NAV, AdminNavItem } from './admin-nav'
 import { AdminMeContext } from './admin-me-context'
 import TwoFactorPrompt from './TwoFactorPrompt'
 import TwoFactorSetup from './TwoFactorSetup'
@@ -17,7 +17,13 @@ const FORBIDDEN = 403
 
 // The frame of the console. Anyone who is not an admin goes back to the game; an admin sees the pages only once the second
 // factor is set up and verified for this session. What the menu shows depends on the permissions of the role.
-export default function AdminShell({ children }: { children: ReactNode }) {
+export default function AdminShell({
+  children,
+  nav = ADMIN_NAV
+}: {
+  children: ReactNode
+  nav?: readonly AdminNavItem[]
+}) {
   const t = useTranslations('admin')
   const router = useRouter()
   const pathname = usePathname()
@@ -44,10 +50,12 @@ export default function AdminShell({ children }: { children: ReactNode }) {
     return <TwoFactorPrompt />
   }
 
-  const items = ADMIN_NAV.filter((item) => !item.permission || hasPermission(me.role, item.permission)).map((item) => ({
-    key: item.path,
-    label: <Link href={item.path}>{t(`nav.${item.labelKey}`)}</Link>
-  }))
+  const items = nav
+    .filter((item) => !item.permission || hasPermission(me.role, item.permission))
+    .map((item) => ({
+      key: item.path,
+      label: <Link href={item.path}>{t(`nav.${item.labelKey}`)}</Link>
+    }))
 
   return (
     <AdminMeContext.Provider value={me}>

@@ -5,6 +5,7 @@ const STEP_SECONDS = 30
 const DIGITS = 6
 const BASE32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
+// Only whole groups of five bytes are encoded (a secret is 20 bytes = 32 characters), so there is no padding
 function base32Encode(bytes: Buffer): string {
   let bits = 0
   let value = 0
@@ -19,7 +20,7 @@ function base32Encode(bytes: Buffer): string {
     }
   }
 
-  return bits > 0 ? out + BASE32[(value << (5 - bits)) & 31] : out
+  return out
 }
 
 function base32Decode(text: string): Buffer {

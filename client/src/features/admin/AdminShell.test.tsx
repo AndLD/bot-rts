@@ -8,6 +8,11 @@ import { useAdminMe } from './admin-me-context'
 import AdminShell from './AdminShell'
 
 const replace = jest.fn()
+const NAV = [
+  { path: '/admin', labelKey: 'home' },
+  { path: '/admin/players', labelKey: 'home', permission: 'players.read' },
+  { path: '/admin/ops', labelKey: 'home', permission: 'ops.pause-world' }
+] as const
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace }), usePathname: () => '/admin' }))
 jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
 
@@ -62,7 +67,7 @@ describe('AdminShell', () => {
   it('shows the pages with the role of the admin once the second factor is verified', async () => {
     serve({ me: me() })
     renderApp(
-      <AdminShell>
+      <AdminShell nav={NAV}>
         <AdminHome />
       </AdminShell>,
       opts()
@@ -71,7 +76,11 @@ describe('AdminShell', () => {
     expect(await screen.findByText('Welcome to the admin console')).toBeInTheDocument()
     expect(screen.getAllByText('Moderator').length).toBeGreaterThan(0)
     expect(screen.getByText('players.read, players.ban')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/admin')
+    // The menu shows the pages the role has the permission for, and no others
+    expect(screen.getAllByRole('link', { name: 'Overview' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/admin',
+      '/admin/players'
+    ])
   })
 
   it('signs the admin out', async () => {

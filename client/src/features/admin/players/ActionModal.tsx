@@ -42,7 +42,6 @@ export default function ActionModal({
       confirmLoading={isLoading}
       onCancel={onCancel}
       onOk={() => form.submit()}
-      afterClose={() => form.resetFields()}
       destroyOnHidden
     >
       <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onSubmit}>

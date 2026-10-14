@@ -88,6 +88,8 @@ export interface AdminConfig {
   recoveryCodeCount: number
   // Encrypts the TOTP secrets at rest
   secret: string
+  // How often bans whose time has passed are lifted
+  banCheckIntervalMs: number
 }
 
 export interface MonitoringConfig {
@@ -344,7 +346,8 @@ export function loadConfig(env: Env): AppConfig {
       verificationTtlMs: adminVerificationTtl,
       totpIssuer: env.ADMIN_TOTP_ISSUER || 'BotRTS',
       recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
-      secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET
+      secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
+      banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000)
     },
     monitoring: {
       isEnabled: env.MONITORING_ENABLED ? env.MONITORING_ENABLED === 'true' : nodeEnv !== 'test',

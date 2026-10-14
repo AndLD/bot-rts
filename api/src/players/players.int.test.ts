@@ -4,6 +4,7 @@ import { signUpAdmin } from '../../tests/integration/admin'
 import { buildBase, buildModule } from '../../tests/integration/builders'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { PASSWORD, signUpVerified, SignedUp, startTestApp, TestApp } from '../../tests/integration/test-app'
+import { PrismaPlayerDirectory } from './infrastructure/prisma-player-directory'
 import { PrismaBotRepository } from '../bots/infrastructure/prisma-bot.repository'
 import { PrismaModuleRepository } from '../modules/infrastructure/prisma-module.repository'
 import { PlayersService } from './application/players.service'
@@ -287,5 +288,85 @@ describe('the other actions', () => {
       .set(bearer(analyst))
       .send({ text: 'x' })
       .expect(403)
+  })
+})
+
+describe('the profile of unusual accounts', () => {
+  it('shows a permanent ban, a lifted ban, and an account without logins or credentials', async () => {
+    const target = await player()
+    const ban = (body: object) =>
+      api().post(`/api/v1/admin/players/${target.userId}/ban`).set(bearer(moderator)).send(body)
+
+    await ban({ reason: 'first offence', durationHours: 1 }).expect(204)
+    await api()
+      .post(`/api/v1/admin/players/${target.userId}/unban`)
+      .set(bearer(moderator))
+      .send({ reason: 'sorry' })
+      .expect(204)
+    await ban({ reason: 'no more chances' }).expect(204)
+
+    const profile = await api().get(`/api/v1/admin/players/${target.userId}`).set(bearer(moderator)).expect(200)
+    expect(profile.body.activeBan).toMatchObject({ reason: 'no more chances', expiresAt: null, liftedAt: null })
+    expect(profile.body.bans).toHaveLength(2)
+    expect(profile.body.bans[1]).toMatchObject({ reason: 'first offence', liftedBy: moderator.userId })
+    expect(profile.body.bans[1].liftedAt).toEqual(expect.any(Number))
+
+    const directory = new PrismaPlayerDirectory(database.client)
+    const loner = await database.client.user.create({
+      data: { id: randomUUID(), name: 'Loner', email: 'loner@example.com', status: 'user', createdAt: new Date() }
+    })
+    const activity = await directory.activityOf(loner.id)
+    expect(activity?.user).toMatchObject({ isEmailVerified: false, lastLoginAt: null })
+    expect(activity?.sessions).toEqual([])
+    expect(await directory.activityOf(randomUUID())).toBeNull()
+    const found = await directory.search(
+      { query: 'loner', isEmailVerified: false, sort: 'name', isDescending: false },
+      { offset: 0, limit: 5 }
+    )
+    expect(found.players.map((row) => row.id)).toEqual([loner.id])
+    expect(found.players[0].lastLoginAt).toBeNull()
+  })
+
+  it('filters by a verified email and by the end of a registration range', async () => {
+    const verified = await api()
+      .get('/api/v1/admin/players?isEmailVerified=true&registeredTo=2999-01-01T00:00:00Z')
+      .set(bearer(moderator))
+      .expect(200)
+    expect(verified.body.result.length).toBeGreaterThan(0)
+    expect(verified.body.result.every((p: { isEmailVerified: boolean }) => p.isEmailVerified)).toBe(true)
+    await api().get('/api/v1/admin/players?isEmailVerified=maybe').set(bearer(moderator)).expect(400)
+    await api().get('/api/v1/admin/players?registeredFrom=yesterday').set(bearer(moderator)).expect(400)
+  })
+})
+
+describe('the timer that lifts expired bans', () => {
+  it('lifts them by itself where the data lifecycle runs', async () => {
+    const app = await startTestApp(database, { LIFECYCLE_ENABLED: 'true', ADMIN_BAN_CHECK_MS: '30' })
+    try {
+      const target = await player()
+      await database.client.user.update({ where: { id: target.userId }, data: { status: 'banned' } })
+      await database.client.playerBan.create({
+        data: {
+          id: randomUUID(),
+          userId: target.userId,
+          bannedBy: moderator.userId,
+          reason: 'old',
+          previousStatus: 'user',
+          createdAt: new Date(Date.now() - 7200_000),
+          expiresAt: new Date(Date.now() - 3600_000)
+        }
+      })
+
+      const deadline = Date.now() + 5000
+      while (Date.now() < deadline) {
+        const { status } = await database.client.user.findUniqueOrThrow({ where: { id: target.userId } })
+        if (status === 'user') break
+        await new Promise((resolve) => setTimeout(resolve, 30))
+      }
+
+      expect((await database.client.user.findUniqueOrThrow({ where: { id: target.userId } })).status).toBe('user')
+    } finally {
+      await app.close()
+    }
   })
 })

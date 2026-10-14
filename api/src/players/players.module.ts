@@ -21,8 +21,6 @@ import { PrismaPlayerDirectory } from './infrastructure/prisma-player-directory'
 import { PrismaPlayerModerationRepository } from './infrastructure/prisma-player-moderation.repository'
 import { PLAYERS_SERVICE, PlayersController } from './presentation/players.controller'
 
-const EXPIRED_BANS_INTERVAL_MS = 60_000
-
 // The Players page of the admin console. Bans with a duration end by themselves: a timer on the nodes that own the data lifecycle
 // lifts them.
 @Module({
@@ -75,7 +73,7 @@ export class PlayersModule implements OnApplicationBootstrap, OnApplicationShutd
     if (this.config.lifecycle.isEnabled && this.config.deployment.role !== 'api') {
       this.timer = setInterval(
         () => void this.players.liftExpiredBans().catch((error: unknown) => this.logger.error(error)),
-        EXPIRED_BANS_INTERVAL_MS
+        this.config.admin.banCheckIntervalMs
       )
       this.timer.unref()
     }

@@ -101,6 +101,31 @@ describe('PlayersPage', () => {
     expect(screen.getAllByText('Banned').length).toBeGreaterThan(0)
   })
 
+  it('toggles the sort, keeps it when the sort is cleared, and filters by banned', async () => {
+    const calls = serve()
+    renderAs('moderator', <PlayersPage />)
+    await screen.findByText('Alice')
+    const header = () => screen.getByText('Name', { selector: '.ant-table-column-title' })
+
+    fireEvent.click(header())
+    await waitFor(() =>
+      expect(calls.some((call) => call.params?.sort === 'name' && call.params?.order === 'asc')).toBe(true)
+    )
+    fireEvent.click(header())
+    await waitFor(() =>
+      expect(calls.some((call) => call.params?.sort === 'name' && call.params?.order === 'desc')).toBe(true)
+    )
+    const before = calls.length
+    fireEvent.click(header())
+    await waitFor(() => expect(calls.length).toBeGreaterThanOrEqual(before))
+    expect(calls[calls.length - 1].params?.sort).toBe('name')
+
+    const [statusSelect] = Array.from(document.querySelectorAll('.ant-select-selector'))
+    fireEvent.mouseDown(statusSelect)
+    fireEvent.click(await screen.findByText('Banned', { selector: '.ant-select-item-option-content' }))
+    await waitFor(() => expect(calls[calls.length - 1].params?.status).toBe('banned'))
+  })
+
   it('searches, filters, sorts and pages on the server', async () => {
     const calls = serve()
     renderAs('moderator', <PlayersPage />)
@@ -240,6 +265,28 @@ describe('PlayerProfilePage', () => {
   })
 })
 
+describe('PlayerProfilePage with little to show', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('shows dashes and unnamed bases, and waits while loading', async () => {
+    serve(undefined, {
+      profile: profile({
+        bases: [{ _id: 'b-unnamed', label: null, botCount: 0 }],
+        resources: [],
+        sessions: [{ _id: 's1', userAgent: null, createdAt: 1, lastUsedAt: 2, expiresAt: 3, isActive: false }],
+        notes: [],
+        lastLoginAt: 5
+      })
+    })
+    const { container } = renderAs('moderator', <PlayerProfilePage />)
+    expect(container.querySelector('.ant-spin')).not.toBeNull()
+
+    expect(await screen.findByText('b-unnamed · 0 bots')).toBeInTheDocument()
+    expect(screen.getByText('Ended')).toBeInTheDocument()
+    expect(screen.getAllByText('–').length).toBeGreaterThan(1)
+  })
+})
+
 describe('the actions of a player', () => {
   beforeEach(() => jest.clearAllMocks())
 
@@ -286,6 +333,18 @@ describe('the actions of a player', () => {
       })
     )
     await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+  })
+
+  it('bans until lifted when the duration is left open', async () => {
+    const calls = serve()
+    renderAs('moderator', <PlayerProfilePage />)
+    fireEvent.click(await button('Ban'))
+    fireEvent.mouseDown(dialog().querySelector('.ant-select-selector') as Element)
+    fireEvent.click(await screen.findByText('Until lifted', { selector: '.ant-select-item-option-content' }))
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'cheating' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() => expect(calls.find((call) => call.url.endsWith('/ban'))?.body).toEqual({ reason: 'cheating' }))
   })
 
   it.each([

@@ -51,7 +51,8 @@ describe('loadConfig', () => {
         verificationTtlMs: 8 * 60 * 60 * 1000,
         totpIssuer: 'BotRTS',
         recoveryCodeCount: 8,
-        secret: 'development-only-access-secret'
+        secret: 'development-only-access-secret',
+        banCheckIntervalMs: 60_000
       },
       monitoring: {
         isEnabled: true,
@@ -273,6 +274,7 @@ describe('loadConfig', () => {
       ADMIN_TOTP_ISSUER: 'Bot RTS',
       ADMIN_RECOVERY_CODES: '5',
       ADMIN_SECRET: 'admin-secret',
+      ADMIN_BAN_CHECK_MS: '5000',
       JWT_ACCESS_SECRET: 'access'
     }).admin
 
@@ -281,7 +283,8 @@ describe('loadConfig', () => {
       verificationTtlMs: 2 * 60 * 60 * 1000,
       totpIssuer: 'Bot RTS',
       recoveryCodeCount: 5,
-      secret: 'admin-secret'
+      secret: 'admin-secret',
+      banCheckIntervalMs: 5000
     })
     expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'access' }).admin.secret).toBe('access')
     expect(() => loadConfig({ ...base, ADMIN_2FA_TTL: 'soon' })).toThrow('ADMIN_2FA_TTL')

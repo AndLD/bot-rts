@@ -69,16 +69,32 @@ export class PrismaPlayerDirectory implements PlayerDirectory {
     return {
       deletedAt: null,
       status: filter.status,
-      credential: filter.isEmailVerified === undefined ? undefined : { is: { emailVerified: filter.isEmailVerified } },
       createdAt: { gte: filter.registeredFrom, lte: filter.registeredTo },
-      OR: query
-        ? [
+      AND: [this.verification(filter.isEmailVerified), this.matching(query)]
+    }
+  }
+
+  private matching(query: string | undefined): Prisma.UserWhereInput {
+    return query
+      ? {
+          OR: [
             { name: { contains: query, mode: 'insensitive' } },
             { email: { contains: query, mode: 'insensitive' } },
             ...(IS_UUID.test(query) ? [{ id: query }] : [])
           ]
-        : undefined
+        }
+      : {}
+  }
+
+  // An account without credentials (a hosted provider) has no verified email here
+  private verification(isEmailVerified: boolean | undefined): Prisma.UserWhereInput {
+    if (isEmailVerified === undefined) {
+      return {}
     }
+
+    return isEmailVerified
+      ? { credential: { is: { emailVerified: true } } }
+      : { OR: [{ credential: { is: null } }, { credential: { is: { emailVerified: false } } }] }
   }
 
   private async lastLogins(userIds: string[]): Promise<Map<string, Date>> {

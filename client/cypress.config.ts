@@ -17,7 +17,8 @@ interface ApiLaunch {
   env: Record<string, string>
 }
 const API_LAUNCH: ApiLaunch | null = process.env.E2E_API_LAUNCH ? JSON.parse(process.env.E2E_API_LAUNCH) : null
-const API_PORT = 8080
+const API_PORT = Number(process.env.E2E_API_PORT ?? 8080)
+const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 5173)
 
 function apiProcesses(): number[] {
   try {
@@ -62,13 +63,13 @@ async function sql(text: string, values: unknown[]) {
 
 export default defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:5173',
+    baseUrl: `http://localhost:${CLIENT_PORT}`,
     specPattern: 'cypress/e2e/**/*.cy.ts',
     supportFile: 'cypress/support/e2e.ts',
     video: false,
     viewportWidth: 1280,
     viewportHeight: 800,
-    expose: { apiUrl: 'http://localhost:8080' },
+    expose: { apiUrl: `http://localhost:${API_PORT}` },
     setupNodeEvents(on) {
       on('task', {
         // The API goes down, as when the server crashes or restarts; resolves once nothing listens any more
@@ -272,6 +273,16 @@ export default defineConfig({
           ])
 
           return null
+        },
+
+        // The properties of the first module of a type of a bot
+        async modulePropsOf({ botId, type }: { botId: string; type: string }) {
+          const { rows } = await sql(`SELECT props FROM modules WHERE bot_id = $1::uuid AND type = $2 LIMIT 1`, [
+            botId,
+            type
+          ])
+
+          return (rows[0]?.props as Record<string, unknown> | undefined) ?? null
         },
 
         // What the storage modules of a bot hold, by resource

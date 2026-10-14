@@ -92,3 +92,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the CSS of the control window was not looked at in a browser (the developer's database has no base); the layout rules are plain grid rules.
 - **Next step:** 11.10, the Cypress specs of the phase, the end-to-end matrix, the docs and the Russian translation; then the end-of-phase database step of AGENTS.md §7.6.
 - **Verify with:** `npm test -w client -- windows.slice useStickyScroll Terminal`
+
+### 2026-10-14 — task 11.10 end-to-end specs and documentation; phase 11 closed
+- **Tasks:** 11.10
+- **Branch:** `feature/11.10-e2e-and-docs` — done
+- **Decisions / deviations from the plan:** new specs `daynight.cy.ts` (clock, filter that lets clicks through), `energy.cy.ts` (solar start without a generator and with the oil untouched, energy low told once, a bot out of energy off the radio until 12 energy: the engine's in-memory radio state only changes inside a tick, so the spec drains a bot of 1 unit instead of loading it at 0), `interface.cy.ts` (control window width, a layout saved narrow, terminal following) next to `reconnection.cy.ts` (11.7). The player documentation page "Energy" is now "Energy and time". `scripts/e2e.mjs` can use other ports (`E2E_API_PORT`, `E2E_CLIENT_PORT`), builds into `.next-e2e` with `tsconfig.typecheck.json`, so a run no longer collides with a development server.
+- **Problems / blockers / findings:** a local run of the new specs next to the developer's servers built and rendered (the screenshot showed the clock and the banner), but the socket handshake did not complete there, so the specs are verified by CI. No Prisma migration came with this phase; the local database needs only the reset of decision 5 (`npm run db:up`, `npm run db:migrate -w api` run after the merge, see the final summary).
+- **Next step:** none in this phase. Phases 8-10 are next in the plan.
+- **Verify with:** `npm run e2e -- -- --spec 'cypress/e2e/{daynight,energy,interface,reconnection}.cy.ts'`; `npm run lint && npm run docs:check`

@@ -736,13 +736,16 @@
         "result": "A call such as move or scan is queued; its result reaches your script at the start of a later tick. A script that waits for the result simply goes on when it arrives."
       },
       "energy": {
-        "title": "Energy",
+        "title": "Energy and time",
         "intro": "Every bot has a battery, and everything it does costs energy.",
+        "time": "The world has one clock for everybody: an in-game hour is a real minute, so a day lasts 24 real minutes. The clock is in the corner of the screen, and the map goes darker at night.",
         "idle": "Idle cost: each module drains a little every tick, even when it does nothing.",
         "operation": "Operation cost: each action drains the cost of the module that does it.",
         "battery": "The battery holds up to its capacity and never goes below zero.",
         "generator": "A generator burns oil from the bot's storage and adds energy to the battery. It is strong, but you must bring it oil.",
         "solar": "A solar panel burns nothing and makes energy from the sun: the most at midday, a tenth of it at night.",
+        "sun": "A solar panel makes the most at midday, about a half of that in the morning and in the evening, and a tenth at night. A base that does only light work lives on its panel; mining, driving and shooting all the time drain the battery faster than the panel fills it, and an oil generator is several times stronger.",
+        "unpowered": "A bot whose battery reaches zero is switched off: it does nothing and its radio link is down. It does not come back at the first unit of energy, but when it has grown back to 10, so that it does not blink on and off.",
         "empty": "A bot with an empty battery can do nothing: its scripts wait until energy returns. Keep a power source in your bots, and oil if they run a generator."
       },
       "opsBudget": {

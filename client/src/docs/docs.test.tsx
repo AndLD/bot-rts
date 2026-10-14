@@ -264,7 +264,7 @@ describe('DocsBrowser', () => {
     renderDocs(<DocsBrowser slug="concepts/energy" navigation={links} />)
     const tree = screen.getByRole('navigation', { name: 'Pages' })
 
-    expect(within(tree).getByText('Energy').closest('li')).toHaveAttribute('aria-current', 'page')
+    expect(within(tree).getByText('Energy and time').closest('li')).toHaveAttribute('aria-current', 'page')
     expect(within(tree).getByText('Ticks').closest('a')).toHaveAttribute('href', '/docs/concepts/ticks')
   })
 
@@ -275,7 +275,7 @@ describe('DocsBrowser', () => {
     fireEvent.change(box, { target: { value: 'generator' } })
     expect(screen.getByText(/pages?$/)).toBeInTheDocument()
     const results = document.querySelector('.docs-results') as HTMLElement
-    expect(within(results).getByText('Energy')).toBeInTheDocument()
+    expect(within(results).getByText('Energy and time')).toBeInTheDocument()
 
     fireEvent.change(box, { target: { value: 'zzzzzz' } })
     expect(screen.getByText('Nothing found')).toBeInTheDocument()

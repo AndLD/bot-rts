@@ -20,7 +20,7 @@ describe('the documentation on the public pages', () => {
   it('describes a page for search engines, in its language, with its alternates', () => {
     const metadata = docsMetadata('ru', ['concepts', 'energy'])
 
-    expect(metadata.title).toBe('Энергия — Документация — Bot RTS')
+    expect(metadata.title).toBe('Энергия и время — Документация — Bot RTS')
     expect(metadata.alternates?.canonical).toMatch(/\/ru\/docs\/concepts\/energy$/)
     expect(metadata.alternates?.languages).toMatchObject({ en: expect.stringMatching(/\/docs\/concepts\/energy$/) })
     expect(docsMetadata('en', undefined).title).toBe('Bot RTS documentation — Documentation — Bot RTS')
@@ -39,7 +39,7 @@ describe('the documentation on the public pages', () => {
     render(<DocsView locale="ru" slugParts={['concepts', 'ticks']} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Такты' })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Энергия' })[0]).toHaveAttribute('href', '/ru/docs/concepts/energy')
+    expect(screen.getAllByRole('link', { name: 'Энергия и время' })[0]).toHaveAttribute('href', '/ru/docs/concepts/energy')
     expect(screen.getAllByRole('link', { name: 'English' })[0]).toHaveAttribute('href', '/docs/concepts/ticks')
   })
 

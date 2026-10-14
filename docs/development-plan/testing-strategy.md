@@ -78,7 +78,9 @@ about 15 minutes it is sharded and run in parallel.
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |
-| Day/night filter does not block map clicks, the in-game clock, solar panel versus oil generator, a bot at the edge of its energy does not flap, no repeated event while a state lasts | 11.10 |
-| Automatic reconnection after the API restarts, control window layout, terminal follows new output only when at the bottom | 11.10 |
+| The in-game clock and the day phase, the night filter that does not block map clicks | 11.10 (`daynight.cy.ts`) |
+| The starter base runs on a solar panel and burns no oil; energy low is told once however long it lasts; a bot out of energy stays off the radio until the resume threshold | 11.10 (`energy.cy.ts`); the balance of the panel against the generator over game days and the hysteresis edge cases: `energy-balance.test.ts`, `energy-model.test.ts`, `energy-events.contract.test.ts` |
+| Automatic reconnection after the API restarts | 11.7 (`reconnection.cy.ts`) |
+| Control window layout (also a layout saved narrow), terminal follows new output only when at the bottom | 11.10 (`interface.cy.ts`) |
 | Scan snapshots ageing, a script recovering from a stale scan, continuous scanning (live area, diffs, switching off) | 6.12 (`gameplay.cy.ts`: live area and ageing snapshot; the stale-scan recovery by the handler and script-api unit tests) |
 | Radio link loss and recovery: out of range, relay destroyed / repaired, tower out of fuel, hatched bots, buffered scans, missed-event summary | 6.6 (`connect.cy.ts`, `radio.cy.ts`: out of range, relay chain, terminal interrupted and resumed, signal bars); relay towers do not exist (relays are the player's own bots); buffered scans and the summary of missed events: `radio-network.test.ts`, `radio-buffers.test.ts`, `useTerminal.test.tsx` |

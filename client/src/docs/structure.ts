@@ -102,7 +102,7 @@ export const DOC_PAGES: readonly DocPage[] = [
     blocks: [
       ...paragraphs('intro'),
       list('idle', 'operation', 'battery', 'generator', 'solar'),
-      ...paragraphs('empty'),
+      ...paragraphs('sun', 'unpowered', 'time', 'empty'),
       ...see('modules')
     ]
   },

@@ -97,7 +97,8 @@ describe('the map', () => {
 
       // Dragging far to the right shows cells with negative coordinates
       middle().then(({ x, y }) => {
-        drag(x, y, 100 * CELL)
+        // Far enough, wherever the base is: the more players there are, the further from the middle of the world it stands
+        drag(x, y, (start.x + 22) * CELL)
         canvas().click(x, y)
       })
       inspectedCell().its('x').should('be.lessThan', 0)

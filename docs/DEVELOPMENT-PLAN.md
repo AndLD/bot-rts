@@ -30,7 +30,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 8     | Multiplayer, public API & hardening  | 71           | ⬜ Not started |
 | 9     | Admin console (supervision, monitoring, moderation, operations) | 98           | ⬜ Not started |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
-| 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ⬜ Not started |
+| 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
 |        | **Total**                            | **905**      | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first

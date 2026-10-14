@@ -49,7 +49,7 @@ export class EngineHost {
   }
 
   async stop(): Promise<void> {
-    this.loop.stop()
+    await this.loop.stop()
     await this.core.shutdown()
   }
 

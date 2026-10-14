@@ -1,7 +1,7 @@
 import { createApi, FetchBaseQueryError, retry } from '@reduxjs/toolkit/query/react'
 import { baseQueryWithRefresh } from '../store/baseQuery'
 
-// 'Bases': the bases of the player; 'Storage': what the bots carry; 'Factory': the jobs and parts of a base; 'Settings': the settings of the game and of the player; 'Tutorial': the checklist of the player; 'Recipes': which recipes the player knows; 'Achievements': what the player has earned; 'Notifications': the notification center; 'NotificationPreferences': which categories the player hears about
+// 'Bases': the bases of the player; 'Storage': what the bots carry; 'Factory': the jobs and parts of a base; 'Settings': the settings of the game and of the player; 'Tutorial': the checklist of the player; 'Recipes': which recipes the player knows; 'Achievements': what the player has earned; 'Notifications': the notification center; 'NotificationPreferences': which categories the player hears about; 'ApiKeys': the API keys of the player
 export const API_TAGS = [
   'Bases',
   'Storage',
@@ -11,7 +11,8 @@ export const API_TAGS = [
   'Recipes',
   'Achievements',
   'Notifications',
-  'NotificationPreferences'
+  'NotificationPreferences',
+  'ApiKeys'
 ] as const
 
 const MAX_RETRIES = 3

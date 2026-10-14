@@ -1,3 +1,4 @@
+import { ExecutionsController } from './presentation/executions.controller'
 import { Inject, Module, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { FilesModule } from '../files/files.module'
@@ -34,6 +35,7 @@ import { TerminalGateway } from './presentation/terminal.gateway'
 const SCRIPT_LOG_FLUSH_MS = 250
 
 @Module({
+  controllers: [ExecutionsController],
   imports: [BotsModule, FilesModule, CraftingModule, TerminalCoreModule],
   providers: [
     TerminalGateway,

@@ -39,7 +39,10 @@ describe('the documentation on the public pages', () => {
     render(<DocsView locale="ru" slugParts={['concepts', 'ticks']} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Такты' })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Энергия и время' })[0]).toHaveAttribute('href', '/ru/docs/concepts/energy')
+    expect(screen.getAllByRole('link', { name: 'Энергия и время' })[0]).toHaveAttribute(
+      'href',
+      '/ru/docs/concepts/energy'
+    )
     expect(screen.getAllByRole('link', { name: 'English' })[0]).toHaveAttribute('href', '/docs/concepts/ticks')
   })
 

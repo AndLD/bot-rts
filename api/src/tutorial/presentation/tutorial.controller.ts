@@ -11,6 +11,7 @@ import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { TutorialService } from '../application/tutorial.service'
+import { RequireScope, SessionOnly } from '../../apikeys/presentation/scope.decorator'
 
 class TutorialStepResponse implements ITutorialStep {
   @ApiProperty({ enum: TUTORIAL_STEPS })
@@ -44,6 +45,7 @@ export class TutorialController {
   constructor(private readonly tutorial: TutorialService) {}
 
   @ApiOkResponse({ type: TutorialResponse })
+  @RequireScope('read')
   @Get()
   get(@CurrentPrincipal() { user }: Principal): Promise<ITutorial> {
     return this.tutorial.get(user.id)
@@ -51,6 +53,7 @@ export class TutorialController {
 
   @HttpCode(200)
   @ApiOkResponse({ type: TutorialResponse })
+  @SessionOnly()
   @Post('skip')
   skip(@CurrentPrincipal() { user }: Principal): Promise<ITutorial> {
     return this.tutorial.skip(user.id)
@@ -59,6 +62,7 @@ export class TutorialController {
   // Starts again, from the profile settings
   @HttpCode(200)
   @ApiOkResponse({ type: TutorialResponse })
+  @SessionOnly()
   @Post('restart')
   restart(@CurrentPrincipal() { user }: Principal): Promise<ITutorial> {
     return this.tutorial.restart(user.id)

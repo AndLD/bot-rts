@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
+import ApiKeysCard from '../api-keys/ApiKeysCard'
 import AchievementBadges from '../achievements/AchievementBadges'
 import { LanguageSwitcher } from '../../shared/i18n/LanguageSwitcher'
 import { useAuth } from './auth-client-context'
@@ -42,6 +43,10 @@ export default function AccountPage() {
 
       <Card title={t('account.badges')}>
         <AchievementBadges />
+      </Card>
+
+      <Card title={t('account.apiKeys')}>
+        <ApiKeysCard />
       </Card>
 
       <Card title={t('account.password.title')}>

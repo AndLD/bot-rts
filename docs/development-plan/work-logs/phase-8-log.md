@@ -75,3 +75,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.8 is the final coverage sweep and comes last in the phase; the order continues with 8.9 (API keys).
 - **Verify with:** `npm run test:scripts`; `docker build -f api/Dockerfile -t botrts-api .`; `docker compose --profile stack config -q`
 
+### 2026-10-14 — task 8.9 API keys
+- **Tasks:** 8.9
+- **Branch:** `feature/8.9-api-keys` — done
+- **Decisions / deviations from the plan:** new `apikeys` module. `AuthService` resolves a `botrts_…` bearer token through an `ApiKeyAuthenticator` port (the composite of AGENTS.md §3.3), never from the principal cache, and the principal carries the key's grant. `ApiAccessGuard` (registered right after `AuthGuard`) holds a key to the scope its route names via `@RequireScope(scope | (request) => scope)`, refuses keys on `@SessionOnly()` routes and, **deny by default**, on routes naming neither; `api-keys.int.test.ts` walks every controller route and fails if one names nothing. Socket events are held the same way by a packet middleware (`SOCKET_EVENT_SCOPES` is an exhaustive `Record` over `ClientToServerEvents`, so a new event does not compile without a scope). Scopes: `read`, `base`, `files`, `scripts`, `terminal` and the eight manual-control categories; a manual action's scope is read from its function name. Per-key rate limit uses the 8.2 limiter (`key:<id>`, per minute, shared across nodes). Added HTTP endpoints for scripts (`GET /executions`, `POST /bots/:botId/executions`, `DELETE /executions/:id`) so clients, and the MCP server of 8.11, need not drive the terminal socket. The profile UI is a card in the account page (create with scopes / rate / expiry, secret shown once with copy, revoke). Deleting an account leaves its keys unusable (the user is gone for `assertCanUseApi`) rather than deleting them.
+- **Problems / blockers / findings:** none. The `trade` and `communication` scopes exist because the categories do, though nothing needs them yet.
+- **Next step:** 8.10, public API hardening (API keys on all routes and sockets are in; the stability / deprecation policy, OpenAPI with examples and the contract tests that a key client and the official client behave the same remain).
+- **Verify with:** `npx jest src/apikeys src/auth` from `api`; `npm test -w client -- ApiKeysCard`
+

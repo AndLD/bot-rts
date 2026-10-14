@@ -16,6 +16,7 @@ import {
   FactoryStatusResponse
 } from './dto/factory.response'
 import { toAssembledBotDto, toBlueprintDto, toFactoryStatusDto, toJobDto } from './factory.mapper'
+import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 
 const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
 
@@ -31,6 +32,7 @@ export class FactoryController {
   ) {}
 
   @ApiOkResponse({ type: FactoryStatusResponse })
+  @RequireScope('read')
   @Get()
   async status(
     @CurrentPrincipal() { user }: Principal,
@@ -40,6 +42,7 @@ export class FactoryController {
   }
 
   @ApiCreatedResponse({ type: [FactoryJobResponse] })
+  @RequireScope('fabrication')
   @Post('craft')
   async craft(
     @CurrentPrincipal() { user }: Principal,
@@ -50,6 +53,7 @@ export class FactoryController {
   }
 
   @ApiCreatedResponse({ type: FactoryJobResponse })
+  @RequireScope('fabrication')
   @Post('research')
   async research(
     @CurrentPrincipal() { user }: Principal,
@@ -60,6 +64,7 @@ export class FactoryController {
   }
 
   @ApiCreatedResponse({ type: BlueprintResponse })
+  @RequireScope('fabrication')
   @Post('learn')
   async learn(
     @CurrentPrincipal() { user }: Principal,
@@ -70,6 +75,7 @@ export class FactoryController {
   }
 
   @ApiCreatedResponse({ type: AssembledBotResponse })
+  @RequireScope('fabrication')
   @Post('assemble')
   async assemble(
     @CurrentPrincipal() { user }: Principal,

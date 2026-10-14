@@ -29,5 +29,66 @@ services:
       timeout: 3s
       retries: 10
 
+  # The whole stack (docs/DEPLOYMENT.md): `docker compose --profile stack up -d --build`. The services below are not started by
+  # `npm run db:up`, which only starts the database and Redis for development.
+  migrate:
+    profiles: [stack]
+    build: { context: ., dockerfile: api/Dockerfile }
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    environment: &database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-botrts}:${POSTGRES_PASSWORD:-botrts}@db:5432/${POSTGRES_DB:-botrts}
+    depends_on:
+      db: { condition: service_healthy }
+
+  # Any number of these can run behind a load balancer; they hold no game state
+  api:
+    profiles: [stack]
+    build: { context: ., dockerfile: api/Dockerfile }
+    restart: unless-stopped
+    environment: &node
+      <<: *database
+      NODE_ENV: ${NODE_ENV:-production}
+      REDIS_URL: redis://redis:6379
+      ENGINE_ENABLED: 'true'
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      WHITELIST_URLS: ${WHITELIST_URLS:-http://localhost:5173}
+      ADMIN_URL: ${FRONTEND_URL:-http://localhost:5173}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+      TRUST_PROXY: 'true'
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    ports:
+      - '${API_PORT:-8080}:8080'
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:8080/api/v1/health/live').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    command: ['node', 'ts-built/api/index.js']
+    entrypoint: ['env', 'APP_ROLE=api']
+
+  # Exactly one: it owns the game world
+  engine:
+    profiles: [stack]
+    build: { context: ., dockerfile: api/Dockerfile }
+    restart: unless-stopped
+    environment: *node
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    entrypoint: ['env', 'APP_ROLE=engine']
+    command: ['node', 'ts-built/api/index.js']
+
 volumes:
   botrts-pgdata:

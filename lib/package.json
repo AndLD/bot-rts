@@ -1,7 +1,7 @@
 {
   "name": "@bot-rts/lib",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint . --ext ts --max-warnings 0"

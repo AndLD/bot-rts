@@ -26,6 +26,7 @@ import {
 } from './dto/auth.dto'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { AuthTokenResponse } from './dto/auth.response'
+import { SessionOnly } from '../../apikeys/presentation/scope.decorator'
 import { Public } from './public.decorator'
 import { REFRESH_COOKIE, RefreshCookieOptions } from './refresh-cookie'
 
@@ -126,6 +127,7 @@ export class AuthController {
 
   @HttpCode(204)
   @ApiNoContentResponse()
+  @SessionOnly()
   @Post('password/change')
   async changePassword(@CurrentPrincipal() principal: Principal, @Body() body: ChangePasswordDto) {
     await this.auth.changePassword(
@@ -138,6 +140,7 @@ export class AuthController {
 
   @HttpCode(204)
   @ApiNoContentResponse()
+  @SessionOnly()
   @Post('email/change')
   async requestEmailChange(@CurrentPrincipal() principal: Principal, @Body() body: ChangeEmailDto) {
     await this.auth.requestEmailChange(principal.user.id, body.password, body.newEmail)
@@ -153,6 +156,7 @@ export class AuthController {
 
   @HttpCode(204)
   @ApiNoContentResponse()
+  @SessionOnly()
   @Post('account/delete')
   async requestAccountDeletion(@CurrentPrincipal() principal: Principal, @Body() { password }: PasswordDto) {
     await this.auth.requestAccountDeletion(principal.user.id, password)

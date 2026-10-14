@@ -16,6 +16,7 @@ import { FilesService } from '../application/files.service'
 import { DriveResponse, FileResponse } from './dto/files.response'
 import { FilePathQueryDto, ListFilesQueryDto, MakeDirectoryDto, WriteFileDto } from './dto/files.dto'
 import { toDriveDto, toFileDto } from './file.mapper'
+import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 
 const idPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
 
@@ -28,12 +29,14 @@ export class FilesController {
   constructor(private readonly files: FilesService) {}
 
   @ApiOkResponse({ type: [DriveResponse] })
+  @RequireScope('read')
   @Get()
   async drives(@CurrentPrincipal() { user }: Principal, @Param('botId', idPipe) botId: string): Promise<IDrive[]> {
     return (await this.files.listDrives(user.id, botId)).map(toDriveDto)
   }
 
   @ApiOkResponse({ type: [FileResponse] })
+  @RequireScope('read')
   @Get(':driveId/files')
   async list(
     @CurrentPrincipal() { user }: Principal,
@@ -45,6 +48,7 @@ export class FilesController {
   }
 
   @ApiOkResponse({ type: FileResponse })
+  @RequireScope('read')
   @Get(':driveId/file')
   async read(
     @CurrentPrincipal() { user }: Principal,
@@ -56,6 +60,7 @@ export class FilesController {
   }
 
   @ApiOkResponse({ type: FileResponse })
+  @RequireScope('files')
   @Put(':driveId/file')
   async write(
     @CurrentPrincipal() { user }: Principal,
@@ -67,6 +72,7 @@ export class FilesController {
   }
 
   @ApiNoContentResponse()
+  @RequireScope('files')
   @Delete(':driveId/file')
   @HttpCode(204)
   async remove(
@@ -79,6 +85,7 @@ export class FilesController {
   }
 
   @ApiCreatedResponse({ type: FileResponse })
+  @RequireScope('files')
   @Post(':driveId/directories')
   async makeDirectory(
     @CurrentPrincipal() { user }: Principal,

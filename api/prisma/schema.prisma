@@ -107,6 +107,7 @@ model User {
   achievementCounters  AchievementCounter[]
   achievementUnlocks   AchievementUnlock[]
   notifications        PlayerNotification[]
+  apiKeys              ApiKey[]
 
   @@index([createdAt])
   @@map("users")
@@ -514,4 +515,25 @@ model PlayerNotification {
   @@index([userId, createdAt(sort: Desc)])
   @@index([deliveredAt, createdAt])
   @@map("player_notifications")
+}
+
+// A key of a player for a client that is not the game's own (design §22.1). The secret is shown once and only its hash is stored.
+model ApiKey {
+  id            String    @id @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  name          String
+  // The first characters of the key, to tell keys apart in the list
+  prefix        String
+  keyHash       String    @unique @map("key_hash")
+  scopes        String[]
+  ratePerMinute Int       @map("rate_per_minute")
+  createdAt     DateTime  @map("created_at") @db.Timestamptz(3)
+  lastUsedAt    DateTime? @map("last_used_at") @db.Timestamptz(3)
+  expiresAt     DateTime? @map("expires_at") @db.Timestamptz(3)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("api_keys")
 }

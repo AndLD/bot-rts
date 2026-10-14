@@ -11,9 +11,17 @@
   endpoints, so every feature of the official client is available to third-party clients. The surface has **two
   authentication methods**: the user's login session (JWT) for the official client, and API keys for third-party
   clients and the MCP server. All new endpoints are created under `/api/v1` from the start, never retrofitted.
-- **API keys:** a player creates keys in their profile. A key is shown **once** and stored **hashed**. Each key has
+- **API keys:** ✅ (Plan 8.9) a player creates keys in their profile. A key is shown **once** and stored **hashed**. Each key has
   **scopes** (for example read, one scope per control category from §15.1, files, scripts, `chat`, `trade`) that can only **narrow** the
   player's own rights, plus its own rate limit, and can be **revoked** at any time.
+- ✅ **Implementation (Plan 8.9):** a key is `botrts_` plus 256 random bits; only its SHA-256 hash is stored, and the list shows the first
+  characters. It goes in the same `Authorization: Bearer` header as a session token and is resolved to the player (bans and deleted
+  accounts apply) with the key's grant. The scopes are `read`, `base`, `files`, `scripts`, `terminal` and one per category of manual
+  control (`movement`, `combat`, `extraction`, `logistics`, `fabrication`, `maintenance`, `communication`, `trade`). **Every route and
+  socket event names the scope it needs; one that names nothing is closed to keys** (a test lists the routes), and account, settings,
+  key and administration routes are session-only. A manual action needs the scope of its category (`read` for observation). Each key has
+  its own rate limit per minute (default 120, counted across API nodes), an optional expiry, and can be revoked at once; a player holds
+  at most 10 active keys. Keys are managed in the account page of the web client.
 - A key acts **as that player** and obeys exactly the same game rules: processor budget, energy, cooldowns, category
   switches (§15.1), and the single-writer engine (§14.2). An API client never gets an advantage over the official one.
 - Notifications (§24) and achievements (§23) are available through the API (scope `read`), so custom clients and the MCP

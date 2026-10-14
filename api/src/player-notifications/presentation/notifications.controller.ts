@@ -18,6 +18,7 @@ import {
   NotificationSummaryResponse,
   UpdateNotificationPreferencesDto
 } from './notifications.dto'
+import { RequireScope, SessionOnly } from '../../apikeys/presentation/scope.decorator'
 
 // The notification center of a player (design §24.2, §24.3): what the game told them, newest first, kept for 30 days by default
 @ApiTags('notifications')
@@ -28,6 +29,7 @@ export class NotificationsController {
   constructor(private readonly notifications: NotificationService) {}
 
   @ApiOkResponse({ type: NotificationListResponse })
+  @RequireScope('read')
   @Get()
   list(@CurrentPrincipal() { user }: Principal, @Query() query: ListNotificationsQueryDto): Promise<INotificationList> {
     return this.notifications.list(user.id, { limit: query.limit, before: query.before, isUnreadOnly: query.unread })
@@ -35,6 +37,7 @@ export class NotificationsController {
 
   // "While you were away": what waits unread, by category
   @ApiOkResponse({ type: NotificationSummaryResponse })
+  @RequireScope('read')
   @Get('summary')
   summary(@CurrentPrincipal() { user }: Principal): Promise<INotificationSummary> {
     return this.notifications.summary(user.id)
@@ -42,18 +45,21 @@ export class NotificationsController {
 
   @HttpCode(200)
   @ApiOkResponse({ type: MarkedReadResponse })
+  @RequireScope('read')
   @Post('read')
   async markRead(@CurrentPrincipal() { user }: Principal, @Body() body: MarkReadDto): Promise<MarkedReadResponse> {
     return { marked: await this.notifications.markRead(user.id, body.ids) }
   }
 
   @ApiOkResponse({ type: NotificationPreferencesResponse })
+  @RequireScope('read')
   @Get('preferences')
   preferences(@CurrentPrincipal() { user }: Principal): Promise<INotificationPreferences> {
     return this.notifications.getPreferences(user.id)
   }
 
   @ApiOkResponse({ type: NotificationPreferencesResponse })
+  @SessionOnly()
   @Patch('preferences')
   updatePreferences(
     @CurrentPrincipal() { user }: Principal,

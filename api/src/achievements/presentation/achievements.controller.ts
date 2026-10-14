@@ -5,6 +5,7 @@ import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { AchievementService } from '../application/achievement.service'
+import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 
 export class AchievementResponse implements IAchievement {
   @ApiProperty({ description: 'For example `prospector.2`' })
@@ -38,6 +39,7 @@ export class AchievementsController {
   constructor(private readonly achievements: AchievementService) {}
 
   @ApiOkResponse({ type: [AchievementResponse] })
+  @RequireScope('read')
   @Get()
   list(@CurrentPrincipal() { user }: Principal): Promise<IAchievement[]> {
     return this.achievements.list(user.id)

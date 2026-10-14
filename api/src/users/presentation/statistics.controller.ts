@@ -5,6 +5,7 @@ import { ErrorResponseModel } from '../../shared/presentation/error-response.mod
 import { StatisticsResponse } from './dto/users.response'
 import { UsersService } from '../application/users.service'
 import { UserCountByStatus } from '../application/user.repository'
+import { SessionOnly } from '../../apikeys/presentation/scope.decorator'
 
 export interface Statistics {
   usersByStatus: UserCountByStatus
@@ -23,6 +24,7 @@ export class StatisticsController {
 
   @ApiOkResponse({ type: StatisticsResponse })
   @RequireRole('admin')
+  @SessionOnly()
   @Get()
   async get(): Promise<Statistics> {
     return { usersByStatus: await this.users.countByStatus(), startedAt: this.startedAt }

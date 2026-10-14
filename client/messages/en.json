@@ -173,7 +173,8 @@
         "submit": "Delete my account",
         "sent": "We sent a confirmation link to your email. Follow it to finish."
       },
-      "badges": "Achievements"
+      "badges": "Achievements",
+      "apiKeys": "API keys"
     }
   },
   "game": {
@@ -273,6 +274,9 @@
     "DRIVE_FULL": "There is not enough space on the drive",
     "TERMINAL_SESSION_CLOSED": "The terminal session is closed",
     "TOO_MANY_REQUESTS": "Too many requests, try again later",
+    "TOO_MANY_API_KEYS": "You already have the most API keys allowed, revoke one first",
+    "API_KEY_SCOPE": "This API key is not allowed to do that",
+    "SESSION_ONLY": "This is only available when you are signed in, not with an API key",
     "PAYLOAD_TOO_LARGE": "The request is too large",
     "REQUEST_TIMEOUT": "The server took too long to answer, try again",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
@@ -930,7 +934,7 @@
     "publicApi": {
       "openapi": "OpenAPI reference",
       "basePath": "Base path",
-      "keys": "API keys for third-party clients are planned. Until they arrive, the API accepts the session token of a signed-in player.",
+      "keys": "Create API keys in your account page. A key is sent like a session token, as `Authorization: Bearer botrts_…`, and is limited to the scopes you gave it.",
       "rules": "Whatever you use, the same rules apply as in the game: energy, the operations budget, cooldowns and the category switches."
     },
     "help": {
@@ -955,5 +959,50 @@
     "lost": "Connection to the server lost",
     "reconnecting": "Reconnecting to the server…",
     "restored": "Connection restored"
+  },
+  "apiKeys": {
+    "title": "API keys",
+    "intro": "A key lets a program or an AI assistant play as you, with the same rules as in the game. Give each key only the scopes it needs. The key is shown once, when you create it.",
+    "none": "You have no API keys.",
+    "create": "Create a key",
+    "createSubmit": "Create",
+    "name": "Name",
+    "scopes": "Scopes",
+    "scopesHelp": "A key can only do what you can do. The terminal scope can run any terminal command, so give it with care.",
+    "ratePerMinute": "Requests per minute",
+    "expiry": "Expires",
+    "neverExpires": "Never",
+    "expiresInDays": "After {count} days",
+    "revoke": "Revoke",
+    "revokeConfirm": "Revoke this key? Programs that use it stop working at once.",
+    "created": "Your new key",
+    "shownOnce": "Copy the key now. It is not shown again; if you lose it, create a new one.",
+    "secret": "The key",
+    "copy": "Copy",
+    "done": "Done",
+    "state": {
+      "active": "active",
+      "revoked": "revoked",
+      "expired": "expired"
+    },
+    "rate": "{count} requests per minute",
+    "lastUsed": "last used {date}",
+    "neverUsed": "never used",
+    "expires": "expires {date}",
+    "scope": {
+      "read": "look at everything: bases, bots, the map, files, notifications",
+      "base": "deploy a base",
+      "files": "write and delete files",
+      "scripts": "start and stop scripts",
+      "terminal": "use the BotOS terminal",
+      "movement": "move and turn",
+      "combat": "aim, shoot, reload",
+      "extraction": "dig, mine, pick up, drop",
+      "logistics": "move items between bots",
+      "fabrication": "craft, research, learn, assemble",
+      "maintenance": "repair, take apart, switch modules",
+      "communication": "talk to other bots and players",
+      "trade": "trade with other players"
+    }
   }
 }

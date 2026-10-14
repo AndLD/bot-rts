@@ -7,6 +7,7 @@ import { RequireRole } from '../../auth/presentation/roles.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { SettingsService } from '../application/settings.service'
 import { GameSettingsResponse, SettingsResponse, UpdateGameSettingsDto, UpdateUserSettingsDto } from './settings.dto'
+import { SessionOnly } from '../../apikeys/presentation/scope.decorator'
 
 // The settings of the player, with the game's they are narrowed by
 @ApiTags('settings')
@@ -17,12 +18,14 @@ export class SettingsController {
   constructor(private readonly settings: SettingsService) {}
 
   @ApiOkResponse({ type: SettingsResponse })
+  @SessionOnly()
   @Get()
   get(@CurrentPrincipal() { user }: Principal): Promise<ISettings> {
     return this.settings.get(user.id)
   }
 
   @ApiOkResponse({ type: SettingsResponse })
+  @SessionOnly()
   @Patch()
   update(@CurrentPrincipal() { user }: Principal, @Body() body: UpdateUserSettingsDto): Promise<ISettings> {
     return this.settings.updateUser(user.id, body)
@@ -39,6 +42,7 @@ export class AdminSettingsController {
 
   @ApiOkResponse({ type: GameSettingsResponse })
   @RequireRole('admin')
+  @SessionOnly()
   @Get()
   get(): Promise<IGameSettings> {
     return this.settings.getGame()
@@ -46,6 +50,7 @@ export class AdminSettingsController {
 
   @ApiOkResponse({ type: GameSettingsResponse })
   @RequireRole('admin')
+  @SessionOnly()
   @Patch()
   update(@Body() body: UpdateGameSettingsDto): Promise<IGameSettings> {
     return this.settings.updateGame(body.categories)

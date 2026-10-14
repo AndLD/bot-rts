@@ -27,6 +27,9 @@ export const api = generated.enhanceEndpoints({
     notificationsMarkRead: { invalidatesTags: ['Notifications'] },
     notificationsPreferences: { providesTags: ['NotificationPreferences'] },
     notificationsUpdatePreferences: { invalidatesTags: ['NotificationPreferences'] },
+    apiKeysList: { providesTags: ['ApiKeys'] },
+    apiKeysCreate: { invalidatesTags: ['ApiKeys'] },
+    apiKeysRevoke: { invalidatesTags: ['ApiKeys'] },
     tutorialGet: { providesTags: ['Tutorial'] },
     tutorialSkip: { invalidatesTags: ['Tutorial'] },
     tutorialRestart: { invalidatesTags: ['Tutorial'] },
@@ -36,6 +39,9 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useApiKeysCreateMutation,
+  useApiKeysListQuery,
+  useApiKeysRevokeMutation,
   useLazyNotificationsListQuery,
   useNotificationsListQuery,
   useNotificationsMarkReadMutation,

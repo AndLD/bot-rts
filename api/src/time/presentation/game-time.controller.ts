@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiOperation, ApiTags
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { GameTimeService, GameTimeView } from '../application/game-time.service'
 import { GameTimeResponse } from './game-time.response'
+import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 
 @ApiTags('time')
 @ApiBearerAuth()
@@ -11,6 +12,7 @@ import { GameTimeResponse } from './game-time.response'
 export class GameTimeController {
   constructor(private readonly time: GameTimeService) {}
 
+  @RequireScope('read')
   @Get()
   @ApiOperation({ summary: 'The server instant and the day/night config (design §12.4)' })
   @ApiOkResponse({ type: GameTimeResponse })

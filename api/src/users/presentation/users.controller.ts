@@ -10,6 +10,7 @@ import { UsersService } from '../application/users.service'
 import { UserInfoResponse, UsersPageResponse, UserUpdatedResponse } from './dto/users.response'
 import { ListUsersQueryDto, UpdateUserDto } from './dto/users.dto'
 import { toUserInfo } from './user.mapper'
+import { RequireScope, SessionOnly } from '../../apikeys/presentation/scope.decorator'
 
 @ApiTags('users')
 @ApiDefaultResponse({ type: ErrorResponseModel })
@@ -19,6 +20,7 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
 
   @ApiOkResponse({ type: UserInfoResponse })
+  @RequireScope('read')
   @Get('me')
   me(@CurrentPrincipal() { user, identity }: Principal): IUserInfo {
     return toUserInfo(user, identity.emailVerified)
@@ -26,6 +28,7 @@ export class UsersController {
 
   @RequireRole('admin')
   @ApiOkResponse({ type: UsersPageResponse })
+  @SessionOnly()
   @Get()
   async list(@Query() query: ListUsersQueryDto) {
     const { users, total } = await this.users.list({
@@ -44,6 +47,7 @@ export class UsersController {
 
   @RequireRole('admin')
   @ApiOkResponse({ type: UserUpdatedResponse })
+  @SessionOnly()
   @Put(':id')
   async update(
     @CurrentPrincipal() { user: actor }: Principal,

@@ -10,6 +10,8 @@ import { ManualControlService } from '../application/manual-control.service'
 import { StorageViewService } from '../application/storage-view.service'
 import { BotStorageResponse, ManualActionDto, ManualActionResponse } from './dto/control.dto'
 import { toItemDto } from './factory.mapper'
+import { categoryOfFunction } from '../../../../lib/utils/interfaces/settings'
+import { RequireScope } from '../../apikeys/presentation/scope.decorator'
 
 const botIdPipe = new ParseUUIDPipe({ exceptionFactory: () => new ValidationError('Invalid id') })
 
@@ -25,6 +27,7 @@ export class BotControlController {
 
   // What the bot carries
   @ApiOkResponse({ type: BotStorageResponse })
+  @RequireScope('read')
   @Get('storage')
   async getStorage(
     @CurrentPrincipal() { user }: Principal,
@@ -38,6 +41,7 @@ export class BotControlController {
   // A manual action: a call of the script API done by hand, with the same rules and the same answer (design §15.1)
   @HttpCode(200)
   @ApiOkResponse({ type: ManualActionResponse })
+  @RequireScope((request) => categoryOfFunction(String(request.body?.fn)) ?? 'read')
   @Post('actions')
   perform(
     @CurrentPrincipal() { user }: Principal,

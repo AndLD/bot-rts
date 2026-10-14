@@ -252,6 +252,19 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.updateNotificationPreferencesDto
       })
     }),
+    executionsList: build.query<ExecutionsListApiResponse, ExecutionsListApiArg>({
+      query: () => ({ url: `/api/v1/executions` })
+    }),
+    executionsStart: build.mutation<ExecutionsStartApiResponse, ExecutionsStartApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.botId}/executions`,
+        method: 'POST',
+        body: queryArg.startExecutionDto
+      })
+    }),
+    executionsKill: build.mutation<ExecutionsKillApiResponse, ExecutionsKillApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/executions/${queryArg.executionId}`, method: 'DELETE' })
+    }),
     healthReady: build.query<HealthReadyApiResponse, HealthReadyApiArg>({
       query: () => ({ url: `/api/v1/health` })
     }),
@@ -260,6 +273,15 @@ const injectedRtkApi = api.injectEndpoints({
     }),
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
+    }),
+    apiKeysList: build.query<ApiKeysListApiResponse, ApiKeysListApiArg>({
+      query: () => ({ url: `/api/v1/api-keys` })
+    }),
+    apiKeysCreate: build.mutation<ApiKeysCreateApiResponse, ApiKeysCreateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/api-keys`, method: 'POST', body: queryArg.createApiKeyDto })
+    }),
+    apiKeysRevoke: build.mutation<ApiKeysRevokeApiResponse, ApiKeysRevokeApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/api-keys/${queryArg.id}`, method: 'DELETE' })
     })
   }),
   overrideExisting: false
@@ -481,12 +503,34 @@ export type NotificationsUpdatePreferencesApiResponse = /** status 200  */ Notif
 export type NotificationsUpdatePreferencesApiArg = {
   updateNotificationPreferencesDto: UpdateNotificationPreferencesDto
 }
+export type ExecutionsListApiResponse =
+  /** status 200 The scripts of the player that are still running */ ExecutionResponse[]
+export type ExecutionsListApiArg = void
+export type ExecutionsStartApiResponse = /** status 200  */ ExecutionResponse
+export type ExecutionsStartApiArg = {
+  botId: string
+  startExecutionDto: StartExecutionDto
+}
+export type ExecutionsKillApiResponse = /** status 200  */ ExecutionResponse
+export type ExecutionsKillApiArg = {
+  executionId: string
+}
 export type HealthReadyApiResponse = /** status 200  */ HealthResponse
 export type HealthReadyApiArg = void
 export type HealthLiveApiResponse = /** status 200  */ HealthResponse
 export type HealthLiveApiArg = void
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
+export type ApiKeysListApiResponse = /** status 200  */ ApiKeyResponse[]
+export type ApiKeysListApiArg = void
+export type ApiKeysCreateApiResponse = /** status 201  */ CreatedApiKeyResponse
+export type ApiKeysCreateApiArg = {
+  createApiKeyDto: CreateApiKeyDto
+}
+export type ApiKeysRevokeApiResponse = /** status 200  */ ApiKeyResponse
+export type ApiKeysRevokeApiArg = {
+  id: string
+}
 export type UserInfoResponse = {
   _id: string
   name: string
@@ -533,6 +577,9 @@ export type ErrorResponseModel = {
     | 'TERMINAL_SESSION_CLOSED'
     | 'TOO_MANY_REQUESTS'
     | 'PAYLOAD_TOO_LARGE'
+    | 'TOO_MANY_API_KEYS'
+    | 'API_KEY_SCOPE'
+    | 'SESSION_ONLY'
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
     | 'INTERNAL_ERROR'
@@ -1018,6 +1065,21 @@ export type UpdateNotificationPreferencesDto = {
     system?: boolean
   }
 }
+export type ExecutionResponse = {
+  id: string
+  botId: string
+  file: string
+  args: string[]
+  state: 'queued' | 'running' | 'suspended' | 'awaiting' | 'finished' | 'killed'
+  reason: string | null
+  restarts: number
+}
+export type StartExecutionDto = {
+  /** The script, as /<drive>/<path> on the drives of the bot */
+  file: string
+  /** Arguments of main(bot, ...args): strings, numbers or booleans */
+  args?: string[]
+}
 export type HealthResponse = {
   status: 'ok'
   database?: 'up'
@@ -1043,6 +1105,81 @@ export type GameTimeResponse = {
   /** The server instant in ms */
   now: number
   config: GameTimeConfigResponse
+}
+export type ApiKeyResponse = {
+  _id: string
+  name: string
+  prefix: string
+  scopes: (
+    | 'read'
+    | 'base'
+    | 'files'
+    | 'scripts'
+    | 'terminal'
+    | 'movement'
+    | 'combat'
+    | 'extraction'
+    | 'logistics'
+    | 'fabrication'
+    | 'maintenance'
+    | 'communication'
+    | 'trade'
+  )[]
+  ratePerMinute: number
+  createdAt: number
+  lastUsedAt: number | null
+  expiresAt: number | null
+  revokedAt: number | null
+}
+export type CreatedApiKeyResponse = {
+  _id: string
+  name: string
+  prefix: string
+  scopes: (
+    | 'read'
+    | 'base'
+    | 'files'
+    | 'scripts'
+    | 'terminal'
+    | 'movement'
+    | 'combat'
+    | 'extraction'
+    | 'logistics'
+    | 'fabrication'
+    | 'maintenance'
+    | 'communication'
+    | 'trade'
+  )[]
+  ratePerMinute: number
+  createdAt: number
+  lastUsedAt: number | null
+  expiresAt: number | null
+  revokedAt: number | null
+  /** The key itself. It is shown only now; only its hash is stored */
+  secret: string
+}
+export type CreateApiKeyDto = {
+  name: string
+  /** What the key may do; it can only narrow what the player may do */
+  scopes: (
+    | 'read'
+    | 'base'
+    | 'files'
+    | 'scripts'
+    | 'terminal'
+    | 'movement'
+    | 'combat'
+    | 'extraction'
+    | 'logistics'
+    | 'fabrication'
+    | 'maintenance'
+    | 'communication'
+    | 'trade'
+  )[]
+  /** Requests per minute */
+  ratePerMinute?: number
+  /** The key stops working after this many days; without it the key does not expire */
+  expiresInDays?: number
 }
 export const {
   useUsersMeQuery,
@@ -1098,7 +1235,13 @@ export const {
   useNotificationsMarkReadMutation,
   useNotificationsPreferencesQuery,
   useNotificationsUpdatePreferencesMutation,
+  useExecutionsListQuery,
+  useExecutionsStartMutation,
+  useExecutionsKillMutation,
   useHealthReadyQuery,
   useHealthLiveQuery,
-  useGameTimeCurrentQuery
+  useGameTimeCurrentQuery,
+  useApiKeysListQuery,
+  useApiKeysCreateMutation,
+  useApiKeysRevokeMutation
 } = injectedRtkApi

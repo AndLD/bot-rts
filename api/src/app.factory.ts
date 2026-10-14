@@ -37,7 +37,12 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
     .setTitle('Bot RTS API')
     .setDescription('The one API of the game: the web client, third-party clients and the MCP server use it.')
     .setVersion('1')
-    .addBearerAuth()
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      description:
+        'The access token of a signed-in session, or an API key (botrts_…) created in the profile. A key is held to its scopes; the scope each route needs is in x-api-key-scope.'
+    })
     .addCookieAuth(REFRESH_COOKIE)
 
   return SwaggerModule.createDocument(app, builder.build(), {

@@ -12,6 +12,7 @@ import VerificationPage from './VerificationPage'
 const push = jest.fn()
 let search = ''
 
+jest.mock('../api-keys/ApiKeysCard', () => ({ __esModule: true, default: () => <div>the api keys</div> }))
 jest.mock('../achievements/AchievementBadges', () => ({ __esModule: true, default: () => <div>the badges</div> }))
 jest.mock('../ambient/AmbientCanvas', () => ({ __esModule: true, default: () => null }))
 jest.mock('next/navigation', () => ({

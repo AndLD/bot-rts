@@ -18,6 +18,8 @@ describe('an AI playing through the MCP server', () => {
       cy.deployBaseViaApi(token).then(({ id: baseId, at }) => {
         cy.assembleWorker({ email, token, baseId, modules: DRIVER, label: 'Scout' }).then((botId) => {
           cy.task('placeBotAt', { botId, x: at.x + 8, y: at.y + 8 })
+          // The cell ahead (north) is free: a deposit or an obstacle there would answer the move with BLOCKED
+          cy.task('removeCell', { x: at.x + 8, y: at.y + 7 })
           cy.apiRequest({
             method: 'POST',
             path: `/api/v1/bots/${baseId}/scan`,
@@ -37,7 +39,7 @@ describe('an AI playing through the MCP server', () => {
 
               expect(answers.scan.isError, answers.scan.text).to.equal(false)
               expect(answers.move.isError, answers.move.text).to.equal(false)
-              expect(JSON.parse(answers.move.text).ok).to.equal(true)
+              expect(JSON.parse(answers.move.text).ok, answers.move.text).to.equal(true)
 
               expect(answers.denied.isError).to.equal(true)
               expect(answers.denied.text).to.contain('API_KEY_SCOPE')

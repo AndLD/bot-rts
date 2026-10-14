@@ -123,8 +123,8 @@ function serve(report: IHealthReport | 'broken', onCall: (call: Call) => unknown
   return calls
 }
 
-function renderDashboard(role: IAdminMe['role'] = 'owner') {
-  const store = storeWithToken(makeJwt(60))
+function renderDashboard(role: IAdminMe['role'] = 'owner', token: string | null = makeJwt(60)) {
+  const store = storeWithToken(token)
 
   return render(
     <NextIntlClientProvider locale="en" messages={messages} timeZone="UTC">
@@ -214,6 +214,13 @@ describe('AdminDashboard', () => {
     renderDashboard()
 
     expect(screen.getByText('Waiting for data')).toBeInTheDocument()
+  })
+
+  it('does not open the live connection without a session', () => {
+    serve(health())
+    renderDashboard('owner', null)
+
+    expect(sockets).toHaveLength(0)
   })
 
   it('goes live over the admin namespace, takes pushed reports, and falls back to polling', async () => {

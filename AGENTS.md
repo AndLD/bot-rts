@@ -424,7 +424,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   and the MCP server (`mcp/`) only calls the public API.
 - **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
-- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `CHANGELOG.md`.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/CHANGELOG.md`.
 - **Admin endpoints** (planned, Phase 9; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
 - **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**

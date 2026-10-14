@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to Bot RTS are recorded here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
-and the project uses [Semantic Versioning](https://semver.org/) (see [docs/operations/RELEASING.md](./docs/operations/RELEASING.md)). Every pull request that
+and the project uses [Semantic Versioning](https://semver.org/) (see [docs/operations/RELEASING.md](./operations/RELEASING.md)). Every pull request that
 changes behaviour adds a line under "Unreleased"; a release moves them under its version.
 
 ## [Unreleased]

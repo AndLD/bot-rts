@@ -20,7 +20,7 @@ Database migrations are part of the release; applied migrations are never edited
 
 ## The changelog
 
-[CHANGELOG.md](../../CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
+[CHANGELOG.md](../CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
 `Security`). A pull request that changes what a player, an API client or an operator sees adds a line under `## [Unreleased]` in the
 same pull request. Pull requests that only touch tests, docs or tooling need none.
 

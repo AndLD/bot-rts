@@ -17,7 +17,3 @@ export interface ApiKey {
 export function isKeyUsable(key: ApiKey, now: Date): boolean {
   return key.revokedAt === null && (key.expiresAt === null || key.expiresAt > now)
 }
-
-export function keyAllows(key: Pick<ApiKey, 'scopes'>, scope: ApiScope): boolean {
-  return key.scopes.includes(scope)
-}

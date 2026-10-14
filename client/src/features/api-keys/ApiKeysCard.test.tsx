@@ -159,4 +159,41 @@ describe('ApiKeysCard', () => {
 
     await waitFor(() => expect(error).toHaveBeenCalledWith(expect.objectContaining({ description: 'Not found' })))
   })
+
+  it('closes the form without making a key, and the secret with its cross', async () => {
+    const calls = serve([])
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+    renderApp(<ApiKeysCard />, opts())
+    fireEvent.click(await button('Create a key'))
+    await waitFor(() => expect(dialogOf()).not.toBeNull())
+
+    fireEvent.click(await button('Cancel'))
+    expect(calls.some((call) => call.method === 'POST')).toBe(false)
+
+    fireEvent.click(await button('Create a key'))
+    fireEvent.change(dialogOf().querySelector('input#name') as HTMLElement, { target: { value: 'k' } })
+    fireEvent.click(buttons('Create').find((candidate) => dialogOf().contains(candidate)) as HTMLElement)
+    await screen.findByDisplayValue('botrts_the-whole-secret')
+    // Copying without a clipboard does not fail
+    fireEvent.click(await button('Copy'))
+    fireEvent.click(document.querySelector('.ant-modal-close') as HTMLElement)
+
+    await waitFor(() =>
+      expect(document.querySelectorAll('.ant-modal-wrap[style*="display: none"]').length).toBeGreaterThan(0)
+    )
+  })
+
+  it('chooses an expiry and sends it', async () => {
+    const calls = serve([])
+    renderApp(<ApiKeysCard />, opts())
+    fireEvent.click(await button('Create a key'))
+    await waitFor(() => expect(dialogOf()).not.toBeNull())
+    fireEvent.change(dialogOf().querySelector('input#name') as HTMLElement, { target: { value: 'k' } })
+    fireEvent.mouseDown(dialogOf().querySelector('.ant-select-selector') as HTMLElement)
+    fireEvent.click(await screen.findByText('After 90 days'))
+    fireEvent.click(buttons('Create').find((candidate) => dialogOf().contains(candidate)) as HTMLElement)
+
+    await screen.findByDisplayValue('botrts_the-whole-secret')
+    expect(calls.find((call) => call.method === 'POST')?.body).toMatchObject({ expiresInDays: 90 })
+  })
 })

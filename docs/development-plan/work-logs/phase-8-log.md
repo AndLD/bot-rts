@@ -115,3 +115,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.8, the final coverage and quality sweep, then the end-of-phase database step of AGENTS.md §7.6 and the summary.
 - **Verify with:** `npm run e2e -- -- --spec 'cypress/e2e/{api-keys,mcp,multiplayer}.cy.ts'`
 
+### 2026-10-14 — task 8.8 quality sweep; phase 8 closed
+- **Tasks:** 8.8
+- **Branch:** `feature/8.8-quality-sweep` — done
+- **Decisions / deviations from the plan:** coverage was already far above the gate in all three packages (see `testing-strategy.md`), so the sweep went into what made the gate hard to pass: flaky tests. The causes were real-time bounds and slow Ant Design tests under a parallel run with coverage, a scroll-event race in `useStickyScroll` (fixed with 8.4), and a Cypress notification race; each is loosened or fixed at its cause and recorded in the testing strategy. Docs brought up to date: README ("What works today"), CHANGELOG (Unreleased), the plan (phase 8 ✅).
+- **Problems / blockers / findings:** the line `Aborted(Assertion failed: list_empty(&rt->gc_obj_list)…` in the output is the sandbox attack tests, by design. A jest worker was killed with SIGABRT once in `scale-out.int.test.ts` in CI and could not be reproduced (the same file passed dozens of times); if it comes back, run it alone with `--detectOpenHandles` and look at the engine thread's shutdown.
+- **Exit criteria of the phase:** the game runs under realistic multi-player load (8.6, with the leak the soak run found fixed), has a horizontally scalable API tier (8.1), is observable (8.3) and is released via full Git Flow (8.7; no release has been cut: that is the owner's decision).
+- **Next step:** none in this phase; the end-of-phase database step (`npm run db:up`, `npm run db:migrate -w api`) is run from the updated `develop` after the merge. Phases 9 and 10 are next in the plan.
+- **Verify with:** `npm run lint && npm run typecheck && npm run docs:check && npm run test:coverage`
+

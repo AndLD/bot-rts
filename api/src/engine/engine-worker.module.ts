@@ -25,6 +25,7 @@ import { ModulesModule } from '../modules/modules.module'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { WORLD_STATE_STORE, WorldStateStore } from '../persistence/application/world-state-store'
 import { PersistenceModule } from '../persistence/persistence.module'
+import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
@@ -45,6 +46,7 @@ import { StepWatch, StepWatchWriter } from './infrastructure/step-watch'
 import { SucraseTranspiler } from './infrastructure/sucrase-transpiler'
 import { BOT_STATE_SOURCE, BotStateSource, EngineSink, SCRIPT_SOURCE, ScriptSource } from './application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from './application/engine-protocol'
+import { CONTROL_STATE_STORE, ControlStateStore } from './application/control-state'
 import { EXECUTION_REPOSITORY, ExecutionRepository } from './application/execution.repository'
 import { EngineAudience } from './application/engine-audience'
 import { EventOutbox } from './application/event-outbox'
@@ -55,6 +57,7 @@ import { RadioBuffers } from './application/radio-buffers'
 import { RadioNetwork } from './application/radio-network'
 import { ViewHandler } from './application/handlers/view-handler'
 import { World } from './application/world/world'
+import { SupportService } from '../support/application/support.service'
 import { WorldActionExecutor } from './application/world-action-executor'
 import { EngineModule } from './engine.module'
 import { RepositoryWorldSource } from './application/world/repository-world-source'
@@ -78,6 +81,7 @@ import { WriteBehind } from './application/write-behind'
 import { ServiceBotStateSource } from './infrastructure/bot-state.source'
 import { ChannelSink, EngineHost } from './infrastructure/engine-host'
 import { FilesScriptSource } from './infrastructure/files-script.source'
+import { PrismaControlStateStore } from './infrastructure/prisma-control-state.store'
 import { PrismaExecutionRepository } from './infrastructure/prisma-execution.repository'
 import { QuickJsScriptRuntime } from './infrastructure/quickjs-script-runtime'
 import { SYSTEM_TIMERS } from './infrastructure/tick-loop'
@@ -120,6 +124,11 @@ export class EngineWorkerModule {
       ],
       providers: [
         { provide: ENGINE_CHANNEL, useValue: channel },
+        {
+          provide: CONTROL_STATE_STORE,
+          inject: [PRISMA_CLIENT, CLOCK],
+          useFactory: (client: PrismaClient, clock: Clock) => new PrismaControlStateStore(client, clock)
+        },
         {
           provide: EXECUTION_REPOSITORY,
           inject: [PRISMA_CLIENT],
@@ -287,6 +296,11 @@ export class EngineWorkerModule {
             ])
         },
         {
+          provide: SupportService,
+          inject: [UNIT_OF_WORK],
+          useFactory: (unitOfWork: UnitOfWork) => new SupportService(unitOfWork)
+        },
+        {
           provide: WorldActionExecutor,
           inject: [
             BotsService,
@@ -295,7 +309,8 @@ export class EngineWorkerModule {
             AssemblyService,
             MaintenanceService,
             FilesService,
-            BotAccessService
+            BotAccessService,
+            SupportService
           ],
           useFactory: (
             bots: BotsService,
@@ -304,8 +319,9 @@ export class EngineWorkerModule {
             assembly: AssemblyService,
             maintenance: MaintenanceService,
             files: FilesService,
-            access: BotAccessService
-          ) => new WorldActionExecutor({ bots, scans, factory, assembly, maintenance, files, access })
+            access: BotAccessService,
+            support: SupportService
+          ) => new WorldActionExecutor({ bots, scans, factory, assembly, maintenance, files, access, support })
         },
         {
           provide: WriteBehind,
@@ -320,6 +336,7 @@ export class EngineWorkerModule {
           inject: [
             APP_CONFIG,
             EXECUTION_REPOSITORY,
+            CONTROL_STATE_STORE,
             BOT_STATE_SOURCE,
             ModuleLoader,
             SCRIPT_RUNTIME,
@@ -344,6 +361,7 @@ export class EngineWorkerModule {
           useFactory: (
             app: AppConfig,
             executions: ExecutionRepository,
+            controls: ControlStateStore,
             bots: BotStateSource,
             modules: ModuleLoader,
             runtime: ScriptRuntime,
@@ -370,6 +388,7 @@ export class EngineWorkerModule {
               worldSeed: app.worldSeed ?? 0,
               createRng: (seed) => new SeededRng(seed),
               executions,
+              controls,
               bots,
               modules,
               watch,

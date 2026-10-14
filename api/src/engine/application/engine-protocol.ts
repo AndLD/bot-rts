@@ -4,6 +4,7 @@ import { StartRequest } from './engine-core'
 import { EngineEvent } from './engine-ports'
 import { JsonValue } from '../domain/json-value'
 import { LinkStatus } from './radio-network'
+import { EngineControl } from '../domain/engine-control'
 import { WorldActionName } from './world-actions'
 
 // The messages between the API thread and the engine thread: plain JSON, so the engine can later move to another process
@@ -16,6 +17,8 @@ export type EngineRequest =
   | { op: 'act'; name: WorldActionName; args: unknown[] }
   | { op: 'link'; userId: string; botId: string }
   | { op: 'manual'; userId: string; botId: string; fn: string; args: JsonValue[] }
+  | { op: 'control'; command: EngineControl }
+  | { op: 'reboot'; botId: string }
   | { op: 'metrics' }
 
 // What an action returns is plain data too (structured clone keeps dates)

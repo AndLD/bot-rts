@@ -215,6 +215,89 @@ const injectedRtkApi = api.injectEndpoints({
         }
       })
     }),
+    supervisionState: build.query<SupervisionStateApiResponse, SupervisionStateApiArg>({
+      query: () => ({ url: `/api/v1/admin/supervision/state` })
+    }),
+    supervisionKill: build.mutation<SupervisionKillApiResponse, SupervisionKillApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/executions/${queryArg.id}/kill`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    supervisionReboot: build.mutation<SupervisionRebootApiResponse, SupervisionRebootApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/bots/${queryArg.id}/reboot`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    supervisionQuarantine: build.mutation<SupervisionQuarantineApiResponse, SupervisionQuarantineApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/players/${queryArg.id}/quarantine`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    supervisionRelease: build.mutation<SupervisionReleaseApiResponse, SupervisionReleaseApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/players/${queryArg.id}/release`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    supervisionPause: build.mutation<SupervisionPauseApiResponse, SupervisionPauseApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/world/pause`,
+        method: 'POST',
+        body: queryArg.pauseWorldDto
+      })
+    }),
+    supervisionResume: build.mutation<SupervisionResumeApiResponse, SupervisionResumeApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/supervision/world/resume`, method: 'POST', body: queryArg.reasonDto })
+    }),
+    supervisionHalt: build.mutation<SupervisionHaltApiResponse, SupervisionHaltApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/scripts/halt`,
+        method: 'POST',
+        body: queryArg.haltScriptsDto
+      })
+    }),
+    supervisionAllow: build.mutation<SupervisionAllowApiResponse, SupervisionAllowApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/scripts/allow`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    supervisionGrant: build.mutation<SupervisionGrantApiResponse, SupervisionGrantApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/support/grant-resources`,
+        method: 'POST',
+        body: queryArg.supportResourcesDto
+      })
+    }),
+    supervisionCompensate: build.mutation<SupervisionCompensateApiResponse, SupervisionCompensateApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/support/compensate`,
+        method: 'POST',
+        body: queryArg.supportResourcesDto
+      })
+    }),
+    supervisionRemove: build.mutation<SupervisionRemoveApiResponse, SupervisionRemoveApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/support/remove-resources`,
+        method: 'POST',
+        body: queryArg.supportResourcesDto
+      })
+    }),
+    supervisionRestore: build.mutation<SupervisionRestoreApiResponse, SupervisionRestoreApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/supervision/support/restore-module`,
+        method: 'POST',
+        body: queryArg.restoreModuleDto
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -646,6 +729,60 @@ export type InspectorHeatmapApiArg = {
   /** Cells per side of a bucket */
   bucket: 8 | 16 | 32 | 64
 }
+export type SupervisionStateApiResponse = /** status 200  */ SupervisionStateResponse
+export type SupervisionStateApiArg = void
+export type SupervisionKillApiResponse = unknown
+export type SupervisionKillApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type SupervisionRebootApiResponse = unknown
+export type SupervisionRebootApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type SupervisionQuarantineApiResponse = unknown
+export type SupervisionQuarantineApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type SupervisionReleaseApiResponse = unknown
+export type SupervisionReleaseApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type SupervisionPauseApiResponse = unknown
+export type SupervisionPauseApiArg = {
+  pauseWorldDto: PauseWorldDto
+}
+export type SupervisionResumeApiResponse = unknown
+export type SupervisionResumeApiArg = {
+  reasonDto: ReasonDto
+}
+export type SupervisionHaltApiResponse = unknown
+export type SupervisionHaltApiArg = {
+  haltScriptsDto: HaltScriptsDto
+}
+export type SupervisionAllowApiResponse = unknown
+export type SupervisionAllowApiArg = {
+  reasonDto: ReasonDto
+}
+export type SupervisionGrantApiResponse = unknown
+export type SupervisionGrantApiArg = {
+  supportResourcesDto: SupportResourcesDto
+}
+export type SupervisionCompensateApiResponse = unknown
+export type SupervisionCompensateApiArg = {
+  supportResourcesDto: SupportResourcesDto
+}
+export type SupervisionRemoveApiResponse = unknown
+export type SupervisionRemoveApiArg = {
+  supportResourcesDto: SupportResourcesDto
+}
+export type SupervisionRestoreApiResponse = unknown
+export type SupervisionRestoreApiArg = {
+  restoreModuleDto: RestoreModuleDto
+}
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
@@ -895,6 +1032,9 @@ export type ErrorResponseModel = {
     | 'TWO_FACTOR_REQUIRED'
     | 'TWO_FACTOR_INVALID'
     | 'ADMIN_IP_NOT_ALLOWED'
+    | 'MAINTENANCE_MODE'
+    | 'SCRIPTS_HALTED'
+    | 'PLAYER_QUARANTINED'
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
     | 'INTERNAL_ERROR'
@@ -1274,6 +1414,42 @@ export type HeatmapResponse = {
   kind: 'density' | 'depletion' | 'activity'
   bucket: number
   buckets: HeatBucketModel[]
+}
+export type QuarantinedPlayerModel = {
+  _id: string
+  name: string
+}
+export type SupervisionStateResponse = {
+  isPaused: boolean
+  areScriptsHalted: boolean
+  quarantined: QuarantinedPlayerModel[]
+  activeExecutions: number
+  heldExecutions: number
+}
+export type PauseWorldDto = {
+  reason: string
+  /** Typed to confirm */
+  confirm: 'PAUSE'
+}
+export type HaltScriptsDto = {
+  reason: string
+  /** Typed to confirm */
+  confirm: 'HALT'
+}
+export type ResourceStackDto = {
+  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
+  amount: number
+}
+export type SupportResourcesDto = {
+  reason: string
+  /** The bot or base whose storage changes */
+  botId: string
+  stacks: ResourceStackDto[]
+}
+export type RestoreModuleDto = {
+  reason: string
+  botId: string
+  moduleId: string
 }
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
@@ -1829,6 +2005,19 @@ export const {
   useInspectorFileQuery,
   useInspectorMapQuery,
   useInspectorHeatmapQuery,
+  useSupervisionStateQuery,
+  useSupervisionKillMutation,
+  useSupervisionRebootMutation,
+  useSupervisionQuarantineMutation,
+  useSupervisionReleaseMutation,
+  useSupervisionPauseMutation,
+  useSupervisionResumeMutation,
+  useSupervisionHaltMutation,
+  useSupervisionAllowMutation,
+  useSupervisionGrantMutation,
+  useSupervisionCompensateMutation,
+  useSupervisionRemoveMutation,
+  useSupervisionRestoreMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

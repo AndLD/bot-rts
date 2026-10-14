@@ -1,3 +1,5 @@
+import { ControlStateStore } from '../../src/engine/application/control-state'
+import { ControlState, INITIAL_CONTROL_STATE } from '../../src/engine/domain/engine-control'
 import { IExecution } from '../../../lib/utils/interfaces/executions'
 import { ScriptArgument, ScriptRunner } from '../../src/terminal/application/script-runner'
 import { Execution, ExecutionStatus } from '../../src/engine/domain/execution'
@@ -6,6 +8,18 @@ import { BotStateSource, EngineEvent, EngineSink, ScriptSource } from '../../src
 import { ExecutionRepository } from '../../src/engine/application/execution.repository'
 import { PendingCall, ScriptExecution, StepOutcome } from '../../src/engine/application/script-runtime'
 import { NotFoundError } from '../../src/shared/domain/errors'
+
+export class InMemoryControlStateStore implements ControlStateStore {
+  state: ControlState = { ...INITIAL_CONTROL_STATE, quarantined: [] }
+
+  async load() {
+    return { ...this.state, quarantined: [...this.state.quarantined] }
+  }
+
+  async save(state: ControlState) {
+    this.state = { ...state, quarantined: [...state.quarantined] }
+  }
+}
 
 export class InMemoryExecutionRepository implements ExecutionRepository {
   readonly items = new Map<string, Execution>()

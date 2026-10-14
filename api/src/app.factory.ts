@@ -1,3 +1,4 @@
+import { validationMessages } from './shared/presentation/validation-messages'
 import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common'
 import { NestFactory, Reflector } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
@@ -86,9 +87,7 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      exceptionFactory: (errors) =>
-        // The DTOs are flat, so every failed property has constraints
-        new ValidationError(errors.flatMap((error) => Object.values(error.constraints as object)).join('; '))
+      exceptionFactory: (errors) => new ValidationError(validationMessages(errors).join('; '))
     })
   )
   app.useGlobalInterceptors(

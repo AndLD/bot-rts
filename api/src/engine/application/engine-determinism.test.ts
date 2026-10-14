@@ -5,6 +5,7 @@ import { SCRIPT_FUNCTIONS } from '../../../../lib/utils/script-api'
 import {
   FakeBotStateSource,
   FakeScriptSource,
+  InMemoryControlStateStore,
   InMemoryExecutionRepository,
   RecordingSink
 } from '../../../tests/fakes/engine'
@@ -86,6 +87,7 @@ async function run({ seed, isReversed, script, bots, setup, ticks = 60 }: Scenar
     worldSeed: seed,
     createRng: (s) => new SeededRng(s),
     executions: new InMemoryExecutionRepository(),
+    controls: new InMemoryControlStateStore(),
     bots: states,
     modules: new ModuleLoader(sources, new SucraseTranspiler(), config.modules),
     runtime,

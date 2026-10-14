@@ -5,6 +5,7 @@ import { buildBase, buildModule } from '../../../tests/integration/builders'
 import {
   FakeBotStateSource,
   FakeScriptSource,
+  InMemoryControlStateStore,
   InMemoryExecutionRepository,
   RecordingSink
 } from '../../../tests/fakes/engine'
@@ -66,6 +67,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
   bots.states.set(base.id, { bot: base, ownerId: OWNER, modules })
   sources.files.set(FILE, 'export async function main(bot) { bot.log("hello") }')
 
+  const controls = new InMemoryControlStateStore()
   const capacities = new BotCapacities()
   const outbox = new EventOutbox(new FakeClock())
   const bus = { deliver: jest.fn() }
@@ -94,6 +96,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     worldSeed: 7,
     createRng: (seed) => new SeededRng(seed),
     executions,
+    controls,
     bots,
     modules: new ModuleLoader(sources, new SucraseTranspiler(), config.modules),
     runtime,
@@ -130,6 +133,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     core,
     watch,
     executions,
+    controls,
     bots,
     sources,
     sink,
@@ -1048,6 +1052,160 @@ describe('EngineCore', () => {
       expect(flushes).toHaveLength(0)
       await ticks(1)
       expect(flushes).toHaveLength(1)
+    })
+  })
+
+  describe('what the admins control', () => {
+    const LONG = 'export async function main(bot) { for (;;) { bot.log("tick"); await sleep(0) } }'
+
+    it('pauses the world: nothing moves, new work is refused, and requests are still answered', async () => {
+      const { core, start, ticks, sink, base, controls } = await setup()
+      await start(LONG)
+      await ticks(1)
+
+      const paused = core.control({ type: 'pause' })
+      await core.runTick()
+      expect(await paused).toMatchObject({ isPaused: true })
+      const before = sink.logs().length
+      expect(controls.state.isPaused).toBe(true)
+      const tick = core.tick
+      await ticks(3)
+
+      expect(core.tick).toBe(tick)
+      expect(sink.logs()).toHaveLength(before)
+      const refused = core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      const manual = core.manual(OWNER, base.id, 'scan', [])
+      const act = core.act('files.write', [OWNER, base.id, '/memory/a.js', 'x'])
+      const assertions = Promise.all([
+        expect(refused).rejects.toMatchObject({ code: 'MAINTENANCE_MODE' }),
+        expect(manual).rejects.toMatchObject({ code: 'MAINTENANCE_MODE' }),
+        expect(act).rejects.toMatchObject({ code: 'MAINTENANCE_MODE' })
+      ])
+      await core.runTick()
+      await assertions
+
+      const resumed = core.control({ type: 'resume' })
+      await core.runTick()
+      expect(await resumed).toMatchObject({ isPaused: false })
+      await ticks(2)
+      expect(core.tick).toBeGreaterThan(tick)
+      expect(sink.logs().length).toBeGreaterThan(before)
+    })
+
+    it('lets a support action through a pause', async () => {
+      const { core, actions } = await setup()
+      const paused = core.control({ type: 'pause' })
+      await core.runTick()
+      await paused
+
+      const done = core.act('support.grantResources', ['bot', []])
+      await core.runTick()
+
+      await expect(done).resolves.toEqual({ name: 'support.grantResources', args: ['bot', []] })
+      expect(actions.execute).toHaveBeenCalled()
+    })
+
+    it('holds the scripts of a quarantined player, refuses what they start or do, and goes on when it ends', async () => {
+      const { core, start, ticks, sink, base } = await setup()
+      await start(LONG)
+      await ticks(1)
+
+      const held = core.control({ type: 'quarantine', userId: OWNER, isOn: true })
+      await core.runTick()
+      expect(await held).toMatchObject({ quarantined: [OWNER] })
+      const before = sink.logs().length
+      await ticks(3)
+      expect(sink.logs()).toHaveLength(before)
+      expect(await listNow(core)).toHaveLength(1)
+
+      const refused = core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      const acted = core.act('scan.scan' as never, [OWNER, base.id] as never)
+      const assertions = Promise.all([
+        expect(refused).rejects.toMatchObject({ code: 'PLAYER_QUARANTINED' }),
+        expect(acted).rejects.toMatchObject({ code: 'PLAYER_QUARANTINED' })
+      ])
+      await core.runTick()
+      await assertions
+
+      const again = core.control({ type: 'quarantine', userId: OWNER, isOn: true })
+      await core.runTick()
+      expect((await again).quarantined).toEqual([OWNER])
+      const released = core.control({ type: 'quarantine', userId: OWNER, isOn: false })
+      await core.runTick()
+      expect(await released).toMatchObject({ quarantined: [] })
+      await ticks(2)
+      expect(sink.logs().length).toBeGreaterThan(before)
+    })
+
+    it('kills every script when the kill-switch goes on, and refuses to start any until it is off', async () => {
+      const { core, start, ticks, base, executions } = await setup()
+      await start(LONG)
+      await ticks(1)
+
+      const halted = core.control({ type: 'halt-scripts', isOn: true })
+      await core.runTick()
+      expect(await halted).toMatchObject({ areScriptsHalted: true })
+
+      expect([...executions.items.values()][0]).toMatchObject({
+        status: 'killed',
+        reason: expect.stringContaining('switched off')
+      })
+      expect(await listNow(core)).toEqual([])
+      const refused = core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      const assertion = expect(refused).rejects.toMatchObject({ code: 'SCRIPTS_HALTED' })
+      await core.runTick()
+      await assertion
+
+      const off = core.control({ type: 'halt-scripts', isOn: false })
+      await core.runTick()
+      await off
+      const started = core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      await core.runTick()
+      await expect(started).resolves.toMatchObject({ botId: base.id })
+    })
+
+    it('reboots a bot: each script is killed and started again, and a pause refuses it', async () => {
+      const { core, start, ticks, base, executions } = await setup()
+      await start(LONG)
+      await ticks(1)
+
+      const rebooted = core.reboot(base.id)
+      await core.runTick()
+      const views = await rebooted
+
+      expect(views).toHaveLength(1)
+      const records = [...executions.items.values()]
+      expect(records).toHaveLength(2)
+      expect(records[0]).toMatchObject({ status: 'killed', reason: expect.stringContaining('rebooted') })
+      expect(records[1]).toMatchObject({ status: 'active', botId: base.id })
+      expect(await listNow(core)).toHaveLength(1)
+
+      const empty = core.reboot('no-such-bot')
+      await core.runTick()
+      expect(await empty).toEqual([])
+
+      const paused = core.control({ type: 'pause' })
+      await core.runTick()
+      await paused
+      const refused = core.reboot(base.id)
+      const assertion = expect(refused).rejects.toMatchObject({ code: 'MAINTENANCE_MODE' })
+      await core.runTick()
+      await assertion
+      expect(await listNow(core)).toHaveLength(1)
+    })
+
+    it('remembers the state across a restart', async () => {
+      const { core, controls } = await setup()
+      const state = core.control({ type: 'halt-scripts', isOn: true })
+      await core.runTick()
+      await state
+
+      await core.recover()
+
+      expect(controls.state.areScriptsHalted).toBe(true)
+      const after = core.control({ type: 'resume' })
+      await core.runTick()
+      expect(await after).toMatchObject({ areScriptsHalted: true, isPaused: false })
     })
   })
 })

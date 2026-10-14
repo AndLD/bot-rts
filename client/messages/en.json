@@ -280,6 +280,9 @@
     "TWO_FACTOR_REQUIRED": "Verify your sign-in with the authenticator code first",
     "TWO_FACTOR_INVALID": "The code is not valid or was already used",
     "ADMIN_IP_NOT_ALLOWED": "The admin console is not available from this address",
+    "MAINTENANCE_MODE": "The game is paused for maintenance, try again later",
+    "SCRIPTS_HALTED": "Scripts are switched off for the moment, try again later",
+    "PLAYER_QUARANTINED": "Your account is under review and cannot act for now",
     "PAYLOAD_TOO_LARGE": "The request is too large",
     "REQUEST_TIMEOUT": "The server took too long to answer, try again",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
@@ -1024,7 +1027,8 @@
       "dashboard": "Dashboard",
       "players": "Players",
       "inspector": "Inspector",
-      "map": "World map"
+      "map": "World map",
+      "supervision": "Supervision"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1192,6 +1196,10 @@
           "button": "Delete account",
           "title": "Delete the account",
           "confirm": "Type the email {email} to confirm"
+        },
+        "quarantine": {
+          "button": "Quarantine",
+          "title": "Quarantine the player (their scripts are held)"
         }
       }
     },
@@ -1232,7 +1240,11 @@
       "files": {
         "bytes": "{count} bytes",
         "open": "Open (audited)"
-      }
+      },
+      "reboot": "Reboot",
+      "kill": "Kill",
+      "rebootTitle": "Reboot the bot: its scripts start again",
+      "killTitle": "Kill the execution"
     },
     "map": {
       "heatmap": "Heatmap",
@@ -1244,6 +1256,57 @@
       "bucket": "{cells} cells",
       "tail": "Live events",
       "noEvents": "No events yet"
+    },
+    "supervision": {
+      "loadFailed": "Could not load the control state",
+      "world": "World",
+      "paused": "Paused",
+      "running": "Running",
+      "pause": "Pause the world",
+      "resume": "Resume the world",
+      "scripts": "Scripts",
+      "halted": "Switched off",
+      "allowed": "Allowed",
+      "halt": "Switch all scripts off",
+      "allow": "Switch scripts back on",
+      "executions": "Executions",
+      "active": "Running",
+      "held": "Held by quarantine",
+      "quarantined": "Quarantined players",
+      "noneQuarantined": "Nobody is quarantined",
+      "release": "Release",
+      "releaseTitle": "Release the player from quarantine",
+      "switch": {
+        "confirm": "Type {word} to confirm",
+        "pause": {
+          "title": "Pause the world for maintenance"
+        },
+        "resume": {
+          "title": "Resume the world"
+        },
+        "halt": {
+          "title": "Switch all scripts off (kills the running ones)"
+        },
+        "allow": {
+          "title": "Switch scripts back on"
+        }
+      },
+      "support": {
+        "title": "Support actions",
+        "kind": "Action",
+        "botId": "Bot or base id",
+        "moduleId": "Module id",
+        "resource": "Resource",
+        "amount": "Amount",
+        "reason": "Reason (kept in the audit log)",
+        "submit": "Apply",
+        "kinds": {
+          "grant": "Grant resources",
+          "compensate": "Compensate (grant for a loss)",
+          "remove": "Remove resources",
+          "restore": "Restore a module"
+        }
+      }
     }
   }
 }

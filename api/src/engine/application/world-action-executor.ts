@@ -4,6 +4,7 @@ import { FactoryService } from '../../bots/application/factory.service'
 import { MaintenanceService } from '../../bots/application/maintenance.service'
 import { ScanService } from '../../bots/application/scan.service'
 import { FilesService } from '../../files/application/files.service'
+import { SupportService } from '../../support/application/support.service'
 import { BotAccessService } from '../../terminal/application/bot-access.service'
 import { ValidationError } from '../../shared/domain/errors'
 import { isWorldAction, WorldActionName, WorldActions } from './world-actions'
@@ -22,8 +23,9 @@ export class WorldActionExecutor {
     maintenance: MaintenanceService
     files: FilesService
     access: BotAccessService
+    support: SupportService
   }) {
-    const { bots, scans, factory, assembly, maintenance, files, access } = services
+    const { bots, scans, factory, assembly, maintenance, files, access, support } = services
     this.table = {
       'bots.deployUserBase': bots.deployUserBase.bind(bots),
       'scan.scan': scans.scan.bind(scans),
@@ -37,7 +39,10 @@ export class WorldActionExecutor {
       'files.makeDirectory': files.makeDirectory.bind(files),
       'files.remove': files.remove.bind(files),
       'access.connect': access.connect.bind(access),
-      'access.adopt': access.adopt.bind(access)
+      'access.adopt': access.adopt.bind(access),
+      'support.grantResources': support.grantResources.bind(support),
+      'support.removeResources': support.removeResources.bind(support),
+      'support.restoreModule': support.restoreModule.bind(support)
     }
   }
 

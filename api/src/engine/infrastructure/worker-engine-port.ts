@@ -2,6 +2,7 @@ import { AppError } from '../../shared/domain/app-error'
 import { ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { StartRequest } from '../application/engine-core'
+import { ControlState, EngineControl } from '../domain/engine-control'
 import { EngineMetricsSnapshot } from '../application/engine-metrics'
 import { EnginePort } from '../application/engine-port'
 import {
@@ -54,6 +55,14 @@ export class ChannelEnginePort implements EnginePort {
 
   linkStatus(userId: string, botId: string): Promise<LinkStatus> {
     return this.ask({ op: 'link', userId, botId }) as Promise<LinkStatus>
+  }
+
+  control(command: EngineControl): Promise<ControlState> {
+    return this.ask({ op: 'control', command }) as Promise<ControlState>
+  }
+
+  reboot(botId: string): Promise<ExecutionView[]> {
+    return this.ask({ op: 'reboot', botId }) as Promise<ExecutionView[]>
   }
 
   metrics(): Promise<EngineMetricsSnapshot> {
@@ -127,6 +136,14 @@ export class DisabledEnginePort implements EnginePort {
   }
 
   linkStatus(): Promise<LinkStatus> {
+    return Promise.reject(new ServiceUnavailableError())
+  }
+
+  control(): Promise<ControlState> {
+    return Promise.reject(new ServiceUnavailableError())
+  }
+
+  reboot(): Promise<ExecutionView[]> {
     return Promise.reject(new ServiceUnavailableError())
   }
 

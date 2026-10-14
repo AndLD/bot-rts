@@ -415,6 +415,29 @@ describe('the actions of a player', () => {
     expect(dialog()).toBeInTheDocument()
   })
 
+  it('quarantines a player for an admin, and offers it to a moderator no more', async () => {
+    const calls = serve()
+    const { unmount } = renderAs('admin', <PlayerProfilePage />)
+    fireEvent.click(await button('Quarantine'))
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, {
+      target: { value: 'suspected botnet' }
+    })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.url.endsWith('/supervision/players/p1/quarantine'))).toMatchObject({
+        method: 'POST',
+        body: { reason: 'suspected botnet' }
+      })
+    )
+    unmount()
+
+    serve()
+    renderAs('moderator', <PlayerProfilePage />)
+    await screen.findByText('alice@example.com')
+    expect(buttonsOf('Quarantine')).toHaveLength(0)
+  })
+
   it('lets the dialog be cancelled', async () => {
     serve()
     renderAs('moderator', <PlayerProfilePage />)

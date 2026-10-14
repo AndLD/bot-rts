@@ -1,6 +1,8 @@
 import { createWorld } from '../../../tests/fakes/world'
 import { ScanService } from '../../bots/application/scan.service'
 import { isWorldAction, WORLD_ACTION_NAMES } from './world-actions'
+import { SupportService } from '../../support/application/support.service'
+import { FakeUnitOfWork } from '../../../tests/fakes/fakes'
 import { WorldActionExecutor } from './world-action-executor'
 
 const alice = { id: '11111111-1111-4111-8111-111111111111', name: 'Alice' }
@@ -23,7 +25,8 @@ async function setup() {
     assembly: world.assemblyService,
     maintenance: world.maintenanceService,
     files: world.filesService,
-    access: world.botAccessService
+    access: world.botAccessService,
+    support: new SupportService(new FakeUnitOfWork(world.repositories as never))
   })
   return { ...world, executor }
 }

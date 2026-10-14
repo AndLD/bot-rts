@@ -4,6 +4,7 @@ import type { BotsService } from '../../bots/application/bots.service'
 import type { FactoryService } from '../../bots/application/factory.service'
 import type { MaintenanceService } from '../../bots/application/maintenance.service'
 import type { ScanService } from '../../bots/application/scan.service'
+import type { SupportService } from '../../support/application/support.service'
 import type { BotAccessService } from '../../terminal/application/bot-access.service'
 import type { FilesService } from '../../files/application/files.service'
 
@@ -23,6 +24,10 @@ export interface WorldActions {
   'files.remove': FilesService['remove']
   'access.connect': BotAccessService['connect']
   'access.adopt': BotAccessService['adopt']
+  // Put right a loss or a mistake; only the admin console sends these (design §25.3)
+  'support.grantResources': SupportService['grantResources']
+  'support.removeResources': SupportService['removeResources']
+  'support.restoreModule': SupportService['restoreModule']
 }
 
 export type WorldActionName = keyof WorldActions
@@ -41,7 +46,10 @@ export const WORLD_ACTION_NAMES: Record<WorldActionName, true> = {
   'files.makeDirectory': true,
   'files.remove': true,
   'access.connect': true,
-  'access.adopt': true
+  'access.adopt': true,
+  'support.grantResources': true,
+  'support.removeResources': true,
+  'support.restoreModule': true
 }
 
 export const isWorldAction = (name: unknown): name is WorldActionName =>
@@ -61,7 +69,10 @@ export const ACTION_CATEGORIES: Record<WorldActionName, ManualCategory | null> =
   'files.makeDirectory': null,
   'files.remove': null,
   'access.connect': ManualCategory.COMMUNICATION,
-  'access.adopt': ManualCategory.COMMUNICATION
+  'access.adopt': ManualCategory.COMMUNICATION,
+  'support.grantResources': null,
+  'support.removeResources': null,
+  'support.restoreModule': null
 }
 
 // Which bot a manual action takes control of, from its arguments (design §11.2.1: control needs the radio link)
@@ -78,7 +89,10 @@ const CONTROLLED_BOT: Record<WorldActionName, (args: readonly unknown[]) => unkn
   'files.makeDirectory': (args) => args[1],
   'files.remove': (args) => args[1],
   'access.connect': (args) => args[1],
-  'access.adopt': (args) => args[1]
+  'access.adopt': (args) => args[1],
+  'support.grantResources': () => null,
+  'support.removeResources': () => null,
+  'support.restoreModule': () => null
 }
 
 // The player and the bot a manual action takes control of, or null when it controls none

@@ -36,6 +36,9 @@ const HOG = 'export async function main() { for (;;) {} }'
 // on the real clock.
 const VIRTUAL_MS_PER_CHECK = 1
 
+// How many tick intervals the 95th percentile of the real tick durations may take
+const TICK_BOUND = 6
+
 async function stage(players: Array<{ id: string; script: string }>, ticks: number, config = DEFAULT_ENGINE_CONFIG) {
   let virtualMs = 0
   const runtime = await QuickJsScriptRuntime.create()
@@ -108,8 +111,10 @@ describe('the engine under load', () => {
     // The slice is real time: a generous one keeps a busy machine from ending honest scripts, which would only measure the machine
     const { progress, durations } = await stage(players, 40, { ...DEFAULT_ENGINE_CONFIG, sliceMs: 1000 })
 
-    // Ticks may run over the interval a little (the cap defers the rest), but not by multiples of it
-    expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * 2.5)
+    // Ticks may run over the interval a little (the cap defers the rest), but not by many multiples of it. The durations are real
+    // time and this test shares the machine with the whole suite, so the bound only catches a runaway tick; the real budget
+    // is measured by the load harness (docs/LOAD-TESTING.md).
+    expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * TICK_BOUND)
     const counts = [...progress.values()]
     expect(Math.min(...counts)).toBeGreaterThan(5)
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(Math.ceil(Math.max(...counts) / 2))
@@ -124,7 +129,7 @@ describe('the engine under load', () => {
     for (const player of honest) {
       expect(progress.get(player.id)).toBeGreaterThan(5)
     }
-    expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * 2.5)
+    expect(percentile(durations, 0.95)).toBeLessThan(DEFAULT_ENGINE_CONFIG.tickIntervalMs * TICK_BOUND)
     // The hogs were killed by the slice, not left to run: only the honest ones are still going
     const [hogs0, honest0] = [core.list('owner-hog-0'), core.list('owner-honest-0')]
     await core.runTick()

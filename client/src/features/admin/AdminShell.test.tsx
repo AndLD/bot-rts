@@ -3,15 +3,14 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { makeJwt } from '../../../tests/jwt'
 import { createFakeAuth, renderApp, storeWithToken } from '../../../tests/render'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
-import AdminHome from './AdminHome'
 import { useAdminMe } from './admin-me-context'
 import AdminShell from './AdminShell'
 
 const replace = jest.fn()
 const NAV = [
-  { path: '/admin', labelKey: 'home' },
-  { path: '/admin/players', labelKey: 'home', permission: 'players.read' },
-  { path: '/admin/ops', labelKey: 'home', permission: 'ops.pause-world' }
+  { path: '/admin', labelKey: 'dashboard' },
+  { path: '/admin/players', labelKey: 'dashboard', permission: 'players.read' },
+  { path: '/admin/ops', labelKey: 'dashboard', permission: 'ops.pause-world' }
 ] as const
 jest.mock('next/navigation', () => ({ useRouter: () => ({ replace }), usePathname: () => '/admin' }))
 jest.mock('../../shared/store/baseQuery', () => ({ baseQueryWithRefresh: jest.fn() }))
@@ -68,16 +67,15 @@ describe('AdminShell', () => {
     serve({ me: me() })
     renderApp(
       <AdminShell nav={NAV}>
-        <AdminHome />
+        <p>page</p>
       </AdminShell>,
       opts()
     )
 
-    expect(await screen.findByText('Welcome to the admin console')).toBeInTheDocument()
+    expect(await screen.findByText('page')).toBeInTheDocument()
     expect(screen.getAllByText('Moderator').length).toBeGreaterThan(0)
-    expect(screen.getByText('players.read, players.ban')).toBeInTheDocument()
     // The menu shows the pages the role has the permission for, and no others
-    expect(screen.getAllByRole('link', { name: 'Overview' }).map((link) => link.getAttribute('href'))).toEqual([
+    expect(screen.getAllByRole('link', { name: 'Dashboard' }).map((link) => link.getAttribute('href'))).toEqual([
       '/admin',
       '/admin/players'
     ])

@@ -72,6 +72,7 @@ import { AuditInterceptor } from './presentation/audit.interceptor'
     // After authentication (AuthModule is imported first): the permission, the address and the second factor
     { provide: APP_GUARD, useClass: AdminAccessGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor }
-  ]
+  ],
+  exports: [SecondFactorService]
 })
 export class AdminModule {}

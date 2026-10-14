@@ -1,3 +1,3 @@
-import AdminHome from '../../../features/admin/AdminHome'
+import AdminDashboard from '../../../features/admin/dashboard/AdminDashboard'
 
-export default AdminHome
+export default AdminDashboard

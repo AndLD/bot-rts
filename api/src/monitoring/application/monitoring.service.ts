@@ -28,6 +28,7 @@ export interface HealthView {
 // Samples the metrics, keeps their history, raises alerts, and answers the dashboard (design §25.5)
 export class MonitoringService {
   private latest: MetricSample | null = null
+  private readonly listeners = new Set<(health: HealthView) => void>()
 
   constructor(
     private readonly port: MetricsPort,
@@ -44,9 +45,18 @@ export class MonitoringService {
       this.latest = sample
       this.history.record(sample.at.getTime(), sample.values)
       await this.alerts.evaluate(sample)
+      const health = this.health()
+      this.listeners.forEach((listener) => listener(health))
     } catch (error) {
       this.logger.error(error)
     }
+  }
+
+  // Tells the listener the health after every sample (the live dashboard); returns the function that removes it
+  onSample(listener: (health: HealthView) => void): () => void {
+    this.listeners.add(listener)
+
+    return () => this.listeners.delete(listener)
   }
 
   health(): HealthView {

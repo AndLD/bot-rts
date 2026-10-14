@@ -182,3 +182,11 @@ export interface IMetricSeries {
   // [milliseconds since the epoch, value]
   points: Array<[number, number]>
 }
+
+// The admin Socket.IO namespace (`/admin`): the console connects with the same access token as the game, once the second
+// factor is verified, and is pushed the health report after every sample
+export const ADMIN_SOCKET_NAMESPACE = '/admin'
+
+export interface AdminServerToClientEvents {
+  'monitoring-health': (report: IHealthReport) => void
+}

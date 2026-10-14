@@ -8,6 +8,8 @@ import { NotificationsModule } from '../notifications/notifications.module'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
+import { AdminModule } from '../admin/admin.module'
+import { AuthModule } from '../auth/auth.module'
 import { AlertManager } from './application/alert-manager'
 import { MetricHistory } from './application/metric-history'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
@@ -15,12 +17,14 @@ import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './appl
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
+import { MonitoringGateway } from './presentation/monitoring.gateway'
 
 // Health, performance and load for the admin console (design §25.5). Each process samples itself: its history is in memory.
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, AdminModule, AuthModule],
   controllers: [MonitoringController],
   providers: [
+    MonitoringGateway,
     {
       provide: METRICS_PORT,
       inject: [ENGINE_PORT, HttpMetrics, APP_CONFIG, CLOCK],

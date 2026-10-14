@@ -1021,12 +1021,7 @@
       "analyst": "Analyst"
     },
     "nav": {
-      "home": "Overview"
-    },
-    "home": {
-      "welcome": "Welcome to the admin console",
-      "role": "Your role",
-      "permissions": "{count} permissions"
+      "dashboard": "Dashboard"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1042,6 +1037,66 @@
       "promptIntro": "Enter the code from your authenticator app, or a recovery code.",
       "codeOrRecovery": "Code or recovery code",
       "verify": "Verify"
+    },
+    "dashboard": {
+      "waiting": "Waiting for data",
+      "live": "Live",
+      "polling": "Refreshing every 30 s",
+      "loadFailed": "Could not load the health report",
+      "alerts": "Alerts",
+      "noAlerts": "No open alerts",
+      "noData": "No data yet",
+      "acknowledge": "Acknowledge",
+      "acknowledged": "Acknowledged",
+      "status": {
+        "green": "Healthy",
+        "yellow": "Warning",
+        "red": "Critical"
+      },
+      "severity": {
+        "yellow": "Warning",
+        "red": "Critical"
+      },
+      "areas": {
+        "engine": "Engine",
+        "scripts": "Scripts",
+        "api": "API",
+        "infrastructure": "Infrastructure"
+      },
+      "ranges": {
+        "1h": "1 hour",
+        "6h": "6 hours",
+        "24h": "24 hours",
+        "7d": "7 days",
+        "30d": "30 days"
+      },
+      "metrics": {
+        "engine": {
+          "up": "Engine running",
+          "lastTickMs": "Last tick",
+          "tickP95Ms": "Tick duration, 95th percentile",
+          "tickP95Ratio": "Tick duration vs the interval",
+          "overrunRate": "Tick overruns",
+          "cutTicks": "Ticks cut at the cap"
+        },
+        "scripts": {
+          "running": "Running scripts",
+          "queued": "Queued executions",
+          "deferred": "Deferred executions",
+          "maxWaitTicks": "Longest wait for a turn (ticks)",
+          "sandboxMemoryBytes": "Script memory"
+        },
+        "api": {
+          "requestsPerSecond": "Requests per second",
+          "errorRate5xx": "Server errors (5xx)",
+          "errorRate4xx": "Client errors (4xx)",
+          "latencyP95Ms": "Request latency, 95th percentile"
+        },
+        "infrastructure": {
+          "rssBytes": "Process memory",
+          "heapUsedBytes": "Heap in use"
+        }
+      }
     }
   }
 }

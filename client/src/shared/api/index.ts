@@ -32,6 +32,8 @@ export const api = generated.enhanceEndpoints({
     apiKeysRevoke: { invalidatesTags: ['ApiKeys'] },
     adminMe: { providesTags: ['AdminMe'] },
     adminVerify: { invalidatesTags: ['AdminMe'] },
+    monitoringHealth: { providesTags: ['Monitoring'] },
+    monitoringAcknowledge: { invalidatesTags: ['Monitoring'] },
     tutorialGet: { providesTags: ['Tutorial'] },
     tutorialSkip: { invalidatesTags: ['Tutorial'] },
     tutorialRestart: { invalidatesTags: ['Tutorial'] },
@@ -42,6 +44,9 @@ export const api = generated.enhanceEndpoints({
 
 export const {
   useAdminMeQuery,
+  useMonitoringAcknowledgeMutation,
+  useMonitoringHealthQuery,
+  useMonitoringSeriesQuery,
   useAdminEnrollMutation,
   useAdminConfirmMutation,
   useAdminVerifyMutation,

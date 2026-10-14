@@ -37,6 +37,14 @@ async function admin(status: 'owner' | 'analyst' | 'moderator'): Promise<SignedU
   return player
 }
 
+async function waitUntil(condition: () => boolean) {
+  const deadline = Date.now() + 5000
+  while (!condition()) {
+    if (Date.now() > deadline) throw new Error('Timed out waiting for the sampler')
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+}
+
 describe('the monitoring endpoints', () => {
   it('shows the health of every area after a sample, without the engine in this test setup', async () => {
     const analyst = await admin('analyst')
@@ -114,9 +122,15 @@ describe('the monitoring endpoints', () => {
 
   it('exposes the open alerts to the scraper', async () => {
     await monitoring.sampleOnce()
-    const app = await startTestApp(database, { METRICS_TOKEN: 'scrape' })
+    // This app samples by itself, which also covers the schedule and its shutdown
+    const app = await startTestApp(database, {
+      METRICS_TOKEN: 'scrape',
+      MONITORING_ENABLED: 'true',
+      MONITORING_INTERVAL_MS: '20'
+    })
     try {
-      await app.app.get<MonitoringService>(MONITORING_SERVICE).sampleOnce()
+      const sampling = app.app.get<MonitoringService>(MONITORING_SERVICE)
+      await waitUntil(() => sampling.health().sampledAt !== null)
       const text = await request(app.url).get('/api/v1/metrics').set('Authorization', 'Bearer scrape').expect(200)
 
       expect(text.text).toContain('botrts_alerts_open{severity="red"} 1')

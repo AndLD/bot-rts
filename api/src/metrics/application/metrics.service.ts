@@ -3,6 +3,7 @@ import { EnginePort } from '../../engine/application/engine-port'
 import { EngineMetricsSnapshot } from '../../engine/application/engine-metrics'
 import { UnauthorizedError, NotFoundError } from '../../shared/domain/errors'
 import { HttpMetrics } from './http-metrics'
+import { MetricCollectors } from './metric-collectors'
 import { PrometheusText } from './prometheus'
 
 export const METRICS_SERVICE = Symbol('MetricsService')
@@ -45,7 +46,8 @@ export class MetricsService {
     private readonly engine: EnginePort,
     private readonly stats: () => ProcessStats,
     // The bearer token that unlocks the endpoint; without one the endpoint does not exist
-    private readonly token: string | undefined
+    private readonly token: string | undefined,
+    private readonly collectors: MetricCollectors = new MetricCollectors()
   ) {}
 
   authorize(bearer: string | undefined): void {
@@ -64,6 +66,7 @@ export class MetricsService {
     const text = new PrometheusText()
     this.http.render(text)
     await this.renderEngine(text)
+    this.collectors.render(text)
     const { uptimeSeconds, rssBytes, heapUsedBytes } = this.stats()
     text
       .family('botrts_process_uptime_seconds', 'gauge', 'Seconds since this API process started')

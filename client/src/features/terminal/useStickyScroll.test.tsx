@@ -85,4 +85,18 @@ describe('useStickyScroll', () => {
 
     expect(() => render(<Empty />)).not.toThrow()
   })
+
+  it('keeps following when a line arrives between the reader reaching the bottom and the scroll event', () => {
+    const { rerender } = render(<Log lines={['a']} />)
+    const log = screen.getByTestId('log')
+    measure(log, { height: 500, client: 200, top: 0 })
+    fireEvent.scroll(log)
+
+    // The reader jumps to the bottom, and a line is added before the browser reports the scroll
+    measure(log, { height: 500, client: 200, top: 300 })
+    measure(log, { height: 520, client: 200, top: 300 })
+    rerender(<Log lines={['a', 'b']} />)
+
+    expect(log.scrollTop).toBe(520)
+  })
 })

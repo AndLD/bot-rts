@@ -13,6 +13,7 @@ import {
   PlayerNotificationsConfig
 } from '../player-notifications/domain/notification-policy'
 import { readSmtpConfig, SmtpConfig } from '../notifications/infrastructure/smtp-config'
+import { DEFAULT_LIFECYCLE_POLICY, LifecyclePolicy } from '../lifecycle/domain/lifecycle-policy'
 import { EngineSettings, readEngineSettings } from '../engine/infrastructure/engine-config.reader'
 
 export const APP_CONFIG = Symbol('AppConfig')
@@ -91,6 +92,7 @@ export interface AppConfig {
   trustProxy: boolean
   deployment: DeploymentConfig
   observability: ObservabilityConfig
+  lifecycle: LifecyclePolicy
 }
 
 type Env = Record<string, string | undefined>
@@ -121,6 +123,12 @@ function duration(value: string | undefined, fallback: string, name: string, pro
 function positiveInt(value: string | undefined, fallback: number): number {
   const parsed = Number(value)
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+}
+
+// 0 is a valid value for a few settings (it switches the feature off)
+function nonNegativeInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value)
+  return value !== undefined && value !== '' && Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback
 }
 
 function list(value: string | undefined): string[] {
@@ -242,6 +250,15 @@ export function loadConfig(env: Env): AppConfig {
       keepAliveTimeoutMs: positiveInt(env.HTTP_KEEP_ALIVE_TIMEOUT_MS, 65_000)
     },
     trustProxy: env.TRUST_PROXY === 'true',
+    lifecycle: {
+      isEnabled: env.LIFECYCLE_ENABLED ? env.LIFECYCLE_ENABLED === 'true' : nodeEnv !== 'test',
+      intervalMs: positiveInt(env.LIFECYCLE_INTERVAL_MS, DEFAULT_LIFECYCLE_POLICY.intervalMs),
+      unverifiedDays: positiveInt(env.UNVERIFIED_ACCOUNT_DAYS, DEFAULT_LIFECYCLE_POLICY.unverifiedDays),
+      inactiveDays: nonNegativeInt(env.INACTIVE_ACCOUNT_DAYS, DEFAULT_LIFECYCLE_POLICY.inactiveDays),
+      noticeDays: positiveInt(env.INACTIVE_ACCOUNT_NOTICE_DAYS, DEFAULT_LIFECYCLE_POLICY.noticeDays),
+      executionDays: positiveInt(env.EXECUTION_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.executionDays),
+      authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays)
+    },
     observability: { metricsToken: env.METRICS_TOKEN || undefined },
     deployment: {
       role,

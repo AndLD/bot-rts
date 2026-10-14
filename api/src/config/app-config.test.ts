@@ -45,6 +45,15 @@ describe('loadConfig', () => {
       },
       trustProxy: false,
       observability: { metricsToken: undefined },
+      lifecycle: {
+        isEnabled: true,
+        intervalMs: 3600000,
+        unverifiedDays: 7,
+        inactiveDays: 365,
+        noticeDays: 30,
+        executionDays: 30,
+        authDays: 7
+      },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
   })
@@ -197,5 +206,30 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, WHITELIST_URLS: 'https://a.example,*' })).toThrow(
       /WHITELIST_URLS must list origins/
     )
+  })
+
+  it('reads the data lifecycle policy, where 0 switches inactivity erasure off and tests do not schedule', () => {
+    expect(
+      loadConfig({
+        ...base,
+        LIFECYCLE_INTERVAL_MS: '1000',
+        UNVERIFIED_ACCOUNT_DAYS: '3',
+        INACTIVE_ACCOUNT_DAYS: '0',
+        INACTIVE_ACCOUNT_NOTICE_DAYS: '5',
+        EXECUTION_RETENTION_DAYS: '9',
+        AUTH_DATA_RETENTION_DAYS: '2'
+      }).lifecycle
+    ).toEqual({
+      isEnabled: true,
+      intervalMs: 1000,
+      unverifiedDays: 3,
+      inactiveDays: 0,
+      noticeDays: 5,
+      executionDays: 9,
+      authDays: 2
+    })
+    expect(loadConfig({ ...base, NODE_ENV: 'test' }).lifecycle.isEnabled).toBe(false)
+    expect(loadConfig({ ...base, NODE_ENV: 'test', LIFECYCLE_ENABLED: 'true' }).lifecycle.isEnabled).toBe(true)
+    expect(loadConfig({ ...base, INACTIVE_ACCOUNT_DAYS: 'x' }).lifecycle.inactiveDays).toBe(365)
   })
 })

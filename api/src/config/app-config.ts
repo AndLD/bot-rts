@@ -60,6 +60,11 @@ export interface DeploymentConfig {
   engineRequestTimeoutMs: number
 }
 
+export interface ObservabilityConfig {
+  // Bearer token of GET /api/v1/metrics; without one the endpoint answers 404
+  metricsToken: string | undefined
+}
+
 export interface AppConfig {
   nodeEnv: NodeEnv
   port: number
@@ -85,6 +90,7 @@ export interface AppConfig {
   // Trust X-Forwarded-* headers of a reverse proxy (needed for per-client rate limits behind one)
   trustProxy: boolean
   deployment: DeploymentConfig
+  observability: ObservabilityConfig
 }
 
 type Env = Record<string, string | undefined>
@@ -236,6 +242,7 @@ export function loadConfig(env: Env): AppConfig {
       keepAliveTimeoutMs: positiveInt(env.HTTP_KEEP_ALIVE_TIMEOUT_MS, 65_000)
     },
     trustProxy: env.TRUST_PROXY === 'true',
+    observability: { metricsToken: env.METRICS_TOKEN || undefined },
     deployment: {
       role,
       redisUrl,

@@ -112,6 +112,7 @@ export class EngineCore {
   // Game calls the bots' op budgets have not let through yet, oldest first
   private backlog: EngineCommand[] = []
   private readonly metrics = new EngineMetrics()
+  private readonly waitedTicks = new Map<string, number>()
   private tickNumber = 0
 
   constructor(private readonly deps: EngineDependencies) {}
@@ -318,6 +319,7 @@ export class EngineCore {
       reached += 1
     }
     this.deps.scheduler.deferred(planned.slice(reached))
+    const maxWaitTicks = this.trackWaiting(planned.slice(0, reached))
 
     const isCut = await this.apply(commands, tick, hasTime)
     const now = this.deps.clock.now().getTime()
@@ -334,8 +336,28 @@ export class EngineCore {
       tick,
       durationMs: this.deps.monotonicMs() - startedAt,
       intervalMs: config.tickIntervalMs,
-      isCut: isCut || reached < planned.length
+      isCut: isCut || reached < planned.length,
+      queuedExecutions: this.live.size - planned.length,
+      deferredExecutions: planned.length - reached,
+      maxWaitTicks
     })
+  }
+
+  // Counts for every live execution how many ticks in a row it was not stepped, and returns the longest wait
+  private trackWaiting(stepped: readonly LiveExecution[]): number {
+    const served = new Set(stepped.map((live) => live.record.id))
+    let longest = 0
+    for (const id of [...this.waitedTicks.keys()]) {
+      if (!this.live.has(id)) {
+        this.waitedTicks.delete(id)
+      }
+    }
+    for (const id of this.live.keys()) {
+      const waited = served.has(id) ? 0 : (this.waitedTicks.get(id) ?? 0) + 1
+      this.waitedTicks.set(id, waited)
+      longest = Math.max(longest, waited)
+    }
+    return longest
   }
 
   private submit<T>(run: () => Promise<T>): Promise<T> {

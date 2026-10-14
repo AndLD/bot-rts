@@ -35,3 +35,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.3, observability (structured logs, request IDs, metrics, health checks).
 - **Verify with:** `npx jest src/ratelimit src/rate-limit src/shared src/config` from `api`
 
+### 2026-10-14 — task 8.3 observability
+- **Tasks:** 8.3
+- **Branch:** `feature/8.3-observability` — done
+- **Decisions / deviations from the plan:** logging stays on log4js but through one layout (`log-format.ts`): JSON lines in production, text with the request id elsewhere, `LOG_FILE=false` for containers. Request ids live in an `AsyncLocalStorage` (`request-context.ts`) opened by the request-logger middleware, which also writes the access line when the response finishes (no query string: sockets pass tokens there) and feeds `HttpMetrics`. The metrics endpoint is Prometheus text at `/api/v1/metrics`, guarded by `METRICS_TOKEN` (404 when unset) and excluded from OpenAPI. The engine snapshot gained the scheduler numbers: `queuedExecutions`, `deferredExecutions` and `maxWaitTicks` (fairness: the longest run of unserved ticks of any execution, tracked in `EngineCore.trackWaiting`). Health is split: `/health/live` and `/health` (readiness; database, Redis and engine checks as `HealthCheck`s, each with a 2 s timeout; the old `{status, database}` body is a subset of the new one).
+- **Problems / blockers / findings:** none.
+- **Next step:** 8.4, data lifecycle (cleanup of inactive users and bots, terminal log retention).
+- **Verify with:** `npx jest src/metrics src/health src/shared src/app.int src/redis` from `api`
+

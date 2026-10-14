@@ -17,7 +17,8 @@ beforeAll(async () => {
     loadConfig({
       DATABASE_URL: urlForDatabase(db),
       NODE_ENV: 'test',
-      WHITELIST_URLS: 'https://play.example'
+      WHITELIST_URLS: 'https://play.example',
+      METRICS_TOKEN: 'scrape-secret'
     })
   )
   await app.listen(0)
@@ -33,6 +34,34 @@ describe('the Nest application', () => {
     const response = await request(url).get('/api/v1/health').expect(200)
 
     expect(response.body).toEqual({ status: 'ok', database: 'up' })
+  })
+
+  it('answers liveness without touching a dependency', async () => {
+    const response = await request(url).get('/api/v1/health/live').expect(200)
+
+    expect(response.body).toEqual({ status: 'ok' })
+  })
+
+  it('tags every response with a request id and keeps one the caller sends', async () => {
+    const generated = await request(url).get('/api/v1/health')
+    const kept = await request(url).get('/api/v1/health').set('X-Request-Id', 'trace-42')
+
+    expect(generated.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/)
+    expect(kept.headers['x-request-id']).toBe('trace-42')
+  })
+
+  it('exports metrics to a scraper that has the token, with the route pattern as the label', async () => {
+    await request(url).get('/api/v1/health').expect(200)
+    await request(url).get('/api/v1/metrics').expect(401)
+
+    const response = await request(url).get('/api/v1/metrics').set('Authorization', 'Bearer scrape-secret').expect(200)
+
+    expect(response.headers['content-type']).toContain('text/plain')
+    expect(response.text).toContain(
+      'botrts_http_request_duration_seconds_count{method="GET",route="/api/v1/health",status="2xx"}'
+    )
+    expect(response.text).toContain('botrts_engine_up 0')
+    expect(response.text).toContain('botrts_process_uptime_seconds')
   })
 
   it('reports unknown routes with the API error body', async () => {

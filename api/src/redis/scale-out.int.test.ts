@@ -23,7 +23,12 @@ beforeAll(async () => {
     ENGINE_ENABLED: 'true',
     ENGINE_TICK_INTERVAL_MS: '20'
   })
-  apiNode = await startTestApp(database, { APP_ROLE: 'api', REDIS_URL, ENGINE_ENABLED: 'true' })
+  apiNode = await startTestApp(database, {
+    APP_ROLE: 'api',
+    REDIS_URL,
+    ENGINE_ENABLED: 'true',
+    METRICS_TOKEN: 'scrape'
+  })
 }, 90000)
 afterEach(() => {
   socket?.close()
@@ -55,6 +60,16 @@ describe('an API node next to an engine node', () => {
       .set(bearer(player.accessToken))
       .expect(200)
     expect(scan.body).toHaveLength(9)
+  })
+
+  it('is ready only while the database, Redis and the engine all answer', async () => {
+    const health = await request(apiNode.url).get('/api/v1/health').expect(200)
+    expect(health.body).toEqual({ status: 'ok', database: 'up', redis: 'up', engine: 'up' })
+
+    const metrics = await request(apiNode.url).get('/api/v1/metrics').set('Authorization', 'Bearer scrape').expect(200)
+    expect(metrics.text).toContain('botrts_engine_up 1')
+    expect(metrics.text).toMatch(/botrts_engine_tick \d+/)
+    expect(metrics.text).toContain('botrts_engine_queued_executions 0')
   })
 
   it('delivers what one node pushes to a player who is connected to the other', async () => {

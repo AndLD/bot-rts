@@ -252,8 +252,11 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.updateNotificationPreferencesDto
       })
     }),
-    healthCheck: build.query<HealthCheckApiResponse, HealthCheckApiArg>({
+    healthReady: build.query<HealthReadyApiResponse, HealthReadyApiArg>({
       query: () => ({ url: `/api/v1/health` })
+    }),
+    healthLive: build.query<HealthLiveApiResponse, HealthLiveApiArg>({
+      query: () => ({ url: `/api/v1/health/live` })
     }),
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
@@ -478,8 +481,10 @@ export type NotificationsUpdatePreferencesApiResponse = /** status 200  */ Notif
 export type NotificationsUpdatePreferencesApiArg = {
   updateNotificationPreferencesDto: UpdateNotificationPreferencesDto
 }
-export type HealthCheckApiResponse = /** status 200  */ HealthResponse
-export type HealthCheckApiArg = void
+export type HealthReadyApiResponse = /** status 200  */ HealthResponse
+export type HealthReadyApiArg = void
+export type HealthLiveApiResponse = /** status 200  */ HealthResponse
+export type HealthLiveApiArg = void
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
 export type UserInfoResponse = {
@@ -1015,7 +1020,11 @@ export type UpdateNotificationPreferencesDto = {
 }
 export type HealthResponse = {
   status: 'ok'
-  database: 'up'
+  database?: 'up'
+  /** Present when Redis is configured */
+  redis?: 'up'
+  /** Present when the node uses the engine */
+  engine?: 'up'
 }
 export type DayPhaseSpanResponse = {
   phase: 'night' | 'morning' | 'day' | 'evening'
@@ -1089,6 +1098,7 @@ export const {
   useNotificationsMarkReadMutation,
   useNotificationsPreferencesQuery,
   useNotificationsUpdatePreferencesMutation,
-  useHealthCheckQuery,
+  useHealthReadyQuery,
+  useHealthLiveQuery,
   useGameTimeCurrentQuery
 } = injectedRtkApi

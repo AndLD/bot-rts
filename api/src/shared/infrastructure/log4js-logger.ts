@@ -1,15 +1,20 @@
 import log4js from 'log4js'
 import { Logger } from '../application/logger'
+import { appendersFor, formatEvent, readLogSettings } from './log-format'
+import { currentRequestId } from '../application/request-context'
 
 const startedAt = new Date().toISOString().replace(/[:.]/g, '-')
+const settings = readLogSettings(process.env)
+
+log4js.addLayout('botrts', () => (event) => formatEvent(event, settings.format, currentRequestId()))
 
 log4js.configure({
   appenders: {
-    file: { type: 'file', filename: `logs/${startedAt}.log` },
-    con: { type: 'console' }
+    file: { type: 'file', filename: `logs/${startedAt}.log`, layout: { type: 'botrts' } },
+    con: { type: 'console', layout: { type: 'botrts' } }
   },
   categories: {
-    default: { appenders: ['file', 'con'], level: 'info' }
+    default: { appenders: appendersFor(settings), level: 'info' }
   }
 })
 

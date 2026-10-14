@@ -30,6 +30,7 @@ import { CLOCK, Clock } from '../shared/application/clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { SeededRng } from '../shared/infrastructure/seeded-rng'
+import { RateLimitModule } from '../ratelimit/ratelimit.module'
 import { RedisModule } from '../redis/redis.module'
 import { SharedModule } from '../shared/shared.module'
 import { BotAccessService } from '../terminal/application/bot-access.service'
@@ -102,6 +103,7 @@ export class EngineWorkerModule {
         ConfigModule.forRoot(config),
         SharedModule,
         RedisModule,
+        RateLimitModule,
         PersistenceModule,
         NotificationsModule,
         UsersModule,

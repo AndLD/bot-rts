@@ -668,6 +668,7 @@ describe('EngineCore', () => {
       await ticks(1)
       expect(sink.logs()).toEqual(['one'])
       expect((await listNow(core)).map((e) => e.state)).toEqual(['suspended', 'queued'])
+      expect(core.snapshot()).toMatchObject({ queuedExecutions: 1, deferredExecutions: 0 })
       await ticks(8)
       expect(sink.logs()).toEqual(['one', 'one'])
     })
@@ -712,6 +713,11 @@ describe('EngineCore', () => {
       expect(core.snapshot().cutTicks).toBeGreaterThan(0)
       expect(Math.min(...steps)).toBeGreaterThan(5)
       expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(2)
+      // Someone is always left out, but nobody waits for long: the longest wait stays below a round of the players
+      const { maxWaitTicks, deferredExecutions } = core.snapshot()
+      expect(deferredExecutions).toBeGreaterThan(0)
+      expect(maxWaitTicks).toBeGreaterThan(0)
+      expect(maxWaitTicks).toBeLessThanOrEqual(players.length)
     })
   })
 

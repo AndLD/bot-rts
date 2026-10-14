@@ -54,3 +54,31 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
 - **CORS:** only origins in `WHITELIST_URLS` (`*` is refused), methods GET / POST / PUT / PATCH / DELETE, headers
   `Authorization` and `Content-Type`, preflight cached for 10 minutes.
 - **Headers (helmet 8):** CSP, `X-Content-Type-Options`, `Cross-Origin-Resource-Policy: same-site`, and HSTS in production.
+
+## Observability (Phase 8.3)
+
+- **Logs** go to the console (and to `api/logs/` unless `LOG_FILE=false`). With `LOG_FORMAT=json` (the default in production)
+  every line is one JSON object: `time`, `level`, `category`, `requestId`, `message`. Each HTTP request logs one line when it
+  finishes (method, path without the query string, status, duration).
+- **Request ids:** every response carries `X-Request-Id`. A caller (or the load balancer) may send its own id (up to 64 characters of
+  `A-Z a-z 0-9 _ . -`); everything the request logs carries it, so a player's report can be traced.
+- **Health:** `GET /api/v1/health/live` answers while the process runs (use it for restarts). `GET /api/v1/health` is readiness: it
+  checks the database, Redis (when configured) and the engine (when the node uses it) and answers `503` naming what is down
+  (use it for taking a node out of rotation).
+- **Metrics:** `GET /api/v1/metrics` (Prometheus text format) with `Authorization: Bearer $METRICS_TOKEN`; the endpoint does not
+  exist (404) while `METRICS_TOKEN` is unset. Series:
+
+| Series                                              | Meaning                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------- |
+| `botrts_http_request_duration_seconds`              | histogram per method, route pattern and status class                 |
+| `botrts_engine_up`                                  | 1 while the engine answers                                           |
+| `botrts_engine_last_tick_milliseconds`, `..._tick_p95_milliseconds` | tick latency (last, p95 of the last 100)             |
+| `botrts_engine_overrun_ticks_total`, `..._cut_ticks_total` | ticks over the interval / cut at the tick cap                 |
+| `botrts_engine_queued_executions`                   | queue depth: executions above their bot's parallel limit              |
+| `botrts_engine_deferred_executions`                 | executions the tick cap kept from running in the last tick            |
+| `botrts_engine_max_wait_ticks`                      | scheduler fairness: the longest run of ticks an execution went unserved |
+| `botrts_engine_executions`, `..._sandbox_memory_bytes` | live executions and the sandboxes' heap                            |
+| `botrts_process_*`                                  | uptime, resident memory and heap of the API process                  |
+
+  A scrape config: `bearer_token: <METRICS_TOKEN>`, `metrics_path: /api/v1/metrics`. Alert on `botrts_engine_up == 0`, on
+  `botrts_engine_tick_p95_milliseconds` near the tick interval (100 ms by default), and on a growing `botrts_engine_max_wait_ticks`.

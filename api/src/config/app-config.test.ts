@@ -44,6 +44,7 @@ describe('loadConfig', () => {
         keepAliveTimeoutMs: 65000
       },
       trustProxy: false,
+      observability: { metricsToken: undefined },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
   })

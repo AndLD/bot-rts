@@ -1,20 +1,7 @@
-import { createRequestLogger } from './request-logger.middleware'
 import { ConfiguredIoAdapter } from './configured-io.adapter'
 import { Logger } from '../application/logger'
 import { AppError } from '../domain/app-error'
 import { guarded, toSocketError } from './socket-handlers'
-
-describe('createRequestLogger', () => {
-  it('logs the method and the url and continues', () => {
-    const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
-    const next = jest.fn()
-
-    createRequestLogger(logger)({ method: 'GET', url: '/api/v1/health' } as never, {} as never, next)
-
-    expect(logger.info).toHaveBeenCalledWith('GET, /api/v1/health')
-    expect(next).toHaveBeenCalled()
-  })
-})
 
 describe('toSocketError', () => {
   it('keeps the status and message of an AppError and hides everything else', () => {

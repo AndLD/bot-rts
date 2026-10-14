@@ -2426,7 +2426,7 @@
     },
     "/api/v1/health": {
       "get": {
-        "operationId": "healthCheck",
+        "operationId": "healthReady",
         "parameters": [],
         "responses": {
           "200": {
@@ -2450,7 +2450,39 @@
             }
           }
         },
-        "summary": "Liveness and database readiness",
+        "summary": "Readiness: the database, Redis and the engine, each when the node uses it",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "healthLive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Liveness: the process answers",
         "tags": [
           "health"
         ]
@@ -4372,11 +4404,24 @@
             "enum": [
               "up"
             ]
+          },
+          "redis": {
+            "type": "string",
+            "enum": [
+              "up"
+            ],
+            "description": "Present when Redis is configured"
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "up"
+            ],
+            "description": "Present when the node uses the engine"
           }
         },
         "required": [
-          "status",
-          "database"
+          "status"
         ]
       },
       "DayPhaseSpanResponse": {

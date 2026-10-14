@@ -6,6 +6,22 @@ export interface TickMetrics {
   // Ticks whose work ran past the tick interval, or was cut at the cap, since the engine started
   overrunTicks: number
   cutTicks: number
+  // Scheduler (design §12.2): executions above their bot's parallel limit, waiting in the queue, in the last tick
+  queuedExecutions: number
+  // Executions the tick cap kept from running in the last tick
+  deferredExecutions: number
+  // Fairness: the most ticks in a row any live execution has gone without being stepped (0 when all were served)
+  maxWaitTicks: number
+}
+
+export interface TickSample {
+  tick: number
+  durationMs: number
+  intervalMs: number
+  isCut: boolean
+  queuedExecutions: number
+  deferredExecutions: number
+  maxWaitTicks: number
 }
 
 export interface EngineMetricsSnapshot extends TickMetrics {
@@ -21,9 +37,15 @@ export class EngineMetrics {
   private tick = 0
   private overrunTicks = 0
   private cutTicks = 0
+  private last = { queuedExecutions: 0, deferredExecutions: 0, maxWaitTicks: 0 }
 
-  record(sample: { tick: number; durationMs: number; intervalMs: number; isCut: boolean }): void {
+  record(sample: TickSample): void {
     this.tick = sample.tick
+    this.last = {
+      queuedExecutions: sample.queuedExecutions,
+      deferredExecutions: sample.deferredExecutions,
+      maxWaitTicks: sample.maxWaitTicks
+    }
     this.durations.push(sample.durationMs)
     if (this.durations.length > WINDOW) {
       this.durations.shift()
@@ -43,7 +65,8 @@ export class EngineMetrics {
       lastTickMs: this.durations[this.durations.length - 1] ?? 0,
       p95TickMs: sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ?? 0,
       overrunTicks: this.overrunTicks,
-      cutTicks: this.cutTicks
+      cutTicks: this.cutTicks,
+      ...this.last
     }
   }
 }

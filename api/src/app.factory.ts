@@ -12,6 +12,7 @@ import { LOGGER, Logger } from './shared/application/logger'
 import { ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
 import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
+import { HttpMetrics } from './metrics/application/http-metrics'
 import { REDIS_CONNECTOR, RedisConnector } from './redis/redis.module'
 import { RequestTimeoutInterceptor } from './shared/presentation/request-timeout.interceptor'
 import { corsOptions, helmetOptions } from './shared/presentation/security-headers'
@@ -60,7 +61,8 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   app.enableCors(corsOptions((origin) => isAllowedOrigin(origin, config.corsOrigins)))
   app.useBodyParser('json', { limit: config.http.bodyLimitBytes })
   app.use(cookieParser())
-  app.use(createRequestLogger(logger))
+  const httpMetrics = app.get(HttpMetrics)
+  app.use(createRequestLogger(logger, (request) => httpMetrics.observe(request)))
   const connect = app.get<RedisConnector>(REDIS_CONNECTOR)
   app.useWebSocketAdapter(
     new ConfiguredIoAdapter(app, config.adminUrl, connect ? { publisher: connect(), subscriber: connect() } : undefined)

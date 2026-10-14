@@ -5,14 +5,13 @@ combination of pre-defined modules (scanner, weapon, engine, tracks, drill, batt
 wireless adapter, …). Players can micromanage bots by hand from the GUI, or write JavaScript scripts in an in-game terminal that
 automate them; scripts execute on the server in a fair, sandboxed, tick-based runtime.
 
-> Status: **Early prototype / vertical slice.** Auth, email verification, base deployment, procedural map generation,
-> a module model (scanner is functional), Socket.IO transport and a partial BotOS terminal exist; a code-editor
-> component exists but is not mounted yet. The script-execution engine (the heart of the game), most module behaviors,
-> crafting/factory, the canvas map and automated tests are **not implemented yet**. The client build currently fails on
-> broken imports and unused variables (fixed in Phase 0, task 0.1).
+> Status: **feature-complete through Phase 8; Phases 9 and 10 are planned.** Phases 0–8 and 11 are delivered: a NestJS
+> backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing page, achievements, notifications,
+> English and Russian UI, player documentation, a public API with API keys, an MCP server, and production hardening.
+> The admin console (Phase 9) and the market, currency, chat and transfers (Phase 10) are not implemented yet.
 >
-> Planning is complete: the game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–11, with story
-> points per task; Phase 11 is developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
+> The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–11, with story
+> points per task; Phase 11 was developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
 > agents are in [`AGENTS.md`](./AGENTS.md).
 
 ---
@@ -34,33 +33,47 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 
 ## What works today
 
+**Game**
+
+- Deploy a base with an **access password** and an optional **spawn seed**: a free cell far from every other base and the
+  starter kit (gun, scanner, factory, armor, battery, **solar panel**, storage, processor, memory, wireless adapter). One living
+  base per player; a lost base stays as a corpse base that can be restored or redeployed.
+- A procedural, unbounded map in chunks with six **resource deposits**, **per-user fog of war** and live vision from scanners.
+- **Modules with real behavior** (scanner, weapon, engine, tracks, drill, battery, power sources, repair, wireless adapter, …),
+  energy accounting, module condition and breakage, and a **day/night cycle** that drives solar power.
+- **Crafting and assembly:** data-driven recipes, blueprints (research, loot, `learn`), bot assembly and repair.
+- **Scripts:** write JavaScript or TypeScript in the in-game editor and run it on a bot. Scripts execute on the server in a
+  **QuickJS (WASM) sandbox** inside a tick-based **engine** with a fair scheduler, deterministic ordering and typed game events.
+- **BotOS terminal** with filesystem, `connect`, `run`, `top`, `kill`, `shell`, `passwd` and `adopt`; the **radio network** gates
+  remote access; every session is stored (30 days).
+- **Achievements**, **notifications** (coalescing, caps, preferences) and a skippable **tutorial**.
+
 **Backend (`api`)**
 
-- Sign-up, login, logout with **JWT access + refresh tokens** (httpOnly refresh cookie).
-- Email verification flow (`nodemailer`), 24 h token validity.
-- Role model: `admin`, `owner`, `user`, `unlimited`, `banned` (enforced in auth middlewares).
-- Deploy a base with an **access password** and an optional **spawn seed**: a free cell at least 30 cells from every other
-  base, the starter kit (gun, scanner, factory, armor, battery, solar panel, storage, processor, memory, wireless adapter);
-  one living base per player, a lost base stays on the map as a corpse base and its owner can redeploy.
-- Procedural map in chunks, with **deposits** of six resources and **per-user fog-of-war points**, generated on demand.
-- Module classes by type with a registry and a factory; the **bot filesystem** (a drive per memory module with a byte
-  quota, directories, `.js` / `.ts` / `.json` / `.txt` files) over REST and the terminal.
-- **BotOS commands on the server** (`help`, `ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`, `list`, `modules`, `clear`, `exit`) over
-  Socket.IO; every terminal session and its lines are stored in the database (30 days, 5,000 lines per bot).
-- OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code, with examples and `curl` samples; the web client's endpoints
-  are generated from it. Third-party clients and AI assistants use **API keys** with scopes ([docs/API.md](./docs/API.md)), and the
-  **MCP server** in `mcp/` lets an AI play as a regular player ([docs/MCP.md](./docs/MCP.md)).
-- Production hardening: rate limits, request limits and security headers, request ids, JSON logs, Prometheus metrics, health checks, a
-  scheduled data-lifecycle job, and a horizontally scalable API tier with one engine node ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md),
-  measured in [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)); a Docker image, a release flow ([docs/RELEASING.md](./docs/RELEASING.md)),
-  and the web client on Vercel.
+- NestJS on a clean-architecture layout, versioned `/api/v1`, PostgreSQL through Prisma, JWT access + refresh tokens with
+  email verification, privacy consent and database-checked roles.
+- OpenAPI document (`api/openapi.json`, `/api/docs`) generated from the code; the web client's endpoints are generated from it.
+  Third-party clients and AI assistants use **API keys** with scopes ([docs/API.md](./docs/API.md)), and the **MCP server** in
+  `mcp/` lets an AI play as a regular player ([docs/MCP.md](./docs/MCP.md)).
+- Production hardening: rate limits, request limits and security headers, request ids, JSON logs, Prometheus metrics, health
+  checks, a scheduled data-lifecycle job, and a horizontally scalable API tier with one engine node
+  ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md), measured in [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)); a Docker image, a
+  release flow ([docs/RELEASING.md](./docs/RELEASING.md)), and the web client on Vercel.
 
 **Frontend (`client`)**
 
-- Auth page (login / sign-up), verification page, inactive-user ("check your email") page.
-- RTK Query endpoints generated from the OpenAPI document, with automatic access-token refresh (`baseQueryWithRefresh`).
-- Game page: the **deploy dialog** for a new player, then the **BotOS terminal** with the file commands and a plain editor
-  for `edit` (the CodeMirror editor window arrives with the GUI, phase 6).
+- Next.js: a statically rendered **landing page**, **privacy policy** and **player documentation** (English at `/`, Russian at
+  `/ru`), and the game rendered on the client only. The whole UI is translated (`next-intl`).
+- The game: a **canvas map** with sprites, animations and the night filter, a draggable **window manager** (terminals, code
+  editor, bot control panel, storage, factory, in-game Help), settings, achievements, notification center, API-key management,
+  an in-game clock and **automatic reconnection**.
+
+---
+
+## Planned
+
+- **Phase 9 — Admin console:** supervision, monitoring, moderation and operations.
+- **Phase 10 — Market, currency, chat and transfers.**
 
 ---
 
@@ -72,17 +85,22 @@ The repository is a lightweight multi-package TypeScript project (`api`, `client
 ```
 ┌─────────────┐        ┌──────────────────────┐        ┌─────────────┐
 │   client/   │  HTTP  │        api/          │        │ PostgreSQL  │
-│ React+Next  │◄──────►│ NestJS + Socket.IO   │◄──────►│  (users,    │
-│ RTK Query   │  WS    │ controllers → use    │        │   bots,     │
-└──────┬──────┘        └──────────┬───────────┘        │   modules,  │
-       │                          │                    │   map,      │
-       └──────────► lib/ ◄────────┘                    │   files)    │
-         shared TS interfaces                          └─────────────┘
+│ Next.js     │◄──────►│ NestJS + Socket.IO   │◄──────►│ (users,     │
+│ RTK Query   │  WS    │ controllers → use    │        │  world,     │
+└──────┬──────┘        │ cases → ports        │        │  files,     │
+       │               └───┬──────────────┬───┘        │  logs, …)   │
+       │      ┌────────────┘              │ port       └─────────────┘
+       │      │ /api/v1 + API key    ┌────▼──────────┐
+┌──────┴──────┴─┐                    │ engine        │  tick loop, scheduler,
+│ mcp/ (AI      │                    │ (worker or    │  QuickJS sandbox,
+│ players)      │                    │  own node)    │  write-behind to DB
+└───────────────┘                    └───────────────┘
+       └──────────► lib/ (shared types, game clock, pure functions)
 ```
 
-(The database is PostgreSQL behind repository ports, accessed with Prisma and run in Docker locally. See the development plan.)
+The engine is the single writer of world state. In a scaled deployment the API nodes reach it through Redis ([docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)); PostgreSQL sits behind repository ports, accessed with Prisma and run in Docker locally.
 
-**Layering (target, see `AGENTS.md`):** clean architecture on NestJS.
+**Layering (see `AGENTS.md`):** clean architecture on NestJS.
 
 ```
 presentation (controllers, gateways, DTOs) → application (use cases + ports) → domain
@@ -90,29 +108,31 @@ infrastructure (Prisma/PostgreSQL repositories, JWT, email, engine bridge) imple
 ```
 
 The backend runs on NestJS (`api/src/app.module.ts`, versioned `/api/v1`, OpenAPI at `/api/docs`). The use cases, ports, domain and Prisma adapters live in `api/src/<feature>/`
-(`users`, `auth`, `bots`, `modules`, `files`, `map`, `persistence`, …) with `domain`, `application`, `infrastructure` and
+(`users`, `auth`, `bots`, `modules`, `files`, `map`, `engine`, `terminal`, `achievements`, `notifications`, `apikeys`, `time`, `persistence`, …) with `domain`, `application`, `infrastructure` and
 `presentation` folders; the controllers and the Socket.IO gateway are in the `presentation` folders. `npm run check:boundaries`
 enforces the layer rules.
 
 - `lib/` holds **shared TypeScript interfaces/types** used by both `api` and `client` via the `@lib/*` path alias.
 - `api/` is a CommonJS TypeScript project compiled with `tsc` to `api/ts-built`.
-- `client/` is a Next.js (App Router) application: the public pages (landing, later the privacy policy and the documentation) are static routes in two language trees (`(site-en)` at `/`, `(site-ru)` at `/ru`), each with its own root layout, and the game (`(game)` routes) is rendered on the client only. It talks to the API at `NEXT_PUBLIC_API_URL`.
+- `mcp/` is the MCP server, a thin client of `/api/v1` with an API key.
+- `client/` is a Next.js (App Router) application: the public pages (landing, privacy policy and player documentation) are static routes in two language trees (`(site-en)` at `/`, `(site-ru)` at `/ru`), each with its own root layout, and the game (`(game)` routes) is rendered on the client only. It talks to the API at `NEXT_PUBLIC_API_URL`.
 
 ---
 
 ## Tech stack
 
-| Layer        | Technology                                                                                                                                                                              |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend      | Node.js, Express 4, TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL (**moving to NestJS on the Express adapter**, see the development plan)                                     |
-| Auth         | `jsonwebtoken`, `bcrypt`, `cookie-parser`, `cors`, `helmet`                                                                                                                             |
-| Email        | `nodemailer` (SMTP)                                                                                                                                                                     |
-| Logging      | `log4js`                                                                                                                                                                                |
-| Frontend     | React, TypeScript 5, Redux Toolkit (RTK Query), Ant Design 5, Next.js (App Router) with React 19, which also hosts the landing page                                                     |
-| Code editor  | CodeMirror 6 (planned for the script editor; verified to work with Next 16 / React 19)                                                                                                  |
-| Shared       | `lib/` (plain TS interfaces)                                                                                                                                                            |
-| Testing      | Jest (`api` with `ts-jest`, `client` with `next/jest`), integration tests on PostgreSQL in Docker (no in-memory databases), Cypress end-to-end                                          |
-| Target stack | NestJS (clean architecture), PostgreSQL + Prisma (in Docker locally), Next.js, `next-intl`, QuickJS (WASM) script sandbox, Jest everywhere + Cypress; see [`AGENTS.md`](./AGENTS.md) §2 |
+| Layer       | Technology                                                                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend     | Node.js 20, NestJS (Express adapter), TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL, Redis (scaled deployments)               |
+| Engine      | Tick loop and fair scheduler in a worker thread (or its own node), **QuickJS compiled to WASM** as the script sandbox                    |
+| Auth        | JWT access + refresh tokens behind an identity-provider port, `bcrypt`, API keys with scopes                                            |
+| Email       | `nodemailer` (SMTP)                                                                                                                     |
+| Observability | `log4js` JSON logs, Prometheus metrics, health checks                                                                                  |
+| Frontend    | Next.js (App Router) with React 19, Redux Toolkit (RTK Query), Ant Design 5, CodeMirror 6, `next-intl` (English, Russian), canvas map   |
+| AI access   | MCP server (`mcp/`) over the public API                                                                                                 |
+| Shared      | `lib/` (types, constants, game clock and other pure functions)                                                                          |
+| Testing     | Jest (`api` with `ts-jest`, `client` with `next/jest`), integration tests on PostgreSQL in Docker (no in-memory databases), Cypress e2e |
+| Deployment  | Docker image and compose stack, web client on Vercel, API and engine on a long-running host                                             |
 
 ---
 
@@ -120,37 +140,28 @@ enforces the layer rules.
 
 ```
 bot-rts/
-├── api/                          # Backend service
-│   ├── controllers/  (public, private)
-│   ├── middlewares/  (auth, validation, error, logger)
-│   ├── models/modules/           # Module domain classes
-│   ├── routers/      (public, private)
-│   ├── services/     (db, users, bots, map, modules, email)
-│   ├── setup/        (app, server, routers, socket)
-│   ├── utils/        (jwt, api, constants, decorators, …)
-│   ├── validation/   (public)
-│   ├── tests/        (db-helpers only — no test files yet)
-│   ├── index.ts
-│   ├── jest.config.ts
-│   └── tsconfig.json
-├── client/                       # React SPA
-│   └── src/
-│       ├── components/ (Auth, Game/Terminal, Game/FileEditor)
-│       ├── hooks/      (auth, pages/Game, store/*)
-│       ├── pages/      (Auth, Game, Verification, Forbidden)
-│       ├── routes/     (public, private, inactive)
-│       ├── store/      (Redux slice + RTK Query APIs)
-│       └── utils/
+├── api/                          # Backend (NestJS, clean architecture)
+│   ├── src/<feature>/            # users, auth, bots, modules, files, map, engine, terminal, achievements,
+│   │                             #   notifications, apikeys, time, … each with domain / application /
+│   │                             #   infrastructure / presentation
+│   ├── prisma/                   # Schema and migrations
+│   ├── scripts/                  # OpenAPI generation, helpers
+│   ├── openapi.json              # Generated API document
+│   └── Dockerfile
+├── client/                       # Next.js app
+│   ├── src/app/                  # (site-en), (site-ru) static pages; (game) client-only routes
+│   ├── src/features/             # map, terminal, windows, control, factory, storage, achievements, …
+│   ├── messages/                 # English and Russian strings
+│   └── cypress/                  # End-to-end specs
 ├── mcp/                          # MCP server: lets an AI play with an API key (docs/MCP.md)
-├── lib/                          # Shared TS interfaces
-│   └── utils/ (types.ts, interfaces/{auth,bots,files,map,modules,users}.ts)
-├── docs/                         # Game design, development plan, quality review
-│   └── archived-docs/            # Decision log (UNCERTAINTIES.md) and original product notes (notes.txt)
+├── lib/                          # Shared types, constants, pure functions
+├── docs/                         # Game design, development plan (with work logs), API, MCP, deployment
+├── scripts/                      # e2e, load test, release, docs and i18n checks
+├── docker-compose.yml            # PostgreSQL, Redis; optional full stack (profile `stack`)
 ├── ecosystem.config.json         # PM2 process definition (prod)
+├── CHANGELOG.md
 ├── AGENTS.md                     # Engineering rules for contributors and agents
-├── README.md
-├── package.json                  # Root: Prettier `format` script
-└── .prettierrc.json
+└── README.md
 ```
 
 ---
@@ -159,13 +170,13 @@ bot-rts/
 
 ### Prerequisites
 
-- Node.js ≥ 18 (Node 20 LTS is the target, Plan 1.0)
+- Node.js ≥ 20
 - Docker (for the local PostgreSQL)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
 ### 1. Install dependencies
 
-The repo is an **npm workspaces** monorepo (`lib`, `api`, `client`): one install at the root, one lockfile.
+The repo is an **npm workspaces** monorepo (`lib`, `api`, `client`, `mcp`): one install at the root, one lockfile.
 
 ```bash
 npm install
@@ -295,14 +306,18 @@ pm2 start ecosystem.config.json
 
 ## Testing
 
-- **Unit tests:** Jest in `api` (`*.test.ts`, fakes of the ports, no I/O). The client gets Jest in Phase 2.
+- **Unit tests:** Jest in `api`, `client` and `mcp` (`*.test.ts`, fakes of the ports, no I/O).
 - **Integration tests:** `*.int.test.ts` run against a real PostgreSQL in Docker (`npm run db:up`); every test file gets its own
   database cloned from a migrated template, and no in-memory database is used. They include the safety-net suite that drives
   the whole API over HTTP and Socket.IO.
-- **E2E:** Cypress in `client/cypress`, run by `npm run e2e`; a pre-push hook (`.githooks/pre-push`) runs the coverage gate.
-- **Coverage gate:** ≥ 97 % on the files a pull request changes (blocking in CI); the per-package gate arrives in Phase 2.
+- **E2E:** Cypress in `client/cypress/e2e` covers the user and game flows (deploy, terminal, scripts, map, factory, day/night,
+  reconnection, API keys, the MCP server, two players in one world, …); run it with `npm run e2e`. A pre-push hook
+  (`.githooks/pre-push`) runs the coverage gate.
+- **Coverage gate:** ≥ 97 % per package, enforced in CI.
+- **Other gates:** `npm run i18n:check` (translations), `npm run docs:check` (links), Lighthouse on the landing page, and the
+  load and soak harness (`npm run load`, see [docs/LOAD-TESTING.md](./docs/LOAD-TESTING.md)).
 
-See [Phase 2](./docs/development-plan/phase-2-test-infrastructure.md) of the development plan for the rollout.
+The test plan is in [`docs/development-plan/testing-strategy.md`](./docs/development-plan/testing-strategy.md).
 
 ---
 
@@ -328,8 +343,9 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/MCP.md`](./docs/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
 - [`docs/API.md`](./docs/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
 - [`docs/RELEASING.md`](./docs/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
+- [`CHANGELOG.md`](./CHANGELOG.md) — release notes.
 - [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
-- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 is developed after Phase 7).
+- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

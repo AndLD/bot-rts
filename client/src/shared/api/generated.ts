@@ -527,6 +527,8 @@ export type ErrorResponseModel = {
     | 'ALREADY_EXISTS'
     | 'TERMINAL_SESSION_CLOSED'
     | 'TOO_MANY_REQUESTS'
+    | 'PAYLOAD_TOO_LARGE'
+    | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'

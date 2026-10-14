@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Inject, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, HttpCode, Inject, Post, Req, Res } from '@nestjs/common'
 import {
   ApiCookieAuth,
   ApiCreatedResponse,
@@ -7,7 +7,7 @@ import {
   ApiOkResponse,
   ApiTags
 } from '@nestjs/swagger'
-import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler'
+import { RateLimit, SkipRateLimit } from '../../ratelimit/presentation/rate-limit.decorator'
 import { Request, Response } from 'express'
 import { IAuthTokenResponse } from '../../../../lib/utils/interfaces/auth'
 import { UnauthorizedError } from '../../shared/domain/errors'
@@ -34,7 +34,7 @@ export const REFRESH_COOKIE_OPTIONS = Symbol('RefreshCookieOptions')
 // Every auth route is rate limited per client (RATE_LIMIT_*), except logout
 @ApiTags('auth')
 @ApiDefaultResponse({ type: ErrorResponseModel })
-@UseGuards(ThrottlerGuard)
+@RateLimit('auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(
@@ -79,7 +79,7 @@ export class AuthController {
   }
 
   @Public()
-  @SkipThrottle()
+  @SkipRateLimit()
   @HttpCode(204)
   @ApiNoContentResponse()
   @Post('logout')

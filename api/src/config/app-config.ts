@@ -31,6 +31,20 @@ export interface RateLimitConfig {
   windowMs: number
   // Requests per window for the sensitive auth routes (register, login, refresh, password and email flows)
   authMax: number
+  // Every other route: requests per window per client address (a floor against floods, not a game rule)
+  apiWindowMs: number
+  apiMax: number
+}
+
+export interface HttpConfig {
+  // Largest JSON request body
+  bodyLimitBytes: number
+  // A handler that does not answer within this time is cut off with 503 REQUEST_TIMEOUT
+  handlerTimeoutMs: number
+  // Node's limits against slow clients: the whole request, its headers, and an idle keep-alive connection
+  requestTimeoutMs: number
+  headersTimeoutMs: number
+  keepAliveTimeoutMs: number
 }
 
 // What a process of the API tier does (docs: deployment). `all` runs the API and the engine thread in one process; `api`
@@ -67,6 +81,7 @@ export interface AppConfig {
   emailOutboxDir: string | undefined
   auth: AuthConfig
   rateLimit: RateLimitConfig
+  http: HttpConfig
   // Trust X-Forwarded-* headers of a reverse proxy (needed for per-client rate limits behind one)
   trustProxy: boolean
   deployment: DeploymentConfig
@@ -149,6 +164,9 @@ export function loadConfig(env: Env): AppConfig {
   if (!APP_ROLES.includes(role)) {
     problems.push(`APP_ROLE must be one of ${APP_ROLES.join(', ')}`)
   }
+  if (list(env.WHITELIST_URLS).includes('*')) {
+    problems.push('WHITELIST_URLS must list origins; * is not allowed because the API uses credentials')
+  }
   const redisUrl = env.REDIS_URL || undefined
   if (role !== 'all' && !redisUrl) {
     problems.push(`REDIS_URL is required when APP_ROLE is ${role}`)
@@ -204,7 +222,19 @@ export function loadConfig(env: Env): AppConfig {
       accessTtlSeconds: Math.floor(accessTtl / 1000),
       policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl }
     },
-    rateLimit: { windowMs: rateWindow, authMax: positiveInt(env.RATE_LIMIT_AUTH_MAX, 20) },
+    rateLimit: {
+      windowMs: rateWindow,
+      authMax: positiveInt(env.RATE_LIMIT_AUTH_MAX, 20),
+      apiWindowMs: positiveInt(env.RATE_LIMIT_API_WINDOW_MS, 60_000),
+      apiMax: positiveInt(env.RATE_LIMIT_API_MAX, 600)
+    },
+    http: {
+      bodyLimitBytes: positiveInt(env.HTTP_BODY_LIMIT_BYTES, 256 * 1024),
+      handlerTimeoutMs: positiveInt(env.HTTP_HANDLER_TIMEOUT_MS, 30_000),
+      requestTimeoutMs: positiveInt(env.HTTP_REQUEST_TIMEOUT_MS, 60_000),
+      headersTimeoutMs: positiveInt(env.HTTP_HEADERS_TIMEOUT_MS, 15_000),
+      keepAliveTimeoutMs: positiveInt(env.HTTP_KEEP_ALIVE_TIMEOUT_MS, 65_000)
+    },
     trustProxy: env.TRUST_PROXY === 'true',
     deployment: {
       role,

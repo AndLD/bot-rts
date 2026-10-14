@@ -273,6 +273,8 @@
     "DRIVE_FULL": "There is not enough space on the drive",
     "TERMINAL_SESSION_CLOSED": "The terminal session is closed",
     "TOO_MANY_REQUESTS": "Too many requests, try again later",
+    "PAYLOAD_TOO_LARGE": "The request is too large",
+    "REQUEST_TIMEOUT": "The server took too long to answer, try again",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable",
     "INTERNAL_ERROR": "Something went wrong on our side",
     "UNKNOWN_COMMAND": "Unknown command",

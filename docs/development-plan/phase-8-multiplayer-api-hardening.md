@@ -7,7 +7,7 @@
 | # | Task                                                                                                        | SP | Status |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- | --- |
 | 8.1 | Scale the **API tier** horizontally: Socket.IO Redis adapter, sticky sessions, stateless sockets (the engine stays a single authoritative instance; map addressed in chunks to keep region sharding possible later) | 8 | ✅ |
-| 8.2 | Rate limiting (login/signup), request timeouts, input size limits, helmet/CORS review | 5 | ⬜ |
+| 8.2 | Rate limiting (login/signup), request timeouts, input size limits, helmet/CORS review | 5 | ✅ |
 | 8.3 | Observability: structured logs, request IDs, metrics (tick latency, scheduler fairness, queue depth), health checks | 5 | ⬜ |
 | 8.4 | Data lifecycle: cleanup inactive users/bots, terminal session retention (30 days / 5,000 lines per bot via a scheduled cleanup job or time-partitioned tables; security events 90 days); offline-player executions continue, so account-inactivity policy must account for running scripts | 3 | ⬜ |
 | 8.5 | Performance pass: map query optimization, batching, caching, index verification | 5 | ⬜ |
@@ -32,4 +32,5 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| `feature/8.1-scalable-api-tier` | 8.1 | [#128](https://github.com/AndLD/bot-rts/pull/128) | 🟡 |
+| `feature/8.1-scalable-api-tier` | 8.1 | [#128](https://github.com/AndLD/bot-rts/pull/128) | ✅ merged |
+| `feature/8.2-request-hardening` | 8.2 | [#129](https://github.com/AndLD/bot-rts/pull/129) | 🟡 |

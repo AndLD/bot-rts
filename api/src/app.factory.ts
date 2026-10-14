@@ -4,14 +4,17 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
+import { Server } from 'http'
 import { AppModule } from './app.module'
 import { REFRESH_COOKIE } from './auth/presentation/refresh-cookie'
 import { AppConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
-import { ForbiddenError, ValidationError } from './shared/domain/errors'
+import { ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
 import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
 import { REDIS_CONNECTOR, RedisConnector } from './redis/redis.module'
+import { RequestTimeoutInterceptor } from './shared/presentation/request-timeout.interceptor'
+import { corsOptions, helmetOptions } from './shared/presentation/security-headers'
 import { createRequestLogger } from './shared/presentation/request-logger.middleware'
 
 function isAllowedOrigin(origin: string | undefined, allowed: string[]) {
@@ -48,14 +51,14 @@ export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
 export async function configureApp(app: NestExpressApplication, config: AppConfig): Promise<NestExpressApplication> {
   const logger = app.get<Logger>(LOGGER)
 
-  app.use(helmet())
-  app.enableCors({
-    origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) =>
-      isAllowedOrigin(origin, config.corsOrigins)
-        ? callback(null, true)
-        : callback(new ForbiddenError('Origin is not allowed')),
-    credentials: true
-  })
+  const server = app.getHttpServer() as Server
+  server.requestTimeout = config.http.requestTimeoutMs
+  server.headersTimeout = config.http.headersTimeoutMs
+  server.keepAliveTimeout = config.http.keepAliveTimeoutMs
+
+  app.use(helmet(helmetOptions(config.nodeEnv === 'production')))
+  app.enableCors(corsOptions((origin) => isAllowedOrigin(origin, config.corsOrigins)))
+  app.useBodyParser('json', { limit: config.http.bodyLimitBytes })
   app.use(cookieParser())
   app.use(createRequestLogger(logger))
   const connect = app.get<RedisConnector>(REDIS_CONNECTOR)
@@ -76,6 +79,7 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
         new ValidationError(errors.flatMap((error) => Object.values(error.constraints as object)).join('; '))
     })
   )
+  app.useGlobalInterceptors(new RequestTimeoutInterceptor(config.http.handlerTimeoutMs))
   app.useGlobalFilters(new AppExceptionFilter(logger))
 
   SwaggerModule.setup('api/docs', app, buildOpenApiDocument(app))

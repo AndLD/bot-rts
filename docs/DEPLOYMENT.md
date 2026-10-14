@@ -41,3 +41,16 @@ Locally `npm run db:up` starts PostgreSQL and Redis (`docker-compose.yml`).
 ## Reverse proxy
 
 Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and allow WebSocket upgrades on `/socket.io`.
+
+## Request limits and security headers (Phase 8.2)
+
+- **Rate limits** are counted per client address, in Redis when `REDIS_URL` is set (all nodes share the count) and in memory
+  otherwise. Auth routes use `RATE_LIMIT_AUTH_MAX` per `RATE_LIMIT_WINDOW_MS`; every other route, `RATE_LIMIT_API_MAX` per
+  `RATE_LIMIT_API_WINDOW_MS`; the health check is never limited. A refused request gets `429 TOO_MANY_REQUESTS` with
+  `Retry-After`; answered ones carry `X-RateLimit-Limit` and `X-RateLimit-Remaining`. If Redis fails the node counts on its own.
+- **Body size:** JSON bodies above `HTTP_BODY_LIMIT_BYTES` get `413 PAYLOAD_TOO_LARGE`.
+- **Timeouts:** a handler that has not answered within `HTTP_HANDLER_TIMEOUT_MS` gets `503 REQUEST_TIMEOUT`; Node's own
+  `requestTimeout`, `headersTimeout` and `keepAliveTimeout` (set above the usual 60 s idle timeout of load balancers) end slow clients.
+- **CORS:** only origins in `WHITELIST_URLS` (`*` is refused), methods GET / POST / PUT / PATCH / DELETE, headers
+  `Authorization` and `Content-Type`, preflight cached for 10 minutes.
+- **Headers (helmet 8):** CSP, `X-Content-Type-Options`, `Cross-Origin-Resource-Policy: same-site`, and HSTS in production.

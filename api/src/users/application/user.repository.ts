@@ -16,8 +16,6 @@ export interface UserPage {
   total: number
 }
 
-export type UserCountByStatus = Record<UserStatus, number>
-
 export interface UserRepository {
   findById(id: string): Promise<User | null>
   // The user together with the verification state of their email, as the administration shows it
@@ -26,5 +24,4 @@ export interface UserRepository {
   add(user: User): Promise<void>
   update(user: User): Promise<void>
   list(query: UserListQuery): Promise<UserPage>
-  countByStatus(): Promise<UserCountByStatus>
 }

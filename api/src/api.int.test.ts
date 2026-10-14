@@ -283,7 +283,7 @@ describe('authorization', () => {
     await api().get('/api/v1/users').set(bearer(accessToken)).expect(403)
     await api().put(`/api/v1/users/${userId}`).set(bearer(accessToken)).send({ name: 'Bobby' }).expect(403)
     await api().put(`/api/v1/users/${userId}`).set(bearer(accessToken)).send({ status: 'owner' }).expect(403)
-    await api().get('/api/v1/admin/statistics').set(bearer(accessToken)).expect(403)
+    await api().get('/api/v1/admin/audit').set(bearer(accessToken)).expect(403)
     expect((await database.client.user.findUniqueOrThrow({ where: { id: userId } })).status).toBe('user')
   })
 
@@ -489,9 +489,6 @@ describe('authorization', () => {
     await api().put(`/api/v1/users/${alice.userId}`).set(bearer(admin.accessToken)).send({}).expect(400)
     await api().put('/api/v1/users/not-a-uuid').set(bearer(admin.accessToken)).send({ name: 'Bobby' }).expect(400)
     await api().get('/api/v1/users?results=1000').set(bearer(admin.accessToken)).expect(400)
-
-    const stats = await api().get('/api/v1/admin/statistics').set(bearer(admin.accessToken)).expect(200)
-    expect(stats.body.usersByStatus).toMatchObject({ admin: 1, user: 1 })
   })
 
   it('lets an owner ban a player, which takes effect on the very next request', async () => {

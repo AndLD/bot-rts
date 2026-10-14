@@ -1,6 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common'
 import { AppConfig } from './config/app-config'
 import { ConfigModule } from './config/config.module'
+import { AdminModule } from './admin/admin.module'
 import { AchievementsModule } from './achievements/achievements.module'
 import { PlayerNotificationsModule } from './player-notifications/player-notifications.module'
 import { AuthModule } from './auth/auth.module'
@@ -40,6 +41,7 @@ export class AppModule {
         NotificationsModule,
         UsersModule,
         AuthModule,
+        AdminModule,
         ModulesModule,
         CraftingModule,
         FilesModule,

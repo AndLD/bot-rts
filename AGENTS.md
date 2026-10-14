@@ -348,6 +348,9 @@ A feature is done only when **all** of these hold:
   targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one merge does not carry over to another.
 - Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
 - Never enable auto-merge unless the user asks.
+- **CI Auto-fix is on for plan work.** After opening a PR for a named phase, bind it (`bind_pr`) and turn on the app's CI Auto-fix
+  (`set_monitor` with `auto_fix`) without asking; it wakes the session on CI failures, merge conflicts and review comments. Do not
+  poll CI yourself. When CI is green, merge per the rules above and go on to the next task, so work flows across phases.
 
 ### 7.6 Session protocol (resuming and pausing a phase)
 

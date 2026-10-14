@@ -74,13 +74,3 @@ describe('UsersService.update', () => {
     await expect(service.update('user', target.id, { name: 'Bob' })).rejects.toThrow(ForbiddenError)
   })
 })
-
-describe('UsersService.countByStatus', () => {
-  it('counts users by status', async () => {
-    const { service, repository } = setup()
-    await repository.add(buildUser({ status: 'admin' }))
-    await repository.add(buildUser({ status: 'admin', deletedAt: new Date() }))
-
-    expect((await service.countByStatus()).admin).toBe(1)
-  })
-})

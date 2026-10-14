@@ -1,6 +1,5 @@
 import { Prisma, User as UserRow } from '@prisma/client'
-import { USER_STATUSES } from '../../../../lib/utils/interfaces/users'
-import { UserCountByStatus, UserListQuery, UserPage, UserRepository } from '../application/user.repository'
+import { UserListQuery, UserPage, UserRepository } from '../application/user.repository'
 import { User, UserListItem } from '../domain/user.entity'
 import { EmailAlreadyExistsError } from '../domain/user.errors'
 
@@ -79,17 +78,6 @@ export class PrismaUserRepository implements UserRepository {
       users: rows.map(toListItem),
       total
     }
-  }
-
-  async countByStatus(): Promise<UserCountByStatus> {
-    const groups = await this.db.user.groupBy({ by: ['status'], where: { deletedAt: null }, _count: { _all: true } })
-    const counts = Object.fromEntries(USER_STATUSES.map((status) => [status, 0])) as UserCountByStatus
-
-    for (const group of groups) {
-      counts[group.status] = group._count._all
-    }
-
-    return counts
   }
 
   // A unique-email violation raised by a concurrent registration or email change

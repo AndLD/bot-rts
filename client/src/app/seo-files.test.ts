@@ -20,7 +20,7 @@ describe('sitemap', () => {
 describe('robots', () => {
   it('lets crawlers read the public pages but not the game, and points at the sitemap', () => {
     expect(robots()).toMatchObject({
-      rules: { allow: '/', disallow: ['/game', '/auth', '/account'] },
+      rules: { allow: '/', disallow: ['/game', '/auth', '/account', '/admin'] },
       sitemap: `${SITE_URL}/sitemap.xml`
     })
   })

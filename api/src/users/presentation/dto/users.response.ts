@@ -63,15 +63,3 @@ export class UserUpdatedResponse implements IUserPutResponse {
   @ApiProperty({ type: UserInfoResponse })
   result!: UserInfoResponse
 }
-
-export class StatisticsResponse {
-  @ApiProperty({
-    type: 'object',
-    properties: Object.fromEntries(USER_STATUSES.map((status) => [status, { type: 'integer' }])),
-    required: [...USER_STATUSES]
-  })
-  usersByStatus!: Record<UserStatus, number>
-
-  @ApiProperty({ format: 'date-time', description: 'When this server instance started' })
-  startedAt!: string
-}

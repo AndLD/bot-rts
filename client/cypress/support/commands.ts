@@ -130,6 +130,12 @@ declare global {
       teleportBot(options: { token: string; baseId: string; botId: string; x: number; y: number }): Chainable<void>
       // Writes a file on the first drive of a bot, as a player does in the editor
       writeScriptFile(options: { token: string; botId: string; path: string; content: string }): Chainable<void>
+      // Makes an API key through the API (as the player's session); resolves to the secret
+      createApiKey(options: { token: string; name?: string; scopes: string[] }): Chainable<string>
+      // Starts a script file of a bot over HTTP; resolves to the id of the execution
+      runScript(options: { token: string; botId: string; file?: string; args?: unknown[] }): Chainable<string>
+      // Waits until the terminal history of a bot has a line that matches, and resolves to all of its lines
+      historyHas(options: { token: string; botId: string; line: RegExp }): Chainable<string[]>
       assembleWorker(options: {
         email: string
         token: string
@@ -217,6 +223,40 @@ Cypress.Commands.add('writeScriptFile', ({ token, botId, path, content }) => {
       body: { path, content }
     })
   })
+})
+
+Cypress.Commands.add('createApiKey', ({ token, name = 'e2e', scopes }) =>
+  cy
+    .apiRequest({
+      method: 'POST',
+      path: '/api/v1/api-keys',
+      headers: { Authorization: `Bearer ${token}` },
+      body: { name, scopes }
+    })
+    .its('body.secret')
+)
+
+Cypress.Commands.add('runScript', ({ token, botId, file = '/memory-class1/job.js', args = [] }) =>
+  cy
+    .apiRequest({
+      method: 'POST',
+      path: `/api/v1/bots/${botId}/executions`,
+      headers: { Authorization: `Bearer ${token}` },
+      body: { file, args }
+    })
+    .its('body.id')
+)
+
+Cypress.Commands.add('historyHas', ({ token, botId, line }) => {
+  const read = () =>
+    cy
+      .apiRequest({
+        path: `/api/v1/bots/${botId}/terminal-history?limit=200`,
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((response) => (response.body as Array<{ text: string }>).map((entry) => entry.text))
+
+  return eventually(read, (lines) => lines.some((text) => line.test(text)), 60)
 })
 
 // The engine writes the world to the database a little after it happens, so a task that reads the database asks again until it

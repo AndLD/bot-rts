@@ -97,6 +97,20 @@ export default defineConfig({
           return null
         },
 
+        // The MCP server of mcp/ plays a few tools over stdio against this game with the given key (scripts/mcp-smoke.mjs)
+        mcpSmoke({ apiKey, botId }: { apiKey: string; botId: string }) {
+          const output = execFileSync(
+            process.execPath,
+            [join(process.cwd(), '..', 'scripts', 'mcp-smoke.mjs'), `http://localhost:${API_PORT}`, apiKey, botId],
+            { encoding: 'utf8', timeout: 60_000 }
+          )
+
+          return JSON.parse(output.trim().split('\n').at(-1) as string) as Record<
+            string,
+            { isError: boolean; text: string }
+          >
+        },
+
         // The links of the newest email to an address with the given subject, or null while none has arrived
         mailLink({ to, subject }: { to: string; subject: string }) {
           const mail = readOutbox()
@@ -311,6 +325,18 @@ export default defineConfig({
           return (
             (rows[0] as { type: string | null; resource: string | null; amount: number | null } | undefined) ?? null
           )
+        },
+
+        // The cell is on the map and empty (a cell that is missing is generated again, with whatever the world seed puts there)
+        async emptyCell({ x, y }: { x: number; y: number }) {
+          await sql(
+            `INSERT INTO map_points (id, x, y, z, type, content_id, resource, amount)
+             VALUES (gen_random_uuid(), $1, $2, 0, NULL, NULL, NULL, NULL)
+             ON CONFLICT (x, y, z) DO UPDATE SET type = NULL, content_id = NULL, resource = NULL, amount = NULL`,
+            [x, y]
+          )
+
+          return null
         },
 
         // Whatever lay on a cell is gone

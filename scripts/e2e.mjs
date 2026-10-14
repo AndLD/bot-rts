@@ -99,6 +99,9 @@ try {
 
   const apiUrl = `http://localhost:${API_PORT}`
 
+  // The MCP server the specs play with, built like the API image would have it
+  run('npm', ['run', 'build', '-w', 'mcp'])
+
   if (shouldBuild) {
     run('npm', ['run', 'build', '-w', 'client'], {
       env: {

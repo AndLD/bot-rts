@@ -64,7 +64,7 @@ about 15 minutes it is sharded and run in parallel.
 | Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |
 | Player docs: `/docs` navigation and search, language switch, landing link, in-game Help window and contextual "?" links | 7.13 |
-| API key lifecycle; two-player interaction (contest, fog privacy, attack, adopt) | 8.13 |
+| API key lifecycle in the account page (create, shown once, use within scopes, revoke); two-player interaction (contested cell `BLOCKED`, private fog of war, an attack seen by the defender) | 8.13 (`api-keys.cy.ts`, `multiplayer.cy.ts`) |
 | Account management: forgot / reset password, change password, change email, delete account | 2.7 |
 | Signup validation, expired or reused verification link, login lockout, banned user mid-session | 2.7 |
 | Spawn seeds: same code spawns nearby, full seed, expired seed | 3.13 (`spawn-seeds.cy.ts`) |
@@ -73,7 +73,7 @@ about 15 minutes it is sharded and run in parallel.
 | Relay chains, messages, world consistency, reload / reconnect / token expiry, two tabs, manual-action budget, admin category switches | 6.6 (`connect.cy.ts`, `map.cy.ts`, `resilience.cy.ts`, `control.cy.ts`); `sendMessage` / `ping` do not exist yet; the socket reconnect and two tabs are covered by `realtime.gateway.test.ts` and the socket tests of `api.int.test.ts` (Cypress cannot cut a WebSocket); the one-action-at-a-time rule of manual actions: `engine-core.test.ts` |
 | Deposit depletion and contest, combat details, items and blueprint items | 6.12 (`gameplay.cy.ts`, `storage-factory.cy.ts`); ammunition, armour and artillery numbers: the unit tests of the combat handler and the weapon module |
 | Notification coalescing, translated terminal responses | 7.9 |
-| Read-only API key, MCP smoke test, corpse base and stale bots seen by other players | 8.13 |
+| Read-only API key, MCP smoke test (scan, move), corpse base and stale bots seen by other players, adopting a stale bot | 8.13 (`api-keys.cy.ts`, `mcp.cy.ts`, `multiplayer.cy.ts`) |
 | Admin console: role-based access, two-factor sign-in, dashboard, ban, inspector, supervision actions, maintenance mode, balance edit, announcements | 9.13 |
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |

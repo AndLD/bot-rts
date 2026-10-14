@@ -53,6 +53,15 @@ describe('loadConfig', () => {
         recoveryCodeCount: 8,
         secret: 'development-only-access-secret'
       },
+      monitoring: {
+        isEnabled: true,
+        sampleIntervalMs: 10_000,
+        fineRetentionMs: 7 * 24 * 60 * 60 * 1000,
+        coarseStepMs: 60_000,
+        coarseRetentionMs: 30 * 24 * 60 * 60 * 1000,
+        alertEmails: [],
+        thresholds: {}
+      },
       observability: { metricsToken: undefined },
       lifecycle: {
         isEnabled: true,
@@ -276,6 +285,37 @@ describe('loadConfig', () => {
     })
     expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'access' }).admin.secret).toBe('access')
     expect(() => loadConfig({ ...base, ADMIN_2FA_TTL: 'soon' })).toThrow('ADMIN_2FA_TTL')
+  })
+
+  it('reads the monitoring settings, and keeps the sampler off in tests', () => {
+    const monitoring = loadConfig({
+      ...base,
+      MONITORING_INTERVAL_MS: '5000',
+      MONITORING_FINE_RETENTION: '1d',
+      MONITORING_COARSE_RETENTION: '10d',
+      ADMIN_ALERT_EMAILS: 'a@x.io, b@x.io',
+      ADMIN_ALERT_THRESHOLDS: '{"api.errorRate5xx":{"yellow":0.02,"red":0.1}}'
+    }).monitoring
+
+    expect(monitoring).toMatchObject({
+      sampleIntervalMs: 5000,
+      fineRetentionMs: 86_400_000,
+      coarseRetentionMs: 864_000_000,
+      alertEmails: ['a@x.io', 'b@x.io'],
+      thresholds: { 'api.errorRate5xx': { yellow: 0.02, red: 0.1 } }
+    })
+    expect(loadConfig({ ...base, NODE_ENV: 'test' }).monitoring.isEnabled).toBe(false)
+    expect(loadConfig({ ...base, NODE_ENV: 'test', MONITORING_ENABLED: 'true' }).monitoring.isEnabled).toBe(true)
+  })
+
+  it.each([
+    'not json',
+    '{"unknown.metric":{"red":1}}',
+    '{"api.errorRate5xx":{"orange":1}}',
+    '{"api.errorRate5xx":{"red":"x"}}',
+    'null'
+  ])('rejects the alert thresholds %s', (raw) => {
+    expect(() => loadConfig({ ...base, ADMIN_ALERT_THRESHOLDS: raw })).toThrow('ADMIN_ALERT_THRESHOLDS')
   })
 
   it('remembers a token owner for 2 s outside tests, and reads the setting', () => {

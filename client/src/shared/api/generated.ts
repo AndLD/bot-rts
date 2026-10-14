@@ -303,6 +303,24 @@ const injectedRtkApi = api.injectEndpoints({
     healthLive: build.query<HealthLiveApiResponse, HealthLiveApiArg>({
       query: () => ({ url: `/api/v1/health/live` })
     }),
+    monitoringHealth: build.query<MonitoringHealthApiResponse, MonitoringHealthApiArg>({
+      query: () => ({ url: `/api/v1/admin/monitoring/health` })
+    }),
+    monitoringSeries: build.query<MonitoringSeriesApiResponse, MonitoringSeriesApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/monitoring/series`,
+        params: {
+          metric: queryArg.metric,
+          range: queryArg.range
+        }
+      })
+    }),
+    monitoringAlerts: build.query<MonitoringAlertsApiResponse, MonitoringAlertsApiArg>({
+      query: () => ({ url: `/api/v1/admin/monitoring/alerts` })
+    }),
+    monitoringAcknowledge: build.mutation<MonitoringAcknowledgeApiResponse, MonitoringAcknowledgeApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/monitoring/alerts/${queryArg.id}/acknowledge`, method: 'POST' })
+    }),
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
     }),
@@ -578,6 +596,19 @@ export type HealthReadyApiResponse = /** status 200  */ HealthResponse
 export type HealthReadyApiArg = void
 export type HealthLiveApiResponse = /** status 200  */ HealthResponse
 export type HealthLiveApiArg = void
+export type MonitoringHealthApiResponse = /** status 200  */ HealthReportResponse
+export type MonitoringHealthApiArg = void
+export type MonitoringSeriesApiResponse = /** status 200  */ MetricSeriesResponse
+export type MonitoringSeriesApiArg = {
+  metric: string
+  range: '1h' | '6h' | '24h' | '7d' | '30d'
+}
+export type MonitoringAlertsApiResponse = /** status 200  */ AlertResponse[]
+export type MonitoringAlertsApiArg = void
+export type MonitoringAcknowledgeApiResponse = /** status 200  */ AlertResponse
+export type MonitoringAcknowledgeApiArg = {
+  id: string
+}
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
 export type ApiKeysListApiResponse = /** status 200  */ ApiKeyResponse[]
@@ -1227,6 +1258,43 @@ export type HealthResponse = {
   /** Present when the node uses the engine */
   engine?: 'up'
 }
+export type MetricHealthModel = {
+  id: string
+  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  unit: string
+  value: number | null
+  status: 'green' | 'yellow' | 'red'
+}
+export type AreaHealthModel = {
+  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  status: 'green' | 'yellow' | 'red'
+  metrics: MetricHealthModel[]
+}
+export type AlertResponse = {
+  _id: string
+  metric: string
+  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  severity: 'yellow' | 'red'
+  value: number
+  threshold: number
+  /** Milliseconds since the epoch */
+  openedAt: number
+  clearedAt: number | null
+  acknowledgedAt: number | null
+  acknowledgedBy: string | null
+}
+export type HealthReportResponse = {
+  /** Milliseconds since the epoch */
+  sampledAt: number | null
+  status: 'green' | 'yellow' | 'red'
+  areas: AreaHealthModel[]
+  alerts: AlertResponse[]
+}
+export type MetricSeriesResponse = {
+  metric: string
+  stepMs: number
+  points: number[][]
+}
 export type DayPhaseSpanResponse = {
   phase: 'night' | 'morning' | 'day' | 'evening'
   /** In-game hour at which this part of the day starts */
@@ -1384,6 +1452,10 @@ export const {
   useExecutionsHistoryQuery,
   useHealthReadyQuery,
   useHealthLiveQuery,
+  useMonitoringHealthQuery,
+  useMonitoringSeriesQuery,
+  useMonitoringAlertsQuery,
+  useMonitoringAcknowledgeMutation,
   useGameTimeCurrentQuery,
   useApiKeysListQuery,
   useApiKeysCreateMutation,

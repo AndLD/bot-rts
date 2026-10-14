@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module'
 import { RedisModule } from './redis/redis.module'
 import { RateLimitModule } from './ratelimit/ratelimit.module'
 import { MetricsModule } from './metrics/metrics.module'
+import { MonitoringModule } from './monitoring/monitoring.module'
 import { LifecycleModule } from './lifecycle/lifecycle.module'
 import { PersistenceModule } from './persistence/persistence.module'
 import { TerminalModule } from './terminal/terminal.module'
@@ -57,6 +58,7 @@ export class AppModule {
         RealtimeModule,
         HealthModule,
         MetricsModule,
+        MonitoringModule,
         LifecycleModule,
         TimeModule
       ]

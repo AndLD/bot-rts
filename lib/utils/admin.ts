@@ -126,3 +126,59 @@ export interface IAuditPage {
   result: IAuditEntry[]
   meta: { pagination: { page: number; results: number; total: number } }
 }
+
+// Health and metrics shown by the console (design §25.5)
+export const MONITOR_AREAS = ['engine', 'scripts', 'api', 'infrastructure'] as const
+
+export type MonitorArea = (typeof MONITOR_AREAS)[number]
+
+export const HEALTH_STATUSES = ['green', 'yellow', 'red'] as const
+
+export type HealthStatus = (typeof HEALTH_STATUSES)[number]
+
+export const METRIC_RANGES = ['1h', '6h', '24h', '7d', '30d'] as const
+
+export type MetricRange = (typeof METRIC_RANGES)[number]
+
+export interface IMetricHealth {
+  id: string
+  area: MonitorArea
+  unit: string
+  value: number | null
+  status: HealthStatus
+}
+
+export interface IAreaHealth {
+  area: MonitorArea
+  status: HealthStatus
+  metrics: IMetricHealth[]
+}
+
+export interface IAlert {
+  _id: string
+  metric: string
+  area: MonitorArea
+  severity: Exclude<HealthStatus, 'green'>
+  value: number
+  threshold: number
+  // Milliseconds since the epoch
+  openedAt: number
+  clearedAt: number | null
+  acknowledgedAt: number | null
+  acknowledgedBy: string | null
+}
+
+export interface IHealthReport {
+  // Milliseconds since the epoch; null before the first sample
+  sampledAt: number | null
+  status: HealthStatus
+  areas: IAreaHealth[]
+  alerts: IAlert[]
+}
+
+export interface IMetricSeries {
+  metric: string
+  stepMs: number
+  // [milliseconds since the epoch, value]
+  points: Array<[number, number]>
+}

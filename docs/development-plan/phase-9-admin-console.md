@@ -17,7 +17,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
 | 9.1 | Admin foundations (design §25.2): admin roles and fine-grained permissions with server-side guards and decorators, mandatory TOTP two-factor authentication, append-only audit log (port + interceptor) and its API, `/api/v1/admin/*` namespace (rejected for API keys), the `(admin)` route group and layout in the Next.js app; the legacy statistics and debug endpoints are removed (replaced by 9.3 and 9.12) | 8 | ✅ |
-| 9.2 | Metrics history and alerting (design §25.5): a `MetricsPort` implemented over the 8.3 metrics, rolling time-series store with downsampling, health status per area, configurable alert thresholds, in-console and email alerts, Prometheus-compatible `/metrics` | 5 | ⬜ |
+| 9.2 | Metrics history and alerting (design §25.5): a `MetricsPort` implemented over the 8.3 metrics, rolling time-series store with downsampling, health status per area, configurable alert thresholds, in-console and email alerts, Prometheus-compatible `/metrics` | 5 | ✅ |
 | 9.3 | Dashboard page: live health and performance charts for engine, scripts, world, API and sockets, database, jobs and infrastructure, status tiles, alert list, time-range picker; live updates over an admin Socket.IO namespace | 8 | ⬜ |
 | 9.4 | Players page: server-side search and typed filters, profile with sessions, bases, bots, resources and activity timeline, moderation actions (ban / unban with reason and duration, force logout, resend verification, trigger password reset, change role, delete account), notes | 8 | ⬜ |
 | 9.5 | Inspector and world map: read-only inspection of any base or bot (modules, energy, position, storage, drives, executions, logs), file viewing behind a permission and an audit entry, map without fog of war reusing the map renderer, entity search by id or coordinates, heatmaps (density, depletion, activity), live game-event tail | 13 | ⬜ |
@@ -45,4 +45,5 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| `feature/9.1-admin-foundations` | 9.1 | _this PR_ | open |
+| `feature/9.1-admin-foundations` | 9.1 | [#151](https://github.com/AndLD/bot-rts/pull/151) | merged |
+| `feature/9.2-metrics-history-alerting` | 9.2 | _this PR_ | open |

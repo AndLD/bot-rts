@@ -4228,6 +4228,285 @@
         ]
       }
     },
+    "/api/v1/admin/monitoring/health": {
+      "get": {
+        "operationId": "monitoringHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportResponse"
+                },
+                "example": {
+                  "sampledAt": 1,
+                  "status": "green",
+                  "areas": [
+                    {
+                      "area": "engine",
+                      "status": "green",
+                      "metrics": [
+                        null
+                      ]
+                    }
+                  ],
+                  "alerts": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "metric": "string",
+                      "area": "engine",
+                      "severity": "yellow",
+                      "value": 1,
+                      "threshold": 1,
+                      "openedAt": 1,
+                      "clearedAt": 1,
+                      "acknowledgedAt": 1,
+                      "acknowledgedBy": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/monitoring/health\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/monitoring/series": {
+      "get": {
+        "operationId": "monitoringSeries",
+        "parameters": [
+          {
+            "name": "metric",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "engine.tickP95Ms",
+              "type": "string"
+            }
+          },
+          {
+            "name": "range",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "30d"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricSeriesResponse"
+                },
+                "example": {
+                  "metric": "string",
+                  "stepMs": 1,
+                  "points": [
+                    [
+                      1
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/monitoring/series\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/monitoring/alerts": {
+      "get": {
+        "operationId": "monitoringAlerts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AlertResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "_id": "00000000-0000-4000-8000-000000000000",
+                    "metric": "string",
+                    "area": "engine",
+                    "severity": "yellow",
+                    "value": 1,
+                    "threshold": 1,
+                    "openedAt": 1,
+                    "clearedAt": 1,
+                    "acknowledgedAt": 1,
+                    "acknowledgedBy": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/monitoring/alerts\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/monitoring/alerts/{id}/acknowledge": {
+      "post": {
+        "operationId": "monitoringAcknowledge",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "metric": "string",
+                  "area": "engine",
+                  "severity": "yellow",
+                  "value": 1,
+                  "threshold": 1,
+                  "openedAt": 1,
+                  "clearedAt": 1,
+                  "acknowledgedAt": 1,
+                  "acknowledgedBy": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "alerts.acknowledge",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/monitoring/alerts/00000000-0000-4000-8000-000000000000/acknowledge\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/time": {
       "get": {
         "operationId": "gameTimeCurrent",
@@ -6698,6 +6977,203 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "MetricHealthModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string",
+            "enum": [
+              "engine",
+              "scripts",
+              "api",
+              "infrastructure"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "area",
+          "unit",
+          "value",
+          "status"
+        ]
+      },
+      "AreaHealthModel": {
+        "type": "object",
+        "properties": {
+          "area": {
+            "type": "string",
+            "enum": [
+              "engine",
+              "scripts",
+              "api",
+              "infrastructure"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ]
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetricHealthModel"
+            }
+          }
+        },
+        "required": [
+          "area",
+          "status",
+          "metrics"
+        ]
+      },
+      "AlertResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string",
+            "enum": [
+              "engine",
+              "scripts",
+              "api",
+              "infrastructure"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "yellow",
+              "red"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "threshold": {
+            "type": "number"
+          },
+          "openedAt": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "clearedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "acknowledgedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "acknowledgedBy": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "_id",
+          "metric",
+          "area",
+          "severity",
+          "value",
+          "threshold",
+          "openedAt",
+          "clearedAt",
+          "acknowledgedAt",
+          "acknowledgedBy"
+        ]
+      },
+      "HealthReportResponse": {
+        "type": "object",
+        "properties": {
+          "sampledAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "Milliseconds since the epoch"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ]
+          },
+          "areas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaHealthModel"
+            }
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlertResponse"
+            }
+          }
+        },
+        "required": [
+          "sampledAt",
+          "status",
+          "areas",
+          "alerts"
+        ]
+      },
+      "MetricSeriesResponse": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "stepMs": {
+            "type": "number"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        },
+        "required": [
+          "metric",
+          "stepMs",
+          "points"
         ]
       },
       "DayPhaseSpanResponse": {

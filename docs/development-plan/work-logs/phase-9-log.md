@@ -27,3 +27,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 9.2, metrics history and alerting (`MetricsPort` over the 8.3 metrics).
 - **Verify with:** `npx jest --selectProjects integration --testPathPattern admin.int` and `npx jest src/admin` from `api`; `npm test -w client -- admin`
 
+### 2026-10-15 — task 9.2 metrics history and alerting
+- **Tasks:** 9.2
+- **Branch:** `feature/9.2-metrics-history-alerting` — done
+- **Decisions / deviations from the plan:** a new `monitoring` feature module. `MetricsPort` (`RuntimeMetricsPort`) samples the engine through the engine port (so any node can), the HTTP counters of `HttpMetrics` (new `totals()`), and the process; rates and the latency percentile are computed between two samples. `MetricHistory` is a ring buffer per tier (10 s for 7 days, one-minute averages for 30 days, both tunable), in the memory of the process: each node keeps its own history and the console shows the node that answers (a database-backed store is the follow-up if that is not enough). The alert rules and default thresholds of design §25.5 that have a metric today are in `monitoring/domain/metric-catalog.ts` (engine up, tick p95 > 80 % of the interval, overrun rate > 1 %, 5xx share, latency, scheduler wait); the database, market, jobs and infrastructure (disk, backup) metrics of §25.5 are not sampled yet because their sources do not exist, and join by adding catalog entries. Thresholds can be overridden with `ADMIN_ALERT_THRESHOLDS`. A red alert is emailed to `ADMIN_ALERT_EMAILS` (the owner is not looked up; empty means no email). The Prometheus endpoint already existed (8.3); it gains `botrts_alerts_open`.
+- **Problems / blockers / findings:** the CI gate also checks coverage per changed file (97 %), not only the package totals; check it with `node scripts/check-changed-coverage.mjs origin/develop api client` before pushing.
+- **Next step:** 9.3, the dashboard page.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern monitoring.int` and `npx jest src/monitoring` from `api`
+

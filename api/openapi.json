@@ -2000,6 +2000,569 @@
         ]
       }
     },
+    "/api/v1/admin/inspector/search": {
+      "get": {
+        "operationId": "inspectorSearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "The id of a bot, a base or a player, or a cell like 12,-4",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SearchResultResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "kind": "bot",
+                    "id": "string",
+                    "label": "string",
+                    "x": 1,
+                    "y": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/search\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/inspector/bots/{id}": {
+      "get": {
+        "operationId": "inspectorBot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InspectorBotResponse"
+                },
+                "example": {
+                  "_id": "00000000-0000-4000-8000-000000000000",
+                  "label": "string",
+                  "type": "base",
+                  "ownerId": "string",
+                  "ownerName": "string",
+                  "baseId": "string",
+                  "position": {
+                    "x": 1,
+                    "y": 1
+                  },
+                  "heading": 1,
+                  "energy": {
+                    "stored": 1,
+                    "capacity": 1
+                  },
+                  "storage": [
+                    {
+                      "resource": "string",
+                      "amount": 1
+                    }
+                  ],
+                  "modules": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "type": "string",
+                      "name": "string",
+                      "condition": 1,
+                      "maxCondition": 1,
+                      "weight": 1,
+                      "props": {}
+                    }
+                  ],
+                  "drives": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "name": "string",
+                      "quota": 1,
+                      "usedBytes": 1
+                    }
+                  ],
+                  "executions": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "file": "string",
+                      "status": "active",
+                      "restarts": 1,
+                      "reason": "string",
+                      "createdAt": 1,
+                      "endedAt": 1
+                    }
+                  ],
+                  "logs": [
+                    {
+                      "at": 1,
+                      "kind": "string",
+                      "text": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/bots/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/inspector/bots/{id}/drives/{driveId}/files": {
+      "get": {
+        "operationId": "inspectorFiles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "driveId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dir",
+            "required": false,
+            "in": "query",
+            "description": "A directory of the drive; omitted: the root",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InspectorFileResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "path": "string",
+                    "kind": "file",
+                    "size": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/files\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/inspector/bots/{id}/drives/{driveId}/file": {
+      "get": {
+        "operationId": "inspectorFile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "driveId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InspectorFileContentResponse"
+                },
+                "example": {
+                  "path": "string",
+                  "size": 1,
+                  "content": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "inspector.files.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/bots/00000000-0000-4000-8000-000000000000/drives/00000000-0000-4000-8000-000000000000/file\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/inspector/map": {
+      "get": {
+        "operationId": "inspectorMap",
+        "parameters": [
+          {
+            "name": "minX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapViewResponse"
+                },
+                "example": {
+                  "now": 1,
+                  "cells": [
+                    {
+                      "x": 1,
+                      "y": 1,
+                      "type": "resource",
+                      "contentId": "00000000-0000-4000-8000-000000000000",
+                      "seenAt": 1,
+                      "resource": null,
+                      "capacity": 1,
+                      "isOwn": false,
+                      "chassis": "wheels",
+                      "icons": [
+                        null
+                      ],
+                      "isDamaged": false,
+                      "item": "blueprint"
+                    }
+                  ],
+                  "liveAreas": [
+                    {
+                      "scannerId": "00000000-0000-4000-8000-000000000000",
+                      "botId": "00000000-0000-4000-8000-000000000000",
+                      "x": 1,
+                      "y": 1,
+                      "radius": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "map.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/map\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/inspector/heatmap": {
+      "get": {
+        "operationId": "inspectorHeatmap",
+        "parameters": [
+          {
+            "name": "minX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxX",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxY",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "density",
+                "depletion",
+                "activity"
+              ]
+            }
+          },
+          {
+            "name": "bucket",
+            "required": true,
+            "in": "query",
+            "description": "Cells per side of a bucket",
+            "schema": {
+              "type": "number",
+              "enum": [
+                8,
+                16,
+                32,
+                64
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeatmapResponse"
+                },
+                "example": {
+                  "kind": "density",
+                  "bucket": 1,
+                  "buckets": [
+                    {
+                      "x": 1,
+                      "y": 1,
+                      "intensity": 1,
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "map.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/inspector/heatmap\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/crafting/recipes": {
       "get": {
         "operationId": "craftingRecipeList",
@@ -6615,6 +7178,557 @@
           "text"
         ]
       },
+      "SearchResultResponse": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bot",
+              "base",
+              "player",
+              "cell"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number",
+            "nullable": true
+          },
+          "y": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "label",
+          "x",
+          "y"
+        ]
+      },
+      "PositionModel": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ]
+      },
+      "EnergyModel": {
+        "type": "object",
+        "properties": {
+          "stored": {
+            "type": "number"
+          },
+          "capacity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "stored",
+          "capacity"
+        ]
+      },
+      "StockModel": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "InspectorModuleModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "number"
+          },
+          "maxCondition": {
+            "type": "number"
+          },
+          "weight": {
+            "type": "number"
+          },
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "_id",
+          "type",
+          "name",
+          "condition",
+          "maxCondition",
+          "weight",
+          "props"
+        ]
+      },
+      "InspectorDriveModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quota": {
+            "type": "number"
+          },
+          "usedBytes": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "quota",
+          "usedBytes"
+        ]
+      },
+      "InspectorExecutionModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "file": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "finished",
+              "killed"
+            ]
+          },
+          "restarts": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "endedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "_id",
+          "file",
+          "status",
+          "restarts",
+          "reason",
+          "createdAt",
+          "endedAt"
+        ]
+      },
+      "InspectorLogModel": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "kind",
+          "text"
+        ]
+      },
+      "InspectorBotResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "base",
+              "worker"
+            ]
+          },
+          "ownerId": {
+            "type": "string",
+            "nullable": true
+          },
+          "ownerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "baseId": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PositionModel"
+              }
+            ]
+          },
+          "heading": {
+            "type": "number"
+          },
+          "energy": {
+            "$ref": "#/components/schemas/EnergyModel"
+          },
+          "storage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockModel"
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InspectorModuleModel"
+            }
+          },
+          "drives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InspectorDriveModel"
+            }
+          },
+          "executions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InspectorExecutionModel"
+            }
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InspectorLogModel"
+            }
+          }
+        },
+        "required": [
+          "_id",
+          "label",
+          "type",
+          "ownerId",
+          "ownerName",
+          "baseId",
+          "position",
+          "heading",
+          "energy",
+          "storage",
+          "modules",
+          "drives",
+          "executions",
+          "logs"
+        ]
+      },
+      "InspectorFileResponse": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "file",
+              "directory"
+            ]
+          },
+          "size": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "size"
+        ]
+      },
+      "InspectorFileContentResponse": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "size",
+          "content"
+        ]
+      },
+      "ResourceModel": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "iron",
+              "stone",
+              "wood",
+              "oil",
+              "crystal",
+              "gold"
+            ]
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "amount"
+        ]
+      },
+      "MapCellResponse": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "resource",
+              "bot",
+              "item",
+              "base",
+              "corpse_base"
+            ],
+            "nullable": true
+          },
+          "contentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "seenAt": {
+            "type": "number",
+            "description": "Game time of the snapshot, in ms"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/ResourceModel"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "What the deposit held when it was generated"
+          },
+          "isOwn": {
+            "type": "boolean",
+            "description": "On bots and bases: whether they are the requesting player’s"
+          },
+          "chassis": {
+            "type": "string",
+            "enum": [
+              "wheels",
+              "tracks",
+              "immobile"
+            ]
+          },
+          "icons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "drill",
+                "scanner",
+                "antenna",
+                "solar"
+              ]
+            }
+          },
+          "isDamaged": {
+            "type": "boolean"
+          },
+          "item": {
+            "type": "string",
+            "enum": [
+              "blueprint",
+              "ammunition",
+              "part",
+              "generic"
+            ]
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "type",
+          "contentId",
+          "seenAt"
+        ]
+      },
+      "LiveAreaResponse": {
+        "type": "object",
+        "properties": {
+          "scannerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "botId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "scannerId",
+          "botId",
+          "x",
+          "y",
+          "radius"
+        ]
+      },
+      "MapViewResponse": {
+        "type": "object",
+        "properties": {
+          "now": {
+            "type": "number",
+            "description": "Game time of the server, in ms"
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapCellResponse"
+            }
+          },
+          "liveAreas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiveAreaResponse"
+            }
+          }
+        },
+        "required": [
+          "now",
+          "cells",
+          "liveAreas"
+        ]
+      },
+      "HeatBucketModel": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "intensity": {
+            "type": "number"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "intensity",
+          "value"
+        ]
+      },
+      "HeatmapResponse": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "density",
+              "depletion",
+              "activity"
+            ]
+          },
+          "bucket": {
+            "type": "number"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HeatBucketModel"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "bucket",
+          "buckets"
+        ]
+      },
       "RecipeResourceResponse": {
         "type": "object",
         "properties": {
@@ -7437,166 +8551,6 @@
         "required": [
           "scrap",
           "blueprint"
-        ]
-      },
-      "ResourceModel": {
-        "type": "object",
-        "properties": {
-          "resource": {
-            "type": "string",
-            "enum": [
-              "iron",
-              "stone",
-              "wood",
-              "oil",
-              "crystal",
-              "gold"
-            ]
-          },
-          "amount": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "resource",
-          "amount"
-        ]
-      },
-      "MapCellResponse": {
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "number"
-          },
-          "y": {
-            "type": "number"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "resource",
-              "bot",
-              "item",
-              "base",
-              "corpse_base"
-            ],
-            "nullable": true
-          },
-          "contentId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "seenAt": {
-            "type": "number",
-            "description": "Game time of the snapshot, in ms"
-          },
-          "resource": {
-            "$ref": "#/components/schemas/ResourceModel"
-          },
-          "capacity": {
-            "type": "number",
-            "description": "What the deposit held when it was generated"
-          },
-          "isOwn": {
-            "type": "boolean",
-            "description": "On bots and bases: whether they are the requesting player’s"
-          },
-          "chassis": {
-            "type": "string",
-            "enum": [
-              "wheels",
-              "tracks",
-              "immobile"
-            ]
-          },
-          "icons": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "weapon",
-                "drill",
-                "scanner",
-                "antenna",
-                "solar"
-              ]
-            }
-          },
-          "isDamaged": {
-            "type": "boolean"
-          },
-          "item": {
-            "type": "string",
-            "enum": [
-              "blueprint",
-              "ammunition",
-              "part",
-              "generic"
-            ]
-          }
-        },
-        "required": [
-          "x",
-          "y",
-          "type",
-          "contentId",
-          "seenAt"
-        ]
-      },
-      "LiveAreaResponse": {
-        "type": "object",
-        "properties": {
-          "scannerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "botId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "x": {
-            "type": "number"
-          },
-          "y": {
-            "type": "number"
-          },
-          "radius": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "scannerId",
-          "botId",
-          "x",
-          "y",
-          "radius"
-        ]
-      },
-      "MapViewResponse": {
-        "type": "object",
-        "properties": {
-          "now": {
-            "type": "number",
-            "description": "Game time of the server, in ms"
-          },
-          "cells": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MapCellResponse"
-            }
-          },
-          "liveAreas": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LiveAreaResponse"
-            }
-          }
-        },
-        "required": [
-          "now",
-          "cells",
-          "liveAreas"
         ]
       },
       "BotPositionResponse": {

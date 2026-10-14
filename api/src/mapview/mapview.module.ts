@@ -51,7 +51,7 @@ import { MapStreamer } from './presentation/map-streamer'
       ) => new MapViewService(maps, bots, modules, items, clock, areas, world.resources)
     }
   ],
-  exports: [MapStreamer]
+  exports: [MapStreamer, MapViewService]
 })
 export class MapViewModule implements OnApplicationBootstrap, OnApplicationShutdown {
   constructor(@Inject(LiveAreaRegistry) private readonly registry: LiveAreaRegistry) {}

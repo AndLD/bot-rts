@@ -164,6 +164,57 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.addNoteDto
       })
     }),
+    inspectorSearch: build.query<InspectorSearchApiResponse, InspectorSearchApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/inspector/search`,
+        params: {
+          q: queryArg.q
+        }
+      })
+    }),
+    inspectorBot: build.query<InspectorBotApiResponse, InspectorBotApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/inspector/bots/${queryArg.id}` })
+    }),
+    inspectorFiles: build.query<InspectorFilesApiResponse, InspectorFilesApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/inspector/bots/${queryArg.id}/drives/${queryArg.driveId}/files`,
+        params: {
+          dir: queryArg.dir
+        }
+      })
+    }),
+    inspectorFile: build.query<InspectorFileApiResponse, InspectorFileApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/inspector/bots/${queryArg.id}/drives/${queryArg.driveId}/file`,
+        params: {
+          path: queryArg.path
+        }
+      })
+    }),
+    inspectorMap: build.query<InspectorMapApiResponse, InspectorMapApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/inspector/map`,
+        params: {
+          minX: queryArg.minX,
+          minY: queryArg.minY,
+          maxX: queryArg.maxX,
+          maxY: queryArg.maxY
+        }
+      })
+    }),
+    inspectorHeatmap: build.query<InspectorHeatmapApiResponse, InspectorHeatmapApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/inspector/heatmap`,
+        params: {
+          minX: queryArg.minX,
+          minY: queryArg.minY,
+          maxX: queryArg.maxX,
+          maxY: queryArg.maxY,
+          kind: queryArg.kind,
+          bucket: queryArg.bucket
+        }
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -555,6 +606,45 @@ export type PlayersAddNoteApiResponse = /** status 201  */ PlayerNoteResponse
 export type PlayersAddNoteApiArg = {
   id: string
   addNoteDto: AddNoteDto
+}
+export type InspectorSearchApiResponse = /** status 200  */ SearchResultResponse[]
+export type InspectorSearchApiArg = {
+  /** The id of a bot, a base or a player, or a cell like 12,-4 */
+  q: string
+}
+export type InspectorBotApiResponse = /** status 200  */ InspectorBotResponse
+export type InspectorBotApiArg = {
+  id: string
+}
+export type InspectorFilesApiResponse = /** status 200  */ InspectorFileResponse[]
+export type InspectorFilesApiArg = {
+  id: string
+  driveId: string
+  /** A directory of the drive; omitted: the root */
+  dir?: string
+}
+export type InspectorFileApiResponse = /** status 200  */ InspectorFileContentResponse
+export type InspectorFileApiArg = {
+  id: string
+  driveId: string
+  path: string
+}
+export type InspectorMapApiResponse = /** status 200  */ MapViewResponse
+export type InspectorMapApiArg = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+}
+export type InspectorHeatmapApiResponse = /** status 200  */ HeatmapResponse
+export type InspectorHeatmapApiArg = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+  kind: 'density' | 'depletion' | 'activity'
+  /** Cells per side of a bucket */
+  bucket: 8 | 16 | 32 | 64
 }
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
@@ -1064,6 +1154,127 @@ export type ChangeRoleDto = {
 export type AddNoteDto = {
   text: string
 }
+export type SearchResultResponse = {
+  kind: 'bot' | 'base' | 'player' | 'cell'
+  id: string | null
+  label: string
+  x: number | null
+  y: number | null
+}
+export type PositionModel = {
+  x: number
+  y: number
+}
+export type EnergyModel = {
+  stored: number
+  capacity: number
+}
+export type StockModel = {
+  resource: string
+  amount: number
+}
+export type InspectorModuleModel = {
+  _id: string
+  type: string
+  name: string
+  condition: number
+  maxCondition: number
+  weight: number
+  props: {
+    [key: string]: string
+  }
+}
+export type InspectorDriveModel = {
+  _id: string
+  name: string
+  quota: number
+  usedBytes: number
+}
+export type InspectorExecutionModel = {
+  _id: string
+  file: string
+  status: 'active' | 'finished' | 'killed'
+  restarts: number
+  reason: string | null
+  createdAt: number
+  endedAt: number | null
+}
+export type InspectorLogModel = {
+  at: number
+  kind: string
+  text: string
+}
+export type InspectorBotResponse = {
+  _id: string
+  label: string | null
+  type: 'base' | 'worker'
+  ownerId: string | null
+  ownerName: string | null
+  baseId: string | null
+  position: PositionModel | null
+  heading: number
+  energy: EnergyModel
+  storage: StockModel[]
+  modules: InspectorModuleModel[]
+  drives: InspectorDriveModel[]
+  executions: InspectorExecutionModel[]
+  logs: InspectorLogModel[]
+}
+export type InspectorFileResponse = {
+  path: string
+  kind: 'file' | 'directory'
+  size: number
+}
+export type InspectorFileContentResponse = {
+  path: string
+  size: number
+  content: string
+}
+export type ResourceModel = {
+  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
+  amount: number
+}
+export type MapCellResponse = {
+  x: number
+  y: number
+  type: ('resource' | 'bot' | 'item' | 'base' | 'corpse_base') | null
+  contentId: string | null
+  /** Game time of the snapshot, in ms */
+  seenAt: number
+  resource?: ResourceModel
+  /** What the deposit held when it was generated */
+  capacity?: number
+  /** On bots and bases: whether they are the requesting player’s */
+  isOwn?: boolean
+  chassis?: 'wheels' | 'tracks' | 'immobile'
+  icons?: ('weapon' | 'drill' | 'scanner' | 'antenna' | 'solar')[]
+  isDamaged?: boolean
+  item?: 'blueprint' | 'ammunition' | 'part' | 'generic'
+}
+export type LiveAreaResponse = {
+  scannerId: string
+  botId: string
+  x: number
+  y: number
+  radius: number
+}
+export type MapViewResponse = {
+  /** Game time of the server, in ms */
+  now: number
+  cells: MapCellResponse[]
+  liveAreas: LiveAreaResponse[]
+}
+export type HeatBucketModel = {
+  x: number
+  y: number
+  intensity: number
+  value: number
+}
+export type HeatmapResponse = {
+  kind: 'density' | 'depletion' | 'activity'
+  bucket: number
+  buckets: HeatBucketModel[]
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -1287,40 +1498,6 @@ export type DisassemblyResponse = {
   scrap: ScrapResponse[]
   /** A blueprint item of the module, by chance */
   blueprint: ItemResponse | null
-}
-export type ResourceModel = {
-  resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
-  amount: number
-}
-export type MapCellResponse = {
-  x: number
-  y: number
-  type: ('resource' | 'bot' | 'item' | 'base' | 'corpse_base') | null
-  contentId: string | null
-  /** Game time of the snapshot, in ms */
-  seenAt: number
-  resource?: ResourceModel
-  /** What the deposit held when it was generated */
-  capacity?: number
-  /** On bots and bases: whether they are the requesting player’s */
-  isOwn?: boolean
-  chassis?: 'wheels' | 'tracks' | 'immobile'
-  icons?: ('weapon' | 'drill' | 'scanner' | 'antenna' | 'solar')[]
-  isDamaged?: boolean
-  item?: 'blueprint' | 'ammunition' | 'part' | 'generic'
-}
-export type LiveAreaResponse = {
-  scannerId: string
-  botId: string
-  x: number
-  y: number
-  radius: number
-}
-export type MapViewResponse = {
-  /** Game time of the server, in ms */
-  now: number
-  cells: MapCellResponse[]
-  liveAreas: LiveAreaResponse[]
 }
 export type BotPositionResponse = {
   x: number
@@ -1646,6 +1823,12 @@ export const {
   usePlayersResetPasswordMutation,
   usePlayersChangeRoleMutation,
   usePlayersAddNoteMutation,
+  useInspectorSearchQuery,
+  useInspectorBotQuery,
+  useInspectorFilesQuery,
+  useInspectorFileQuery,
+  useInspectorMapQuery,
+  useInspectorHeatmapQuery,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

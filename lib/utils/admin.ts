@@ -1,3 +1,4 @@
+import type { ITailEvent } from './admin-inspector'
 import type { UserStatus } from './interfaces/users'
 
 // What an admin may do (design §25.2). Roles are sets of these permissions, checked on the server for every request.
@@ -189,4 +190,6 @@ export const ADMIN_SOCKET_NAMESPACE = '/admin'
 
 export interface AdminServerToClientEvents {
   'monitoring-health': (report: IHealthReport) => void
+  // Every game event of the world, for the live tail of the world map
+  'game-event-tail': (tail: ITailEvent) => void
 }

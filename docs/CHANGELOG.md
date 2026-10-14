@@ -36,6 +36,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - The Players page: search with filters, a profile with sessions, bases, resources and an activity timeline, notes, and the moderation
   actions (ban with a duration, unban, sign out everywhere, resend verification, reset password, change role, delete), each with a
   reason, a rank check and an audit entry (`/api/v1/admin/players/*`).
+- The Inspector and the world map of the admin console: any base or bot with modules, energy, storage, drives, executions and logs;
+  opening a file is a separate permission and an audit entry; search by id or coordinates; the whole map without fog of war on the
+  game's map renderer; density, depletion and activity heatmaps; a live tail of game events (`/api/v1/admin/inspector/*`).
 
 ### Changed
 

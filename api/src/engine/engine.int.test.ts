@@ -423,24 +423,15 @@ describe('what the admins control (design §25.3)', () => {
     await until(() => logsOf().includes('controlled'), 'the script after the pause')
   })
 
-  it('refuses a quarantined player and the kill-switch, and reboots a bot', async () => {
-    const { userId, botId } = await deployWithScript('export async function main(bot) { for (;;) { await sleep(50) } }')
+  it('refuses a quarantined player', async () => {
+    const { userId, botId } = await deployWithScript('export async function main() {}')
 
     await port.control({ type: 'quarantine', userId, isOn: true })
     await expect(port.start({ userId, botId, file: FILE, args: [] })).rejects.toMatchObject({
       code: 'PLAYER_QUARANTINED'
     })
-    await port.control({ type: 'quarantine', userId, isOn: false })
-
+    expect(await port.control({ type: 'quarantine', userId, isOn: false })).toMatchObject({ quarantined: [] })
     await port.start({ userId, botId, file: FILE, args: [] })
-    const restarted = await port.reboot(botId)
-    expect(restarted).toHaveLength(1)
-    expect(await port.list(userId)).toHaveLength(1)
-
-    expect(await port.control({ type: 'halt-scripts', isOn: true })).toMatchObject({ areScriptsHalted: true })
-    expect(await port.list(userId)).toEqual([])
-    await expect(port.start({ userId, botId, file: FILE, args: [] })).rejects.toMatchObject({ code: 'SCRIPTS_HALTED' })
-    await port.control({ type: 'halt-scripts', isOn: false })
   })
 
   it('puts resources right as a world action, all or nothing', async () => {

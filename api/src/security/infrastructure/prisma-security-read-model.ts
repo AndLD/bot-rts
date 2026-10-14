@@ -81,13 +81,14 @@ export class PrismaSecurityReadModel implements SecurityReadModel {
     })
 
     return rows.map(({ bot, failures, lockedUntil }) => {
-      const owner = bot.user ?? bot.base?.user ?? null
+      // A base belongs to a player, any other bot to the base of one (the database enforces it)
+      const owner = (bot.user ?? bot.base?.user) as { id: string; name: string }
 
       return {
         botId: bot.id,
         label: bot.label,
-        ownerId: owner?.id ?? null,
-        ownerName: owner?.name ?? null,
+        ownerId: owner.id,
+        ownerName: owner.name,
         failures,
         lockedUntil: (lockedUntil as Date).getTime()
       }

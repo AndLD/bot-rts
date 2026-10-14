@@ -1,6 +1,4 @@
-export const LOGIN_OUTCOMES = ['success', 'bad_credentials', 'banned', 'unverified', 'error'] as const
-
-export type LoginOutcome = (typeof LOGIN_OUTCOMES)[number]
+export type LoginOutcome = 'success' | 'bad_credentials' | 'banned' | 'unverified' | 'error'
 
 // One sign-in attempt of the custom provider, kept for the security page of the admin console (design §25.3)
 export interface LoginAttempt {

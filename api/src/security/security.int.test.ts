@@ -125,11 +125,22 @@ describe('the overview', () => {
       data: { botId, failures: 5, lockedUntil: new Date(Date.now() + 3_600_000) }
     })
 
+    const worker = randomUUID()
+    await database.client.bot.create({
+      data: { id: worker, type: 'worker', baseId: botId, passwordHash: 'x', heading: 0 }
+    })
+    await database.client.botAccess.create({
+      data: { botId: worker, failures: 6, lockedUntil: new Date(Date.now() + 1_800_000) }
+    })
+
     const overview = await api().get('/api/v1/admin/security').set(bearer(moderator)).expect(200)
 
-    expect(overview.body.botLockouts).toEqual([
-      expect.objectContaining({ botId, label: 'Fort', ownerId: bob.userId, ownerName: 'Bob', failures: 5 })
-    ])
+    expect(overview.body.botLockouts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ botId, label: 'Fort', ownerId: bob.userId, ownerName: 'Bob', failures: 5 }),
+        expect.objectContaining({ botId: worker, ownerId: bob.userId, ownerName: 'Bob', failures: 6 })
+      ])
+    )
   })
 
   it('shows scripts the sandbox stopped, and not the ones that failed by themselves', async () => {

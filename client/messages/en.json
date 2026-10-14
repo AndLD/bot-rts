@@ -1021,7 +1021,8 @@
       "analyst": "Analyst"
     },
     "nav": {
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "players": "Players"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1095,6 +1096,100 @@
         "infrastructure": {
           "rssBytes": "Process memory",
           "heapUsedBytes": "Heap in use"
+        }
+      }
+    },
+    "players": {
+      "search": "Search by name, email or id",
+      "back": "← All players",
+      "loadFailed": "Could not load the players",
+      "banned": "Banned until {until}",
+      "untilLifted": "an admin lifts the ban",
+      "deleted": "This account was deleted; its personal data is erased.",
+      "filters": {
+        "status": "Role / status",
+        "verified": "Email",
+        "verifiedYes": "Verified",
+        "verifiedNo": "Not verified"
+      },
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status",
+        "verified": "Email verified",
+        "registered": "Registered",
+        "lastLogin": "Last sign-in"
+      },
+      "status": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "analyst": "Analyst",
+        "user": "Player",
+        "unlimited": "Unlimited",
+        "banned": "Banned"
+      },
+      "profile": {
+        "bots": "Bots",
+        "executions": "Running scripts",
+        "resources": "Resources in storage",
+        "bases": "Bases",
+        "botsOfBase": "{count} bots",
+        "sessions": "Sessions",
+        "signedIn": "Signed in",
+        "lastUsed": "Last used",
+        "device": "Device",
+        "active": "Active",
+        "ended": "Ended",
+        "timeline": "Activity",
+        "notes": "Notes",
+        "notePlaceholder": "A note for other admins",
+        "addNote": "Add note"
+      },
+      "timeline": {
+        "registered": "Registered",
+        "login": "Signed in",
+        "ban": "Banned",
+        "unban": "Ban lifted",
+        "admin-action": "Admin action"
+      },
+      "action": {
+        "confirm": "Confirm",
+        "cancel": "Cancel",
+        "reason": "Reason (kept in the audit log)",
+        "reasonRequired": "Say why, in at least 3 characters",
+        "ban": {
+          "button": "Ban",
+          "title": "Ban the player",
+          "duration": "Duration",
+          "hours": "{hours, plural, one {# hour} other {# hours}}",
+          "permanent": "Until lifted"
+        },
+        "unban": {
+          "button": "Unban",
+          "title": "Lift the ban"
+        },
+        "logout": {
+          "button": "Sign out everywhere",
+          "title": "End all sessions of the player"
+        },
+        "resendVerification": {
+          "button": "Resend verification",
+          "title": "Resend the verification email"
+        },
+        "resetPassword": {
+          "button": "Send password reset",
+          "title": "Send a password reset link"
+        },
+        "changeRole": {
+          "button": "Change role",
+          "title": "Change the role",
+          "role": "New role"
+        },
+        "delete": {
+          "button": "Delete account",
+          "title": "Delete the account",
+          "confirm": "Type the email {email} to confirm"
         }
       }
     }

@@ -3,6 +3,7 @@ import { AppConfig } from './config/app-config'
 import { ConfigModule } from './config/config.module'
 import { AdminModule } from './admin/admin.module'
 import { AchievementsModule } from './achievements/achievements.module'
+import { PlayersModule } from './players/players.module'
 import { PlayerNotificationsModule } from './player-notifications/player-notifications.module'
 import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
@@ -43,6 +44,7 @@ export class AppModule {
         UsersModule,
         AuthModule,
         AdminModule,
+        PlayersModule,
         ModulesModule,
         CraftingModule,
         FilesModule,

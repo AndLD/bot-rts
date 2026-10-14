@@ -42,6 +42,8 @@ import { AccessTokenExpiredError } from '../../src/auth/domain/auth.errors'
 import { IdentityLink } from '../../src/auth/domain/identity'
 import { LocalCredential } from '../../src/auth/domain/local-credential'
 import { Session } from '../../src/auth/domain/session'
+import { PlayerModerationRepository } from '../../src/players/application/ports'
+import { PlayerBan, PlayerNote } from '../../src/players/domain/player-moderation'
 import { UnauthorizedError } from '../../src/shared/domain/errors'
 import { UserListQuery, UserPage, UserRepository } from '../../src/users/application/user.repository'
 import { User } from '../../src/users/domain/user.entity'
@@ -542,6 +544,35 @@ export class InMemorySpawnSeedRepository implements SpawnSeedRepository {
     } else {
       this.members[index] = member
     }
+  }
+}
+
+export class InMemoryPlayerModerationRepository implements PlayerModerationRepository {
+  readonly bans: PlayerBan[] = []
+  readonly notes: PlayerNote[] = []
+
+  async addBan(ban: PlayerBan) {
+    this.bans.push(ban)
+  }
+
+  async updateBan(ban: PlayerBan) {
+    this.bans[this.bans.findIndex((candidate) => candidate.id === ban.id)] = ban
+  }
+
+  async listBans(userId: string) {
+    return this.bans.filter((ban) => ban.userId === userId).reverse()
+  }
+
+  async listExpiredBans(now: Date) {
+    return this.bans.filter((ban) => ban.liftedAt === null && ban.expiresAt !== null && ban.expiresAt <= now)
+  }
+
+  async addNote(note: PlayerNote) {
+    this.notes.push(note)
+  }
+
+  async listNotes(userId: string) {
+    return this.notes.filter((note) => note.userId === userId).reverse()
   }
 }
 

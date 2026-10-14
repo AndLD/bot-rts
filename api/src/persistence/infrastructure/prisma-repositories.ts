@@ -10,6 +10,7 @@ import { PrismaFileRepository } from '../../files/infrastructure/prisma-file.rep
 import { PrismaMapRepository } from '../../map/infrastructure/prisma-map.repository'
 import { PrismaModuleRepository } from '../../modules/infrastructure/prisma-module.repository'
 import { PrismaSpawnSeedRepository } from '../../spawn/infrastructure/prisma-spawn-seed.repository'
+import { PrismaPlayerModerationRepository } from '../../players/infrastructure/prisma-player-moderation.repository'
 import { PrismaUserRepository } from '../../users/infrastructure/prisma-user.repository'
 import { Repositories } from '../application/unit-of-work'
 
@@ -26,6 +27,7 @@ export function createPrismaRepositories(db: Prisma.TransactionClient): Reposito
     identities: new PrismaIdentityRepository(db),
     credentials: new PrismaCredentialRepository(db),
     sessions: new PrismaSessionRepository(db),
-    authTokens: new PrismaAuthTokenRepository(db)
+    authTokens: new PrismaAuthTokenRepository(db),
+    moderation: new PrismaPlayerModerationRepository(db)
   }
 }

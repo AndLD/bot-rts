@@ -111,6 +111,8 @@ model User {
   notifications        PlayerNotification[]
   apiKeys              ApiKey[]
   twoFactor            AdminTwoFactor?
+  bans                 PlayerBan[]
+  notes                PlayerNote[]
 
   @@index([createdAt])
   @@map("users")
@@ -588,4 +590,39 @@ model AdminAuditEntry {
   @@index([actorId, at])
   @@index([action, at])
   @@map("admin_audit_log")
+}
+
+// A ban from the admin console (design §25.3). The player's status is `banned` while a ban is active; `previousStatus` is what
+// an unban gives back. `bannedBy` and `liftedBy` have no foreign key on purpose: they outlive the admin's account.
+model PlayerBan {
+  id             String     @id @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  bannedBy       String     @map("banned_by") @db.Uuid
+  reason         String
+  previousStatus UserStatus @map("previous_status")
+  createdAt      DateTime   @map("created_at") @db.Timestamptz(3)
+  // Null: until an admin lifts it
+  expiresAt      DateTime?  @map("expires_at") @db.Timestamptz(3)
+  liftedAt       DateTime?  @map("lifted_at") @db.Timestamptz(3)
+  liftedBy       String?    @map("lifted_by") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([liftedAt, expiresAt])
+  @@map("player_bans")
+}
+
+// An admin's note about a player, visible to admins only
+model PlayerNote {
+  id        String   @id @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  text      String
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("player_notes")
 }

@@ -73,6 +73,6 @@ import { AuditInterceptor } from './presentation/audit.interceptor'
     { provide: APP_GUARD, useClass: AdminAccessGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor }
   ],
-  exports: [SecondFactorService]
+  exports: [SecondFactorService, AuditService]
 })
 export class AdminModule {}

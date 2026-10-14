@@ -33,6 +33,7 @@ import {
   FakeUnitOfWork,
   FixedRng,
   InMemoryAuthTokenRepository,
+  InMemoryPlayerModerationRepository,
   InMemoryBotAccessRepository,
   InMemoryBotRepository,
   InMemoryCredentialRepository,
@@ -72,7 +73,8 @@ export function createWorld(
     identities: new InMemoryIdentityRepository(),
     credentials: new InMemoryCredentialRepository(),
     sessions: new InMemorySessionRepository(),
-    authTokens: new InMemoryAuthTokenRepository()
+    authTokens: new InMemoryAuthTokenRepository(),
+    moderation: new InMemoryPlayerModerationRepository()
   }
   const unitOfWork = new FakeUnitOfWork(repositories)
   const ids = new SequentialIdGenerator()

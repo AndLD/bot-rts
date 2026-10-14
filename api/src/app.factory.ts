@@ -11,6 +11,7 @@ import { LOGGER, Logger } from './shared/application/logger'
 import { ForbiddenError, ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
 import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
+import { REDIS_CONNECTOR, RedisConnector } from './redis/redis.module'
 import { createRequestLogger } from './shared/presentation/request-logger.middleware'
 
 function isAllowedOrigin(origin: string | undefined, allowed: string[]) {
@@ -57,7 +58,10 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   })
   app.use(cookieParser())
   app.use(createRequestLogger(logger))
-  app.useWebSocketAdapter(new ConfiguredIoAdapter(app, config.adminUrl))
+  const connect = app.get<RedisConnector>(REDIS_CONNECTOR)
+  app.useWebSocketAdapter(
+    new ConfiguredIoAdapter(app, config.adminUrl, connect ? { publisher: connect(), subscriber: connect() } : undefined)
+  )
 
   app.set('trust proxy', config.trustProxy)
   app.setGlobalPrefix('api')

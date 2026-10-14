@@ -239,6 +239,8 @@ pm2 start ecosystem.config.json
 | `JWT_ACCESS_EXPIRES_IN`                             | api     | Access-token lifetime                                                                                                                                          | `10m`                                              |
 | `JWT_REFRESH_EXPIRES_IN`                            | api     | Session lifetime without use (the refresh cookie)                                                                                                              | `30d`                                              |
 | `TRUST_PROXY`                                       | api     | `true` behind a reverse proxy (client IPs for rate limits)                                                                                                     | `false`                                            |
+| `APP_ROLE`                                          | api     | `all` (default), `api` or `engine`: what this process does in a scaled deployment, see [DEPLOYMENT.md](./docs/DEPLOYMENT.md) | `all`                                              |
+| `REDIS_URL` / `ENGINE_REQUEST_TIMEOUT_MS`           | api     | Redis for the Socket.IO adapter and the link to the engine node (required for `api` and `engine`) / how long an API node waits for it | – / `15000`                                        |
 | `RATE_LIMIT_WINDOW_MS` / `RATE_LIMIT_AUTH_MAX`      | api     | Rate limit of the auth routes (per IP, in memory)                                                                                                              | `900000` / `20`                                    |
 | `SMTP_HOST`                                         | api     | SMTP host (required in production)                                                                                                                             | `smtp.gmail.com` outside production                |
 | `SMTP_PORT` / `SMTP_SECURE`                         | api     | SMTP port / implicit TLS flag                                                                                                                                  | `465` / `true` when the port is 465                |
@@ -307,6 +309,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 
 - [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) — full game documentation: mechanics, modules, script API, terminal, scheduler,
   screens, in-game scenarios, and examples.
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/CODE-QUALITY-REVIEW.md`](./docs/CODE-QUALITY-REVIEW.md) — quality assessment of the original prototype (historical).
 - [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 is developed after Phase 7).

@@ -17,5 +17,17 @@ services:
       timeout: 3s
       retries: 10
 
+  # Scale-out of the API tier (Phase 8.1): Socket.IO adapter and the link between API nodes and the engine node
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   botrts-pgdata:

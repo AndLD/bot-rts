@@ -33,6 +33,19 @@ export interface RateLimitConfig {
   authMax: number
 }
 
+// What a process of the API tier does (docs: deployment). `all` runs the API and the engine thread in one process; `api`
+// serves HTTP and sockets and reaches the one engine through Redis; `engine` is the process that owns the engine and
+// answers the API nodes (it serves HTTP and sockets too, so a small deployment can run one `engine` node next to `api` nodes).
+export type AppRole = 'all' | 'api' | 'engine'
+
+export interface DeploymentConfig {
+  role: AppRole
+  // Needed by the roles `api` and `engine`; with it set, Socket.IO uses the Redis adapter so several nodes share rooms
+  redisUrl: string | undefined
+  // How long an API node waits for the engine node to answer
+  engineRequestTimeoutMs: number
+}
+
 export interface AppConfig {
   nodeEnv: NodeEnv
   port: number
@@ -56,6 +69,7 @@ export interface AppConfig {
   rateLimit: RateLimitConfig
   // Trust X-Forwarded-* headers of a reverse proxy (needed for per-client rate limits behind one)
   trustProxy: boolean
+  deployment: DeploymentConfig
 }
 
 type Env = Record<string, string | undefined>
@@ -69,6 +83,7 @@ export class ConfigError extends Error {
 
 const NODE_ENVS: readonly NodeEnv[] = ['development', 'test', 'production']
 const AUTH_PROVIDERS = ['local'] as const
+const APP_ROLES: readonly AppRole[] = ['all', 'api', 'engine']
 const DEV_ACCESS_SECRET = 'development-only-access-secret'
 
 // "10m", "24h", "30d" or "500ms" -> milliseconds; a malformed value is reported as a problem
@@ -130,6 +145,18 @@ export function loadConfig(env: Env): AppConfig {
     problems
   )
 
+  const role = (env.APP_ROLE || 'all') as AppRole
+  if (!APP_ROLES.includes(role)) {
+    problems.push(`APP_ROLE must be one of ${APP_ROLES.join(', ')}`)
+  }
+  const redisUrl = env.REDIS_URL || undefined
+  if (role !== 'all' && !redisUrl) {
+    problems.push(`REDIS_URL is required when APP_ROLE is ${role}`)
+  }
+  if (redisUrl && !/^rediss?:\/\//.test(redisUrl)) {
+    problems.push('REDIS_URL must be a redis:// connection string')
+  }
+
   const world = readWorldConfig(env, problems)
   const crafting = readCraftingConfig(env, problems)
   const engine = readEngineSettings(env, nodeEnv === 'test', problems)
@@ -178,6 +205,11 @@ export function loadConfig(env: Env): AppConfig {
       policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: sessionTtl }
     },
     rateLimit: { windowMs: rateWindow, authMax: positiveInt(env.RATE_LIMIT_AUTH_MAX, 20) },
-    trustProxy: env.TRUST_PROXY === 'true'
+    trustProxy: env.TRUST_PROXY === 'true',
+    deployment: {
+      role,
+      redisUrl,
+      engineRequestTimeoutMs: positiveInt(env.ENGINE_REQUEST_TIMEOUT_MS, 15_000)
+    }
   }
 }

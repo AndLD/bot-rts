@@ -2,11 +2,11 @@
 
 # Phase 8 — Multiplayer, public API & production hardening (71 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
 
 | # | Task                                                                                                        | SP | Status |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- | --- |
-| 8.1 | Scale the **API tier** horizontally: Socket.IO Redis adapter, sticky sessions, stateless sockets (the engine stays a single authoritative instance; map addressed in chunks to keep region sharding possible later) | 8 | ⬜ |
+| 8.1 | Scale the **API tier** horizontally: Socket.IO Redis adapter, sticky sessions, stateless sockets (the engine stays a single authoritative instance; map addressed in chunks to keep region sharding possible later) | 8 | ✅ |
 | 8.2 | Rate limiting (login/signup), request timeouts, input size limits, helmet/CORS review | 5 | ⬜ |
 | 8.3 | Observability: structured logs, request IDs, metrics (tick latency, scheduler fairness, queue depth), health checks | 5 | ⬜ |
 | 8.4 | Data lifecycle: cleanup inactive users/bots, terminal session retention (30 days / 5,000 lines per bot via a scheduled cleanup job or time-partitioned tables; security events 90 days); offline-player executions continue, so account-inactivity policy must account for running scripts | 3 | ⬜ |
@@ -32,4 +32,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| _none yet_ | | | |
+| `feature/8.1-scalable-api-tier` | 8.1 | [#128](https://github.com/AndLD/bot-rts/pull/128) | 🟡 |

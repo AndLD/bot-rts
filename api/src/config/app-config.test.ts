@@ -36,7 +36,8 @@ describe('loadConfig', () => {
         policy: { ...DEFAULT_AUTH_POLICY, sessionTtlMs: 30 * 24 * 3600 * 1000 }
       },
       rateLimit: { windowMs: 15 * 60 * 1000, authMax: 20 },
-      trustProxy: false
+      trustProxy: false,
+      deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
   })
 
@@ -135,5 +136,30 @@ describe('loadConfig', () => {
   it('falls back on a malformed rate limit maximum', () => {
     expect(loadConfig({ ...base, RATE_LIMIT_AUTH_MAX: 'many' }).rateLimit.authMax).toBe(20)
     expect(loadConfig({ ...base, RATE_LIMIT_AUTH_MAX: '-3' }).rateLimit.authMax).toBe(20)
+  })
+
+  describe('deployment role', () => {
+    it('reads the role, the Redis address and the engine timeout', () => {
+      expect(
+        loadConfig({ ...base, APP_ROLE: 'api', REDIS_URL: 'redis://localhost:6379', ENGINE_REQUEST_TIMEOUT_MS: '2000' })
+          .deployment
+      ).toEqual({ role: 'api', redisUrl: 'redis://localhost:6379', engineRequestTimeoutMs: 2000 })
+    })
+
+    it('allows Redis on a single node', () => {
+      expect(loadConfig({ ...base, REDIS_URL: 'rediss://cache.example:6380' }).deployment.redisUrl).toBe(
+        'rediss://cache.example:6380'
+      )
+    })
+
+    it.each(['api', 'engine'])('needs Redis for the role %s', (role) => {
+      expect(() => loadConfig({ ...base, APP_ROLE: role })).toThrow(`REDIS_URL is required when APP_ROLE is ${role}`)
+    })
+
+    it('rejects an unknown role and a malformed Redis address', () => {
+      expect(() => loadConfig({ ...base, APP_ROLE: 'worker', REDIS_URL: 'http://x' })).toThrow(
+        /APP_ROLE must be one of all, api, engine[\s\S]*REDIS_URL must be a redis:\/\/ connection string/
+      )
+    })
   })
 })

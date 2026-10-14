@@ -15,7 +15,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "db:up": "docker compose up -d --wait db",
+    "db:up": "docker compose up -d --wait db redis",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
     "format:check": "prettier --config .prettierrc.json --check .",

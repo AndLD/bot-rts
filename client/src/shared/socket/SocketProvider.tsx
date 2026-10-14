@@ -41,6 +41,8 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     const connection: GameSocket = io(API_URL, {
       withCredentials: true,
+      // WebSocket only: a polling session would need sticky routing between API nodes, a socket does not
+      transports: ['websocket'],
       reconnectionDelay: RECONNECT_DELAY_MS,
       reconnectionDelayMax: RECONNECT_DELAY_MAX_MS,
       auth: (callback) => callback({ token: latestToken.current })

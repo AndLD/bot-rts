@@ -15,6 +15,7 @@ import { MapModule } from './map/map.module'
 import { MapViewModule } from './mapview/mapview.module'
 import { ModulesModule } from './modules/modules.module'
 import { NotificationsModule } from './notifications/notifications.module'
+import { RedisModule } from './redis/redis.module'
 import { PersistenceModule } from './persistence/persistence.module'
 import { TerminalModule } from './terminal/terminal.module'
 import { SettingsModule } from './settings/settings.module'
@@ -30,6 +31,7 @@ export class AppModule {
       imports: [
         ConfigModule.forRoot(config),
         SharedModule,
+        RedisModule,
         PersistenceModule,
         NotificationsModule,
         UsersModule,

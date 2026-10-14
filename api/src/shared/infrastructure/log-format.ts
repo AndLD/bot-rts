@@ -18,6 +18,8 @@ export function readLogSettings(env: Record<string, string | undefined>): LogSet
   }
 }
 
+export const appendersFor = (settings: LogSettings): string[] => (settings.isFileEnabled ? ['file', 'con'] : ['con'])
+
 function describe(data: unknown): string {
   if (data instanceof Error) {
     return data.stack ?? `${data.name}: ${data.message}`

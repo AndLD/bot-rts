@@ -1,6 +1,6 @@
 import log4js from 'log4js'
 import { Logger } from '../application/logger'
-import { formatEvent, readLogSettings } from './log-format'
+import { appendersFor, formatEvent, readLogSettings } from './log-format'
 import { currentRequestId } from '../application/request-context'
 
 const startedAt = new Date().toISOString().replace(/[:.]/g, '-')
@@ -14,7 +14,7 @@ log4js.configure({
     con: { type: 'console', layout: { type: 'botrts' } }
   },
   categories: {
-    default: { appenders: settings.isFileEnabled ? ['file', 'con'] : ['con'], level: 'info' }
+    default: { appenders: appendersFor(settings), level: 'info' }
   }
 })
 

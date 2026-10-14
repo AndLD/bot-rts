@@ -1,5 +1,5 @@
 import { LoggingEvent } from 'log4js'
-import { formatEvent, readLogSettings } from './log-format'
+import { appendersFor, formatEvent, readLogSettings } from './log-format'
 
 const event = (...data: unknown[]) =>
   ({
@@ -47,5 +47,12 @@ describe('formatEvent', () => {
     expect(formatEvent(event({ a: 1 }, 'x'), 'text', undefined)).toContain('{"a":1} x')
     const stackless = Object.assign(new Error('flat'), { stack: undefined })
     expect(formatEvent(event(stackless), 'text', undefined)).toContain('Error: flat')
+  })
+})
+
+describe('appendersFor', () => {
+  it('adds the file unless it is switched off', () => {
+    expect(appendersFor({ format: 'text', isFileEnabled: true })).toEqual(['file', 'con'])
+    expect(appendersFor({ format: 'json', isFileEnabled: false })).toEqual(['con'])
   })
 })

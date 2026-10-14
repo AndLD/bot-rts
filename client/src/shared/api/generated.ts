@@ -265,6 +265,14 @@ const injectedRtkApi = api.injectEndpoints({
     executionsKill: build.mutation<ExecutionsKillApiResponse, ExecutionsKillApiArg>({
       query: (queryArg) => ({ url: `/api/v1/executions/${queryArg.executionId}`, method: 'DELETE' })
     }),
+    executionsHistory: build.query<ExecutionsHistoryApiResponse, ExecutionsHistoryApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/bots/${queryArg.botId}/terminal-history`,
+        params: {
+          limit: queryArg.limit
+        }
+      })
+    }),
     healthReady: build.query<HealthReadyApiResponse, HealthReadyApiArg>({
       query: () => ({ url: `/api/v1/health` })
     }),
@@ -514,6 +522,12 @@ export type ExecutionsStartApiArg = {
 export type ExecutionsKillApiResponse = /** status 200  */ ExecutionResponse
 export type ExecutionsKillApiArg = {
   executionId: string
+}
+export type ExecutionsHistoryApiResponse = /** status 200  */ TerminalLogEntryResponse[]
+export type ExecutionsHistoryApiArg = {
+  botId: string
+  /** How many of the newest lines */
+  limit?: number
 }
 export type HealthReadyApiResponse = /** status 200  */ HealthResponse
 export type HealthReadyApiArg = void
@@ -1080,6 +1094,14 @@ export type StartExecutionDto = {
   /** Arguments of main(bot, ...args): strings, numbers or booleans */
   args?: string[]
 }
+export type TerminalLogEntryResponse = {
+  _id: string
+  sessionId: string
+  botId: string
+  at: number
+  kind: 'input' | 'output' | 'error' | 'security'
+  text: string
+}
 export type HealthResponse = {
   status: 'ok'
   database?: 'up'
@@ -1238,6 +1260,7 @@ export const {
   useExecutionsListQuery,
   useExecutionsStartMutation,
   useExecutionsKillMutation,
+  useExecutionsHistoryQuery,
   useHealthReadyQuery,
   useHealthLiveQuery,
   useGameTimeCurrentQuery,

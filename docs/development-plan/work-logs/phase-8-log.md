@@ -91,3 +91,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** 8.11, the MCP server (`mcp/` workspace package) on top of the API keys and the HTTP script endpoints.
 - **Verify with:** `npx jest src/apikeys src/shared/presentation src/openapi` from `api`
 
+### 2026-10-14 — task 8.11 MCP server
+- **Tasks:** 8.11
+- **Branch:** `feature/8.11-mcp-server` — done
+- **Decisions / deviations from the plan:** new workspace package `mcp/` (`@bot-rts/mcp`, TypeScript, the official SDK with zod 3.25 shared with the SDK, its own Jest config and the 97 % gate; CI runs it and checks changed files). It talks to the game only through `ApiClient` (HTTP, `/api/v1`, a bearer key). Tools are plain data (`defineTool`: name, scope, zod input, a call on the client). Manual control is generated from `SCRIPT_FUNCTIONS` (one `bot_<function>` each, scope from `categoryOfFunction`, `read` for observation), minus the functions that have dedicated tools (craft / assemble / research / learn / repair / disassemble) or files tools (read / write) or make no sense by hand (sleep). A refusal of the game is a tool result with `isError` and the code (a missing scope gets a hint), not a protocol error. Transports: stdio, and stateless streamable HTTP (`POST /mcp`, `GET /health`) where each client brings its key in `Authorization`. The API gained `GET /bots/{botId}/terminal-history` (scope `read`), because the terminal history was socket-only. Tests: unit tests with a fake API, the SDK client over in-memory and HTTP transports, and `api/src/mcp.int.test.ts`, which runs the server against the real API on a seeded database. A stdio/HTTP smoke of the built server was run by hand.
+- **Problems / blockers / findings:** two copies of zod (the SDK's and a newer one for the package) made the types incompatible; the package pins the shared 3.25.76. The generated schemas are too deep for the compiler to infer the SDK's callback type, so the registration is typed by what the server needs.
+- **Next step:** 8.12 (frontend on Vercel, API on a long-running host), then 8.13 (e2e) and 8.8 (the final coverage sweep).
+- **Verify with:** `npm test -w mcp`; `npx jest src/mcp.int src/apikeys` from `api`; `npm run build -w mcp`
+

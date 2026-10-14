@@ -129,7 +129,7 @@ jobs:
       - name: Coverage report
         if: always() && steps.changes.outputs.code == 'true'
         run: |
-          for pkg in api client; do
+          for pkg in api client mcp; do
             [ -f "$pkg/coverage/coverage-summary.json" ] || continue
             {
               echo "### Coverage ($pkg)"
@@ -140,7 +140,7 @@ jobs:
           done
       - name: Coverage of changed files (at least 97 %)
         if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client
+        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client mcp
       - name: Build
         if: steps.changes.outputs.code == 'true'
         run: npm run build

@@ -3744,6 +3744,84 @@
         ]
       }
     },
+    "/api/v1/bots/{botId}/terminal-history": {
+      "get": {
+        "operationId": "executionsHistory",
+        "parameters": [
+          {
+            "name": "botId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "How many of the newest lines",
+            "schema": {
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TerminalLogEntryResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "_id": "string",
+                    "sessionId": "string",
+                    "botId": "string",
+                    "at": 1,
+                    "kind": "input",
+                    "text": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "scripts"
+        ],
+        "x-api-key-scope": "read",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/bots/00000000-0000-4000-8000-000000000000/terminal-history\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "healthReady",
@@ -6025,6 +6103,43 @@
         },
         "required": [
           "file"
+        ]
+      },
+      "TerminalLogEntryResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "botId": {
+            "type": "string"
+          },
+          "at": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "input",
+              "output",
+              "error",
+              "security"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "_id",
+          "sessionId",
+          "botId",
+          "at",
+          "kind",
+          "text"
         ]
       },
       "HealthResponse": {

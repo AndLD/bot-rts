@@ -12,4 +12,6 @@
 api/ts-built
 client/*
 !client/package.json
+mcp/*
+!mcp/package.json
 docs

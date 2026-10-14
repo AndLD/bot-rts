@@ -36,5 +36,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 - The terminal stops following new lines when a scroll event arrives after a line was added.
 - Script output no longer piles up in memory when a script writes faster than the database stores (lines are stored in batches).
+- The load and soak harness (`npm run load`) no longer leaves its API server running after a run or an interrupt (the server was started
+  through `npx` and only the wrapper was stopped; the whole process group is stopped now).
 
 [Unreleased]: https://github.com/AndLD/bot-rts/commits/develop

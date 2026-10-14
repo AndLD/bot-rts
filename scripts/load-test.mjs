@@ -61,13 +61,27 @@ const SCRIPTS_BY_KIND = {
 }
 
 const children = []
+
+// The API is started through `npx`, so killing the child alone leaves the real server running (and a server stuck in a heavy run
+// ignores SIGTERM). Each child leads its own process group, which is killed as a whole; the throwaway database needs no graceful stop.
 function stopAll() {
-  children.forEach((child) => child.kill('SIGTERM'))
+  for (const child of children) {
+    try {
+      process.kill(-child.pid, 'SIGKILL')
+    } catch {
+      // Already gone
+    }
+  }
 }
-process.on('SIGINT', () => {
-  stopAll()
-  process.exit(130)
-})
+for (const [signal, code] of [
+  ['SIGINT', 130],
+  ['SIGTERM', 143]
+]) {
+  process.on(signal, () => {
+    stopAll()
+    process.exit(code)
+  })
+}
 
 async function api(path, { method = 'GET', token, body } = {}) {
   const response = await fetch(`${apiUrl}${path}`, {
@@ -142,6 +156,7 @@ try {
 
   const log = createWriteStream(resolve(workDir, 'api.log'))
   const server = spawn('npx', ['ts-node', 'index.ts'], {
+    detached: true,
     cwd: resolve(root, 'api'),
     env: {
       ...process.env,

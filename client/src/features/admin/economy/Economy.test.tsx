@@ -340,6 +340,21 @@ describe('the feature switches', () => {
     expect(dialog()).not.toBeNull()
   })
 
+  it('closes the dialog on cancel without changing anything', async () => {
+    const calls = serve()
+    renderAs('admin')
+    await openTab('Features')
+    const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
+    await waitFor(() => expect(signUps).toBeEnabled())
+    fireEvent.click(signUps)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+
+    fireEvent.click(await button('Cancel'))
+
+    await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+    expect(calls.some((call) => call.method === 'PATCH')).toBe(false)
+  })
+
   it('is read-only for a role without balance.write', async () => {
     serve()
     renderAs('analyst')

@@ -2,7 +2,7 @@
 
 # Which clock a piece of code reads
 
-The game has **two clocks** (design [§12.4](../game-design/12-real-time-execution-model.md), [§25.3](../game-design/25-admin-console.md)):
+The game has **two clocks** (design [§12.4](../product-knowledge/game-design/12-real-time-execution-model.md), [§25.3](../product-knowledge/game-design/25-admin-console.md)):
 
 - **`CLOCK`** is the real clock. It stamps what must not depend on the game: sessions, access tokens, rate limits, bans and lockouts,
   the audit trail, database timestamps, retention, the schedules of the background jobs.

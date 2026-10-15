@@ -17,11 +17,11 @@ Target layer is where the content belongs; "Current" notes where it sits now whe
 | Layer       | Files and sections                                                                                                                       |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | **CORE**    | Currently embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. No standalone core files yet. |
-| **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
+| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE) |
 | **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
 | **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/cross-cutting/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
-| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
-| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md` |
+| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/product-knowledge/archived-docs/*` |
+| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md` |
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
 
@@ -31,7 +31,7 @@ Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Re
 
 ## 2. Measurements
 
-Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/phases/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
+Terms of the method map here as follows: the "product specification" is `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/phases/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
 
 Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
 Replace a layer name by its file list from section 1.
@@ -42,8 +42,8 @@ Stack terms (case-insensitive) that must not appear in CORE or DOMAIN text:
 
 ```bash
 STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
-grep -rniE "$STACK" docs/GAME-DESIGN.md docs/game-design docs/integrations | wc -l
-grep -rniEc "$STACK" docs/game-design/*.md | sort -t: -k2 -nr | head
+grep -rniE "$STACK" docs/product-knowledge/game-design/GAME-DESIGN.md docs/product-knowledge/game-design docs/product-knowledge/integrations | wc -l
+grep -rniEc "$STACK" docs/product-knowledge/game-design/*.md | sort -t: -k2 -nr | head
 ```
 
 For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer. Product terms that must not
@@ -137,7 +137,7 @@ for f in docs/development-plan/phases/work-logs/*.md; do printf '%s ' "$f"; grep
 
 ### M12 to M15: product knowledge integrity
 
-Bounded contexts for the partition (files of `docs/game-design/`; one subagent per row, then a cross-context pass):
+Bounded contexts for the partition (files of `docs/product-knowledge/game-design/`; one subagent per row, then a cross-context pass):
 
 | Context               | Sections                                                                                       |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
@@ -160,21 +160,21 @@ Resource economy: for each resource list its sources, sinks and conversions; fla
 shrink, and any prerequisite or unlock cycle.
 
 Status markers: `✅` decided or implemented, `🟡` partial, `🔴` planned. Check them against
-`docs/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/development-plan/DEVELOPMENT-PLAN.md`.
+`docs/product-knowledge/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/development-plan/DEVELOPMENT-PLAN.md`.
 
-M15, mechanical checks. A "design §12.4" reference resolves in `docs/game-design/12-*.md` as the heading `## 12.4`:
+M15, mechanical checks. A "design §12.4" reference resolves in `docs/product-knowledge/game-design/12-*.md` as the heading `## 12.4`:
 
 ```bash
 grep -rhoE 'design §[0-9]+(\.[0-9]+)*' docs AGENTS.md README.md | sort -u | while read -r _ ref; do
-  n=${ref#§}; f=$(ls docs/game-design/$(printf '%02d' "${n%%.*}")-*.md 2>/dev/null)
+  n=${ref#§}; f=$(ls docs/product-knowledge/game-design/$(printf '%02d' "${n%%.*}")-*.md 2>/dev/null)
   grep -qE "^#+ ${n//./\.}( |\.|$)" $f 2>/dev/null || echo "unresolved: $ref"
 done
-grep -oE '^\| \*\*[^*]+\*\*' docs/game-design/02-glossary.md   # glossary terms; then search each in other files
+grep -oE '^\| \*\*[^*]+\*\*' docs/product-knowledge/game-design/02-glossary.md   # glossary terms; then search each in other files
 ```
 
 Also list capitalised terms used in two or more files but absent from the glossary.
 
-M14, traceability: join design section ids (`docs/game-design/NN-*.md`) with the "design §" citations in
+M14, traceability: join design section ids (`docs/product-knowledge/game-design/NN-*.md`) with the "design §" citations in
 `docs/development-plan/phases/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
 tasks that cite no section.
 
@@ -184,19 +184,19 @@ Forms in which this repository records open items (search all of them):
 
 | Form                         | Where                                                                                          |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| Official open-questions list | `docs/game-design/20-open-questions.md` (currently declares "none")                             |
-| Backlog (deferred by design) | `docs/game-design/21-backlog.md`                                                                |
-| Planned and partial markers  | `🔴` and `🟡` in `docs/game-design/*.md` and `docs/GAME-DESIGN.md`                              |
+| Official open-questions list | `docs/product-knowledge/game-design/20-open-questions.md` (currently declares "none")                             |
+| Backlog (deferred by design) | `docs/product-knowledge/game-design/21-backlog.md`                                                                |
+| Planned and partial markers  | `🔴` and `🟡` in `docs/product-knowledge/game-design/*.md` and `docs/product-knowledge/game-design/GAME-DESIGN.md`                              |
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
 | Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phases/phase-*.md`; open tasks named in work logs ("next step") |
 | Risks                        | `docs/development-plan/cross-cutting/risk-register.md`                                                        |
-| Decision log (archived)      | `docs/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
+| Decision log (archived)      | `docs/product-knowledge/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
 | Known issues                 | `docs/testing/known-issues.md`                                                                  |
 
 ```bash
 grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
-grep -rcE '🔴' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
-grep -rcE '🟡' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
+grep -rcE '🔴' docs/product-knowledge/game-design docs/product-knowledge/game-design/GAME-DESIGN.md | grep -v ':0'
+grep -rcE '🟡' docs/product-knowledge/game-design docs/product-knowledge/game-design/GAME-DESIGN.md | grep -v ':0'
 grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phases/phase-*.md
 ```
 
@@ -229,10 +229,10 @@ grep -oiE "\b(unless|except|only when|only if|but not|apart from|if .* then)\b" 
 for f in $(git ls-files '*.md'); do printf '%s out=%s\n' "$f" "$(grep -oE '\]\(\.[^)#]*' "$f" | sort -u | wc -l)"; done | sort -t= -k2 -nr | head -15
 for f in $(git ls-files '*.md'); do b=$(basename "$f"); printf '%s in=%s\n' "$f" "$(grep -rlF "$b" --include=*.md . --exclude-dir=node_modules | grep -vc "^./$f$")"; done | sort -t= -k2 -nr | head -15
 # M23 concept load: glossary terms, sections and words per context
-grep -c '^| \*\*' docs/game-design/02-glossary.md
-wc -w docs/game-design/*.md | sort -nr | head -12
+grep -c '^| \*\*' docs/product-knowledge/game-design/02-glossary.md
+wc -w docs/product-knowledge/game-design/*.md | sort -nr | head -12
 # M24 and M25 cross-context references: section numbers cited from each design file
-for f in docs/game-design/[0-9]*.md; do n=$(basename "$f" | cut -c1-2); printf '%s -> ' "$n"; grep -oE '§[0-9]+' "$f" | sort | uniq -c | awk -v me="§${n#0}" '$2!=me {printf "%s×%s ", $2,$1}'; echo; done
+for f in docs/product-knowledge/game-design/[0-9]*.md; do n=$(basename "$f" | cut -c1-2); printf '%s -> ' "$n"; grep -oE '§[0-9]+' "$f" | sort | uniq -c | awk -v me="§${n#0}" '$2!=me {printf "%s×%s ", $2,$1}'; echo; done
 ```
 
 - **M22 process:** list each workflow of `AGENTS.md` (start a task, open and merge a pull request, release, resume a phase,

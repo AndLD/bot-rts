@@ -12,7 +12,7 @@ Values for the project-neutral method in [`README.md`](./README.md).
 | Work logs | `phases/work-logs/phase-<n>-log.md` |
 | Phase and task status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | Story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include implementation and the tests the definition of done requires |
-| Product knowledge cited | `docs/GAME-DESIGN.md` and `docs/game-design/` (section ids written as `design §12.4`) |
+| Product knowledge cited | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/` (section ids written as `design §12.4`) |
 | Quality bar and workflow cited | `AGENTS.md` (§6.5 definition of done, §7 Git Flow and session protocol) |
 | Deployment gate | The tasks named in the "Deployment gate" section of the index |
 | Resume request forms | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the request is the approval for the named phases' pull requests (`AGENTS.md` §7.5) |

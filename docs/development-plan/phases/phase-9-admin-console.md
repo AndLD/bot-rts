@@ -4,7 +4,7 @@
 
 **Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
 
-A new admin console, specified in design [§25](../../game-design/25-admin-console.md), that lets admins supervise any player's
+A new admin console, specified in design [§25](../../product-knowledge/game-design/25-admin-console.md), that lets admins supervise any player's
 bots and resources, monitor the health, performance and load of the game, moderate players, and operate the world safely.
 The starting point is only a few legacy API endpoints and no UI (design §25.1); the security hotfix for them is task 0.8.
 

@@ -147,3 +147,4 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the pre-push hook and CI have timing-sensitive tests that fail now and then on a busy machine (`engine-load`, `scale-out.int`, slow Ant Design tests, a few Cypress specs); the first two were made less sensitive during this phase. The Cypress suite of the console found a real bug (a dialog kept the reason of the last action), fixed in 9.13.
 - **Next step:** Phase 10 is not part of this request.
 - **Verify with:** `npm run test:coverage` in `api` and `client`; `npm run e2e`
+- **Local database:** from the updated `develop`, `npm run db:up` and `npm run db:migrate -w api` applied the five migrations of the phase (`admin_foundations`, `player_moderation`, `login_attempts`, `balance_versions`, `player_activity`) to the development database. The seed data did not change, so `db:seed` was not run.

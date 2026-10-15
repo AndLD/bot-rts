@@ -2,7 +2,7 @@
 
 # Phase 9 — Admin console (101 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
 
 A new admin console, specified in design [§25](../game-design/25-admin-console.md), that lets admins supervise any player's
 bots and resources, monitor the health, performance and load of the game, moderate players, and operate the world safely.
@@ -58,5 +58,5 @@ AGENTS.md §7.1).
 | `feature/9.12-devtools` | 9.12 | [#161](https://github.com/AndLD/bot-rts/pull/161) | merged |
 | `feature/9.11-analytics` | 9.11 | [#162](https://github.com/AndLD/bot-rts/pull/162) | merged |
 | `feature/9.15-admin-docs` | 9.15 | [#163](https://github.com/AndLD/bot-rts/pull/163) | merged |
-| `feature/9.14-authorization-matrix` | 9.14 | [#164](https://github.com/AndLD/bot-rts/pull/164) | open |
+| `feature/9.14-authorization-matrix` | 9.14 | [#164](https://github.com/AndLD/bot-rts/pull/164) | merged |
 | `feature/9.13-admin-e2e` | 9.13 | [#165](https://github.com/AndLD/bot-rts/pull/165) | open |

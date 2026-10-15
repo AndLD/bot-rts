@@ -139,3 +139,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the spec found a bug: a dialog of the console opened with the reason of the last action still typed in (the form of `ActionModal` kept its values), which could write a stale reason to the audit trail. The form is reset when the dialog closes, with a unit test.
 - **Next step:** the phase is complete once these pull requests are merged: bring the local database up to date (`npm run db:up`, `npm run db:migrate -w api`), set the phase to done in `docs/DEVELOPMENT-PLAN.md` and report.
 - **Verify with:** `E2E_API_PORT=18080 E2E_CLIENT_PORT=15173 node scripts/e2e.mjs -- --spec cypress/e2e/admin.cy.ts`; `npx jest src/features/admin/players` from `client`
+
+### 2026-10-15 — Phase 9 complete
+- **Tasks:** 9.1 to 9.15, all done; the pull requests are #151 to #165 (see the implementation log of the phase file).
+- **Exit criteria:** an admin signs in with two-factor authentication, sees the health and load of the game, inspects and supervises any player's bots and resources, moderates players, and operates the world (pause, kill-switch, quarantine, support actions, announcements, the maintenance banner, balance versions); every admin action is audited, which `authorization-matrix.int.test.ts` checks for every route; the console has its own documentation and a Cypress suite (`admin.cy.ts`).
+- **Decisions / deviations from the plan:** see the entry of each task. Not done, and recorded there: the "view as player" mode, the advance of the injected clock and the reset of the whole database in the dev tools, other global feature switches than the categories of manual control, a retention job for `player_activity`, and a log store shared by several nodes.
+- **Problems / blockers / findings:** the pre-push hook and CI have timing-sensitive tests that fail now and then on a busy machine (`engine-load`, `scale-out.int`, slow Ant Design tests, a few Cypress specs); the first two were made less sensitive during this phase. The Cypress suite of the console found a real bug (a dialog kept the reason of the last action), fixed in 9.13.
+- **Next step:** Phase 10 is not part of this request.
+- **Verify with:** `npm run test:coverage` in `api` and `client`; `npm run e2e`

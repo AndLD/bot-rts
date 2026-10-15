@@ -54,4 +54,4 @@ AGENTS.md §7.1).
 | `feature/9.10-logs-audit` | 9.10 | [#157](https://github.com/AndLD/bot-rts/pull/157) | merged |
 | `feature/9.7-security` | 9.7 | [#158](https://github.com/AndLD/bot-rts/pull/158) | merged |
 | `feature/9.8-economy-balance` | 9.8 | [#159](https://github.com/AndLD/bot-rts/pull/159) | open |
-| `feature/9.9-operations` | 9.9 | _this PR_ | open |
+| `feature/9.9-operations` | 9.9 | [#160](https://github.com/AndLD/bot-rts/pull/160) | open |

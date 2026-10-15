@@ -322,6 +322,26 @@ describe('the feature switches', () => {
     )
   })
 
+  it('switches a feature that is off back on, and says so in the dialog', async () => {
+    const calls = serve()
+    renderAs('admin')
+    await openTab('Features')
+    const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
+    await waitFor(() => expect(keys).toBeEnabled())
+    fireEvent.click(keys)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+
+    expect(screen.getByText('Switch on: Creating API keys')).toBeInTheDocument()
+    await confirmWith('the incident is over')
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.method === 'PATCH')?.body).toEqual({
+        features: { apiKeys: true },
+        reason: 'the incident is over'
+      })
+    )
+  })
+
   it('keeps the dialog open when the change fails', async () => {
     const calls = serve(state(), (call) =>
       call.method === 'PATCH' && call.url === '/api/v1/admin/features'

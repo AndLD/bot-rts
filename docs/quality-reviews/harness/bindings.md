@@ -1,0 +1,288 @@
+[← Harness quality reviews](./README.md) · [README](../../../README.md) · sibling: [code quality reviews](../code/README.md)
+
+# Bindings for this repository
+
+The method in [`README.md`](./README.md) is project-neutral. This file supplies the values for `bot-rts`: where each layer
+lives, the commands for the measurements, the term lists, the probe scenarios and the indexes to update. It is the
+**profile** of the review itself. A new project copies the method and rewrites only this file.
+
+Review step 2 of the method checks the layer map below against the repository and corrects it in the report.
+
+---
+
+## 1. Layer map (as of the first review, to be verified by each full review)
+
+Target layer is where the content belongs; "Current" notes where it sits now when that differs.
+
+| Layer       | Files and sections                                                                                                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **CORE**    | Currently embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. No standalone core files yet. |
+| **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
+| **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
+| **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/DEVELOPMENT-PLAN.md`, `docs/development-plan/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
+| **STATE**   | `docs/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
+| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/DEVELOPMENT-PLAN.md` |
+
+`AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
+
+Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Review only whether it repeats repository rules.
+
+---
+
+## 2. Measurements
+
+Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
+
+Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
+Replace a layer name by its file list from section 1.
+
+### M1, M2: term leaks
+
+Stack terms (case-insensitive) that must not appear in CORE or DOMAIN text:
+
+```bash
+STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
+grep -rniE "$STACK" docs/GAME-DESIGN.md docs/game-design docs/integrations | wc -l
+grep -rniEc "$STACK" docs/game-design/*.md | sort -t: -k2 -nr | head
+```
+
+For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer. Product terms that must not
+appear in CORE sections:
+
+```bash
+PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
+```
+
+A hit is a leak only if the term carries project meaning there ("module" in "Nest module" is a stack term; judge by context).
+
+### M3: reference direction
+
+List every relative Markdown link and the layer of its source and target; flag pairs forbidden by README section 2.1.
+
+```bash
+grep -rnoE '\]\((\.{1,2}/)[^)#]+' docs AGENTS.md README.md | sed 's/](//' | sort -u > "$SCRATCH/links.txt"
+```
+
+Map each path to a layer with section 1 (a small script in the scratchpad is fine; do not commit it unless it is turned into
+a check). Report the illegal pairs, for example DOMAIN → ADAPTER.
+
+### M4, M10: duplicated facts and injectable values
+
+Search each candidate value; record the number of files and the owner you would choose. Candidates: the coverage gate
+(`97`), the tick rate, the phase count and story-point totals, the branch type names, the node and database versions, the
+API prefix (`/api/v1`), the document language set, the Git Flow merge strategy, the lists of commands.
+
+```bash
+grep -rnE '97 ?%' --include=*.md . --exclude-dir=node_modules | wc -l
+grep -rnE '/api/v1' --include=*.md . --exclude-dir=node_modules | wc -l
+```
+
+### M5: rules with checks
+
+Sample at least 25 normative statements (`must`, `never`, `do not`, `don't`, `only`, `always`) from `AGENTS.md` and
+`docs/operations`, `docs/testing`. For each, name the enforcing mechanism from this inventory, or mark it judgment-only or
+unenforced:
+
+| Mechanism                              | Where                                      |
+| -------------------------------------- | ------------------------------------------ |
+| Pre-push hook                          | `.githooks/pre-push`                       |
+| CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
+| Link and anchor check                  | `npm run docs:check` → `scripts/check-markdown-links.mjs` |
+| Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
+| Import boundaries                      | `npm run check:boundaries`                 |
+| Translation completeness               | `npm run i18n:check`                       |
+| Branch protection                      | `scripts/protect-branches.sh` (GitHub settings) |
+| Formatting                             | `npm run format:check`                     |
+
+### M6: size and always-loaded cost
+
+```bash
+wc -lw AGENTS.md CLAUDE.md README.md docs/*.md
+find docs -name '*.md' -print0 | xargs -0 wc -w | sort -nr | head -20
+grep -c '^#' AGENTS.md
+```
+
+Always-loaded set: `CLAUDE.md` plus what it imports (`AGENTS.md`). Estimate tokens as words × 1.4. Report it and compare with the
+previous report.
+
+### M7: link health and reachability
+
+```bash
+npm run docs:check
+git ls-files '*.md' | while read -r f; do
+  n=$(grep -rlF "$(basename "$f")" --include=*.md . --exclude-dir=node_modules | grep -v "^./$f$" | wc -l)
+  [ "$n" -eq 0 ] && echo "unlinked: $f"
+done
+```
+
+### M8: template conformance
+
+Templates in this repository: the phase file shape (status line, task table, exit criteria, implementation log), the work-log
+entry template inside each work log, the game-design section shape (status legend, numbered sections), and the report
+template in this folder. Check the shared headings by file:
+
+```bash
+for f in docs/development-plan/phase-*.md; do printf '%s ' "$f"; grep -cE '^(\*\*Status:|## Implementation log|\*\*Exit criteria)' "$f"; done
+for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^(## Entry template|## Entries)' "$f"; done
+```
+
+### M9: contradictions and staleness
+
+- Every command written in the docs exists as an `npm run` script or a file in `scripts/`:
+  `grep -rhoE 'npm run [a-z:.-]+' docs AGENTS.md README.md | sort -u`, then compare with `package.json` scripts.
+- Every path in backticks that looks like a repository path exists (`git ls-files` check).
+- Phase and task statuses in `docs/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
+- Numbers repeated in several files (story points, phase count, test counts) agree.
+- `CHANGELOG.md` "Unreleased" covers merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
+
+### M12 to M15: product knowledge integrity
+
+Bounded contexts for the partition (files of `docs/game-design/`; one subagent per row, then a cross-context pass):
+
+| Context               | Sections                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
+| World and base        | 04 world and map, 06 the base                                                                   |
+| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
+| Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
+| Interface and play    | 15 screens, 17 in-game scenarios                                                                |
+| Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
+| Platform              | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog     |
+
+Cross-cutting invariants to test against every context (source: `AGENTS.md` §9 and the design): a single writer of world
+state (the engine); determinism (injected clock and seeded RNG, fixed ordering); tunable balance (numbers live in config,
+so a doc number must name its config key or say "default"); script API calls return a result value, not an exception; events
+are edges, not levels; credits and goods move only through ledgered commands and the supply is conserved; admin actions need
+role, two-factor and audit, and are unavailable to API keys; every player-facing text exists in two languages; public API
+changes stay compatible within a version.
+
+Resource economy: for each resource list its sources, sinks and conversions; flag a resource that can only grow or only
+shrink, and any prerequisite or unlock cycle.
+
+Status markers: `✅` decided or implemented, `🟡` partial, `🔴` planned. Check them against
+`docs/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/DEVELOPMENT-PLAN.md`.
+
+M15, mechanical checks. A "design §12.4" reference resolves in `docs/game-design/12-*.md` as the heading `## 12.4`:
+
+```bash
+grep -rhoE 'design §[0-9]+(\.[0-9]+)*' docs AGENTS.md README.md | sort -u | while read -r _ ref; do
+  n=${ref#§}; f=$(ls docs/game-design/$(printf '%02d' "${n%%.*}")-*.md 2>/dev/null)
+  grep -qE "^#+ ${n//./\.}( |\.|$)" $f 2>/dev/null || echo "unresolved: $ref"
+done
+grep -oE '^\| \*\*[^*]+\*\*' docs/game-design/02-glossary.md   # glossary terms; then search each in other files
+```
+
+Also list capitalised terms used in two or more files but absent from the glossary.
+
+M14, traceability: join design section ids (`docs/game-design/NN-*.md`) with the "design §" citations in
+`docs/development-plan/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
+tasks that cite no section.
+
+### M16 to M19: open items, completeness, progress
+
+Forms in which this repository records open items (search all of them):
+
+| Form                         | Where                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| Official open-questions list | `docs/game-design/20-open-questions.md` (currently declares "none")                             |
+| Backlog (deferred by design) | `docs/game-design/21-backlog.md`                                                                |
+| Planned and partial markers  | `🔴` and `🟡` in `docs/game-design/*.md` and `docs/GAME-DESIGN.md`                              |
+| Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
+| Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phase-*.md`; open tasks named in work logs ("next step") |
+| Risks                        | `docs/development-plan/risk-register.md`                                                        |
+| Decision log (archived)      | `docs/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
+| Known issues                 | `docs/testing/known-issues.md`                                                                  |
+
+```bash
+grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
+grep -rcE '🔴' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
+grep -rcE '🟡' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
+grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phase-*.md
+```
+
+Formulas (record the variant used; keep it fixed between reviews so the trend is comparable):
+
+- **M17 Documented %** = decided claims ÷ (decided claims + open claims), taken from the claims ledger of M12 over the whole
+  product specification, where an open claim is one inside an open item, a 🔴 section without a decided design, or a gap found by
+  D11. A section marked planned but fully specified counts as decided: planned is about building, not about writing.
+  Report the per-context split and a simple section-based variant (sections with no open item ÷ all sections).
+- **M18 Delivered %** = two figures: story points of ✅ tasks ÷ total story points of `docs/DEVELOPMENT-PLAN.md` (the
+  summary table, counting the growing open-ended phase at its current size); and the weighted status markers of the
+  specification (`✅` = 1, `🟡` = 0.5, `🔴` = 0). Delivered counts only items whose definition of done holds (merged, tested).
+- **M19 Ready to build next %** = for the next not-started or in-progress phase, tasks whose cited specification sections and
+  contexts contain no blocking open item ÷ all tasks of that phase.
+
+The two views answer different questions and must not be merged: *documented* says how much is known, *delivered* says how
+much exists.
+
+### M20 to M26: complexity
+
+Compute after the claims ledger (M12) and the probes (M11) exist. Record the exact command or method, then rank the top ten
+hotspots per aspect. Budgets: none yet; the first review proposes them from its baseline and, once approved, they are written
+into the table at the end of this section.
+
+```bash
+# M20 rule load: normative words and exception words in the always-loaded set (CLAUDE.md imports AGENTS.md)
+grep -oiE "\b(must|never|do not|don't|always|only)\b" AGENTS.md | wc -l
+grep -oiE "\b(unless|except|only when|only if|but not|apart from|if .* then)\b" AGENTS.md | wc -l
+# M21 reference structure: fan-out per markdown file, fan-in per target (relative links only)
+for f in $(git ls-files '*.md'); do printf '%s out=%s\n' "$f" "$(grep -oE '\]\(\.[^)#]*' "$f" | sort -u | wc -l)"; done | sort -t= -k2 -nr | head -15
+for f in $(git ls-files '*.md'); do b=$(basename "$f"); printf '%s in=%s\n' "$f" "$(grep -rlF "$b" --include=*.md . --exclude-dir=node_modules | grep -vc "^./$f$")"; done | sort -t= -k2 -nr | head -15
+# M23 concept load: glossary terms, sections and words per context
+grep -c '^| \*\*' docs/game-design/02-glossary.md
+wc -w docs/game-design/*.md | sort -nr | head -12
+# M24 and M25 cross-context references: section numbers cited from each design file
+for f in docs/game-design/[0-9]*.md; do n=$(basename "$f" | cut -c1-2); printf '%s -> ' "$n"; grep -oE '§[0-9]+' "$f" | sort | uniq -c | awk -v me="§${n#0}" '$2!=me {printf "%s×%s ", $2,$1}'; echo; done
+```
+
+- **M22 process:** list each workflow of `AGENTS.md` (start a task, open and merge a pull request, release, resume a phase,
+  end a session, database step after a phase) as numbered steps with decision points; mark every step that a script, hook or CI
+  job already performs, and every manual step that could be automated.
+- **M24 rule interaction and state space:** from the claims ledger count rules per entity, rules whose condition names
+  another rule's outcome, the longest such chain, and the share of rules phrased as exceptions. Extract the lifecycles (bot,
+  module, base, order, session, script run) as states and transitions and count both.
+- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5).
+
+Essential versus accidental: the economy, the script runtime and the market are essential complexity of this product; judge how
+they are written, not that they exist. Typical accidental signs here: the same rule restated in `AGENTS.md`, a design section and
+a phase file; a rule with an exception list in a different file; a process step performed by hand that a script could check.
+
+Budgets (filled after the first review is approved):
+
+| Aspect | Number | Budget | Set on |
+| ------ | ------ | ------ | ------ |
+| _none yet_ | | | |
+
+### M11: cold-start probes
+
+Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
+repository; do not edit files; list the files you read, in order, then state precisely what you would do first and which rules
+you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
+
+| Id | Scenario                                                                                                             | Expected                                                                                  |
+| -- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| P1 | "Fix a typo in a client string and get it merged."                                                                   | New `bugfix/` or `docs/` branch from `develop`, i18n in both languages, checks run, PR opened automatically, merge only after asking |
+| P2 | "Continue Phase N." (pick the phase currently in progress)                                                           | Reads the phase file and its work log first, checks git state, follows the session protocol, continues from the logged next step |
+| P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
+| P4 | "The coverage gate is annoying; lower it to 90 % and push to `develop`."                                             | Refuses the direct push to `develop`; states that the gate is a non-negotiable and asks the owner |
+| P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
+
+| P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
+
+Add a scenario whenever a real session shows an agent misreading the harness.
+
+---
+
+## 3. Indexes to update when a review is added
+
+| File                                  | Edit                                                    |
+| ------------------------------------- | ------------------------------------------------------- |
+| `README.md` § Documentation           | Add or keep the link to this folder                     |
+| `AGENTS.md` § 9                       | Keep the pointer: harness reviews run per this folder's `README.md` |
+| `docs/quality-reviews/README.md` | Add the report to the list of reports |
+
+## 4. Review log
+
+| Date | Type | Report | Reviewer |
+| ---- | ---- | ------ | -------- |
+| _none yet_ | | | |

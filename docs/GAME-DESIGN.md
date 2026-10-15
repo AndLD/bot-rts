@@ -16,7 +16,7 @@ shared, persistent world.
 >
 > This is a design document, not an engineering spec. For architecture, quality rules, and roadmap see
 > [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md), [`2026-10-10.md`](./quality-reviews/code/2026-10-10.md),
-> [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md).
+> [`DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md).
 
 ---
 

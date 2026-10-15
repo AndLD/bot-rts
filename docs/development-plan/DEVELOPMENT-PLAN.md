@@ -9,7 +9,7 @@ in the phase file, and is updated in the pull request that starts or finishes it
 **implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
 
 **Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
-append-only **work log** in `development-plan/work-logs/` so a phase can be resumed in a new session.
+append-only **work log** in `development-plan/phases/work-logs/` so a phase can be resumed in a new session.
 
 **Story points (SP):** Fibonacci scale, `1 SP ≈ 0.5 developer-day` (or one focused agent session). Estimates assume a
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**
@@ -47,7 +47,7 @@ Phases 8–10 (referenced from the design, the testing strategy and the deployme
 
 ✅ **The MVP is the whole plan: every phase that exists, Phases 0–13 (987 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
-GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
+GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./cross-cutting/guiding-principles.md)).
 
 ---
 
@@ -66,7 +66,7 @@ Ask for one phase or a range: *"Start Phase 0"*, *"Start Phases 0-3"*, *"Continu
 phases' tasks in the documented order, creating and squash-merging every task's pull request into `develop` by itself (the
 request is the approval), **without pausing between tasks or between the named phases**. It stops with a summary after the
 last named phase, or earlier when it is blocked or needs a decision; phases you did not name are not started. Promoting
-`develop` to `main` still needs your approval. The agent follows the session protocol in [`AGENTS.md` §7.6](../AGENTS.md): it reads
+`develop` to `main` still needs your approval. The agent follows the session protocol in [`AGENTS.md` §7.6](../../AGENTS.md): it reads
 the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
 "next step".
 
@@ -74,22 +74,23 @@ the phase file and its work log, checks `git status`, the branch list and open p
 
 ## Contents
 
-- [Guiding principles](./development-plan/guiding-principles.md)
-- [Phase 0 — Stabilize & CI foundation (24 SP)](./development-plan/phase-0-stabilize-ci.md)
-- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)](./development-plan/phase-1-architecture-refactor.md)
-- [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./development-plan/phase-2-test-infrastructure.md)
-- [Phase 3 — Core gameplay foundations (76 SP)](./development-plan/phase-3-core-gameplay.md)
-- [Phase 4 — Module system & crafting (70 SP)](./development-plan/phase-4-modules-crafting.md)
-- [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./development-plan/phase-5-script-runtime.md)
-- [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
-- [Phase 7 — Presentation & engagement (66 SP)](./development-plan/phase-7-presentation-engagement.md)
-- [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
-- [Phase 9 — Admin console (135 SP)](./development-plan/phase-9-admin-console.md)
-- [Phase 10 — Market, currency, chat & transfers (115 SP)](./development-plan/phase-10-market-chat.md)
-- [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./development-plan/phase-11-energy-time-ux.md)
-- [Phase 12 — Issues and stabilization (5 SP, grows as issues are added)](./development-plan/phase-12-issues.md)
-- [Phase 13 — Observability platform (35 SP)](./development-plan/phase-13-observability-platform.md)
-- [Testing](./testing/README.md) (current documentation) and [testing work by phase](./testing/by-phase.md) (historical)
-- [Risk register](./development-plan/risk-register.md)
-- [Definition of Done](./development-plan/definition-of-done.md)
-- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md), [phase 11](./development-plan/work-logs/phase-11-log.md), [phase 12](./development-plan/work-logs/phase-12-log.md), [phase 13](./development-plan/work-logs/phase-13-log.md)
+- How this plan is structured and maintained: [README](./README.md) (method), [bindings](./bindings.md), [phase file rules](./phases/README.md)
+- [Guiding principles](./cross-cutting/guiding-principles.md)
+- [Phase 0 — Stabilize & CI foundation (24 SP)](./phases/phase-0-stabilize-ci.md)
+- [Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)](./phases/phase-1-architecture-refactor.md)
+- [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./phases/phase-2-test-infrastructure.md)
+- [Phase 3 — Core gameplay foundations (76 SP)](./phases/phase-3-core-gameplay.md)
+- [Phase 4 — Module system & crafting (70 SP)](./phases/phase-4-modules-crafting.md)
+- [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./phases/phase-5-script-runtime.md)
+- [Phase 6 — Core game GUI & map animations (96 SP)](./phases/phase-6-gui.md)
+- [Phase 7 — Presentation & engagement (66 SP)](./phases/phase-7-presentation-engagement.md)
+- [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./phases/phase-8-multiplayer-api-hardening.md)
+- [Phase 9 — Admin console (135 SP)](./phases/phase-9-admin-console.md)
+- [Phase 10 — Market, currency, chat & transfers (115 SP)](./phases/phase-10-market-chat.md)
+- [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./phases/phase-11-energy-time-ux.md)
+- [Phase 12 — Issues and stabilization (5 SP, grows as issues are added)](./phases/phase-12-issues.md)
+- [Phase 13 — Observability platform (35 SP)](./phases/phase-13-observability-platform.md)
+- [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
+- [Risk register](./cross-cutting/risk-register.md)
+- [Definition of Done](./cross-cutting/definition-of-done.md)
+- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md)

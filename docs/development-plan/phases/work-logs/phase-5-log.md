@@ -22,7 +22,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 ### 2026-10-12 — task 5.1: execution model RFC and benchmark spike
 - **Tasks:** 5.1
 - **Branch:** `feature/5.1-execution-model-rfc` — done
-- **Decisions / deviations from the plan:** the RFC is `docs/development-plan/rfc-5.1-execution-model.md` (one QuickJS runtime + context per execution, tick phases, limits, write-behind every 10 ticks). Measured with `api/scripts/bench-runtime.ts`: ~100 KiB per context, ~0.1 ms per active bot per tick (~800 bots inside the 80 ms cap), 10,000 live areas cost 0.5 ms per tick to look up. `quickjs-emscripten` 0.32 added to `api`.
+- **Decisions / deviations from the plan:** the RFC is `docs/development-plan/cross-cutting/rfc-5.1-execution-model.md` (one QuickJS runtime + context per execution, tick phases, limits, write-behind every 10 ticks). Measured with `api/scripts/bench-runtime.ts`: ~100 KiB per context, ~0.1 ms per active bot per tick (~800 bots inside the 80 ms cap), 10,000 live areas cost 0.5 ms per tick to look up. `quickjs-emscripten` 0.32 added to `api`.
 - **Next step:** task 5.2 (`ScriptRuntime` over QuickJS in `api/src/engine`).
 - **Verify with:** `npm run docs:check && npx ts-node api/scripts/bench-runtime.ts 300`
 

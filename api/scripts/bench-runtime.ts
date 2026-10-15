@@ -1,4 +1,4 @@
-// Benchmark spike for plan task 5.1: QuickJS context memory and active bots per tick (docs/development-plan/phase-5-script-runtime.md).
+// Benchmark spike for plan task 5.1: QuickJS context memory and active bots per tick (docs/development-plan/phases/phase-5-script-runtime.md).
 // Run with `npx ts-node scripts/bench-runtime.ts [bots]` from the api folder.
 import { newQuickJSWASMModule } from 'quickjs-emscripten'
 

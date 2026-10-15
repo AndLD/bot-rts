@@ -2,6 +2,6 @@
 
 # Definition of Done
 
-The definition of done for every task is maintained in one place: [`AGENTS.md` §6.5](../../AGENTS.md). A task in this plan is
+The definition of done for every task is maintained in one place: [`AGENTS.md` §6.5](../../../AGENTS.md). A task in this plan is
 complete only when all of its checklist items hold (tests, ≥ 97 % coverage per package, lint and typecheck, no dead code,
 docs updated, merged through a Git Flow PR with green CI).

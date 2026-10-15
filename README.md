@@ -12,7 +12,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 > chat and transfers (Phase 10) and the observability platform (Phase 13) are not implemented yet.
 >
 > The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–13, with story
-> points per task; Phase 11 was developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
+> points per task; Phase 11 was developed after Phase 7) in [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
 > agents are in [`AGENTS.md`](./AGENTS.md).
 
 ---
@@ -366,5 +366,5 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/quality-reviews/`](./docs/quality-reviews/README.md) — code and docs/harness quality reviews: the project-neutral methods, this repository's bindings, templates and dated reports (the 2026-10-10 code review of the original prototype is historical).
-- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done, Phase 9 is in progress).
+- [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done, Phase 9 is in progress).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

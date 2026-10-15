@@ -4,8 +4,8 @@
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-10-log](./work-logs/phase-10-log.md)
 
-The player economy and social layer, specified in design [§26](../game-design/26-market-and-currency.md) and
-[§27](../game-design/27-chat-and-transfers.md): in-game credits, a remote market (resource exchange and auctions) behind a
+The player economy and social layer, specified in design [§26](../../game-design/26-market-and-currency.md) and
+[§27](../../game-design/27-chat-and-transfers.md): in-game credits, a remote market (resource exchange and auctions) behind a
 single-class market terminal module, chat, and transfers between players. The phase depends on storage and modules
 (Phase 4), the engine commands and event bus (Phase 5), the window manager (Phase 6), notifications and achievements
 (Phase 7), API-key scopes (8.9) and the admin foundations (9.1).

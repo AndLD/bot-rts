@@ -1,9 +1,9 @@
-[← Phase 5 — Script runtime, scheduler & sandbox](./phase-5-script-runtime.md)
+[← Phase 5 — Script runtime, scheduler & sandbox](../phases/phase-5-script-runtime.md)
 
 # RFC 5.1 — Execution model of the engine
 
-Status: accepted (task 5.1). Source design: [§12.2–12.4](../game-design/12-real-time-execution-model.md),
-[§13](../game-design/13-security-sandboxing.md), [§14.2](../game-design/14-concurrency-race-conditions.md).
+Status: accepted (task 5.1). Source design: [§12.2–12.4](../../game-design/12-real-time-execution-model.md),
+[§13](../../game-design/13-security-sandboxing.md), [§14.2](../../game-design/14-concurrency-race-conditions.md).
 
 ## 1. Decisions
 

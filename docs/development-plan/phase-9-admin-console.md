@@ -51,5 +51,5 @@ AGENTS.md §7.1).
 | `feature/9.4-players` | 9.4 | [#154](https://github.com/AndLD/bot-rts/pull/154) | merged |
 | `feature/9.5-inspector-map` | 9.5 | [#155](https://github.com/AndLD/bot-rts/pull/155) | merged |
 | `feature/9.6-supervision` | 9.6 | [#156](https://github.com/AndLD/bot-rts/pull/156) | merged |
-| `feature/9.10-logs-audit` | 9.10 | [#157](https://github.com/AndLD/bot-rts/pull/157) | open |
-| `feature/9.7-security` | 9.7 | _this PR_ | open |
+| `feature/9.10-logs-audit` | 9.10 | [#157](https://github.com/AndLD/bot-rts/pull/157) | merged |
+| `feature/9.7-security` | 9.7 | [#158](https://github.com/AndLD/bot-rts/pull/158) | open |

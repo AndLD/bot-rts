@@ -45,6 +45,7 @@
     "balance.save",
     "devtools.remove-test-players",
     "devtools.seed-world",
+    "features.update",
     "inspector.read-file",
     "operations.announce",
     "operations.clear-banner",

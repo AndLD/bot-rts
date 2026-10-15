@@ -7,6 +7,7 @@ import { ErrorResponseModel } from '../../shared/presentation/error-response.mod
 import { ApiKeyService } from '../application/api-key.service'
 import { ApiKeyResponse, CreatedApiKeyResponse, CreateApiKeyDto } from './dto/api-keys.dto'
 import { toApiKeyDto } from './api-keys.mapper'
+import { RequireFeature } from '../../featureswitches/presentation/require-feature.decorator'
 import { SessionOnly } from './scope.decorator'
 
 export const API_KEY_SERVICE = Symbol('ApiKeyService')
@@ -28,6 +29,7 @@ export class ApiKeysController {
 
   // The response carries the secret; it cannot be read again
   @ApiCreatedResponse({ type: CreatedApiKeyResponse })
+  @RequireFeature('apiKeys')
   @Post()
   async create(@CurrentPrincipal() { user }: Principal, @Body() body: CreateApiKeyDto): Promise<ICreatedApiKey> {
     const { key, secret } = await this.keys.create(user.id, body)

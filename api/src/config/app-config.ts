@@ -154,6 +154,8 @@ export interface AppConfig {
   observability: ObservabilityConfig
   lifecycle: LifecyclePolicy
   admin: AdminConfig
+  // How long a node keeps the switches of the features it read (design §25.3)
+  featureSwitchCacheMs: number
   monitoring: MonitoringConfig
   balance: BalanceSettings
   devTools: DevToolsConfig
@@ -367,6 +369,7 @@ export function loadConfig(env: Env): AppConfig {
       executionDays: positiveInt(env.EXECUTION_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.executionDays),
       authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays)
     },
+    featureSwitchCacheMs: nonNegativeInt(env.FEATURE_SWITCH_CACHE_MS, nodeEnv === 'test' ? 0 : 5000),
     admin: {
       ipAllowList: list(env.ADMIN_IP_ALLOWLIST),
       verificationTtlMs: adminVerificationTtl,

@@ -257,6 +257,175 @@
         ]
       }
     },
+    "/api/v1/features": {
+      "get": {
+        "operationId": "featuresStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureStatusResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "features"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/features": {
+      "get": {
+        "operationId": "adminFeaturesGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureSwitchesResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  },
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "economy.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "adminFeaturesUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFeatureSwitchesDto"
+              },
+              "example": {
+                "features": {},
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureSwitchesResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  },
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "balance.write",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/admin/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"features\":{},\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "authRegister",
@@ -8608,6 +8777,7 @@
               "REQUEST_TIMEOUT",
               "MANUAL_CATEGORY_DISABLED",
               "VIEW_AS_READ_ONLY",
+              "FEATURE_DISABLED",
               "INTERNAL_ERROR",
               "BLOCKED",
               "EMPTY",
@@ -8787,6 +8957,102 @@
         },
         "required": [
           "result"
+        ]
+      },
+      "FeatureStatusResponse": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "properties": {
+              "signUps": {
+                "type": "boolean"
+              },
+              "baseDeployment": {
+                "type": "boolean"
+              },
+              "apiKeys": {
+                "type": "boolean"
+              },
+              "spawnSeeds": {
+                "type": "boolean"
+              },
+              "publicApi": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "signUps",
+              "baseDeployment",
+              "apiKeys",
+              "spawnSeeds",
+              "publicApi"
+            ],
+            "additionalProperties": false,
+            "description": "Whether each feature is on"
+          }
+        }
+      },
+      "FeatureSwitchesResponse": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "properties": {
+              "signUps": {
+                "type": "boolean"
+              },
+              "baseDeployment": {
+                "type": "boolean"
+              },
+              "apiKeys": {
+                "type": "boolean"
+              },
+              "spawnSeeds": {
+                "type": "boolean"
+              },
+              "publicApi": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "signUps",
+              "baseDeployment",
+              "apiKeys",
+              "spawnSeeds",
+              "publicApi"
+            ],
+            "additionalProperties": false,
+            "description": "Whether each feature is on"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "updatedAt"
+        ]
+      },
+      "UpdateFeatureSwitchesDto": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "The features to switch"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "features",
+          "reason"
         ]
       },
       "RegisterDto": {

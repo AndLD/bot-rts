@@ -3,6 +3,7 @@ import { OnGatewayInit, WebSocketGateway } from '@nestjs/websockets'
 import { Server } from 'socket.io'
 import { LOGGER, Logger } from '../../shared/application/logger'
 import { guardKeySocket } from '../../apikeys/presentation/socket-key-guard'
+import { FeatureSwitchesService } from '../../featureswitches/application/feature-switches.service'
 import { RATE_LIMITER, RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { AuthService } from '../application/auth.service'
 import { createSocketAuthMiddleware } from './socket-auth.middleware'
@@ -13,7 +14,8 @@ export class SocketAuthGateway implements OnGatewayInit {
   constructor(
     private readonly auth: AuthService,
     @Inject(LOGGER) private readonly logger: Logger,
-    @Inject(RATE_LIMITER) private readonly limiter: RateLimiter
+    @Inject(RATE_LIMITER) private readonly limiter: RateLimiter,
+    private readonly features: FeatureSwitchesService
   ) {}
 
   afterInit(server: Server) {
@@ -23,7 +25,7 @@ export class SocketAuthGateway implements OnGatewayInit {
       await authenticate(socket, (error) => {
         if (!error) {
           // A connection of an API key is held to the scopes and the rate limit of the key
-          guardKeySocket(socket, this.limiter)
+          guardKeySocket(socket, this.limiter, this.features)
         }
         next(error)
       })

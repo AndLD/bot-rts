@@ -19,6 +19,15 @@ const injectedRtkApi = api.injectEndpoints({
     usersUpdate: build.mutation<UsersUpdateApiResponse, UsersUpdateApiArg>({
       query: (queryArg) => ({ url: `/api/v1/users/${queryArg.id}`, method: 'PUT', body: queryArg.updateUserDto })
     }),
+    featuresStatus: build.query<FeaturesStatusApiResponse, FeaturesStatusApiArg>({
+      query: () => ({ url: `/api/v1/features` })
+    }),
+    adminFeaturesGet: build.query<AdminFeaturesGetApiResponse, AdminFeaturesGetApiArg>({
+      query: () => ({ url: `/api/v1/admin/features` })
+    }),
+    adminFeaturesUpdate: build.mutation<AdminFeaturesUpdateApiResponse, AdminFeaturesUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/features`, method: 'PATCH', body: queryArg.updateFeatureSwitchesDto })
+    }),
     authRegister: build.mutation<AuthRegisterApiResponse, AuthRegisterApiArg>({
       query: (queryArg) => ({ url: `/api/v1/auth/register`, method: 'POST', body: queryArg.registerDto })
     }),
@@ -700,6 +709,14 @@ export type UsersUpdateApiArg = {
   id: string
   updateUserDto: UpdateUserDto
 }
+export type FeaturesStatusApiResponse = /** status 200  */ FeatureStatusResponse
+export type FeaturesStatusApiArg = void
+export type AdminFeaturesGetApiResponse = /** status 200  */ FeatureSwitchesResponse
+export type AdminFeaturesGetApiArg = void
+export type AdminFeaturesUpdateApiResponse = /** status 200  */ FeatureSwitchesResponse
+export type AdminFeaturesUpdateApiArg = {
+  updateFeatureSwitchesDto: UpdateFeatureSwitchesDto
+}
 export type AuthRegisterApiResponse = /** status 201  */ AuthTokenResponse
 export type AuthRegisterApiArg = {
   registerDto: RegisterDto
@@ -1279,6 +1296,7 @@ export type ErrorResponseModel = {
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
     | 'VIEW_AS_READ_ONLY'
+    | 'FEATURE_DISABLED'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'
     | 'EMPTY'
@@ -1324,6 +1342,34 @@ export type UpdateUserDto = {
   subscription?: 'free' | 'monthly' | 'yearly'
   /** Only an owner may change the status */
   status?: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+}
+export type FeatureStatusResponse = {
+  /** Whether each feature is on */
+  features?: {
+    signUps: boolean
+    baseDeployment: boolean
+    apiKeys: boolean
+    spawnSeeds: boolean
+    publicApi: boolean
+  }
+}
+export type FeatureSwitchesResponse = {
+  /** Whether each feature is on */
+  features?: {
+    signUps: boolean
+    baseDeployment: boolean
+    apiKeys: boolean
+    spawnSeeds: boolean
+    publicApi: boolean
+  }
+  updatedAt: number | null
+}
+export type UpdateFeatureSwitchesDto = {
+  /** The features to switch */
+  features: {
+    [key: string]: boolean
+  }
+  reason: string
 }
 export type AuthTokenResponse = {
   /** The access token; the refresh token travels in an HTTP-only cookie */
@@ -2497,6 +2543,9 @@ export const {
   useUsersMeQuery,
   useUsersListQuery,
   useUsersUpdateMutation,
+  useFeaturesStatusQuery,
+  useAdminFeaturesGetQuery,
+  useAdminFeaturesUpdateMutation,
   useAuthRegisterMutation,
   useAuthLoginMutation,
   useAuthRefreshMutation,

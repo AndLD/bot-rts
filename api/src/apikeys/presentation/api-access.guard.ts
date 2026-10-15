@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core'
 import { Request, Response } from 'express'
 import { IS_PUBLIC_KEY } from '../../auth/presentation/public.decorator'
 import { AuthenticatedRequest } from '../../auth/presentation/auth.guard'
+import { FeatureSwitchesService } from '../../featureswitches/application/feature-switches.service'
 import { RateLimitHits } from '../application/rate-limit-hits'
 import { CLOCK, Clock } from '../../shared/application/clock'
 import { RATE_LIMITER, RateLimiter } from '../../ratelimit/application/rate-limiter'
@@ -21,7 +22,8 @@ export class ApiAccessGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject(RATE_LIMITER) private readonly limiter: RateLimiter,
     private readonly hits: RateLimitHits,
-    @Inject(CLOCK) private readonly clock: Clock
+    @Inject(CLOCK) private readonly clock: Clock,
+    private readonly features: FeatureSwitchesService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -35,6 +37,8 @@ export class ApiAccessGuard implements CanActivate {
     if (!grant) {
       return true
     }
+    // Switching the public API off stops every key at once; sessions are not affected
+    await this.features.assertEnabled('publicApi')
 
     if (this.reflector.getAllAndOverride<boolean | undefined>(SESSION_ONLY_KEY, targets)) {
       throw new SessionOnlyError()

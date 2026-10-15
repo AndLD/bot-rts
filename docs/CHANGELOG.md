@@ -27,6 +27,8 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- Admin console, feature switches: sign-ups, base deployment, API keys, spawn seeds and the public API can be switched off from the
+  Economy page with a reason (`FEATURE_DISABLED`, public `GET /api/v1/features`, `FEATURE_SWITCH_CACHE_MS`).
 - Admin console, view as player: owners and admins open the game as a chosen player sees it, read-only (enforced on the server by
   a separate session; `VIEW_AS_READ_ONLY`), with a reason, a banner, a time limit (`ADMIN_VIEW_AS_TTL`) and an audit trail.
 - Admin console foundations: the `moderator` and `analyst` roles with fine-grained permissions, mandatory TOTP two-factor sign-in

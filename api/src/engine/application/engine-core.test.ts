@@ -1055,6 +1055,31 @@ describe('EngineCore', () => {
     })
   })
 
+  describe('what scripts use', () => {
+    it('lists the running scripts by the ops of their calls, the biggest first', async () => {
+      const { core, start, ticks } = await setup()
+      await start(
+        'export async function main(bot) { for (;;) { try { await bot.scan() } catch (e) {} await sleep(0) } }'
+      )
+      await ticks(4)
+      const quiet = core.start({ userId: OWNER, botId: 'x', file: FILE, args: [] }).catch(() => undefined)
+      await core.runTick()
+      await quiet
+
+      const top = core.top(5)
+      await core.runTick()
+      const usage = await top
+
+      expect(usage).toHaveLength(1)
+      expect(usage[0]).toMatchObject({ userId: OWNER, file: FILE })
+      expect(usage[0].opsUsed).toBeGreaterThan(0)
+      expect(usage[0].ticks).toBeGreaterThan(0)
+      const none = core.top(0)
+      await core.runTick()
+      expect(await none).toEqual([])
+    })
+  })
+
   describe('what the admins control', () => {
     const LONG = 'export async function main(bot) { for (;;) { bot.log("tick"); await sleep(0) } }'
 

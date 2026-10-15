@@ -3,6 +3,8 @@ import { Reflector } from '@nestjs/core'
 import { Request, Response } from 'express'
 import { IS_PUBLIC_KEY } from '../../auth/presentation/public.decorator'
 import { AuthenticatedRequest } from '../../auth/presentation/auth.guard'
+import { RateLimitHits } from '../application/rate-limit-hits'
+import { CLOCK, Clock } from '../../shared/application/clock'
 import { RATE_LIMITER, RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { TooManyRequestsError } from '../../shared/domain/errors'
 import { ApiKeyScopeError, SessionOnlyError } from '../domain/api-key.errors'
@@ -17,7 +19,9 @@ const MINUTE_MS = 60_000
 export class ApiAccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @Inject(RATE_LIMITER) private readonly limiter: RateLimiter
+    @Inject(RATE_LIMITER) private readonly limiter: RateLimiter,
+    private readonly hits: RateLimitHits,
+    @Inject(CLOCK) private readonly clock: Clock
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -51,6 +55,7 @@ export class ApiAccessGuard implements CanActivate {
       response.setHeader('X-RateLimit-Remaining', decision.remaining)
     } catch (error) {
       if (error instanceof TooManyRequestsError) {
+        this.hits.record(grant.id, this.clock.now().getTime())
         response.setHeader('Retry-After', error.retryAfterSeconds)
       }
       throw error

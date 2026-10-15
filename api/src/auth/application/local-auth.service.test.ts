@@ -130,6 +130,48 @@ describe('login', () => {
   })
 })
 
+describe('login attempts', () => {
+  it('writes down every attempt with the address, the user agent and the outcome', async () => {
+    const { auth, repositories, user, attempts } = await setup()
+    await auth
+      .login({ email: 'Nobody@Example.com', password: 'x', ip: '1.1.1.1', userAgent: 'curl' })
+      .catch(() => undefined)
+    await auth.login({ ...input, ip: '2.2.2.2' }).catch(() => undefined)
+    const credential = (await repositories.credentials.findByUserId(user.id))!
+    repositories.credentials.items.set(user.id, { ...credential, emailVerified: true })
+    await auth.login({ ...input, ip: '3.3.3.3' })
+    repositories.users.items.set(user.id, { ...user, status: 'banned' })
+    await auth.login({ ...input, ip: '4.4.4.4' }).catch(() => undefined)
+
+    expect(
+      attempts.items.map(({ email, userId, ip, userAgent, outcome }) => [email, userId, ip, userAgent, outcome])
+    ).toEqual([
+      ['nobody@example.com', null, '1.1.1.1', 'curl', 'bad_credentials'],
+      ['alice@example.com', null, '2.2.2.2', 'jest', 'unverified'],
+      ['alice@example.com', user.id, '3.3.3.3', 'jest', 'success'],
+      ['alice@example.com', null, '4.4.4.4', 'jest', 'banned']
+    ])
+  })
+
+  it('records an unexpected failure as an error, and an attempt without an address as null', async () => {
+    const { auth, repositories, attempts } = await setup()
+    jest.spyOn(repositories.users, 'findByEmail').mockRejectedValueOnce(new Error('database down'))
+
+    await expect(auth.login({ email: 'a@b.c', password: 'x' })).rejects.toThrow('database down')
+
+    expect(attempts.items[0]).toMatchObject({ outcome: 'error', ip: null, userAgent: null })
+  })
+
+  it('does not change the answer when the attempt cannot be written, and logs it', async () => {
+    const { auth, attempts, logger } = await verified()
+    attempts.isFailing = true
+
+    await expect(auth.login(input)).resolves.toMatchObject({ accessToken: expect.any(String) })
+    await expect(auth.login({ ...input, password: 'bad' })).rejects.toThrow(CredentialsInvalidError)
+    expect(logger.error).toHaveBeenCalledTimes(2)
+  })
+})
+
 describe('refresh', () => {
   it('rotates the refresh token and keeps the session', async () => {
     const { auth, repositories, tokens, clock } = await verified()

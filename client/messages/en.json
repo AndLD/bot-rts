@@ -1029,7 +1029,8 @@
       "inspector": "Inspector",
       "map": "World map",
       "supervision": "Supervision",
-      "logs": "Logs and audit"
+      "logs": "Logs and audit",
+      "security": "Security"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1352,6 +1353,42 @@
           "failed": "failed"
         }
       }
+    },
+    "security": {
+      "loadFailed": "Could not load the security overview",
+      "window": "{hours, plural, one {# hour} other {# hours}}",
+      "failedByIp": "Failed sign-ins by address",
+      "failedByEmail": "Failed sign-ins by email",
+      "address": "Address",
+      "email": "Email",
+      "failures": "Failures",
+      "emails": "Different emails",
+      "last": "Last",
+      "sameIp": "Addresses shared by {count} or more accounts",
+      "multiIp": "Accounts using {count} or more addresses",
+      "addresses": "{count} addresses",
+      "lockouts": "Bots locked after wrong passwords",
+      "lockedUntil": "locked until {time} after {failures} failures",
+      "keys": "API keys",
+      "keyName": "Key",
+      "owner": "Owner",
+      "scopes": "Scopes",
+      "rate": "Per minute",
+      "lastUsed": "Last used",
+      "limitHits": "Held by the limit",
+      "revoked": "Revoked",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke the API key",
+      "scripts": "Scripts stopped by the sandbox",
+      "code": "Reason",
+      "bot": "Script",
+      "when": "When",
+      "quarantine": "Quarantine the player",
+      "quarantineTitle": "Quarantine the player (their scripts are held)",
+      "consumers": "Scripts using the most ops",
+      "engineDown": "The engine does not answer",
+      "opsUsed": "Ops used",
+      "ticks": "Ticks running"
     }
   }
 }

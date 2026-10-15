@@ -1,4 +1,4 @@
-import { findScriptFunction, validateScriptArgs } from '../../../../lib/utils/script-api'
+import { findScriptFunction, ScriptFunctionSpec, validateScriptArgs } from '../../../../lib/utils/script-api'
 import { Execution, ExecutionState, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { PendingCall, ScriptExecution, StepOutcome } from './script-runtime'
@@ -23,6 +23,7 @@ export class LiveExecution {
   private answers: Array<{ callId: number; answer: CallAnswer; deliverAt: number }> = []
   private outstanding = 0
   private hasStarted = false
+  private ops = 0
 
   constructor(
     private current: Execution,
@@ -30,6 +31,11 @@ export class LiveExecution {
     // The tick it was (re)launched at
     readonly sinceTick: number
   ) {}
+
+  // The ops of the game calls the script made since it was launched
+  get opsUsed(): number {
+    return this.ops
+  }
 
   get record(): Execution {
     return this.current
@@ -117,6 +123,7 @@ export class LiveExecution {
   private route(call: PendingCall, tick: number, tickIntervalMs: number): EngineCommand | null {
     if (call.fn !== 'sleep') {
       this.outstanding += 1
+      this.ops += (findScriptFunction(call.fn) as ScriptFunctionSpec).ops
       return {
         executionId: this.current.id,
         botId: this.current.botId,

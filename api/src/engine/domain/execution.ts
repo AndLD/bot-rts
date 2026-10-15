@@ -48,3 +48,15 @@ export interface ExecutionView {
   readonly reason: string | null
   readonly restarts: number
 }
+
+// How much a running script has used since it was (re)launched, for the admin console's list of the biggest consumers
+export interface ExecutionUsage {
+  id: string
+  userId: string
+  botId: string
+  file: string
+  // The ops of the game calls it has made (design §12.2.1)
+  opsUsed: number
+  // Ticks since it was launched
+  ticks: number
+}

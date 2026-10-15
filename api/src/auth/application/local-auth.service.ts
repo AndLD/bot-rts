@@ -9,7 +9,9 @@ import { User } from '../../users/domain/user.entity'
 import {
   CredentialsInvalidError,
   EmailAlreadyExistsError,
-  PrivacyNotAcceptedError
+  EmailNotVerifiedError,
+  PrivacyNotAcceptedError,
+  UserBannedError
 } from '../../users/domain/user.errors'
 import { eraseAccount } from './account-erasure'
 import { AuthPolicy } from '../domain/auth-policy'
@@ -19,7 +21,8 @@ import { LOCAL_PROVIDER } from '../domain/identity'
 import { LocalCredential } from '../domain/local-credential'
 import { isSessionActive } from '../domain/session'
 import { CredentialAuthService, LoginInput, RegisterInput, SessionTokens } from './credential-auth.service'
-import { AccessTokenService, AuthMailer, PasswordHasher, SecretGenerator } from './ports'
+import { LoginOutcome } from '../domain/login-attempt'
+import { AccessTokenService, AuthMailer, LoginAttemptLog, PasswordHasher, SecretGenerator } from './ports'
 
 export interface LocalAuthDependencies {
   unitOfWork: UnitOfWork
@@ -31,10 +34,22 @@ export interface LocalAuthDependencies {
   clock: Clock
   policy: AuthPolicy
   logger: Logger
+  attempts: LoginAttemptLog
 }
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
+}
+
+function outcomeOf(error: unknown): LoginOutcome {
+  if (error instanceof CredentialsInvalidError) {
+    return 'bad_credentials'
+  }
+  if (error instanceof UserBannedError) {
+    return 'banned'
+  }
+
+  return error instanceof EmailNotVerifiedError ? 'unverified' : 'error'
 }
 
 // The custom identity provider: email + password accounts, sessions with rotating refresh tokens and the emailed
@@ -97,7 +112,19 @@ export class LocalAuthService implements CredentialAuthService {
     return tokens
   }
 
-  async login({ email, password, userAgent }: LoginInput): Promise<SessionTokens> {
+  async login(input: LoginInput): Promise<SessionTokens> {
+    try {
+      const { tokens, userId } = await this.authenticate(input)
+      await this.record(input, 'success', userId)
+
+      return tokens
+    } catch (error) {
+      await this.record(input, outcomeOf(error), null)
+      throw error
+    }
+  }
+
+  private authenticate({ email, password, userAgent }: LoginInput): Promise<{ tokens: SessionTokens; userId: string }> {
     return this.deps.unitOfWork.run(async (repositories) => {
       const user = await repositories.users.findByEmail(normalizeEmail(email))
       const credential = user && !user.deletedAt ? await repositories.credentials.findByUserId(user.id) : null
@@ -111,8 +138,25 @@ export class LocalAuthService implements CredentialAuthService {
       }
       assertCanUseApi(user, credential.emailVerified)
 
-      return this.startSession(repositories, user.id, userAgent)
+      return { tokens: await this.startSession(repositories, user.id, userAgent), userId: user.id }
     })
+  }
+
+  // Writing the attempt down must never change the answer to the one who tried
+  private async record({ email, ip, userAgent }: LoginInput, outcome: LoginOutcome, userId: string | null) {
+    try {
+      await this.deps.attempts.record({
+        id: this.deps.ids.next(),
+        at: this.deps.clock.now(),
+        email: normalizeEmail(email),
+        userId,
+        ip: ip ?? null,
+        userAgent: userAgent ?? null,
+        outcome
+      })
+    } catch (error) {
+      this.deps.logger.error(error)
+    }
   }
 
   async refresh(refreshToken: string): Promise<SessionTokens> {

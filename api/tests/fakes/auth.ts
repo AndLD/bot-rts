@@ -1,3 +1,5 @@
+import { LoginAttemptLog } from '../../src/auth/application/ports'
+import { LoginAttempt } from '../../src/auth/domain/login-attempt'
 import { AuthService } from '../../src/auth/application/auth.service'
 import { LocalAuthService } from '../../src/auth/application/local-auth.service'
 import { LocalIdentityVerifier } from '../../src/auth/application/local-identity.verifier'
@@ -6,6 +8,18 @@ import { DEFAULT_AUTH_POLICY } from '../../src/auth/domain/auth-policy'
 import { Logger } from '../../src/shared/application/logger'
 import { FakeAccessTokenService, FakeHasher, FakeSecretGenerator, RecordingMailer } from './fakes'
 import { createWorld } from './world'
+
+export class RecordingLoginAttempts implements LoginAttemptLog {
+  readonly items: LoginAttempt[] = []
+  isFailing = false
+
+  async record(attempt: LoginAttempt) {
+    if (this.isFailing) {
+      throw new Error('the log is down')
+    }
+    this.items.push(attempt)
+  }
+}
 
 // The custom auth provider and the authentication use case wired with fakes
 export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {}) {
@@ -17,8 +31,20 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
   const mailer = new RecordingMailer()
   const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
   const policy = DEFAULT_AUTH_POLICY
+  const attempts = new RecordingLoginAttempts()
 
-  const auth = new LocalAuthService({ unitOfWork, hasher, secrets, accessTokens, mailer, ids, clock, policy, logger })
+  const auth = new LocalAuthService({
+    unitOfWork,
+    hasher,
+    secrets,
+    accessTokens,
+    mailer,
+    ids,
+    clock,
+    policy,
+    logger,
+    attempts
+  })
   const verifier = new LocalIdentityVerifier(
     accessTokens,
     repositories.sessions,
@@ -35,6 +61,7 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
     verifier,
     provisioner,
     mailer,
+    attempts,
     secrets,
     accessTokens,
     hasher,

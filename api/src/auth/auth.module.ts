@@ -25,6 +25,8 @@ import {
   AccessTokenService,
   AUTH_MAILER,
   AuthMailer,
+  LOGIN_ATTEMPT_LOG,
+  LoginAttemptLog,
   CREDENTIAL_REPOSITORY,
   IDENTITY_REPOSITORY,
   IdentityRepository,
@@ -42,6 +44,7 @@ import { CryptoSecretGenerator } from './infrastructure/crypto-secret-generator'
 import { EmailAuthMailer } from './infrastructure/email-auth-mailer'
 import { JwtAccessTokenService } from './infrastructure/jwt-access-token.service'
 import { PrismaCredentialRepository } from './infrastructure/prisma-credential.repository'
+import { PrismaLoginAttemptLog } from './infrastructure/prisma-login-attempt.log'
 import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repository'
 import { PrismaSessionRepository } from './infrastructure/prisma-session.repository'
 import { AuthController, REFRESH_COOKIE_OPTIONS } from './presentation/auth.controller'
@@ -70,6 +73,11 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
       provide: SESSION_REPOSITORY,
       inject: [PRISMA_CLIENT],
       useFactory: (c: PrismaClient) => new PrismaSessionRepository(c)
+    },
+    {
+      provide: LOGIN_ATTEMPT_LOG,
+      inject: [PRISMA_CLIENT],
+      useFactory: (c: PrismaClient) => new PrismaLoginAttemptLog(c)
     },
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
     { provide: SECRET_GENERATOR, useClass: CryptoSecretGenerator },
@@ -107,7 +115,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
         ID_GENERATOR,
         CLOCK,
         APP_CONFIG,
-        LOGGER
+        LOGGER,
+        LOGIN_ATTEMPT_LOG
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -118,7 +127,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
         ids: IdGenerator,
         clock: Clock,
         config: AppConfig,
-        logger: Logger
+        logger: Logger,
+        attempts: LoginAttemptLog
       ) =>
         new LocalAuthService({
           unitOfWork,
@@ -129,7 +139,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
           ids,
           clock,
           policy: config.auth.policy,
-          logger
+          logger,
+          attempts
         })
     },
     {

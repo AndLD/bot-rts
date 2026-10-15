@@ -60,7 +60,7 @@ export class AuthController {
   async login(@Body() body: LoginDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     return this.respondWithSession(
       response,
-      await this.auth.login({ ...body, userAgent: request.headers['user-agent'] })
+      await this.auth.login({ ...body, userAgent: request.headers['user-agent'], ip: request.ip })
     )
   }
 

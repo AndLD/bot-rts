@@ -47,7 +47,6 @@ export const api = generated.enhanceEndpoints({
     supervisionState: { providesTags: ['Supervision'] },
     supervisionKill: { invalidatesTags: ['Supervision'] },
     supervisionReboot: { invalidatesTags: ['Supervision'] },
-    supervisionQuarantine: { invalidatesTags: ['Supervision'] },
     supervisionRelease: { invalidatesTags: ['Supervision'] },
     supervisionPause: { invalidatesTags: ['Supervision'] },
     supervisionResume: { invalidatesTags: ['Supervision'] },
@@ -57,6 +56,9 @@ export const api = generated.enhanceEndpoints({
     supervisionCompensate: { invalidatesTags: ['Supervision'] },
     supervisionRemove: { invalidatesTags: ['Supervision'] },
     supervisionRestore: { invalidatesTags: ['Supervision'] },
+    securityOverview: { providesTags: ['Security'] },
+    securityRevokeKey: { invalidatesTags: ['Security'] },
+    supervisionQuarantine: { invalidatesTags: ['Supervision', 'Security'] },
     tutorialGet: { providesTags: ['Tutorial'] },
     tutorialSkip: { invalidatesTags: ['Tutorial'] },
     tutorialRestart: { invalidatesTags: ['Tutorial'] },
@@ -67,6 +69,8 @@ export const api = generated.enhanceEndpoints({
 
 export const {
   useAdminMeQuery,
+  useSecurityOverviewQuery,
+  useSecurityRevokeKeyMutation,
   useAuditListQuery,
   useLogsSearchQuery,
   useLogsSlowTicksQuery,

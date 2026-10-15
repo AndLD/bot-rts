@@ -626,3 +626,20 @@ model PlayerNote {
   @@index([userId, createdAt])
   @@map("player_notes")
 }
+
+// Every sign-in attempt of the custom provider, for the security page of the admin console (design §25.3). `userId` is set for a
+// successful one only; the email is what was typed. Old rows are removed by the data lifecycle job.
+model LoginAttempt {
+  id        String   @id @db.Uuid
+  at        DateTime @db.Timestamptz(3)
+  email     String
+  userId    String?  @map("user_id") @db.Uuid
+  ip        String?
+  userAgent String?  @map("user_agent")
+  outcome   String
+
+  @@index([at])
+  @@index([ip, at])
+  @@index([userId, at])
+  @@map("login_attempts")
+}

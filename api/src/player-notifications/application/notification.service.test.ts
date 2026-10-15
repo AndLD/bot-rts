@@ -416,6 +416,15 @@ describe('NotificationService', () => {
       expect(repository.rows).toHaveLength(1)
     })
 
+    it('forgets by the days it is told, not only by its own configuration', async () => {
+      const { service, repository, advance } = setup()
+      await service.consume('alice', broken(1))
+      advance(2 * 24 * 3600 * 1000)
+
+      expect(await service.purge(1)).toBe(1)
+      expect(repository.rows).toHaveLength(0)
+    })
+
     it('does not let what it remembers grow: coalescing, caps and preferences are forgotten when stale', async () => {
       const { service, preferences, advance } = setup()
       await service.consume('alice', energyLow())

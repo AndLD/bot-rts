@@ -110,8 +110,8 @@ export class NotificationService implements GameEventConsumer {
   }
 
   // Forgets what is older than the retention
-  async purge(): Promise<number> {
-    const olderThan = new Date(this.clock.now().getTime() - this.config.retentionDays * 24 * 3600 * 1000)
+  async purge(retentionDays: number = this.config.retentionDays): Promise<number> {
+    const olderThan = new Date(this.clock.now().getTime() - retentionDays * 24 * 3600 * 1000)
 
     return this.repository.deleteOlderThan(olderThan)
   }

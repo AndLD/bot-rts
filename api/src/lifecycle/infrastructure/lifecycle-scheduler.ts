@@ -5,7 +5,8 @@ export class LifecycleScheduler {
 
   constructor(
     private readonly run: () => Promise<unknown>,
-    private readonly intervalMs: number,
+    // The pause after a pass; a function, so that a change made in the console applies to the next pass
+    private readonly intervalMs: number | (() => number),
     private readonly firstDelayMs: number
   ) {}
 
@@ -28,7 +29,10 @@ export class LifecycleScheduler {
       // The service records and logs its failures; a thrown one must not end the schedule
     }
     if (this.timer) {
-      this.timer = setTimeout(() => void this.tick(), this.intervalMs)
+      this.timer = setTimeout(
+        () => void this.tick(),
+        typeof this.intervalMs === 'function' ? this.intervalMs() : this.intervalMs
+      )
       this.timer.unref()
     }
   }

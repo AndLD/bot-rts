@@ -190,4 +190,19 @@ describe('retention of game data', () => {
     expect(await database.client.session.count()).toBe(1)
     expect(await database.client.authToken.count()).toBe(1)
   })
+
+  it('deletes the days of activity before the cut-off and keeps the rest', async () => {
+    const user = buildUser()
+    await new PrismaUserRepository(database.client).add(user)
+    await database.client.playerActivity.createMany({
+      data: [
+        { userId: user.id, day: new Date('2025-01-01') },
+        { userId: user.id, day: new Date('2025-06-01') },
+        { userId: user.id, day: new Date('2026-01-01') }
+      ]
+    })
+
+    expect(await repository.deletePlayerActivityBefore(new Date('2025-09-01'))).toBe(2)
+    expect(await database.client.playerActivity.count()).toBe(1)
+  })
 })

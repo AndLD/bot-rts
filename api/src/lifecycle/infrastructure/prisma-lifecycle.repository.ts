@@ -86,4 +86,8 @@ export class PrismaLifecycleRepository implements LifecycleRepository {
     const attempts = await this.db.loginAttempt.deleteMany({ where: { at: { lt: before } } })
     return sessions.count + tokens.count + attempts.count
   }
+
+  async deletePlayerActivityBefore(before: Date): Promise<number> {
+    return (await this.db.playerActivity.deleteMany({ where: { day: { lt: before } } })).count
+  }
 }

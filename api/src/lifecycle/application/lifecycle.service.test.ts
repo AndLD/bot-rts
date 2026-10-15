@@ -1,8 +1,8 @@
 import { TERMINAL_LOG_KIND } from '../../../../lib/utils/interfaces/terminal'
 import { createWorld } from '../../../tests/fakes/world'
 import { buildUser } from '../../../tests/integration/builders'
-import { DEFAULT_TERMINAL_RETENTION } from '../../terminal/domain/terminal-retention'
-import { DEFAULT_LIFECYCLE_POLICY, LifecyclePolicy } from '../domain/lifecycle-policy'
+import { RetentionJob, RetentionValues } from '../../../../lib/utils/admin-retention'
+import { fakeRetentionPolicy } from '../../../tests/fakes/retention'
 import { InactiveAccount, LifecycleRepository } from './lifecycle.repository'
 import { collectLifecycleMetrics, LifecycleStatus } from './lifecycle-status'
 import { LifecycleService } from './lifecycle.service'
@@ -51,9 +51,12 @@ class FakeLifecycleRepository implements LifecycleRepository {
   deleteExpiredAuthData(before: Date) {
     return this.record('auth', [before], 5)
   }
+  deletePlayerActivityBefore(before: Date) {
+    return this.record('activity', [before], 8)
+  }
 }
 
-function setup(policy: Partial<LifecyclePolicy> = {}) {
+function setup(overrides: Partial<Record<RetentionJob, RetentionValues>> = {}) {
   const world = createWorld()
   const repository = new FakeLifecycleRepository()
   const notifier = { sendNotice: jest.fn(async () => undefined) }
@@ -66,8 +69,7 @@ function setup(policy: Partial<LifecyclePolicy> = {}) {
     unitOfWork: world.unitOfWork,
     notifier,
     notifications,
-    policy: { ...DEFAULT_LIFECYCLE_POLICY, ...policy },
-    retention: DEFAULT_TERMINAL_RETENTION,
+    settings: fakeRetentionPolicy(overrides),
     clock: world.clock,
     status,
     jobs,
@@ -92,7 +94,8 @@ describe('LifecycleService', () => {
       name: 'lifecycle',
       lastRunAt: clock.now().getTime(),
       failures: 0,
-      totals: expect.objectContaining({ terminalLogsDeleted: expect.any(Number) })
+      totals: expect.objectContaining({ terminalLogsDeleted: expect.any(Number) }),
+      lastPass: expect.objectContaining({ terminalLogsDeleted: 11, playerActivityDeleted: 8, failedSteps: 0 })
     })
 
     jobs.record.mockRejectedValueOnce(new Error('database is down'))
@@ -115,7 +118,8 @@ describe('LifecycleService', () => {
       terminalSessionsDeleted: 3,
       executionsDeleted: 4,
       notificationsDeleted: 6,
-      authRowsDeleted: 5
+      authRowsDeleted: 5,
+      playerActivityDeleted: 8
     })
     const cutoff = (name: string, index = 0) =>
       (repository.calls.filter(([call]) => call === name)[index][1] as Date[]).find(
@@ -124,6 +128,7 @@ describe('LifecycleService', () => {
     expect(now - cutoff('unverified').getTime()).toBe(7 * DAY)
     expect(now - cutoff('executions').getTime()).toBe(30 * DAY)
     expect(now - cutoff('auth').getTime()).toBe(7 * DAY)
+    expect(now - cutoff('activity').getTime()).toBe(400 * DAY)
     expect(now - (repository.calls.find(([call]) => call === 'logs')![1][1] as Date).getTime()).toBe(30 * DAY)
     expect(now - (repository.calls.filter(([call]) => call === 'logs')[1][1][1] as Date).getTime()).toBe(90 * DAY)
     expect(repository.deletedUsers).toEqual([['u1', 'u2']])
@@ -147,6 +152,59 @@ describe('LifecycleService', () => {
     expect(report.authRowsDeleted).toBe(5)
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('executions'))
     expect(status.snapshot().failures).toBe(1)
+  })
+
+  describe('what the console changes', () => {
+    it('uses the values in force: other ranges give other cut-off dates', async () => {
+      const { service, repository, clock } = setup({ executions: { days: 3 }, playerActivity: { days: 60 } })
+      const now = clock.now().getTime()
+
+      await service.runOnce()
+
+      const cutoff = (name: string) => repository.calls.find(([call]) => call === name)![1][0] as Date
+      expect(now - cutoff('executions').getTime()).toBe(3 * DAY)
+      expect(now - cutoff('activity').getTime()).toBe(60 * DAY)
+    })
+
+    it('skips a step that is switched off, and does the others', async () => {
+      const { service, repository, notifications } = setup({
+        executions: { isEnabled: false },
+        notifications: { isEnabled: false },
+        playerActivity: { isEnabled: false }
+      })
+
+      const report = await service.runOnce()
+
+      expect(repository.calls.some(([name]) => name === 'executions' || name === 'activity')).toBe(false)
+      expect(notifications.purge).not.toHaveBeenCalled()
+      expect(report).toMatchObject({ executionsDeleted: 0, authRowsDeleted: 5, playerActivityDeleted: 0 })
+    })
+
+    it('does nothing at all when the job itself is switched off, and tells the scheduler the interval', async () => {
+      const { service, repository, jobs } = setup({ lifecycle: { isEnabled: false, intervalMinutes: 15 } })
+
+      await service.runOnce()
+
+      expect(repository.calls).toEqual([])
+      expect(jobs.record).not.toHaveBeenCalled()
+      expect(service.intervalMs(1)).toBe(15 * 60_000)
+    })
+
+    it('falls back to the configured interval before the first pass', () => {
+      expect(setup().service.intervalMs(1234)).toBe(1234)
+    })
+
+    it('hands the days of notifications to the purge, and reports the failed steps', async () => {
+      const { service, notifications, repository, jobs } = setup({ notifications: { days: 5 } })
+      repository.failOn = 'executions'
+
+      await service.runOnce()
+
+      expect(notifications.purge).toHaveBeenCalledWith(5)
+      expect(jobs.record).toHaveBeenCalledWith(
+        expect.objectContaining({ lastPass: expect.objectContaining({ failedSteps: 1 }) })
+      )
+    })
   })
 
   describe('inactive accounts', () => {
@@ -207,7 +265,7 @@ describe('LifecycleService', () => {
     })
 
     it('is off when the inactivity period is 0', async () => {
-      const { service, repository, notifier } = setup({ inactiveDays: 0 })
+      const { service, repository, notifier } = setup({ inactiveAccounts: { isEnabled: false } })
       repository.inactive = [account('u1')]
 
       await service.runOnce()

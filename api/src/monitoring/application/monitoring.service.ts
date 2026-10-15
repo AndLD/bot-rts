@@ -39,6 +39,11 @@ export class MonitoringService {
   ) {}
 
   // One pass of the sampler; a failure is logged and never ends the schedule
+  // How far back the history of the two tiers reaches, in milliseconds; the console can change it while the server runs
+  retuneHistory(retentionsMs: readonly number[]): void {
+    this.history.retune(retentionsMs)
+  }
+
   async sampleOnce(): Promise<void> {
     try {
       const sample = await this.port.sample()

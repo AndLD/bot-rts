@@ -367,7 +367,8 @@ export function loadConfig(env: Env): AppConfig {
       inactiveDays: nonNegativeInt(env.INACTIVE_ACCOUNT_DAYS, DEFAULT_LIFECYCLE_POLICY.inactiveDays),
       noticeDays: positiveInt(env.INACTIVE_ACCOUNT_NOTICE_DAYS, DEFAULT_LIFECYCLE_POLICY.noticeDays),
       executionDays: positiveInt(env.EXECUTION_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.executionDays),
-      authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays)
+      authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays),
+      activityDays: positiveInt(env.PLAYER_ACTIVITY_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.activityDays)
     },
     featureSwitchCacheMs: nonNegativeInt(env.FEATURE_SWITCH_CACHE_MS, nodeEnv === 'test' ? 0 : 5000),
     admin: {

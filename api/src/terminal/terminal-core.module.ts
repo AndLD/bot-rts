@@ -21,7 +21,8 @@ import { BOT_ACCESS_REPOSITORY, BotAccessRepository } from './application/bot-ac
 import { BotAccessService } from './application/bot-access.service'
 import { SecurityLog, SessionLogWriter, SessionSecurityLog } from './application/session-log-writer'
 import { TERMINAL_SESSION_REPOSITORY, TerminalSessionRepository } from './application/terminal-session.repository'
-import { TERMINAL_RETENTION, TerminalRetention } from './domain/terminal-retention'
+import { RETENTION_POLICY } from '../retention/application/retention-settings.service'
+import { liveTerminalRetention, TERMINAL_RETENTION, TerminalRetention } from './domain/terminal-retention'
 import { PrismaBotAccessRepository } from './infrastructure/prisma-bot-access.repository'
 import { PrismaTerminalSessionRepository } from './infrastructure/prisma-terminal-session.repository'
 
@@ -37,7 +38,8 @@ const SECURITY_LOG = Symbol('SecurityLog')
       inject: [PRISMA_CLIENT],
       useFactory: (client: PrismaClient) => new PrismaTerminalSessionRepository(client)
     },
-    { provide: TERMINAL_RETENTION, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.terminal },
+    // Live: the console can change the cap of lines per bot, and the writers read it on every use
+    { provide: TERMINAL_RETENTION, inject: [RETENTION_POLICY], useFactory: liveTerminalRetention },
     {
       provide: BOT_ACCESS_REPOSITORY,
       inject: [PRISMA_CLIENT],

@@ -6,6 +6,7 @@ import { AchievementsModule } from './achievements/achievements.module'
 import { InspectorModule } from './inspector/inspector.module'
 import { SupervisionModule } from './supervision/supervision.module'
 import { PlayersModule } from './players/players.module'
+import { RetentionModule } from './retention/retention.module'
 import { FeatureSwitchesModule } from './featureswitches/featureswitches.module'
 import { ViewAsModule } from './viewas/viewas.module'
 import { PlayerNotificationsModule } from './player-notifications/player-notifications.module'
@@ -55,6 +56,7 @@ export class AppModule {
         FeatureSwitchesModule,
         AuthModule,
         AdminModule,
+        RetentionModule,
         PlayersModule,
         ViewAsModule,
         InspectorModule,

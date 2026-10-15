@@ -182,6 +182,12 @@ describe('the export', () => {
     expect(await database.client.adminAuditEntry.count({ where: { action: 'analytics.export' } })).toBe(2)
   })
 
+  it('takes the window of 30 days when none is given', async () => {
+    const activity = await api().get('/api/v1/admin/analytics/export?report=activity').set(bearer(analyst)).expect(200)
+
+    expect(activity.text.split('\n')).toHaveLength(32)
+  })
+
   it('refuses an unknown report, and a role without the permission', async () => {
     await api().get('/api/v1/admin/analytics/export?report=nope').set(bearer(analyst)).expect(400)
     await api().get('/api/v1/admin/analytics/export?report=funnel').set(bearer(moderator)).expect(403)

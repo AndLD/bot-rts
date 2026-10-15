@@ -370,7 +370,6 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/CHANGELOG.md`](./docs/CHANGELOG.md) — release notes.
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
-- [`docs/code-quality-reviews/2026-10-10.md`](./docs/code-quality-reviews/2026-10-10.md) — quality assessment of the original prototype (historical).
-- [`docs/harness-quality-reviews/`](./docs/harness-quality-reviews/README.md) — how the docs and AI harness are reviewed (layers, dimensions, procedure) and the dated reports.
+- [`docs/quality-reviews/`](./docs/quality-reviews/README.md) — code and docs/harness quality reviews: the project-neutral methods, this repository's bindings, templates and dated reports (the 2026-10-10 code review of the original prototype is historical).
 - [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done, Phase 9 is in progress).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

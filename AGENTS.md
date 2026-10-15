@@ -408,7 +408,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 
 - **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
   [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
-- **Harness quality:** the docs and this harness are reviewed by [`docs/harness-quality-reviews/README.md`](./docs/harness-quality-reviews/README.md)
+- **Harness quality:** the docs and this harness are reviewed by [`docs/quality-reviews/harness/README.md`](./docs/quality-reviews/harness/README.md)
   (layers, scoring, procedure; this repository's values in `bindings.md` there). A review adds one dated report and changes nothing else;
   fixes follow in separate pull requests.
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,

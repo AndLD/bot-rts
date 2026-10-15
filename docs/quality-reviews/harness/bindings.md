@@ -1,4 +1,4 @@
-[← Harness quality reviews](./README.md) · [README](../../README.md) · sibling: [code quality reviews](../code-quality-reviews/2026-10-10.md)
+[← Harness quality reviews](./README.md) · [README](../../../README.md) · sibling: [code quality reviews](../code/README.md)
 
 # Bindings for this repository
 
@@ -20,7 +20,7 @@ Target layer is where the content belongs; "Current" notes where it sits now whe
 | **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
 | **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
 | **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/DEVELOPMENT-PLAN.md`, `docs/development-plan/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
-| **STATE**   | `docs/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/risk-register.md`, `docs/CHANGELOG.md`, `docs/code-quality-reviews/*`, `docs/harness-quality-reviews/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
+| **STATE**   | `docs/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
 | **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/DEVELOPMENT-PLAN.md` |
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
@@ -241,7 +241,7 @@ Add a scenario whenever a real session shows an agent misreading the harness.
 | ------------------------------------- | ------------------------------------------------------- |
 | `README.md` § Documentation           | Add or keep the link to this folder                     |
 | `AGENTS.md` § 9                       | Keep the pointer: harness reviews run per this folder's `README.md` |
-| `docs/harness-quality-reviews/README.md` | None. The reports are discovered by name, newest first, with `ls` |
+| `docs/quality-reviews/README.md` | Add the report to the list of reports |
 
 ## 4. Review log
 

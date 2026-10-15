@@ -1,18 +1,19 @@
 'use client'
 
-import { Alert, Button, Card, Form, InputNumber, Space, Table } from 'antd'
+import { Alert, Button, Card, Form, Input, InputNumber, Space, Table } from 'antd'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { DEV_TOOLS_MAX_PLAYERS, ITestPlayer } from '@lib/utils/admin-devtools'
+import { DEV_TOOLS_MAX_PLAYERS, ITestPlayer, RESET_CONFIRMATION } from '@lib/utils/admin-devtools'
 import {
   useDevToolsRemoveTestPlayersMutation,
+  useDevToolsResetDatabaseMutation,
   useDevToolsSeedWorldMutation,
   useDevToolsStatusQuery
 } from '../../../shared/api'
 import ActionModal, { ActionValues } from '../players/ActionModal'
 import { useReportFailure } from '../use-report-failure'
 
-type Pending = { type: 'seed'; count: number } | { type: 'remove' }
+type Pending = { type: 'seed'; count: number } | { type: 'remove' } | { type: 'reset' }
 
 // Dev tools (design §25.3): test players with bases, for a development or test server. A server without them answers 404.
 export default function DevToolsPage() {
@@ -21,6 +22,7 @@ export default function DevToolsPage() {
   const { isError, isLoading } = useDevToolsStatusQuery()
   const [seed, seedState] = useDevToolsSeedWorldMutation()
   const [remove, removeState] = useDevToolsRemoveTestPlayersMutation()
+  const [reset, resetState] = useDevToolsResetDatabaseMutation()
   const [pending, setPending] = useState<Pending | null>(null)
   const [players, setPlayers] = useState<ITestPlayer[]>([])
   const [notice, setNotice] = useState<string | null>(null)
@@ -32,7 +34,7 @@ export default function DevToolsPage() {
     return <Alert type="info" message={t('disabled')} />
   }
 
-  async function submit({ reason }: ActionValues) {
+  async function submit({ reason, confirmation }: ActionValues) {
     const current = pending as Pending
 
     if (current.type === 'seed') {
@@ -42,6 +44,14 @@ export default function DevToolsPage() {
       }
       setPlayers((result as { data: { players: ITestPlayer[] } }).data.players)
       setNotice(null)
+    } else if (current.type === 'reset') {
+      const result = await reset({ resetDatabaseDto: { reason, confirmation: confirmation as string } })
+      if (report(result)) {
+        return
+      }
+      const body = (result as { data: { tablesEmptied: number; accountsErased: number } }).data
+      setPlayers([])
+      setNotice(t('reset.done', { tables: body.tablesEmptied, accounts: body.accountsErased }))
     } else {
       const result = await remove({ reasonDto: { reason } })
       if (report(result)) {
@@ -92,13 +102,35 @@ export default function DevToolsPage() {
           {t('remove.button')}
         </Button>
       </Card>
+      <Card size="small" title={t('reset.title')}>
+        <p>{t('reset.help')}</p>
+        <Button danger onClick={() => setPending({ type: 'reset' })}>
+          {t('reset.button')}
+        </Button>
+      </Card>
       <ActionModal
-        title={pending?.type === 'seed' ? t('seed.confirm', { count: pending.count }) : t('remove.confirm')}
+        title={
+          pending?.type === 'seed'
+            ? t('seed.confirm', { count: pending.count })
+            : pending?.type === 'reset'
+              ? t('reset.confirm')
+              : t('remove.confirm')
+        }
         isOpen={pending !== null}
-        isLoading={seedState.isLoading || removeState.isLoading}
+        isLoading={seedState.isLoading || removeState.isLoading || resetState.isLoading}
         onSubmit={submit}
         onCancel={() => setPending(null)}
-      />
+      >
+        {pending?.type === 'reset' ? (
+          <Form.Item
+            name="confirmation"
+            label={t('reset.type', { word: RESET_CONFIRMATION })}
+            rules={[{ required: true, pattern: new RegExp(`^${RESET_CONFIRMATION}$`) }]}
+          >
+            <Input autoComplete="off" />
+          </Form.Item>
+        ) : null}
+      </ActionModal>
     </Space>
   )
 }

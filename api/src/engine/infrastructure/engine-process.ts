@@ -104,6 +104,20 @@ export class EngineProcess {
     this.port.abandon()
   }
 
+  // Stops the engine thread, finishing what it was writing, and starts a new one that reads the world from the database again (the
+  // reset of a test server, after the tables were emptied behind it)
+  async restart(): Promise<void> {
+    await this.close()
+    await this.reopen()
+  }
+
+  // Starts the engine thread again after `close()`
+  reopen(): Promise<void> {
+    this.isClosing = false
+
+    return this.start()
+  }
+
   // Checks now and then that the engine is not stuck inside one step of a script: the sandbox's own clock is polled only every
   // few thousand instructions, so a script made of heavy builtins can hold the thread for many seconds. The thread is ended and
   // the script that held it is killed, so that the next engine does not start it again.

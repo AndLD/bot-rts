@@ -451,6 +451,20 @@ const injectedRtkApi = api.injectEndpoints({
     devToolsSeedWorld: build.mutation<DevToolsSeedWorldApiResponse, DevToolsSeedWorldApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/devtools/seed-world`, method: 'POST', body: queryArg.seedWorldDto })
     }),
+    devToolsAdvanceClock: build.mutation<DevToolsAdvanceClockApiResponse, DevToolsAdvanceClockApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/devtools/advance-clock`,
+        method: 'POST',
+        body: queryArg.advanceClockDto
+      })
+    }),
+    devToolsResetDatabase: build.mutation<DevToolsResetDatabaseApiResponse, DevToolsResetDatabaseApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/devtools/reset-database`,
+        method: 'POST',
+        body: queryArg.resetDatabaseDto
+      })
+    }),
     devToolsRemoveTestPlayers: build.mutation<DevToolsRemoveTestPlayersApiResponse, DevToolsRemoveTestPlayersApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/devtools/test-players`, method: 'DELETE', body: queryArg.reasonDto })
     }),
@@ -688,6 +702,36 @@ const injectedRtkApi = api.injectEndpoints({
     }),
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
+    }),
+    gameTimeAdminView: build.query<GameTimeAdminViewApiResponse, GameTimeAdminViewApiArg>({
+      query: () => ({ url: `/api/v1/admin/game-time` })
+    }),
+    gameTimeAdminSetTimeOfDay: build.mutation<GameTimeAdminSetTimeOfDayApiResponse, GameTimeAdminSetTimeOfDayApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/time-of-day`,
+        method: 'POST',
+        body: queryArg.setTimeOfDayDto
+      })
+    }),
+    gameTimeAdminSetDayLength: build.mutation<GameTimeAdminSetDayLengthApiResponse, GameTimeAdminSetDayLengthApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/day-length`,
+        method: 'POST',
+        body: queryArg.setDayLengthDto
+      })
+    }),
+    gameTimeAdminSetRealWorld: build.mutation<GameTimeAdminSetRealWorldApiResponse, GameTimeAdminSetRealWorldApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/real-world`,
+        method: 'POST',
+        body: queryArg.setRealWorldDto
+      })
+    }),
+    gameTimeAdminLeaveRealWorld: build.mutation<
+      GameTimeAdminLeaveRealWorldApiResponse,
+      GameTimeAdminLeaveRealWorldApiArg
+    >({
+      query: (queryArg) => ({ url: `/api/v1/admin/game-time/cycle`, method: 'POST', body: queryArg.reasonDto })
     }),
     apiKeysList: build.query<ApiKeysListApiResponse, ApiKeysListApiArg>({
       query: () => ({ url: `/api/v1/api-keys` })
@@ -1056,6 +1100,14 @@ export type DevToolsSeedWorldApiResponse = /** status 200  */ SeedWorldResponse
 export type DevToolsSeedWorldApiArg = {
   seedWorldDto: SeedWorldDto
 }
+export type DevToolsAdvanceClockApiResponse = /** status 200  */ GameTimeAdminResponse
+export type DevToolsAdvanceClockApiArg = {
+  advanceClockDto: AdvanceClockDto
+}
+export type DevToolsResetDatabaseApiResponse = /** status 200  */ ResetDatabaseResponse
+export type DevToolsResetDatabaseApiArg = {
+  resetDatabaseDto: ResetDatabaseDto
+}
 export type DevToolsRemoveTestPlayersApiResponse = /** status 200  */ RemoveTestPlayersResponse
 export type DevToolsRemoveTestPlayersApiArg = {
   reasonDto: ReasonDto
@@ -1247,6 +1299,24 @@ export type MonitoringAcknowledgeApiArg = {
 }
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
+export type GameTimeAdminViewApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminViewApiArg = void
+export type GameTimeAdminSetTimeOfDayApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetTimeOfDayApiArg = {
+  setTimeOfDayDto: SetTimeOfDayDto
+}
+export type GameTimeAdminSetDayLengthApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetDayLengthApiArg = {
+  setDayLengthDto: SetDayLengthDto
+}
+export type GameTimeAdminSetRealWorldApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetRealWorldApiArg = {
+  setRealWorldDto: SetRealWorldDto
+}
+export type GameTimeAdminLeaveRealWorldApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminLeaveRealWorldApiArg = {
+  reasonDto: ReasonDto
+}
 export type ApiKeysListApiResponse = /** status 200  */ ApiKeyResponse[]
 export type ApiKeysListApiArg = void
 export type ApiKeysCreateApiResponse = /** status 201  */ CreatedApiKeyResponse
@@ -1458,6 +1528,7 @@ export type AdminMeResponse = {
     | 'ops.announce'
     | 'ops.restart-runtime'
     | 'ops.retention'
+    | 'ops.game-time'
     | 'security.read'
     | 'security.revoke-key'
     | 'economy.read'
@@ -2080,6 +2151,51 @@ export type SeedWorldDto = {
   /** How many test players to create, each with a base */
   count: number
 }
+export type GameTimeSettingsModel = {
+  dayLengthMs: number
+  mode: 'cycle' | 'realWorld'
+  timeZone: string | null
+  anchorMs: number
+  offsetMs: number
+}
+export type DayPhaseSpanResponse = {
+  phase: 'night' | 'morning' | 'day' | 'evening'
+  /** In-game hour at which this part of the day starts */
+  fromHour: number
+  /** How much sun reaches solar panels, from 0 to 1 */
+  sunlight: number
+}
+export type GameTimeConfigResponse = {
+  /** One in-game day in real milliseconds; the world clock counts from the Unix epoch */
+  dayLengthMs: number
+  hoursPerDay: number
+  spans: DayPhaseSpanResponse[]
+  /** The game clock instant at which the in-game time is 00:00 */
+  anchorMs?: number
+  /** The IANA time zone whose wall-clock time the game shows (real-world mode) */
+  timeZone?: string
+}
+export type GameTimeAdminResponse = {
+  settings: GameTimeSettingsModel
+  config: GameTimeConfigResponse
+  /** The game clock instant in milliseconds */
+  now: number
+  canAdvance: boolean
+}
+export type AdvanceClockDto = {
+  reason: string
+  /** The step in milliseconds: 1 minute, 1 hour or 1 day */
+  stepMs: number
+}
+export type ResetDatabaseResponse = {
+  tablesEmptied: number
+  accountsErased: number
+}
+export type ResetDatabaseDto = {
+  reason: string
+  /** The word RESET, typed to confirm */
+  confirmation: string
+}
 export type RemoveTestPlayersResponse = {
   removed: number
 }
@@ -2506,27 +2622,25 @@ export type MetricSeriesResponse = {
   stepMs: number
   points: number[][]
 }
-export type DayPhaseSpanResponse = {
-  phase: 'night' | 'morning' | 'day' | 'evening'
-  /** In-game hour at which this part of the day starts */
-  fromHour: number
-  /** How much sun reaches solar panels, from 0 to 1 */
-  sunlight: number
-}
-export type GameTimeConfigResponse = {
-  /** One in-game day in real milliseconds; the world clock counts from the Unix epoch */
-  dayLengthMs: number
-  hoursPerDay: number
-  spans: DayPhaseSpanResponse[]
-  /** The game clock instant at which the in-game time is 00:00 */
-  anchorMs?: number
-  /** The IANA time zone whose wall-clock time the game shows (real-world mode) */
-  timeZone?: string
-}
 export type GameTimeResponse = {
   /** The server instant in ms */
   now: number
   config: GameTimeConfigResponse
+}
+export type SetTimeOfDayDto = {
+  reason: string
+  /** Minutes from 00:00; 990 is 16:30 */
+  minuteOfDay: number
+}
+export type SetDayLengthDto = {
+  reason: string
+  /** One in-game day in real milliseconds, from 1 minute to 24 hours (the default is 24 minutes) */
+  dayLengthMs: number
+}
+export type SetRealWorldDto = {
+  reason: string
+  /** An IANA time zone */
+  timeZone: string
 }
 export type ApiKeyResponse = {
   _id: string
@@ -2683,6 +2797,8 @@ export const {
   useAnalyticsExportQuery,
   useDevToolsStatusQuery,
   useDevToolsSeedWorldMutation,
+  useDevToolsAdvanceClockMutation,
+  useDevToolsResetDatabaseMutation,
   useDevToolsRemoveTestPlayersMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
@@ -2731,6 +2847,11 @@ export const {
   useMonitoringAlertsQuery,
   useMonitoringAcknowledgeMutation,
   useGameTimeCurrentQuery,
+  useGameTimeAdminViewQuery,
+  useGameTimeAdminSetTimeOfDayMutation,
+  useGameTimeAdminSetDayLengthMutation,
+  useGameTimeAdminSetRealWorldMutation,
+  useGameTimeAdminLeaveRealWorldMutation,
   useApiKeysListQuery,
   useApiKeysCreateMutation,
   useApiKeysRevokeMutation

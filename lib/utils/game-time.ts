@@ -175,3 +175,57 @@ export function gameTimeProblems(settings: Partial<Record<keyof GameTimeSettings
 
   return problems
 }
+
+// The anchor that makes the in-game time `hour` (0 to 24) at the instant `nowMs`, for a day of `dayLengthMs`
+export function anchorFor(nowMs: number, hour: number, dayLengthMs: number): number {
+  return nowMs - (hour / DEFAULT_GAME_TIME.hoursPerDay) * dayLengthMs
+}
+
+// Sets the time of day at `nowMs` (for example 16.5 for 16:30); nothing else moves, and the real-world mode is left for the cycle
+export function withTimeOfDay(settings: GameTimeSettings, nowMs: number, hour: number): GameTimeSettings {
+  return { ...settings, mode: 'cycle', anchorMs: anchorFor(nowMs, hour, settings.dayLengthMs) }
+}
+
+// Changes the day length at `nowMs` without a jump: the cycle is re-anchored so the time of day reads the same just before and just
+// after, and goes on at the new speed. In the real-world mode the time of day is the zone's, and it is kept too.
+export function withDayLength(settings: GameTimeSettings, nowMs: number, dayLengthMs: number): GameTimeSettings {
+  const hour = hourOf(nowMs, configOf(settings))
+
+  return { ...settings, mode: 'cycle', dayLengthMs, anchorMs: anchorFor(nowMs, hour, dayLengthMs) }
+}
+
+// Shows the wall-clock time of a zone from now on
+export function withRealWorld(settings: GameTimeSettings, timeZone: string): GameTimeSettings {
+  return { ...settings, mode: 'realWorld', timeZone }
+}
+
+// Leaves the real-world mode and returns to the cycle at the current time of day, at the day length that was set
+export function withCycle(settings: GameTimeSettings, nowMs: number): GameTimeSettings {
+  return withDayLength(settings, nowMs, settings.dayLengthMs)
+}
+
+// Moves the game clock forward by a step (a test server only; the console refuses a move back)
+export function withAdvance(settings: GameTimeSettings, stepMs: number): GameTimeSettings {
+  return { ...settings, offsetMs: settings.offsetMs + stepMs }
+}
+
+// The steps by which a test server may advance the game clock
+export const ADVANCE_STEPS_MS = [60 * 1000, 60 * 60 * 1000, 24 * 60 * 60 * 1000] as const
+
+// The lengths of a day the console offers besides any value in range
+export const DAY_LENGTH_PRESETS_MS = [
+  24 * 60 * 1000,
+  48 * 60 * 1000,
+  6.5 * 60 * 60 * 1000,
+  24 * 60 * 60 * 1000
+] as const
+
+// What the console shows and the editor changes (GET /api/v1/admin/game-time)
+export interface IGameTimeAdmin {
+  settings: GameTimeSettings
+  config: GameTimeConfig
+  // The game clock's instant in milliseconds
+  now: number
+  // Whether this server lets the game clock be advanced (a test server with the dev tools on)
+  canAdvance: boolean
+}

@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsInt, Max, Min } from 'class-validator'
+import { IsInt, IsString, Max, Min } from 'class-validator'
 import {
   DEV_TOOLS_MAX_PLAYERS,
   IDevToolsStatus,
+  IResetDatabaseResult,
+  RESET_CONFIRMATION,
   IRemoveTestPlayersResult,
   ISeedWorldResult,
   ITestPlayer
@@ -19,6 +21,20 @@ export class SeedWorldDto extends ReasonDto {
     description: 'How many test players to create, each with a base'
   })
   count!: number
+}
+
+export class ResetDatabaseDto extends ReasonDto {
+  @IsString()
+  @ApiProperty({ example: RESET_CONFIRMATION, description: 'The word RESET, typed to confirm' })
+  confirmation!: string
+}
+
+export class ResetDatabaseResponse implements IResetDatabaseResult {
+  @ApiProperty()
+  tablesEmptied!: number
+
+  @ApiProperty()
+  accountsErased!: number
 }
 
 class TestPlayerModel implements ITestPlayer {

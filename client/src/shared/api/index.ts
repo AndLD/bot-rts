@@ -1,4 +1,5 @@
 import { api as generated } from './generated'
+import { API_TAGS } from './empty-api'
 
 // The generated API with what the OpenAPI document cannot say: which requests make others stale
 export const api = generated.enhanceEndpoints({
@@ -21,6 +22,13 @@ export const api = generated.enhanceEndpoints({
     adminSettingsGet: { providesTags: ['Settings'] },
     adminSettingsUpdate: { invalidatesTags: ['Settings'] },
     gameTimeCurrent: { providesTags: ['GameTime'] },
+    gameTimeAdminView: { providesTags: ['GameTime'] },
+    gameTimeAdminSetTimeOfDay: { invalidatesTags: ['GameTime'] },
+    gameTimeAdminSetDayLength: { invalidatesTags: ['GameTime'] },
+    gameTimeAdminSetRealWorld: { invalidatesTags: ['GameTime'] },
+    gameTimeAdminLeaveRealWorld: { invalidatesTags: ['GameTime'] },
+    devToolsAdvanceClock: { invalidatesTags: ['GameTime', 'Factory', 'Storage'] },
+    devToolsResetDatabase: { invalidatesTags: [...API_TAGS] },
     retentionGet: { providesTags: ['Retention'] },
     retentionUpdate: { invalidatesTags: ['Retention', 'Operations'] },
     retentionReset: { invalidatesTags: ['Retention', 'Operations'] },
@@ -86,6 +94,7 @@ export const {
   useDevToolsStatusQuery,
   useDevToolsSeedWorldMutation,
   useDevToolsRemoveTestPlayersMutation,
+  useDevToolsResetDatabaseMutation,
   useMaintenanceStatusQuery,
   useOperationsStatusQuery,
   useOperationsAnnounceMutation,
@@ -93,6 +102,12 @@ export const {
   useOperationsClearBannerMutation,
   useOperationsRestartRuntimeMutation,
   useViewAsStartMutation,
+  useGameTimeAdminViewQuery,
+  useGameTimeAdminSetTimeOfDayMutation,
+  useGameTimeAdminSetDayLengthMutation,
+  useGameTimeAdminSetRealWorldMutation,
+  useGameTimeAdminLeaveRealWorldMutation,
+  useDevToolsAdvanceClockMutation,
   useRetentionGetQuery,
   useRetentionUpdateMutation,
   useRetentionResetMutation,

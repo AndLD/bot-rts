@@ -40,6 +40,7 @@ about 15 minutes it is sharded and run in parallel.
 | View as player: start with a reason, the banner, every change refused, the audit trail, the exit, access per role | 9.16 (`view-as.cy.ts`) |
 | Feature switches: sign-ups, base deployment and the public API switched off from the console and refused, the notices on the screens, switch back | 9.18 (`feature-switches.cy.ts`) |
 | Retention settings: a range and a switch changed and saved with a reason, refused values, the typed word, reset, read-only for a moderator | 9.19 (`retention.cy.ts`; that a pass obeys the values: `retention.int.test.ts`) |
+| Game time: time of day, day length without a jump, real-world zone, the clock of an open game following without a reload, advancing the clock to finish a craft; reset of the database of a test server | 9.17a (`game-time.cy.ts`), 9.17b (`database-reset.cy.ts`) |
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |

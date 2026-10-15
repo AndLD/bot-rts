@@ -960,7 +960,8 @@
       "morning": "Morning",
       "day": "Day",
       "evening": "Evening"
-    }
+    },
+    "changed": "The time of the game was changed by an admin."
   },
   "connection": {
     "lost": "Connection to the server lost",
@@ -1036,7 +1037,8 @@
       "operations": "Operations",
       "devtools": "Dev tools",
       "analytics": "Analytics",
-      "docs": "Documentation"
+      "docs": "Documentation",
+      "gameTime": "Game time"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1618,6 +1620,14 @@
         "button": "Remove all test players",
         "confirm": "Remove all test players"
       },
+      "reset": {
+        "title": "Reset the database",
+        "help": "Empties the world of this test server: every player, base, bot, map cell, item, script run and notification. The owners and you stay, every other login ends, the game clock goes back to real time. The audit log and the migrations are never touched.",
+        "button": "Reset the database",
+        "confirm": "Reset the database of this server",
+        "type": "Type {word} to confirm",
+        "done": "The database was reset: {tables} tables emptied, {accounts} accounts erased."
+      },
       "removed": "{count, plural, one {# test player removed} other {# test players removed}}"
     },
     "analytics": {
@@ -1660,6 +1670,61 @@
         "id": "Achievement",
         "players": "Players",
         "share": "Of all players"
+      }
+    },
+    "gameTime": {
+      "loadFailed": "Could not load the game time",
+      "readOnly": "You can read the game time; changing it is for owners and admins.",
+      "phases": {
+        "night": "Night",
+        "morning": "Morning",
+        "day": "Day",
+        "evening": "Evening"
+      },
+      "clock": {
+        "title": "The clock of the game",
+        "time": "Time",
+        "phase": "Part of the day",
+        "sunlight": "Sunlight",
+        "mode": "Mode",
+        "offset": "Clock",
+        "realWorld": "Real-world time of {zone}",
+        "cycle": "Day cycle of {length}",
+        "ahead": "ahead of real time by {length}",
+        "none": "real time"
+      },
+      "timeOfDay": {
+        "title": "Time of day",
+        "help": "Set the time of day now; the length of the day and everything else stay as they are.",
+        "set": "Set the time"
+      },
+      "dayLength": {
+        "title": "Length of the day",
+        "help": "From 1 minute to 24 hours (the default is 24 minutes). The change is seamless: the time of day does not jump, it goes on at the new speed.",
+        "minutes": "min",
+        "custom": "Own length in minutes",
+        "set": "Set the length"
+      },
+      "realWorld": {
+        "title": "Real-world time",
+        "help": "The game shows the wall-clock time of a time zone, with its own daylight saving. Leaving this mode returns to the day cycle at the current time of day.",
+        "zone": "Time zone",
+        "sync": "Show this zone",
+        "leave": "Back to the day cycle"
+      },
+      "advance": {
+        "title": "Advance the clock (test server)",
+        "help": "Moves the game clock forward so that timers finish without waiting. It only goes forward.",
+        "minute": "+1 minute",
+        "hour": "+1 hour",
+        "day": "+1 day"
+      },
+      "confirm": {
+        "timeOfDay": "Set the time of day",
+        "dayLength": "Change the length of the day",
+        "realWorld": "Show the real-world time",
+        "cycle": "Go back to the day cycle",
+        "advance": "Advance the game clock"
       }
     }
   },
@@ -1821,7 +1886,9 @@
         "intro": "Only on a development or test server: create test players with bases, and remove them.",
         "actionsTitle": "What you can do",
         "action1": "Create test players with a known password and a base.",
-        "action2": "Remove every test player."
+        "action2": "Remove every test player.",
+        "action3": "Advance the game clock by a minute, an hour or a day, so that crafts and research finish without waiting (owners; it only goes forward).",
+        "action4": "Reset the database of a test server: an empty world, with the owners and you kept, a typed word and a reason."
       },
       "docs": {
         "title": "Documentation",
@@ -1864,6 +1931,15 @@
       "alerts": {
         "title": "Alert thresholds",
         "intro": "When a metric of the dashboard turns yellow or red. The values are the defaults; the server can change them with ADMIN_ALERT_THRESHOLDS."
+      },
+      "game-time": {
+        "title": "Game time",
+        "intro": "The clock of the game, the part of the day and the sunlight, live, and the controls of the day.",
+        "actionsTitle": "What you can do",
+        "action1": "Set the time of day (for example from 05:00 to 16:30).",
+        "action2": "Change the length of the day, from 1 minute to 24 hours, without a jump of the time of day.",
+        "action3": "Show the real-world time of a time zone, and go back to the day cycle.",
+        "action4": "Every change needs a reason, is audited, and every connected player is told and sees the new time at once."
       }
     }
   },

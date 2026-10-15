@@ -11,7 +11,7 @@ import { ViewAsSocketGateway } from './view-as-socket.gateway'
 const view = { adminId: 'a1', adminStatus: 'admin', reason: 'r', expiresAt: new Date() }
 const player = { id: 'p1' }
 
-function context(request: object, metadata: Record<string, unknown> = {}): ExecutionContext {
+function context(request: object): ExecutionContext {
   return {
     switchToHttp: () => ({ getRequest: () => request }),
     getHandler: () => 'handler',

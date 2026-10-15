@@ -42,6 +42,8 @@ export default function ActionModal({
       confirmLoading={isLoading}
       onCancel={onCancel}
       onOk={() => form.submit()}
+      // The next action starts with an empty reason, not with the last one
+      afterClose={() => form.resetFields()}
       destroyOnHidden
     >
       <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onSubmit}>

@@ -7,7 +7,7 @@
 A running collection of **issues found while using and testing the finished phases**: defects, performance problems and
 rough edges that are not part of any earlier phase's scope. It is open-ended: new issues are added as tasks (`12.N`) when
 they are found, each with a reproduction, and the phase is closed when the user says so. It needs nothing from Phases 9 and 10
-and can be developed at any time; it is not part of the MVP count of the plan index.
+and can be developed at any time; its points count in the total of the plan index and grow as issues are added.
 
 **How an issue becomes a task.** Add a row to the table with the symptom and how to reproduce it, the expected result, and a
 story-point estimate; fix it on its own branch (`bugfix/12.N-slug`) with a test that reproduces it first (AGENTS.md §6.5), and

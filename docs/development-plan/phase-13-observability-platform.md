@@ -1,15 +1,15 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 13 — Observability platform (35 SP, proposed)
+# Phase 13 — Observability platform (35 SP)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-13-log](./work-logs/phase-13-log.md)
 
-**Proposed 2026-10-15 by the owner and drafted here for review; the task list and the estimates are not final until the owner approves them.**
+**Approved by the owner 2026-10-15** (proposed by the owner, drafted, reviewed and extended with tracing and a shared collector gateway). The estimates are the plan's; a task is re-estimated when it starts if the code shows a different size.
 
 Moves the logs of the game to **OpenTelemetry**, adds **tracing** so that everything that can be connected is connected by a trace id (the owner's wish: every log record carries one, and a request can be followed over the browser's call, the API, the engine and the notifications it causes), and stores both in **Elasticsearch**, so that the admin console can search the logs of
 **every node** (every API node and the engine node), not only of the process that answers (the log search of 9.10 reads a
 per-process in-memory buffer). The metrics of 8.3 (Prometheus) stay as they are unless task 13.6 decides otherwise. The phase is an
-upgrade of operations, not of the game: it is outside the MVP count of the plan index, and the game works without it.
+upgrade of operations, not of the game: the game works without it, but it is part of the plan and of the MVP count like every other phase.
 
 **Depends on:** Phase 8 (the observability basics, 8.3), 9.10 (the admin logs and audit viewer), 9.17 (the engine's own setting channel, whose request pattern the trace propagation follows) is useful but not required, and 9.19 (retention from the console,
 which the log retention joins). **Order:** after Phase 9; it can be moved by the owner.

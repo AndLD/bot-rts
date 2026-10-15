@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Type } from 'class-transformer'
-import { IsInt, IsOptional, IsPositive, IsString, Length, Max, ValidateNested } from 'class-validator'
+import { IsInt, IsOptional, IsPositive, IsString, Length, Max } from 'class-validator'
 import {
   ANNOUNCEMENT_MAX_LENGTH,
   BANNER_MAX_LENGTH,
@@ -117,8 +116,6 @@ class BackupStatusModel implements IBackupStatus {
 
 export class OperationsStatusResponse implements IOperationsStatus {
   @ApiProperty({ type: EngineStatusModel })
-  @ValidateNested()
-  @Type(() => EngineStatusModel)
   engine!: EngineStatusModel
 
   @ApiProperty()

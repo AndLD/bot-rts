@@ -71,7 +71,7 @@ export class LifecycleService {
     try {
       await this.deps.jobs.record({
         name: LIFECYCLE_JOB,
-        lastRunAt: lastRunAt?.getTime() ?? null,
+        lastRunAt: (lastRunAt as Date).getTime(),
         failures,
         totals: { ...totals }
       })

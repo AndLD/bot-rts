@@ -140,6 +140,20 @@ describe('announcements', () => {
   })
 })
 
+describe('the stored status of a job', () => {
+  it('is written by the job and read back by the console', async () => {
+    const { PrismaOperationsStore } = await import('./infrastructure/prisma-operations.store')
+    const store = new PrismaOperationsStore(database.client, { now: () => new Date() })
+
+    await store.record({ name: 'other', lastRunAt: 7, failures: 0, totals: {} })
+    await store.record({ name: 'other', lastRunAt: 8, failures: 1, totals: { x: 1 } })
+
+    expect(await store.list()).toEqual(
+      expect.arrayContaining([{ name: 'other', lastRunAt: 8, failures: 1, totals: { x: 1 } }])
+    )
+  })
+})
+
 describe('the maintenance banner', () => {
   const startsAt = Date.now() + 3_600_000
 
@@ -171,6 +185,25 @@ describe('the maintenance banner', () => {
       .expect(204)
     expect((await api().get('/api/v1/maintenance').expect(200)).body.banner).toBeNull()
     expect(await auditOf('operations.clear-banner')).toMatchObject({ after: null })
+  })
+
+  it('can be set without an end', async () => {
+    await api()
+      .put('/api/v1/admin/operations/maintenance-banner')
+      .set(bearer(admin))
+      .send({ message: 'Until further notice', startsAt, reason: 'update' })
+      .expect(204)
+
+    expect((await api().get('/api/v1/maintenance').expect(200)).body.banner).toEqual({
+      message: 'Until further notice',
+      startsAt,
+      endsAt: null
+    })
+    await api()
+      .delete('/api/v1/admin/operations/maintenance-banner')
+      .set(bearer(admin))
+      .send({ reason: 'done' })
+      .expect(204)
   })
 
   it('refuses a banner that ends before it starts, or that is empty', async () => {

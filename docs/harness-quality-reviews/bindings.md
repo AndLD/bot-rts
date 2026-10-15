@@ -1,4 +1,4 @@
-[← Harness quality reviews](./README.md)
+[← Harness quality reviews](./README.md) · [README](../../README.md) · sibling: [code quality reviews](../code-quality-reviews/2026-10-10.md)
 
 # Bindings for this repository
 
@@ -30,6 +30,8 @@ Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Re
 ---
 
 ## 2. Measurements
+
+Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
 
 Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
 Replace a layer name by its file list from section 1.

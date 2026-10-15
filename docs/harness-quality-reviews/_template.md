@@ -1,6 +1,6 @@
 # Harness Quality Review — YYYY-MM-DD
 
-**Type:** full | delta | targeted · **Commit reviewed:** `<sha>` (`develop`) · **Reviewer:** who or which agent session ·
+**Type:** full | delta | targeted · **Commit reviewed:** `<sha>` (integration branch) · **Reviewer:** who or which agent session ·
 **Method version:** date of the last method-changelog entry · **Previous report:** none | filename
 
 > Two or three sentences: the verdict, the biggest risk, the biggest strength.

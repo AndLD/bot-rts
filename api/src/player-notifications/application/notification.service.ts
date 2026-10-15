@@ -57,7 +57,9 @@ export class NotificationService implements GameEventConsumer {
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
     private readonly logger: Logger,
-    private readonly config: PlayerNotificationsConfig
+    private readonly config: PlayerNotificationsConfig,
+    // The due times of notifications come from timers of the game (a craft that finishes), so they are read on the game's clock
+    private readonly gameClock: Clock = clock
   ) {}
 
   async consume(userId: string, event: GameEvent): Promise<void> {
@@ -104,7 +106,7 @@ export class NotificationService implements GameEventConsumer {
   // Tells of what was waiting for its time (a craft that finished)
   async deliverDue(): Promise<void> {
     this.prune()
-    for (const notification of await this.repository.claimDue(this.clock.now(), DUE_BATCH)) {
+    for (const notification of await this.repository.claimDue(this.gameClock.now(), DUE_BATCH)) {
       this.tell(notification)
     }
   }
@@ -198,7 +200,7 @@ export class NotificationService implements GameEventConsumer {
       if (this.isOverCap(userId, candidate.category)) {
         return
       }
-      const isDue = candidate.dueAt === undefined || candidate.dueAt <= now.getTime()
+      const isDue = candidate.dueAt === undefined || candidate.dueAt <= this.gameClock.now().getTime()
       const notification: Notification = {
         id: this.ids.next(),
         userId,

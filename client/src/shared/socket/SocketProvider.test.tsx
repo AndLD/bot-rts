@@ -132,6 +132,16 @@ describe('SocketProvider', () => {
     expect(auth.refresh).not.toHaveBeenCalled()
   })
 
+  it('reads the game time, the factory and the storage again when an admin changes the time of the game', () => {
+    const { dispatch } = setup('token-1')
+
+    act(() => void connection.handlers['game-time-changed']())
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'api/invalidateTags', payload: ['GameTime', 'Factory', 'Storage', 'Bases'] })
+    )
+  })
+
   describe('when the connection is lost', () => {
     const lose = (reason = 'transport close') => act(() => void connection.handlers.disconnect(reason as never))
     const reconnect = () => act(() => void connection.handlers.connect())

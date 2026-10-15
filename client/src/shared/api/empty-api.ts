@@ -21,7 +21,8 @@ export const API_TAGS = [
   'Balance',
   'Operations',
   'Features',
-  'Retention'
+  'Retention',
+  'GameTime'
 ] as const
 
 const MAX_RETRIES = 3

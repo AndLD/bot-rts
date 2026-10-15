@@ -60,4 +60,7 @@ export interface ServerToClientEvents {
   'map-cells': (update: IMapUpdate) => void
   // The squares the player's scanners keep live now (all of them, every time they change)
   'live-areas': (areas: ILiveArea[]) => void
+  // The time of the game changed (the day length, the time of day, the mode or a move of the clock): read the game time, the factory and
+  // the storage again (design §25.3, Game time)
+  'game-time-changed': () => void
 }

@@ -1,3 +1,4 @@
+import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import { JsonValue } from '../domain/json-value'
 import { ExecutionUsage, ExecutionView } from '../domain/execution'
 import { ControlState, EngineControl } from '../domain/engine-control'
@@ -23,6 +24,8 @@ export interface EnginePort {
   linkStatus(userId: string, botId: string): Promise<LinkStatus>
   // Maintenance, the script kill-switch and quarantine (design §25.3); answers the state after the change
   control(command: EngineControl): Promise<ControlState>
+  // Gives the engine the settings of the game's time (design §12.4, §25.3); it applies them between ticks. The tick loop stays on real time.
+  setGameTime(settings: GameTimeSettings): Promise<void>
   // Kills and starts again the scripts of a bot
   reboot(botId: string): Promise<ExecutionView[]>
   // The running scripts that used the most ops, the biggest first

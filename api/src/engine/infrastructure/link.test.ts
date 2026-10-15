@@ -1,3 +1,4 @@
+import { DEFAULT_GAME_TIME_SETTINGS } from '../../../../lib/utils/game-time'
 import { ErrorCode } from '../../../../lib/utils/error-codes'
 import { EngineCore } from '../application/engine-core'
 import { ControlMessage, EngineMessage, MessageChannel } from '../application/engine-protocol'
@@ -66,9 +67,10 @@ function setup() {
   const core = fakeCore()
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
   const timers = { now: () => 0, after: jest.fn(() => () => undefined) }
-  const host = new EngineHost(core as unknown as EngineCore, engineSide, logger, 100, timers)
+  const applyGameTime = jest.fn()
+  const host = new EngineHost(core as unknown as EngineCore, engineSide, logger, 100, timers, applyGameTime)
   const port = new ChannelEnginePort(apiSide)
-  return { host, port, core, logger, sent, engineSide, timers }
+  return { host, port, core, logger, sent, engineSide, timers, applyGameTime }
 }
 
 function setupStop() {
@@ -109,6 +111,15 @@ describe('EngineHost and ChannelEnginePort', () => {
     expect(core.link).toHaveBeenCalledWith('u', 'b')
     expect(core.manual).toHaveBeenCalledWith('u', 'b', 'drop', [1])
     expect(core.act).toHaveBeenCalledWith('files.remove', ['u', 'b', 'd', 'a.js'])
+  })
+
+  it('hands the settings of the game time to the engine thread, which applies them', async () => {
+    const { port, applyGameTime } = setup()
+    const settings = { ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: 120_000, anchorMs: 42 }
+
+    await expect(port.setGameTime(settings)).resolves.toBeUndefined()
+
+    expect(applyGameTime).toHaveBeenCalledWith(settings)
   })
 
   it('carries an application error across with its status and code, and hides other errors', async () => {
@@ -206,6 +217,8 @@ describe('EngineHost and ChannelEnginePort', () => {
     await expect(off.linkStatus()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.metrics()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.control()).rejects.toMatchObject({ statusCode: 503 })
+    // There is no engine to tell, so a change of the game's time is not an error: an engine that starts later reads it
+    await expect(off.setGameTime()).resolves.toBeUndefined()
     await expect(off.reboot()).rejects.toMatchObject({ statusCode: 503 })
     await expect(off.top()).rejects.toMatchObject({ statusCode: 503 })
     expect(off.onEvent()()).toBeUndefined()

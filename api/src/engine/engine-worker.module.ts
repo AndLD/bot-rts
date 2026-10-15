@@ -28,6 +28,7 @@ import { PersistenceModule } from '../persistence/persistence.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
+import { GAME_CLOCK, GAME_TIME, GameTimeState } from '../shared/application/game-clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { SeededRng } from '../shared/infrastructure/seeded-rng'
@@ -38,6 +39,7 @@ import { BotAccessService } from '../terminal/application/bot-access.service'
 import { TerminalCoreModule } from '../terminal/terminal-core.module'
 import { SettingsService } from '../settings/application/settings.service'
 import { SettingsModule } from '../settings/settings.module'
+import { GameTimeCoreModule } from '../time/game-time-core.module'
 import { RetentionModule } from '../retention/retention.module'
 import { FeatureSwitchesModule } from '../featureswitches/featureswitches.module'
 import { UsersModule } from '../users/users.module'
@@ -115,6 +117,7 @@ export class EngineWorkerModule {
         UsersModule,
         FeatureSwitchesModule,
         RetentionModule,
+        GameTimeCoreModule,
         AuthModule,
         ModulesModule,
         SettingsModule,
@@ -222,7 +225,7 @@ export class EngineWorkerModule {
             worldConfig: WorldConfig
           ) => new LiveVision(world, source, writeBehind, ids, sink, app.engine.tickIntervalMs, worldConfig.chunkSize)
         },
-        { provide: EventOutbox, inject: [CLOCK], useFactory: (clock: Clock) => new EventOutbox(clock) },
+        { provide: EventOutbox, inject: [GAME_CLOCK], useFactory: (clock: Clock) => new EventOutbox(clock) },
         {
           provide: RadioBuffers,
           inject: [APP_CONFIG],
@@ -231,7 +234,7 @@ export class EngineWorkerModule {
         },
         {
           provide: RadioNetwork,
-          inject: [World, WORLD_SOURCE, ENGINE_SINK, EventOutbox, RadioBuffers, APP_CONFIG, LiveVision, CLOCK],
+          inject: [World, WORLD_SOURCE, ENGINE_SINK, EventOutbox, RadioBuffers, APP_CONFIG, LiveVision, GAME_CLOCK],
           useFactory: (
             world: World,
             source: WorldSource,
@@ -262,7 +265,7 @@ export class EngineWorkerModule {
             RadioNetwork,
             RadioBuffers,
             EventOutbox,
-            CLOCK,
+            GAME_CLOCK,
             APP_CONFIG,
             ScanService,
             FactoryService,
@@ -360,7 +363,8 @@ export class EngineWorkerModule {
             ENGINE_SINK,
             ID_GENERATOR,
             CLOCK,
-            LOGGER
+            LOGGER,
+            GAME_CLOCK
           ],
           useFactory: (
             app: AppConfig,
@@ -385,7 +389,8 @@ export class EngineWorkerModule {
             sink: EngineSink,
             ids: IdGenerator,
             clock: Clock,
-            logger: Logger
+            logger: Logger,
+            gameClock: Clock
           ) =>
             new EngineCore({
               config: app.engine,
@@ -412,15 +417,16 @@ export class EngineWorkerModule {
               sink,
               ids,
               clock,
+              gameClock,
               logger,
               monotonicMs: () => performance.now()
             })
         },
         {
           provide: EngineHost,
-          inject: [EngineCore, ENGINE_CHANNEL, LOGGER, APP_CONFIG],
-          useFactory: (core: EngineCore, c: typeof channel, logger: Logger, app: AppConfig) =>
-            new EngineHost(core, c, logger, app.engine.tickIntervalMs, SYSTEM_TIMERS)
+          inject: [EngineCore, ENGINE_CHANNEL, LOGGER, APP_CONFIG, GAME_TIME],
+          useFactory: (core: EngineCore, c: typeof channel, logger: Logger, app: AppConfig, time: GameTimeState) =>
+            new EngineHost(core, c, logger, app.engine.tickIntervalMs, SYSTEM_TIMERS, time.apply.bind(time))
         }
       ]
     }

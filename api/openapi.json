@@ -8667,7 +8667,9 @@
                     "hoursPerDay": 1,
                     "spans": [
                       null
-                    ]
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
                   }
                 }
               }
@@ -13763,6 +13765,14 @@
             "items": {
               "$ref": "#/components/schemas/DayPhaseSpanResponse"
             }
+          },
+          "anchorMs": {
+            "type": "number",
+            "description": "The game clock instant at which the in-game time is 00:00"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The IANA time zone whose wall-clock time the game shows (real-world mode)"
           }
         },
         "required": [

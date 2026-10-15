@@ -27,6 +27,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- The game clock: the rules of the game run on a separate `GAME_CLOCK` and the day cycle (length, time of day, real-world zone) is a
+  runtime setting that the engine, the API nodes and the clients follow (`game-time-changed` socket event); sessions and logins stay on
+  the real clock.
 - Admin console, retention settings: every retention job (terminal lines, executions, notifications, expired logins, unverified and
   inactive accounts, player activity, monitoring history) can be switched and tuned from the Operations page and reset in one click;
   the new cleanup of `player_activity` (`PLAYER_ACTIVITY_RETENTION_DAYS`, 400 days); new permission `ops.retention`.

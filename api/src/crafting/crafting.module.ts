@@ -7,7 +7,8 @@ import { ModulesModule } from '../modules/modules.module'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
-import { CLOCK, Clock } from '../shared/application/clock'
+import { Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { BLUEPRINT_REPOSITORY, BlueprintRepository } from './application/blueprint.repository'
 import { ITEM_REPOSITORY } from './application/item.repository'
@@ -41,7 +42,7 @@ import { CraftingController } from './presentation/crafting.controller'
     },
     {
       provide: FactorySettler,
-      inject: [UNIT_OF_WORK, ModuleRegistry, ID_GENERATOR, CLOCK, ModuleFactory],
+      inject: [UNIT_OF_WORK, ModuleRegistry, ID_GENERATOR, GAME_CLOCK, ModuleFactory],
       useFactory: (
         unitOfWork: UnitOfWork,
         registry: ModuleRegistry,

@@ -44,6 +44,11 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnAp
     this.server?.to(roomOf(userId)).emit(event, ...args)
   }
 
+  // Tells every connected player, on every node (the Socket.IO adapter carries it across them)
+  broadcast<E extends keyof ServerToClientEvents>(event: E, ...args: Parameters<ServerToClientEvents[E]>) {
+    this.server?.emit(event, ...args)
+  }
+
   private forward(event: EngineEvent) {
     switch (event.type) {
       case 'radio':

@@ -156,6 +156,13 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
   is preempted by the wall-clock slice (§12.2.1) depends on machine speed, so script preemption under overload may
   differ between runs; this is accepted.
 
+- **Two clocks (delivered, task 9.17):** the rules of the game (timers of crafting, research and the factory, the energy of the bots,
+  radio and combat, the times on the map, the due times of notifications) read the **game clock** (`GAME_CLOCK`); sessions, logins,
+  rate limits, bans, the audit trail and database timestamps read the **real clock** (`CLOCK`). The game clock is the real one plus an
+  offset that is always 0 in production, and the day cycle (length, anchor, mode) is a runtime setting in the game settings that the
+  engine thread, the API nodes and the clients follow; the tick loop stays on real time. Which code reads which clock is classified in
+  [docs/testing/clock-consumers.md](../testing/clock-consumers.md) and enforced by a test.
+
 ## 12.5 Time, energy and sleep
 
 ✅ **Energy model:**

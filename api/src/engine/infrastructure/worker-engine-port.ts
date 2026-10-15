@@ -1,4 +1,5 @@
 import { AppError } from '../../shared/domain/app-error'
+import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import { ExecutionUsage, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
 import { StartRequest } from '../application/engine-core'
@@ -59,6 +60,10 @@ export class ChannelEnginePort implements EnginePort {
 
   control(command: EngineControl): Promise<ControlState> {
     return this.ask({ op: 'control', command }) as Promise<ControlState>
+  }
+
+  async setGameTime(settings: GameTimeSettings): Promise<void> {
+    await this.ask({ op: 'setGameTime', settings })
   }
 
   reboot(botId: string): Promise<ExecutionView[]> {
@@ -145,6 +150,11 @@ export class DisabledEnginePort implements EnginePort {
 
   control(): Promise<ControlState> {
     return Promise.reject(new ServiceUnavailableError())
+  }
+
+  // There is no engine to tell: the settings are stored, and an engine that starts later reads them
+  setGameTime(): Promise<void> {
+    return Promise.resolve()
   }
 
   reboot(): Promise<ExecutionView[]> {

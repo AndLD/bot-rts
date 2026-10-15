@@ -13,6 +13,7 @@ export const SECRET_GENERATOR = Symbol('SecretGenerator')
 export const PASSWORD_HASHER = Symbol('PasswordHasher')
 export const AUTH_MAILER = Symbol('AuthMailer')
 export const LOGIN_ATTEMPT_LOG = Symbol('LoginAttemptLog')
+export const PLAYER_ACTIVITY_LOG = Symbol('PlayerActivityLog')
 
 export interface IdentityRepository {
   findByIdentity(provider: string, subject: string): Promise<IdentityLink | null>
@@ -81,4 +82,10 @@ export interface AuthMailer {
 // rolled back.
 export interface LoginAttemptLog {
   record(attempt: LoginAttempt): Promise<void>
+}
+
+// Notes that a player was active on a day (design §25.3, Analytics); asking again for the same day changes nothing. Like the attempts,
+// it is outside the unit of work and never changes the answer to the player.
+export interface PlayerActivityLog {
+  touch(userId: string, at: Date): Promise<void>
 }

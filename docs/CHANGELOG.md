@@ -57,6 +57,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   all running scripts (`/api/v1/admin/operations/*`).
 - Dev tools in the admin console, for development and test servers: test players with a verified email, a known password and a base,
   and their removal (`DEV_TOOLS_ENABLED=true`; the server refuses to start with it in production; `/api/v1/admin/devtools/*`, owners only).
+- Analytics in the admin console: players active each day and in the month, retention of weekly sign-up cohorts (day 1, 7 and 30), the
+  onboarding funnel and the share of players who earned each achievement, each as a CSV download (`/api/v1/admin/analytics`). A day of
+  activity is noted when a player signs in or renews the session (the new `player_activity` table).
 
 ### Changed
 

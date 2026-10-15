@@ -5,11 +5,8 @@ import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
 import { hasPermission } from '@lib/utils/admin'
 import { useAuditListQuery } from '../../../shared/api'
-import { API_URL } from '../../../shared/config'
-import { useErrorMessage } from '../../../shared/errors'
-import { errorNotification } from '../../../shared/notifications'
-import { useToken } from '../../../shared/store/hooks'
 import { useAdminMe } from '../admin-me-context'
+import { useCsvDownload } from '../use-csv-download'
 import { queryOf } from './audit-query'
 
 const PAGE_SIZE = 25
@@ -28,31 +25,13 @@ type Filters = {
 export default function AuditViewer() {
   const t = useTranslations('admin.logs.audit')
   const format = useFormatter()
-  const getErrorMessage = useErrorMessage()
   const { role } = useAdminMe()
-  const token = useToken()
+  const download = useCsvDownload()
   const [filters, setFilters] = useState<Filters>({})
   const [page, setPage] = useState(1)
   const { data, isFetching, isError } = useAuditListQuery({ ...filters, page, results: PAGE_SIZE })
 
-  async function exportCsv() {
-    const response = await fetch(`${API_URL}/api/v1/admin/audit/export?${queryOf(filters)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      const body = (await response.json().catch(() => ({}))) as { code?: string; error?: string }
-      errorNotification(getErrorMessage({ code: body.code, message: body.error }))
-      return
-    }
-    const url = URL.createObjectURL(await response.blob())
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'audit-log.csv'
-    link.click()
-    URL.revokeObjectURL(url)
-  }
+  const exportCsv = () => download(`/api/v1/admin/audit/export?${queryOf(filters)}`, 'audit-log.csv')
 
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>

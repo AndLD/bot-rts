@@ -75,6 +75,7 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useAnalyticsReportQuery,
   useDevToolsStatusQuery,
   useDevToolsSeedWorldMutation,
   useDevToolsRemoveTestPlayersMutation,

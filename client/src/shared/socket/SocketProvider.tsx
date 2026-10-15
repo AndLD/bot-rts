@@ -79,6 +79,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       }
     })
     connection.io.on('reconnect_attempt', () => isLost && setStatus('reconnecting'))
+    // The time of the game was changed by an admin: the game time, the factory (its countdowns use the server's time) and the storage
+    // are read again, without a reload of the page
+    connection.on('game-time-changed', () => {
+      dispatch(emptyApi.util.invalidateTags(['GameTime', 'Factory', 'Storage', 'Bases']))
+    })
     connection.on('connect', () => {
       if (!isLost) {
         return

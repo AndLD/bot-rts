@@ -76,7 +76,9 @@ const SCRIPT_LOG_FLUSH_MS = 250
       ) =>
         new ScriptLogRecorder(feed, terminal, clock, logger, {
           flushMs: SCRIPT_LOG_FLUSH_MS,
-          maxLinesPerBot: retention.maxLinesPerBot
+          get maxLinesPerBot() {
+            return retention.maxLinesPerBot
+          }
         })
     },
     {

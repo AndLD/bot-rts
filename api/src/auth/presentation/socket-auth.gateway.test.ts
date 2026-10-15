@@ -8,7 +8,7 @@ const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: j
 const limiter = { consume: jest.fn() } as unknown as RateLimiter
 
 function install(authenticate: (token: string) => Promise<unknown>) {
-  const gateway = new SocketAuthGateway({ authenticate } as never, logger, limiter)
+  const gateway = new SocketAuthGateway({ authenticate } as never, logger, limiter, {} as never)
   let middleware: ((socket: Socket, next: (error?: Error) => void) => Promise<void>) | undefined
   gateway.afterInit({ use: (fn: typeof middleware) => (middleware = fn) } as unknown as Server)
   return middleware as NonNullable<typeof middleware>
@@ -18,7 +18,7 @@ const handshake = { handshake: { auth: { token: 't' }, query: {} } }
 
 describe('SocketAuthGateway', () => {
   it('installs the handshake authentication on the server', () => {
-    const gateway = new SocketAuthGateway(createAuthWorld().authService, logger, limiter)
+    const gateway = new SocketAuthGateway(createAuthWorld().authService, logger, limiter, {} as never)
     const server = { use: jest.fn() }
 
     gateway.afterInit(server as unknown as Server)

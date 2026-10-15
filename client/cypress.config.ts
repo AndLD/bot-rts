@@ -225,6 +225,14 @@ export default defineConfig({
           return null
         },
 
+        // The settings of the game's time go back to the defaults (a spec that moved the clock leaves the next one the real time); the
+        // servers read the store again within a second
+        async resetGameTime() {
+          await sql(`DELETE FROM game_settings WHERE key = 'gameTime'`, [])
+
+          return null
+        },
+
         // A repair module on the base itself, so the base's terminal can repair its neighbours
         async addRepairModule({ email }: { email: string }) {
           await sql(

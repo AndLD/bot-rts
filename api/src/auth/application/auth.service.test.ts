@@ -70,3 +70,57 @@ describe('AuthService.authenticate', () => {
     await expect(authService.authenticate('garbage')).rejects.toThrow(UnauthorizedError)
   })
 })
+
+describe('AuthService.authenticate in a view of a player', () => {
+  async function view(adminStatus: 'owner' | 'admin' | 'moderator', playerStatus: 'user' | 'admin' = 'user') {
+    const world = await setup()
+    const { repositories, user: admin, accessTokens, clock } = world
+    const player = {
+      ...admin,
+      id: '7d1b6c5a-3a4e-4c1d-9d52-0b3f4f6d8e11',
+      email: 'bob@example.com',
+      status: playerStatus
+    }
+
+    repositories.users.items.set(admin.id, { ...admin, status: adminStatus })
+    repositories.users.items.set(player.id, player)
+    await repositories.sessions.add({
+      id: 'view-session',
+      userId: admin.id,
+      refreshTokenHash: 'view-as:view-session',
+      createdAt: clock.now(),
+      lastUsedAt: clock.now(),
+      expiresAt: new Date(clock.now().getTime() + 60_000),
+      revokedAt: null,
+      userAgent: null,
+      viewAs: { userId: player.id, reason: 'support' }
+    })
+
+    return { ...world, admin, player, token: accessTokens.sign({ userId: admin.id, sessionId: 'view-session' }) }
+  }
+
+  it('answers as the player and names the admin behind the view', async () => {
+    const { authService, token, player, admin } = await view('admin')
+
+    const principal = await authService.authenticate(token)
+
+    expect(principal.user.id).toBe(player.id)
+    expect(principal.viewAs).toMatchObject({ adminId: admin.id, adminStatus: 'admin', reason: 'support' })
+  })
+
+  it.each([
+    ['an admin who lost the permission', 'moderator', 'user'],
+    ['a player of the same rank', 'admin', 'admin']
+  ] as const)('ends the view for %s', async (_name, adminStatus, playerStatus) => {
+    const { authService, token } = await view(adminStatus, playerStatus)
+
+    await expect(authService.authenticate(token)).rejects.toThrow(UnauthorizedError)
+  })
+
+  it('ends the view when the player no longer exists', async () => {
+    const { authService, token, player, repositories } = await view('owner')
+    repositories.users.items.delete(player.id)
+
+    await expect(authService.authenticate(token)).rejects.toThrow(UnauthorizedError)
+  })
+})

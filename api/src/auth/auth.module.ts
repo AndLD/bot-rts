@@ -162,14 +162,16 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
     },
     {
       provide: AuthService,
-      inject: [IDENTITY_VERIFIER, UserProvisioner, CLOCK, APP_CONFIG, API_KEY_AUTHENTICATOR],
+      inject: [IDENTITY_VERIFIER, UserProvisioner, CLOCK, APP_CONFIG, API_KEY_AUTHENTICATOR, USER_REPOSITORY],
       useFactory: (
         verifier: IdentityVerifier,
         provisioner: UserProvisioner,
         clock: Clock,
         config: AppConfig,
-        apiKeys: ApiKeyAuthenticator
-      ) => new AuthService(verifier, provisioner, new PrincipalCache(clock, config.auth.principalCacheMs), apiKeys)
+        apiKeys: ApiKeyAuthenticator,
+        users: UserRepository
+      ) =>
+        new AuthService(verifier, provisioner, new PrincipalCache(clock, config.auth.principalCacheMs), apiKeys, users)
     },
     {
       provide: REFRESH_COOKIE_OPTIONS,
@@ -188,6 +190,6 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
     { provide: APP_GUARD, useClass: RolesGuard },
     SocketAuthGateway
   ],
-  exports: [AuthService, PASSWORD_HASHER, CREDENTIAL_AUTH]
+  exports: [AuthService, PASSWORD_HASHER, CREDENTIAL_AUTH, SESSION_REPOSITORY, ACCESS_TOKEN_SERVICE]
 })
 export class AuthModule {}

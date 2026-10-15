@@ -16,7 +16,7 @@ export class GameTimeController {
   @Get()
   @ApiOperation({ summary: 'The server instant and the day/night config (design §12.4)' })
   @ApiOkResponse({ type: GameTimeResponse })
-  current(): GameTimeView {
+  current(): Promise<GameTimeView> {
     return this.time.current()
   }
 }

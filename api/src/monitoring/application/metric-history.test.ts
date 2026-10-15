@@ -87,4 +87,37 @@ describe('MetricHistory', () => {
     }
     expect(history.series('a', 0, 10 * SEC).points.map(([, value]) => value)).toEqual([2, 3, 4])
   })
+
+  describe('retune', () => {
+    it('keeps the newest points when a tier is made smaller, and room for more when it is made larger', () => {
+      const history = new MetricHistory(tiers)
+      for (let i = 0; i < 5; i += 1) {
+        history.record(i * 10 * SEC, { a: i })
+      }
+
+      history.retune([20 * SEC, 600 * SEC])
+      expect(history.series('a', 0, 100 * SEC).points).toEqual([
+        [30 * SEC, 3],
+        [40 * SEC, 4]
+      ])
+
+      history.retune([100 * SEC, 600 * SEC])
+      history.record(50 * SEC, { a: 5, b: 1 })
+      expect(history.series('a', 0, 100 * SEC).points.map(([, value]) => value)).toEqual([3, 4, 5])
+      expect(history.series('b', 0, 100 * SEC).points).toEqual([[50 * SEC, 1]])
+    })
+
+    it('changes nothing when the sizes are the same, and drops gaps of a metric that was missing', () => {
+      const history = new MetricHistory(tiers)
+      history.record(0, { a: 1 })
+      history.record(10 * SEC, { b: 2 })
+
+      history.retune([50 * SEC, 600 * SEC])
+      expect(history.series('a', 0, 100 * SEC).points).toEqual([[0, 1]])
+
+      history.retune([30 * SEC, 600 * SEC])
+      expect(history.series('a', 0, 100 * SEC).points).toEqual([[0, 1]])
+      expect(history.series('b', 0, 100 * SEC).points).toEqual([[10 * SEC, 2]])
+    })
+  })
 })

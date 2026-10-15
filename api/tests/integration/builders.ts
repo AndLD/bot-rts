@@ -101,6 +101,7 @@ export function buildSession(userId: string, overrides: Partial<Session> = {}): 
     expiresAt: new Date('2026-02-01T00:00:00.000Z'),
     revokedAt: null,
     userAgent: 'jest',
+    viewAs: null,
     ...overrides
   }
 }

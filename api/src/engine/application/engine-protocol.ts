@@ -1,3 +1,4 @@
+import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import { ExecutionView } from '../domain/execution'
 import { EngineMetricsSnapshot } from './engine-metrics'
 import { StartRequest } from './engine-core'
@@ -18,6 +19,7 @@ export type EngineRequest =
   | { op: 'link'; userId: string; botId: string }
   | { op: 'manual'; userId: string; botId: string; fn: string; args: JsonValue[] }
   | { op: 'control'; command: EngineControl }
+  | { op: 'setGameTime'; settings: GameTimeSettings }
   | { op: 'reboot'; botId: string }
   | { op: 'top'; limit: number }
   | { op: 'metrics' }

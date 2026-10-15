@@ -100,6 +100,8 @@ export interface AdminConfig {
   secret: string
   // How often bans whose time has passed are lifted
   banCheckIntervalMs: number
+  // How long a "view as player" session lasts at most (design §25.2)
+  viewAsTtlMs: number
 }
 
 export interface MonitoringConfig {
@@ -152,6 +154,8 @@ export interface AppConfig {
   observability: ObservabilityConfig
   lifecycle: LifecyclePolicy
   admin: AdminConfig
+  // How long a node keeps the switches of the features it read (design §25.3)
+  featureSwitchCacheMs: number
   monitoring: MonitoringConfig
   balance: BalanceSettings
   devTools: DevToolsConfig
@@ -363,15 +367,18 @@ export function loadConfig(env: Env): AppConfig {
       inactiveDays: nonNegativeInt(env.INACTIVE_ACCOUNT_DAYS, DEFAULT_LIFECYCLE_POLICY.inactiveDays),
       noticeDays: positiveInt(env.INACTIVE_ACCOUNT_NOTICE_DAYS, DEFAULT_LIFECYCLE_POLICY.noticeDays),
       executionDays: positiveInt(env.EXECUTION_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.executionDays),
-      authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays)
+      authDays: positiveInt(env.AUTH_DATA_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.authDays),
+      activityDays: positiveInt(env.PLAYER_ACTIVITY_RETENTION_DAYS, DEFAULT_LIFECYCLE_POLICY.activityDays)
     },
+    featureSwitchCacheMs: nonNegativeInt(env.FEATURE_SWITCH_CACHE_MS, nodeEnv === 'test' ? 0 : 5000),
     admin: {
       ipAllowList: list(env.ADMIN_IP_ALLOWLIST),
       verificationTtlMs: adminVerificationTtl,
       totpIssuer: env.ADMIN_TOTP_ISSUER || 'BotRTS',
       recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
       secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
-      banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000)
+      banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000),
+      viewAsTtlMs: duration(env.ADMIN_VIEW_AS_TTL, '30m', 'ADMIN_VIEW_AS_TTL', problems)
     },
     monitoring: {
       isEnabled: env.MONITORING_ENABLED ? env.MONITORING_ENABLED === 'true' : nodeEnv !== 'test',

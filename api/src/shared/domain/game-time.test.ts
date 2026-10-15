@@ -1,5 +1,18 @@
 import {
+  ADVANCE_STEPS_MS,
+  anchorFor,
   clockTextOf,
+  withAdvance,
+  withCycle,
+  withDayLength,
+  withRealWorld,
+  withTimeOfDay,
+  configOf,
+  DAY_LENGTH_MAX_MS,
+  DAY_LENGTH_MIN_MS,
+  DEFAULT_GAME_TIME_SETTINGS,
+  gameTimeProblems,
+  isValidTimeZone,
   DAY_PHASE,
   DEFAULT_GAME_TIME,
   dayPhaseOf,
@@ -56,5 +69,151 @@ describe('the game clock', () => {
     expect(clockTextOf(0)).toBe('00:00')
     expect(clockTextOf(at(9.5))).toBe('09:30')
     expect(clockTextOf(at(23.99))).toBe('23:59')
+  })
+})
+
+describe('the anchor of the day', () => {
+  it('moves the time of day without changing the length of the day', () => {
+    const config = { ...DEFAULT_GAME_TIME, anchorMs: at(5) }
+
+    expect(hourOf(at(5), config)).toBe(0)
+    expect(hourOf(at(5 + 16.5), config)).toBe(16.5)
+    expect(hourOf(at(4), config)).toBe(23)
+  })
+
+  it('sets the time of day at an instant: the anchor is the instant minus the hours into the day', () => {
+    const instant = 1_900_000_000_000
+    const length = 48 * 60_000
+    const anchorMs = instant - (16.5 / 24) * length
+    const config = { ...DEFAULT_GAME_TIME, dayLengthMs: length, anchorMs }
+
+    expect(clockTextOf(instant, config)).toBe('16:30')
+    expect(clockTextOf(instant + length / 48, config)).toBe('17:00')
+  })
+
+  it('keeps the time of day when the day length changes, and goes on at the new speed', () => {
+    const instant = 1_900_000_000_000
+    const before = { ...DEFAULT_GAME_TIME, anchorMs: 0 }
+    const hour = hourOf(instant, before)
+    const length = 6.5 * 3_600_000
+    const after = { ...before, dayLengthMs: length, anchorMs: instant - (hour / 24) * length }
+
+    expect(hourOf(instant, after)).toBeCloseTo(hour, 9)
+    expect(hourOf(instant + length / 24, after)).toBeCloseTo((hour + 1) % 24, 9)
+  })
+})
+
+describe('the real-world mode', () => {
+  const kyiv = { ...DEFAULT_GAME_TIME, timeZone: 'Europe/Kyiv' }
+
+  it('shows the local time of the zone, with seconds as a fraction', () => {
+    // 2026-01-15 10:00:30 UTC is 12:00:30 in Kyiv (UTC+2 in winter)
+    const winter = Date.UTC(2026, 0, 15, 10, 0, 30, 500)
+    // 2026-07-15 10:00:00 UTC is 13:00 in Kyiv (UTC+3 in summer)
+    const summer = Date.UTC(2026, 6, 15, 10, 0, 0)
+
+    expect(hourOf(winter, kyiv)).toBeCloseTo(12 + 30.5 / 3600, 9)
+    expect(clockTextOf(summer, kyiv)).toBe('13:00')
+    expect(dayPhaseOf(summer, kyiv)).toBe(DAY_PHASE.DAY)
+  })
+
+  it('follows the daylight-saving change of the zone: the clock jumps an hour at the change', () => {
+    // Europe/Kyiv springs forward on 2026-03-29 at 01:00 UTC (03:00 becomes 04:00)
+    const before = Date.UTC(2026, 2, 29, 0, 59, 0)
+    const after = Date.UTC(2026, 2, 29, 1, 1, 0)
+
+    expect(clockTextOf(before, kyiv)).toBe('02:59')
+    expect(clockTextOf(after, kyiv)).toBe('04:01')
+  })
+
+  it('knows the zones that exist', () => {
+    expect(isValidTimeZone('Europe/Kyiv')).toBe(true)
+    expect(isValidTimeZone('Mars/Olympus')).toBe(false)
+    expect(isValidTimeZone('')).toBe(false)
+    expect(isValidTimeZone(5)).toBe(false)
+  })
+})
+
+describe('the settings of the game time', () => {
+  it('make the config of the mode', () => {
+    expect(configOf(DEFAULT_GAME_TIME_SETTINGS)).toEqual({ ...DEFAULT_GAME_TIME, anchorMs: 0 })
+    expect(configOf({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: 60_000, anchorMs: 5 })).toMatchObject({
+      dayLengthMs: 60_000,
+      anchorMs: 5
+    })
+    expect(configOf({ ...DEFAULT_GAME_TIME_SETTINGS, mode: 'realWorld', timeZone: 'Europe/Kyiv' }).timeZone).toBe(
+      'Europe/Kyiv'
+    )
+    // A real-world mode without a zone falls back to the cycle
+    expect(configOf({ ...DEFAULT_GAME_TIME_SETTINGS, mode: 'realWorld' }).timeZone).toBeUndefined()
+  })
+
+  it('are checked: length, mode, zone, anchor and offset', () => {
+    expect(gameTimeProblems(DEFAULT_GAME_TIME_SETTINGS)).toEqual([])
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: DAY_LENGTH_MIN_MS })).toEqual([])
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: DAY_LENGTH_MAX_MS })).toEqual([])
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: DAY_LENGTH_MIN_MS - 1 })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: DAY_LENGTH_MAX_MS + 1 })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, dayLengthMs: 1.5 * 60_000 + 0.5 })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, mode: 'sometimes' })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, mode: 'realWorld', timeZone: 'Nowhere' })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, mode: 'realWorld', timeZone: 'Europe/Kyiv' })).toEqual([])
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, anchorMs: Number.NaN })).toHaveLength(1)
+    expect(gameTimeProblems({ ...DEFAULT_GAME_TIME_SETTINGS, offsetMs: -1 })).toHaveLength(1)
+    expect(gameTimeProblems({})).toHaveLength(4)
+  })
+})
+
+describe('the changes an admin makes to the game time', () => {
+  const instant = 1_900_000_000_000
+  const base = DEFAULT_GAME_TIME_SETTINGS
+
+  it('sets the time of day at the instant, from 05:00 to 16:30, and leaves the real-world mode', () => {
+    const early = withTimeOfDay({ ...base, mode: 'realWorld', timeZone: 'Europe/Kyiv' }, instant, 5)
+    expect(early.mode).toBe('cycle')
+    expect(clockTextOf(instant, configOf(early))).toBe('05:00')
+
+    const later = withTimeOfDay(early, instant + 60_000, 16.5)
+    expect(clockTextOf(instant + 60_000, configOf(later))).toBe('16:30')
+    expect(later.dayLengthMs).toBe(early.dayLengthMs)
+    expect(anchorFor(instant, 0, base.dayLengthMs)).toBe(instant)
+  })
+
+  it.each([48 * 60_000, 6.5 * 3_600_000, 24 * 3_600_000, DAY_LENGTH_MIN_MS])(
+    'changes the day to %d ms without a jump, and goes on at the new speed',
+    (dayLengthMs) => {
+      const before = withTimeOfDay(base, instant, 7.25)
+      const after = withDayLength(before, instant + 5000, dayLengthMs)
+      const hourBefore = hourOf(instant + 5000, configOf(before))
+
+      expect(hourOf(instant + 5000, configOf(after))).toBeCloseTo(hourBefore, 6)
+      expect(hourOf(instant + 5000 + dayLengthMs / 24, configOf(after))).toBeCloseTo((hourBefore + 1) % 24, 6)
+      expect(after.mode).toBe('cycle')
+    }
+  )
+
+  it('keeps the wall-clock hour of the zone when the day length is changed in the real-world mode', () => {
+    const real = withRealWorld(base, 'Europe/Kyiv')
+    const at = Date.UTC(2026, 6, 15, 10, 0, 0)
+    const kept = withDayLength(real, at, 48 * 60_000)
+
+    expect(real.mode).toBe('realWorld')
+    expect(clockTextOf(at, configOf(kept))).toBe('13:00')
+  })
+
+  it('leaves the real-world mode for the cycle at the current time of day', () => {
+    const real = withRealWorld({ ...base, dayLengthMs: 120_000 }, 'Europe/Kyiv')
+    const at = Date.UTC(2026, 0, 15, 10, 0, 0)
+    const cycle = withCycle(real, at)
+
+    expect(cycle).toMatchObject({ mode: 'cycle', dayLengthMs: 120_000 })
+    expect(clockTextOf(at, configOf(cycle))).toBe('12:00')
+    expect(clockTextOf(at + 120_000 / 24, configOf(cycle))).toBe('13:00')
+  })
+
+  it('advances the clock by a step, and offers three steps', () => {
+    expect(withAdvance(base, 3_600_000).offsetMs).toBe(3_600_000)
+    expect(withAdvance(withAdvance(base, 60_000), 60_000).offsetMs).toBe(120_000)
+    expect(ADVANCE_STEPS_MS).toEqual([60_000, 3_600_000, 86_400_000])
   })
 })

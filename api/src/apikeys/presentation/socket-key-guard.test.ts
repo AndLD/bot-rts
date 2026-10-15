@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io'
+import { FeatureDisabledError } from '../../featureswitches/domain/feature.errors'
 import { API_SCOPES } from '../../../../lib/utils/interfaces/api-keys'
 import { RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { TooManyRequestsError } from '../../shared/domain/errors'
@@ -6,16 +7,20 @@ import { guardKeySocket, SOCKET_EVENT_SCOPES } from './socket-key-guard'
 
 type Middleware = (packet: unknown[], next: () => void) => Promise<void>
 
-function connect(apiKey: unknown, consume: jest.Mock = jest.fn(async () => undefined)) {
+function connect(
+  apiKey: unknown,
+  consume: jest.Mock = jest.fn(async () => undefined),
+  features = { assertEnabled: jest.fn(async () => undefined) }
+) {
   let middleware: Middleware | undefined
   const socket = { principal: { apiKey }, use: (fn: Middleware) => (middleware = fn) } as unknown as Socket
-  guardKeySocket(socket, { consume } as unknown as RateLimiter)
+  guardKeySocket(socket, { consume } as unknown as RateLimiter, features as never)
   const send = async (event: string, ...args: unknown[]) => {
     const next = jest.fn()
     await middleware?.([event, ...args], next)
     return next
   }
-  return { send, installed: () => middleware !== undefined, consume }
+  return { send, installed: () => middleware !== undefined, consume, features }
 }
 
 describe('guardKeySocket', () => {
@@ -65,5 +70,16 @@ describe('guardKeySocket', () => {
     for (const scope of Object.values(SOCKET_EVENT_SCOPES)) {
       expect(API_SCOPES).toContain(scope)
     }
+  })
+
+  it('answers every event with FEATURE_DISABLED while the public API is off', async () => {
+    const features = { assertEnabled: jest.fn().mockRejectedValue(new FeatureDisabledError('publicApi')) }
+    const { send } = connect({ id: 'k', scopes: ['read'], ratePerMinute: 5 }, undefined, features)
+    const ack = jest.fn()
+
+    const next = await send('get-user-bases', ack)
+
+    expect(next).not.toHaveBeenCalled()
+    expect(ack).toHaveBeenCalledWith(null, expect.objectContaining({ code: 403 }))
   })
 })

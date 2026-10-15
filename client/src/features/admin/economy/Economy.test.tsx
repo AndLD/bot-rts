@@ -46,6 +46,13 @@ function serve(balance = state(), handler: (call: Call) => unknown = () => undef
     if (custom) return custom
     if (args.url === '/api/v1/admin/economy') return { data: overview }
     if (args.url === '/api/v1/admin/balance' && !args.method) return { data: balance }
+    if (args.url === '/api/v1/admin/features' && !args.method)
+      return {
+        data: {
+          features: { signUps: true, baseDeployment: true, apiKeys: false, spawnSeeds: true, publicApi: true },
+          updatedAt: null
+        }
+      }
     if (args.url === '/api/v1/admin/settings') return { data: { categories: { movement: true, combat: false } } }
     return { data: {} }
   }) as never)
@@ -290,5 +297,97 @@ describe('the game switches', () => {
     renderAs('admin')
     await openTab('Game switches')
     expect(await screen.findByText('Could not load the switches')).toBeInTheDocument()
+  })
+})
+
+describe('the feature switches', () => {
+  it('show every feature, and switch one off with a reason', async () => {
+    const calls = serve()
+    renderAs('admin')
+    await openTab('Features')
+
+    const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
+    expect(keys).not.toBeChecked()
+    expect(screen.getByRole('switch', { name: 'Sign-ups' })).toBeChecked()
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Sign-ups' }))
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await confirmWith('incident 7')
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.url === '/api/v1/admin/features' && call.method === 'PATCH')?.body).toEqual({
+        features: { signUps: false },
+        reason: 'incident 7'
+      })
+    )
+  })
+
+  it('switches a feature that is off back on, and says so in the dialog', async () => {
+    const calls = serve()
+    renderAs('admin')
+    await openTab('Features')
+    const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
+    await waitFor(() => expect(keys).toBeEnabled())
+    fireEvent.click(keys)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+
+    expect(screen.getByText('Switch on: Creating API keys')).toBeInTheDocument()
+    await confirmWith('the incident is over')
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.method === 'PATCH')?.body).toEqual({
+        features: { apiKeys: true },
+        reason: 'the incident is over'
+      })
+    )
+  })
+
+  it('keeps the dialog open when the change fails', async () => {
+    const calls = serve(state(), (call) =>
+      call.method === 'PATCH' && call.url === '/api/v1/admin/features'
+        ? { error: { status: 400, data: {} } }
+        : undefined
+    )
+    renderAs('admin')
+    await openTab('Features')
+    const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
+    await waitFor(() => expect(signUps).toBeEnabled())
+    fireEvent.click(signUps)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await confirmWith('incident 7')
+
+    await waitFor(() => expect(calls.some((call) => call.method === 'PATCH')).toBe(true), { timeout: 15000 })
+    expect(dialog()).not.toBeNull()
+  })
+
+  it('closes the dialog on cancel without changing anything', async () => {
+    const calls = serve()
+    renderAs('admin')
+    await openTab('Features')
+    const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
+    await waitFor(() => expect(signUps).toBeEnabled())
+    fireEvent.click(signUps)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+
+    fireEvent.click(await button('Cancel'))
+
+    await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
+    expect(calls.some((call) => call.method === 'PATCH')).toBe(false)
+  })
+
+  it('is read-only for a role without balance.write', async () => {
+    serve()
+    renderAs('analyst')
+    await openTab('Features')
+
+    expect(await screen.findByRole('switch', { name: 'Sign-ups' })).toBeDisabled()
+  })
+
+  it('says so when the switches cannot be loaded', async () => {
+    serve(state(), (call) => (call.url === '/api/v1/admin/features' ? { error: { status: 500, data: {} } } : undefined))
+    renderAs('admin')
+    await openTab('Features')
+
+    expect(await screen.findByText('Could not load the feature switches')).toBeInTheDocument()
   })
 })

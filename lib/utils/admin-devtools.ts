@@ -29,3 +29,12 @@ export interface IRemoveTestPlayersResult {
 export interface IDevToolsStatus {
   isEnabled: boolean
 }
+
+// The word an owner types to reset the database of a test server
+export const RESET_CONFIRMATION = 'RESET'
+
+export interface IResetDatabaseResult {
+  // How many tables were emptied, and how many accounts were erased (the owners and the one who pressed the button stay)
+  tablesEmptied: number
+  accountsErased: number
+}

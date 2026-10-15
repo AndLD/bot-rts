@@ -1,4 +1,5 @@
 import { ExecutionContext } from '@nestjs/common'
+import { FeatureDisabledError } from '../../featureswitches/domain/feature.errors'
 import { Reflector } from '@nestjs/core'
 import { IS_PUBLIC_KEY } from '../../auth/presentation/public.decorator'
 import { RateLimiter } from '../../ratelimit/application/rate-limiter'
@@ -35,16 +36,33 @@ function setup(
   }
   const reflector = { getAllAndOverride: (key: string) => metadata[key] } as unknown as Reflector
   const hits = new RateLimitHits()
-  const guard = new ApiAccessGuard(reflector, { consume } as unknown as RateLimiter, hits, {
-    now: () => new Date(5000)
-  })
-  return { guard, context, headers, consume, hits }
+  const features = { assertEnabled: jest.fn(async () => undefined) }
+  const guard = new ApiAccessGuard(
+    reflector,
+    { consume } as unknown as RateLimiter,
+    hits,
+    { now: () => new Date(5000) },
+    features as never
+  )
+  return { guard, context, headers, consume, hits, features }
 }
 
 const session = { user: { id: 'u' }, identity: {} }
 const key = (scopes: string[], ratePerMinute = 5) => ({ ...session, apiKey: { id: 'k1', scopes, ratePerMinute } })
 
 describe('ApiAccessGuard', () => {
+  it('stops a key when the public API is switched off, and leaves a session alone', async () => {
+    const off = new FeatureDisabledError('publicApi')
+    const withKey = setup({ scope: 'read' }, key(['read']))
+    withKey.features.assertEnabled.mockRejectedValue(off)
+    const withSession = setup({ scope: 'read' }, session)
+    withSession.features.assertEnabled.mockRejectedValue(off)
+
+    await expect(withKey.guard.canActivate(withKey.context)).rejects.toThrow(FeatureDisabledError)
+    expect(withKey.features.assertEnabled).toHaveBeenCalledWith('publicApi')
+    await expect(withSession.guard.canActivate(withSession.context)).resolves.toBe(true)
+  })
+
   it('lets a session through whatever the route says', async () => {
     for (const route of [{}, { sessionOnly: true }, { scope: 'files' }]) {
       const { guard, context, consume } = setup(route, session)

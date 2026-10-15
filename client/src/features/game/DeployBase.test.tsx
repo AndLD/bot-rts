@@ -21,6 +21,9 @@ async function fill(password: string, confirmation = password, seed = '') {
   await userEvent.click(screen.getByText('Deploy base'))
 }
 
+// The screen also asks for the feature status; only the deployment itself is of interest here
+const deployCalls = () => query.mock.calls.filter(([args]) => (args as { url: string }).url === '/api/v1/bots/base')
+
 describe('DeployBase', () => {
   beforeEach(() => {
     query.mockReset()
@@ -42,7 +45,7 @@ describe('DeployBase', () => {
     await fill('secret1', 'secret1', 'x')
 
     expect(await screen.findByText('3-24 letters, digits or dashes, for example ALPHA-7K2')).toBeInTheDocument()
-    expect(query).not.toHaveBeenCalled()
+    expect(deployCalls()).toHaveLength(0)
   })
 
   it('sends the spawn seed with the password when there is one', async () => {
@@ -64,7 +67,7 @@ describe('DeployBase', () => {
     await fill('secret1', 'secret2')
 
     expect(await screen.findByText('The passwords do not match')).toBeInTheDocument()
-    expect(query).not.toHaveBeenCalled()
+    expect(deployCalls()).toHaveLength(0)
   })
 
   it('asks for confirmation, and deploys nothing when the player cancels', async () => {
@@ -74,7 +77,7 @@ describe('DeployBase', () => {
     await userEvent.click(screen.getByText('Cancel'))
 
     await waitFor(() => expect(screen.queryByText('Deploy your base?')).not.toBeVisible())
-    expect(query).not.toHaveBeenCalled()
+    expect(deployCalls()).toHaveLength(0)
   })
 
   it('deploys the base with the password once confirmed', async () => {
@@ -113,5 +116,17 @@ describe('DeployBase', () => {
     await waitFor(() =>
       expect(errorNotification).toHaveBeenCalledWith('Something went wrong', 'The base was not deployed')
     )
+  })
+
+  it('explains and blocks a deployment that an admin switched off', async () => {
+    query.mockImplementation((async (args: { url: string }) =>
+      args.url === '/api/v1/features'
+        ? { data: { features: { baseDeployment: false, spawnSeeds: false } } }
+        : { data: {} }) as never)
+    renderApp(<DeployBase />, { store: storeWithToken(makeJwt(60)) })
+
+    expect(await screen.findByText('Deploying a base is switched off for now.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Deploy base' }).at(-1)).toBeDisabled())
+    await waitFor(() => expect(screen.getAllByLabelText('Spawn seed (optional)').at(-1)).toBeDisabled())
   })
 })

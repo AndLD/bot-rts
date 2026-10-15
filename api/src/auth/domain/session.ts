@@ -8,6 +8,13 @@ export interface Session {
   readonly expiresAt: Date
   readonly revokedAt: Date | null
   readonly userAgent: string | null
+  // Set on a "view as player" session of an admin: the player it shows and why (design §25.2)
+  readonly viewAs: ViewAsClaim | null
+}
+
+export interface ViewAsClaim {
+  readonly userId: string
+  readonly reason: string
 }
 
 export function isSessionActive(session: Session, now: Date): boolean {

@@ -19,7 +19,10 @@ export const API_TAGS = [
   'Supervision',
   'Security',
   'Balance',
-  'Operations'
+  'Operations',
+  'Features',
+  'Retention',
+  'GameTime'
 ] as const
 
 const MAX_RETRIES = 3

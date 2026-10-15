@@ -1,5 +1,6 @@
 'use client'
 
+import { readViewAs } from '../viewas/view-as-storage'
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 import HelpLink from '../../docs/HelpLink'
@@ -21,7 +22,9 @@ export default function Terminal(options: TerminalOptions) {
   const heading = !currentBotId
     ? isLoading
       ? t('loading')
-      : t('failedToConnect')
+      : readViewAs()
+        ? t('viewOnly')
+        : t('failedToConnect')
     : isShellMode
       ? t('shellHeader', { botId: currentBotId })
       : t('welcome')

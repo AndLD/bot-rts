@@ -8,6 +8,8 @@ export interface Identity {
   readonly emailVerified: boolean
   // Only the custom provider has sessions
   readonly sessionId?: string
+  // Set when the session is a read-only view of another player's game
+  readonly viewAs?: { readonly userId: string; readonly reason: string; readonly expiresAt: Date }
 }
 
 // The link from a provider's identity to the player

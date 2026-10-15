@@ -8,6 +8,7 @@ import {
   ApiTags
 } from '@nestjs/swagger'
 import { IDrive, IFile } from '../../../../lib/utils/interfaces/files'
+import { ViewAsAudited } from '../../viewas/presentation/view-as.decorator'
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ValidationError } from '../../shared/domain/errors'
@@ -49,6 +50,7 @@ export class FilesController {
 
   @ApiOkResponse({ type: FileResponse })
   @RequireScope('read')
+  @ViewAsAudited('files.read')
   @Get(':driveId/file')
   async read(
     @CurrentPrincipal() { user }: Principal,

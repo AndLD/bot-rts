@@ -135,6 +135,16 @@ describe('EnergyModel', () => {
       expect(gained(off, 12 * MINUTE)).toBe(10)
     })
 
+    it('follows the day cycle in force when it is given as a function, and reads it again at every tick', () => {
+      let cycle = { dayLengthMs: 1000, hoursPerDay: 24, spans: [{ phase: 'night' as const, fromHour: 0, sunlight: 0 }] }
+      const live = new EnergyModel(registry, DEFAULT_ENERGY_BALANCE, () => cycle)
+      const records = withPanel({ capacity: 100, value: 10 })
+
+      expect(live.stored(after(live, records, 1000))).toBe(10)
+      cycle = { ...cycle, spans: [{ phase: 'night' as const, fromHour: 0, sunlight: 1 }] }
+      expect(live.stored(after(live, records, 1000))).toBeGreaterThan(10)
+    })
+
     it('makes nothing when there is no sun at all', () => {
       const dark = new EnergyModel(registry, DEFAULT_ENERGY_BALANCE, {
         dayLengthMs: 1000,

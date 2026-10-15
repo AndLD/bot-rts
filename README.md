@@ -5,11 +5,10 @@ combination of pre-defined modules (scanner, weapon, engine, tracks, drill, batt
 wireless adapter, …). Players can micromanage bots by hand from the GUI, or write JavaScript scripts in an in-game terminal that
 automate them; scripts execute on the server in a fair, sandboxed, tick-based runtime.
 
-> Status: **feature-complete through Phase 8; the admin console (Phase 9) is mostly delivered; Phases 10 and 13 are planned.**
-> Phases 0–8 and 11 are delivered: a NestJS backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing
+> Status: **feature-complete through Phase 9 (the admin console); Phases 10 and 13 are planned.**
+> Phases 0–9 and 11 are delivered: a NestJS backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing
 > page, achievements, notifications, English and Russian UI, player documentation, a public API with API keys, an MCP server, and
-> production hardening. Phase 9 delivered tasks 9.1–9.15 (the admin console, below); its open tasks (view as player, game time
-> controls, global feature switches, retention from the console, more dev tools) are listed in the plan. The market, currency,
+> production hardening. Phase 9 delivered the admin console (below), including view as player, the game time controls, feature switches, retention settings and the dev tools. The market, currency,
 > chat and transfers (Phase 10) and the observability platform (Phase 13) are not implemented yet.
 >
 > The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–13, with story
@@ -90,10 +89,6 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 
 ## Planned
 
-- **Phase 9 — Admin console, the open tasks:** view as player (the game's own screens, read-only), the game clock made a runtime
-  setting with controls in the console (set the time of day, change the day length from 1 minute to 24 hours, sync the game to the
-  real-world time of a chosen time zone, advance the clock on a test server), reset of a test database, switches for whole
-  features, and every retention job switchable and tunable from the console with one reset button.
 - **Phase 10 — Market, currency, chat and transfers,** with its admin pages (ledger, moderation, order books, auctions, market
   statistics and monitoring).
 - **Phase 13 — Observability platform:** logs and traces on OpenTelemetry through one shared collector gateway, stored in

@@ -19,6 +19,15 @@ const injectedRtkApi = api.injectEndpoints({
     usersUpdate: build.mutation<UsersUpdateApiResponse, UsersUpdateApiArg>({
       query: (queryArg) => ({ url: `/api/v1/users/${queryArg.id}`, method: 'PUT', body: queryArg.updateUserDto })
     }),
+    featuresStatus: build.query<FeaturesStatusApiResponse, FeaturesStatusApiArg>({
+      query: () => ({ url: `/api/v1/features` })
+    }),
+    adminFeaturesGet: build.query<AdminFeaturesGetApiResponse, AdminFeaturesGetApiArg>({
+      query: () => ({ url: `/api/v1/admin/features` })
+    }),
+    adminFeaturesUpdate: build.mutation<AdminFeaturesUpdateApiResponse, AdminFeaturesUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/features`, method: 'PATCH', body: queryArg.updateFeatureSwitchesDto })
+    }),
     authRegister: build.mutation<AuthRegisterApiResponse, AuthRegisterApiArg>({
       query: (queryArg) => ({ url: `/api/v1/auth/register`, method: 'POST', body: queryArg.registerDto })
     }),
@@ -104,6 +113,15 @@ const injectedRtkApi = api.injectEndpoints({
         }
       })
     }),
+    retentionGet: build.query<RetentionGetApiResponse, RetentionGetApiArg>({
+      query: () => ({ url: `/api/v1/admin/retention` })
+    }),
+    retentionUpdate: build.mutation<RetentionUpdateApiResponse, RetentionUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/retention`, method: 'PATCH', body: queryArg.updateRetentionDto })
+    }),
+    retentionReset: build.mutation<RetentionResetApiResponse, RetentionResetApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/retention/reset`, method: 'POST', body: queryArg.reasonOnlyDto })
+    }),
     playersSearch: build.query<PlayersSearchApiResponse, PlayersSearchApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/players`,
@@ -178,6 +196,16 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'POST',
         body: queryArg.addNoteDto
       })
+    }),
+    viewAsStart: build.mutation<ViewAsStartApiResponse, ViewAsStartApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/view-as`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    viewAsExit: build.mutation<ViewAsExitApiResponse, ViewAsExitApiArg>({
+      query: () => ({ url: `/api/v1/view-as/exit`, method: 'POST' })
     }),
     inspectorSearch: build.query<InspectorSearchApiResponse, InspectorSearchApiArg>({
       query: (queryArg) => ({
@@ -423,6 +451,20 @@ const injectedRtkApi = api.injectEndpoints({
     devToolsSeedWorld: build.mutation<DevToolsSeedWorldApiResponse, DevToolsSeedWorldApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/devtools/seed-world`, method: 'POST', body: queryArg.seedWorldDto })
     }),
+    devToolsAdvanceClock: build.mutation<DevToolsAdvanceClockApiResponse, DevToolsAdvanceClockApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/devtools/advance-clock`,
+        method: 'POST',
+        body: queryArg.advanceClockDto
+      })
+    }),
+    devToolsResetDatabase: build.mutation<DevToolsResetDatabaseApiResponse, DevToolsResetDatabaseApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/devtools/reset-database`,
+        method: 'POST',
+        body: queryArg.resetDatabaseDto
+      })
+    }),
     devToolsRemoveTestPlayers: build.mutation<DevToolsRemoveTestPlayersApiResponse, DevToolsRemoveTestPlayersApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/devtools/test-players`, method: 'DELETE', body: queryArg.reasonDto })
     }),
@@ -661,6 +703,36 @@ const injectedRtkApi = api.injectEndpoints({
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
     }),
+    gameTimeAdminView: build.query<GameTimeAdminViewApiResponse, GameTimeAdminViewApiArg>({
+      query: () => ({ url: `/api/v1/admin/game-time` })
+    }),
+    gameTimeAdminSetTimeOfDay: build.mutation<GameTimeAdminSetTimeOfDayApiResponse, GameTimeAdminSetTimeOfDayApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/time-of-day`,
+        method: 'POST',
+        body: queryArg.setTimeOfDayDto
+      })
+    }),
+    gameTimeAdminSetDayLength: build.mutation<GameTimeAdminSetDayLengthApiResponse, GameTimeAdminSetDayLengthApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/day-length`,
+        method: 'POST',
+        body: queryArg.setDayLengthDto
+      })
+    }),
+    gameTimeAdminSetRealWorld: build.mutation<GameTimeAdminSetRealWorldApiResponse, GameTimeAdminSetRealWorldApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/game-time/real-world`,
+        method: 'POST',
+        body: queryArg.setRealWorldDto
+      })
+    }),
+    gameTimeAdminLeaveRealWorld: build.mutation<
+      GameTimeAdminLeaveRealWorldApiResponse,
+      GameTimeAdminLeaveRealWorldApiArg
+    >({
+      query: (queryArg) => ({ url: `/api/v1/admin/game-time/cycle`, method: 'POST', body: queryArg.reasonDto })
+    }),
     apiKeysList: build.query<ApiKeysListApiResponse, ApiKeysListApiArg>({
       query: () => ({ url: `/api/v1/api-keys` })
     }),
@@ -689,6 +761,14 @@ export type UsersUpdateApiResponse = /** status 200  */ UserUpdatedResponse
 export type UsersUpdateApiArg = {
   id: string
   updateUserDto: UpdateUserDto
+}
+export type FeaturesStatusApiResponse = /** status 200  */ FeatureStatusResponse
+export type FeaturesStatusApiArg = void
+export type AdminFeaturesGetApiResponse = /** status 200  */ FeatureSwitchesResponse
+export type AdminFeaturesGetApiArg = void
+export type AdminFeaturesUpdateApiResponse = /** status 200  */ FeatureSwitchesResponse
+export type AdminFeaturesUpdateApiArg = {
+  updateFeatureSwitchesDto: UpdateFeatureSwitchesDto
 }
 export type AuthRegisterApiResponse = /** status 201  */ AuthTokenResponse
 export type AuthRegisterApiArg = {
@@ -772,6 +852,16 @@ export type AuditExportApiArg = {
   from?: string
   to?: string
 }
+export type RetentionGetApiResponse = /** status 200  */ RetentionResponse
+export type RetentionGetApiArg = void
+export type RetentionUpdateApiResponse = /** status 200  */ RetentionResponse
+export type RetentionUpdateApiArg = {
+  updateRetentionDto: UpdateRetentionDto
+}
+export type RetentionResetApiResponse = /** status 200  */ RetentionResponse
+export type RetentionResetApiArg = {
+  reasonOnlyDto: ReasonOnlyDto
+}
 export type PlayersSearchApiResponse = /** status 200  */ PlayersPageResponse
 export type PlayersSearchApiArg = {
   page?: number
@@ -829,6 +919,13 @@ export type PlayersAddNoteApiArg = {
   id: string
   addNoteDto: AddNoteDto
 }
+export type ViewAsStartApiResponse = /** status 201  */ ViewAsStartResponse
+export type ViewAsStartApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type ViewAsExitApiResponse = unknown
+export type ViewAsExitApiArg = void
 export type InspectorSearchApiResponse = /** status 200  */ SearchResultResponse[]
 export type InspectorSearchApiArg = {
   /** The id of a bot, a base or a player, or a cell like 12,-4 */
@@ -1002,6 +1099,14 @@ export type DevToolsStatusApiArg = void
 export type DevToolsSeedWorldApiResponse = /** status 200  */ SeedWorldResponse
 export type DevToolsSeedWorldApiArg = {
   seedWorldDto: SeedWorldDto
+}
+export type DevToolsAdvanceClockApiResponse = /** status 200  */ GameTimeAdminResponse
+export type DevToolsAdvanceClockApiArg = {
+  advanceClockDto: AdvanceClockDto
+}
+export type DevToolsResetDatabaseApiResponse = /** status 200  */ ResetDatabaseResponse
+export type DevToolsResetDatabaseApiArg = {
+  resetDatabaseDto: ResetDatabaseDto
 }
 export type DevToolsRemoveTestPlayersApiResponse = /** status 200  */ RemoveTestPlayersResponse
 export type DevToolsRemoveTestPlayersApiArg = {
@@ -1194,6 +1299,24 @@ export type MonitoringAcknowledgeApiArg = {
 }
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
+export type GameTimeAdminViewApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminViewApiArg = void
+export type GameTimeAdminSetTimeOfDayApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetTimeOfDayApiArg = {
+  setTimeOfDayDto: SetTimeOfDayDto
+}
+export type GameTimeAdminSetDayLengthApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetDayLengthApiArg = {
+  setDayLengthDto: SetDayLengthDto
+}
+export type GameTimeAdminSetRealWorldApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminSetRealWorldApiArg = {
+  setRealWorldDto: SetRealWorldDto
+}
+export type GameTimeAdminLeaveRealWorldApiResponse = /** status 200  */ GameTimeAdminResponse
+export type GameTimeAdminLeaveRealWorldApiArg = {
+  reasonDto: ReasonDto
+}
 export type ApiKeysListApiResponse = /** status 200  */ ApiKeyResponse[]
 export type ApiKeysListApiArg = void
 export type ApiKeysCreateApiResponse = /** status 201  */ CreatedApiKeyResponse
@@ -1261,6 +1384,8 @@ export type ErrorResponseModel = {
     | 'PLAYER_QUARANTINED'
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
+    | 'VIEW_AS_READ_ONLY'
+    | 'FEATURE_DISABLED'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'
     | 'EMPTY'
@@ -1306,6 +1431,34 @@ export type UpdateUserDto = {
   subscription?: 'free' | 'monthly' | 'yearly'
   /** Only an owner may change the status */
   status?: 'admin' | 'owner' | 'moderator' | 'analyst' | 'user' | 'unlimited' | 'banned'
+}
+export type FeatureStatusResponse = {
+  /** Whether each feature is on */
+  features?: {
+    signUps: boolean
+    baseDeployment: boolean
+    apiKeys: boolean
+    spawnSeeds: boolean
+    publicApi: boolean
+  }
+}
+export type FeatureSwitchesResponse = {
+  /** Whether each feature is on */
+  features?: {
+    signUps: boolean
+    baseDeployment: boolean
+    apiKeys: boolean
+    spawnSeeds: boolean
+    publicApi: boolean
+  }
+  updatedAt: number | null
+}
+export type UpdateFeatureSwitchesDto = {
+  /** The features to switch */
+  features: {
+    [key: string]: boolean
+  }
+  reason: string
 }
 export type AuthTokenResponse = {
   /** The access token; the refresh token travels in an HTTP-only cookie */
@@ -1361,6 +1514,7 @@ export type AdminMeResponse = {
     | 'players.notes'
     | 'players.change-role'
     | 'players.delete'
+    | 'players.view-as'
     | 'inspector.read'
     | 'inspector.files.read'
     | 'inspector.kill-execution'
@@ -1373,6 +1527,8 @@ export type AdminMeResponse = {
     | 'ops.kill-switch'
     | 'ops.announce'
     | 'ops.restart-runtime'
+    | 'ops.retention'
+    | 'ops.game-time'
     | 'security.read'
     | 'security.revoke-key'
     | 'economy.read'
@@ -1423,6 +1579,46 @@ export type AuditMetaModel = {
 export type AuditPageResponse = {
   result: AuditEntryResponse[]
   meta: AuditMetaModel
+}
+export type RetentionJobResponse = {
+  job:
+    | 'lifecycle'
+    | 'terminalLogs'
+    | 'executions'
+    | 'notifications'
+    | 'authData'
+    | 'unverifiedAccounts'
+    | 'inactiveAccounts'
+    | 'playerActivity'
+    | 'monitoring'
+  values: {
+    [key: string]: number | boolean
+  }
+  defaults: {
+    [key: string]: number | boolean
+  }
+  isOverridden: boolean
+  lastRemoved: number | null
+}
+export type RetentionResponse = {
+  jobs: RetentionJobResponse[]
+  lastRunAt: number | null
+  hasFailures: boolean
+  updatedAt: number | null
+}
+export type UpdateRetentionDto = {
+  reason: string
+  /** The jobs to change, each with the fields to set */
+  jobs: {
+    [key: string]: {
+      [key: string]: number | boolean
+    }
+  }
+  /** The typed word that confirms switching on the erasure of inactive accounts */
+  confirmation?: string
+}
+export type ReasonOnlyDto = {
+  reason: string
 }
 export type PlayerListItemResponse = {
   _id: string
@@ -1517,6 +1713,17 @@ export type ChangeRoleDto = {
 }
 export type AddNoteDto = {
   text: string
+}
+export type ViewAsPlayerModel = {
+  _id: string
+  name: string
+}
+export type ViewAsStartResponse = {
+  /** A token for the game screens of the player; it is read-only and ends at `expiresAt` */
+  accessToken: string
+  /** Milliseconds since the epoch */
+  expiresAt: number
+  player: ViewAsPlayerModel
 }
 export type SearchResultResponse = {
   kind: 'bot' | 'base' | 'player' | 'cell'
@@ -1944,6 +2151,51 @@ export type SeedWorldDto = {
   /** How many test players to create, each with a base */
   count: number
 }
+export type GameTimeSettingsModel = {
+  dayLengthMs: number
+  mode: 'cycle' | 'realWorld'
+  timeZone: string | null
+  anchorMs: number
+  offsetMs: number
+}
+export type DayPhaseSpanResponse = {
+  phase: 'night' | 'morning' | 'day' | 'evening'
+  /** In-game hour at which this part of the day starts */
+  fromHour: number
+  /** How much sun reaches solar panels, from 0 to 1 */
+  sunlight: number
+}
+export type GameTimeConfigResponse = {
+  /** One in-game day in real milliseconds; the world clock counts from the Unix epoch */
+  dayLengthMs: number
+  hoursPerDay: number
+  spans: DayPhaseSpanResponse[]
+  /** The game clock instant at which the in-game time is 00:00 */
+  anchorMs?: number
+  /** The IANA time zone whose wall-clock time the game shows (real-world mode) */
+  timeZone?: string
+}
+export type GameTimeAdminResponse = {
+  settings: GameTimeSettingsModel
+  config: GameTimeConfigResponse
+  /** The game clock instant in milliseconds */
+  now: number
+  canAdvance: boolean
+}
+export type AdvanceClockDto = {
+  reason: string
+  /** The step in milliseconds: 1 minute, 1 hour or 1 day */
+  stepMs: number
+}
+export type ResetDatabaseResponse = {
+  tablesEmptied: number
+  accountsErased: number
+}
+export type ResetDatabaseDto = {
+  reason: string
+  /** The word RESET, typed to confirm */
+  confirmation: string
+}
 export type RemoveTestPlayersResponse = {
   removed: number
 }
@@ -2370,23 +2622,25 @@ export type MetricSeriesResponse = {
   stepMs: number
   points: number[][]
 }
-export type DayPhaseSpanResponse = {
-  phase: 'night' | 'morning' | 'day' | 'evening'
-  /** In-game hour at which this part of the day starts */
-  fromHour: number
-  /** How much sun reaches solar panels, from 0 to 1 */
-  sunlight: number
-}
-export type GameTimeConfigResponse = {
-  /** One in-game day in real milliseconds; the world clock counts from the Unix epoch */
-  dayLengthMs: number
-  hoursPerDay: number
-  spans: DayPhaseSpanResponse[]
-}
 export type GameTimeResponse = {
   /** The server instant in ms */
   now: number
   config: GameTimeConfigResponse
+}
+export type SetTimeOfDayDto = {
+  reason: string
+  /** Minutes from 00:00; 990 is 16:30 */
+  minuteOfDay: number
+}
+export type SetDayLengthDto = {
+  reason: string
+  /** One in-game day in real milliseconds, from 1 minute to 24 hours (the default is 24 minutes) */
+  dayLengthMs: number
+}
+export type SetRealWorldDto = {
+  reason: string
+  /** An IANA time zone */
+  timeZone: string
 }
 export type ApiKeyResponse = {
   _id: string
@@ -2467,6 +2721,9 @@ export const {
   useUsersMeQuery,
   useUsersListQuery,
   useUsersUpdateMutation,
+  useFeaturesStatusQuery,
+  useAdminFeaturesGetQuery,
+  useAdminFeaturesUpdateMutation,
   useAuthRegisterMutation,
   useAuthLoginMutation,
   useAuthRefreshMutation,
@@ -2486,6 +2743,9 @@ export const {
   useAdminVerifyMutation,
   useAuditListQuery,
   useAuditExportQuery,
+  useRetentionGetQuery,
+  useRetentionUpdateMutation,
+  useRetentionResetMutation,
   usePlayersSearchQuery,
   usePlayersProfileQuery,
   usePlayersRemoveMutation,
@@ -2496,6 +2756,8 @@ export const {
   usePlayersResetPasswordMutation,
   usePlayersChangeRoleMutation,
   usePlayersAddNoteMutation,
+  useViewAsStartMutation,
+  useViewAsExitMutation,
   useInspectorSearchQuery,
   useInspectorBotQuery,
   useInspectorFilesQuery,
@@ -2535,6 +2797,8 @@ export const {
   useAnalyticsExportQuery,
   useDevToolsStatusQuery,
   useDevToolsSeedWorldMutation,
+  useDevToolsAdvanceClockMutation,
+  useDevToolsResetDatabaseMutation,
   useDevToolsRemoveTestPlayersMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
@@ -2583,6 +2847,11 @@ export const {
   useMonitoringAlertsQuery,
   useMonitoringAcknowledgeMutation,
   useGameTimeCurrentQuery,
+  useGameTimeAdminViewQuery,
+  useGameTimeAdminSetTimeOfDayMutation,
+  useGameTimeAdminSetDayLengthMutation,
+  useGameTimeAdminSetRealWorldMutation,
+  useGameTimeAdminLeaveRealWorldMutation,
   useApiKeysListQuery,
   useApiKeysCreateMutation,
   useApiKeysRevokeMutation

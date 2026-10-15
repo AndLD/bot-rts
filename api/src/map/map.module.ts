@@ -3,7 +3,8 @@ import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { UNIT_OF_WORK, UnitOfWork } from '../persistence/application/unit-of-work'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
-import { CLOCK, Clock } from '../shared/application/clock'
+import { Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { RNG, Rng } from '../shared/application/rng'
 import { CraftingModule } from '../crafting/crafting.module'
@@ -38,7 +39,7 @@ import { WORLD_CONFIG, WorldConfig } from './domain/world-config'
     },
     {
       provide: MapService,
-      inject: [UNIT_OF_WORK, ID_GENERATOR, MapGenerator, CLOCK, WORLD_CONFIG],
+      inject: [UNIT_OF_WORK, ID_GENERATOR, MapGenerator, GAME_CLOCK, WORLD_CONFIG],
       useFactory: (
         unitOfWork: UnitOfWork,
         ids: IdGenerator,

@@ -46,13 +46,15 @@ describe('loadConfig', () => {
         keepAliveTimeoutMs: 65000
       },
       trustProxy: false,
+      featureSwitchCacheMs: 5000,
       admin: {
         ipAllowList: [],
         verificationTtlMs: 8 * 60 * 60 * 1000,
         totpIssuer: 'BotRTS',
         recoveryCodeCount: 8,
         secret: 'development-only-access-secret',
-        banCheckIntervalMs: 60_000
+        banCheckIntervalMs: 60_000,
+        viewAsTtlMs: 30 * 60 * 1000
       },
       monitoring: {
         isEnabled: true,
@@ -77,7 +79,8 @@ describe('loadConfig', () => {
         inactiveDays: 365,
         noticeDays: 30,
         executionDays: 30,
-        authDays: 7
+        authDays: 7,
+        activityDays: 400
       },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
@@ -273,7 +276,8 @@ describe('loadConfig', () => {
       inactiveDays: 0,
       noticeDays: 5,
       executionDays: 9,
-      authDays: 2
+      authDays: 2,
+      activityDays: 400
     })
     expect(loadConfig({ ...base, NODE_ENV: 'test' }).lifecycle.isEnabled).toBe(false)
     expect(loadConfig({ ...base, NODE_ENV: 'test', LIFECYCLE_ENABLED: 'true' }).lifecycle.isEnabled).toBe(true)
@@ -289,6 +293,7 @@ describe('loadConfig', () => {
       ADMIN_RECOVERY_CODES: '5',
       ADMIN_SECRET: 'admin-secret',
       ADMIN_BAN_CHECK_MS: '5000',
+      ADMIN_VIEW_AS_TTL: '10m',
       JWT_ACCESS_SECRET: 'access'
     }).admin
 
@@ -298,7 +303,8 @@ describe('loadConfig', () => {
       totpIssuer: 'Bot RTS',
       recoveryCodeCount: 5,
       secret: 'admin-secret',
-      banCheckIntervalMs: 5000
+      banCheckIntervalMs: 5000,
+      viewAsTtlMs: 10 * 60 * 1000
     })
     expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'access' }).admin.secret).toBe('access')
     expect(() => loadConfig({ ...base, ADMIN_2FA_TTL: 'soon' })).toThrow('ADMIN_2FA_TTL')

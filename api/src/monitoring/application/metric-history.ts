@@ -22,6 +22,26 @@ class TierStore {
     this.times = new Float64Array(capacity)
   }
 
+  // The same points in a ring of another size; when it is smaller the oldest points are dropped
+  resized(capacity: number): TierStore {
+    const next = new TierStore(this.stepMs, capacity)
+    const kept = Math.min(this.size, capacity)
+
+    for (let offset = this.size - kept; offset < this.size; offset += 1) {
+      const index = (this.head - this.size + offset + this.capacity) % this.capacity
+      const sample: Record<string, number> = {}
+
+      for (const [metric, ring] of this.values) {
+        if (!Number.isNaN(ring[index])) {
+          sample[metric] = ring[index]
+        }
+      }
+      next.push(this.times[index], sample)
+    }
+
+    return next
+  }
+
   push(at: number, sample: Readonly<Record<string, number>>): void {
     for (const metric of Object.keys(sample)) {
       if (!this.values.has(metric)) {
@@ -68,6 +88,17 @@ export class MetricHistory {
   constructor(tiers: readonly HistoryTier[]) {
     this.tiers = tiers.map((tier) => new TierStore(tier.stepMs, Math.max(1, Math.ceil(tier.retentionMs / tier.stepMs))))
     this.pending = tiers.map(() => null)
+  }
+
+  // Changes how far back each tier reaches (in order of the tiers); history already kept stays, the newest points first
+  retune(retentionsMs: readonly number[]): void {
+    this.tiers.forEach((tier, level) => {
+      const capacity = Math.max(1, Math.ceil(retentionsMs[level] / tier.stepMs))
+
+      if (capacity !== tier.capacity) {
+        this.tiers[level] = tier.resized(capacity)
+      }
+    })
   }
 
   record(at: number, sample: Readonly<Record<string, number>>): void {

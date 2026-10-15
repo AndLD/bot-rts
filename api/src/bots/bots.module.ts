@@ -19,7 +19,8 @@ import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
 import { routedThroughEngine } from '../engine/infrastructure/route-through-engine'
-import { CLOCK, Clock } from '../shared/application/clock'
+import { Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { RNG, Rng } from '../shared/application/rng'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { BOT_REPOSITORY, BotRepository } from './application/bot.repository'
@@ -75,7 +76,7 @@ import { BotsGateway } from './presentation/bots.gateway'
         BOT_REPOSITORY,
         MODULE_REPOSITORY,
         ID_GENERATOR,
-        CLOCK,
+        GAME_CLOCK,
         PASSWORD_HASHER,
         ModuleFactory,
         BaseLifecycle,
@@ -105,7 +106,7 @@ import { BotsGateway } from './presentation/bots.gateway'
     },
     {
       provide: FactoryService,
-      inject: [UNIT_OF_WORK, BotsService, RecipeBook, CLOCK, EnergyModel, FactorySettler, APP_CONFIG, ENGINE_PORT],
+      inject: [UNIT_OF_WORK, BotsService, RecipeBook, GAME_CLOCK, EnergyModel, FactorySettler, APP_CONFIG, ENGINE_PORT],
       useFactory: (
         unitOfWork: UnitOfWork,
         bots: BotsService,
@@ -131,7 +132,7 @@ import { BotsGateway } from './presentation/bots.gateway'
         RecipeBook,
         ModuleRegistry,
         EnergyModel,
-        CLOCK,
+        GAME_CLOCK,
         RNG,
         BaseLifecycle,
         ID_GENERATOR,
@@ -195,7 +196,7 @@ import { BotsGateway } from './presentation/bots.gateway'
         MAP_REPOSITORY,
         MapService,
         ModuleRegistry,
-        CLOCK,
+        GAME_CLOCK,
         EnergyService,
         APP_CONFIG,
         ENGINE_PORT

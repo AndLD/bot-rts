@@ -27,6 +27,18 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- Admin console, Game time and Dev tools: set the time of day, change the day length without a jump, show the real-world time of a time
+  zone, and (on a test server) advance the game clock and reset the database (`ops.game-time`, `POST /admin/devtools/reset-database`).
+- The game clock: the rules of the game run on a separate `GAME_CLOCK` and the day cycle (length, time of day, real-world zone) is a
+  runtime setting that the engine, the API nodes and the clients follow (`game-time-changed` socket event); sessions and logins stay on
+  the real clock.
+- Admin console, retention settings: every retention job (terminal lines, executions, notifications, expired logins, unverified and
+  inactive accounts, player activity, monitoring history) can be switched and tuned from the Operations page and reset in one click;
+  the new cleanup of `player_activity` (`PLAYER_ACTIVITY_RETENTION_DAYS`, 400 days); new permission `ops.retention`.
+- Admin console, feature switches: sign-ups, base deployment, API keys, spawn seeds and the public API can be switched off from the
+  Economy page with a reason (`FEATURE_DISABLED`, public `GET /api/v1/features`, `FEATURE_SWITCH_CACHE_MS`).
+- Admin console, view as player: owners and admins open the game as a chosen player sees it, read-only (enforced on the server by
+  a separate session; `VIEW_AS_READ_ONLY`), with a reason, a banner, a time limit (`ADMIN_VIEW_AS_TTL`) and an audit trail.
 - Admin console foundations: the `moderator` and `analyst` roles with fine-grained permissions, mandatory TOTP two-factor sign-in
   with recovery codes, an append-only audit log (`GET /api/v1/admin/audit`), and the `/admin` area of the web client.
 - Health monitoring for the admin console: metrics sampled every 10 s with a rolling history (7 days fine, 30 days at one minute),

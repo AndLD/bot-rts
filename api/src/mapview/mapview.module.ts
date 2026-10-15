@@ -9,7 +9,8 @@ import { WORLD_CONFIG, WorldConfig } from '../map/domain/world-config'
 import { MapModule } from '../map/map.module'
 import { MODULE_REPOSITORY, ModuleRepository } from '../modules/application/module.repository'
 import { ModulesModule } from '../modules/modules.module'
-import { CLOCK, Clock } from '../shared/application/clock'
+import { Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { LiveAreaRegistry } from './application/live-area-registry'
 import { LIVE_AREA_SOURCE, MapViewService } from './application/map-view.service'
 import { MapController } from './presentation/map.controller'
@@ -36,7 +37,7 @@ import { MapStreamer } from './presentation/map-streamer'
         BOT_REPOSITORY,
         MODULE_REPOSITORY,
         ITEM_REPOSITORY,
-        CLOCK,
+        GAME_CLOCK,
         LIVE_AREA_SOURCE,
         WORLD_CONFIG
       ],

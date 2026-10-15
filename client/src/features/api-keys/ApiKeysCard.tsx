@@ -1,5 +1,7 @@
 'use client'
 
+import FeatureOffNotice from '../featureswitches/FeatureOffNotice'
+import { useFeatureOff } from '../featureswitches/useFeatureOff'
 import { CopyOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, Input, InputNumber, List, Modal, Popconfirm, Select, Tag } from 'antd'
 import { useState } from 'react'
@@ -22,6 +24,7 @@ const EXPIRY_CHOICES = [0, 30, 90, 365] as const
 // The API keys of the player (design §22.1): the list, a form that makes a key and shows its secret once, and revocation
 export default function ApiKeysCard() {
   const t = useTranslations('apiKeys')
+  const isOff = useFeatureOff('apiKeys')
   const getErrorMessage = useErrorMessage()
   const { data: keys } = useApiKeysListQuery()
   const [create, { isLoading: isCreating }] = useApiKeysCreateMutation()
@@ -125,7 +128,8 @@ export default function ApiKeysCard() {
           )
         }}
       />
-      <Button type="primary" onClick={() => setFormOpen(true)}>
+      {isOff ? <FeatureOffNotice feature="apiKeys" /> : null}
+      <Button type="primary" disabled={isOff} onClick={() => setFormOpen(true)}>
         {t('create')}
       </Button>
 

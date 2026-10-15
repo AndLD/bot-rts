@@ -1,6 +1,7 @@
+import { fakeRetentionPolicy } from '../../tests/fakes/retention'
 import { DELIVER_DUE_MS, PlayerNotificationsModule, PURGE_MS } from './player-notifications.module'
 
-function setup() {
+function setup(retentionOverrides: Parameters<typeof fakeRetentionPolicy>[0] = {}) {
   const unlock = jest.fn()
   const off = jest.fn()
   const notifications = {
@@ -15,26 +16,43 @@ function setup() {
     })
   }
   const logger = { error: jest.fn() }
-  const module = new PlayerNotificationsModule(notifications as never, achievements as never, logger as never)
+  const retention = fakeRetentionPolicy(retentionOverrides)
+  const module = new PlayerNotificationsModule(
+    notifications as never,
+    achievements as never,
+    logger as never,
+    retention
+  )
 
-  return { module, notifications, unlock, off, logger }
+  return { module, notifications, unlock, off, logger, retention }
 }
 
 describe('PlayerNotificationsModule', () => {
   beforeEach(() => jest.useFakeTimers())
   afterEach(() => jest.useRealTimers())
 
-  it('tells of the achievements that are unlocked, delivers what is due and forgets what is old, on timers', () => {
+  it('tells of the achievements that are unlocked, delivers what is due and forgets what is old, on timers', async () => {
     const { module, notifications, unlock } = setup()
     module.onApplicationBootstrap()
 
     unlock('alice', { id: 'firstSteps' })
     jest.advanceTimersByTime(DELIVER_DUE_MS)
-    jest.advanceTimersByTime(PURGE_MS)
+    await jest.advanceTimersByTimeAsync(PURGE_MS)
 
     expect(notifications.achievementUnlocked).toHaveBeenCalledWith('alice', { id: 'firstSteps' })
     expect(notifications.deliverDue).toHaveBeenCalled()
     expect(notifications.purge).toHaveBeenCalledTimes(1)
+    expect(notifications.purge).toHaveBeenCalledWith(30)
+    module.onApplicationShutdown()
+  })
+
+  it('keeps the notifications when the console switched the retention off', async () => {
+    const { module, notifications } = setup({ notifications: { isEnabled: false } })
+    module.onApplicationBootstrap()
+
+    await jest.advanceTimersByTimeAsync(PURGE_MS)
+
+    expect(notifications.purge).not.toHaveBeenCalled()
     module.onApplicationShutdown()
   })
 
@@ -44,9 +62,7 @@ describe('PlayerNotificationsModule', () => {
     notifications.purge.mockRejectedValueOnce(new Error('down'))
     module.onApplicationBootstrap()
 
-    jest.advanceTimersByTime(PURGE_MS)
-    await Promise.resolve()
-    await Promise.resolve()
+    await jest.advanceTimersByTimeAsync(PURGE_MS)
 
     expect(logger.error).toHaveBeenCalledTimes(2)
     module.onApplicationShutdown()

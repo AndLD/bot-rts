@@ -1,4 +1,5 @@
 import Redis from 'ioredis'
+import { DEFAULT_GAME_TIME_SETTINGS } from '../../../../lib/utils/game-time'
 import { NotFoundError } from '../../shared/domain/errors'
 import { ServiceUnavailableError } from '../../engine/domain/engine.errors'
 import { EnginePort } from '../../engine/application/engine-port'
@@ -30,6 +31,7 @@ function echoEngine(): EchoEngine {
     linkStatus: jest.fn(async (userId, botId) => ({ userId, botId }) as never),
     metrics: jest.fn(async () => ({ ticks: 7 }) as never),
     control: jest.fn(async (command) => ({ controlled: command }) as never),
+    setGameTime: jest.fn(async () => undefined),
     reboot: jest.fn(async (botId) => [{ rebooted: botId }] as never),
     top: jest.fn(async (limit) => [{ top: limit }] as never),
     onEvent: jest.fn(() => () => undefined)
@@ -65,6 +67,8 @@ describe('the engine link over Redis', () => {
     await expect(port.linkStatus('u', 'b')).resolves.toEqual({ userId: 'u', botId: 'b' })
     await expect(port.metrics()).resolves.toEqual({ ticks: 7 })
     await expect(port.control({ type: 'pause' })).resolves.toEqual({ controlled: { type: 'pause' } })
+    await expect(port.setGameTime({ ...DEFAULT_GAME_TIME_SETTINGS, anchorMs: 5 })).resolves.toBeUndefined()
+    expect(engine.setGameTime).toHaveBeenCalledWith({ ...DEFAULT_GAME_TIME_SETTINGS, anchorMs: 5 })
     await expect(port.reboot('b')).resolves.toEqual([{ rebooted: 'b' }])
     await expect(port.top(2)).resolves.toEqual([{ top: 2 }])
     port.onEvent()()

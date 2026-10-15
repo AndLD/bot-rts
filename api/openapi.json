@@ -257,6 +257,175 @@
         ]
       }
     },
+    "/api/v1/features": {
+      "get": {
+        "operationId": "featuresStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureStatusResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "features"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/features": {
+      "get": {
+        "operationId": "adminFeaturesGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureSwitchesResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  },
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "economy.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "adminFeaturesUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFeatureSwitchesDto"
+              },
+              "example": {
+                "features": {},
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureSwitchesResponse"
+                },
+                "example": {
+                  "features": {
+                    "signUps": false,
+                    "baseDeployment": false,
+                    "apiKeys": false,
+                    "spawnSeeds": false,
+                    "publicApi": false
+                  },
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "balance.write",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/admin/features\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"features\":{},\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "authRegister",
@@ -1341,6 +1510,209 @@
         ]
       }
     },
+    "/api/v1/admin/retention": {
+      "get": {
+        "operationId": "retentionGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/retention\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "retentionUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRetentionDto"
+              },
+              "example": {
+                "reason": "string",
+                "jobs": {},
+                "confirmation": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.retention",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/admin/retention\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"jobs\":{},\"confirmation\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/retention/reset": {
+      "post": {
+        "operationId": "retentionReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonOnlyDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.retention",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/retention/reset\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/admin/players": {
       "get": {
         "operationId": "playersSearch",
@@ -2121,6 +2493,118 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/players/00000000-0000-4000-8000-000000000000/notes\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/players/{id}/view-as": {
+      "post": {
+        "operationId": "viewAsStart",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewAsStartResponse"
+                },
+                "example": {
+                  "accessToken": "string",
+                  "expiresAt": 1,
+                  "player": {
+                    "_id": "string",
+                    "name": "string"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "players.view-as",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/players/00000000-0000-4000-8000-000000000000/view-as\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/view-as/exit": {
+      "post": {
+        "operationId": "viewAsExit",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/view-as/exit\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }
@@ -4806,6 +5290,148 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/devtools/seed-world\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"count\":1}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/devtools/advance-clock": {
+      "post": {
+        "operationId": "devToolsAdvanceClock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceClockDto"
+              },
+              "example": {
+                "reason": "string",
+                "stepMs": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "devtools.use",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/devtools/advance-clock\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"stepMs\":1}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/devtools/reset-database": {
+      "post": {
+        "operationId": "devToolsResetDatabase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetDatabaseDto"
+              },
+              "example": {
+                "reason": "string",
+                "confirmation": "RESET"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetDatabaseResponse"
+                },
+                "example": {
+                  "tablesEmptied": 1,
+                  "accountsErased": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "devtools.use",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/devtools/reset-database\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"confirmation\":\"RESET\"}'"
           }
         ]
       }
@@ -8183,7 +8809,9 @@
                     "hoursPerDay": 1,
                     "spans": [
                       null
-                    ]
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
                   }
                 }
               }
@@ -8215,6 +8843,386 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X GET \"$BOTRTS_URL/api/v1/time\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time": {
+      "get": {
+        "operationId": "gameTimeAdminView",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/game-time\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/time-of-day": {
+      "post": {
+        "operationId": "gameTimeAdminSetTimeOfDay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTimeOfDayDto"
+              },
+              "example": {
+                "reason": "string",
+                "minuteOfDay": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/time-of-day\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"minuteOfDay\":0}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/day-length": {
+      "post": {
+        "operationId": "gameTimeAdminSetDayLength",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDayLengthDto"
+              },
+              "example": {
+                "reason": "string",
+                "dayLengthMs": 60000
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/day-length\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"dayLengthMs\":60000}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/real-world": {
+      "post": {
+        "operationId": "gameTimeAdminSetRealWorld",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRealWorldDto"
+              },
+              "example": {
+                "reason": "string",
+                "timeZone": "Europe/Kyiv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/real-world\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"timeZone\":\"Europe/Kyiv\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/cycle": {
+      "post": {
+        "operationId": "gameTimeAdminLeaveRealWorld",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/cycle\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
           }
         ]
       }
@@ -8495,6 +9503,8 @@
               "PLAYER_QUARANTINED",
               "REQUEST_TIMEOUT",
               "MANUAL_CATEGORY_DISABLED",
+              "VIEW_AS_READ_ONLY",
+              "FEATURE_DISABLED",
               "INTERNAL_ERROR",
               "BLOCKED",
               "EMPTY",
@@ -8676,6 +9686,102 @@
           "result"
         ]
       },
+      "FeatureStatusResponse": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "properties": {
+              "signUps": {
+                "type": "boolean"
+              },
+              "baseDeployment": {
+                "type": "boolean"
+              },
+              "apiKeys": {
+                "type": "boolean"
+              },
+              "spawnSeeds": {
+                "type": "boolean"
+              },
+              "publicApi": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "signUps",
+              "baseDeployment",
+              "apiKeys",
+              "spawnSeeds",
+              "publicApi"
+            ],
+            "additionalProperties": false,
+            "description": "Whether each feature is on"
+          }
+        }
+      },
+      "FeatureSwitchesResponse": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "properties": {
+              "signUps": {
+                "type": "boolean"
+              },
+              "baseDeployment": {
+                "type": "boolean"
+              },
+              "apiKeys": {
+                "type": "boolean"
+              },
+              "spawnSeeds": {
+                "type": "boolean"
+              },
+              "publicApi": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "signUps",
+              "baseDeployment",
+              "apiKeys",
+              "spawnSeeds",
+              "publicApi"
+            ],
+            "additionalProperties": false,
+            "description": "Whether each feature is on"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "updatedAt"
+        ]
+      },
+      "UpdateFeatureSwitchesDto": {
+        "type": "object",
+        "properties": {
+          "features": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "The features to switch"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "features",
+          "reason"
+        ]
+      },
       "RegisterDto": {
         "type": "object",
         "properties": {
@@ -8854,6 +9960,7 @@
                 "players.notes",
                 "players.change-role",
                 "players.delete",
+                "players.view-as",
                 "inspector.read",
                 "inspector.files.read",
                 "inspector.kill-execution",
@@ -8866,6 +9973,8 @@
                 "ops.kill-switch",
                 "ops.announce",
                 "ops.restart-runtime",
+                "ops.retention",
+                "ops.game-time",
                 "security.read",
                 "security.revoke-key",
                 "economy.read",
@@ -9051,6 +10160,141 @@
         "required": [
           "result",
           "meta"
+        ]
+      },
+      "RetentionJobResponse": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "type": "string",
+            "enum": [
+              "lifecycle",
+              "terminalLogs",
+              "executions",
+              "notifications",
+              "authData",
+              "unverifiedAccounts",
+              "inactiveAccounts",
+              "playerActivity",
+              "monitoring"
+            ]
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "defaults": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "isOverridden": {
+            "type": "boolean"
+          },
+          "lastRemoved": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "job",
+          "values",
+          "defaults",
+          "isOverridden",
+          "lastRemoved"
+        ]
+      },
+      "RetentionResponse": {
+        "type": "object",
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RetentionJobResponse"
+            }
+          },
+          "lastRunAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "hasFailures": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "jobs",
+          "lastRunAt",
+          "hasFailures",
+          "updatedAt"
+        ]
+      },
+      "UpdateRetentionDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "jobs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            },
+            "description": "The jobs to change, each with the fields to set"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "The typed word that confirms switching on the erasure of inactive accounts"
+          }
+        },
+        "required": [
+          "reason",
+          "jobs"
+        ]
+      },
+      "ReasonOnlyDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
         ]
       },
       "PlayerListItemResponse": {
@@ -9489,6 +10733,42 @@
         },
         "required": [
           "text"
+        ]
+      },
+      "ViewAsPlayerModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "_id",
+          "name"
+        ]
+      },
+      "ViewAsStartResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "A token for the game screens of the player; it is read-only and ends at `expiresAt`"
+          },
+          "expiresAt": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "player": {
+            "$ref": "#/components/schemas/ViewAsPlayerModel"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "player"
         ]
       },
       "SearchResultResponse": {
@@ -11332,6 +12612,172 @@
           "players"
         ]
       },
+      "AdvanceClockDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "stepMs": {
+            "type": "number",
+            "description": "The step in milliseconds: 1 minute, 1 hour or 1 day"
+          }
+        },
+        "required": [
+          "reason",
+          "stepMs"
+        ]
+      },
+      "GameTimeSettingsModel": {
+        "type": "object",
+        "properties": {
+          "dayLengthMs": {
+            "type": "number"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "cycle",
+              "realWorld"
+            ]
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          },
+          "anchorMs": {
+            "type": "number"
+          },
+          "offsetMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "dayLengthMs",
+          "mode",
+          "timeZone",
+          "anchorMs",
+          "offsetMs"
+        ]
+      },
+      "DayPhaseSpanResponse": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "night",
+              "morning",
+              "day",
+              "evening"
+            ]
+          },
+          "fromHour": {
+            "type": "number",
+            "description": "In-game hour at which this part of the day starts"
+          },
+          "sunlight": {
+            "type": "number",
+            "description": "How much sun reaches solar panels, from 0 to 1"
+          }
+        },
+        "required": [
+          "phase",
+          "fromHour",
+          "sunlight"
+        ]
+      },
+      "GameTimeConfigResponse": {
+        "type": "object",
+        "properties": {
+          "dayLengthMs": {
+            "type": "number",
+            "description": "One in-game day in real milliseconds; the world clock counts from the Unix epoch"
+          },
+          "hoursPerDay": {
+            "type": "number"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayPhaseSpanResponse"
+            }
+          },
+          "anchorMs": {
+            "type": "number",
+            "description": "The game clock instant at which the in-game time is 00:00"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The IANA time zone whose wall-clock time the game shows (real-world mode)"
+          }
+        },
+        "required": [
+          "dayLengthMs",
+          "hoursPerDay",
+          "spans"
+        ]
+      },
+      "GameTimeAdminResponse": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/GameTimeSettingsModel"
+          },
+          "config": {
+            "$ref": "#/components/schemas/GameTimeConfigResponse"
+          },
+          "now": {
+            "type": "number",
+            "description": "The game clock instant in milliseconds"
+          },
+          "canAdvance": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "settings",
+          "config",
+          "now",
+          "canAdvance"
+        ]
+      },
+      "ResetDatabaseDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "confirmation": {
+            "type": "string",
+            "example": "RESET",
+            "description": "The word RESET, typed to confirm"
+          }
+        },
+        "required": [
+          "reason",
+          "confirmation"
+        ]
+      },
+      "ResetDatabaseResponse": {
+        "type": "object",
+        "properties": {
+          "tablesEmptied": {
+            "type": "number"
+          },
+          "accountsErased": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "tablesEmptied",
+          "accountsErased"
+        ]
+      },
       "RemoveTestPlayersResponse": {
         "type": "object",
         "properties": {
@@ -12966,56 +14412,6 @@
           "points"
         ]
       },
-      "DayPhaseSpanResponse": {
-        "type": "object",
-        "properties": {
-          "phase": {
-            "type": "string",
-            "enum": [
-              "night",
-              "morning",
-              "day",
-              "evening"
-            ]
-          },
-          "fromHour": {
-            "type": "number",
-            "description": "In-game hour at which this part of the day starts"
-          },
-          "sunlight": {
-            "type": "number",
-            "description": "How much sun reaches solar panels, from 0 to 1"
-          }
-        },
-        "required": [
-          "phase",
-          "fromHour",
-          "sunlight"
-        ]
-      },
-      "GameTimeConfigResponse": {
-        "type": "object",
-        "properties": {
-          "dayLengthMs": {
-            "type": "number",
-            "description": "One in-game day in real milliseconds; the world clock counts from the Unix epoch"
-          },
-          "hoursPerDay": {
-            "type": "number"
-          },
-          "spans": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DayPhaseSpanResponse"
-            }
-          }
-        },
-        "required": [
-          "dayLengthMs",
-          "hoursPerDay",
-          "spans"
-        ]
-      },
       "GameTimeResponse": {
         "type": "object",
         "properties": {
@@ -13030,6 +14426,65 @@
         "required": [
           "now",
           "config"
+        ]
+      },
+      "SetTimeOfDayDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "minuteOfDay": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1439,
+            "description": "Minutes from 00:00; 990 is 16:30"
+          }
+        },
+        "required": [
+          "reason",
+          "minuteOfDay"
+        ]
+      },
+      "SetDayLengthDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "dayLengthMs": {
+            "type": "number",
+            "minimum": 60000,
+            "maximum": 86400000,
+            "description": "One in-game day in real milliseconds, from 1 minute to 24 hours (the default is 24 minutes)"
+          }
+        },
+        "required": [
+          "reason",
+          "dayLengthMs"
+        ]
+      },
+      "SetRealWorldDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Kyiv",
+            "description": "An IANA time zone"
+          }
+        },
+        "required": [
+          "reason",
+          "timeZone"
         ]
       },
       "ApiKeyResponse": {

@@ -1,10 +1,12 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
+import { RETENTION_POLICY, RetentionPolicy } from '../retention/application/retention-settings.service'
 import { PrismaClient } from '@prisma/client'
 import { AchievementsModule } from '../achievements/achievements.module'
 import { AchievementService } from '../achievements/application/achievement.service'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
 import {
@@ -40,15 +42,16 @@ export const PURGE_MS = 3_600_000
     },
     {
       provide: NotificationService,
-      inject: [NOTIFICATION_REPOSITORY, NOTIFICATION_PREFERENCES, CLOCK, ID_GENERATOR, LOGGER, APP_CONFIG],
+      inject: [NOTIFICATION_REPOSITORY, NOTIFICATION_PREFERENCES, CLOCK, ID_GENERATOR, LOGGER, APP_CONFIG, GAME_CLOCK],
       useFactory: (
         repository: NotificationRepository,
         preferences: NotificationPreferenceRepository,
         clock: Clock,
         ids: IdGenerator,
         logger: Logger,
-        config: AppConfig
-      ) => new NotificationService(repository, preferences, clock, ids, logger, config.notifications)
+        config: AppConfig,
+        gameClock: Clock
+      ) => new NotificationService(repository, preferences, clock, ids, logger, config.notifications, gameClock)
     }
   ],
   exports: [NotificationService]
@@ -60,7 +63,8 @@ export class PlayerNotificationsModule implements OnApplicationBootstrap, OnAppl
   constructor(
     @Inject(NotificationService) private readonly notifications: NotificationService,
     @Inject(AchievementService) private readonly achievements: AchievementService,
-    @Inject(LOGGER) private readonly logger: Logger
+    @Inject(LOGGER) private readonly logger: Logger,
+    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy
   ) {}
 
   onApplicationBootstrap() {
@@ -72,9 +76,18 @@ export class PlayerNotificationsModule implements OnApplicationBootstrap, OnAppl
         () => void this.notifications.deliverDue().catch((error) => this.logger.error(error)),
         DELIVER_DUE_MS
       ),
-      setInterval(() => void this.notifications.purge().catch((error) => this.logger.error(error)), PURGE_MS)
+      setInterval(() => void this.purge().catch((error) => this.logger.error(error)), PURGE_MS)
     ]
     this.timers.forEach((timer) => timer.unref())
+  }
+
+  // Forgets old notifications by the retention in force; switched off in the console, it keeps them
+  private async purge(): Promise<void> {
+    const { notifications } = await this.retention.current()
+
+    if (notifications.isEnabled) {
+      await this.notifications.purge(notifications.days as number)
+    }
   }
 
   onApplicationShutdown() {

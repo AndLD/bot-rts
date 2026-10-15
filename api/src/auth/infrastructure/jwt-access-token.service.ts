@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { UnauthorizedError } from '../../shared/domain/errors'
-import { AccessTokenClaims, AccessTokenService } from '../application/ports'
+import { AccessTokenClaims, AccessTokenService, AccessTokenSigning } from '../application/ports'
 import { AccessTokenExpiredError } from '../domain/auth.errors'
 import { isValidId } from '../../shared/domain/ids'
 
@@ -11,11 +11,11 @@ export class JwtAccessTokenService implements AccessTokenService {
     private readonly ttlSeconds: number
   ) {}
 
-  sign({ userId, sessionId }: AccessTokenClaims): string {
+  sign({ userId, sessionId, ttlSeconds }: AccessTokenSigning): string {
     return jwt.sign({ sid: sessionId }, this.secret, {
       algorithm: 'HS256',
       subject: userId,
-      expiresIn: this.ttlSeconds
+      expiresIn: ttlSeconds ?? this.ttlSeconds
     })
   }
 

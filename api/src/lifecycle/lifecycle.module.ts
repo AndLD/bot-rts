@@ -9,9 +9,8 @@ import { NotificationService } from '../player-notifications/application/notific
 import { PlayerNotificationsModule } from '../player-notifications/player-notifications.module'
 import { CLOCK, Clock } from '../shared/application/clock'
 import { LOGGER, Logger } from '../shared/application/logger'
-import { TERMINAL_RETENTION } from '../terminal/domain/terminal-retention'
+import { RETENTION_POLICY, RetentionPolicy } from '../retention/application/retention-settings.service'
 import { TerminalCoreModule } from '../terminal/terminal-core.module'
-import { TerminalRetention } from '../terminal/domain/terminal-retention'
 import { INACTIVITY_NOTIFIER, InactivityNotifier } from './application/inactivity-notifier'
 import { MetricCollectors } from '../metrics/application/metric-collectors'
 import { collectLifecycleMetrics, LifecycleStatus } from './application/lifecycle-status'
@@ -58,8 +57,7 @@ const FIRST_RUN_DELAY_MS = 60_000
         UNIT_OF_WORK,
         INACTIVITY_NOTIFIER,
         NotificationService,
-        LIFECYCLE_POLICY,
-        TERMINAL_RETENTION,
+        RETENTION_POLICY,
         CLOCK,
         LifecycleStatus,
         JOB_STATUS_STORE,
@@ -70,8 +68,7 @@ const FIRST_RUN_DELAY_MS = 60_000
         unitOfWork: UnitOfWork,
         notifier: InactivityNotifier,
         notifications: NotificationService,
-        policy: LifecyclePolicy,
-        retention: TerminalRetention,
+        settings: RetentionPolicy,
         clock: Clock,
         status: LifecycleStatus,
         jobs: JobStatusStore,
@@ -82,8 +79,7 @@ const FIRST_RUN_DELAY_MS = 60_000
           unitOfWork,
           notifier,
           notifications,
-          policy,
-          retention,
+          settings,
           clock,
           status,
           jobs,
@@ -112,7 +108,7 @@ export class LifecycleModule implements OnModuleInit, OnApplicationBootstrap, On
     if (this.policy.isEnabled && this.config.deployment.role !== 'api') {
       this.scheduler = new LifecycleScheduler(
         this.service.runOnce.bind(this.service),
-        this.policy.intervalMs,
+        () => this.service.intervalMs(this.policy.intervalMs),
         FIRST_RUN_DELAY_MS
       )
       this.scheduler.start()

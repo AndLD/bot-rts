@@ -6,6 +6,28 @@ describe('session slice', () => {
     localStorage.clear()
   })
 
+  describe('in a tab that views a player', () => {
+    beforeEach(() => {
+      sessionStorage.setItem('viewAs', JSON.stringify({ token: 'viewer', expiresAt: 1, playerName: 'Alice' }))
+    })
+    afterEach(() => sessionStorage.clear())
+
+    it('starts with the token of the view, not the stored one', () => {
+      localStorage.setItem('token', 'admins-own')
+
+      expect(sessionSlice.getInitialState()).toEqual({ token: 'viewer' })
+    })
+
+    it('never writes the token of the admin', () => {
+      localStorage.setItem('token', 'admins-own')
+
+      sessionSlice.reducer({ token: 'viewer' }, setToken(null))
+      sessionSlice.reducer({ token: null }, setToken('other'))
+
+      expect(localStorage.getItem('token')).toBe('admins-own')
+    })
+  })
+
   it('starts with the stored token', () => {
     localStorage.setItem('token', 'saved')
 

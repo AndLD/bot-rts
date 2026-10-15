@@ -42,6 +42,8 @@ export const ErrorCode = {
   PLAYER_QUARANTINED: 'PLAYER_QUARANTINED',
   REQUEST_TIMEOUT: 'REQUEST_TIMEOUT',
   MANUAL_CATEGORY_DISABLED: 'MANUAL_CATEGORY_DISABLED',
+  VIEW_AS_READ_ONLY: 'VIEW_AS_READ_ONLY',
+  FEATURE_DISABLED: 'FEATURE_DISABLED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   // A game action that failed as an expected outcome keeps the code of its result (design §10.3)
   ...ResultCode

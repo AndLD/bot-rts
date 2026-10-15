@@ -97,6 +97,8 @@ export interface EngineDependencies {
   sink: EngineSink
   ids: IdGenerator
   clock: Clock
+  // The clock of the rules (the energy of the bots); the real one is used for the records of executions. Defaults to `clock`.
+  gameClock?: Clock
   logger: Logger
   // A monotonic wall clock in ms, used only to measure slices and tick duration
   monotonicMs: () => number
@@ -449,7 +451,7 @@ export class EngineCore {
     const maxWaitTicks = this.trackWaiting(planned, planned.slice(0, reached))
 
     const isCut = await this.apply(commands, tick, hasTime)
-    const now = this.deps.clock.now().getTime()
+    const now = (this.deps.gameClock ?? this.deps.clock).now().getTime()
     for (const { bot, event } of this.deps.world.tickEnergy(now)) {
       this.tellEnergy(bot, event, now)
     }

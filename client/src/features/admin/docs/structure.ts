@@ -61,16 +61,17 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
     blocks: [intro, list('step1', 'step2', 'step3'), heading('recoveryTitle'), { type: 'paragraph', key: 'recovery' }]
   },
   consolePage('dashboard', 3, 'alerts'),
-  consolePage('players', 6, 'moderation', 'security'),
+  consolePage('players', 7, 'moderation', 'security'),
   consolePage('inspector', 4, 'map'),
   consolePage('map', 3, 'inspector'),
   consolePage('supervision', 6, 'maintenance'),
   consolePage('security', 4, 'moderation'),
-  consolePage('economy', 4, 'analytics'),
-  consolePage('operations', 5, 'maintenance'),
+  consolePage('economy', 5, 'analytics'),
+  consolePage('operations', 6, 'maintenance'),
   consolePage('analytics', 3, 'economy'),
   consolePage('logs', 4, 'audit-actions'),
-  consolePage('devtools', 2),
+  consolePage('game-time', 4, 'operations'),
+  consolePage('devtools', 4),
   consolePage('docs', 2),
   {
     slug: 'maintenance',
@@ -91,7 +92,7 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
     group: 'procedures',
     blocks: [
       intro,
-      list('rule1', 'rule2', 'rule3', 'rule4'),
+      list('rule1', 'rule2', 'rule3', 'rule4', 'rule5'),
       { type: 'paragraph', key: 'outro' },
       ...see('players', 'security')
     ]
@@ -133,6 +134,7 @@ export const ADMIN_PAGE_DOCS: Readonly<Record<string, string>> = {
   '/admin/economy': 'economy',
   '/admin/analytics': 'analytics',
   '/admin/operations': 'operations',
+  '/admin/game-time': 'game-time',
   '/admin/logs': 'logs',
   '/admin/devtools': 'devtools',
   '/admin/docs': 'docs'

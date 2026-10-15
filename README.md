@@ -5,10 +5,12 @@ combination of pre-defined modules (scanner, weapon, engine, tracks, drill, batt
 wireless adapter, …). Players can micromanage bots by hand from the GUI, or write JavaScript scripts in an in-game terminal that
 automate them; scripts execute on the server in a fair, sandboxed, tick-based runtime.
 
-> Status: **feature-complete through Phase 8; Phases 9 and 10 are planned.** Phases 0–8 and 11 are delivered: a NestJS
-> backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing page, achievements, notifications,
-> English and Russian UI, player documentation, a public API with API keys, an MCP server, and production hardening.
-> The admin console (Phase 9) and the market, currency, chat and transfers (Phase 10) are not implemented yet.
+> Status: **feature-complete through Phase 8; the admin console (Phase 9) is mostly delivered; Phases 10 and 13 are planned.**
+> Phases 0–8 and 11 are delivered: a NestJS backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing
+> page, achievements, notifications, English and Russian UI, player documentation, a public API with API keys, an MCP server, and
+> production hardening. Phase 9 delivered tasks 9.1–9.15 (the admin console, below); its open tasks (view as player, game time
+> controls, global feature switches, retention from the console, more dev tools) are listed in the plan. The market, currency,
+> chat and transfers (Phase 10) and the observability platform (Phase 13) are not implemented yet.
 >
 > The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–13, with story
 > points per task; Phase 11 was developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
@@ -68,12 +70,34 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
   editor, bot control panel, storage, factory, in-game Help), settings, achievements, notification center, API-key management,
   an in-game clock and **automatic reconnection**.
 
+**Admin console (`/admin`, Phase 9)**
+
+- For the people who run the game; never public or indexed. Roles (`owner`, `admin`, `moderator`, `analyst`) with fine-grained
+  permissions checked on the server, **mandatory two-factor sign-in** (TOTP, recovery codes), an optional IP allow-list, and an
+  **append-only audit trail** of every action (reason, before and after values); admin routes are never reachable with API keys.
+- Pages: a **dashboard** (health, load, alerts, history), **players** (search, profile, ban, notes, role changes, quarantine),
+  **inspector** and **world map** (any base or bot, the whole map without fog of war, heatmaps, a live event tail), **supervision**
+  (pause the world, script kill-switch, quarantine, support actions), **security** (failed sign-ins, anomalies, API keys,
+  scripts the sandbox stopped), **economy and balance** (resources in the world, balance versions with check, diff and rollback,
+  category switches), **operations** (engine status, cleanup job and backup status, announcements, maintenance banner, restart of
+  the scripts), **analytics** (active players, retention, funnel, achievements, CSV), **logs and audit** (log search, slow ticks,
+  audit viewer and export), **dev tools** (test players; non-production only) and its own **documentation** at `/admin/docs`
+  (English and Russian, with permission, audit-action and alert tables generated from the code).
+- Tested by an **authorization matrix** over every admin route, an audit-completeness check and a Cypress suite
+  ([docs/testing/e2e-matrix.md](./docs/testing/e2e-matrix.md)).
+
 ---
 
 ## Planned
 
-- **Phase 9 — Admin console:** supervision, monitoring, moderation and operations.
-- **Phase 10 — Market, currency, chat and transfers.**
+- **Phase 9 — Admin console, the open tasks:** view as player (the game's own screens, read-only), the game clock made a runtime
+  setting with controls in the console (set the time of day, change the day length from 1 minute to 24 hours, sync the game to the
+  real-world time of a chosen time zone, advance the clock on a test server), reset of a test database, switches for whole
+  features, and every retention job switchable and tunable from the console with one reset button.
+- **Phase 10 — Market, currency, chat and transfers,** with its admin pages (ledger, moderation, order books, auctions, market
+  statistics and monitoring).
+- **Phase 13 — Observability platform:** logs and traces on OpenTelemetry through one shared collector gateway, stored in
+  Elasticsearch, searchable from the console across every node, with a trace view.
 
 ---
 
@@ -127,7 +151,7 @@ enforces the layer rules.
 | Engine      | Tick loop and fair scheduler in a worker thread (or its own node), **QuickJS compiled to WASM** as the script sandbox                    |
 | Auth        | JWT access + refresh tokens behind an identity-provider port, `bcrypt`, API keys with scopes                                            |
 | Email       | `nodemailer` (SMTP)                                                                                                                     |
-| Observability | `log4js` JSON logs, Prometheus metrics, health checks                                                                                  |
+| Observability | `log4js` JSON logs, Prometheus metrics, health checks (Phase 13 plans OpenTelemetry logs and traces and Elasticsearch)                |
 | Frontend    | Next.js (App Router) with React 19, Redux Toolkit (RTK Query), Ant Design 5, CodeMirror 6, `next-intl` (English, Russian), canvas map   |
 | AI access   | MCP server (`mcp/`) over the public API                                                                                                 |
 | Shared      | `lib/` (types, constants, game clock and other pure functions)                                                                          |
@@ -341,10 +365,11 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
   [load and soak harness](./docs/testing/load-testing.md) with measured capacity and tuning of the scheduler budget.
 - [`docs/integrations/MCP.md`](./docs/integrations/MCP.md) — the MCP server that lets an AI play with an API key: tools, scopes, stdio and HTTP.
 - [`docs/integrations/API.md`](./docs/integrations/API.md) — the public API: API keys and scopes, limits, errors, stability and deprecation policy.
+- The documentation of the admin console is part of the console itself (`/admin/docs`, admins only); its reference tables are generated by `npm run docs:generate`.
 - [`docs/operations/RELEASING.md`](./docs/operations/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
 - [`docs/CHANGELOG.md`](./docs/CHANGELOG.md) — release notes.
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/code-quality-reviews/2026-10-10.md`](./docs/code-quality-reviews/2026-10-10.md) — quality assessment of the original prototype (historical).
-- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done).
+- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done, Phase 9 is in progress).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

@@ -204,7 +204,7 @@ The database is an implementation detail that must stay replaceable (clean archi
 - TypeScript `strict: true`; no `any` unless documented with a `// TODO(type)` and a reason.
 - Errors: typed error classes extending a base `AppError(statusCode, code, message)`; don't throw raw `Error` with
   human-facing messages, don't string-match error messages.
-- Logging: inject the `Logger` port (`api/src/shared/application/logger.ts`, log4js-backed) — no `console.log`.
+- Logging: inject the `Logger` port (`api/src/shared/application/logger.ts`, log4js-backed today; Phase 13 moves it to OpenTelemetry behind the same port) — no `console.log`.
 
 ### 5.3 Shared code
 
@@ -428,7 +428,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
 - **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/CHANGELOG.md`.
-- **Admin endpoints** (planned, Phase 9; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
+- **Admin endpoints** (Phase 9, delivered in tasks 9.1–9.15 and extended by the open tasks; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
 - **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**
   entries (design §26.1); nothing updates a wallet, escrow or inbox directly, and a reconciliation test must prove that the

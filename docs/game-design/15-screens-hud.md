@@ -19,7 +19,7 @@
 | **Bot control panel (manual control)** | 🟡 | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). One window per bot; every action is a row of three aligned columns (§15.6). |
 | **HUD clock and night filter** | ✅ | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
 | **Connection banner** | ✅ | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
-| **Settings (global + profile)** | 🟡 | Category switches for manual control at game level and per player (§15.1); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
+| **Settings (profile)** | 🟡 | Category switches for manual control per player (§15.1; the game-level switches are set by admins in the console, §25.3); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
 | **Notification center** | ✅ | Unread count, list with a count on coalesced notifications, load more, mark as read, preferences (§24.2). |
 | **Achievements** | ✅ | Unlocked and locked achievements with progress (§23). |
 | **Script monitor (`top`)** | 🔴 | Running executions with resource usage; kill control. |
@@ -52,8 +52,9 @@
 
   **Observation** (viewing the map, scanning, inspecting cells and bots) is always on and is not a category. All
   categories are on by default.
-- **Switchable at two levels:** categories can be switched on/off in the **global game settings** and in each player's
-  **personal profile settings**. ✅ **Global is a ceiling and personal narrows:** a category is available to a player only
+- **Switchable at two levels:** categories can be switched on/off in the **global game settings** (an admin does it on the
+  Economy and balance page of the console, §25.3; the player's settings panel only shows what the game has switched off) and in
+  each player's **personal profile settings**. ✅ **Global is a ceiling and personal narrows:** a category is available to a player only
   if it is on globally **and** on in their profile. Players can switch categories off for themselves (for example to play
   code-only) but can never enable what the game has disabled. The check is enforced **server-side** (the engine rejects
   manual commands from a disabled category), not only hidden in the UI. Category switches affect **manual** control only;

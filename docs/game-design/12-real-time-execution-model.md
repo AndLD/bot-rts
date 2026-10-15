@@ -192,7 +192,11 @@ The world has one shared clock derived from the engine's injected clock (never
 `Date.now()` in game logic, §12.4); every player sees the same time.
 
 - **Scale (tunable config):** one in-game hour is one real minute, so a **day lasts 24 real minutes**; the world clock counts
-  from the Unix epoch.
+  from the Unix epoch. *Planned (tasks 9.17 and 9.17a):* the scale becomes a runtime setting that the engine, the API nodes and the
+  clients all follow, changed from the admin console: the day length from 1 minute to 24 hours (48 minutes, 6 h 30 min or a
+  24-hour day), the time of day set to a chosen hour, or the clock synced to the real-world time of a chosen time zone. A change
+  re-anchors the cycle so the time of day does not jump, and connected players are told by a `game-time-changed` socket event. The
+  rules of the game read a separate `GAME_CLOCK`, so a change of the game's time never touches sessions, logins or the audit trail.
 - **Phases and sunlight factor:** night 21:00–05:00 → **0.1**; morning 05:00–09:00 and evening 17:00–21:00 → **0.6**; day
   09:00–17:00 → **1.0** (a day averages about 0.57). The factor multiplies the output of solar panels (§7.2.1) and nothing else.
 - **Shared code ✅:** the time of day, the phase and the factor are pure functions in `lib` (`game-time`); the API serves the time config and the

@@ -11,6 +11,13 @@ clients, scripts and AI assistants. There are no private endpoints for the offic
 - **Rules:** a client has no advantage over the web client. The same energy, operations budget, cooldowns and category switches
   apply, and the single authoritative engine decides every conflict.
 
+## Public routes
+
+A few routes need no key and no session: `GET /api/v1/health` (liveness and readiness), `GET /api/v1/maintenance` (whether the world is paused
+for maintenance, and the banner of a scheduled maintenance while it is shown), and the sign-up and sign-in routes (`GET /api/v1/metrics` has its own
+bearer token). Every other
+route asks for a session or a key. The routes under `/api/v1/admin/*` are for the admin console only: they are never reachable with a key.
+
 ## Signing in
 
 Send `Authorization: Bearer <token>` with either:

@@ -40,25 +40,33 @@ template, and the components they refer to were never added. What exists:
 - **Audit trail:** every admin action — and every read of sensitive data such as a player's files — is recorded: who, what,
   when, target, reason, before/after values. The audit log is append-only and visible in the console.
 - **Safety:** destructive or irreversible actions need a reason and a typed confirmation; the most dangerous ones are
-  owner-only; "view as player" mode is read-only, shows a banner and is audited. Test-only tools (§25.4, Dev tools) are disabled
-  in production by configuration.
+  owner-only; **"view as player"** mode (*planned, task 9.16*) is read-only, shows a banner and is audited: an owner or an admin
+  opens the game's own screens as a chosen player sees them (that player's fog of war, bases and bots, storage, factory, terminal
+  history, files, notifications, achievements and settings). It is read-only **on the server** (the admin's session carries a
+  `viewAs` claim: every read answers with the target's data, every change and every socket command is refused), needs the
+  permission `players.view-as` and a reason, ends after a time limit, never tells the player, never works for API keys or for a
+  higher rank, and every sensitive read in it is audited. Test-only tools (§25.4, Dev tools) are disabled in production by
+  configuration.
 
 ## 25.3 Pages and what they do ✅
+
+Every row is delivered (Phase 9, tasks 9.1–9.15) except what is marked *planned*, which belongs to an open task of the plan.
 
 | Page | Shows | Admin can |
 | --- | --- | --- |
 | **Dashboard** | Live health and performance (§25.5), alerts, headline numbers (players online, active bots, running scripts) | Acknowledge alerts, pick a time range |
-| **Players** | Search and filters; profile (status, verification, registration, last login, sessions, bases and bots, resources, activity timeline, notes) | Ban / unban (reason, duration), force logout, resend verification, trigger a password reset, change role (owner), delete account, add notes |
+| **Players** | Search and filters; profile (status, verification, registration, last login, sessions, bases and bots, resources, activity timeline, notes) | Ban / unban (reason, duration), force logout, resend verification, trigger a password reset, change role (owner), delete account, add notes; *planned (9.16):* view the game as the player |
 | **Inspector** | Any base or bot: modules and condition, energy, position, storage, drives and files, running executions and logs | Read; open files (permission + audit); kill an execution; reboot a bot |
 | **World map** | The whole map without fog of war, entity search by id or coordinates, heatmaps (density, depletion, activity), live event tail | Jump to entities, open the inspector |
 | **Supervision** | Quarantined players, paused executions, maintenance state | Quarantine a player (suspend all their executions), pause / resume the world, global script kill-switch, support actions (grant or remove resources, restore a module, compensate) — each with a reason and audited |
 | **Security** | Failed password attempts and lockouts, suspicious scripts (top ops consumers, wall-clock kills, sandbox violations), API-key usage and rate-limit hits, login anomalies and same-IP accounts | Ban, quarantine, revoke an API key |
-| **Economy and balance** | Resource totals in the world and in storage, depletion rates, crafting and blueprint statistics | Edit the balance configuration (recipes, spawn weights, limits) with validation, a diff and rollback; set the global feature and category switches (§15.1) |
-| **Market and chat** | Wallets and the ledger, the money supply, the treasury, order books, auctions, trade volume, price anomalies, chat reports | Cancel a listing, freeze a wallet, refund, mute a player, delete messages |
-| **Operations** | Engine status and uptime, restarts, job status (retention cleanup), backup status | Broadcast announcements and schedule maintenance banners (via notifications, §24), restart the script runtime |
-| **Logs and audit** | Structured log search by request / user / bot, slow-tick traces, audit log | Filter and export |
+| **Economy and balance** | Resource totals in the world and in storage, depletion rates, crafting and blueprint statistics | Edit the balance configuration (recipes, spawn weights, limits) with validation, a diff and rollback; set the global switches of the categories of manual control (§15.1; delivered); *planned (9.18):* switch whole features of the game (sign-ups, base deployment, API keys, spawn seeds, public API access, and later the market and the chat) with a reason, a public status for the client and the refusal `FEATURE_DISABLED` |
+| **Market and chat** (*Phase 10*) | Wallets and the ledger, the money supply, the treasury, order books and depth, auctions, trade volume, price history and statistics (volume and fees by kind, mint budget used, top traders, the share of players who traded, chat volume and reports by day), price anomalies with a review status, chat reports (tasks 10.11 and 10.15) | Cancel a listing, freeze a wallet, refund, mute a player, delete messages, review an anomaly, export CSV |
+| **Operations** | Engine status and uptime, restarts, job status (retention cleanup), backup status | Broadcast announcements and set a maintenance banner (via notifications, §24; delivered), restart the script runtime (delivered); *planned (9.19):* switch every retention job on or off and tune its ranges and timeouts, with one button to reset them all to the defaults |
+| **Logs and audit** | Structured log search by request / user / bot, slow-tick traces, audit log (delivered: the search reads the recent lines of the node that answers); *planned (Phase 13):* logs and traces of **every node** from Elasticsearch through OpenTelemetry, search by trace id, a trace view with its spans and the logs of all nodes | Filter and export |
 | **Analytics** | DAU / MAU, retention, onboarding funnel (sign-up → verified → base deployed → first script → first resource → tutorial completed), achievement rates | Export CSV |
-| **Dev tools** (non-production only) | Seed a world, advance the injected clock, spawn test bots, reset the database | Replaces the legacy debug endpoint |
+| **Dev tools** (non-production only) | Test players with a verified email, a known password and a base (delivered, 9.12); *planned:* advance the game clock (9.17a), reset the database (9.17b) | Replaces the legacy debug endpoint |
+| **Game time** (*planned, tasks 9.17 and 9.17a*) | The game clock, the day phase and the sunlight, live | Set the time of day (for example from 05:00 to 16:30); change the **day length** from 1 minute to 24 hours (the default is 24 real minutes), seamlessly: the cycle is re-anchored, so the time of day does not jump; sync the game to the **real-world time of a chosen time zone** (a 24-hour day, daylight saving included). Every connected player is told by a socket event. Each change has a reason and is audited |
 | **Docs** | The admin console documentation: roles and permissions, every page and action, procedures (supervision, maintenance, moderation), alert thresholds | Search; open from the "?" link of any admin page |
 
 ## 25.4 What is supervised ✅
@@ -80,8 +88,8 @@ endpoint for external tools. The dashboard shows status (green / yellow / red) a
 | **API and sockets** | Request rate, latency p50 / p95 / p99, 4xx / 5xx rate (yellow: 5xx > 1 %), Socket.IO connections and reconnects, rate-limit hits |
 | **Database** | Query latency, connection-pool use, slow queries, table sizes and growth, flush transaction time |
 | **Market** | Trade volume, order-book depth, auctions active / settled, fees collected, treasury balance, credits minted per day, money supply and the ledger invariant (should be 0 drift), chat messages per minute |
-| **Jobs and notifications** | Retention and cleanup jobs (last run, duration, failures), notification queue depth and delivery lag, email send failures |
-| **Infrastructure** | CPU and memory of each process, disk usage, backup age |
+| **Jobs and notifications** | Retention and cleanup jobs (last run, duration, failures; their ranges are set from the console, *planned 9.19*), notification queue depth and delivery lag, email send failures |
+| **Infrastructure** | CPU and memory of each process, disk usage, backup age; *planned (Phase 13):* the health and the queue of the shared collector gateway |
 
 Alerts appear in the console and by email to the owner; webhook channels (Slack, Telegram) are in the backlog.
 
@@ -90,3 +98,4 @@ Alerts appear in the console and by email to the owner; webhook channels (Slack,
 - Webhook alert channels and an on-call schedule.
 - Player reports and a support inbox.
 - Scripted admin automation through a separate admin API key type.
+- Not in the plan yet: a retention window for the audit trail itself (it is append-only and never deleted today).

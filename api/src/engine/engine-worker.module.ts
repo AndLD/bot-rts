@@ -38,6 +38,7 @@ import { BotAccessService } from '../terminal/application/bot-access.service'
 import { TerminalCoreModule } from '../terminal/terminal-core.module'
 import { SettingsService } from '../settings/application/settings.service'
 import { SettingsModule } from '../settings/settings.module'
+import { RetentionModule } from '../retention/retention.module'
 import { FeatureSwitchesModule } from '../featureswitches/featureswitches.module'
 import { UsersModule } from '../users/users.module'
 import { EngineCore } from './application/engine-core'
@@ -113,6 +114,7 @@ export class EngineWorkerModule {
         NotificationsModule,
         UsersModule,
         FeatureSwitchesModule,
+        RetentionModule,
         AuthModule,
         ModulesModule,
         SettingsModule,

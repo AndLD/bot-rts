@@ -26,4 +26,6 @@ export interface LifecycleRepository {
   deleteEndedExecutionsBefore(before: Date): Promise<number>
   // Sessions and links that expired (or were revoked or used) before `before`
   deleteExpiredAuthData(before: Date): Promise<number>
+  // The days of activity of players (for the analytics) before `before`
+  deletePlayerActivityBefore(before: Date): Promise<number>
 }

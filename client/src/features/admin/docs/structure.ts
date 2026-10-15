@@ -67,7 +67,7 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
   consolePage('supervision', 6, 'maintenance'),
   consolePage('security', 4, 'moderation'),
   consolePage('economy', 5, 'analytics'),
-  consolePage('operations', 5, 'maintenance'),
+  consolePage('operations', 6, 'maintenance'),
   consolePage('analytics', 3, 'economy'),
   consolePage('logs', 4, 'audit-actions'),
   consolePage('devtools', 2),

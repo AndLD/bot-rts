@@ -1546,7 +1546,57 @@
         "confirmClear": "Remove the maintenance banner"
       },
       "announced": "{count, plural, one {# player was told} other {# players were told}}",
-      "restarted": "{count, plural, one {# script restarted} other {# scripts restarted}}{failed, plural, =0 {} one {, # bot could not be restarted} other {, # bots could not be restarted}}"
+      "restarted": "{count, plural, one {# script restarted} other {# scripts restarted}}{failed, plural, =0 {} one {, # bot could not be restarted} other {, # bots could not be restarted}}",
+      "retention": {
+        "title": "Data retention",
+        "loadFailed": "Could not load the retention settings",
+        "help": "How long the game keeps what it records, and whether each cleanup runs. The values override the server defaults at once, with no restart; each range has a floor and a ceiling. The audit log is never deleted. Each change needs a reason.",
+        "failures": "A step of the last cleanup pass failed; see the logs.",
+        "columns": {
+          "job": "Job",
+          "enabled": "On",
+          "ranges": "Ranges",
+          "lastRemoved": "Removed last pass",
+          "state": ""
+        },
+        "jobs": {
+          "lifecycle": "Cleanup job (all steps below)",
+          "terminalLogs": "Terminal lines",
+          "executions": "Finished script executions",
+          "notifications": "Notifications",
+          "authData": "Expired logins, links and sign-in attempts",
+          "unverifiedAccounts": "Never-confirmed accounts",
+          "inactiveAccounts": "Erasure of inactive accounts",
+          "playerActivity": "Player activity days (analytics)",
+          "monitoring": "Monitoring history (in memory)"
+        },
+        "fields": {
+          "intervalMinutes": "every",
+          "logDays": "lines for",
+          "securityDays": "security lines for",
+          "maxLinesPerBot": "at most",
+          "days": "keep",
+          "inactiveDays": "inactive for",
+          "noticeDays": "notice",
+          "fineDays": "fine series",
+          "coarseDays": "coarse series"
+        },
+        "units": {
+          "days": "days",
+          "minutes": "minutes",
+          "lines": "lines per bot"
+        },
+        "default": "default {value}",
+        "range": "{min}–{max}",
+        "overridden": "changed",
+        "lastRun": "Last cleanup pass: {date}",
+        "save": "Save changes",
+        "discard": "Discard",
+        "reset": "Reset all to the defaults",
+        "saveTitle": "Save the retention settings",
+        "resetTitle": "Put every retention setting back to its default",
+        "confirmErasure": "Type {word} to switch on the erasure of inactive accounts"
+      }
     },
     "devtools": {
       "disabled": "The dev tools are off on this server (DEV_TOOLS_ENABLED).",
@@ -1746,7 +1796,8 @@
         "action2": "Send an announcement to every player (admins).",
         "action3": "Set a maintenance banner with its start and expected end, or remove it (admins).",
         "action4": "Restart all running scripts (owners).",
-        "action5": "Check that the cleanup job ran and a backup is recent."
+        "action5": "Check that the cleanup job ran and a backup is recent.",
+        "action6": "Tune data retention: switch each cleanup on or off, set its ranges within their floor and ceiling, see what the last pass removed, and put every value back to its default with one button (each change needs a reason; the erasure of inactive accounts also needs a typed word)."
       },
       "analytics": {
         "title": "Analytics",

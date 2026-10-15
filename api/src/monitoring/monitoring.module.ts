@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
+import { RETENTION_POLICY, RetentionPolicy } from '../retention/application/retention-settings.service'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
 import { HttpMetrics } from '../metrics/application/http-metrics'
@@ -20,6 +21,8 @@ import { MonitoringController } from './presentation/monitoring.controller'
 import { MonitoringGateway } from './presentation/monitoring.gateway'
 
 // Health, performance and load for the admin console (design §25.5). Each process samples itself: its history is in memory.
+const DAY_MS = 24 * 60 * 60 * 1000
+
 @Module({
   imports: [NotificationsModule, AdminModule, AuthModule],
   controllers: [MonitoringController],
@@ -74,7 +77,8 @@ export class MonitoringModule implements OnModuleInit, OnApplicationBootstrap, O
   constructor(
     @Inject(MONITORING_SERVICE) private readonly monitoring: MonitoringService,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
-    private readonly collectors: MetricCollectors
+    private readonly collectors: MetricCollectors,
+    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy
   ) {}
 
   // Open alerts are also a series for the operator's scraper
@@ -90,9 +94,20 @@ export class MonitoringModule implements OnModuleInit, OnApplicationBootstrap, O
 
   onApplicationBootstrap() {
     if (this.config.monitoring.isEnabled) {
-      this.timer = setInterval(() => void this.monitoring.sampleOnce(), this.config.monitoring.sampleIntervalMs)
+      this.timer = setInterval(() => void this.tick(), this.config.monitoring.sampleIntervalMs)
       this.timer.unref()
     }
+  }
+
+  // Applies the ranges of the history in force (the console may have changed them), then takes a sample
+  private async tick(): Promise<void> {
+    const { monitoring } = this.retention.snapshot()
+
+    this.monitoring.retuneHistory([
+      (monitoring.fineDays as number) * DAY_MS,
+      (monitoring.coarseDays as number) * DAY_MS
+    ])
+    await this.monitoring.sampleOnce()
   }
 
   onApplicationShutdown() {

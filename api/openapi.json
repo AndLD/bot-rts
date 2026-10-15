@@ -1510,6 +1510,209 @@
         ]
       }
     },
+    "/api/v1/admin/retention": {
+      "get": {
+        "operationId": "retentionGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/retention\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "retentionUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRetentionDto"
+              },
+              "example": {
+                "reason": "string",
+                "jobs": {},
+                "confirmation": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.retention",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PATCH \"$BOTRTS_URL/api/v1/admin/retention\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"jobs\":{},\"confirmation\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/retention/reset": {
+      "post": {
+        "operationId": "retentionReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonOnlyDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionResponse"
+                },
+                "example": {
+                  "jobs": [
+                    {
+                      "job": "lifecycle",
+                      "values": {},
+                      "defaults": {},
+                      "isOverridden": false,
+                      "lastRemoved": 1
+                    }
+                  ],
+                  "lastRunAt": 1,
+                  "hasFailures": false,
+                  "updatedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.retention",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/retention/reset\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/admin/players": {
       "get": {
         "operationId": "playersSearch",
@@ -9246,6 +9449,7 @@
                 "ops.kill-switch",
                 "ops.announce",
                 "ops.restart-runtime",
+                "ops.retention",
                 "security.read",
                 "security.revoke-key",
                 "economy.read",
@@ -9431,6 +9635,141 @@
         "required": [
           "result",
           "meta"
+        ]
+      },
+      "RetentionJobResponse": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "type": "string",
+            "enum": [
+              "lifecycle",
+              "terminalLogs",
+              "executions",
+              "notifications",
+              "authData",
+              "unverifiedAccounts",
+              "inactiveAccounts",
+              "playerActivity",
+              "monitoring"
+            ]
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "defaults": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            }
+          },
+          "isOverridden": {
+            "type": "boolean"
+          },
+          "lastRemoved": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "job",
+          "values",
+          "defaults",
+          "isOverridden",
+          "lastRemoved"
+        ]
+      },
+      "RetentionResponse": {
+        "type": "object",
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RetentionJobResponse"
+            }
+          },
+          "lastRunAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "hasFailures": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "jobs",
+          "lastRunAt",
+          "hasFailures",
+          "updatedAt"
+        ]
+      },
+      "UpdateRetentionDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "jobs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            },
+            "description": "The jobs to change, each with the fields to set"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "The typed word that confirms switching on the erasure of inactive accounts"
+          }
+        },
+        "required": [
+          "reason",
+          "jobs"
+        ]
+      },
+      "ReasonOnlyDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "reason"
         ]
       },
       "PlayerListItemResponse": {

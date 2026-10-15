@@ -26,6 +26,7 @@ export const ADMIN_PERMISSIONS = [
   'ops.kill-switch',
   'ops.announce',
   'ops.restart-runtime',
+  'ops.retention',
   'security.read',
   'security.revoke-key',
   'economy.read',

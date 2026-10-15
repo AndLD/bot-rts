@@ -79,7 +79,8 @@ describe('loadConfig', () => {
         inactiveDays: 365,
         noticeDays: 30,
         executionDays: 30,
-        authDays: 7
+        authDays: 7,
+        activityDays: 400
       },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
@@ -275,7 +276,8 @@ describe('loadConfig', () => {
       inactiveDays: 0,
       noticeDays: 5,
       executionDays: 9,
-      authDays: 2
+      authDays: 2,
+      activityDays: 400
     })
     expect(loadConfig({ ...base, NODE_ENV: 'test' }).lifecycle.isEnabled).toBe(false)
     expect(loadConfig({ ...base, NODE_ENV: 'test', LIFECYCLE_ENABLED: 'true' }).lifecycle.isEnabled).toBe(true)

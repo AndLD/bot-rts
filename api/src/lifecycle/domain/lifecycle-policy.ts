@@ -17,6 +17,8 @@ export interface LifecyclePolicy {
   executionDays: number
   // Expired logins and links are kept this long, for the security trail
   authDays: number
+  // Rows of `player_activity` (the days a player was active, for the analytics) are kept this long
+  activityDays: number
 }
 
 export const DEFAULT_LIFECYCLE_POLICY: LifecyclePolicy = {
@@ -26,7 +28,8 @@ export const DEFAULT_LIFECYCLE_POLICY: LifecyclePolicy = {
   inactiveDays: 365,
   noticeDays: 30,
   executionDays: 30,
-  authDays: 7
+  authDays: 7,
+  activityDays: 400
 }
 
 export const days = (count: number): number => count * DAY_MS

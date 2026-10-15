@@ -18,6 +18,21 @@ describe('LifecycleScheduler', () => {
     scheduler.stop()
   })
 
+  it('asks for the pause after each pass when the interval is a function, so a change applies to the next one', async () => {
+    const run = jest.fn(async () => undefined)
+    let interval = 1000
+    const scheduler = new LifecycleScheduler(run, () => interval, 10)
+    scheduler.start()
+
+    await jest.advanceTimersByTimeAsync(10)
+    interval = 200
+    await jest.advanceTimersByTimeAsync(1000)
+    await jest.advanceTimersByTimeAsync(400)
+
+    expect(run).toHaveBeenCalledTimes(4)
+    scheduler.stop()
+  })
+
   it('goes on after a failing pass', async () => {
     const run = jest.fn().mockRejectedValueOnce(new Error('boom')).mockResolvedValue(undefined)
     const scheduler = new LifecycleScheduler(run, 1000, 10)

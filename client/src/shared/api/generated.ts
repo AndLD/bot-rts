@@ -113,6 +113,15 @@ const injectedRtkApi = api.injectEndpoints({
         }
       })
     }),
+    retentionGet: build.query<RetentionGetApiResponse, RetentionGetApiArg>({
+      query: () => ({ url: `/api/v1/admin/retention` })
+    }),
+    retentionUpdate: build.mutation<RetentionUpdateApiResponse, RetentionUpdateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/retention`, method: 'PATCH', body: queryArg.updateRetentionDto })
+    }),
+    retentionReset: build.mutation<RetentionResetApiResponse, RetentionResetApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/retention/reset`, method: 'POST', body: queryArg.reasonOnlyDto })
+    }),
     playersSearch: build.query<PlayersSearchApiResponse, PlayersSearchApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/players`,
@@ -799,6 +808,16 @@ export type AuditExportApiArg = {
   from?: string
   to?: string
 }
+export type RetentionGetApiResponse = /** status 200  */ RetentionResponse
+export type RetentionGetApiArg = void
+export type RetentionUpdateApiResponse = /** status 200  */ RetentionResponse
+export type RetentionUpdateApiArg = {
+  updateRetentionDto: UpdateRetentionDto
+}
+export type RetentionResetApiResponse = /** status 200  */ RetentionResponse
+export type RetentionResetApiArg = {
+  reasonOnlyDto: ReasonOnlyDto
+}
 export type PlayersSearchApiResponse = /** status 200  */ PlayersPageResponse
 export type PlayersSearchApiArg = {
   page?: number
@@ -1438,6 +1457,7 @@ export type AdminMeResponse = {
     | 'ops.kill-switch'
     | 'ops.announce'
     | 'ops.restart-runtime'
+    | 'ops.retention'
     | 'security.read'
     | 'security.revoke-key'
     | 'economy.read'
@@ -1488,6 +1508,46 @@ export type AuditMetaModel = {
 export type AuditPageResponse = {
   result: AuditEntryResponse[]
   meta: AuditMetaModel
+}
+export type RetentionJobResponse = {
+  job:
+    | 'lifecycle'
+    | 'terminalLogs'
+    | 'executions'
+    | 'notifications'
+    | 'authData'
+    | 'unverifiedAccounts'
+    | 'inactiveAccounts'
+    | 'playerActivity'
+    | 'monitoring'
+  values: {
+    [key: string]: number | boolean
+  }
+  defaults: {
+    [key: string]: number | boolean
+  }
+  isOverridden: boolean
+  lastRemoved: number | null
+}
+export type RetentionResponse = {
+  jobs: RetentionJobResponse[]
+  lastRunAt: number | null
+  hasFailures: boolean
+  updatedAt: number | null
+}
+export type UpdateRetentionDto = {
+  reason: string
+  /** The jobs to change, each with the fields to set */
+  jobs: {
+    [key: string]: {
+      [key: string]: number | boolean
+    }
+  }
+  /** The typed word that confirms switching on the erasure of inactive accounts */
+  confirmation?: string
+}
+export type ReasonOnlyDto = {
+  reason: string
 }
 export type PlayerListItemResponse = {
   _id: string
@@ -2565,6 +2625,9 @@ export const {
   useAdminVerifyMutation,
   useAuditListQuery,
   useAuditExportQuery,
+  useRetentionGetQuery,
+  useRetentionUpdateMutation,
+  useRetentionResetMutation,
   usePlayersSearchQuery,
   usePlayersProfileQuery,
   usePlayersRemoveMutation,

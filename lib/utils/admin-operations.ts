@@ -37,6 +37,8 @@ export interface IJobStatus {
   failures: number
   // What it removed or did, in all, by kind
   totals: Record<string, number>
+  // The same for the last pass alone (absent in a status stored before it was reported)
+  lastPass?: Record<string, number>
 }
 
 export interface IBackupStatus {

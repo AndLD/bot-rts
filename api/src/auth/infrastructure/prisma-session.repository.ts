@@ -3,7 +3,7 @@ import { SessionRepository } from '../application/ports'
 import { Session } from '../domain/session'
 
 export function toSession({ viewAsUserId, viewAsReason, ...row }: SessionRow): Session {
-  return { ...row, viewAs: viewAsUserId ? { userId: viewAsUserId, reason: viewAsReason ?? '' } : null }
+  return { ...row, viewAs: viewAsUserId ? { userId: viewAsUserId, reason: viewAsReason as string } : null }
 }
 
 function toRow({ viewAs, ...session }: Session) {

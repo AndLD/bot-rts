@@ -88,7 +88,8 @@ describe('PlayersService moderation', () => {
       lastUsedAt: clock.now(),
       expiresAt: new Date(clock.now().getTime() + HOUR),
       revokedAt: null,
-      userAgent: null
+      userAgent: null,
+      viewAs: null
     })
 
     const change = await service.ban(moderator, player.id, 'spam', 2)
@@ -177,7 +178,8 @@ describe('PlayersService moderation', () => {
       lastUsedAt: clock.now(),
       expiresAt: new Date(clock.now().getTime() + HOUR),
       revokedAt: null,
-      userAgent: null
+      userAgent: null,
+      viewAs: null
     })
 
     await service.forceLogout(moderator, player.id)
@@ -282,7 +284,8 @@ describe('PlayersService profile and search', () => {
           lastUsedAt: clock.now(),
           expiresAt: clock.now(),
           revokedAt: null,
-          userAgent: 'Firefox'
+          userAgent: 'Firefox',
+          viewAs: null
         }
       ],
       bases: [],

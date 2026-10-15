@@ -71,7 +71,7 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
   return {
     ...world,
     auth,
-    authService: new AuthService(verifier, provisioner),
+    authService: new AuthService(verifier, provisioner, undefined, undefined, repositories.users),
     verifier,
     provisioner,
     mailer,

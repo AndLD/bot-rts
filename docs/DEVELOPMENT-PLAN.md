@@ -28,11 +28,11 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 6     | Core game GUI & map animations       | 96           | ✅ Done |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ✅ Done |
 | 8     | Multiplayer, public API & hardening  | 71           | ✅ Done |
-| 9     | Admin console (supervision, monitoring, moderation, operations) | 101          | ✅ Done |
+| 9     | Admin console (supervision, monitoring, moderation, operations) | 109          | 🟡 In progress |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
 | 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
 | 12    | Issues and stabilization (open-ended; issues found in use are added as tasks; **outside the MVP count**) | 5 (grows) | ⬜ Not started |
-|        | **Total of Phases 0–11**             | **908**      | |
+|        | **Total of Phases 0–11**             | **916**      | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
@@ -83,7 +83,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
 - [Phase 7 — Presentation & engagement (66 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
-- [Phase 9 — Admin console (101 SP)](./development-plan/phase-9-admin-console.md)
+- [Phase 9 — Admin console (109 SP)](./development-plan/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./development-plan/phase-11-energy-time-ux.md)
 - [Phase 12 — Issues and stabilization (5 SP, grows as issues are added)](./development-plan/phase-12-issues.md)

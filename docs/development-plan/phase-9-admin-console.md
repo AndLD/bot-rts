@@ -1,18 +1,18 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 9 — Admin console (101 SP)
+# Phase 9 — Admin console (109 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-9-log](./work-logs/phase-9-log.md)
 
 A new admin console, specified in design [§25](../game-design/25-admin-console.md), that lets admins supervise any player's
 bots and resources, monitor the health, performance and load of the game, moderate players, and operate the world safely.
 The starting point is only a few legacy API endpoints and no UI (design §25.1); the security hotfix for them is task 0.8.
 
-**Priorities:** must — 9.1–9.6, 9.10, 9.13, 9.14, 9.15; should — 9.7, 9.8, 9.9, 9.12; could — 9.11. The phase depends on the engine and
+**Priorities:** must — 9.1–9.6, 9.10, 9.13, 9.14, 9.15; should — 9.7, 9.8, 9.9, 9.12, 9.16; could — 9.11. The phase depends on the engine and
 the game event bus (Phase 5), the map renderer (Phase 6), the notification system (Phase 7) and the observability metrics
 (8.3).
 
-**Execution order:** 9.1 → 9.2 → 9.3 → 9.4 → 9.5 → 9.6 → 9.10 → 9.7 → 9.8 → 9.9 → 9.12 → 9.11 → 9.15 → 9.14 → 9.13.
+**Execution order:** 9.1 → 9.2 → 9.3 → 9.4 → 9.5 → 9.6 → 9.10 → 9.7 → 9.8 → 9.9 → 9.12 → 9.11 → 9.15 → 9.14 → 9.13 → 9.16.
 
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
@@ -31,6 +31,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | 9.13 | E2E (Cypress) for the admin console: access control per role, two-factor sign-in, dashboard with data, ban cutting a player off, inspector and file-read audit, supervision action with audit entry, maintenance mode, balance edit and rollback, announcement reaching players, the Docs page (access per role, search, a "?" link opening its section) | 8 | ✅ |
 | 9.14 | Authorization matrix tests: every admin endpoint × every role (and API keys, and plain players) returns the expected result; audit completeness test (every mutating admin call writes an audit entry) | 3 | ✅ |
 | 9.15 | Admin console documentation: an in-console **Docs** page (`/admin/docs`, admin-only, rendered inside the `(admin)` route group, never public or indexed) with a sidebar tree and search, built on the player-documentation machinery of 7.11/7.12 (one content source, no second copy). Sections: roles and permissions (who sees and does what), two-factor sign-in and recovery, every page of design §25.3 with its actions, the audit log and what is recorded, supervision and maintenance procedures (quarantine, kill-switch, pause), alert thresholds and how to react (§25.5), moderation guidelines, dev tools (non-production only). Page-specific "?" links from every admin page open the matching section. Reference tables (permissions, audit action types, alert thresholds) are **generated from the code and config**, with a CI check that fails when they are stale; the link checker and the English/Russian check of 7.13 cover it, and a section is required for every admin page (a test fails when a page has none) | 3 | ✅ |
+| 9.16 | **View as player** (design §25.2, added 2026-10-15 after the first tasks were done): an owner or an admin opens the game as a chosen player sees it, with the game's own screens in a read-only mode: the map with that player's fog of war and known cells, bases and bots, storage and factory, terminal history, the list and content of files, notifications, achievements and settings. Everything is read-only **on the server**: the session of the admin carries a `viewAs` claim that makes the API answer every read route with the target's data and refuse every request that changes something and every socket command (`VIEW_AS_READ_ONLY`), so no screen can write by mistake; the target is not told; it needs a new permission `players.view-as` (owners and admins, never API keys, never a higher rank than the admin), a reason typed at the start, and ends after a time limit (30 minutes, configurable) or by exit. A banner on every screen names the player and the end of the session, with an exit button. Each start and end is audited, and so is every read of sensitive data (files, terminal history) with the path or the session, as in the inspector. Includes: authorization-matrix entries, unit and integration tests of the claim and the guard, a Cypress spec (start with a reason, the player's own view, every write refused, the banner and the exit, the audit trail, the access per role), and the pages of the admin documentation in English and Russian | 8 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 

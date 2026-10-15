@@ -148,3 +148,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** Phase 10 is not part of this request.
 - **Verify with:** `npm run test:coverage` in `api` and `client`; `npm run e2e`
 - **Local database:** from the updated `develop`, `npm run db:up` and `npm run db:migrate -w api` applied the five migrations of the phase (`admin_foundations`, `player_moderation`, `login_attempts`, `balance_versions`, `player_activity`) to the development database. The seed data did not change, so `db:seed` was not run.
+
+### 2026-10-15 — task 9.16 added to the phase
+- **Tasks:** 9.16 (new, 8 SP, **not started**)
+- **Branch:** `docs/phase-9-view-as-player` (plan change only)
+- **Decisions / deviations from the plan:** after the phase was done, the owner asked for the "view as player" mode of design §25.2, which the tasks of the phase had left out (see the entry of 9.5), to be added as a full task of 8 SP: the game's own screens in a read-only mode, not a reduced page. The phase returns to 🟡 In progress, its total becomes 109 SP and the total of Phases 0–11 becomes 916 SP. The approach written into the task: a `viewAs` claim on the admin's session that is enforced on the server (reads answered with the target's data, every change and every socket command refused), a new permission `players.view-as`, a reason, a time limit, a banner, and an audit line for each start, end and sensitive read.
+- **Problems / blockers / findings:** none.
+- **Next step:** 9.16 can start on a branch `feature/9.16-view-as-player` from `develop`; read the sections of the game client that load a player's own data (the map view, the stores and the sockets) first, since the read-only mode has to cover each of them.
+- **Verify with:** `npm run docs:check`

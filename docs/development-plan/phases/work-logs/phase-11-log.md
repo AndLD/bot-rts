@@ -1,4 +1,4 @@
-[← Phase 11 — Energy balance, day/night, connection resilience & play-feel polish](../phases/phase-11-energy-time-ux.md)
+[← Phase 11 — Energy balance, day/night, connection resilience & play-feel polish](../phase-11-energy-time-ux.md)
 
 # Phase 11 — Energy balance, day/night, connection resilience & play-feel polish — work log
 

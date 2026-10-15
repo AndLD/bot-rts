@@ -1,4 +1,4 @@
-[← Phase 9 — Admin console](../phases/phase-9-admin-console.md)
+[← Phase 9 — Admin console](../phase-9-admin-console.md)
 
 # Phase 9 — Admin console — work log
 

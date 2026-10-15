@@ -8,7 +8,7 @@ Values for the project-neutral method in [`README.md`](./README.md).
 | ------------------ | ---------- |
 | File name | `phase-<n>-<slug>.md` |
 | Plan index | [`../DEVELOPMENT-PLAN.md`](../DEVELOPMENT-PLAN.md) |
-| Work log | `../work-logs/phase-<n>-log.md` |
+| Work log | `work-logs/phase-<n>-log.md` |
 | Task id | `<phase>.<number>` with an optional letter suffix (`1.1a`) |
 | Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Size unit | Story points (SP), Fibonacci scale; 1 SP is about half a developer-day or one focused agent session |

@@ -1,4 +1,4 @@
-[← Phase 12 — Issues and stabilization](../phases/phase-12-issues.md)
+[← Phase 12 — Issues and stabilization](../phase-12-issues.md)
 
 # Phase 12 — Issues and stabilization — work log
 

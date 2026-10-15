@@ -1,4 +1,4 @@
-[← Phase 0 — Stabilize & CI foundation](../phases/phase-0-stabilize-ci.md)
+[← Phase 0 — Stabilize & CI foundation](../phase-0-stabilize-ci.md)
 
 # Phase 0 — Stabilize & CI foundation — work log
 

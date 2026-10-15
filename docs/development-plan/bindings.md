@@ -9,7 +9,7 @@ Values for the project-neutral method in [`README.md`](./README.md).
 | Index document | [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md) |
 | Phase files | `phases/phase-<n>-<slug>.md`, rules in [`phases/README.md`](./phases/README.md) |
 | Cross-cutting documents | [`guiding-principles`](./cross-cutting/guiding-principles.md), [`definition-of-done`](./cross-cutting/definition-of-done.md) (points to `AGENTS.md` §6.5), [`risk-register`](./cross-cutting/risk-register.md), [`rfc-5.1-execution-model`](./cross-cutting/rfc-5.1-execution-model.md) (the design record required by task 5.1) |
-| Work logs | `work-logs/phase-<n>-log.md` |
+| Work logs | `phases/work-logs/phase-<n>-log.md` |
 | Phase and task status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | Story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include implementation and the tests the definition of done requires |
 | Product knowledge cited | `docs/GAME-DESIGN.md` and `docs/game-design/` (section ids written as `design §12.4`) |

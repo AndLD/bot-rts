@@ -2,7 +2,7 @@
 
 # Phase 0 — Stabilize & CI foundation (24 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-0-log](../work-logs/phase-0-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-0-log](./work-logs/phase-0-log.md)
 
 Fix the build and establish a repeatable, gated pipeline. **Nothing else is safe to start before this.**
 

@@ -20,7 +20,7 @@ Target layer is where the content belongs; "Current" notes where it sits now whe
 | **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
 | **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
 | **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/cross-cutting/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
-| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
+| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
 | **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md` |
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
@@ -31,7 +31,7 @@ Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Re
 
 ## 2. Measurements
 
-Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
+Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/phases/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
 
 Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
 Replace a layer name by its file list from section 1.
@@ -123,7 +123,7 @@ template in this folder. Check the shared headings by file:
 
 ```bash
 for f in docs/development-plan/phases/phase-*.md; do printf '%s ' "$f"; grep -cE '^(\*\*Status:|## Implementation log|\*\*Exit criteria)' "$f"; done
-for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^(## Entry template|## Entries)' "$f"; done
+for f in docs/development-plan/phases/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^(## Entry template|## Entries)' "$f"; done
 ```
 
 ### M9: contradictions and staleness

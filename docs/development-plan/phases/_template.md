@@ -2,7 +2,7 @@
 
 # Phase <n> — <Theme> (<size>)
 
-**Status:** ⬜ Not started · **Branches:** see the [implementation log](#implementation-log) · **Work log:** `phase-<n>-log` in the work-logs folder
+**Status:** ⬜ Not started · **Branches:** see the [implementation log](#implementation-log) · **Work log:** `phase-<n>-log` in `work-logs/`
 
 <Goal of the phase in one paragraph. Why it exists and what it unlocks.>
 

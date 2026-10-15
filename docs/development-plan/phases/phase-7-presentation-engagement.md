@@ -2,7 +2,7 @@
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](../work-logs/phase-7-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log)) · **Work log:** [phase-7-log](./work-logs/phase-7-log.md)
 
 Make the game attractive and sticky: the public face (landing page and auth page with a live ambient scene), the
 achievements and realtime notification systems built on the game event bus (task 5.10), the Russian translation, and

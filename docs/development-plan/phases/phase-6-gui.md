@@ -2,7 +2,7 @@
 
 # Phase 6 — Core game GUI & map animations (96 SP)
 
-**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](../work-logs/phase-6-log.md)
+**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-6-log](./work-logs/phase-6-log.md)
 
 Surface the game state in the browser.
 

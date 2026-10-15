@@ -2,7 +2,7 @@
 
 # Phase 2 — Test infrastructure & coverage backfill (43 SP)
 
-**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-2-log](../work-logs/phase-2-log.md)
+**Status:** ✅ Done · **Branches:** see (see the [implementation log](#implementation-log)) · **Work log:** [phase-2-log](./work-logs/phase-2-log.md)
 
 Stand up the mandated tooling and bring the *existing* code to the coverage gate before building more features.
 

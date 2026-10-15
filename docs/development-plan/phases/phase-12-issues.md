@@ -2,7 +2,7 @@
 
 # Phase 12 — Issues and stabilization (5 SP, grows as issues are added)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-12-log](../work-logs/phase-12-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-12-log](./work-logs/phase-12-log.md)
 
 A running collection of **issues found while using and testing the finished phases**: defects, performance problems and
 rough edges that are not part of any earlier phase's scope. It is open-ended: new issues are added as tasks (`12.N`) when

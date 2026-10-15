@@ -1,4 +1,4 @@
-[← Phase 2 — Test infrastructure & coverage backfill](../phases/phase-2-test-infrastructure.md)
+[← Phase 2 — Test infrastructure & coverage backfill](../phase-2-test-infrastructure.md)
 
 # Phase 2 — Test infrastructure & coverage backfill — work log
 

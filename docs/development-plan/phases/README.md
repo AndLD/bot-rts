@@ -17,7 +17,7 @@ it. One phase is one file in this folder.
 | ---- | ------- |
 | Back-link | Link to the plan index, first line |
 | Title | `Phase <n> — <theme> (<size>)`; the size is the sum of its tasks |
-| Status line | Status, branches (or a link to the implementation log), link to the work log |
+| Status line | Status, branches (or a link to the implementation log), link to the phase's work log |
 | Introduction | Optional: one paragraph on the goal and, if relevant, why this phase exists |
 | Execution order | Optional: the order of tasks when it differs from their ids, with the reason |
 | Task table | One row per task: id, description, size, status |
@@ -53,13 +53,19 @@ Append a row when a change is merged: its branch, the task ids, the pull request
 closely related tasks. The log is the audit trail from the plan to the history of the repository; keep it accurate, it is
 cheap to write at merge time and expensive to reconstruct.
 
-## 6. Splitting and merging phases
+## 6. Work log
+
+Each phase has an append-only log in `work-logs/` next to the phase files, with the entry template inside it. The phase file links
+to it from the status line; the log links back to the phase file. The log records sessions, the exact next step and the commands
+that verify the state; the phase file records only the plan and its outcome.
+
+## 7. Splitting and merging phases
 
 - Split a phase when it exceeds what can be reviewed as one unit or when its theme has two exit criteria that can be reached independently. The new phase takes the next free number; tasks keep their ids when possible, otherwise the old ids are recorded in the notes.
 - Never merge phases: finished history is not rewritten.
 - Record a changed development order in the plan index, not by renumbering.
 
-## 7. Checks
+## 8. Checks
 
 A phase file is conformant when: the anatomy parts that apply are present and in order; every task has an id, a size and a status;
 the title size equals the sum of the task sizes; the status agrees with the index; the work-log link resolves; every task cited

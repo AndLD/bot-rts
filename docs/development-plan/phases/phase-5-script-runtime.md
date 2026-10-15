@@ -2,7 +2,7 @@
 
 # Phase 5 — Script runtime, scheduler & sandbox (104 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](../work-logs/phase-5-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](./work-logs/phase-5-log.md)
 
 The heart of the game. The execution model and the sandbox are specified in design §10, §12 and §13; this must be
 implemented and measured carefully.

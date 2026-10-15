@@ -9,7 +9,7 @@ in the phase file, and is updated in the pull request that starts or finishes it
 **implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
 
 **Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
-append-only **work log** in `development-plan/work-logs/` so a phase can be resumed in a new session.
+append-only **work log** in `development-plan/phases/work-logs/` so a phase can be resumed in a new session.
 
 **Story points (SP):** Fibonacci scale, `1 SP ≈ 0.5 developer-day` (or one focused agent session). Estimates assume a
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**
@@ -93,4 +93,4 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
 - [Definition of Done](./cross-cutting/definition-of-done.md)
-- Work logs: [phase 0](./work-logs/phase-0-log.md), [phase 1](./work-logs/phase-1-log.md), [phase 2](./work-logs/phase-2-log.md), [phase 3](./work-logs/phase-3-log.md), [phase 4](./work-logs/phase-4-log.md), [phase 5](./work-logs/phase-5-log.md), [phase 6](./work-logs/phase-6-log.md), [phase 7](./work-logs/phase-7-log.md), [phase 8](./work-logs/phase-8-log.md), [phase 9](./work-logs/phase-9-log.md), [phase 10](./work-logs/phase-10-log.md), [phase 11](./work-logs/phase-11-log.md), [phase 12](./work-logs/phase-12-log.md), [phase 13](./work-logs/phase-13-log.md)
+- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md)

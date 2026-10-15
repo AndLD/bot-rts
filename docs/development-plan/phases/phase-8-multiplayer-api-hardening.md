@@ -2,7 +2,7 @@
 
 # Phase 8 — Multiplayer, public API & production hardening (71 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-8-log](../work-logs/phase-8-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-8-log](./work-logs/phase-8-log.md)
 
 | # | Task                                                                                                        | SP | Status |
 | --- | ---------------------------------------------------------------------------------------------------------- | -- | --- |

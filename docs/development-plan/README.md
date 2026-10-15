@@ -25,8 +25,8 @@ development-plan/
   bindings.md       this project's values for the method
   _template.md      template of the index
   phases/           one file per phase (README, bindings, template inside)
+    work-logs/      one append-only log per phase, next to the phase files, used to resume a session
   cross-cutting/    documents that apply to every phase (section 4)
-  work-logs/        one append-only log per phase, used to resume a session
 ```
 
 Rules of the structure:
@@ -75,7 +75,7 @@ decision supersedes it with a new record and a link.
 
 ## 5. Work logs
 
-One append-only log per phase, newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
+One append-only log per phase, kept in `phases/work-logs/` next to the phase files; newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
 template lives inside each log. The log is the resume point: it states what is done, the exact next step and the commands that
 verify the current state. The log is part of the change that it describes.
 

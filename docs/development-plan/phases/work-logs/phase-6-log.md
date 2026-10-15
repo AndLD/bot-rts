@@ -1,4 +1,4 @@
-[← Phase 6 — Core game GUI & map animations](../phases/phase-6-gui.md)
+[← Phase 6 — Core game GUI & map animations](../phase-6-gui.md)
 
 # Phase 6 — Core game GUI & map animations — work log
 

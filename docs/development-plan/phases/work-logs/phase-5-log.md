@@ -1,4 +1,4 @@
-[← Phase 5 — Script runtime, scheduler & sandbox](../phases/phase-5-script-runtime.md)
+[← Phase 5 — Script runtime, scheduler & sandbox](../phase-5-script-runtime.md)
 
 # Phase 5 — Script runtime, scheduler & sandbox — work log
 

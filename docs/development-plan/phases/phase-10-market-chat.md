@@ -2,7 +2,7 @@
 
 # Phase 10 — Market, currency, chat & transfers (115 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-10-log](../work-logs/phase-10-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-10-log](./work-logs/phase-10-log.md)
 
 The player economy and social layer, specified in design [§26](../../game-design/26-market-and-currency.md) and
 [§27](../../game-design/27-chat-and-transfers.md): in-game credits, a remote market (resource exchange and auctions) behind a

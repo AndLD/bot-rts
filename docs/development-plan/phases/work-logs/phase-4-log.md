@@ -1,4 +1,4 @@
-[← Phase 4 — Module system & crafting](../phases/phase-4-modules-crafting.md)
+[← Phase 4 — Module system & crafting](../phase-4-modules-crafting.md)
 
 # Phase 4 — Module system & crafting — work log
 

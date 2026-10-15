@@ -33,7 +33,7 @@ export class EngineHost {
     tickIntervalMs: number,
     timers: Timers,
     // Applies the settings of the game's time; the host serves requests between ticks, so a change never lands inside one
-    private readonly applyGameTime: (settings: GameTimeSettings) => void = () => undefined
+    private readonly applyGameTime?: (settings: GameTimeSettings) => void
   ) {
     this.loop = new TickLoop(
       () => core.runTick(),
@@ -87,7 +87,7 @@ export class EngineHost {
       case 'control':
         return this.core.control(request.command)
       case 'setGameTime':
-        this.applyGameTime(request.settings)
+        this.applyGameTime?.(request.settings)
         return Promise.resolve(null)
       case 'reboot':
         return this.core.reboot(request.botId)

@@ -426,9 +426,7 @@ export class EngineWorkerModule {
           provide: EngineHost,
           inject: [EngineCore, ENGINE_CHANNEL, LOGGER, APP_CONFIG, GAME_TIME],
           useFactory: (core: EngineCore, c: typeof channel, logger: Logger, app: AppConfig, time: GameTimeState) =>
-            new EngineHost(core, c, logger, app.engine.tickIntervalMs, SYSTEM_TIMERS, (settings) =>
-              time.apply(settings)
-            )
+            new EngineHost(core, c, logger, app.engine.tickIntervalMs, SYSTEM_TIMERS, time.apply.bind(time))
         }
       ]
     }

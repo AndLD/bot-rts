@@ -8,6 +8,7 @@ import { CurrentPrincipal } from '../../auth/presentation/current-principal.deco
 import { ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { SCRIPT_RUNNER, ScriptArgument, ScriptRunner } from '../application/script-runner'
+import { ViewAsAudited } from '../../viewas/presentation/view-as.decorator'
 import { TerminalService } from '../application/terminal.service'
 import { toLogEntryDto } from './terminal.mapper'
 import {
@@ -76,6 +77,7 @@ export class ExecutionsController {
   // What a bot's terminal sessions and its scripts wrote, oldest first (the `get-terminal-history` event of the socket)
   @ApiOkResponse({ type: TerminalLogEntryResponse, isArray: true })
   @RequireScope('read')
+  @ViewAsAudited('terminal.history')
   @Get('bots/:botId/terminal-history')
   async history(
     @CurrentPrincipal() { user }: Principal,

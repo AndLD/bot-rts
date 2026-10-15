@@ -14,15 +14,25 @@ import {
   usePlayersResendVerificationMutation,
   usePlayersResetPasswordMutation,
   usePlayersUnbanMutation,
-  useSupervisionQuarantineMutation
+  useSupervisionQuarantineMutation,
+  useViewAsStartMutation
 } from '../../../shared/api'
 import { useErrorMessage } from '../../../shared/errors'
 import { errorNotification } from '../../../shared/notifications'
+import { openViewAsTab } from '../../viewas/view-as-storage'
 import { useAdminMe } from '../admin-me-context'
 import ActionModal, { ActionValues } from './ActionModal'
 
 type ActionName =
-  'ban' | 'unban' | 'quarantine' | 'logout' | 'resendVerification' | 'resetPassword' | 'changeRole' | 'delete'
+  | 'viewAs'
+  | 'ban'
+  | 'unban'
+  | 'quarantine'
+  | 'logout'
+  | 'resendVerification'
+  | 'resetPassword'
+  | 'changeRole'
+  | 'delete'
 
 // How long a ban lasts, in hours; 0 is until an admin lifts it
 const BAN_HOURS = [1, 24, 24 * 7, 24 * 30, 0] as const
@@ -30,6 +40,7 @@ const BAN_HOURS = [1, 24, 24 * 7, 24 * 30, 0] as const
 const ROLES = USER_STATUSES.filter((status) => status !== 'banned')
 
 const PERMISSION: Record<ActionName, AdminPermission> = {
+  viewAs: 'players.view-as',
   ban: 'players.ban',
   unban: 'players.ban',
   quarantine: 'supervision.quarantine',
@@ -46,6 +57,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   const getErrorMessage = useErrorMessage()
   const { role } = useAdminMe()
   const [open, setOpen] = useState<ActionName | null>(null)
+  const [viewAs, viewAsState] = useViewAsStartMutation()
   const [ban, banState] = usePlayersBanMutation()
   const [unban, unbanState] = usePlayersUnbanMutation()
   const [quarantine, quarantineState] = useSupervisionQuarantineMutation()
@@ -58,6 +70,22 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   const isBanned = player.status === 'banned'
 
   const run: Record<ActionName, (values: ActionValues) => Promise<{ error?: unknown }>> = {
+    viewAs: async ({ reason }) => {
+      const result = await viewAs({ id, reasonDto: { reason } })
+
+      if ('data' in result && result.data) {
+        const opened = openViewAsTab({
+          token: result.data.accessToken,
+          expiresAt: result.data.expiresAt,
+          playerName: result.data.player.name
+        })
+
+        // A blocked pop-up is told, not hidden: the view has started on the server and ends at its time limit
+        return opened ? result : { error: { data: { error: t('action.viewAs.blocked') } } }
+      }
+
+      return result
+    },
     ban: ({ reason, hours }) => ban({ id, banPlayerDto: { reason, durationHours: (hours as number) || undefined } }),
     unban: ({ reason }) => unban({ id, reasonDto: { reason } }),
     quarantine: ({ reason }) => quarantine({ id, reasonDto: { reason } }),
@@ -70,6 +98,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
       remove({ id, deletePlayerDto: { reason, confirmEmail: confirmEmail as string } })
   }
   const loading: Record<ActionName, boolean> = {
+    viewAs: viewAsState.isLoading,
     ban: banState.isLoading,
     unban: unbanState.isLoading,
     quarantine: quarantineState.isLoading,
@@ -106,6 +135,7 @@ export default function PlayerActions({ player }: { player: IPlayerProfile }) {
   return (
     <>
       <Space wrap>
+        {button('viewAs')}
         {button('ban', true)}
         {button('unban')}
         {button('quarantine')}

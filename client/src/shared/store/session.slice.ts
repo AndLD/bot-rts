@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { readViewAs } from '../../features/viewas/view-as-storage'
 
 const TOKEN_KEY = 'token'
 
@@ -7,7 +8,13 @@ interface SessionState {
   token: string | null
 }
 
+// A tab that shows a player's game keeps its own token and never writes the admin's
 function readStoredToken(): string | null {
+  const view = readViewAs()
+
+  if (view) {
+    return view.token
+  }
   try {
     return localStorage.getItem(TOKEN_KEY)
   } catch {
@@ -16,6 +23,9 @@ function readStoredToken(): string | null {
 }
 
 function storeToken(token: string | null) {
+  if (readViewAs()) {
+    return
+  }
   try {
     if (token) {
       localStorage.setItem(TOKEN_KEY, token)

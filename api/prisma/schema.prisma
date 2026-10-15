@@ -156,6 +156,8 @@ model Session {
   expiresAt        DateTime  @map("expires_at") @db.Timestamptz(3)
   revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(3)
   userAgent        String?   @map("user_agent")
+  viewAsUserId     String?   @map("view_as_user_id") @db.Uuid
+  viewAsReason     String?   @map("view_as_reason")
 
   user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   adminVerification    AdminSessionVerification?

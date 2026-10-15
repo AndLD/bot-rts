@@ -179,6 +179,16 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.addNoteDto
       })
     }),
+    viewAsStart: build.mutation<ViewAsStartApiResponse, ViewAsStartApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/players/${queryArg.id}/view-as`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    viewAsExit: build.mutation<ViewAsExitApiResponse, ViewAsExitApiArg>({
+      query: () => ({ url: `/api/v1/view-as/exit`, method: 'POST' })
+    }),
     inspectorSearch: build.query<InspectorSearchApiResponse, InspectorSearchApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/inspector/search`,
@@ -829,6 +839,13 @@ export type PlayersAddNoteApiArg = {
   id: string
   addNoteDto: AddNoteDto
 }
+export type ViewAsStartApiResponse = /** status 201  */ ViewAsStartResponse
+export type ViewAsStartApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
+export type ViewAsExitApiResponse = unknown
+export type ViewAsExitApiArg = void
 export type InspectorSearchApiResponse = /** status 200  */ SearchResultResponse[]
 export type InspectorSearchApiArg = {
   /** The id of a bot, a base or a player, or a cell like 12,-4 */
@@ -1261,6 +1278,7 @@ export type ErrorResponseModel = {
     | 'PLAYER_QUARANTINED'
     | 'REQUEST_TIMEOUT'
     | 'MANUAL_CATEGORY_DISABLED'
+    | 'VIEW_AS_READ_ONLY'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'
     | 'EMPTY'
@@ -1361,6 +1379,7 @@ export type AdminMeResponse = {
     | 'players.notes'
     | 'players.change-role'
     | 'players.delete'
+    | 'players.view-as'
     | 'inspector.read'
     | 'inspector.files.read'
     | 'inspector.kill-execution'
@@ -1517,6 +1536,17 @@ export type ChangeRoleDto = {
 }
 export type AddNoteDto = {
   text: string
+}
+export type ViewAsPlayerModel = {
+  _id: string
+  name: string
+}
+export type ViewAsStartResponse = {
+  /** A token for the game screens of the player; it is read-only and ends at `expiresAt` */
+  accessToken: string
+  /** Milliseconds since the epoch */
+  expiresAt: number
+  player: ViewAsPlayerModel
 }
 export type SearchResultResponse = {
   kind: 'bot' | 'base' | 'player' | 'cell'
@@ -2496,6 +2526,8 @@ export const {
   usePlayersResetPasswordMutation,
   usePlayersChangeRoleMutation,
   usePlayersAddNoteMutation,
+  useViewAsStartMutation,
+  useViewAsExitMutation,
   useInspectorSearchQuery,
   useInspectorBotQuery,
   useInspectorFilesQuery,

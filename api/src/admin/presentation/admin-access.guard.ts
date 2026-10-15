@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/commo
 import { Reflector } from '@nestjs/core'
 import { AdminPermission, hasPermission, isAdminRole } from '../../../../lib/utils/admin'
 import { APP_CONFIG, AppConfig } from '../../config/app-config'
+import { ViewAsReadOnlyError } from '../../auth/domain/view-as.errors'
 import { ForbiddenError } from '../../shared/domain/errors'
 import { AdminIpNotAllowedError, TwoFactorRequiredError } from '../domain/admin.errors'
 import { AuditService } from '../application/audit.service'
@@ -32,6 +33,11 @@ export class AdminAccessGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<AdminRequest>()
     const { user, identity } = request.principal
+
+    // A view of a player's game is for the game's screens only; the console never opens in it, whoever the player is
+    if (request.principal.viewAs) {
+      throw new ViewAsReadOnlyError()
+    }
 
     try {
       this.assertAddressAllowed(request.ip)

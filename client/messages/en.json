@@ -249,7 +249,8 @@
     "missedSummary": "While the bot was out of reach: {scans} scans, {events} events",
     "helpOpened": "Opening the help page: {topic}",
     "helpUnknown": "There is no help on “{topic}”. Topics: {topics}",
-    "reconnected": "Reconnected: a new terminal session is open."
+    "reconnected": "Reconnected: a new terminal session is open.",
+    "viewOnly": "This is a read-only view of the player's game: commands are not available."
   },
   "errors": {
     "generic": "Something went wrong",
@@ -314,7 +315,8 @@
     "NO_SIGNAL": "No signal",
     "NO_SPACE": "There is not enough space",
     "MANUAL_CATEGORY_DISABLED": "This kind of manual control is switched off",
-    "PRIVACY_NOT_ACCEPTED": "Please accept the current privacy policy"
+    "PRIVACY_NOT_ACCEPTED": "Please accept the current privacy policy",
+    "VIEW_AS_READ_ONLY": "This session only views a player's game; it cannot change anything"
   },
   "map": {
     "cell": "Cell {x}, {y}",
@@ -1169,6 +1171,11 @@
         "cancel": "Cancel",
         "reason": "Reason (kept in the audit log)",
         "reasonRequired": "Say why, in at least 3 characters",
+        "viewAs": {
+          "button": "View as player",
+          "title": "View the game as the player sees it",
+          "blocked": "The view started, but the browser blocked the new tab. Allow pop-ups and try again."
+        },
         "ban": {
           "button": "Ban",
           "title": "Ban the player",
@@ -1659,7 +1666,8 @@
         "action3": "Add a note only moderators see.",
         "action4": "Change a role or delete an account (owners).",
         "action5": "Quarantine a player from their profile.",
-        "action6": "Follow the links from any list to the profile."
+        "action6": "Follow the links from any list to the profile.",
+        "action7": "View the game as the player sees it (owners and admins): a new read-only tab with a banner, a reason and a time limit. Everything you read there is audited."
       },
       "inspector": {
         "title": "Inspector",
@@ -1768,6 +1776,7 @@
         "rule2": "Prefer a time-limited ban to a permanent one for a first offence.",
         "rule3": "Use notes to tell the next moderator what you saw and decided.",
         "rule4": "Quarantine stops scripts without punishing the player; use it while you investigate.",
+        "rule5": "View as player is for support, not for curiosity: say in the reason which ticket or report you are following. You cannot change anything while you view, and the player is not told.",
         "outro": "You can act only on a lower rank than your own, and never on yourself."
       },
       "permissions": {
@@ -1783,5 +1792,10 @@
         "intro": "When a metric of the dashboard turns yellow or red. The values are the defaults; the server can change them with ADMIN_ALERT_THRESHOLDS."
       }
     }
+  },
+  "viewAs": {
+    "banner": "You are viewing the game of {name} — read-only",
+    "ends": "The view ends at {time}",
+    "exit": "Exit"
   }
 }

@@ -13,6 +13,7 @@ export const ADMIN_PERMISSIONS = [
   'players.notes',
   'players.change-role',
   'players.delete',
+  'players.view-as',
   'inspector.read',
   'inspector.files.read',
   'inspector.kill-execution',

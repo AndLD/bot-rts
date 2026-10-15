@@ -85,6 +85,8 @@ export const {
   useOperationsSetBannerMutation,
   useOperationsClearBannerMutation,
   useOperationsRestartRuntimeMutation,
+  useViewAsStartMutation,
+  useViewAsExitMutation,
   useBalanceOverviewQuery,
   useBalanceStateQuery,
   useLazyBalanceVersionQuery,

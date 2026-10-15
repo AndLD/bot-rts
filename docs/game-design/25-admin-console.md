@@ -40,12 +40,15 @@ template, and the components they refer to were never added. What exists:
 - **Audit trail:** every admin action — and every read of sensitive data such as a player's files — is recorded: who, what,
   when, target, reason, before/after values. The audit log is append-only and visible in the console.
 - **Safety:** destructive or irreversible actions need a reason and a typed confirmation; the most dangerous ones are
-  owner-only; **"view as player"** mode (*planned, task 9.16*) is read-only, shows a banner and is audited: an owner or an admin
+  owner-only; **"view as player"** mode (delivered, task 9.16) is read-only, shows a banner and is audited: an owner or an admin
   opens the game's own screens as a chosen player sees them (that player's fog of war, bases and bots, storage, factory, terminal
-  history, files, notifications, achievements and settings). It is read-only **on the server** (the admin's session carries a
-  `viewAs` claim: every read answers with the target's data, every change and every socket command is refused), needs the
-  permission `players.view-as` and a reason, ends after a time limit, never tells the player, never works for API keys or for a
-  higher rank, and every sensitive read in it is audited. Test-only tools (§25.4, Dev tools) are disabled in production by
+  history, files, notifications, achievements and settings). It is read-only **on the server**: starting it gives the admin a
+  second session (a `viewAs` claim, opened in a new tab; the console stays open in the first) whose requests are answered with the
+  player's data, while every change and every socket command is refused with `VIEW_AS_READ_ONLY` and the console routes are closed to
+  it. It needs the permission `players.view-as` (owners and admins) and a reason, ends after a time limit (`ADMIN_VIEW_AS_TTL`,
+  30 minutes), by the exit button or when the admin is demoted, never tells the player, never works for API keys, for oneself or for
+  an equal or higher rank, and the start, the end and every sensitive read in it (file contents, terminal history) are audited with
+  the admin as the actor. Test-only tools (§25.4, Dev tools) are disabled in production by
   configuration.
 
 ## 25.3 Pages and what they do ✅
@@ -55,7 +58,7 @@ Every row is delivered (Phase 9, tasks 9.1–9.15) except what is marked *planne
 | Page | Shows | Admin can |
 | --- | --- | --- |
 | **Dashboard** | Live health and performance (§25.5), alerts, headline numbers (players online, active bots, running scripts) | Acknowledge alerts, pick a time range |
-| **Players** | Search and filters; profile (status, verification, registration, last login, sessions, bases and bots, resources, activity timeline, notes) | Ban / unban (reason, duration), force logout, resend verification, trigger a password reset, change role (owner), delete account, add notes; *planned (9.16):* view the game as the player |
+| **Players** | Search and filters; profile (status, verification, registration, last login, sessions, bases and bots, resources, activity timeline, notes) | Ban / unban (reason, duration), force logout, resend verification, trigger a password reset, change role (owner), delete account, add notes; view the game as the player (read-only, 9.16) |
 | **Inspector** | Any base or bot: modules and condition, energy, position, storage, drives and files, running executions and logs | Read; open files (permission + audit); kill an execution; reboot a bot |
 | **World map** | The whole map without fog of war, entity search by id or coordinates, heatmaps (density, depletion, activity), live event tail | Jump to entities, open the inspector |
 | **Supervision** | Quarantined players, paused executions, maintenance state | Quarantine a player (suspend all their executions), pause / resume the world, global script kill-switch, support actions (grant or remove resources, restore a module, compensate) — each with a reason and audited |

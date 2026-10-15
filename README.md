@@ -8,7 +8,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 > Status: **feature-complete through Phase 8; the admin console (Phase 9) is mostly delivered; Phases 10 and 13 are planned.**
 > Phases 0–8 and 11 are delivered: a NestJS backend with PostgreSQL, a sandboxed script engine, the full game GUI, the landing
 > page, achievements, notifications, English and Russian UI, player documentation, a public API with API keys, an MCP server, and
-> production hardening. Phase 9 delivered tasks 9.1–9.15 (the admin console, below); its open tasks (view as player, game time
+> production hardening. Phase 9 delivered tasks 9.1–9.16 (the admin console, below); its open tasks (game time
 > controls, global feature switches, retention from the console, more dev tools) are listed in the plan. The market, currency,
 > chat and transfers (Phase 10) and the observability platform (Phase 13) are not implemented yet.
 >
@@ -90,7 +90,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 
 ## Planned
 
-- **Phase 9 — Admin console, the open tasks:** view as player (the game's own screens, read-only), the game clock made a runtime
+- **Phase 9 — Admin console, the open tasks:** the game clock made a runtime
   setting with controls in the console (set the time of day, change the day length from 1 minute to 24 hours, sync the game to the
   real-world time of a chosen time zone, advance the clock on a test server), reset of a test database, switches for whole
   features, and every retention job switchable and tunable from the console with one reset button.

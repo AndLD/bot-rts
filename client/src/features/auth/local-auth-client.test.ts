@@ -157,6 +157,15 @@ describe('local auth client', () => {
       expect(store.getState().session.token).toBe('fresh')
     })
 
+    it('never takes the cookie of the admin over in a view of a player', async () => {
+      sessionStorage.setItem('viewAs', JSON.stringify({ token: 'viewer', expiresAt: 1, playerName: 'Alice' }))
+      const { client } = setup()
+
+      expect(await client.refresh()).toBeNull()
+      expect(query).not.toHaveBeenCalled()
+      sessionStorage.clear()
+    })
+
     it('ends the session when the refresh is refused', async () => {
       const { store, client } = setup()
       fail(401)

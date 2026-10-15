@@ -61,7 +61,7 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
     blocks: [intro, list('step1', 'step2', 'step3'), heading('recoveryTitle'), { type: 'paragraph', key: 'recovery' }]
   },
   consolePage('dashboard', 3, 'alerts'),
-  consolePage('players', 6, 'moderation', 'security'),
+  consolePage('players', 7, 'moderation', 'security'),
   consolePage('inspector', 4, 'map'),
   consolePage('map', 3, 'inspector'),
   consolePage('supervision', 6, 'maintenance'),
@@ -91,7 +91,7 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
     group: 'procedures',
     blocks: [
       intro,
-      list('rule1', 'rule2', 'rule3', 'rule4'),
+      list('rule1', 'rule2', 'rule3', 'rule4', 'rule5'),
       { type: 'paragraph', key: 'outro' },
       ...see('players', 'security')
     ]

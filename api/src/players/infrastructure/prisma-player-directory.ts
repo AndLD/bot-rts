@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
-import { Session } from '../../auth/domain/session'
+import { toSession } from '../../auth/infrastructure/prisma-session.repository'
 import { Bot } from '../../bots/domain/bot.entity'
 import { PrismaBotRepository } from '../../bots/infrastructure/prisma-bot.repository'
 import { PrismaModuleRepository } from '../../modules/infrastructure/prisma-module.repository'
@@ -55,7 +55,7 @@ export class PrismaPlayerDirectory implements PlayerDirectory {
 
     return {
       user: toRow(row, sessions[0]?.createdAt ?? null),
-      sessions: sessions as Session[],
+      sessions: sessions.map(toSession),
       bases: bases.map((base) => ({ base, botCount: owned.filter((bot) => bot.baseId === base.id).length })),
       botCount: owned.length - bases.length,
       storages: modules.filter((module) => module.type === 'storage'),

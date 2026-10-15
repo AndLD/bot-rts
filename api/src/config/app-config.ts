@@ -100,6 +100,8 @@ export interface AdminConfig {
   secret: string
   // How often bans whose time has passed are lifted
   banCheckIntervalMs: number
+  // How long a "view as player" session lasts at most (design §25.2)
+  viewAsTtlMs: number
 }
 
 export interface MonitoringConfig {
@@ -371,7 +373,8 @@ export function loadConfig(env: Env): AppConfig {
       totpIssuer: env.ADMIN_TOTP_ISSUER || 'BotRTS',
       recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
       secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
-      banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000)
+      banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000),
+      viewAsTtlMs: duration(env.ADMIN_VIEW_AS_TTL, '30m', 'ADMIN_VIEW_AS_TTL', problems)
     },
     monitoring: {
       isEnabled: env.MONITORING_ENABLED ? env.MONITORING_ENABLED === 'true' : nodeEnv !== 'test',

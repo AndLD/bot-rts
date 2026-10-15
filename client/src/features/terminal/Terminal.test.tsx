@@ -53,6 +53,16 @@ describe('Terminal', () => {
     expect(screen.getByText('Failed to connect')).toBeInTheDocument()
   })
 
+  it('says the view of a player is read-only when no terminal session opens', () => {
+    sessionStorage.setItem('viewAs', JSON.stringify({ token: 't', expiresAt: 1, playerName: 'Alice' }))
+    renderTerminal(socketWith([]))
+
+    expect(
+      screen.getByText("This is a read-only view of the player's game: commands are not available.")
+    ).toBeInTheDocument()
+    sessionStorage.clear()
+  })
+
   it('welcomes a player with a base and runs a typed command', async () => {
     renderTerminal(socketWith(base, { type: 'error', code: 'UNKNOWN_COMMAND', message: 'x' }))
 

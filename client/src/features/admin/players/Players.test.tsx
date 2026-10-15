@@ -315,6 +315,63 @@ describe('the actions of a player', () => {
     expect(buttonsOf('Delete account').length).toBe(1)
   })
 
+  it('starts a view as the player with a reason, and opens it in a new tab', async () => {
+    const open = jest.spyOn(window, 'open').mockReturnValue({} as Window)
+    const calls = serve((call) =>
+      call.url.endsWith('/view-as')
+        ? {
+            data: { accessToken: 'viewer-token', expiresAt: Date.now() + 60_000, player: { _id: 'p1', name: 'Alice' } }
+          }
+        : undefined
+    )
+    renderAs('admin', <PlayerProfilePage />)
+    fireEvent.click(await button('View as player'))
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'support ticket' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.url.endsWith('/view-as'))).toMatchObject({
+        method: 'POST',
+        body: { reason: 'support ticket' }
+      })
+    )
+    await waitFor(() => expect(open).toHaveBeenCalledWith('/game?view-as=1', '_blank'))
+    expect(JSON.parse(localStorage.getItem('viewAsHandoff') as string).info).toMatchObject({
+      token: 'viewer-token',
+      playerName: 'Alice'
+    })
+    localStorage.clear()
+    open.mockRestore()
+  })
+
+  it('tells of a blocked tab', async () => {
+    const error = jest.spyOn(notification, 'error').mockImplementation(() => undefined)
+    const open = jest.spyOn(window, 'open').mockReturnValue(null)
+    serve((call) =>
+      call.url.endsWith('/view-as')
+        ? { data: { accessToken: 't', expiresAt: Date.now() + 60_000, player: { _id: 'p1', name: 'Alice' } } }
+        : undefined
+    )
+    renderAs('owner', <PlayerProfilePage />)
+    fireEvent.click(await button('View as player'))
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'support ticket' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() =>
+      expect(error).toHaveBeenCalledWith(expect.objectContaining({ description: expect.stringContaining('blocked') }))
+    )
+    localStorage.clear()
+    open.mockRestore()
+  })
+
+  it('does not offer a view to a moderator', async () => {
+    serve()
+    renderAs('moderator', <PlayerProfilePage />)
+    await screen.findByText('alice@example.com')
+
+    expect(buttonsOf('View as player').length).toBe(0)
+  })
+
   it('asks for a reason, then bans for the chosen time', async () => {
     const calls = serve()
     renderAs('moderator', <PlayerProfilePage />)

@@ -60,6 +60,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - Analytics in the admin console: players active each day and in the month, retention of weekly sign-up cohorts (day 1, 7 and 30), the
   onboarding funnel and the share of players who earned each achievement, each as a CSV download (`/api/v1/admin/analytics`). A day of
   activity is noted when a player signs in or renews the session (the new `player_activity` table).
+- The documentation of the admin console, inside the console at `/admin/docs` (English and Russian): the roles, signing in with the second
+  factor, every page of the console, procedures for maintenance and moderation, and reference tables of the permissions, the audited
+  actions and the alert thresholds that are written from the code (`npm run docs:generate`). Every page has a "?" that opens its section.
 
 ### Changed
 

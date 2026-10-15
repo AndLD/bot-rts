@@ -9,6 +9,7 @@ import { hasPermission } from '@lib/utils/admin'
 import { useAdminMeQuery } from '../../shared/api'
 import { useLogout } from '../auth/hooks'
 import { ADMIN_NAV, AdminNavItem } from './admin-nav'
+import AdminHelpLink from './docs/AdminHelpLink'
 import { AdminMeContext } from './admin-me-context'
 import TwoFactorPrompt from './TwoFactorPrompt'
 import TwoFactorSetup from './TwoFactorSetup'
@@ -68,6 +69,7 @@ export default function AdminShell({
             <span style={{ color: 'white' }}>{t('title')}</span>
             <Space>
               <Tag>{t(`roles.${me.role}`)}</Tag>
+              <AdminHelpLink />
               <Link href="/game">{t('backToGame')}</Link>
               <Button onClick={() => logout(() => router.replace('/auth'))}>{t('signOut')}</Button>
             </Space>

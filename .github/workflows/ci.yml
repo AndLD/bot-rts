@@ -95,7 +95,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           npm run docs:generate
-          git diff --exit-code -- client/src/docs/generated || {
+          git diff --exit-code -- client/src/docs/generated client/src/features/admin/docs/generated || {
             echo "Run 'npm run docs:generate' and commit the result"
             exit 1
           }

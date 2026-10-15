@@ -19,7 +19,8 @@ export const API_TAGS = [
   'Supervision',
   'Security',
   'Balance',
-  'Operations'
+  'Operations',
+  'Features'
 ] as const
 
 const MAX_RETRIES = 3

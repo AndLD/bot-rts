@@ -316,7 +316,8 @@
     "NO_SPACE": "There is not enough space",
     "MANUAL_CATEGORY_DISABLED": "This kind of manual control is switched off",
     "PRIVACY_NOT_ACCEPTED": "Please accept the current privacy policy",
-    "VIEW_AS_READ_ONLY": "This session only views a player's game; it cannot change anything"
+    "VIEW_AS_READ_ONLY": "This session only views a player's game; it cannot change anything",
+    "FEATURE_DISABLED": "This feature is switched off for now"
   },
   "map": {
     "cell": "Cell {x}, {y}",
@@ -1404,7 +1405,8 @@
       "tabs": {
         "overview": "Economy",
         "balance": "Balance",
-        "switches": "Game switches"
+        "switches": "Game switches",
+        "features": "Features"
       },
       "overview": {
         "loadFailed": "Could not load the economy",
@@ -1462,6 +1464,26 @@
           "maintenance": "Maintenance",
           "communication": "Communication",
           "trade": "Trade"
+        }
+      },
+      "features": {
+        "help": "Switch whole features of the game. What is off is refused for every player with FEATURE_DISABLED; nothing is deleted and what already runs keeps running. Each change needs a reason and is audited.",
+        "loadFailed": "Could not load the feature switches",
+        "switchOn": "Switch on: {name}",
+        "switchOff": "Switch off: {name}",
+        "names": {
+          "signUps": "Sign-ups",
+          "baseDeployment": "Base deployment",
+          "apiKeys": "Creating API keys",
+          "spawnSeeds": "Spawn seeds",
+          "publicApi": "Public API and MCP access"
+        },
+        "effects": {
+          "signUps": "(new accounts cannot be created)",
+          "baseDeployment": "(no new base can be deployed)",
+          "apiKeys": "(no new key can be created)",
+          "spawnSeeds": "(a base cannot be deployed near a code)",
+          "publicApi": "(every API key is refused; signed-in sessions are not affected)"
         }
       }
     },
@@ -1713,7 +1735,8 @@
         "action1": "Read the economy: deposits, what is carried, blueprints and modules.",
         "action2": "Edit the balance as a document of only what differs from the defaults, check it, and compare it with what is active.",
         "action3": "Save it as a new version, or roll back to an older one: versions are only added. A version applies when the server next starts.",
-        "action4": "Switch a category of manual control off for the whole game."
+        "action4": "Switch a category of manual control off for the whole game.",
+        "action5": "Switch whole features of the game off and on (sign-ups, base deployment, API keys, spawn seeds, public API) on the Features tab, with a reason."
       },
       "operations": {
         "title": "Operations",
@@ -1797,5 +1820,12 @@
     "banner": "You are viewing the game of {name} — read-only",
     "ends": "The view ends at {time}",
     "exit": "Exit"
+  },
+  "featureOff": {
+    "signUps": "Sign-ups are closed for now.",
+    "baseDeployment": "Deploying a base is switched off for now.",
+    "apiKeys": "Creating API keys is switched off for now.",
+    "spawnSeeds": "Spawn seeds are switched off for now.",
+    "publicApi": "The public API is switched off for now."
   }
 }

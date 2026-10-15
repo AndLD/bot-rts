@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useErrorMessage } from '../../shared/errors'
 import { errorNotification } from '../../shared/notifications'
 import { useBotsDeployBaseMutation } from '../../shared/api'
+import FeatureOffNotice from '../featureswitches/FeatureOffNotice'
+import { useFeatureOff } from '../featureswitches/useFeatureOff'
 import './DeployBase.scss'
 
 interface DeployForm {
@@ -22,6 +24,8 @@ export default function DeployBase() {
   const [form] = Form.useForm<DeployForm>()
   const [deployBase, { isLoading }] = useBotsDeployBaseMutation()
   const [isConfirming, setIsConfirming] = useState(false)
+  const isOff = useFeatureOff('baseDeployment')
+  const areSeedsOff = useFeatureOff('spawnSeeds')
 
   async function deploy() {
     try {
@@ -41,6 +45,7 @@ export default function DeployBase() {
     <div className="deploy-base">
       <h2>{t('title')}</h2>
       <p>{t('intro')}</p>
+      {isOff ? <FeatureOffNotice feature="baseDeployment" /> : null}
 
       <Form form={form} layout="vertical" autoComplete="off" onFinish={() => setIsConfirming(true)}>
         <Form.Item
@@ -83,10 +88,10 @@ export default function DeployBase() {
           extra={t('spawnSeedHelp')}
           rules={[{ pattern: SPAWN_SEED_PATTERN, message: t('spawnSeedInvalid') }]}
         >
-          <Input autoComplete="off" />
+          <Input autoComplete="off" disabled={areSeedsOff} />
         </Form.Item>
 
-        <Button htmlType="submit" type="primary">
+        <Button htmlType="submit" type="primary" disabled={isOff}>
           {t('submit')}
         </Button>
       </Form>

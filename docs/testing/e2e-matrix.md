@@ -38,6 +38,7 @@ about 15 minutes it is sharded and run in parallel.
 | Read-only API key, MCP smoke test (scan, move), corpse base and stale bots seen by other players, adopting a stale bot | 8.13 (`api-keys.cy.ts`, `mcp.cy.ts`, `multiplayer.cy.ts`) |
 | Admin console: role-based access, two-factor sign-in, dashboard, ban, inspector, supervision actions, maintenance mode, balance edit and rollback, announcements, the Docs page | 9.13 (`admin.cy.ts`); the authorization matrix of every admin route: `authorization-matrix.int.test.ts` (9.14) |
 | View as player: start with a reason, the banner, every change refused, the audit trail, the exit, access per role | 9.16 (`view-as.cy.ts`) |
+| Feature switches: sign-ups, base deployment and the public API switched off from the console and refused, the notices on the screens, switch back | 9.18 (`feature-switches.cy.ts`) |
 | Resource exchange, auctions, script editions, inbox, wallet and fees | 10.14 |
 | Chat (channels, private messages, block, report) and transfers (credits, items, accept / decline / expiry), new-account limits | 10.14 |
 | Admin moderation of listings, wallets and chat messages | 10.14 |

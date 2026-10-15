@@ -2,7 +2,7 @@
 
 # Phase 5 — Script runtime, scheduler & sandbox (104 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](./work-logs/phase-5-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-5-log](../work-logs/phase-5-log.md)
 
 The heart of the game. The execution model and the sandbox are specified in design §10, §12 and §13; this must be
 implemented and measured carefully.
@@ -11,7 +11,7 @@ implemented and measured carefully.
 
 | # | Task                                                                                                      | SP | Status |
 | --- | -------------------------------------------------------------------------------------------------------- | -- | --- |
-| 5.1 | Design RFC for the execution model (design §12.2–12.2.2: processor ops/parallelism, tick budget, deterministic ordering, `tickIntervalMs`, MVP threading) with a benchmark spike measuring active bots per tick and QuickJS context memory; the spike also measures continuous scanning (many live areas) — [RFC](./rfc-5.1-execution-model.md) | 5 | ✅ |
+| 5.1 | Design RFC for the execution model (design §12.2–12.2.2: processor ops/parallelism, tick budget, deterministic ordering, `tickIntervalMs`, MVP threading) with a benchmark spike measuring active bots per tick and QuickJS context memory; the spike also measures continuous scanning (many live areas) — [RFC](../cross-cutting/rfc-5.1-execution-model.md) | 5 | ✅ |
 | 5.2 | Sandboxed runtime: QuickJS (WASM) behind a `ScriptRuntime` interface with memory/stack limits and interrupt-handler deadlines, exposing only the whitelisted functions of design §10.2 (security model: §13) | 13 | ✅ |
 | 5.3 | Predefined-function API layer per design §10.2–10.3: routes script calls to the module services with per-player/per-bot authorization and energy checks, returning the `Result<T>` types introduced in 4.1 | 6 | ✅ |
 | 5.4a | Engine thread per design §12.2.2 and §12.3.1: `worker_threads` engine owning the tick loop, world state and QuickJS contexts; command/result protocol; batched write-behind; tick-overrun guard and metrics; durable execution records and relaunch after restart | 8 | ✅ |

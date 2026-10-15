@@ -1,4 +1,4 @@
-[← Phase 10 — Market, currency, chat & transfers](../phase-10-market-chat.md)
+[← Phase 10 — Market, currency, chat & transfers](../phases/phase-10-market-chat.md)
 
 # Phase 10 — Market, currency, chat & transfers — work log
 

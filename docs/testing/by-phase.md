@@ -3,7 +3,7 @@
 # Testing work by phase
 
 > **Historical page.** It records which testing work each phase scheduled; the current state is in the [testing README](./README.md).
-> The [development plan](../DEVELOPMENT-PLAN.md) has the phases themselves.
+> The [development plan](../development-plan/DEVELOPMENT-PLAN.md) has the phases themselves.
 
 ## By phase
 

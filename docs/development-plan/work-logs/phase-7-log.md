@@ -1,4 +1,4 @@
-[← Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian](../phase-7-presentation-engagement.md)
+[← Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian](../phases/phase-7-presentation-engagement.md)
 
 # Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian — work log
 

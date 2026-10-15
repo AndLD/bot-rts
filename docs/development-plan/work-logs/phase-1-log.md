@@ -1,4 +1,4 @@
-[← Phase 1 — Architecture refactor, clean architecture & NestJS migration](../phase-1-architecture-refactor.md)
+[← Phase 1 — Architecture refactor, clean architecture & NestJS migration](../phases/phase-1-architecture-refactor.md)
 
 # Phase 1 — Architecture refactor, clean architecture & NestJS migration — work log
 

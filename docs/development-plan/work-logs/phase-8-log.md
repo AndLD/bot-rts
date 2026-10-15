@@ -1,4 +1,4 @@
-[← Phase 8 — Multiplayer, public API & production hardening](../phase-8-multiplayer-api-hardening.md)
+[← Phase 8 — Multiplayer, public API & production hardening](../phases/phase-8-multiplayer-api-hardening.md)
 
 # Phase 8 — Multiplayer, public API & production hardening — work log
 

@@ -55,7 +55,7 @@ Non-negotiables (a PR that violates these is rejected):
 - **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
 
 All of this tooling is installed (see the root `package.json` scripts). To add a capability, extend these tools rather than
-hand-rolling an alternative; the [development plan](./docs/DEVELOPMENT-PLAN.md) lists what is still scheduled.
+hand-rolling an alternative; the [development plan](./docs/development-plan/DEVELOPMENT-PLAN.md) lists what is still scheduled.
 Redis is used only for scaled deployments (the Socket.IO adapter and the API-to-engine link, `docs/operations/DEPLOYMENT.md`);
 local development and tests run without it unless the test needs it.
 
@@ -359,7 +359,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Pacing:** the phases named in the user's request are worked straight through in the plan's order, across phase
   boundaries; the pause points are a blocker, a decision that only the user can make, and the end of the last named phase.
   A finished phase is recorded (status, work log) and the next named phase starts.
-- **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phase-N-*.md`: task
+- **At the start of a session** that continues a phase: read the phase file (`docs/development-plan/phases/phase-N-*.md`: task
   statuses, implementation log) and its work log (`docs/development-plan/work-logs/phase-N-log.md`), then check `git status`,
   `git branch -a` and the open pull requests, and continue from the latest "next step".
 - **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds.
@@ -407,7 +407,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 ## 9. Project-specific rules (details in `docs/`)
 
 - **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
-  [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
+  [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Harness quality:** the docs and this harness are reviewed by [`docs/quality-reviews/harness/README.md`](./docs/quality-reviews/harness/README.md)
   (layers, scoring, procedure; this repository's values in `bindings.md` there). A review adds one dated report and changes nothing else;
   fixes follow in separate pull requests.

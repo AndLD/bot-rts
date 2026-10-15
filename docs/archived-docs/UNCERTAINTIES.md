@@ -2,7 +2,7 @@
 
 > **Archived.** This was the working list used to settle every open assumption in the game design and development
 > plan. All decisions are now recorded in [`../GAME-DESIGN.md`](../GAME-DESIGN.md) and
-> [`../DEVELOPMENT-PLAN.md`](../DEVELOPMENT-PLAN.md); this file is kept as a decision log. Section numbers (`GD §…`) refer
+> [`../DEVELOPMENT-PLAN.md`](../development-plan/DEVELOPMENT-PLAN.md); this file is kept as a decision log. Section numbers (`GD §…`) refer
 > to the files under [`../game-design/`](../game-design/), and `Plan x.y` to the tasks under
 > [`../development-plan/`](../development-plan/). **Task numbers in this log are from the time of archiving:** the plan later
 > split Phase 6, so old tasks 6.12–6.19 are now 7.1–7.8, and the old Phase 7 (multiplayer, public API, hardening) is

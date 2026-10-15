@@ -1,4 +1,4 @@
-[← Phase 3 — Core gameplay foundations](../phase-3-core-gameplay.md)
+[← Phase 3 — Core gameplay foundations](../phases/phase-3-core-gameplay.md)
 
 # Phase 3 — Core gameplay foundations — work log
 

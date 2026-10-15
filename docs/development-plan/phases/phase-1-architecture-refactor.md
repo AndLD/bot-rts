@@ -2,7 +2,7 @@
 
 # Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-1-log](./work-logs/phase-1-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-1-log](../work-logs/phase-1-log.md)
 
 Mostly behavior-preserving refactors that make the code testable and layered, the move from Express to **NestJS** with a
 clean-architecture layout (AGENTS.md §3), and the client's move from Vite to **Next.js** (tasks 1.18 and 1.18a, done while the client is small). Each refactor is its own small PR, verified by the repository integration tests (1.1a) and, from task 1.9 on, by the safety-net tests.

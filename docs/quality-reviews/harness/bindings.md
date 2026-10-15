@@ -19,9 +19,9 @@ Target layer is where the content belongs; "Current" notes where it sits now whe
 | **CORE**    | Currently embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. No standalone core files yet. |
 | **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
 | **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
-| **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/DEVELOPMENT-PLAN.md`, `docs/development-plan/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
-| **STATE**   | `docs/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
-| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/DEVELOPMENT-PLAN.md` |
+| **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/cross-cutting/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
+| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
+| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md` |
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
 
@@ -31,7 +31,7 @@ Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Re
 
 ## 2. Measurements
 
-Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
+Terms of the method map here as follows: the "product specification" is `docs/GAME-DESIGN.md` and `docs/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
 
 Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
 Replace a layer name by its file list from section 1.
@@ -122,7 +122,7 @@ entry template inside each work log, the game-design section shape (status legen
 template in this folder. Check the shared headings by file:
 
 ```bash
-for f in docs/development-plan/phase-*.md; do printf '%s ' "$f"; grep -cE '^(\*\*Status:|## Implementation log|\*\*Exit criteria)' "$f"; done
+for f in docs/development-plan/phases/phase-*.md; do printf '%s ' "$f"; grep -cE '^(\*\*Status:|## Implementation log|\*\*Exit criteria)' "$f"; done
 for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^(## Entry template|## Entries)' "$f"; done
 ```
 
@@ -131,7 +131,7 @@ for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^
 - Every command written in the docs exists as an `npm run` script or a file in `scripts/`:
   `grep -rhoE 'npm run [a-z:.-]+' docs AGENTS.md README.md | sort -u`, then compare with `package.json` scripts.
 - Every path in backticks that looks like a repository path exists (`git ls-files` check).
-- Phase and task statuses in `docs/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
+- Phase and task statuses in `docs/development-plan/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
 - Numbers repeated in several files (story points, phase count, test counts) agree.
 - `CHANGELOG.md` "Unreleased" covers merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
 
@@ -160,7 +160,7 @@ Resource economy: for each resource list its sources, sinks and conversions; fla
 shrink, and any prerequisite or unlock cycle.
 
 Status markers: `✅` decided or implemented, `🟡` partial, `🔴` planned. Check them against
-`docs/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/DEVELOPMENT-PLAN.md`.
+`docs/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/development-plan/DEVELOPMENT-PLAN.md`.
 
 M15, mechanical checks. A "design §12.4" reference resolves in `docs/game-design/12-*.md` as the heading `## 12.4`:
 
@@ -175,7 +175,7 @@ grep -oE '^\| \*\*[^*]+\*\*' docs/game-design/02-glossary.md   # glossary terms;
 Also list capitalised terms used in two or more files but absent from the glossary.
 
 M14, traceability: join design section ids (`docs/game-design/NN-*.md`) with the "design §" citations in
-`docs/development-plan/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
+`docs/development-plan/phases/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
 tasks that cite no section.
 
 ### M16 to M19: open items, completeness, progress
@@ -188,8 +188,8 @@ Forms in which this repository records open items (search all of them):
 | Backlog (deferred by design) | `docs/game-design/21-backlog.md`                                                                |
 | Planned and partial markers  | `🔴` and `🟡` in `docs/game-design/*.md` and `docs/GAME-DESIGN.md`                              |
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
-| Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phase-*.md`; open tasks named in work logs ("next step") |
-| Risks                        | `docs/development-plan/risk-register.md`                                                        |
+| Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phases/phase-*.md`; open tasks named in work logs ("next step") |
+| Risks                        | `docs/development-plan/cross-cutting/risk-register.md`                                                        |
 | Decision log (archived)      | `docs/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
 | Known issues                 | `docs/testing/known-issues.md`                                                                  |
 
@@ -197,7 +197,7 @@ Forms in which this repository records open items (search all of them):
 grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
 grep -rcE '🔴' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
 grep -rcE '🟡' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
-grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phase-*.md
+grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phases/phase-*.md
 ```
 
 Formulas (record the variant used; keep it fixed between reviews so the trend is comparable):
@@ -206,7 +206,7 @@ Formulas (record the variant used; keep it fixed between reviews so the trend is
   product specification, where an open claim is one inside an open item, a 🔴 section without a decided design, or a gap found by
   D11. A section marked planned but fully specified counts as decided: planned is about building, not about writing.
   Report the per-context split and a simple section-based variant (sections with no open item ÷ all sections).
-- **M18 Delivered %** = two figures: story points of ✅ tasks ÷ total story points of `docs/DEVELOPMENT-PLAN.md` (the
+- **M18 Delivered %** = two figures: story points of ✅ tasks ÷ total story points of `docs/development-plan/DEVELOPMENT-PLAN.md` (the
   summary table, counting the growing open-ended phase at its current size); and the weighted status markers of the
   specification (`✅` = 1, `🟡` = 0.5, `🔴` = 0). Delivered counts only items whose definition of done holds (merged, tested).
 - **M19 Ready to build next %** = for the next not-started or in-progress phase, tasks whose cited specification sections and

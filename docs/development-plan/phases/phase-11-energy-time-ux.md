@@ -2,7 +2,7 @@
 
 # Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)
 
-**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-11-log](./work-logs/phase-11-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-11-log](../work-logs/phase-11-log.md)
 
 **Development order:** this phase is numbered after Phase 10 so that the task numbers of Phases 8–10 stay unchanged, but it
 is **developed right after Phase 7**, before Phases 8–10 (see "Order of development" in the [plan index](../DEVELOPMENT-PLAN.md)).

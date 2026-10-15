@@ -1,4 +1,4 @@
-[← Phase 13 — Observability platform](../phase-13-observability-platform.md)
+[← Phase 13 — Observability platform](../phases/phase-13-observability-platform.md)
 
 # Phase 13 — Observability platform — work log
 

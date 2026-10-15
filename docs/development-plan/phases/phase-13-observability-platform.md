@@ -2,7 +2,7 @@
 
 # Phase 13 — Observability platform (35 SP)
 
-**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-13-log](./work-logs/phase-13-log.md)
+**Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-13-log](../work-logs/phase-13-log.md)
 
 **Approved by the owner 2026-10-15** (proposed by the owner, drafted, reviewed and extended with tracing and a shared collector gateway). The estimates are the plan's; a task is re-estimated when it starts if the code shows a different size.
 

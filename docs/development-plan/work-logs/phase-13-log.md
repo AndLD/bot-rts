@@ -34,3 +34,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** the owner reviews the list; then 13.1 can start.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — decision: a shared collector gateway
+- **Tasks:** 13.2 (text only); none started
+- **Branch:** `docs/phase-13-gateway` — the plan only
+- **Decisions / deviations from the plan:** the owner decided on **one shared OpenTelemetry Collector (gateway) for all nodes**. The apps (each API node, the engine node, the MCP server) only know the OTLP endpoint of the gateway and a bearer token; Elasticsearch is known only to the gateway and to the API's read-only account for the search. Consequences written into 13.2: bounded queues and retries in the SDK exporters (the log files keep every line), a persistent queue on the gateway, optional two replicas behind a load balancer, the gateway's own health as a metric of the dashboard, and the network rule (only the nodes reach the gateway). Tail sampling, which would need the spans of one trace on one replica, is not part of this phase.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: the owner reviews the list; then 13.1 can start.
+- **Verify with:** `npm run docs:check`

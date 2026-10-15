@@ -46,6 +46,7 @@ describe('loadConfig', () => {
         keepAliveTimeoutMs: 65000
       },
       trustProxy: false,
+      featureSwitchCacheMs: 5000,
       admin: {
         ipAllowList: [],
         verificationTtlMs: 8 * 60 * 60 * 1000,

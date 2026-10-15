@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common'
+import { RequireFeatures } from '../../featureswitches/presentation/require-feature.decorator'
 import { ApiBearerAuth, ApiCreatedResponse, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { IBot } from '../../../../lib/utils/interfaces/bots'
 import { IMapPoint } from '../../../../lib/utils/interfaces/map'
@@ -39,6 +40,13 @@ export class BotsController {
   // Deploys the first base of the player (design §5)
   @ApiCreatedResponse({ type: DeployedBaseResponse })
   @RequireScope('base')
+  @RequireFeatures(
+    { feature: 'baseDeployment' },
+    {
+      feature: 'spawnSeeds',
+      when: (request) => Boolean((request.body as { spawnSeed?: string } | undefined)?.spawnSeed)
+    }
+  )
   @Post('base')
   async deployBase(@CurrentPrincipal() { user }: Principal, @Body() body: DeployBaseDto): Promise<DeployedBaseDto> {
     const { bot, modules, mapPoint } = await this.bots.deployUserBase(

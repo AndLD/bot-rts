@@ -27,6 +27,7 @@ import {
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { AuthTokenResponse } from './dto/auth.response'
 import { SessionOnly } from '../../apikeys/presentation/scope.decorator'
+import { RequireFeature } from '../../featureswitches/presentation/require-feature.decorator'
 import { Public } from './public.decorator'
 import { REFRESH_COOKIE, RefreshCookieOptions } from './refresh-cookie'
 
@@ -44,6 +45,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @RequireFeature('signUps')
   @ApiCreatedResponse({ type: AuthTokenResponse })
   @Post('register')
   async register(@Body() body: RegisterDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {

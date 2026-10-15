@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io'
 import { ApiScope } from '../../../../lib/utils/interfaces/api-keys'
 import { ClientToServerEvents, SocketAck } from '../../../../lib/utils/socket-events'
+import { FeatureSwitchesService } from '../../featureswitches/application/feature-switches.service'
 import { RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { ApiKeyScopeError } from '../domain/api-key.errors'
 import { toSocketError } from '../../shared/presentation/socket-handlers'
@@ -30,7 +31,7 @@ type Packet = [string, ...unknown[]]
 
 // Holds the connection of an API key to the scopes of the key and to its rate limit, event by event. A refused event is answered
 // through its acknowledgement, like the errors of the handlers; the handler never sees it. Sessions are not touched.
-export function guardKeySocket(socket: Socket, limiter: RateLimiter): void {
+export function guardKeySocket(socket: Socket, limiter: RateLimiter, features: FeatureSwitchesService): void {
   const grant = socket.principal?.apiKey
   if (!grant) {
     return
@@ -38,6 +39,7 @@ export function guardKeySocket(socket: Socket, limiter: RateLimiter): void {
 
   socket.use(async ([event, ...args]: Packet, next) => {
     try {
+      await features.assertEnabled('publicApi')
       const scope = SOCKET_EVENT_SCOPES[event as keyof ClientToServerEvents]
       if (!scope || !grant.scopes.includes(scope)) {
         throw new ApiKeyScopeError(scope ?? event)

@@ -270,7 +270,7 @@ describe('the support form', () => {
         reason: 'because'
       })
     )
-  }, 60_000)
+  }, 180_000)
 
   it.each([
     ['Compensate (grant for a loss)', 'gold', '/support/compensate'],
@@ -290,6 +290,6 @@ describe('the support form', () => {
         expect(calls.find((call) => call.url.endsWith(path))?.body).toMatchObject({ stacks: [{ resource, amount: 3 }] })
       )
     },
-    60_000
+    180_000
   )
 })

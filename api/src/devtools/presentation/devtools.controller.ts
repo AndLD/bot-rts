@@ -96,7 +96,10 @@ export class DevToolsController {
     @AuditDetailParam() detail: AuditDetail,
     @Body() { confirmation, reason }: ResetDatabaseDto
   ): Promise<IResetDatabaseResult> {
-    const result = await this.databaseReset.reset({ actorId: user.id, sessionId: identity.sessionId }, confirmation)
+    const result = await this.databaseReset.reset(
+      { actorId: user.id, sessionId: identity.sessionId as string },
+      confirmation
+    )
     record(detail, reason, { before: null, after: result })
 
     return result

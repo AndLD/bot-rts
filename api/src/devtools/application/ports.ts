@@ -12,7 +12,7 @@ export const ENGINE_RESTARTER = Symbol('EngineRestarter')
 export interface ResetKeep {
   // The admin who pressed the button, and the login they used: they stay signed in
   actorId: string
-  sessionId: string | undefined
+  sessionId: string
 }
 
 // Empties the tables of the game (never the migrations or the audit log), keeping the owners and the actor with their logins

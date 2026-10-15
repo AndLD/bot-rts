@@ -61,9 +61,9 @@ change only Markdown skip it.
 
 ## Feature-specific test requirements
 
-Some designs define their own tests: determinism and fairness ([§12](../game-design/12-real-time-execution-model.md)), sandbox
-attacks ([§13](../game-design/13-security-sandboxing.md)), race conditions
-([§14](../game-design/14-concurrency-race-conditions.md)), events ([§24](../game-design/24-notifications-and-events.md)), and
-for the planned phases the admin authorization matrix ([§25](../game-design/25-admin-console.md)) and money conservation
-([§26](../game-design/26-market-and-currency.md)). The MCP server's tests are described in
-[MCP.md](../integrations/MCP.md#tests).
+Some designs define their own tests: determinism and fairness ([§12](../product-knowledge/game-design/12-real-time-execution-model.md)), sandbox
+attacks ([§13](../product-knowledge/game-design/13-security-sandboxing.md)), race conditions
+([§14](../product-knowledge/game-design/14-concurrency-race-conditions.md)), events ([§24](../product-knowledge/game-design/24-notifications-and-events.md)), and
+for the planned phases the admin authorization matrix ([§25](../product-knowledge/game-design/25-admin-console.md)) and money conservation
+([§26](../product-knowledge/game-design/26-market-and-currency.md)). The MCP server's tests are described in
+[MCP.md](../product-knowledge/integrations/MCP.md#tests).

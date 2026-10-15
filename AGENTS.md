@@ -13,7 +13,7 @@ The project is developed to align with:
 - **SOLID** — single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion.
 - **High scalability** — a stateless, horizontally scalable API tier and indexed data access. The one exception is by design: the
   **engine** is the single authoritative in-memory owner of world state (persisted to PostgreSQL by write-behind) and is
-  reached only through a port (see `docs/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
+  reached only through a port (see `docs/product-knowledge/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
 - **High testability** — dependency injection, pure domain logic, no hidden I/O.
 - **High maintainability** — small cohesive modules, no dead code, self-documenting names, up-to-date docs.
 - **Low coupling** — layers talk through interfaces, not concrete singletons or HTTP objects.
@@ -272,7 +272,7 @@ A feature is done only when **all** of these hold:
 - [ ] If the change adds a Prisma migration, it is applied to the local development database
       (`npm run db:migrate -w api`; see §7.6 for the end-of-phase rule).
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
-      file in `docs/game-design/` and/or `docs/development-plan/` is updated in the same PR.
+      file in `docs/product-knowledge/game-design/` and/or `docs/development-plan/` is updated in the same PR.
 - [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
       Russian).
 - [ ] Feature branch (named per §7.1), descriptive PR, reviewed, merged by the strategy in §7.2; the branch is kept (§7.3).
@@ -339,7 +339,7 @@ A feature is done only when **all** of these hold:
   blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
 - **Plan-related PRs merge the same way.** Every PR that belongs to a named phase is covered by the same approval: its task
   PRs, and also the documentation and chore PRs that exist because of the plan (the phase's implementation log, task and
-  status updates in the phase file and the development plan, the work log, the matching `docs/game-design/` updates, and
+  status updates in the phase file and the development plan, the work log, the matching `docs/product-knowledge/game-design/` updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
 - **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
@@ -406,7 +406,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 
 ## 9. Project-specific rules (details in `docs/`)
 
-- **Docs are the source of truth** for game rules and plan: [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and
+- **Docs are the source of truth** for game rules and plan: [`docs/product-knowledge/game-design/GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and
   [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
 - **Harness quality:** the docs and this harness are reviewed by [`docs/quality-reviews/harness/README.md`](./docs/quality-reviews/harness/README.md)
   (layers, scoring, procedure; this repository's values in `bindings.md` there). A review adds one dated report and changes nothing else;
@@ -426,11 +426,11 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   state lasts; keep such a state in persisted data (module properties, not engine memory) so a restart does not repeat the
   event, and cover it with a test that runs many ticks in the unchanged state (design §24.1).
 - **Public API stability:** changes inside `/api/v1` must stay compatible; breaking changes ship as `/api/v2`, and a
-  deprecated route is marked and announced per `docs/integrations/API.md`. New player-facing endpoints declare their API-key scope,
+  deprecated route is marked and announced per `docs/product-knowledge/integrations/API.md`. New player-facing endpoints declare their API-key scope,
   and the MCP server (`mcp/`) only calls the public API.
 - **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
-- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/CHANGELOG.md`.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/product-knowledge/CHANGELOG.md`.
 - **Admin endpoints** (Phase 9, delivered in tasks 9.1–9.15 and extended by the open tasks; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are never available to API keys.
 - **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**

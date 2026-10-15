@@ -24,7 +24,6 @@ it. One phase is one file in this folder.
 | Task legend | The status symbols, one line |
 | Exit criteria | Observable conditions that make the phase done |
 | Implementation log | A table of the changes (branch, tasks, pull request, status) that delivered the tasks |
-| Notes | Optional: decisions, design records, risks specific to this phase |
 
 ## 2. Tasks
 
@@ -53,19 +52,32 @@ Append a row when a change is merged: its branch, the task ids, the pull request
 closely related tasks. The log is the audit trail from the plan to the history of the repository; keep it accurate, it is
 cheap to write at merge time and expensive to reconstruct.
 
-## 6. Work log
+## 6. Where other content goes
+
+A phase file holds the plan and its outcome, nothing else. There is no free-form notes section; each kind of content has one owner:
+
+| Content | Goes to |
+| ------- | ------- |
+| Decisions and deviations made while working, problems, findings | The phase's work log |
+| A decision that changes what the product is or does | The product knowledge, in the same change |
+| A decision that changes how work is done or the order of phases | A cross-cutting document or the plan index |
+| A design record required before a task | A decision record in the cross-cutting folder, cited by the task |
+| Risks | The risk register |
+| Open questions | The register of open items of the product knowledge |
+
+## 7. Work log
 
 Each phase has an append-only log in `work-logs/` next to the phase files, with the entry template inside it. The phase file links
 to it from the status line; the log links back to the phase file. The log records sessions, the exact next step and the commands
 that verify the state; the phase file records only the plan and its outcome.
 
-## 7. Splitting and merging phases
+## 8. Splitting and merging phases
 
 - Split a phase when it exceeds what can be reviewed as one unit or when its theme has two exit criteria that can be reached independently. The new phase takes the next free number; tasks keep their ids when possible, otherwise the old ids are recorded in the notes.
 - Never merge phases: finished history is not rewritten.
 - Record a changed development order in the plan index, not by renumbering.
 
-## 8. Checks
+## 9. Checks
 
 A phase file is conformant when: the anatomy parts that apply are present and in order; every task has an id, a size and a status;
 the title size equals the sum of the task sizes; the status agrees with the index; the work-log link resolves; every task cited

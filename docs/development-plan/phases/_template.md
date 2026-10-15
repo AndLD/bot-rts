@@ -22,7 +22,3 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 
 | Branch | Tasks | PR | Status |
 | ------ | ----- | -- | ------ |
-
-## Notes
-
-<Optional: decisions, design records, risks specific to this phase.>

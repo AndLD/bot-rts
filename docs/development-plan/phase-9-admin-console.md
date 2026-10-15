@@ -66,6 +66,6 @@ AGENTS.md §7.1).
 | `feature/9.15-admin-docs` | 9.15 | [#163](https://github.com/AndLD/bot-rts/pull/163) | merged |
 | `feature/9.14-authorization-matrix` | 9.14 | [#164](https://github.com/AndLD/bot-rts/pull/164) | merged |
 | `feature/9.13-admin-e2e` | 9.13 | [#165](https://github.com/AndLD/bot-rts/pull/165) | merged |
-| `feature/9.16-view-as-player` | 9.16 | [#178](https://github.com/AndLD/bot-rts/pull/178) | open |
+| `feature/9.16-view-as-player` | 9.16 | [#178](https://github.com/AndLD/bot-rts/pull/178) | merged |
 | `feature/9.18-feature-switches` | 9.18 | [#179](https://github.com/AndLD/bot-rts/pull/179) | open |
 | `feature/9.19-retention-console` | 9.19 | [#180](https://github.com/AndLD/bot-rts/pull/180) | open |

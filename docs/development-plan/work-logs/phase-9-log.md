@@ -180,3 +180,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** after 9.19.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — the clock tasks name the socket event and the two-tab test
+- **Tasks:** 9.17, 9.17a (text only)
+- **Branch:** `docs/phase-13-tracing` — the plan only
+- **Decisions / deviations from the plan:** the client reads the game time once and runs it locally from the server's instant, with no push. The tasks now say that every connected client is told of a change by a `game-time-changed` socket event (across nodes through the Redis adapter) and then reads the time, the factory and the storage again, and that a second open tab is checked in the Cypress spec without a reload.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged.
+- **Verify with:** `npm run docs:check`

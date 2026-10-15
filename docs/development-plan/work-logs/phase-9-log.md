@@ -123,3 +123,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the i18n check asks for one namespace per file, so the role names are repeated under `adminDocs.parts.roles`.
 - **Next step:** 9.14, the authorization matrix and the audit completeness tests.
 - **Verify with:** `npm run docs:generate` and `git diff --exit-code client/src/features/admin/docs/generated`; `npx jest src/features/admin/docs` from `client`
+
+### 2026-10-15 — task 9.14 authorization matrix and audit completeness
+- **Tasks:** 9.14
+- **Branch:** `feature/9.14-authorization-matrix` (stacked on 9.15) — done
+- **Decisions / deviations from the plan:** one integration test (`api/src/admin/authorization-matrix.int.test.ts`) reads every route under `/api/v1/admin/` from the committed `api/openapi.json` (each carries `x-admin-permission`; a route without it makes the suite fail, so a new admin route cannot forget its guard) and calls it as a stranger, a bad token, a plain player, an API key of an owner (`SESSION_ONLY`), an admin who has not passed the second factor, and each of the four roles. For the routes that name a permission, a role gets in exactly when `ROLE_PERMISSIONS` says so (past the guards any answer but 401, 403 and 500 will do: 400 for the empty request, 404, or 503 while no engine runs); the others get 403. **Audit completeness:** for every mutating route (POST, PUT, PATCH, DELETE) the call of a role that holds the permission adds exactly one line to the audit trail, with that actor and role, whatever the result; a refused call by a player adds exactly one `denied` line named after the permission. The dev tools are switched on for the test so that their routes are part of the matrix. The routes any admin may use before the second factor (`/admin/2fa/*`, `/admin/me`) are checked for strangers, players and keys only. Not done: API-key scopes of the player routes and the socket namespace, which have their own tests (`api-access.guard.test.ts`, `admin-socket.guard.test.ts`).
+- **Problems / blockers / findings:** none.
+- **Next step:** 9.13, the Cypress suite of the console, the last task of the phase.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern authorization-matrix` from `api`

@@ -28,7 +28,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | 9.10 | Logs and audit viewer: structured log search by request, user and bot id, slow-tick traces, audit log filters and export | 8 | ✅ |
 | 9.11 | Analytics and reports: DAU / MAU, retention, onboarding funnel, achievement rates, CSV export | 5 | ✅ |
 | 9.12 | Dev tools, disabled in production by configuration: seed a world, advance the injected clock, spawn test bots, reset the database (replaces the legacy debug endpoint) | 3 | ✅ |
-| 9.13 | E2E (Cypress) for the admin console: access control per role, two-factor sign-in, dashboard with data, ban cutting a player off, inspector and file-read audit, supervision action with audit entry, maintenance mode, balance edit and rollback, announcement reaching players, the Docs page (access per role, search, a "?" link opening its section) | 8 | ⬜ |
+| 9.13 | E2E (Cypress) for the admin console: access control per role, two-factor sign-in, dashboard with data, ban cutting a player off, inspector and file-read audit, supervision action with audit entry, maintenance mode, balance edit and rollback, announcement reaching players, the Docs page (access per role, search, a "?" link opening its section) | 8 | ✅ |
 | 9.14 | Authorization matrix tests: every admin endpoint × every role (and API keys, and plain players) returns the expected result; audit completeness test (every mutating admin call writes an audit entry) | 3 | ✅ |
 | 9.15 | Admin console documentation: an in-console **Docs** page (`/admin/docs`, admin-only, rendered inside the `(admin)` route group, never public or indexed) with a sidebar tree and search, built on the player-documentation machinery of 7.11/7.12 (one content source, no second copy). Sections: roles and permissions (who sees and does what), two-factor sign-in and recovery, every page of design §25.3 with its actions, the audit log and what is recorded, supervision and maintenance procedures (quarantine, kill-switch, pause), alert thresholds and how to react (§25.5), moderation guidelines, dev tools (non-production only). Page-specific "?" links from every admin page open the matching section. Reference tables (permissions, audit action types, alert thresholds) are **generated from the code and config**, with a CI check that fails when they are stale; the link checker and the English/Russian check of 7.13 cover it, and a section is required for every admin page (a test fails when a page has none) | 3 | ✅ |
 
@@ -59,3 +59,4 @@ AGENTS.md §7.1).
 | `feature/9.11-analytics` | 9.11 | _this PR_ | open |
 | `feature/9.15-admin-docs` | 9.15 | _this PR_ | open |
 | `feature/9.14-authorization-matrix` | 9.14 | _this PR_ | open |
+| `feature/9.13-admin-e2e` | 9.13 | _this PR_ | open |

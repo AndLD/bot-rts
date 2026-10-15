@@ -76,6 +76,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Fixed
 
+- A dialog of the admin console no longer opens with the reason of the previous action already typed in.
 - The terminal stops following new lines when a scroll event arrives after a line was added.
 - Script output no longer piles up in memory when a script writes faster than the database stores (lines are stored in batches).
 - The load and soak harness (`npm run load`) no longer leaves its API server running after a run or an interrupt (the server was started

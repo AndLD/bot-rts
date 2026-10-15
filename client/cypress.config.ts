@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto'
 import { execFileSync, spawn } from 'child_process'
 import { openSync, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
@@ -30,6 +31,29 @@ function apiProcesses(): number[] {
     // lsof exits with an error when nothing listens
     return []
   }
+}
+
+// The code an authenticator app shows now for a secret: RFC 6238 (SHA-1, 30 s, 6 digits), as the API checks it
+function totpCode(secret: string): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  let bits = 0
+  let value = 0
+  const bytes: number[] = []
+
+  for (const char of secret) {
+    value = (value << 5) | alphabet.indexOf(char)
+    bits += 5
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 255)
+      bits -= 8
+    }
+  }
+  const counter = Buffer.alloc(8)
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30_000)))
+  const hmac = createHmac('sha1', Buffer.from(bytes)).update(counter).digest()
+  const offset = hmac[hmac.length - 1] & 15
+
+  return String((hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0')
 }
 
 const pause = (ms: number) => new Promise((done) => setTimeout(done, ms))
@@ -122,6 +146,11 @@ export default defineConfig({
 
         mailCount({ to }: { to: string }) {
           return readOutbox().filter((m) => m.to === to).length
+        },
+
+        // The code of an authenticator app for the secret the console showed
+        totpCode({ secret }: { secret: string }) {
+          return totpCode(secret)
         },
 
         async setUserStatus({ email, status }: { email: string; status: string }) {

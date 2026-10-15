@@ -27,6 +27,10 @@ declare global {
       createPlayer(email?: string): Chainable<{ email: string; token: string }>
       // Logs in through the form of the login page
       loginViaForm(email: string, password?: string): Chainable<void>
+      // A player with an admin role whose second factor is set up and verified in the session of the returned token
+      createAdmin(role: 'owner' | 'admin' | 'moderator' | 'analyst'): Chainable<AdminSession>
+      // Opens a page of the game or the console signed in with the token
+      visitSignedIn(path: string, token: string): Chainable<void>
     }
   }
 }
@@ -107,6 +111,45 @@ Cypress.Commands.add('loginViaForm', (email, password = PASSWORD) => {
   cy.get('input[type=email]').type(email)
   cy.get('input[type=password]').type(password, { parseSpecialCharSequences: false })
   cy.contains('button', 'Log in').click()
+})
+
+export interface AdminSession {
+  email: string
+  token: string
+  userId: string
+  // Each works once, in place of a code of the authenticator
+  recoveryCodes: string[]
+}
+
+Cypress.Commands.add('createAdmin', (role) => {
+  const email = newEmail(role)
+
+  return cy.createPlayer(email).then(({ token }) => {
+    const headers = { Authorization: `Bearer ${token}` }
+
+    cy.task('setUserStatus', { email, status: role })
+
+    return cy.apiRequest({ method: 'POST', path: '/api/v1/admin/2fa/enroll', headers }).then((enrolled) => {
+      const { secret } = enrolled.body as { secret: string }
+
+      return cy.task<string>('totpCode', { secret }).then((code) =>
+        cy
+          .apiRequest({ method: 'POST', path: '/api/v1/admin/2fa/confirm', headers, body: { code } })
+          .then((confirmed) =>
+            cy.apiRequest({ path: '/api/v1/users/me', headers }).then((me) => ({
+              email,
+              token,
+              userId: (me.body as { _id: string })._id,
+              recoveryCodes: (confirmed.body as { recoveryCodes: string[] }).recoveryCodes
+            }))
+          )
+      )
+    })
+  })
+})
+
+Cypress.Commands.add('visitSignedIn', (path, token) => {
+  cy.visit(path, { onBeforeLoad: (win) => win.localStorage.setItem('token', token) })
 })
 
 export interface Cell {

@@ -172,3 +172,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** after 9.18.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — task 9.17 split into 9.17, 9.17a and 9.17b
+- **Tasks:** 9.17 (game clock foundation, 8 SP), 9.17a (game time controls, 5 SP), 9.17b (reset the database, 3 SP): all **not started**
+- **Branch:** `docs/phase-9-clock-split-and-phase-13` (plan change only)
+- **Decisions / deviations from the plan:** the earlier 9.17 (5 SP) was replaced by three tasks (16 SP). The phase total becomes 135 SP and the total of Phases 0–11 becomes 942 SP. The key decision, made with the owner: the rules of the game read a **separate `GAME_CLOCK`**, while the real `CLOCK` stays for sessions, JWTs, rate limits, bans and the audit trail, so a change of the game's time can never expire a login. The owner added to the task that the **day length** (24 real minutes now; for example 48 minutes, 6 h 30 min or 24 hours), the **time of day** (for example 05:00 → 16:30) and a **real-world sync with a chosen time zone** are changed from the console, seamlessly: the cycle is re-anchored so the time of day does not jump. These settings are not dev-only; only the "advance the clock" step and the reset are. Today the day length is a constant imported by the time service and the energy model, so 9.17 first makes it a runtime setting that the engine thread, the API nodes and the clients all follow.
+- **Problems / blockers / findings:** none.
+- **Next step:** after 9.19.
+- **Verify with:** `npm run docs:check`

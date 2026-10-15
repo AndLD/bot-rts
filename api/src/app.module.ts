@@ -18,6 +18,7 @@ import { TimeModule } from './time/time.module'
 import { SecurityModule } from './security/security.module'
 import { BalanceModule } from './balance/balance.module'
 import { OperationsModule } from './operations/operations.module'
+import { DevToolsModule } from './devtools/devtools.module'
 import { LogsModule } from './logs/logs.module'
 import { MapModule } from './map/map.module'
 import { MapViewModule } from './mapview/mapview.module'
@@ -57,6 +58,7 @@ export class AppModule {
         SecurityModule,
         BalanceModule,
         OperationsModule,
+        ...(config.devTools.isEnabled ? [DevToolsModule] : []),
         ModulesModule,
         CraftingModule,
         FilesModule,

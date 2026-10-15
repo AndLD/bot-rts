@@ -99,3 +99,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 9.12, dev tools, disabled in production.
 - **Verify with:** `npx jest --selectProjects integration --testPathPattern operations.int` and `npx jest src/operations src/lifecycle` from `api`; `npx jest src/features/admin/operations src/features/maintenance` from `client`
+
+### 2026-10-15 — task 9.12 dev tools
+- **Tasks:** 9.12
+- **Branch:** `feature/9.12-devtools` (stacked on 9.9) — done
+- **Decisions / deviations from the plan:** a `devtools` module that `AppModule` includes only when `DEV_TOOLS_ENABLED=true`; without it the routes do not exist (404), and `loadConfig` refuses the setting when `NODE_ENV=production`, so production cannot have them by a mistake. The routes need `devtools.use` (owners) and are audited with a reason. **Seed a world:** creates 1 to 20 test players at a time (email `player-<id>@devtools.test`, a verified email, a password derived from the id, shown once in the answer), each with a base placed by the ordinary deployment (`BotsService.deployUserBase`, through the engine). **Reset:** erases every test player (the same erasure as a player's own deletion: personal data goes, the bases stay as corpses); a full reset of the database is not offered: the engine holds the world in memory, so wiping tables under it would corrupt a running world, and a development database is reset with `prisma migrate reset` while the server is stopped. **Not done:** advancing the injected clock: the engine thread has a clock of its own, and moving the clock of the API thread alone would make the two disagree; the end-to-end suites keep their deterministic clock in the test harness. Spawning single test bots is covered by the bases of the test players. The OpenAPI document is generated with the tools on, so that the generated client has them.
+- **Problems / blockers / findings:** none.
+- **Next step:** 9.11, analytics and reports.
+- **Verify with:** `npx jest --selectProjects integration --testPathPattern devtools.int` and `npx jest src/devtools src/config` from `api`; `npx jest src/features/admin/devtools` from `client`

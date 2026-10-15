@@ -1030,7 +1030,8 @@
       "logs": "Logs and audit",
       "security": "Security",
       "economy": "Economy and balance",
-      "operations": "Operations"
+      "operations": "Operations",
+      "devtools": "Dev tools"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1515,6 +1516,28 @@
       },
       "announced": "{count, plural, one {# player was told} other {# players were told}}",
       "restarted": "{count, plural, one {# script restarted} other {# scripts restarted}}{failed, plural, =0 {} one {, # bot could not be restarted} other {, # bots could not be restarted}}"
+    },
+    "devtools": {
+      "disabled": "The dev tools are off on this server (DEV_TOOLS_ENABLED).",
+      "warning": "For a development or test server only: these accounts have known passwords.",
+      "seed": {
+        "title": "Test players",
+        "count": "How many",
+        "create": "Create test players",
+        "confirm": "Create {count, plural, one {# test player} other {# test players}} with a base"
+      },
+      "email": "Email",
+      "password": "Password",
+      "botPassword": "Base password",
+      "base": "Base",
+      "noBase": "No base placed",
+      "remove": {
+        "title": "Remove test players",
+        "help": "Erases the personal data of every test player; their bases stay as corpses.",
+        "button": "Remove all test players",
+        "confirm": "Remove all test players"
+      },
+      "removed": "{count, plural, one {# test player removed} other {# test players removed}}"
     }
   },
   "maintenance": {

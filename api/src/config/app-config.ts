@@ -74,6 +74,11 @@ export interface DeploymentConfig {
   engineRequestTimeoutMs: number
 }
 
+// The test-only tools of the admin console; the configuration refuses them in production
+export interface DevToolsConfig {
+  isEnabled: boolean
+}
+
 export interface ObservabilityConfig {
   // Bearer token of GET /api/v1/metrics; without one the endpoint answers 404
   metricsToken: string | undefined
@@ -149,6 +154,7 @@ export interface AppConfig {
   admin: AdminConfig
   monitoring: MonitoringConfig
   balance: BalanceSettings
+  devTools: DevToolsConfig
 }
 
 type Env = Record<string, string | undefined>
@@ -247,6 +253,10 @@ export function loadConfig(env: Env): AppConfig {
 
   if (nodeEnv === 'production' && !env.JWT_ACCESS_SECRET) {
     problems.push('JWT_ACCESS_SECRET is required in production')
+  }
+
+  if (nodeEnv === 'production' && env.DEV_TOOLS_ENABLED === 'true') {
+    problems.push('DEV_TOOLS_ENABLED must not be set in production')
   }
 
   const provider = env.AUTH_PROVIDER || 'local'
@@ -373,6 +383,7 @@ export function loadConfig(env: Env): AppConfig {
       thresholds
     },
     balance: { base: { resources: world.resources, crafting }, version: null, problem: null },
+    devTools: { isEnabled: env.DEV_TOOLS_ENABLED === 'true' },
     observability: {
       metricsToken: env.METRICS_TOKEN || undefined,
       logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000),

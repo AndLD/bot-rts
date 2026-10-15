@@ -400,6 +400,15 @@ const injectedRtkApi = api.injectEndpoints({
     maintenanceStatus: build.query<MaintenanceStatusApiResponse, MaintenanceStatusApiArg>({
       query: () => ({ url: `/api/v1/maintenance` })
     }),
+    devToolsStatus: build.query<DevToolsStatusApiResponse, DevToolsStatusApiArg>({
+      query: () => ({ url: `/api/v1/admin/devtools` })
+    }),
+    devToolsSeedWorld: build.mutation<DevToolsSeedWorldApiResponse, DevToolsSeedWorldApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/devtools/seed-world`, method: 'POST', body: queryArg.seedWorldDto })
+    }),
+    devToolsRemoveTestPlayers: build.mutation<DevToolsRemoveTestPlayersApiResponse, DevToolsRemoveTestPlayersApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/devtools/test-players`, method: 'DELETE', body: queryArg.reasonDto })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -960,6 +969,16 @@ export type OperationsRestartRuntimeApiArg = {
 }
 export type MaintenanceStatusApiResponse = /** status 200  */ MaintenanceStatusResponse
 export type MaintenanceStatusApiArg = void
+export type DevToolsStatusApiResponse = /** status 200  */ DevToolsStatusResponse
+export type DevToolsStatusApiArg = void
+export type DevToolsSeedWorldApiResponse = /** status 200  */ SeedWorldResponse
+export type DevToolsSeedWorldApiArg = {
+  seedWorldDto: SeedWorldDto
+}
+export type DevToolsRemoveTestPlayersApiResponse = /** status 200  */ RemoveTestPlayersResponse
+export type DevToolsRemoveTestPlayersApiArg = {
+  reasonDto: ReasonDto
+}
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
@@ -1843,6 +1862,27 @@ export type MaintenanceStatusResponse = {
   isPaused: boolean
   banner: MaintenanceBannerModel | null
 }
+export type DevToolsStatusResponse = {
+  isEnabled: boolean
+}
+export type TestPlayerModel = {
+  userId: string
+  email: string
+  password: string
+  botPassword: string
+  baseId: string | null
+}
+export type SeedWorldResponse = {
+  players: TestPlayerModel[]
+}
+export type SeedWorldDto = {
+  reason: string
+  /** How many test players to create, each with a base */
+  count: number
+}
+export type RemoveTestPlayersResponse = {
+  removed: number
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -2427,6 +2467,9 @@ export const {
   useOperationsClearBannerMutation,
   useOperationsRestartRuntimeMutation,
   useMaintenanceStatusQuery,
+  useDevToolsStatusQuery,
+  useDevToolsSeedWorldMutation,
+  useDevToolsRemoveTestPlayersMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

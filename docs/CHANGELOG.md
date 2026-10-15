@@ -55,6 +55,8 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   age of the last backup (`BACKUP_STATUS_FILE`), announcements to every player through the notifications, a scheduled maintenance banner
   and a notice while the world is paused (shown in the game and on its sign-in pages; public `GET /api/v1/maintenance`), and a restart of
   all running scripts (`/api/v1/admin/operations/*`).
+- Dev tools in the admin console, for development and test servers: test players with a verified email, a known password and a base,
+  and their removal (`DEV_TOOLS_ENABLED=true`; the server refuses to start with it in production; `/api/v1/admin/devtools/*`, owners only).
 
 ### Changed
 

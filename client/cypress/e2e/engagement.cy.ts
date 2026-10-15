@@ -99,7 +99,10 @@ describe('notifications', () => {
     writeFile('job.js', 'export async function main(bot) { bot.log("done") }')
   })
 
-  type Notifications = { unread: number; items: Array<{ kind: string; count: number; readAt: number | null }> }
+  type Notifications = {
+    unread: number
+    items: Array<{ kind: string; count: number; readAt: number | null; params: Record<string, unknown> }>
+  }
   const list = (isDone: (body: Notifications) => boolean = () => true) =>
     poll<Notifications>(token, '/api/v1/notifications', isDone)
 
@@ -138,8 +141,13 @@ describe('notifications', () => {
 
   it('marks all as read, and lets the player switch a category off in the settings', () => {
     command('run job.js')
-    // The script has finished and the game has said so: one that is still to come would not be marked read below
-    list((body) => body.items.some((item) => item.kind === 'scriptFinished'))
+    // The script has finished and the game has said so, and so has the achievement it earned (the first run): one that is still to
+    // come would not be marked read below
+    list(
+      (body) =>
+        body.items.some((item) => item.kind === 'scriptFinished') &&
+        body.items.some((item) => item.kind === 'achievementUnlocked' && item.params.family === 'helloWorld')
+    )
 
     cy.contains('.game-toolbar button', 'Notifications').click()
     windowWith('Notifications').contains('button', 'Mark all as read').click()

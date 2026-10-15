@@ -68,6 +68,7 @@ describe('loadConfig', () => {
         version: null,
         problem: null
       },
+      devTools: { isEnabled: false },
       observability: { metricsToken: undefined, logBufferSize: 5000, backupStatusFile: undefined },
       lifecycle: {
         isEnabled: true,
@@ -166,6 +167,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig({})).toThrow(ConfigError)
     expect(() => loadConfig({ ...base, PORT: '70000' })).toThrow('PORT')
     expect(() => loadConfig({ ...base, PORT: '1.5' })).toThrow('PORT')
+  })
+
+  it('enables the dev tools on request, and refuses them in production', () => {
+    expect(loadConfig({ ...base, DEV_TOOLS_ENABLED: 'true' }).devTools.isEnabled).toBe(true)
+    expect(loadConfig({ ...base, DEV_TOOLS_ENABLED: 'false' }).devTools.isEnabled).toBe(false)
+    expect(() =>
+      loadConfig({ ...base, NODE_ENV: 'production', JWT_ACCESS_SECRET: 'a', DEV_TOOLS_ENABLED: 'true' })
+    ).toThrow('DEV_TOOLS_ENABLED must not be set in production')
   })
 
   it('requires the access token secret in production', () => {

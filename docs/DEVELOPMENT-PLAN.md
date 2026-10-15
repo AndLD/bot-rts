@@ -28,11 +28,12 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 6     | Core game GUI & map animations       | 96           | ✅ Done |
 | 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ✅ Done |
 | 8     | Multiplayer, public API & hardening  | 71           | ✅ Done |
-| 9     | Admin console (supervision, monitoring, moderation, operations) | 124          | 🟡 In progress |
+| 9     | Admin console (supervision, monitoring, moderation, operations) | 135          | 🟡 In progress |
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
 | 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
 | 12    | Issues and stabilization (open-ended; issues found in use are added as tasks; **outside the MVP count**) | 5 (grows) | ⬜ Not started |
-|        | **Total of Phases 0–11**             | **931**      | |
+| 13    | Observability platform (OpenTelemetry logs, Elasticsearch, the admin log search on it; **proposed 2026-10-15, outside the MVP count**) | 29 | ⬜ Not started |
+|        | **Total of Phases 0–11**             | **942**      | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
@@ -44,7 +45,7 @@ Phases 8–10 (referenced from the design, the testing strategy and the deployme
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: Phases 0–11 (908 SP).** Phase 12 collects issues found in use and is outside this count. There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: Phases 0–11 (942 SP).** Phase 12 collects issues found in use and Phase 13 is an optional platform upgrade; both are outside this count. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./development-plan/guiding-principles.md)).
 
@@ -83,11 +84,12 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 6 — Core game GUI & map animations (96 SP)](./development-plan/phase-6-gui.md)
 - [Phase 7 — Presentation & engagement (66 SP)](./development-plan/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./development-plan/phase-8-multiplayer-api-hardening.md)
-- [Phase 9 — Admin console (124 SP)](./development-plan/phase-9-admin-console.md)
+- [Phase 9 — Admin console (135 SP)](./development-plan/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./development-plan/phase-11-energy-time-ux.md)
 - [Phase 12 — Issues and stabilization (5 SP, grows as issues are added)](./development-plan/phase-12-issues.md)
+- [Phase 13 — Observability platform (29 SP, proposed)](./development-plan/phase-13-observability-platform.md)
 - [Testing](./testing/README.md) (current documentation) and [testing work by phase](./testing/by-phase.md) (historical)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)
-- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md), [phase 11](./development-plan/work-logs/phase-11-log.md), [phase 12](./development-plan/work-logs/phase-12-log.md)
+- Work logs: [phase 0](./development-plan/work-logs/phase-0-log.md), [phase 1](./development-plan/work-logs/phase-1-log.md), [phase 2](./development-plan/work-logs/phase-2-log.md), [phase 3](./development-plan/work-logs/phase-3-log.md), [phase 4](./development-plan/work-logs/phase-4-log.md), [phase 5](./development-plan/work-logs/phase-5-log.md), [phase 6](./development-plan/work-logs/phase-6-log.md), [phase 7](./development-plan/work-logs/phase-7-log.md), [phase 8](./development-plan/work-logs/phase-8-log.md), [phase 9](./development-plan/work-logs/phase-9-log.md), [phase 10](./development-plan/work-logs/phase-10-log.md), [phase 11](./development-plan/work-logs/phase-11-log.md), [phase 12](./development-plan/work-logs/phase-12-log.md), [phase 13](./development-plan/work-logs/phase-13-log.md)

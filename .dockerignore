@@ -6,7 +6,9 @@
 .lighthouseci
 **/node_modules
 **/coverage
-**/logs
+/logs
+/api/logs
+/mcp/logs
 **/.env*
 !**/.env.example
 api/ts-built

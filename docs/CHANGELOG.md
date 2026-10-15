@@ -42,6 +42,8 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - Supervision: kill an execution, reboot a bot, quarantine a player (their scripts are held), pause the world for maintenance, a global
   script kill-switch, and support actions (grant, remove, compensate, restore a module), each with a reason and an audit entry
   (`/api/v1/admin/supervision/*`). Validation errors of nested request bodies now name the field.
+- Logs and audit in the admin console: a search of the node's recent log by text (a player or bot id) or by request id, slow-tick
+  traces of the engine, audit filters and a CSV export of the trail (`LOG_BUFFER_SIZE`; `/api/v1/admin/logs`, `/api/v1/admin/audit/export`).
 
 ### Changed
 

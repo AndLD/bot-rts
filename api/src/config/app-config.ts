@@ -76,6 +76,8 @@ export interface DeploymentConfig {
 export interface ObservabilityConfig {
   // Bearer token of GET /api/v1/metrics; without one the endpoint answers 404
   metricsToken: string | undefined
+  // How many of the newest log lines are kept in memory for the admin console
+  logBufferSize: number
 }
 
 export interface AdminConfig {
@@ -358,7 +360,10 @@ export function loadConfig(env: Env): AppConfig {
       alertEmails: list(env.ADMIN_ALERT_EMAILS),
       thresholds
     },
-    observability: { metricsToken: env.METRICS_TOKEN || undefined },
+    observability: {
+      metricsToken: env.METRICS_TOKEN || undefined,
+      logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000)
+    },
     deployment: {
       role,
       redisUrl,

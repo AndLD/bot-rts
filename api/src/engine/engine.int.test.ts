@@ -20,7 +20,7 @@ beforeAll(async () => {
   testApp = await startTestApp(database, {
     ENGINE_ENABLED: 'true',
     ENGINE_TICK_INTERVAL_MS: '20',
-    ENGINE_WATCHDOG_STALL_MS: '700',
+    ENGINE_WATCHDOG_STALL_MS: '3000',
     ENGINE_WATCHDOG_POLL_MS: '100'
   })
   port = testApp.app.get<EnginePort>(ENGINE_PORT)

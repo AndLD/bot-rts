@@ -63,7 +63,7 @@ describe('loadConfig', () => {
         alertEmails: [],
         thresholds: {}
       },
-      observability: { metricsToken: undefined },
+      observability: { metricsToken: undefined, logBufferSize: 5000 },
       lifecycle: {
         isEnabled: true,
         intervalMs: 3600000,

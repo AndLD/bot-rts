@@ -1028,7 +1028,8 @@
       "players": "Players",
       "inspector": "Inspector",
       "map": "World map",
-      "supervision": "Supervision"
+      "supervision": "Supervision",
+      "logs": "Logs and audit"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1305,6 +1306,50 @@
           "compensate": "Compensate (grant for a loss)",
           "remove": "Remove resources",
           "restore": "Restore a module"
+        }
+      }
+    },
+    "logs": {
+      "tabs": {
+        "audit": "Audit",
+        "logs": "Application log",
+        "slow": "Slow ticks"
+      },
+      "text": "Text, or the id of a player or a bot",
+      "requestId": "Request id",
+      "level": "Level",
+      "search": "Search",
+      "refresh": "Refresh",
+      "loadFailed": "Could not load the log",
+      "shown": "{shown} of {total} matching lines (the node keeps the newest {capacity})",
+      "time": "Time",
+      "message": "Message",
+      "slowFailed": "Could not load the slow ticks",
+      "noSlowTicks": "No slow ticks",
+      "tick": "Tick",
+      "duration": "Duration / interval",
+      "queued": "Queued",
+      "deferred": "Deferred",
+      "cut": "Cut at the cap",
+      "yes": "yes",
+      "audit": {
+        "action": "Action",
+        "actorId": "Admin id",
+        "targetId": "Target id",
+        "outcome": "Outcome",
+        "from": "From date",
+        "to": "To date",
+        "filter": "Filter",
+        "export": "Export CSV",
+        "loadFailed": "Could not load the audit log",
+        "time": "Time",
+        "role": "Role",
+        "target": "Target",
+        "reason": "Reason",
+        "outcomes": {
+          "success": "success",
+          "denied": "denied",
+          "failed": "failed"
         }
       }
     }

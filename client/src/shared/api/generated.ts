@@ -89,6 +89,21 @@ const injectedRtkApi = api.injectEndpoints({
         }
       })
     }),
+    auditExport: build.query<AuditExportApiResponse, AuditExportApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/audit/export`,
+        params: {
+          page: queryArg.page,
+          results: queryArg.results,
+          actorId: queryArg.actorId,
+          action: queryArg.action,
+          targetId: queryArg.targetId,
+          outcome: queryArg.outcome,
+          from: queryArg['from'],
+          to: queryArg.to
+        }
+      })
+    }),
     playersSearch: build.query<PlayersSearchApiResponse, PlayersSearchApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/players`,
@@ -297,6 +312,22 @@ const injectedRtkApi = api.injectEndpoints({
         method: 'POST',
         body: queryArg.restoreModuleDto
       })
+    }),
+    logsSearch: build.query<LogsSearchApiResponse, LogsSearchApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/logs`,
+        params: {
+          q: queryArg.q,
+          level: queryArg.level,
+          requestId: queryArg.requestId,
+          from: queryArg['from'],
+          to: queryArg.to,
+          results: queryArg.results
+        }
+      })
+    }),
+    logsSlowTicks: build.query<LogsSlowTicksApiResponse, LogsSlowTicksApiArg>({
+      query: () => ({ url: `/api/v1/admin/logs/slow-ticks` })
     }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
@@ -633,6 +664,17 @@ export type AuditListApiArg = {
   from?: string
   to?: string
 }
+export type AuditExportApiResponse = /** status 200 CSV */ string
+export type AuditExportApiArg = {
+  page?: number
+  results?: number
+  actorId?: string
+  action?: string
+  targetId?: string
+  outcome?: 'success' | 'denied' | 'failed'
+  from?: string
+  to?: string
+}
 export type PlayersSearchApiResponse = /** status 200  */ PlayersPageResponse
 export type PlayersSearchApiArg = {
   page?: number
@@ -783,6 +825,19 @@ export type SupervisionRestoreApiResponse = unknown
 export type SupervisionRestoreApiArg = {
   restoreModuleDto: RestoreModuleDto
 }
+export type LogsSearchApiResponse = /** status 200  */ LogPageResponse
+export type LogsSearchApiArg = {
+  /** A part of the line, such as the id of a player or a bot */
+  q?: string
+  level?: 'info' | 'warn' | 'error'
+  /** The id of a request (the X-Request-Id of its response) */
+  requestId?: string
+  from?: string
+  to?: string
+  results?: number
+}
+export type LogsSlowTicksApiResponse = /** status 200  */ SlowTickResponse[]
+export type LogsSlowTicksApiArg = void
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
@@ -1451,6 +1506,26 @@ export type RestoreModuleDto = {
   botId: string
   moduleId: string
 }
+export type LogLineModel = {
+  /** Milliseconds since the epoch */
+  at: number
+  level: 'info' | 'warn' | 'error'
+  message: string
+  requestId: string | null
+}
+export type LogPageResponse = {
+  lines: LogLineModel[]
+  total: number
+  capacity: number
+}
+export type SlowTickResponse = {
+  tick: number
+  durationMs: number
+  intervalMs: number
+  isCut: boolean
+  queuedExecutions: number
+  deferredExecutions: number
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -1989,6 +2064,7 @@ export const {
   useAdminConfirmMutation,
   useAdminVerifyMutation,
   useAuditListQuery,
+  useAuditExportQuery,
   usePlayersSearchQuery,
   usePlayersProfileQuery,
   usePlayersRemoveMutation,
@@ -2018,6 +2094,8 @@ export const {
   useSupervisionCompensateMutation,
   useSupervisionRemoveMutation,
   useSupervisionRestoreMutation,
+  useLogsSearchQuery,
+  useLogsSlowTicksQuery,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

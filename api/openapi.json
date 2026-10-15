@@ -1216,6 +1216,131 @@
         ]
       }
     },
+    "/api/v1/admin/audit/export": {
+      "get": {
+        "operationId": "auditExport",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "results",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "actorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "players.ban",
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "outcome",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "success",
+                "denied",
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "string"
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "audit.export",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/audit/export\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/players": {
       "get": {
         "operationId": "playersSearch",
@@ -3289,6 +3414,182 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/supervision/support/restore-module\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"botId\":\"00000000-0000-4000-8000-000000000000\",\"moduleId\":\"00000000-0000-4000-8000-000000000000\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/logs": {
+      "get": {
+        "operationId": "logsSearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "A part of the line, such as the id of a player or a bot",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "info",
+                "warn",
+                "error"
+              ]
+            }
+          },
+          {
+            "name": "requestId",
+            "required": false,
+            "in": "query",
+            "description": "The id of a request (the X-Request-Id of its response)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "results",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogPageResponse"
+                },
+                "example": {
+                  "lines": [
+                    {
+                      "at": 1,
+                      "level": "info",
+                      "message": "string",
+                      "requestId": "string"
+                    }
+                  ],
+                  "total": 1,
+                  "capacity": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "logs.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/logs\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/logs/slow-ticks": {
+      "get": {
+        "operationId": "logsSlowTicks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SlowTickResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "tick": 1,
+                    "durationMs": 1,
+                    "intervalMs": 1,
+                    "isCut": false,
+                    "queuedExecutions": 1,
+                    "deferredExecutions": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "logs.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/logs/slow-ticks\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }
@@ -8623,6 +8924,89 @@
           "reason",
           "botId",
           "moduleId"
+        ]
+      },
+      "LogLineModel": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warn",
+              "error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "at",
+          "level",
+          "message",
+          "requestId"
+        ]
+      },
+      "LogPageResponse": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogLineModel"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "capacity": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "lines",
+          "total",
+          "capacity"
+        ]
+      },
+      "SlowTickResponse": {
+        "type": "object",
+        "properties": {
+          "tick": {
+            "type": "number"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "intervalMs": {
+            "type": "number"
+          },
+          "isCut": {
+            "type": "boolean"
+          },
+          "queuedExecutions": {
+            "type": "number"
+          },
+          "deferredExecutions": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "tick",
+          "durationMs",
+          "intervalMs",
+          "isCut",
+          "queuedExecutions",
+          "deferredExecutions"
         ]
       },
       "RecipeResourceResponse": {

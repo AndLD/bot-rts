@@ -95,7 +95,9 @@ describe('TickLoop', () => {
 
   it('does not schedule another tick when it was stopped during one', async () => {
     const timers = new ManualTimers()
-    const onTick = jest.fn(async () => loop.stop())
+    const onTick = jest.fn(async () => {
+      void loop.stop()
+    })
     const loop: TickLoop = new TickLoop(onTick, jest.fn(), 100, timers)
 
     loop.start()
@@ -103,6 +105,28 @@ describe('TickLoop', () => {
     await timers.advance(1000)
 
     expect(onTick).toHaveBeenCalledTimes(1)
+  })
+
+  it('waits for the tick that is running when it is stopped, and for nothing when none is', async () => {
+    const timers = new ManualTimers()
+    let finish: () => void = () => undefined
+    const onTick = jest.fn(() => new Promise<void>((resolve) => (finish = resolve)))
+    const loop = new TickLoop(onTick, jest.fn(), 100, timers)
+    await expect(loop.stop()).resolves.toBeUndefined()
+
+    loop.start()
+    void timers.advance(100)
+    await Promise.resolve()
+    let stopped = false
+    const stopping = loop.stop().then(() => (stopped = true))
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(stopped).toBe(false)
+    finish()
+    await stopping
+    expect(stopped).toBe(true)
+    await expect(loop.stop()).resolves.toBeUndefined()
   })
 
   it('uses the real clock and timers by default', async () => {

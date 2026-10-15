@@ -18,6 +18,7 @@ export const SYSTEM_TIMERS: Timers = {
 export class TickLoop {
   private cancel: (() => void) | null = null
   private dueAt = 0
+  private running: Promise<void> | null = null
 
   constructor(
     private readonly onTick: () => Promise<void>,
@@ -38,9 +39,21 @@ export class TickLoop {
     this.schedule()
   }
 
-  stop(): void {
+  // Stops the loop and resolves once the tick that is running, if any, has finished: the thread must not be ended while a tick
+  // still has a query in flight (the database driver then calls back into a thread that is gone)
+  stop(): Promise<void> {
     this.cancel?.()
     this.cancel = null
+
+    return this.running ?? Promise.resolve()
+  }
+
+  private async tick(): Promise<void> {
+    try {
+      await this.onTick()
+    } catch (error) {
+      this.onError(error)
+    }
   }
 
   private schedule(): void {
@@ -48,11 +61,9 @@ export class TickLoop {
   }
 
   private async run(): Promise<void> {
-    try {
-      await this.onTick()
-    } catch (error) {
-      this.onError(error)
-    }
+    this.running = this.tick()
+    await this.running
+    this.running = null
     if (this.cancel) {
       this.dueAt = Math.max(this.dueAt + this.intervalMs, this.timers.now())
       this.schedule()

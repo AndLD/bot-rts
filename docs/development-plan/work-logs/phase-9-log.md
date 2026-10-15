@@ -156,3 +156,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 9.16 can start on a branch `feature/9.16-view-as-player` from `develop`; read the sections of the game client that load a player's own data (the map view, the stores and the sockets) first, since the read-only mode has to cover each of them.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — tasks 9.17 and 9.18 added to the phase
+- **Tasks:** 9.17 (dev tools, part 2: advance the game clock, reset the database; 5 SP) and 9.18 (global feature switches; 5 SP), both **not started**
+- **Branch:** `docs/phase-9-more-tasks` (plan change only)
+- **Decisions / deviations from the plan:** the owner asked for two of the items left out of the phase (see the "Phase 9 complete" entry) to become tasks. The phase total becomes 119 SP and the total of Phases 0–11 becomes 926 SP. 9.17 is "could" (a convenience for testing), 9.18 is "should". Execution order: 9.16 → 9.18 → 9.17. The clock is the hard part of 9.17: the engine thread has its own application context and so its own clock, which is why the offset has to be delivered to it as a request, and why the tick loop stays on real time. The first set of switches of 9.18 is a proposal (sign-ups, deploying a base, API keys, spawn seeds, public API access) and can be changed when the task starts.
+- **Problems / blockers / findings:** none.
+- **Next step:** after 9.16.
+- **Verify with:** `npm run docs:check`

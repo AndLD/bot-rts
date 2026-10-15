@@ -23,7 +23,6 @@ export interface BalanceRepository {
 export interface DepositTotals {
   resource: string
   deposits: number
-  depleted: number
   remaining: number
 }
 

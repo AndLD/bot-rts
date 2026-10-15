@@ -344,6 +344,28 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.reasonDto
       })
     }),
+    balanceOverview: build.query<BalanceOverviewApiResponse, BalanceOverviewApiArg>({
+      query: () => ({ url: `/api/v1/admin/economy` })
+    }),
+    balanceState: build.query<BalanceStateApiResponse, BalanceStateApiArg>({
+      query: () => ({ url: `/api/v1/admin/balance` })
+    }),
+    balanceSave: build.mutation<BalanceSaveApiResponse, BalanceSaveApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/balance`, method: 'POST', body: queryArg.saveBalanceDto })
+    }),
+    balanceVersion: build.query<BalanceVersionApiResponse, BalanceVersionApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/balance/versions/${queryArg.version}` })
+    }),
+    balancePreview: build.mutation<BalancePreviewApiResponse, BalancePreviewApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/balance/preview`, method: 'POST', body: queryArg.balanceDocumentDto })
+    }),
+    balanceRollback: build.mutation<BalanceRollbackApiResponse, BalanceRollbackApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/balance/versions/${queryArg.version}/rollback`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -861,6 +883,27 @@ export type SecurityOverviewApiArg = {
 export type SecurityRevokeKeyApiResponse = unknown
 export type SecurityRevokeKeyApiArg = {
   id: string
+  reasonDto: ReasonDto
+}
+export type BalanceOverviewApiResponse = /** status 200  */ EconomyOverviewResponse
+export type BalanceOverviewApiArg = void
+export type BalanceStateApiResponse = /** status 200  */ BalanceStateResponse
+export type BalanceStateApiArg = void
+export type BalanceSaveApiResponse = unknown
+export type BalanceSaveApiArg = {
+  saveBalanceDto: SaveBalanceDto
+}
+export type BalanceVersionApiResponse = /** status 200  */ BalanceVersionDocumentResponse
+export type BalanceVersionApiArg = {
+  version: number
+}
+export type BalancePreviewApiResponse = /** status 200  */ BalancePreviewResponse
+export type BalancePreviewApiArg = {
+  balanceDocumentDto: BalanceDocumentDto
+}
+export type BalanceRollbackApiResponse = unknown
+export type BalanceRollbackApiArg = {
+  version: number
   reasonDto: ReasonDto
 }
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
@@ -1619,6 +1662,73 @@ export type SecurityOverviewResponse = {
   suspiciousScripts: SuspiciousScriptModel[]
   topConsumers: ConsumerModel[] | null
 }
+export type EconomyStatModel = {
+  resource: string
+  deposits: number
+  remaining: number
+  capacity: number
+  stored: number
+}
+export type BlueprintStatModel = {
+  module: string
+  research: number
+  item: number
+}
+export type ModuleStatModel = {
+  type: string
+  name: string
+  count: number
+}
+export type EconomyOverviewResponse = {
+  resources: EconomyStatModel[]
+  blueprints: BlueprintStatModel[]
+  modules: ModuleStatModel[]
+}
+export type BalanceValueModel = {
+  path: string
+  value: string
+}
+export type BalanceVersionModel = {
+  version: number
+  reason: string
+  createdBy: string
+  createdAt: number
+  isActive: boolean
+}
+export type BalanceStateResponse = {
+  activeVersion: number | null
+  runningVersion: number | null
+  /** Why the stored version could not be used, when it could not */
+  problem: string | null
+  documentJson: string
+  effective: BalanceValueModel[]
+  versions: BalanceVersionModel[]
+}
+export type SaveBalanceDto = {
+  reason: string
+  /** Only what differs from the defaults: resources, recipes, crafting */
+  document: {
+    [key: string]: object
+  }
+}
+export type BalanceVersionDocumentResponse = {
+  documentJson: string
+}
+export type BalanceChangeModel = {
+  path: string
+  from: string | null
+  to: string | null
+}
+export type BalancePreviewResponse = {
+  problems: string[]
+  changes: BalanceChangeModel[]
+}
+export type BalanceDocumentDto = {
+  /** Only what differs from the defaults: resources, recipes, crafting */
+  document: {
+    [key: string]: object
+  }
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -2191,6 +2301,12 @@ export const {
   useLogsSlowTicksQuery,
   useSecurityOverviewQuery,
   useSecurityRevokeKeyMutation,
+  useBalanceOverviewQuery,
+  useBalanceStateQuery,
+  useBalanceSaveMutation,
+  useBalanceVersionQuery,
+  useBalancePreviewMutation,
+  useBalanceRollbackMutation,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

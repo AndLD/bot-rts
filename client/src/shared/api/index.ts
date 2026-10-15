@@ -56,6 +56,9 @@ export const api = generated.enhanceEndpoints({
     supervisionCompensate: { invalidatesTags: ['Supervision'] },
     supervisionRemove: { invalidatesTags: ['Supervision'] },
     supervisionRestore: { invalidatesTags: ['Supervision'] },
+    balanceState: { providesTags: ['Balance'] },
+    balanceSave: { invalidatesTags: ['Balance'] },
+    balanceRollback: { invalidatesTags: ['Balance'] },
     securityOverview: { providesTags: ['Security'] },
     securityRevokeKey: { invalidatesTags: ['Security'] },
     supervisionQuarantine: { invalidatesTags: ['Supervision', 'Security'] },
@@ -68,6 +71,13 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useBalanceOverviewQuery,
+  useBalanceStateQuery,
+  useLazyBalanceVersionQuery,
+  useBalancePreviewMutation,
+  useBalanceSaveMutation,
+  useBalanceRollbackMutation,
+  useAdminSettingsGetQuery,
   useAdminMeQuery,
   useSecurityOverviewQuery,
   useSecurityRevokeKeyMutation,

@@ -31,7 +31,6 @@ export class EconomyService {
         return {
           resource,
           deposits: found?.deposits ?? 0,
-          depleted: found?.depleted ?? 0,
           remaining: found?.remaining ?? 0,
           // What the deposits held when generated: their number times the largest deposit of the resource, as the map shows it
           capacity: (found?.deposits ?? 0) * this.resources[resource].maxAmount,

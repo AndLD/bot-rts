@@ -47,6 +47,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 - Security monitoring in the admin console: every sign-in attempt is recorded (address, agent, outcome; removed by the data lifecycle), and
   the Security page shows failed sign-ins, accounts sharing an address or using many, locked bots, API keys with the times their rate limit
   held them back, scripts the sandbox stopped, and the scripts using the most ops; an admin can revoke any API key (`/api/v1/admin/security`).
+- Economy and balance in the admin console: the resources in the deposits and in storage, the blueprints players learned, the modules that
+  exist, and an editor for the balance of the game (resource spawn weights and amounts, recipes, crafting numbers) with a check, a diff,
+  versions that are only added, and rollback; the active version applies when the server next starts
+  (`/api/v1/admin/economy`, `/api/v1/admin/balance`). The links for the pages of the console now appear in its menu.
 
 ### Changed
 
@@ -54,6 +58,8 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Removed
 
+- The switches of the categories of manual control for the whole game moved from the settings panel of the game to the Economy page of
+  the console (the route `/api/v1/admin/settings` stays, and now needs the second factor like every admin route).
 - `GET /api/v1/admin/statistics`, which only counted users by status (the admin dashboard replaces it).
 
 ### Fixed

@@ -108,9 +108,6 @@ class EconomyStatModel implements IEconomyStat {
   deposits!: number
 
   @ApiProperty()
-  depleted!: number
-
-  @ApiProperty()
   remaining!: number
 
   @ApiProperty()

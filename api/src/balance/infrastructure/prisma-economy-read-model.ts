@@ -5,12 +5,9 @@ export class PrismaEconomyReadModel implements EconomyReadModel {
   constructor(private readonly db: Prisma.TransactionClient) {}
 
   async deposits(): Promise<DepositTotals[]> {
-    const rows = await this.db.$queryRaw<
-      Array<{ resource: string; deposits: bigint; depleted: bigint; remaining: bigint }>
-    >`
+    const rows = await this.db.$queryRaw<Array<{ resource: string; deposits: bigint; remaining: bigint }>>`
       SELECT resource::text AS resource,
              COUNT(*) AS deposits,
-             COUNT(*) FILTER (WHERE amount <= 0) AS depleted,
              COALESCE(SUM(amount), 0) AS remaining
       FROM map_points
       WHERE type = 'resource' AND resource IS NOT NULL
@@ -19,7 +16,6 @@ export class PrismaEconomyReadModel implements EconomyReadModel {
     return rows.map((row) => ({
       resource: row.resource,
       deposits: Number(row.deposits),
-      depleted: Number(row.depleted),
       remaining: Number(row.remaining)
     }))
   }

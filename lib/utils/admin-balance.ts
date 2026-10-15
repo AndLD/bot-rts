@@ -54,9 +54,8 @@ export interface IBalancePreview {
 // The global switches of the categories of manual control are part of the same page
 export interface IEconomyStat {
   resource: string
-  // Deposits on the map, how many are used up, and what is left in them against what they held when generated
+  // Deposits on the map (a used-up deposit leaves the map), and what is left in them against what they held when generated
   deposits: number
-  depleted: number
   remaining: number
   capacity: number
   // What the bases and bots carry

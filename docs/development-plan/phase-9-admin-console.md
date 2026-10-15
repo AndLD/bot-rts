@@ -23,7 +23,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | 9.5 | Inspector and world map: read-only inspection of any base or bot (modules, energy, position, storage, drives, executions, logs), file viewing behind a permission and an audit entry, map without fog of war reusing the map renderer, entity search by id or coordinates, heatmaps (density, depletion, activity), live game-event tail | 13 | ✅ |
 | 9.6 | Supervision actions, each with reason, confirmation and audit: kill an execution, reboot a bot, quarantine a player (suspend all executions), pause and resume the world (maintenance mode), global script kill-switch, support actions (grant or remove resources, restore a module, compensation) | 8 | ✅ |
 | 9.7 | Security and abuse monitoring: failed-password and lockout view, suspicious scripts (top ops consumers, wall-clock kills, sandbox violations), API-key usage and rate-limit hits, login anomalies and same-IP accounts, actions from the page (ban, quarantine, revoke key) | 8 | ✅ |
-| 9.8 | Economy and balance: world economy dashboard (resource totals, depletion, crafting and blueprint statistics), balance configuration editor with validation, diff, versions and rollback, global feature and category switches (moved here from the settings of 6.8) | 8 | ⬜ |
+| 9.8 | Economy and balance: world economy dashboard (resource totals, depletion, crafting and blueprint statistics), balance configuration editor with validation, diff, versions and rollback, global feature and category switches (moved here from the settings of 6.8) | 8 | ✅ |
 | 9.9 | Operations: announcements broadcast through the notification system (7.6), scheduled maintenance banners, engine status and script-runtime restart, status of retention and cleanup jobs, backup status | 5 | ⬜ |
 | 9.10 | Logs and audit viewer: structured log search by request, user and bot id, slow-tick traces, audit log filters and export | 8 | ✅ |
 | 9.11 | Analytics and reports: DAU / MAU, retention, onboarding funnel, achievement rates, CSV export | 5 | ⬜ |
@@ -53,3 +53,4 @@ AGENTS.md §7.1).
 | `feature/9.6-supervision` | 9.6 | [#156](https://github.com/AndLD/bot-rts/pull/156) | merged |
 | `feature/9.10-logs-audit` | 9.10 | [#157](https://github.com/AndLD/bot-rts/pull/157) | merged |
 | `feature/9.7-security` | 9.7 | [#158](https://github.com/AndLD/bot-rts/pull/158) | open |
+| `feature/9.8-economy-balance` | 9.8 | _this PR_ | open |

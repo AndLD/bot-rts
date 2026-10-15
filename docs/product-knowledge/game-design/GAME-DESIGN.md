@@ -22,7 +22,7 @@ shared, persistent world.
 
 ## Contents
 
-Each section lives in its own file under [`game-design/`](./). Section numbers (`§12.2.1`) used
+Each section lives in its own file under [`game-design/`](.). Section numbers (`§12.2.1`) used
 throughout the docs match the file numbers.
 
 1. [Vision & pillars](./01-vision-pillars.md)

@@ -35,7 +35,7 @@ const LINK = /^\[[^\]]+\]: .*$/
 export function releaseChangelog(text, version, date, repoUrl) {
   const start = text.indexOf(UNRELEASED)
   if (start < 0) {
-    throw new Error('docs/CHANGELOG.md has no "## [Unreleased]" section')
+    throw new Error('docs/product-knowledge/CHANGELOG.md has no "## [Unreleased]" section')
   }
 
   const lines = text.trimEnd().split('\n')
@@ -69,7 +69,7 @@ export function releaseNotes(text, version) {
   const heading = new RegExp(`^## \\[${version.replace(/\./g, '\\.')}\\].*$`, 'm')
   const match = heading.exec(text)
   if (!match) {
-    throw new Error(`docs/CHANGELOG.md has no section for ${version}`)
+    throw new Error(`docs/product-knowledge/CHANGELOG.md has no section for ${version}`)
   }
   const rest = text.slice(match.index + match[0].length)
   const end = rest.search(/\n## \[|\n\[[^\]]+\]: /)

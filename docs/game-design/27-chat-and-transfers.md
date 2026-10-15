@@ -13,7 +13,7 @@ any change of wallets or inventories still goes through the engine as a command 
 - **Rules:** messages up to 500 characters; at most 5 messages per 10 seconds per player; history kept 7 days (tunable);
   unread counters and online presence; a **block list** (a blocked player cannot message or send transfers to you); a
   **report** button on every message.
-- **Moderation:** admins can mute a player, delete messages and review reports (§25). A muted player cannot post in chat; transfers
+- **Moderation:** admins can mute a player, delete messages and review reports (§25; task 10.11), and the chat volume and the reports by day are part of the market statistics (task 10.15). A muted player cannot post in chat; transfers
   still follow their normal rules.
 - Chat is available in the web client (as a window of the window manager), through the public API (scope `chat`, §22.1)
   and therefore to the MCP server. It is not available to bot scripts.

@@ -76,6 +76,11 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
 
 ## Observability (Phase 8.3)
 
+> **Planned (Phase 13):** the logs move to OpenTelemetry, with tracing, through **one shared collector gateway** for all nodes, and are
+> stored in Elasticsearch, so the console can search the logs of every node and follow a request by its trace id. Until then the
+> log search of the console reads the recent lines of the node that answers (`LOG_BUFFER_SIZE`), and the files and the console
+> remain the record. See [Phase 13](../development-plan/phase-13-observability-platform.md).
+
 - **Logs** go to the console (and to `api/logs/` unless `LOG_FILE=false`). With `LOG_FORMAT=json` (the default in production)
   every line is one JSON object: `time`, `level`, `category`, `requestId`, `message`. Each HTTP request logs one line when it
   finishes (method, path without the query string, status, duration).

@@ -101,4 +101,4 @@ must be accepted into a drive before it can run (a script never runs by itself).
   sent or received through transfers.
 - **Price bounds** on orders (a band around the recent average) and per-player order and listing limits.
 - **Rate limits** on market calls; **wash-trading and multi-account heuristics** (same IP, circular trades) raise admin alerts.
-- Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25).
+- Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25), and see the market itself (order books, auctions, price history and statistics, the price anomalies these heuristics flag, and market metrics and alerts on the dashboard: tasks 10.11 and 10.15).

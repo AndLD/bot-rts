@@ -51,7 +51,7 @@ event type fires more than once. A flapping link caused by the energy edge is re
 - **Categories** (each can be switched on/off in the profile settings, §15): *Attacks* (your bots or base are hit),
   *Damage and energy* (module broken, battery low, out of fuel, live scan stopped, link lost / restored / weak), *Scripts* (finished, crashed, restarted after a reboot, §12.3.1),
   *Security* (failed password attempts on your bots, a bot adopted, base control lost), *Fabrication* (craft, assembly
-  or research done), *Trade* (orders filled, auctions outbid / won / sold, transfers received), *Achievements* and *System* (tutorial, announcements).
+  or research done), *Trade* (orders filled, auctions outbid / won / sold, transfers received), *Achievements* and *System* (tutorial, and the announcements that admins send to every player from the console, §25.3: the kind is `announcement`, its text is the admin's own).
 - **Anti-spam:** repeated events of one kind are **coalesced** (for example one "under attack" per bot per 30 seconds,
   with a count), and each category has a per-minute cap on new notifications (a repeat that joins an existing one does not count).
   A coalesced repeat updates the count in the notification center and does not raise a new toast.

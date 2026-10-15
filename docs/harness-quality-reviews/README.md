@@ -21,15 +21,21 @@ The **harness** is:
 - agent configuration kept outside the repository (user memory, settings). It is reviewed only for **duplication of repository
   rules**; it is never edited by a review.
 
-Not reviewed: product source code (reviewed separately) and the *content* of the product specification (whether a product
-decision is good). Its *structure* is reviewed.
+The **product knowledge** (the product specification and everything that states what the product is and must do) is in
+scope in two ways: its *structure* (layers, language, duplication; D1 to D3) and its *logical integrity* (D11: whether it is
+consistent, complete and buildable as written).
 
-**Goal of the review:** answer four questions with evidence.
+Not reviewed: product source code (reviewed separately) and whether a product decision is *good* (taste, fun, market fit,
+balance quality). A decision that contradicts another decision, or a number that cannot hold under the specification's own
+rules, is a D11 finding; an opinion that a number should be different is not.
+
+**Goal of the review:** answer five questions with evidence.
 
 1. Does an agent that starts cold do the right thing, quickly, with little context? (effectiveness)
 2. Is each rule and fact written once, in the right place, and true today? (integrity)
 3. Can the business knowledge be separated from the infrastructure that serves it? (architecture)
 4. Could the generic part be extracted and injected into a new project? (blueprint readiness)
+5. Is the product knowledge free of contradictions and gaps, so that someone can build from it without guessing? (product integrity)
 
 ---
 
@@ -134,6 +140,25 @@ Evidence: the session protocol exists and is followed; latest work-log entries h
 command; decisions are recorded where the next session looks.
 `1` state lives in chat · `3` logs exist, gaps · `5` a cold session resumes from logs without questions.
 
+### Group C: product knowledge integrity
+
+**D11 Product integrity.** Is the product knowledge logically consistent and complete enough to build from?
+D2 judges how the knowledge is *organized*; D11 judges whether it is *true to itself*. Check, over the whole corpus:
+
+| Kind               | Question                                                                                                              |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| contradiction      | Do two statements exclude each other (a number, a rule, a permission, a state, an order of steps)?                     |
+| gap                | Is something used but never defined, a flow without an end or a failure path, a state with no way in or out, a rule with no trigger or actor, an edge case nobody decided? |
+| duplication        | Is one rule stated in two places that can diverge?                                                                    |
+| invariant          | Does every section respect the cross-cutting invariants (authority over state, determinism, conservation of resources, permissions, ordering)? |
+| terminology        | Does one word mean two things, or do two words mean one thing?                                                        |
+| status             | Do decided, planned, implemented and open markers agree with each other, with the plan and with the open-questions list? |
+| traceability       | Does every requirement reach a plan item and a test, and does every plan item and test point back to a requirement?   |
+| feasibility        | Are values within the stated bounds, prerequisite chains free of cycles, sources and sinks of every resource balanced, and stated limits consistent with the stated capacity? |
+
+Evidence: the claims ledger and checks of section 4, step 4b; M12 to M15.
+`1` contradictions in core rules, undefined terms in common use · `3` a few known gaps, invariants mostly hold, traceability partial · `5` the ledger shows no open contradiction or gap, traceability is complete and mechanically checked.
+
 ### Blueprint readiness (derived, not a dimension)
 
 A verdict from D1, D3, D4, D6 plus an **export dry run** (section 4, step 6): list what would be copied to a new project
@@ -144,7 +169,7 @@ belong in CORE. Also list the **extraction blockers**.
 ### Targets and gates
 
 Targets: every dimension `4`, D1, D3 and D7 `5` before the blueprint is extracted. A review fails its gate when any
-dimension is `1` or `2`, or when D8 or D9 contains a finding that makes an agent act wrongly (🔴).
+dimension is `1` or `2`, or when D8, D9 or D11 contains a finding that makes an agent or a builder act wrongly (🔴).
 
 ---
 
@@ -160,9 +185,26 @@ report is approved.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
    that fits no layer, or fits two, is a D1/D4 finding.
-3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10). Quote the command and
+3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M15). Quote the command and
    the date so the run can be repeated. Measurements are evidence, not verdicts: a hit is judged in context.
-4. **Review by dimension.** Go through D1 to D10, collect evidence, write findings (section 5), then score.
+4. **Review by dimension.** Go through D1 to D11, collect evidence, write findings (section 5), then score.
+   - **4b. Product integrity pass (D11).** Treat the product knowledge as a system to be checked, not text to be skimmed:
+     1. *Partition* the corpus into bounded contexts (`bindings.md` lists them). A full review reads **every** section; record
+        coverage (sections read of total). A delta review reads the changed sections and every section that references them.
+     2. *Extract a claims ledger* per context, keyed by section id: entities and attributes, states and transitions, rules
+        (actor, trigger, condition, effect), numbers and limits with units, flows and their failure paths, permissions,
+        events, resources with their sources and sinks, cross-references, and decision status. The ledger is a working
+        file in the scratchpad; it is evidence for the report, not a deliverable to commit. Contexts may be extracted in
+        parallel by read-only subagents, each also reporting its own intra-context findings.
+     3. *Check within a context*: every kind of the D11 table, pairwise over the ledger.
+     4. *Check across contexts* by joining ledgers on shared entities, numbers and cross-references; test every cross-cutting
+        invariant (`bindings.md`) against every context; run the mechanical checks (unresolved references, undefined terms,
+        status and traceability joins).
+     5. *Probe gaps by building*: for a planned feature, write the list of questions a builder would have to ask
+        that the knowledge does not answer (probe P6).
+     6. *Report only provable findings*: a contradiction quotes **both** statements with their locations; a gap states the
+        exact question the knowledge cannot answer; a feasibility finding shows the arithmetic. Anything that depends on taste
+        is dropped.
 5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only subagents that receive only the task text
    and the repository (no conversation context). Record the files each read, the first action it took, and any wrong or
    uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
@@ -182,9 +224,10 @@ One finding per problem, so it can become one task.
 | Field          | Content                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------- |
 | ID             | `H-<YYYYMMDD>-<nn>`                                                                           |
-| Severity       | 🔴 an agent acts wrongly or a rule is false · 🟠 blocks blueprint extraction or wastes major context · 🟡 maintainability · 🔵 polish |
-| Dimension      | D1 to D10                                                                                     |
-| Evidence       | `path:line` or the measured number                                                            |
+| Severity       | 🔴 an agent or builder acts wrongly, a rule is false, or two core rules contradict · 🟠 blocks blueprint extraction, wastes major context, or leaves a planned feature unbuildable without a decision · 🟡 maintainability · 🔵 polish |
+| Dimension      | D1 to D11                                                                                     |
+| Kind (D11)     | contradiction · gap · duplication · invariant · terminology · status · traceability · feasibility |
+| Evidence       | `path:line` or the measured number; for a contradiction, both statements with locations; for a gap, the unanswerable question |
 | Why it matters | The concrete failure for an agent, a maintainer or the export                                 |
 | Fix            | The smallest change that removes it, naming the target layer and file                         |
 | Effort         | S (under an hour) · M (a session) · L (several sessions)                                      |
@@ -202,6 +245,7 @@ does not undo it.
 | ------------------------------------------------------------------------------------- | --------------------------------------------- |
 | First review, and before extracting the blueprint                                     | **Full**: all dimensions, probes, dry run     |
 | End of each plan milestone                                                    | **Delta**: layers touched since the last report, D8, D10, one probe |
+| Product knowledge changed (sections added or edited)                                  | **Delta D11**: changed sections plus their referrers, all invariants, traceability |
 | After a large change to an entry point, the hooks, CI, or the layer structure          | **Delta** on the affected dimensions          |
 | A probe or a real session shows an agent misreading the harness                         | **Targeted**: the failing scenario and the owning document |
 
@@ -221,8 +265,9 @@ A delta report states which dimensions it did not re-score and carries their pre
 | Date       | Change                                                  |
 | ---------- | ------------------------------------------------------- |
 | 2026-10-15 | First version: layers, dimensions D1–D10, procedure.    |
+| 2026-10-15 | Product knowledge integrity (D11, claims ledger, M12–M15) added to scope. |
 
-### Measurements (M1 to M11) in one line each
+### Measurements (M1 to M15) in one line each
 
 | Id  | Measurement                                                                                  |
 | --- | -------------------------------------------------------------------------------------------- |
@@ -237,3 +282,7 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M9  | Statements contradicted by the repository or by another document (list)                      |
 | M10 | Injectable values: hard-coded places versus profile                                          |
 | M11 | Cold-start probe results                                                                     |
+| M12 | Claims-ledger coverage: sections read of total, claims extracted per context                 |
+| M13 | Contradictions and gaps found, by kind and context                                           |
+| M14 | Traceability: requirements without a plan item or test; plan items and tests without a requirement |
+| M15 | Unresolved cross-references and undefined terms (mechanical)                                 |

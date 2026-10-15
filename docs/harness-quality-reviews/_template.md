@@ -21,6 +21,7 @@ Scale `1` (poor) to `5` (excellent). Carried scores (delta reviews) are marked `
 | D8 Truth and freshness             |          |         | 4      |       |
 | D9 Clarity and actionability       |          |         | 4      |       |
 | D10 State and resumability         |          |         | 4      |       |
+| D11 Product integrity              |          |         | 4      |       |
 | **Blueprint readiness**            |          | `%`     | 90 %   |       |
 
 Gate: pass | fail (reason).
@@ -55,7 +56,15 @@ Most severe first. Fields as in the method, section 5.
 - **Why it matters:**
 - **Fix:**
 
-## 7. Export dry run
+## 7. Product integrity (D11)
+
+Coverage: sections read of total. Ledger summary per context (claims extracted, findings). Invariants tested and result.
+Traceability counts (M14). Gap-probe results (P6).
+
+| Context | Sections | Claims | Contradictions | Gaps | Other |
+| ------- | -------- | ------ | -------------- | ---- | ----- |
+
+## 8. Export dry run
 
 | Bucket                                   | Content |
 | ---------------------------------------- | ------- |
@@ -65,7 +74,7 @@ Most severe first. Fields as in the method, section 5.
 | Drop (DOMAIN, STATE)                     |         |
 | Extraction blockers                      |         |
 
-## 8. Follow-up
+## 9. Follow-up
 
 | Finding | Action (task id, pull request or backlog item) | Owner |
 | ------- | ---------------------------------------------- | ----- |

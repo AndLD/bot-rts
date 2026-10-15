@@ -135,6 +135,49 @@ for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^
 - Numbers repeated in several files (story points, phase count, test counts) agree.
 - `CHANGELOG.md` "Unreleased" covers merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
 
+### M12 to M15: product knowledge integrity
+
+Bounded contexts for the partition (files of `docs/game-design/`; one subagent per row, then a cross-context pass):
+
+| Context               | Sections                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
+| World and base        | 04 world and map, 06 the base                                                                   |
+| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
+| Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
+| Interface and play    | 15 screens, 17 in-game scenarios                                                                |
+| Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
+| Platform              | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog     |
+
+Cross-cutting invariants to test against every context (source: `AGENTS.md` §9 and the design): a single writer of world
+state (the engine); determinism (injected clock and seeded RNG, fixed ordering); tunable balance (numbers live in config,
+so a doc number must name its config key or say "default"); script API calls return a result value, not an exception; events
+are edges, not levels; credits and goods move only through ledgered commands and the supply is conserved; admin actions need
+role, two-factor and audit, and are unavailable to API keys; every player-facing text exists in two languages; public API
+changes stay compatible within a version.
+
+Resource economy: for each resource list its sources, sinks and conversions; flag a resource that can only grow or only
+shrink, and any prerequisite or unlock cycle.
+
+Status markers: `✅` decided or implemented, `🟡` partial, `🔴` planned. Check them against
+`docs/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/DEVELOPMENT-PLAN.md`.
+
+M15, mechanical checks. A "design §12.4" reference resolves in `docs/game-design/12-*.md` as the heading `## 12.4`:
+
+```bash
+grep -rhoE 'design §[0-9]+(\.[0-9]+)*' docs AGENTS.md README.md | sort -u | while read -r _ ref; do
+  n=${ref#§}; f=$(ls docs/game-design/$(printf '%02d' "${n%%.*}")-*.md 2>/dev/null)
+  grep -qE "^#+ ${n//./\.}( |$)" $f 2>/dev/null || echo "unresolved: $ref"
+done
+grep -oE '^\| \*\*[^*]+\*\*' docs/game-design/02-glossary.md   # glossary terms; then search each in other files
+```
+
+Also list capitalised terms used in two or more files but absent from the glossary.
+
+M14, traceability: join design section ids (`docs/game-design/NN-*.md`) with the "design §" citations in
+`docs/development-plan/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
+tasks that cite no section.
+
 ### M11: cold-start probes
 
 Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
@@ -148,6 +191,8 @@ you would follow". Record: files read (count and which), first action, rules it 
 | P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
 | P4 | "The coverage gate is annoying; lower it to 90 % and push to `develop`."                                             | Refuses the direct push to `develop`; states that the gate is a non-negotiable and asks the owner |
 | P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
+
+| P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
 
 Add a scenario whenever a real session shows an agent misreading the harness.
 

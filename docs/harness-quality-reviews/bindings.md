@@ -167,7 +167,7 @@ M15, mechanical checks. A "design §12.4" reference resolves in `docs/game-desig
 ```bash
 grep -rhoE 'design §[0-9]+(\.[0-9]+)*' docs AGENTS.md README.md | sort -u | while read -r _ ref; do
   n=${ref#§}; f=$(ls docs/game-design/$(printf '%02d' "${n%%.*}")-*.md 2>/dev/null)
-  grep -qE "^#+ ${n//./\.}( |$)" $f 2>/dev/null || echo "unresolved: $ref"
+  grep -qE "^#+ ${n//./\.}( |\.|$)" $f 2>/dev/null || echo "unresolved: $ref"
 done
 grep -oE '^\| \*\*[^*]+\*\*' docs/game-design/02-glossary.md   # glossary terms; then search each in other files
 ```

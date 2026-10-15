@@ -13,7 +13,7 @@ class DayPhaseSpanResponse implements DayPhaseSpan {
   sunlight!: number
 }
 
-class GameTimeConfigResponse implements GameTimeConfig {
+export class GameTimeConfigResponse implements GameTimeConfig {
   @ApiProperty({ description: 'One in-game day in real milliseconds; the world clock counts from the Unix epoch' })
   dayLengthMs!: number
 

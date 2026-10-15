@@ -27,6 +27,8 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- Admin console, Game time and Dev tools: set the time of day, change the day length without a jump, show the real-world time of a time
+  zone, and (on a test server) advance the game clock and reset the database (`ops.game-time`, `POST /admin/devtools/reset-database`).
 - The game clock: the rules of the game run on a separate `GAME_CLOCK` and the day cycle (length, time of day, real-world zone) is a
   runtime setting that the engine, the API nodes and the clients follow (`game-time-changed` socket event); sessions and logins stay on
   the real clock.

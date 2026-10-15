@@ -70,7 +70,8 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
   consolePage('operations', 6, 'maintenance'),
   consolePage('analytics', 3, 'economy'),
   consolePage('logs', 4, 'audit-actions'),
-  consolePage('devtools', 2),
+  consolePage('game-time', 4, 'operations'),
+  consolePage('devtools', 4),
   consolePage('docs', 2),
   {
     slug: 'maintenance',
@@ -133,6 +134,7 @@ export const ADMIN_PAGE_DOCS: Readonly<Record<string, string>> = {
   '/admin/economy': 'economy',
   '/admin/analytics': 'analytics',
   '/admin/operations': 'operations',
+  '/admin/game-time': 'game-time',
   '/admin/logs': 'logs',
   '/admin/devtools': 'devtools',
   '/admin/docs': 'docs'

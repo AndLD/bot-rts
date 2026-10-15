@@ -136,6 +136,47 @@ describe('DevToolsPage', () => {
     await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
   })
 
+  it('resets the database after the typed word, with a reason, and says what it did', async () => {
+    const calls = serve((call) =>
+      call.url.endsWith('/reset-database') ? { data: { tablesEmptied: 21, accountsErased: 4 } } : undefined
+    )
+    renderPage()
+    fireEvent.click(await button('Reset the database'))
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'a clean slate' } })
+
+    // Without the word nothing is sent
+    fireEvent.click(await button('Confirm'))
+    expect(await screen.findByText('Type RESET to confirm')).toBeInTheDocument()
+    expect(calls.some((call) => call.url.endsWith('/reset-database'))).toBe(false)
+
+    fireEvent.change(dialog().querySelector('input') as HTMLInputElement, { target: { value: 'RESET' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() =>
+      expect(calls.find((call) => call.url.endsWith('/reset-database'))?.body).toEqual({
+        confirmation: 'RESET',
+        reason: 'a clean slate'
+      })
+    )
+    expect(await screen.findByText('The database was reset: 21 tables emptied, 4 accounts erased.')).toBeInTheDocument()
+  })
+
+  it('keeps the dialog of the reset when the server refuses it', async () => {
+    const calls = serve((call) =>
+      call.url.endsWith('/reset-database') ? { error: { status: 403, data: { code: 'FORBIDDEN' } } } : undefined
+    )
+    renderPage()
+    fireEvent.click(await button('Reset the database'))
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'a clean slate' } })
+    fireEvent.change(dialog().querySelector('input') as HTMLInputElement, { target: { value: 'RESET' } })
+    fireEvent.click(await button('Confirm'))
+
+    await waitFor(() => expect(calls.some((call) => call.url.endsWith('/reset-database'))).toBe(true))
+    expect(dialog()).not.toBeNull()
+  })
+
   it('shows nothing while it asks whether the tools are on', () => {
     query.mockImplementation((() => new Promise(() => undefined)) as never)
     const { container } = renderPage()

@@ -19,6 +19,7 @@ export const ADMIN_NAV: readonly AdminNavItem[] = [
   { path: '/admin/economy', labelKey: 'economy', permission: 'economy.read' },
   { path: '/admin/analytics', labelKey: 'analytics', permission: 'analytics.read' },
   { path: '/admin/operations', labelKey: 'operations', permission: 'dashboard.read' },
+  { path: '/admin/game-time', labelKey: 'gameTime', permission: 'dashboard.read' },
   { path: '/admin/devtools', labelKey: 'devtools', permission: 'devtools.use' },
   { path: '/admin/logs', labelKey: 'logs', permission: 'audit.read' },
   { path: '/admin/docs', labelKey: 'docs' }

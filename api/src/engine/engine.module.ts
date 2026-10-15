@@ -85,7 +85,7 @@ const RESPAWN_DELAY_MS = 1_000
       }
     }
   ],
-  exports: [ENGINE_PORT]
+  exports: [ENGINE_PORT, ENGINE_PROCESS]
 })
 export class EngineModule implements OnApplicationShutdown {
   constructor(

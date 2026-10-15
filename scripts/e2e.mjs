@@ -129,6 +129,8 @@ try {
       ADMIN_URL: `http://localhost:${CLIENT_PORT}`,
       EMAIL_OUTBOX_DIR: outbox,
       TRUST_PROXY: 'true',
+      // The test stack is a test server: the dev tools of the console (and the advance of the game clock) are on
+      DEV_TOOLS_ENABLED: 'true',
       // The browser's requests share one address; the rate-limit spec uses addresses of its own
       RATE_LIMIT_AUTH_MAX: '200',
       RATE_LIMIT_API_MAX: '100000',

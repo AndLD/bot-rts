@@ -224,4 +224,27 @@ describe('EngineProcess watchdog', () => {
     expect(heard).toHaveLength(1)
     await engine.close()
   })
+
+  it('restarts: the old thread is stopped and ended, and a new one starts and keeps being supervised', async () => {
+    const { engine, workers } = setup()
+    const started = engine.start()
+    workers[0].emit('message', ready)
+    await started
+
+    const restarting = engine.restart()
+    workers[0].emit('message', { kind: 'stopped' })
+    await Promise.resolve()
+    await new Promise((resolve) => setImmediate(resolve))
+    workers[1].emit('message', ready)
+    await restarting
+
+    expect(workers[0].sent).toContainEqual({ kind: 'stop' })
+    expect(workers[0].terminated).toBe(true)
+    expect(workers).toHaveLength(2)
+
+    // The new thread is respawned if it dies, unlike one that was closed on purpose
+    workers[1].emit('exit', 1)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(workers).toHaveLength(3)
+  })
 })

@@ -5294,6 +5294,148 @@
         ]
       }
     },
+    "/api/v1/admin/devtools/advance-clock": {
+      "post": {
+        "operationId": "devToolsAdvanceClock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvanceClockDto"
+              },
+              "example": {
+                "reason": "string",
+                "stepMs": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "devtools.use",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/devtools/advance-clock\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"stepMs\":1}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/devtools/reset-database": {
+      "post": {
+        "operationId": "devToolsResetDatabase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetDatabaseDto"
+              },
+              "example": {
+                "reason": "string",
+                "confirmation": "RESET"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetDatabaseResponse"
+                },
+                "example": {
+                  "tablesEmptied": 1,
+                  "accountsErased": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "devtools.use",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/devtools/reset-database\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"confirmation\":\"RESET\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/admin/devtools/test-players": {
       "delete": {
         "operationId": "devToolsRemoveTestPlayers",
@@ -8705,6 +8847,386 @@
         ]
       }
     },
+    "/api/v1/admin/game-time": {
+      "get": {
+        "operationId": "gameTimeAdminView",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/game-time\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/time-of-day": {
+      "post": {
+        "operationId": "gameTimeAdminSetTimeOfDay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTimeOfDayDto"
+              },
+              "example": {
+                "reason": "string",
+                "minuteOfDay": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/time-of-day\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"minuteOfDay\":0}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/day-length": {
+      "post": {
+        "operationId": "gameTimeAdminSetDayLength",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetDayLengthDto"
+              },
+              "example": {
+                "reason": "string",
+                "dayLengthMs": 60000
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/day-length\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"dayLengthMs\":60000}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/real-world": {
+      "post": {
+        "operationId": "gameTimeAdminSetRealWorld",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRealWorldDto"
+              },
+              "example": {
+                "reason": "string",
+                "timeZone": "Europe/Kyiv"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/real-world\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"timeZone\":\"Europe/Kyiv\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/game-time/cycle": {
+      "post": {
+        "operationId": "gameTimeAdminLeaveRealWorld",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameTimeAdminResponse"
+                },
+                "example": {
+                  "settings": {
+                    "dayLengthMs": 1,
+                    "mode": "cycle",
+                    "timeZone": "string",
+                    "anchorMs": 1,
+                    "offsetMs": 1
+                  },
+                  "config": {
+                    "dayLengthMs": 1,
+                    "hoursPerDay": 1,
+                    "spans": [
+                      null
+                    ],
+                    "anchorMs": 1,
+                    "timeZone": "string"
+                  },
+                  "now": 1,
+                  "canAdvance": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.game-time",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/game-time/cycle\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/api-keys": {
       "get": {
         "operationId": "apiKeysList",
@@ -9452,6 +9974,7 @@
                 "ops.announce",
                 "ops.restart-runtime",
                 "ops.retention",
+                "ops.game-time",
                 "security.read",
                 "security.revoke-key",
                 "economy.read",
@@ -12089,6 +12612,172 @@
           "players"
         ]
       },
+      "AdvanceClockDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "stepMs": {
+            "type": "number",
+            "description": "The step in milliseconds: 1 minute, 1 hour or 1 day"
+          }
+        },
+        "required": [
+          "reason",
+          "stepMs"
+        ]
+      },
+      "GameTimeSettingsModel": {
+        "type": "object",
+        "properties": {
+          "dayLengthMs": {
+            "type": "number"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "cycle",
+              "realWorld"
+            ]
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          },
+          "anchorMs": {
+            "type": "number"
+          },
+          "offsetMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "dayLengthMs",
+          "mode",
+          "timeZone",
+          "anchorMs",
+          "offsetMs"
+        ]
+      },
+      "DayPhaseSpanResponse": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "night",
+              "morning",
+              "day",
+              "evening"
+            ]
+          },
+          "fromHour": {
+            "type": "number",
+            "description": "In-game hour at which this part of the day starts"
+          },
+          "sunlight": {
+            "type": "number",
+            "description": "How much sun reaches solar panels, from 0 to 1"
+          }
+        },
+        "required": [
+          "phase",
+          "fromHour",
+          "sunlight"
+        ]
+      },
+      "GameTimeConfigResponse": {
+        "type": "object",
+        "properties": {
+          "dayLengthMs": {
+            "type": "number",
+            "description": "One in-game day in real milliseconds; the world clock counts from the Unix epoch"
+          },
+          "hoursPerDay": {
+            "type": "number"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DayPhaseSpanResponse"
+            }
+          },
+          "anchorMs": {
+            "type": "number",
+            "description": "The game clock instant at which the in-game time is 00:00"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The IANA time zone whose wall-clock time the game shows (real-world mode)"
+          }
+        },
+        "required": [
+          "dayLengthMs",
+          "hoursPerDay",
+          "spans"
+        ]
+      },
+      "GameTimeAdminResponse": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/GameTimeSettingsModel"
+          },
+          "config": {
+            "$ref": "#/components/schemas/GameTimeConfigResponse"
+          },
+          "now": {
+            "type": "number",
+            "description": "The game clock instant in milliseconds"
+          },
+          "canAdvance": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "settings",
+          "config",
+          "now",
+          "canAdvance"
+        ]
+      },
+      "ResetDatabaseDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "confirmation": {
+            "type": "string",
+            "example": "RESET",
+            "description": "The word RESET, typed to confirm"
+          }
+        },
+        "required": [
+          "reason",
+          "confirmation"
+        ]
+      },
+      "ResetDatabaseResponse": {
+        "type": "object",
+        "properties": {
+          "tablesEmptied": {
+            "type": "number"
+          },
+          "accountsErased": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "tablesEmptied",
+          "accountsErased"
+        ]
+      },
       "RemoveTestPlayersResponse": {
         "type": "object",
         "properties": {
@@ -13723,64 +14412,6 @@
           "points"
         ]
       },
-      "DayPhaseSpanResponse": {
-        "type": "object",
-        "properties": {
-          "phase": {
-            "type": "string",
-            "enum": [
-              "night",
-              "morning",
-              "day",
-              "evening"
-            ]
-          },
-          "fromHour": {
-            "type": "number",
-            "description": "In-game hour at which this part of the day starts"
-          },
-          "sunlight": {
-            "type": "number",
-            "description": "How much sun reaches solar panels, from 0 to 1"
-          }
-        },
-        "required": [
-          "phase",
-          "fromHour",
-          "sunlight"
-        ]
-      },
-      "GameTimeConfigResponse": {
-        "type": "object",
-        "properties": {
-          "dayLengthMs": {
-            "type": "number",
-            "description": "One in-game day in real milliseconds; the world clock counts from the Unix epoch"
-          },
-          "hoursPerDay": {
-            "type": "number"
-          },
-          "spans": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DayPhaseSpanResponse"
-            }
-          },
-          "anchorMs": {
-            "type": "number",
-            "description": "The game clock instant at which the in-game time is 00:00"
-          },
-          "timeZone": {
-            "type": "string",
-            "description": "The IANA time zone whose wall-clock time the game shows (real-world mode)"
-          }
-        },
-        "required": [
-          "dayLengthMs",
-          "hoursPerDay",
-          "spans"
-        ]
-      },
       "GameTimeResponse": {
         "type": "object",
         "properties": {
@@ -13795,6 +14426,65 @@
         "required": [
           "now",
           "config"
+        ]
+      },
+      "SetTimeOfDayDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "minuteOfDay": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1439,
+            "description": "Minutes from 00:00; 990 is 16:30"
+          }
+        },
+        "required": [
+          "reason",
+          "minuteOfDay"
+        ]
+      },
+      "SetDayLengthDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "dayLengthMs": {
+            "type": "number",
+            "minimum": 60000,
+            "maximum": 86400000,
+            "description": "One in-game day in real milliseconds, from 1 minute to 24 hours (the default is 24 minutes)"
+          }
+        },
+        "required": [
+          "reason",
+          "dayLengthMs"
+        ]
+      },
+      "SetRealWorldDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Kyiv",
+            "description": "An IANA time zone"
+          }
+        },
+        "required": [
+          "reason",
+          "timeZone"
         ]
       },
       "ApiKeyResponse": {

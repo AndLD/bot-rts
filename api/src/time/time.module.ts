@@ -8,21 +8,31 @@ import { GameTimeService } from './application/game-time.service'
 import { GameTimeSettingsService } from './application/game-time-settings.service'
 import { GameTimeCoreModule } from './game-time-core.module'
 import { GameTimeController } from './presentation/game-time.controller'
+import { GAME_TIME_ADMIN, GameTimeAdminController } from './presentation/game-time-admin.controller'
+import { GameTimeAdminService } from './application/game-time-admin.service'
+import { APP_CONFIG, AppConfig } from '../config/app-config'
+import { AdminModule } from '../admin/admin.module'
 
 // The game's time on the API side: what clients read, and what a change does. A change is told to the engine and then to every connected
 // client, so the clients read the new time only after the engine follows it (design §25.3, Game time).
 @Module({
-  imports: [GameTimeCoreModule, RealtimeModule],
-  controllers: [GameTimeController],
+  imports: [GameTimeCoreModule, RealtimeModule, AdminModule],
+  controllers: [GameTimeController, GameTimeAdminController],
   providers: [
     {
       provide: GameTimeService,
       inject: [GAME_CLOCK, GAME_TIME, GameTimeSettingsService],
       useFactory: (clock: Clock, time: GameTimeSource, settings: GameTimeSettingsService) =>
         new GameTimeService(clock, time, settings)
+    },
+    {
+      provide: GAME_TIME_ADMIN,
+      inject: [GameTimeSettingsService, GAME_TIME, GAME_CLOCK, APP_CONFIG],
+      useFactory: (settings: GameTimeSettingsService, time: GameTimeSource, clock: Clock, config: AppConfig) =>
+        new GameTimeAdminService(settings, time, clock, config.devTools.isEnabled)
     }
   ],
-  exports: [GameTimeService, GameTimeCoreModule]
+  exports: [GameTimeService, GameTimeCoreModule, GAME_TIME_ADMIN]
 })
 export class TimeModule implements OnModuleInit {
   constructor(

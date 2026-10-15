@@ -32,7 +32,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 10    | Market, currency, chat & transfers   | 110          | ⬜ Not started |
 | 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
 | 12    | Issues and stabilization (open-ended; issues found in use are added as tasks; **outside the MVP count**) | 5 (grows) | ⬜ Not started |
-| 13    | Observability platform (OpenTelemetry logs, Elasticsearch, the admin log search on it; **proposed 2026-10-15, outside the MVP count**) | 29 | ⬜ Not started |
+| 13    | Observability platform (OpenTelemetry logs and traces, Elasticsearch, the admin log search and trace view on it; **proposed 2026-10-15, outside the MVP count**) | 35 | ⬜ Not started |
 |        | **Total of Phases 0–11**             | **942**      | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
@@ -88,7 +88,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 10 — Market, currency, chat & transfers (110 SP)](./development-plan/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./development-plan/phase-11-energy-time-ux.md)
 - [Phase 12 — Issues and stabilization (5 SP, grows as issues are added)](./development-plan/phase-12-issues.md)
-- [Phase 13 — Observability platform (29 SP, proposed)](./development-plan/phase-13-observability-platform.md)
+- [Phase 13 — Observability platform (35 SP, proposed)](./development-plan/phase-13-observability-platform.md)
 - [Testing](./testing/README.md) (current documentation) and [testing work by phase](./testing/by-phase.md) (historical)
 - [Risk register](./development-plan/risk-register.md)
 - [Definition of Done](./development-plan/definition-of-done.md)

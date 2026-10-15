@@ -26,3 +26,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** the owner reviews the list; then 13.1 can start.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — tracing built into the phase; draft changed to 35 SP
+- **Tasks:** 13.1 to 13.7 (the draft had 13.1 to 13.6); none started
+- **Branch:** `docs/phase-13-tracing` — the plan only
+- **Decisions / deviations from the plan:** the owner asked that everything that can be connected is connected by tracing. So 13.1 now brings the **tracing core** with the logs: spans for requests, socket events, engine ticks and scheduled jobs, the trace context propagated across the API, the engine thread, the Redis link and the MCP server, and the rule that every record in a request, tick or job path carries a trace id and a span id (a test enforces it). OpenTelemetry itself does not require the ids on a log record; they are filled in only inside a span, which is why the spans and the propagation across our own boundaries are part of the task. 13.4 is new (the trace view in the console), and the decision about metrics moved to 13.6 (exemplars that link a slow request or tick to its trace). The phase is 35 SP; the total of Phases 0–11 is unchanged, since Phase 13 is outside it.
+- **Problems / blockers / findings:** none.
+- **Next step:** the owner reviews the list; then 13.1 can start.
+- **Verify with:** `npm run docs:check`

@@ -164,3 +164,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** after 9.16.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — task 9.19 added to the phase
+- **Tasks:** 9.19 (new, 5 SP, **not started**)
+- **Branch:** `docs/phase-9-retention-task` (plan change only)
+- **Decisions / deviations from the plan:** the owner asked that the cleanup of `player_activity` (left out of 9.11) become a task, and that every retention job of the game become switchable and tunable from the console, with one button to put all the values back to the defaults. The phase total becomes 124 SP, the total of Phases 0–11 becomes 931 SP. Design notes written into the task: the values are one document in the game settings that overrides the environment defaults and is read at the start of every pass; every range has a floor, the audit log is not a retention job, and switching on the erasure of inactive accounts needs a typed word. The shared logging store (OpenTelemetry and Elasticsearch) that the owner suggested is **not** a task of this phase: it is proposed as a phase of its own.
+- **Problems / blockers / findings:** none.
+- **Next step:** after 9.18.
+- **Verify with:** `npm run docs:check`

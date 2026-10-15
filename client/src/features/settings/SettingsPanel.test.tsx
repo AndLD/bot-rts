@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { makeJwt } from '../../../tests/jwt'
 import { renderApp, storeWithToken } from '../../../tests/render'
 import { baseQueryWithRefresh } from '../../shared/store/baseQuery'
@@ -18,7 +18,7 @@ const on = {
   trade: true
 }
 
-function setup(options: { status?: string; global?: object; user?: object; reducedMotion?: boolean | null } = {}) {
+function setup(options: { global?: object; user?: object; reducedMotion?: boolean | null } = {}) {
   const patches: Array<{ url: string; body: unknown }> = []
   query.mockReset()
   query.mockImplementation((async (args: { url: string; method?: string; body?: unknown }) => {
@@ -26,7 +26,6 @@ function setup(options: { status?: string; global?: object; user?: object; reduc
       patches.push({ url: args.url, body: args.body })
       return { data: {} }
     }
-    if (args.url.endsWith('/users/me')) return { data: { status: options.status ?? 'user' } }
     if (args.url.endsWith('/notifications/preferences')) {
       return { data: { categories: { attacks: true, damage: false } } }
     }
@@ -112,17 +111,6 @@ describe('SettingsPanel', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows the game settings to an admin only, and changes them', async () => {
-    const patches = setup({ status: 'admin' })
-    const game = (await screen.findByText('Game settings')).parentElement as HTMLElement
-
-    fireEvent.click(within(game).getByLabelText('Game: Combat'))
-
-    await waitFor(() =>
-      expect(patches).toContainEqual({ url: '/api/v1/admin/settings', body: { categories: { combat: false } } })
-    )
-  })
-
   it('starts the tutorial again', async () => {
     const patches = setup()
 
@@ -131,7 +119,7 @@ describe('SettingsPanel', () => {
     await waitFor(() => expect(patches).toContainEqual({ url: '/api/v1/tutorial/restart', body: undefined }))
   })
 
-  it('keeps the game settings from a regular player', async () => {
+  it('has no switches of the whole game: an admin sets them in the console', async () => {
     setup()
     await screen.findByText('Movement')
 

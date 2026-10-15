@@ -2,6 +2,7 @@ import { PRIVACY_POLICY_VERSION } from '../../lib/utils/privacy'
 import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { io as connect, Socket } from 'socket.io-client'
+import { signUpAdmin } from '../tests/integration/admin'
 import { createTestDatabase, TestDatabase } from '../tests/integration/test-database'
 import { PASSWORD, signUpVerified, startTestApp, TestApp } from '../tests/integration/test-app'
 
@@ -290,8 +291,7 @@ describe('authorization', () => {
   it('keeps the settings of the game for admins, and the settings of a player for the player', async () => {
     const alice = await signUp('alice@example.com')
     const bob = await signUp('bob@example.com', 'Bob')
-    const admin = await signUp('admin@example.com', 'Admin')
-    await database.client.user.update({ where: { id: admin.userId }, data: { status: 'admin' } })
+    const admin = await signUpAdmin(testApp, database, 'admin')
     const settings = (token: string) => api().get('/api/v1/settings').set(bearer(token))
     const patch = (token: string, body: object) => api().patch('/api/v1/settings').set(bearer(token)).send(body)
 

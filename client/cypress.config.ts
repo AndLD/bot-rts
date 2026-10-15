@@ -130,6 +130,17 @@ export default defineConfig({
           return null
         },
 
+        // An admin's switch of a category for the whole game, set as the console does (the console itself has its own spec)
+        async setGameCategory({ category, isOn }: { category: string; isOn: boolean }) {
+          await sql(
+            `INSERT INTO game_settings (key, value, updated_at) VALUES ('manualCategories', $1::jsonb, now())
+             ON CONFLICT (key) DO UPDATE SET value = game_settings.value || $1::jsonb, updated_at = now()`,
+            [JSON.stringify({ [category]: isOn })]
+          )
+
+          return null
+        },
+
         // The wireless adapter of the player's base breaks: the base becomes a corpse for its owner (design §6.3)
         async breakBaseAdapter({ email }: { email: string }) {
           await sql(

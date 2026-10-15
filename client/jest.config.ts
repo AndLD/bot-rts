@@ -6,7 +6,7 @@ const createJestConfig = nextJest({ dir: './' })
 
 const config: Config = {
   // The Ant Design components are slow to drive under coverage on a busy CI runner
-  testTimeout: 60000,
+  testTimeout: 180000,
   testEnvironment: 'jest-environment-jsdom',
   setupFiles: ['<rootDir>/jest.env.ts'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

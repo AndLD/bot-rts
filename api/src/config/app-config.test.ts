@@ -63,6 +63,11 @@ describe('loadConfig', () => {
         alertEmails: [],
         thresholds: {}
       },
+      balance: {
+        base: { resources: DEFAULT_WORLD_CONFIG.resources, crafting: DEFAULT_CRAFTING_CONFIG },
+        version: null,
+        problem: null
+      },
       observability: { metricsToken: undefined, logBufferSize: 5000 },
       lifecycle: {
         isEnabled: true,

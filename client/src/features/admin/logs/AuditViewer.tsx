@@ -10,11 +10,12 @@ import { useErrorMessage } from '../../../shared/errors'
 import { errorNotification } from '../../../shared/notifications'
 import { useToken } from '../../../shared/store/hooks'
 import { useAdminMe } from '../admin-me-context'
+import { queryOf } from './audit-query'
 
 const PAGE_SIZE = 25
 const OUTCOMES = ['success', 'denied', 'failed'] as const
 
-interface Filters {
+type Filters = {
   action?: string
   actorId?: string
   targetId?: string
@@ -22,10 +23,6 @@ interface Filters {
   from?: string
   to?: string
 }
-
-// The query string of the filters, as the list and the export both take them
-const queryOf = (filters: Filters) =>
-  new URLSearchParams(Object.entries(filters).flatMap(([key, value]) => (value ? [[key, value]] : []))).toString()
 
 // The audit trail (design §25.2): filters, the before and after of a change, and an export as CSV
 export default function AuditViewer() {

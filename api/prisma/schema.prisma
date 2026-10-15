@@ -643,3 +643,16 @@ model LoginAttempt {
   @@index([userId, at])
   @@map("login_attempts")
 }
+
+// A version of the balance of the game, edited from the admin console (design §25.3). The document holds only what differs from
+// the defaults of the server. Versions are never changed: a rollback is a new version with the document of an older one. The
+// active one is named by the game setting `balance.active`, and the server takes it at its start.
+model BalanceVersion {
+  version   Int      @id @default(autoincrement())
+  document  Json
+  reason    String
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @map("created_at") @db.Timestamptz(3)
+
+  @@map("balance_versions")
+}

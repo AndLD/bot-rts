@@ -3799,6 +3799,379 @@
         ]
       }
     },
+    "/api/v1/admin/economy": {
+      "get": {
+        "operationId": "balanceOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EconomyOverviewResponse"
+                },
+                "example": {
+                  "resources": [
+                    {
+                      "resource": "string",
+                      "deposits": 1,
+                      "remaining": 1,
+                      "capacity": 1,
+                      "stored": 1
+                    }
+                  ],
+                  "blueprints": [
+                    {
+                      "module": "string",
+                      "research": 1,
+                      "item": 1
+                    }
+                  ],
+                  "modules": [
+                    {
+                      "type": "string",
+                      "name": "string",
+                      "count": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "economy.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/economy\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/balance": {
+      "get": {
+        "operationId": "balanceState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceStateResponse"
+                },
+                "example": {
+                  "activeVersion": 1,
+                  "runningVersion": 1,
+                  "problem": "string",
+                  "documentJson": "string",
+                  "effective": [
+                    {
+                      "path": "string",
+                      "value": "string"
+                    }
+                  ],
+                  "versions": [
+                    {
+                      "version": 1,
+                      "reason": "string",
+                      "createdBy": "00000000-0000-4000-8000-000000000000",
+                      "createdAt": 1,
+                      "isActive": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "economy.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/balance\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "post": {
+        "operationId": "balanceSave",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBalanceDto"
+              },
+              "example": {
+                "reason": "string",
+                "document": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "balance.write",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/balance\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"document\":{}}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/balance/versions/{version}": {
+      "get": {
+        "operationId": "balanceVersion",
+        "parameters": [
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceVersionDocumentResponse"
+                },
+                "example": {
+                  "documentJson": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "economy.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/balance/versions/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/balance/preview": {
+      "post": {
+        "operationId": "balancePreview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BalanceDocumentDto"
+              },
+              "example": {
+                "document": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalancePreviewResponse"
+                },
+                "example": {
+                  "problems": [
+                    "string"
+                  ],
+                  "changes": [
+                    {
+                      "path": "string",
+                      "from": "string",
+                      "to": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "balance.write",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/balance/preview\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"document\":{}}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/balance/versions/{version}/rollback": {
+      "post": {
+        "operationId": "balanceRollback",
+        "parameters": [
+          {
+            "name": "version",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "balance.write",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/balance/versions/00000000-0000-4000-8000-000000000000/rollback\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
     "/api/v1/crafting/recipes": {
       "get": {
         "operationId": "craftingRecipeList",
@@ -5802,6 +6175,7 @@
         "tags": [
           "admin"
         ],
+        "x-admin-permission": "economy.read",
         "x-api-key-scope": "none (session only)",
         "x-codeSamples": [
           {
@@ -5878,6 +6252,7 @@
         "tags": [
           "admin"
         ],
+        "x-admin-permission": "balance.write",
         "x-api-key-scope": "none (session only)",
         "x-codeSamples": [
           {
@@ -9520,6 +9895,272 @@
           "apiKeys",
           "suspiciousScripts",
           "topConsumers"
+        ]
+      },
+      "EconomyStatModel": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string"
+          },
+          "deposits": {
+            "type": "number"
+          },
+          "remaining": {
+            "type": "number"
+          },
+          "capacity": {
+            "type": "number"
+          },
+          "stored": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "resource",
+          "deposits",
+          "remaining",
+          "capacity",
+          "stored"
+        ]
+      },
+      "BlueprintStatModel": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "research": {
+            "type": "number"
+          },
+          "item": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "module",
+          "research",
+          "item"
+        ]
+      },
+      "ModuleStatModel": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "count"
+        ]
+      },
+      "EconomyOverviewResponse": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EconomyStatModel"
+            }
+          },
+          "blueprints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlueprintStatModel"
+            }
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleStatModel"
+            }
+          }
+        },
+        "required": [
+          "resources",
+          "blueprints",
+          "modules"
+        ]
+      },
+      "BalanceValueModel": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "value"
+        ]
+      },
+      "BalanceVersionModel": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "reason",
+          "createdBy",
+          "createdAt",
+          "isActive"
+        ]
+      },
+      "BalanceStateResponse": {
+        "type": "object",
+        "properties": {
+          "activeVersion": {
+            "type": "number",
+            "nullable": true
+          },
+          "runningVersion": {
+            "type": "number",
+            "nullable": true
+          },
+          "problem": {
+            "type": "string",
+            "nullable": true,
+            "description": "Why the stored version could not be used, when it could not"
+          },
+          "documentJson": {
+            "type": "string"
+          },
+          "effective": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceValueModel"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceVersionModel"
+            }
+          }
+        },
+        "required": [
+          "activeVersion",
+          "runningVersion",
+          "problem",
+          "documentJson",
+          "effective",
+          "versions"
+        ]
+      },
+      "BalanceVersionDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "documentJson": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "documentJson"
+        ]
+      },
+      "BalanceDocumentDto": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            },
+            "description": "Only what differs from the defaults: resources, recipes, crafting"
+          }
+        },
+        "required": [
+          "document"
+        ]
+      },
+      "BalanceChangeModel": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string",
+            "nullable": true
+          },
+          "to": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "path",
+          "from",
+          "to"
+        ]
+      },
+      "BalancePreviewResponse": {
+        "type": "object",
+        "properties": {
+          "problems": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceChangeModel"
+            }
+          }
+        },
+        "required": [
+          "problems",
+          "changes"
+        ]
+      },
+      "SaveBalanceDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "document": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            },
+            "description": "Only what differs from the defaults: resources, recipes, crafting"
+          }
+        },
+        "required": [
+          "reason",
+          "document"
         ]
       },
       "RecipeResourceResponse": {

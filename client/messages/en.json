@@ -447,9 +447,6 @@
       "reduced": "Reduced",
       "full": "Full"
     },
-    "gameSettings": "Game settings",
-    "gameSettingsHelp": "What is off here is off for every player.",
-    "gamePrefix": "Game: ",
     "tutorial": "Tutorial",
     "restartTutorial": "Show the tutorial again"
   },
@@ -1030,7 +1027,8 @@
       "map": "World map",
       "supervision": "Supervision",
       "logs": "Logs and audit",
-      "security": "Security"
+      "security": "Security",
+      "economy": "Economy and balance"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1389,6 +1387,71 @@
       "engineDown": "The engine does not answer",
       "opsUsed": "Ops used",
       "ticks": "Ticks running"
+    },
+    "economy": {
+      "tabs": {
+        "overview": "Economy",
+        "balance": "Balance",
+        "switches": "Game switches"
+      },
+      "overview": {
+        "loadFailed": "Could not load the economy",
+        "resources": "Resources",
+        "resource": "Resource",
+        "deposits": "Deposits",
+        "remaining": "Left in deposits",
+        "share": "Of what they held",
+        "stored": "Carried by bases and bots",
+        "blueprints": "Blueprints learned (players)",
+        "module": "Module",
+        "research": "By research",
+        "item": "From items",
+        "modules": "Modules that exist",
+        "type": "Type",
+        "count": "Count"
+      },
+      "balance": {
+        "loadFailed": "Could not load the balance",
+        "problem": "The stored version could not be used and the defaults are running: {problem}",
+        "active": "Active version: {version}",
+        "afterRestart": "Running version {version} until the server restarts",
+        "document": "Balance document",
+        "notJson": "The document must be a JSON object",
+        "validate": "Check and compare",
+        "save": "Save as a new version",
+        "problems": "The document has problems",
+        "changes": "What it changes",
+        "noChanges": "Nothing differs from the active version",
+        "path": "Setting",
+        "from": "Was",
+        "to": "Becomes",
+        "versions": "Versions",
+        "version": "Version",
+        "activeTag": "active",
+        "reason": "Reason",
+        "createdAt": "Saved",
+        "view": "Open",
+        "rollback": "Roll back",
+        "effective": "What the game uses now",
+        "value": "Value",
+        "rollbackTitle": "Roll back to version {version}",
+        "saveTitle": "Save the balance as a new version",
+        "defaultsName": "defaults"
+      },
+      "switches": {
+        "loadFailed": "Could not load the switches",
+        "help": "What is off here is off for every player.",
+        "categories": {
+          "movement": "Movement",
+          "combat": "Combat",
+          "extraction": "Extraction",
+          "logistics": "Logistics",
+          "fabrication": "Fabrication",
+          "maintenance": "Maintenance",
+          "communication": "Communication",
+          "trade": "Trade"
+        }
+      }
     }
   }
 }

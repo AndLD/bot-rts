@@ -1,9 +1,10 @@
 import { createApp } from './app.factory'
+import { withActiveBalance } from './balance/infrastructure/boot-balance'
 import { loadConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
 
 export async function bootstrap(env: Record<string, string | undefined>) {
-  const config = loadConfig(env)
+  const config = await withActiveBalance(loadConfig(env))
   const app = await createApp(config)
 
   app.enableShutdownHooks()

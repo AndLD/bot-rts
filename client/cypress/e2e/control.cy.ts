@@ -109,15 +109,13 @@ describe('the control panel and the switches of manual control', () => {
     act('enable', ['not-a-module']).its('status').should('not.equal', 403)
   })
 
-  it('lets an admin switch a category off for the whole game, which no player can switch on again', () => {
-    cy.task('setUserStatus', { email, status: 'admin' })
+  it('shows a category the game switched off, which no player can switch on again', () => {
+    cy.task('setGameCategory', { category: 'fabrication', isOn: false })
     cy.reload()
     cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
     openSettings()
 
     cy.contains('.game-window', 'Settings').within(() => {
-      cy.contains('h4', 'Game settings')
-      cy.get('[aria-label="Game: Fabrication"]').click()
       cy.contains('off in the game')
     })
 
@@ -139,8 +137,11 @@ describe('the control panel and the switches of manual control', () => {
       .its('body.code')
       .should('equal', 'MANUAL_CATEGORY_DISABLED')
 
+    cy.task('setGameCategory', { category: 'fabrication', isOn: true })
+    cy.reload()
+    cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
+    openSettings()
     cy.contains('.game-window', 'Settings').within(() => {
-      cy.get('[aria-label="Game: Fabrication"]').click()
       cy.contains('off in the game').should('not.exist')
     })
   })

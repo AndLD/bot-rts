@@ -178,6 +178,43 @@ M14, traceability: join design section ids (`docs/game-design/NN-*.md`) with the
 `docs/development-plan/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
 tasks that cite no section.
 
+### M16 to M19: open items, completeness, progress
+
+Forms in which this repository records open items (search all of them):
+
+| Form                         | Where                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| Official open-questions list | `docs/game-design/20-open-questions.md` (currently declares "none")                             |
+| Backlog (deferred by design) | `docs/game-design/21-backlog.md`                                                                |
+| Planned and partial markers  | `🔴` and `🟡` in `docs/game-design/*.md` and `docs/GAME-DESIGN.md`                              |
+| Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
+| Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phase-*.md`; open tasks named in work logs ("next step") |
+| Risks                        | `docs/development-plan/risk-register.md`                                                        |
+| Decision log (archived)      | `docs/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
+| Known issues                 | `docs/testing/known-issues.md`                                                                  |
+
+```bash
+grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
+grep -rcE '🔴' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
+grep -rcE '🟡' docs/game-design docs/GAME-DESIGN.md | grep -v ':0'
+grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phase-*.md
+```
+
+Formulas (record the variant used; keep it fixed between reviews so the trend is comparable):
+
+- **M17 Documented %** = decided claims ÷ (decided claims + open claims), taken from the claims ledger of M12 over the whole
+  product specification, where an open claim is one inside an open item, a 🔴 section without a decided design, or a gap found by
+  D11. A section marked planned but fully specified counts as decided: planned is about building, not about writing.
+  Report the per-context split and a simple section-based variant (sections with no open item ÷ all sections).
+- **M18 Delivered %** = two figures: story points of ✅ tasks ÷ total story points of `docs/DEVELOPMENT-PLAN.md` (the
+  summary table, counting the growing open-ended phase at its current size); and the weighted status markers of the
+  specification (`✅` = 1, `🟡` = 0.5, `🔴` = 0). Delivered counts only items whose definition of done holds (merged, tested).
+- **M19 Ready to build next %** = for the next not-started or in-progress phase, tasks whose cited specification sections and
+  contexts contain no blocking open item ÷ all tasks of that phase.
+
+The two views answer different questions and must not be merged: *documented* says how much is known, *delivered* says how
+much exists.
+
 ### M11: cold-start probes
 
 Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this

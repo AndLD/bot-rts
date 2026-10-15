@@ -23,19 +23,21 @@ The **harness** is:
 
 The **product knowledge** (the product specification and everything that states what the product is and must do) is in
 scope in two ways: its *structure* (layers, language, duplication; D1 to D3) and its *logical integrity* (D11: whether it is
-consistent, complete and buildable as written).
+consistent, complete and buildable as written) and its *completeness* (D12: what is still open, and how much of the product is
+specified and delivered).
 
 Not reviewed: product source code (reviewed separately) and whether a product decision is *good* (taste, fun, market fit,
 balance quality). A decision that contradicts another decision, or a number that cannot hold under the specification's own
 rules, is a D11 finding; an opinion that a number should be different is not.
 
-**Goal of the review:** answer five questions with evidence.
+**Goal of the review:** answer six questions with evidence.
 
 1. Does an agent that starts cold do the right thing, quickly, with little context? (effectiveness)
 2. Is each rule and fact written once, in the right place, and true today? (integrity)
 3. Can the business knowledge be separated from the infrastructure that serves it? (architecture)
 4. Could the generic part be extracted and injected into a new project? (blueprint readiness)
 5. Is the product knowledge free of contradictions and gaps, so that someone can build from it without guessing? (product integrity)
+6. How much of the product is specified, how much is delivered, and what remains open or undecided? (completeness and progress)
 
 ---
 
@@ -159,6 +161,29 @@ D2 judges how the knowledge is *organized*; D11 judges whether it is *true to it
 Evidence: the claims ledger and checks of section 4, step 4b; M12 to M15.
 `1` contradictions in core rules, undefined terms in common use · `3` a few known gaps, invariants mostly hold, traceability partial · `5` the ledger shows no open contradiction or gap, traceability is complete and mechanically checked.
 
+**D12 Open items and completeness.** Are all open questions, uncertainties and documentation to-dos registered, owned and
+moving, and how complete is the product? D12 is scored on how well open items are *managed*; the completeness
+percentages below are *reported measures*, not scores.
+
+An **open item** is anything the knowledge admits it does not settle, in any form: an entry in the open-questions or
+uncertainties list, a backlog entry, a to-do, "to be decided" or "unknown" marker, a section marked planned or partial, a
+question a gap probe could not answer, a decision recorded only in a log. Review steps:
+
+1. *Register.* Collect every open item from every form and place it in one inventory (section 4, step 4c).
+2. *Reconcile declared against hidden.* Compare the inventory with the official list. Open items that exist in the text but
+   not in the official list are **hidden**; entries that were resolved but still listed are **stale**. A list that says
+   "none" while hidden items exist is a finding.
+3. *Classify each item*: kind (needs a decision · needs research · deferred by design · out of scope), whether it **blocks**
+   a planned delivery item (and which), age, owner (or none), and the document that would hold the answer.
+4. *Evaluate*: blockers of the next delivery milestones first; items older than the cadence; items with no owner; items whose
+   only record is a chat or a log.
+5. *Measure completeness* with the two percentages and the readiness figure of M16 to M19, always shown together:
+   **documented** (how much of the product scope is decided in writing), **delivered** (how much is built and verified), and
+   **ready to build next** (the share of the next milestone's items whose specification has no blocking open item).
+
+`1` open items scattered and unregistered, blockers unknown · `3` an official list exists, partial, some hidden items ·
+`5` every open item is registered with kind, owner and blocker status, none hidden or stale, percentages reproducible.
+
 ### Blueprint readiness (derived, not a dimension)
 
 A verdict from D1, D3, D4, D6 plus an **export dry run** (section 4, step 6): list what would be copied to a new project
@@ -169,7 +194,8 @@ belong in CORE. Also list the **extraction blockers**.
 ### Targets and gates
 
 Targets: every dimension `4`, D1, D3 and D7 `5` before the blueprint is extracted. A review fails its gate when any
-dimension is `1` or `2`, or when D8, D9 or D11 contains a finding that makes an agent or a builder act wrongly (🔴).
+dimension is `1` or `2`, or when D8, D9 or D11 contains a finding that makes an agent or a builder act wrongly (🔴), or when D12 shows a hidden open
+item that blocks the next milestone.
 
 ---
 
@@ -185,9 +211,9 @@ report is approved.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
    that fits no layer, or fits two, is a D1/D4 finding.
-3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M15). Quote the command and
+3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M19). Quote the command and
    the date so the run can be repeated. Measurements are evidence, not verdicts: a hit is judged in context.
-4. **Review by dimension.** Go through D1 to D11, collect evidence, write findings (section 5), then score.
+4. **Review by dimension.** Go through D1 to D12, collect evidence, write findings (section 5), then score.
    - **4b. Product integrity pass (D11).** Treat the product knowledge as a system to be checked, not text to be skimmed:
      1. *Partition* the corpus into bounded contexts (`bindings.md` lists them). A full review reads **every** section; record
         coverage (sections read of total). A delta review reads the changed sections and every section that references them.
@@ -205,6 +231,11 @@ report is approved.
      6. *Report only provable findings*: a contradiction quotes **both** statements with their locations; a gap states the
         exact question the knowledge cannot answer; a feasibility finding shows the arithmetic. Anything that depends on taste
         is dropped.
+   - **4c. Open-item inventory and completeness (D12).** Build the inventory of section 3 (D12) as a table with one row per
+     open item: id, location, form, kind, blocks (plan item or none), age, owner, declared (yes or hidden or stale). Search every
+     form with the patterns in `bindings.md`, read the official lists in full, and add the items the gap probes and the claims
+     ledger surfaced. Then compute M16 to M19. Do not decide open items during the review; list them with the question that
+     must be answered and the owner who can answer it.
 5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only subagents that receive only the task text
    and the repository (no conversation context). Record the files each read, the first action it took, and any wrong or
    uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
@@ -225,8 +256,9 @@ One finding per problem, so it can become one task.
 | -------------- | --------------------------------------------------------------------------------------------- |
 | ID             | `H-<YYYYMMDD>-<nn>`                                                                           |
 | Severity       | 🔴 an agent or builder acts wrongly, a rule is false, or two core rules contradict · 🟠 blocks blueprint extraction, wastes major context, or leaves a planned feature unbuildable without a decision · 🟡 maintainability · 🔵 polish |
-| Dimension      | D1 to D11                                                                                     |
+| Dimension      | D1 to D12                                                                                     |
 | Kind (D11)     | contradiction · gap · duplication · invariant · terminology · status · traceability · feasibility |
+| Kind (D12)     | hidden open item · stale open item · unowned · blocker · unregistered decision                   |
 | Evidence       | `path:line` or the measured number; for a contradiction, both statements with locations; for a gap, the unanswerable question |
 | Why it matters | The concrete failure for an agent, a maintainer or the export                                 |
 | Fix            | The smallest change that removes it, naming the target layer and file                         |
@@ -246,6 +278,7 @@ does not undo it.
 | First review, and before extracting the blueprint                                     | **Full**: all dimensions, probes, dry run     |
 | End of each plan milestone                                                    | **Delta**: layers touched since the last report, D8, D10, one probe |
 | Product knowledge changed (sections added or edited)                                  | **Delta D11**: changed sections plus their referrers, all invariants, traceability |
+| End of each plan milestone and before starting the next                              | **Delta D12**: refresh the inventory and M16 to M19, report the trend of the percentages |
 | After a large change to an entry point, the hooks, CI, or the layer structure          | **Delta** on the affected dimensions          |
 | A probe or a real session shows an agent misreading the harness                         | **Targeted**: the failing scenario and the owning document |
 
@@ -266,8 +299,9 @@ A delta report states which dimensions it did not re-score and carries their pre
 | ---------- | ------------------------------------------------------- |
 | 2026-10-15 | First version: layers, dimensions D1–D10, procedure.    |
 | 2026-10-15 | Product knowledge integrity (D11, claims ledger, M12–M15) added to scope. |
+| 2026-10-15 | Open items and completeness (D12, M16–M19) added: inventory, declared against hidden, documented and delivered percentages. |
 
-### Measurements (M1 to M15) in one line each
+### Measurements (M1 to M19) in one line each
 
 | Id  | Measurement                                                                                  |
 | --- | -------------------------------------------------------------------------------------------- |
@@ -286,3 +320,7 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M13 | Contradictions and gaps found, by kind and context                                           |
 | M14 | Traceability: requirements without a plan item or test; plan items and tests without a requirement |
 | M15 | Unresolved cross-references and undefined terms (mechanical)                                 |
+| M16 | Open-item inventory: count by form, kind, blocker status, age, owner; declared, hidden and stale counts |
+| M17 | **Documented %**: decided share of the product scope (formula in `bindings.md`)               |
+| M18 | **Delivered %**: built-and-verified share of the product scope and of the plan                |
+| M19 | **Ready to build next %**: items of the next milestone whose specification has no blocking open item |

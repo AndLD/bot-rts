@@ -22,6 +22,7 @@ Scale `1` (poor) to `5` (excellent). Carried scores (delta reviews) are marked `
 | D9 Clarity and actionability       |          |         | 4      |       |
 | D10 State and resumability         |          |         | 4      |       |
 | D11 Product integrity              |          |         | 4      |       |
+| D12 Open items and completeness    |          |         | 4      |       |
 | **Blueprint readiness**            |          | `%`     | 90 %   |       |
 
 Gate: pass | fail (reason).
@@ -64,7 +65,25 @@ Traceability counts (M14). Gap-probe results (P6).
 | Context | Sections | Claims | Contradictions | Gaps | Other |
 | ------- | -------- | ------ | -------------- | ---- | ----- |
 
-## 8. Export dry run
+## 8. Open items and completeness (D12)
+
+Headline numbers, always together:
+
+| Measure                | This review | Previous | Trend |
+| ---------------------- | ----------- | -------- | ----- |
+| Documented % (M17)     |             |          |       |
+| Delivered % (M18)      |             |          |       |
+| Ready to build next % (M19) |        |          |       |
+| Open items (M16)       | declared / hidden / stale |  |      |
+
+Inventory (one row per open item):
+
+| Id | Location | Form | Kind | Blocks | Age | Owner | Declared |
+| -- | -------- | ---- | ---- | ------ | --- | ----- | -------- |
+
+Evaluation: blockers of the next milestones, items without owner, the questions that must be answered and by whom.
+
+## 9. Export dry run
 
 | Bucket                                   | Content |
 | ---------------------------------------- | ------- |
@@ -74,7 +93,7 @@ Traceability counts (M14). Gap-probe results (P6).
 | Drop (DOMAIN, STATE)                     |         |
 | Extraction blockers                      |         |
 
-## 9. Follow-up
+## 10. Follow-up
 
 | Finding | Action (task id, pull request or backlog item) | Owner |
 | ------- | ---------------------------------------------- | ----- |

@@ -1,3 +1,5 @@
+export {}
+
 const REASON = 'following support ticket 4711'
 const bearer = (token: string) => ({ Authorization: `Bearer ${token}` })
 

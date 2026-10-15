@@ -20,6 +20,7 @@ import {
 } from '../../../shared/api'
 import { useAdminMe } from '../admin-me-context'
 import ActionModal, { ActionValues } from '../players/ActionModal'
+import RetentionCard from './RetentionCard'
 import { useReportFailure } from '../use-report-failure'
 
 const MINUTE_MS = 60_000
@@ -161,6 +162,8 @@ export default function OperationsPage() {
           ]}
         />
       </Card>
+
+      <RetentionCard />
 
       <Card size="small" title={t('backup.title')}>
         {!backup.isConfigured ? (

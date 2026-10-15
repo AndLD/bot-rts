@@ -27,6 +27,9 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   document with examples; the stability and deprecation policy (docs/integrations/API.md).
 - The MCP server (`mcp/`): about 50 tools, stdio and streamable HTTP, per-client keys (docs/integrations/MCP.md).
 - The web client on Vercel: cookie settings, preview-deployment origins, security headers (docs/operations/DEPLOYMENT.md).
+- Admin console, retention settings: every retention job (terminal lines, executions, notifications, expired logins, unverified and
+  inactive accounts, player activity, monitoring history) can be switched and tuned from the Operations page and reset in one click;
+  the new cleanup of `player_activity` (`PLAYER_ACTIVITY_RETENTION_DAYS`, 400 days); new permission `ops.retention`.
 - Admin console, feature switches: sign-ups, base deployment, API keys, spawn seeds and the public API can be switched off from the
   Economy page with a reason (`FEATURE_DISABLED`, public `GET /api/v1/features`, `FEATURE_SWITCH_CACHE_MS`).
 - Admin console, view as player: owners and admins open the game as a chosen player sees it, read-only (enforced on the server by

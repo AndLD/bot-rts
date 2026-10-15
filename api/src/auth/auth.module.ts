@@ -27,6 +27,8 @@ import {
   AuthMailer,
   LOGIN_ATTEMPT_LOG,
   LoginAttemptLog,
+  PLAYER_ACTIVITY_LOG,
+  PlayerActivityLog,
   CREDENTIAL_REPOSITORY,
   IDENTITY_REPOSITORY,
   IdentityRepository,
@@ -45,6 +47,7 @@ import { EmailAuthMailer } from './infrastructure/email-auth-mailer'
 import { JwtAccessTokenService } from './infrastructure/jwt-access-token.service'
 import { PrismaCredentialRepository } from './infrastructure/prisma-credential.repository'
 import { PrismaLoginAttemptLog } from './infrastructure/prisma-login-attempt.log'
+import { PrismaPlayerActivityLog } from './infrastructure/prisma-player-activity.log'
 import { PrismaIdentityRepository } from './infrastructure/prisma-identity.repository'
 import { PrismaSessionRepository } from './infrastructure/prisma-session.repository'
 import { AuthController, REFRESH_COOKIE_OPTIONS } from './presentation/auth.controller'
@@ -78,6 +81,11 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
       provide: LOGIN_ATTEMPT_LOG,
       inject: [PRISMA_CLIENT],
       useFactory: (c: PrismaClient) => new PrismaLoginAttemptLog(c)
+    },
+    {
+      provide: PLAYER_ACTIVITY_LOG,
+      inject: [PRISMA_CLIENT],
+      useFactory: (c: PrismaClient) => new PrismaPlayerActivityLog(c)
     },
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
     { provide: SECRET_GENERATOR, useClass: CryptoSecretGenerator },
@@ -116,7 +124,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
         CLOCK,
         APP_CONFIG,
         LOGGER,
-        LOGIN_ATTEMPT_LOG
+        LOGIN_ATTEMPT_LOG,
+        PLAYER_ACTIVITY_LOG
       ],
       useFactory: (
         unitOfWork: UnitOfWork,
@@ -128,7 +137,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
         clock: Clock,
         config: AppConfig,
         logger: Logger,
-        attempts: LoginAttemptLog
+        attempts: LoginAttemptLog,
+        activity: PlayerActivityLog
       ) =>
         new LocalAuthService({
           unitOfWork,
@@ -140,7 +150,8 @@ import { SocketAuthGateway } from './presentation/socket-auth.gateway'
           clock,
           policy: config.auth.policy,
           logger,
-          attempts
+          attempts,
+          activity
         })
     },
     {

@@ -22,7 +22,14 @@ import { LocalCredential } from '../domain/local-credential'
 import { isSessionActive } from '../domain/session'
 import { CredentialAuthService, LoginInput, RegisterInput, SessionTokens } from './credential-auth.service'
 import { LoginOutcome } from '../domain/login-attempt'
-import { AccessTokenService, AuthMailer, LoginAttemptLog, PasswordHasher, SecretGenerator } from './ports'
+import {
+  AccessTokenService,
+  AuthMailer,
+  LoginAttemptLog,
+  PasswordHasher,
+  PlayerActivityLog,
+  SecretGenerator
+} from './ports'
 
 export interface LocalAuthDependencies {
   unitOfWork: UnitOfWork
@@ -35,6 +42,7 @@ export interface LocalAuthDependencies {
   policy: AuthPolicy
   logger: Logger
   attempts: LoginAttemptLog
+  activity: PlayerActivityLog
 }
 
 function normalizeEmail(email: string): string {
@@ -116,6 +124,7 @@ export class LocalAuthService implements CredentialAuthService {
     try {
       const { tokens, userId } = await this.authenticate(input)
       await this.record(input, 'success', userId)
+      await this.noteActivity(userId)
 
       return tokens
     } catch (error) {
@@ -142,6 +151,15 @@ export class LocalAuthService implements CredentialAuthService {
     })
   }
 
+  // Like the attempt, the day of activity is only a record: failing to write it never changes the answer
+  private async noteActivity(userId: string) {
+    try {
+      await this.deps.activity.touch(userId, this.deps.clock.now())
+    } catch (error) {
+      this.deps.logger.error(error)
+    }
+  }
+
   // Writing the attempt down must never change the answer to the one who tried
   private async record({ email, ip, userAgent }: LoginInput, outcome: LoginOutcome, userId: string | null) {
     try {
@@ -160,7 +178,8 @@ export class LocalAuthService implements CredentialAuthService {
   }
 
   async refresh(refreshToken: string): Promise<SessionTokens> {
-    return this.deps.unitOfWork.run(async (repositories) => {
+    let userId = ''
+    const tokens = await this.deps.unitOfWork.run(async (repositories) => {
       const now = this.deps.clock.now()
       const session = await repositories.sessions.findByRefreshTokenHash(this.deps.secrets.hash(refreshToken))
 
@@ -183,11 +202,16 @@ export class LocalAuthService implements CredentialAuthService {
         expiresAt: new Date(now.getTime() + this.deps.policy.sessionTtlMs)
       })
 
+      userId = user.id
+
       return {
         accessToken: this.deps.accessTokens.sign({ userId: user.id, sessionId: session.id }),
         refreshToken: nextRefreshToken
       }
     })
+    await this.noteActivity(userId)
+
+    return tokens
   }
 
   async logout(refreshToken: string): Promise<void> {

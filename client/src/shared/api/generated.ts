@@ -400,6 +400,23 @@ const injectedRtkApi = api.injectEndpoints({
     maintenanceStatus: build.query<MaintenanceStatusApiResponse, MaintenanceStatusApiArg>({
       query: () => ({ url: `/api/v1/maintenance` })
     }),
+    analyticsReport: build.query<AnalyticsReportApiResponse, AnalyticsReportApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/analytics`,
+        params: {
+          days: queryArg.days
+        }
+      })
+    }),
+    analyticsExport: build.query<AnalyticsExportApiResponse, AnalyticsExportApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/analytics/export`,
+        params: {
+          days: queryArg.days,
+          report: queryArg.report
+        }
+      })
+    }),
     devToolsStatus: build.query<DevToolsStatusApiResponse, DevToolsStatusApiArg>({
       query: () => ({ url: `/api/v1/admin/devtools` })
     }),
@@ -969,6 +986,17 @@ export type OperationsRestartRuntimeApiArg = {
 }
 export type MaintenanceStatusApiResponse = /** status 200  */ MaintenanceStatusResponse
 export type MaintenanceStatusApiArg = void
+export type AnalyticsReportApiResponse = /** status 200  */ AnalyticsResponse
+export type AnalyticsReportApiArg = {
+  /** The window, in days */
+  days?: 7 | 30 | 90
+}
+export type AnalyticsExportApiResponse = /** status 200 CSV */ string
+export type AnalyticsExportApiArg = {
+  /** The window, in days */
+  days?: 7 | 30 | 90
+  report: 'activity' | 'retention' | 'funnel' | 'achievements'
+}
 export type DevToolsStatusApiResponse = /** status 200  */ DevToolsStatusResponse
 export type DevToolsStatusApiArg = void
 export type DevToolsSeedWorldApiResponse = /** status 200  */ SeedWorldResponse
@@ -1862,6 +1890,42 @@ export type MaintenanceStatusResponse = {
   isPaused: boolean
   banner: MaintenanceBannerModel | null
 }
+export type ActivityDayModel = {
+  /** UTC day, like 2026-10-15 */
+  day: string
+  users: number
+}
+export type ActivityStatsModel = {
+  daily: ActivityDayModel[]
+  dau: number
+  mau: number
+}
+export type RetentionCohortModel = {
+  /** The Monday of the week of sign-up */
+  cohort: string
+  size: number
+  d1: number | null
+  d7: number | null
+  d30: number | null
+}
+export type FunnelStatModel = {
+  step: 'signedUp' | 'verified' | 'baseDeployed' | 'firstScript' | 'firstResource' | 'tutorialCompleted'
+  users: number
+}
+export type AchievementRateModel = {
+  id: string
+  unlocked: number
+  /** Of all players, 0 to 1 */
+  share: number
+}
+export type AnalyticsResponse = {
+  days: number
+  players: number
+  activity: ActivityStatsModel
+  retention: RetentionCohortModel[]
+  funnel: FunnelStatModel[]
+  achievements: AchievementRateModel[]
+}
 export type DevToolsStatusResponse = {
   isEnabled: boolean
 }
@@ -2467,6 +2531,8 @@ export const {
   useOperationsClearBannerMutation,
   useOperationsRestartRuntimeMutation,
   useMaintenanceStatusQuery,
+  useAnalyticsReportQuery,
+  useAnalyticsExportQuery,
   useDevToolsStatusQuery,
   useDevToolsSeedWorldMutation,
   useDevToolsRemoveTestPlayersMutation,

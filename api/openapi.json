@@ -4522,6 +4522,176 @@
         ]
       }
     },
+    "/api/v1/admin/analytics": {
+      "get": {
+        "operationId": "analyticsReport",
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "description": "The window, in days",
+            "schema": {
+              "default": 30,
+              "type": "number",
+              "enum": [
+                7,
+                30,
+                90
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsResponse"
+                },
+                "example": {
+                  "days": 1,
+                  "players": 1,
+                  "activity": {
+                    "daily": [
+                      null
+                    ],
+                    "dau": 1,
+                    "mau": 1
+                  },
+                  "retention": [
+                    {
+                      "cohort": "string",
+                      "size": 1,
+                      "d1": 1,
+                      "d7": 1,
+                      "d30": 1
+                    }
+                  ],
+                  "funnel": [
+                    {
+                      "step": "signedUp",
+                      "users": 1
+                    }
+                  ],
+                  "achievements": [
+                    {
+                      "id": "string",
+                      "unlocked": 1,
+                      "share": 1
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "analytics.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/analytics\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/export": {
+      "get": {
+        "operationId": "analyticsExport",
+        "parameters": [
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "description": "The window, in days",
+            "schema": {
+              "default": 30,
+              "type": "number",
+              "enum": [
+                7,
+                30,
+                90
+              ]
+            }
+          },
+          {
+            "name": "report",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "activity",
+                "retention",
+                "funnel",
+                "achievements"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "string"
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "analytics.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/analytics/export\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/devtools": {
       "get": {
         "operationId": "devToolsStatus",
@@ -10934,6 +11104,158 @@
         "required": [
           "isPaused",
           "banner"
+        ]
+      },
+      "ActivityDayModel": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "description": "UTC day, like 2026-10-15"
+          },
+          "users": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "day",
+          "users"
+        ]
+      },
+      "ActivityStatsModel": {
+        "type": "object",
+        "properties": {
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityDayModel"
+            }
+          },
+          "dau": {
+            "type": "number"
+          },
+          "mau": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "daily",
+          "dau",
+          "mau"
+        ]
+      },
+      "RetentionCohortModel": {
+        "type": "object",
+        "properties": {
+          "cohort": {
+            "type": "string",
+            "description": "The Monday of the week of sign-up"
+          },
+          "size": {
+            "type": "number"
+          },
+          "d1": {
+            "type": "number",
+            "nullable": true
+          },
+          "d7": {
+            "type": "number",
+            "nullable": true
+          },
+          "d30": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "cohort",
+          "size",
+          "d1",
+          "d7",
+          "d30"
+        ]
+      },
+      "FunnelStatModel": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": [
+              "signedUp",
+              "verified",
+              "baseDeployed",
+              "firstScript",
+              "firstResource",
+              "tutorialCompleted"
+            ]
+          },
+          "users": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "step",
+          "users"
+        ]
+      },
+      "AchievementRateModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "unlocked": {
+            "type": "number"
+          },
+          "share": {
+            "type": "number",
+            "description": "Of all players, 0 to 1"
+          }
+        },
+        "required": [
+          "id",
+          "unlocked",
+          "share"
+        ]
+      },
+      "AnalyticsResponse": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "number"
+          },
+          "players": {
+            "type": "number"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityStatsModel"
+          },
+          "retention": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RetentionCohortModel"
+            }
+          },
+          "funnel": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FunnelStatModel"
+            }
+          },
+          "achievements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AchievementRateModel"
+            }
+          }
+        },
+        "required": [
+          "days",
+          "players",
+          "activity",
+          "retention",
+          "funnel",
+          "achievements"
         ]
       },
       "DevToolsStatusResponse": {

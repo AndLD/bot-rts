@@ -1031,7 +1031,8 @@
       "security": "Security",
       "economy": "Economy and balance",
       "operations": "Operations",
-      "devtools": "Dev tools"
+      "devtools": "Dev tools",
+      "analytics": "Analytics"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1538,6 +1539,48 @@
         "confirm": "Remove all test players"
       },
       "removed": "{count, plural, one {# test player removed} other {# test players removed}}"
+    },
+    "analytics": {
+      "loadFailed": "Could not load the analytics",
+      "window": "{days} days",
+      "export": "Download CSV",
+      "activity": {
+        "title": "Active players",
+        "dau": "Active today",
+        "mau": "Active in 30 days",
+        "stickiness": "Daily / monthly",
+        "players": "Players",
+        "chart": "Players active each day"
+      },
+      "retention": {
+        "title": "Retention by week of sign-up",
+        "none": "No sign-ups in this period",
+        "cohort": "Week starting",
+        "size": "Players",
+        "d1": "Day 1",
+        "d7": "Day 7",
+        "d30": "Day 30"
+      },
+      "funnel": {
+        "title": "Onboarding funnel",
+        "step": "Step",
+        "players": "Players",
+        "share": "Of those who signed up",
+        "steps": {
+          "signedUp": "Signed up",
+          "verified": "Email confirmed",
+          "baseDeployed": "Base deployed",
+          "firstScript": "First script run",
+          "firstResource": "First resource mined",
+          "tutorialCompleted": "Tutorial completed"
+        }
+      },
+      "achievements": {
+        "title": "Achievements",
+        "id": "Achievement",
+        "players": "Players",
+        "share": "Of all players"
+      }
     }
   },
   "maintenance": {

@@ -1,4 +1,4 @@
-import { LoginAttemptLog } from '../../src/auth/application/ports'
+import { LoginAttemptLog, PlayerActivityLog } from '../../src/auth/application/ports'
 import { LoginAttempt } from '../../src/auth/domain/login-attempt'
 import { AuthService } from '../../src/auth/application/auth.service'
 import { LocalAuthService } from '../../src/auth/application/local-auth.service'
@@ -21,6 +21,18 @@ export class RecordingLoginAttempts implements LoginAttemptLog {
   }
 }
 
+export class RecordingActivity implements PlayerActivityLog {
+  readonly items: Array<{ userId: string; at: Date }> = []
+  isFailing = false
+
+  async touch(userId: string, at: Date) {
+    if (this.isFailing) {
+      throw new Error('the log is down')
+    }
+    this.items.push({ userId, at })
+  }
+}
+
 // The custom auth provider and the authentication use case wired with fakes
 export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {}) {
   const world = createWorld(options)
@@ -32,6 +44,7 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
   const logger: jest.Mocked<Logger> = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
   const policy = DEFAULT_AUTH_POLICY
   const attempts = new RecordingLoginAttempts()
+  const activity = new RecordingActivity()
 
   const auth = new LocalAuthService({
     unitOfWork,
@@ -43,7 +56,8 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
     clock,
     policy,
     logger,
-    attempts
+    attempts,
+    activity
   })
   const verifier = new LocalIdentityVerifier(
     accessTokens,
@@ -62,6 +76,7 @@ export function createAuthWorld(options: Parameters<typeof createWorld>[0] = {})
     provisioner,
     mailer,
     attempts,
+    activity,
     secrets,
     accessTokens,
     hasher,

@@ -106,6 +106,7 @@ model User {
   blueprints           Blueprint[]
   executions           Execution[]
   settings             UserSetting?
+  activity             PlayerActivity[]
   achievementCounters  AchievementCounter[]
   achievementUnlocks   AchievementUnlock[]
   notifications        PlayerNotification[]
@@ -629,6 +630,19 @@ model PlayerNote {
 
 // Every sign-in attempt of the custom provider, for the security page of the admin console (design §25.3). `userId` is set for a
 // successful one only; the email is what was typed. Old rows are removed by the data lifecycle job.
+// A day on which a player was active (they signed in, or their session was renewed): the source of the daily and monthly active
+// players and of retention in the admin console (design §25.3, Analytics). One row per player and day (UTC).
+model PlayerActivity {
+  userId String   @map("user_id") @db.Uuid
+  day    DateTime @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+  @@index([day])
+  @@map("player_activity")
+}
+
 model LoginAttempt {
   id        String   @id @db.Uuid
   at        DateTime @db.Timestamptz(3)

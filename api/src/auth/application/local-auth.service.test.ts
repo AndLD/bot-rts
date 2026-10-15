@@ -172,6 +172,31 @@ describe('login attempts', () => {
   })
 })
 
+describe('days of activity', () => {
+  it('notes a day when the player signs in or renews the session, and not for a failed sign-in', async () => {
+    const { auth, activity, user, tokens, clock } = await verified()
+    await auth.login({ ...input, password: 'bad' }).catch(() => undefined)
+    expect(activity.items).toEqual([])
+
+    await auth.login(input)
+    await auth.refresh(tokens.refreshToken)
+
+    expect(activity.items).toEqual([
+      { userId: user.id, at: clock.now() },
+      { userId: user.id, at: clock.now() }
+    ])
+  })
+
+  it('does not change the answer when the day cannot be noted, and logs it', async () => {
+    const { auth, activity, logger, tokens } = await verified()
+    activity.isFailing = true
+
+    await expect(auth.login(input)).resolves.toMatchObject({ accessToken: expect.any(String) })
+    await expect(auth.refresh(tokens.refreshToken)).resolves.toMatchObject({ accessToken: expect.any(String) })
+    expect(logger.error).toHaveBeenCalledTimes(2)
+  })
+})
+
 describe('refresh', () => {
   it('rotates the refresh token and keeps the session', async () => {
     const { auth, repositories, tokens, clock } = await verified()

@@ -26,7 +26,7 @@ the game event bus (Phase 5), the map renderer (Phase 6), the notification syste
 | 9.8 | Economy and balance: world economy dashboard (resource totals, depletion, crafting and blueprint statistics), balance configuration editor with validation, diff, versions and rollback, global feature and category switches (moved here from the settings of 6.8) | 8 | ✅ |
 | 9.9 | Operations: announcements broadcast through the notification system (7.6), scheduled maintenance banners, engine status and script-runtime restart, status of retention and cleanup jobs, backup status | 5 | ✅ |
 | 9.10 | Logs and audit viewer: structured log search by request, user and bot id, slow-tick traces, audit log filters and export | 8 | ✅ |
-| 9.11 | Analytics and reports: DAU / MAU, retention, onboarding funnel, achievement rates, CSV export | 5 | ⬜ |
+| 9.11 | Analytics and reports: DAU / MAU, retention, onboarding funnel, achievement rates, CSV export | 5 | ✅ |
 | 9.12 | Dev tools, disabled in production by configuration: seed a world, advance the injected clock, spawn test bots, reset the database (replaces the legacy debug endpoint) | 3 | ✅ |
 | 9.13 | E2E (Cypress) for the admin console: access control per role, two-factor sign-in, dashboard with data, ban cutting a player off, inspector and file-read audit, supervision action with audit entry, maintenance mode, balance edit and rollback, announcement reaching players, the Docs page (access per role, search, a "?" link opening its section) | 8 | ⬜ |
 | 9.14 | Authorization matrix tests: every admin endpoint × every role (and API keys, and plain players) returns the expected result; audit completeness test (every mutating admin call writes an audit entry) | 3 | ⬜ |
@@ -56,3 +56,4 @@ AGENTS.md §7.1).
 | `feature/9.8-economy-balance` | 9.8 | [#159](https://github.com/AndLD/bot-rts/pull/159) | open |
 | `feature/9.9-operations` | 9.9 | [#160](https://github.com/AndLD/bot-rts/pull/160) | open |
 | `feature/9.12-devtools` | 9.12 | [#161](https://github.com/AndLD/bot-rts/pull/161) | open |
+| `feature/9.11-analytics` | 9.11 | _this PR_ | open |

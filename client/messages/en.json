@@ -1032,7 +1032,8 @@
       "economy": "Economy and balance",
       "operations": "Operations",
       "devtools": "Dev tools",
-      "analytics": "Analytics"
+      "analytics": "Analytics",
+      "docs": "Documentation"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1587,5 +1588,200 @@
     "paused": "The world is paused for maintenance.",
     "from": "From {start}",
     "fromTo": "From {start} to {end}"
+  },
+  "adminDocs": {
+    "groups": {
+      "start": "Getting started",
+      "pages": "Pages of the console",
+      "procedures": "Procedures",
+      "reference": "Reference"
+    },
+    "search": {
+      "label": "Search the admin documentation",
+      "placeholder": "Search…",
+      "none": "Nothing found",
+      "results": "{count, plural, one {# page} other {# pages}} found"
+    },
+    "tree": "Pages of the admin documentation",
+    "seeAlso": "Read on:",
+    "help": "Help for this page",
+    "parts": {
+      "permission": "Permission",
+      "metric": "Metric",
+      "direction": "Bad when",
+      "yellow": "Yellow",
+      "red": "Red",
+      "directions": {
+        "above": "above",
+        "below": "below"
+      },
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "moderator": "Moderator",
+        "analyst": "Analyst"
+      }
+    },
+    "pages": {
+      "home": {
+        "title": "Admin console",
+        "lead": "The console is for the people who run the game: it shows how the world is doing and lets you act on it. Every action asks for a reason and is written to the audit log with who did it, to what, and what changed.",
+        "rolesTitle": "Roles",
+        "owner": "Owner: everything, including role changes, deleting accounts, the script kill-switch, support actions and the dev tools.",
+        "admin": "Admin: everything except what is owner-only. Moderates, changes the balance, announces and pauses the world.",
+        "moderator": "Moderator: sees players, the inspector, the map and security, and moderates players (ban, notes, password reset).",
+        "analyst": "Analyst: reads the dashboard, the economy and the analytics. Cannot change anything.",
+        "reasons": "Every action needs a reason of 3 to 500 characters. It is kept in the audit log and cannot be changed afterwards."
+      },
+      "signingIn": {
+        "title": "Signing in",
+        "intro": "The console uses your game account and a second factor: a code from an authenticator app.",
+        "step1": "Sign in to the game with your account, then open the console.",
+        "step2": "The first time, scan the secret with an authenticator app and enter the first code.",
+        "step3": "After that, enter the current code when the console asks for it; the session stays verified for a limited time.",
+        "recoveryTitle": "Recovery codes",
+        "recovery": "When you set up the app you are shown recovery codes once. Keep them somewhere safe: each one works a single time if you lose the app."
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "intro": "Live health of the game: the engine, scripts, the API and the machine, in numbers and charts, with the alerts that are open.",
+        "actionsTitle": "What you can do",
+        "action1": "Pick the time range of the charts.",
+        "action2": "See which metrics are yellow or red, and why.",
+        "action3": "Acknowledge an alert once someone is on it (admins)."
+      },
+      "players": {
+        "title": "Players",
+        "intro": "Search for players by name, email or id, and open a profile with their bases, resources, sessions and the history of moderation.",
+        "actionsTitle": "What you can do",
+        "action1": "Ban or unban a player, for a time or for good.",
+        "action2": "End a player's sessions, resend the confirmation email, send a password reset.",
+        "action3": "Add a note only moderators see.",
+        "action4": "Change a role or delete an account (owners).",
+        "action5": "Quarantine a player from their profile.",
+        "action6": "Follow the links from any list to the profile."
+      },
+      "inspector": {
+        "title": "Inspector",
+        "intro": "A read-only look at any base or bot: its owner, place, energy, storage, modules, drives, scripts and terminal lines.",
+        "actionsTitle": "What you can do",
+        "action1": "Search by the id of a bot, a base or a player, or by a cell like 12,-4.",
+        "action2": "Open a file of a drive: this is audited, and the content is never copied to the trail (admins).",
+        "action3": "Kill a running script or reboot a bot (admins).",
+        "action4": "Follow the owner to their profile."
+      },
+      "map": {
+        "title": "World map",
+        "intro": "The whole map without fog of war, drawn like the game's own map, with heatmaps and a live tail of events.",
+        "actionsTitle": "What you can do",
+        "action1": "Pick the area and move around the map.",
+        "action2": "Switch the heatmap: density, depletion of deposits, activity of scripts.",
+        "action3": "Follow the events of the world as they happen."
+      },
+      "supervision": {
+        "title": "Supervision",
+        "intro": "The state of the world and what keeps it safe: paused or running, scripts allowed or not, and the players held in quarantine.",
+        "actionsTitle": "What you can do",
+        "action1": "Pause the world for maintenance, and resume it (admins).",
+        "action2": "Switch every script off with the kill-switch, and on again (owners).",
+        "action3": "Quarantine a player: their scripts are held and they cannot start new ones.",
+        "action4": "Release a player from quarantine.",
+        "action5": "Grant, remove or compensate resources and restore a module of a bot (owners).",
+        "action6": "Kill an execution or reboot a bot from the inspector."
+      },
+      "security": {
+        "title": "Security",
+        "intro": "Where abuse shows first: failed sign-ins, accounts that share an address, locked bots, API keys and the scripts the sandbox stopped.",
+        "actionsTitle": "What you can do",
+        "action1": "Choose the window: 24 hours, 3 days or 7 days.",
+        "action2": "Revoke an API key (admins).",
+        "action3": "Quarantine the owner of a script the sandbox had to stop.",
+        "action4": "Follow a name to the profile of the player and ban from there."
+      },
+      "economy": {
+        "title": "Economy and balance",
+        "intro": "What the world holds of each resource, which blueprints players learned, and the balance of the game: spawn weights, amounts, recipes and crafting numbers.",
+        "actionsTitle": "What you can do",
+        "action1": "Read the economy: deposits, what is carried, blueprints and modules.",
+        "action2": "Edit the balance as a document of only what differs from the defaults, check it, and compare it with what is active.",
+        "action3": "Save it as a new version, or roll back to an older one: versions are only added. A version applies when the server next starts.",
+        "action4": "Switch a category of manual control off for the whole game."
+      },
+      "operations": {
+        "title": "Operations",
+        "intro": "What runs and what keeps it running: the engine, the cleanup job, the last backup, announcements and the maintenance banner.",
+        "actionsTitle": "What you can do",
+        "action1": "Read the engine's uptime, tick and running scripts.",
+        "action2": "Send an announcement to every player (admins).",
+        "action3": "Set a maintenance banner with its start and expected end, or remove it (admins).",
+        "action4": "Restart all running scripts (owners).",
+        "action5": "Check that the cleanup job ran and a backup is recent."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "intro": "How many players are active each day and month, whether new players come back, how far they get and who earns what.",
+        "actionsTitle": "What you can do",
+        "action1": "Choose a window of 7, 30 or 90 days.",
+        "action2": "Read the retention of weekly sign-up cohorts after 1, 7 and 30 days.",
+        "action3": "Download any report as a CSV file: the download is audited."
+      },
+      "logs": {
+        "title": "Logs and audit",
+        "intro": "The recent log of the server, the slowest ticks, and the audit trail of everything done in the console.",
+        "actionsTitle": "What you can do",
+        "action1": "Search the log by a part of the text, such as a player or bot id, by level or by request id (admins).",
+        "action2": "See the slowest ticks of the engine.",
+        "action3": "Filter the audit trail by who, what, to what, result and time, and open the before and after of a change.",
+        "action4": "Export the filtered trail as CSV (admins)."
+      },
+      "devtools": {
+        "title": "Dev tools",
+        "intro": "Only on a development or test server: create test players with bases, and remove them.",
+        "actionsTitle": "What you can do",
+        "action1": "Create test players with a known password and a base.",
+        "action2": "Remove every test player."
+      },
+      "docs": {
+        "title": "Documentation",
+        "intro": "This documentation. The pages of the console have a ? that opens the page about it.",
+        "actionsTitle": "What you can do",
+        "action1": "Search all pages with the box at the top.",
+        "action2": "Open the reference tables of permissions, audited actions and alert thresholds: they are written from the code."
+      },
+      "maintenance": {
+        "title": "Maintenance",
+        "intro": "How to take the game down for a change, and what to do when something goes wrong.",
+        "plannedTitle": "Planned maintenance",
+        "planned1": "Announce it on the Operations page and set a banner with the start and the expected end.",
+        "planned2": "At the start, pause the world on the Supervision page. Players are told that the world is paused.",
+        "planned3": "Make the change. Check the dashboard.",
+        "planned4": "Resume the world and remove the banner.",
+        "emergencyTitle": "When something is wrong",
+        "emergency1": "Scripts that overload the engine: switch scripts off with the kill-switch (owners), then find the player on the Security page and quarantine them.",
+        "emergency2": "A stuck engine: restart all scripts on the Operations page (owners).",
+        "emergency3": "Always write the reason: it is what the next person reads in the audit log."
+      },
+      "moderation": {
+        "title": "Moderation guidelines",
+        "intro": "How to treat players fairly.",
+        "rule1": "Ban only for a reason you can write down in one sentence; the reason is kept with the ban.",
+        "rule2": "Prefer a time-limited ban to a permanent one for a first offence.",
+        "rule3": "Use notes to tell the next moderator what you saw and decided.",
+        "rule4": "Quarantine stops scripts without punishing the player; use it while you investigate.",
+        "outro": "You can act only on a lower rank than your own, and never on yourself."
+      },
+      "permissions": {
+        "title": "Permissions",
+        "intro": "Who may do what. A role holds a permission when it has a mark. The table is written from the code."
+      },
+      "auditActions": {
+        "title": "Audited actions",
+        "intro": "Every one of these actions is written to the audit log with the actor, the target, the reason and the values before and after. The list is written from the code."
+      },
+      "alerts": {
+        "title": "Alert thresholds",
+        "intro": "When a metric of the dashboard turns yellow or red. The values are the defaults; the server can change them with ADMIN_ALERT_THRESHOLDS."
+      }
+    }
   }
 }

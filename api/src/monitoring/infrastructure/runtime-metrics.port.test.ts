@@ -15,6 +15,7 @@ const snapshot = (overrides: Partial<EngineMetricsSnapshot> = {}): EngineMetrics
   maxWaitTicks: 3,
   executions: 4,
   memoryBytes: 5,
+  uptimeMs: 6,
   slowTicks: [],
   ...overrides
 })

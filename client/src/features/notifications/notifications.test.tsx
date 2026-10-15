@@ -60,6 +60,7 @@ describe('NotificationCenter', () => {
             botId: null,
             params: { family: 'prospector', level: 2, levels: 3, threshold: 1000 }
           }),
+          item({ id: 'g', kind: 'announcement', category: 'system', botId: null, params: { text: 'Update {soon}' } }),
           item({ id: 'f', kind: 'somethingNew' })
         ]
       })
@@ -72,6 +73,7 @@ describe('NotificationCenter', () => {
     expect(screen.getByText('Bot abcdef12 is locked out after wrong passwords')).toBeInTheDocument()
     expect(screen.getByText('The signal of bot abcdef12 is weak: 1 of 4 bars')).toBeInTheDocument()
     expect(screen.getByText('Achievement unlocked: Prospector II')).toBeInTheDocument()
+    expect(screen.getByText('Announcement: Update {soon}')).toBeInTheDocument()
     expect(screen.getByText('Something happened')).toBeInTheDocument()
     expect(screen.getByText('3 unread')).toBeInTheDocument()
     expect(screen.getAllByText('1 minute ago').length).toBeGreaterThan(0)

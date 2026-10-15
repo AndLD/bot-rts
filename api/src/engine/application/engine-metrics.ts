@@ -41,6 +41,8 @@ export interface EngineMetricsSnapshot extends TickMetrics {
   executions: number
   // The heap of every sandbox together
   memoryBytes: number
+  // How long the engine has been running (ms, from the monotonic clock)
+  uptimeMs: number
 }
 
 const WINDOW = 100

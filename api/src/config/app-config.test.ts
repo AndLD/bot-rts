@@ -68,7 +68,7 @@ describe('loadConfig', () => {
         version: null,
         problem: null
       },
-      observability: { metricsToken: undefined, logBufferSize: 5000 },
+      observability: { metricsToken: undefined, logBufferSize: 5000, backupStatusFile: undefined },
       lifecycle: {
         isEnabled: true,
         intervalMs: 3600000,

@@ -1023,6 +1023,7 @@ describe('EngineCore', () => {
       await ticks(1)
 
       const snapshot = core.snapshot()
+      expect(snapshot.uptimeMs).toBeGreaterThan(0)
       expect(snapshot.cutTicks).toBeGreaterThan(0)
       expect(snapshot.overrunTicks).toBeGreaterThan(0)
       expect(sink.logs()).toEqual([])

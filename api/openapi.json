@@ -4172,6 +4172,356 @@
         ]
       }
     },
+    "/api/v1/admin/operations": {
+      "get": {
+        "operationId": "operationsStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsStatusResponse"
+                },
+                "example": {
+                  "engine": {
+                    "isResponding": false,
+                    "uptimeMs": 1,
+                    "tick": 1,
+                    "lastTickMs": 1,
+                    "p95TickMs": 1,
+                    "executions": 1,
+                    "memoryBytes": 1
+                  },
+                  "isPaused": false,
+                  "areScriptsHalted": false,
+                  "jobs": [
+                    {
+                      "name": "string",
+                      "lastRunAt": 1,
+                      "failures": 1,
+                      "totals": {}
+                    }
+                  ],
+                  "backup": {
+                    "isConfigured": false,
+                    "finishedAt": 1,
+                    "sizeBytes": 1,
+                    "location": "string"
+                  },
+                  "banner": {
+                    "message": "string",
+                    "startsAt": 1,
+                    "endsAt": 1
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/operations\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/operations/announcements": {
+      "post": {
+        "operationId": "operationsAnnounce",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnounceDto"
+              },
+              "example": {
+                "reason": "string",
+                "text": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnouncementResultResponse"
+                },
+                "example": {
+                  "recipients": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.announce",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/operations/announcements\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"text\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/operations/maintenance-banner": {
+      "put": {
+        "operationId": "operationsSetBanner",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceBannerDto"
+              },
+              "example": {
+                "reason": "string",
+                "message": "string",
+                "startsAt": 1,
+                "endsAt": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.announce",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X PUT \"$BOTRTS_URL/api/v1/admin/operations/maintenance-banner\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\",\"message\":\"string\",\"startsAt\":1,\"endsAt\":1}'"
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "operationsClearBanner",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.announce",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X DELETE \"$BOTRTS_URL/api/v1/admin/operations/maintenance-banner\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/operations/restart-runtime": {
+      "post": {
+        "operationId": "operationsRestartRuntime",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestartResultResponse"
+                },
+                "example": {
+                  "restarted": 1,
+                  "failedBots": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "ops.restart-runtime",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/operations/restart-runtime\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/maintenance": {
+      "get": {
+        "operationId": "maintenanceStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceStatusResponse"
+                },
+                "example": {
+                  "isPaused": false,
+                  "banner": {
+                    "message": "string",
+                    "startsAt": 1,
+                    "endsAt": 1
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maintenance"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/maintenance\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/crafting/recipes": {
       "get": {
         "operationId": "craftingRecipeList",
@@ -10161,6 +10511,250 @@
         "required": [
           "reason",
           "document"
+        ]
+      },
+      "EngineStatusModel": {
+        "type": "object",
+        "properties": {
+          "isResponding": {
+            "type": "boolean"
+          },
+          "uptimeMs": {
+            "type": "number"
+          },
+          "tick": {
+            "type": "number"
+          },
+          "lastTickMs": {
+            "type": "number"
+          },
+          "p95TickMs": {
+            "type": "number"
+          },
+          "executions": {
+            "type": "number"
+          },
+          "memoryBytes": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isResponding",
+          "uptimeMs",
+          "tick",
+          "lastTickMs",
+          "p95TickMs",
+          "executions",
+          "memoryBytes"
+        ]
+      },
+      "JobStatusModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "lastRunAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "failures": {
+            "type": "number"
+          },
+          "totals": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "lastRunAt",
+          "failures",
+          "totals"
+        ]
+      },
+      "BackupStatusModel": {
+        "type": "object",
+        "properties": {
+          "isConfigured": {
+            "type": "boolean"
+          },
+          "finishedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "sizeBytes": {
+            "type": "number",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "isConfigured",
+          "finishedAt",
+          "sizeBytes",
+          "location"
+        ]
+      },
+      "MaintenanceBannerModel": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "number"
+          },
+          "endsAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "message",
+          "startsAt",
+          "endsAt"
+        ]
+      },
+      "OperationsStatusResponse": {
+        "type": "object",
+        "properties": {
+          "engine": {
+            "$ref": "#/components/schemas/EngineStatusModel"
+          },
+          "isPaused": {
+            "type": "boolean"
+          },
+          "areScriptsHalted": {
+            "type": "boolean"
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobStatusModel"
+            }
+          },
+          "backup": {
+            "$ref": "#/components/schemas/BackupStatusModel"
+          },
+          "banner": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MaintenanceBannerModel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "engine",
+          "isPaused",
+          "areScriptsHalted",
+          "jobs",
+          "backup",
+          "banner"
+        ]
+      },
+      "AnnounceDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What every player is told"
+          }
+        },
+        "required": [
+          "reason",
+          "text"
+        ]
+      },
+      "AnnouncementResultResponse": {
+        "type": "object",
+        "properties": {
+          "recipients": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "recipients"
+        ]
+      },
+      "MaintenanceBannerDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "startsAt": {
+            "type": "number",
+            "description": "When maintenance starts (ms since the epoch)"
+          },
+          "endsAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "When it should end, if known"
+          }
+        },
+        "required": [
+          "reason",
+          "message",
+          "startsAt"
+        ]
+      },
+      "RestartResultResponse": {
+        "type": "object",
+        "properties": {
+          "restarted": {
+            "type": "number"
+          },
+          "failedBots": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "restarted",
+          "failedBots"
+        ]
+      },
+      "MaintenanceStatusResponse": {
+        "type": "object",
+        "properties": {
+          "isPaused": {
+            "type": "boolean"
+          },
+          "banner": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MaintenanceBannerModel"
+              }
+            ]
+          }
+        },
+        "required": [
+          "isPaused",
+          "banner"
         ]
       },
       "RecipeResourceResponse": {

@@ -7,6 +7,7 @@ import { Logger } from '../../shared/application/logger'
 import { TerminalRetention } from '../../terminal/domain/terminal-retention'
 import { days, LifecyclePolicy } from '../domain/lifecycle-policy'
 import { InactivityNotifier } from './inactivity-notifier'
+import { JobStatusStore } from '../../operations/application/ports'
 import { EMPTY_REPORT, LifecycleReport, LifecycleStatus } from './lifecycle-status'
 import { LifecycleRepository } from './lifecycle.repository'
 
@@ -14,6 +15,9 @@ import { LifecycleRepository } from './lifecycle.repository'
 const BATCH = 200
 
 const ORDINARY_KINDS = [TERMINAL_LOG_KIND.INPUT, TERMINAL_LOG_KIND.OUTPUT, TERMINAL_LOG_KIND.ERROR]
+
+// The name under which the console finds the report of this job
+export const LIFECYCLE_JOB = 'lifecycle'
 
 export interface LifecycleDependencies {
   repository: LifecycleRepository
@@ -24,6 +28,8 @@ export interface LifecycleDependencies {
   retention: TerminalRetention
   clock: Clock
   status: LifecycleStatus
+  // Where the result of a pass is kept for the admin console, which may run on another node
+  jobs: JobStatusStore
   logger: Logger
 }
 
@@ -54,8 +60,24 @@ export class LifecycleService {
     }
 
     this.deps.status.recordRun(report, this.now())
+    await this.reportStatus()
     this.deps.logger.info(`Data lifecycle pass: ${JSON.stringify(report)}`)
     return report
+  }
+
+  private async reportStatus(): Promise<void> {
+    const { lastRunAt, failures, totals } = this.deps.status.snapshot()
+
+    try {
+      await this.deps.jobs.record({
+        name: LIFECYCLE_JOB,
+        lastRunAt: lastRunAt?.getTime() ?? null,
+        failures,
+        totals: { ...totals }
+      })
+    } catch (error) {
+      this.deps.logger.error(`The status of the data lifecycle job could not be stored: ${(error as Error).message}`)
+    }
   }
 
   private now(): Date {

@@ -662,7 +662,8 @@
       "craftDone": "{count, plural, one {# module} other {# modules}} of {module} ready",
       "researchDone": "The research of {module} has finished",
       "achievementUnlocked": "Achievement unlocked: {title}",
-      "unknown": "Something happened"
+      "unknown": "Something happened",
+      "announcement": "Announcement: {text}"
     },
     "away": {
       "title": "While you were away",
@@ -1028,7 +1029,8 @@
       "supervision": "Supervision",
       "logs": "Logs and audit",
       "security": "Security",
-      "economy": "Economy and balance"
+      "economy": "Economy and balance",
+      "operations": "Operations"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1452,6 +1454,72 @@
           "trade": "Trade"
         }
       }
+    },
+    "operations": {
+      "loadFailed": "Could not load the operations status",
+      "engine": {
+        "title": "Engine",
+        "status": "Engine",
+        "running": "Running",
+        "notResponding": "Not responding",
+        "uptime": "Uptime",
+        "duration": "{hours} h {minutes} min",
+        "tick": "Tick",
+        "lastTick": "Last tick",
+        "p95Tick": "Tick (95th percentile)",
+        "executions": "Running scripts",
+        "memory": "Script memory",
+        "world": "World",
+        "paused": "Paused",
+        "halted": "Scripts switched off",
+        "normal": "Running normally",
+        "supervision": "Supervision",
+        "restart": "Restart all scripts",
+        "confirmRestart": "Restart all scripts",
+        "restartHelp": "Every running script is stopped and started again from the beginning."
+      },
+      "jobs": {
+        "title": "Background jobs",
+        "none": "No job has reported yet",
+        "name": "Job",
+        "lastRun": "Last pass",
+        "failures": "Failed steps",
+        "totals": "Done so far"
+      },
+      "backup": {
+        "title": "Backup",
+        "notConfigured": "The server was not told where the backup job records its result (BACKUP_STATUS_FILE).",
+        "notReported": "The backup job has not reported yet.",
+        "finishedAt": "Finished",
+        "age": "Age",
+        "hours": "{hours, plural, one {# hour} other {# hours}}",
+        "size": "Size",
+        "location": "Where"
+      },
+      "announce": {
+        "title": "Announcement",
+        "text": "What every player is told",
+        "send": "Send to all players",
+        "confirm": "Send the announcement"
+      },
+      "banner": {
+        "title": "Maintenance banner",
+        "current": "From {start} to {end}",
+        "clear": "Remove",
+        "message": "Message",
+        "startsAt": "Starts",
+        "endsAt": "Expected to end (optional)",
+        "set": "Show the banner",
+        "confirm": "Show the maintenance banner",
+        "confirmClear": "Remove the maintenance banner"
+      },
+      "announced": "{count, plural, one {# player was told} other {# players were told}}",
+      "restarted": "{count, plural, one {# script restarted} other {# scripts restarted}}{failed, plural, =0 {} one {, # bot could not be restarted} other {, # bots could not be restarted}}"
     }
+  },
+  "maintenance": {
+    "paused": "The world is paused for maintenance.",
+    "from": "From {start}",
+    "fromTo": "From {start} to {end}"
   }
 }

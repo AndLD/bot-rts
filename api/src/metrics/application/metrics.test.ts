@@ -15,6 +15,7 @@ const snapshot: EngineMetricsSnapshot = {
   maxWaitTicks: 6,
   executions: 9,
   memoryBytes: 1024,
+  uptimeMs: 5000,
   slowTicks: []
 }
 const stats = () => ({ uptimeSeconds: 12, rssBytes: 100, heapUsedBytes: 50 })

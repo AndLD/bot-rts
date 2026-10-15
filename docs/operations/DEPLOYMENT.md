@@ -125,6 +125,25 @@ player who signs in after the notice keeps the account. Erasure is the same as a
 credentials and logins removed; the row and the base stay, so the base can become a corpse base). Bots and bases are not
 deleted by the job. `INACTIVE_ACCOUNT_DAYS=0` switches the inactivity steps off.
 
+After each pass the job stores its result in the game settings (`job.lifecycle`), so the Operations page of the admin console shows
+the last run and the totals from any node.
+
+## Backups and the Operations page (Phase 9.9)
+
+The application does not make backups: the database host or a job of the operator does (`pg_dump`, or the snapshots of a managed
+PostgreSQL). To have the age of the last backup shown on the Operations page, let that job write a small JSON file when it
+finishes, and give the API nodes its path in `BACKUP_STATUS_FILE`:
+
+```json
+{ "finishedAt": "2026-10-15T03:00:00Z", "sizeBytes": 123456789, "location": "s3://backups/botrts-2026-10-15.dump" }
+```
+
+`finishedAt` is required; the other fields are optional. Without `BACKUP_STATUS_FILE` the page says that no backup is reported. The
+file must be readable by the API process (on a node of the `api` role it is a file on that node or on a mounted volume).
+
+The maintenance banner and the announcements of the Operations page are stored in the database and in the notifications of the players,
+so they reach every node. `GET /api/v1/maintenance` (public) tells whether the world is paused and returns the banner while it is shown.
+
 ## Performance notes (Phase 8.5)
 
 - **Writes are batched.** The engine's flush writes map cells, what players know, items, headings and modules each as one

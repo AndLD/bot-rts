@@ -116,6 +116,27 @@ const energyLow = (userId = 'alice', botId = 'b1'): GameEvent => ({
 const broken = (n: number): GameEvent => ({ type: 'ModuleBroken', at: 1, parties: parties(), moduleId: `m${n}` })
 
 describe('NotificationService', () => {
+  it('tells the given players of an announcement, except those who turned the system category off', async () => {
+    const { service, repository, preferences, told } = setup()
+    preferences.value = { ...ALL_NOTIFICATIONS_ON, system: false }
+    await service.announce(['alice'], 'Maintenance at noon')
+    expect(repository.rows).toEqual([])
+
+    preferences.value = ALL_NOTIFICATIONS_ON
+    const many = Array.from({ length: 60 }, (_, index) => `p${index}`)
+    await service.announce(many, 'Maintenance at noon')
+
+    expect(repository.rows).toHaveLength(60)
+    expect(repository.rows[0]).toMatchObject({
+      userId: 'p0',
+      category: 'system',
+      kind: 'announcement',
+      params: { text: 'Maintenance at noon' },
+      botId: null
+    })
+    expect(told).toHaveLength(60)
+  })
+
   it('stores and tells a notification a player earns from an event, and nothing for another player who only saw it', async () => {
     const { service, repository, told } = setup()
 

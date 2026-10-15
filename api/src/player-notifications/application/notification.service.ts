@@ -25,6 +25,8 @@ const MINUTE_MS = 60_000
 // How long a player's preferences are remembered before they are read again; they change rarely and events come often
 const PREFERENCES_TTL_MS = 10_000
 const DUE_BATCH = 100
+// How many players an announcement is stored for at once
+const ANNOUNCE_CONCURRENCY = 25
 export const MAX_PAGE = 100
 
 export const toView = (notification: Notification): INotification => ({
@@ -73,6 +75,24 @@ export class NotificationService implements GameEventConsumer {
       botId: null,
       isCoalesced: false
     })
+  }
+
+  // An announcement of the admins to the given players (design §25.3, Operations); a player who turned the system category off
+  // is not told, like with any other notification
+  async announce(userIds: readonly string[], text: string): Promise<void> {
+    for (let from = 0; from < userIds.length; from += ANNOUNCE_CONCURRENCY) {
+      await Promise.all(
+        userIds.slice(from, from + ANNOUNCE_CONCURRENCY).map((userId) =>
+          this.raise(userId, {
+            category: 'system',
+            kind: 'announcement',
+            params: { text },
+            botId: null,
+            isCoalesced: false
+          })
+        )
+      )
+    }
   }
 
   onNotification(listener: NotificationListener): () => void {

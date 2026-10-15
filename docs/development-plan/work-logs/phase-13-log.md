@@ -42,3 +42,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: the owner reviews the list; then 13.1 can start.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-15 — phase approved; the MVP includes it
+- **Tasks:** none started
+- **Branch:** `docs/mvp-all-phases` — the plan only
+- **Decisions / deviations from the plan:** the owner approved the phase as drafted (13.1 to 13.7, 35 SP, with tracing and a shared collector gateway) and asked that the MVP definition include every existing phase. The phase is no longer "proposed", and it and Phase 12 now count in the total: Phases 0–13 are 982 SP, with Phase 12 growing as issues are added.
+- **Problems / blockers / findings:** none.
+- **Next step:** 13.1 when the phase is reached (after Phase 9).
+- **Verify with:** `npm run docs:check`

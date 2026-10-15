@@ -10,7 +10,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 > English and Russian UI, player documentation, a public API with API keys, an MCP server, and production hardening.
 > The admin console (Phase 9) and the market, currency, chat and transfers (Phase 10) are not implemented yet.
 >
-> The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–11, with story
+> The game design is in [`docs/GAME-DESIGN.md`](./docs/GAME-DESIGN.md) and the roadmap (phases 0–13, with story
 > points per task; Phase 11 was developed after Phase 7) in [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md). Engineering rules for contributors and
 > agents are in [`AGENTS.md`](./AGENTS.md).
 
@@ -346,5 +346,5 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
 - [`docs/code-quality-reviews/2026-10-10.md`](./docs/code-quality-reviews/2026-10-10.md) — quality assessment of the original prototype (historical).
-- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–11; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done).
+- [`docs/DEVELOPMENT-PLAN.md`](./docs/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done).
 - [`docs/archived-docs/`](./docs/archived-docs/UNCERTAINTIES.md) — the decision log from the planning pass and the original product notes.

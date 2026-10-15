@@ -35,7 +35,8 @@ export class LocalIdentityVerifier implements IdentityVerifier {
       subject: userId,
       email: user.email,
       emailVerified: credential.emailVerified,
-      sessionId
+      sessionId,
+      ...(session.viewAs ? { viewAs: { ...session.viewAs, expiresAt: session.expiresAt } } : {})
     }
   }
 }

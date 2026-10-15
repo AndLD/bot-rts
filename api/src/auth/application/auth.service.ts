@@ -1,4 +1,9 @@
+import { hasPermission } from '../../../../lib/utils/admin'
+import type { UserStatus } from '../../../../lib/utils/interfaces/users'
 import type { ApiScope } from '../../../../lib/utils/interfaces/api-keys'
+import { assertOutranks } from '../../players/domain/player-moderation'
+import { UnauthorizedError } from '../../shared/domain/errors'
+import { UserRepository } from '../../users/application/user.repository'
 import { User } from '../../users/domain/user.entity'
 import { assertCanUseApi } from '../../users/domain/user-access'
 import { Identity } from '../domain/identity'
@@ -14,11 +19,22 @@ export interface ApiKeyGrant {
   ratePerMinute: number
 }
 
+// Who is really behind a "view as player" session (design §25.2): `Principal.user` is the player being viewed
+export interface ViewAsGrant {
+  adminId: string
+  adminStatus: UserStatus
+  reason: string
+  expiresAt: Date
+}
+
 export interface Principal {
+  // The caller; in a "view as player" session, the player whose game is shown
   user: User
   identity: Identity
   // Set when the caller used an API key instead of a session: what the key allows
   apiKey?: ApiKeyGrant
+  // Set when the session is a read-only view of `user`'s game by an admin
+  viewAs?: ViewAsGrant
 }
 
 export class AuthService {
@@ -26,7 +42,8 @@ export class AuthService {
     private readonly verifier: IdentityVerifier,
     private readonly provisioner: UserProvisioner,
     private readonly cache?: PrincipalCache,
-    private readonly apiKeys?: ApiKeyAuthenticator
+    private readonly apiKeys?: ApiKeyAuthenticator,
+    private readonly users?: Pick<UserRepository, 'findById'>
   ) {}
 
   async authenticate(token: string): Promise<Principal> {
@@ -46,9 +63,30 @@ export class AuthService {
 
     assertCanUseApi(user, identity.emailVerified)
 
-    const principal = { user, identity }
+    const principal = identity.viewAs ? await this.viewAsPrincipal(user, identity) : { user, identity }
     this.cache?.set(token, principal)
 
     return principal
+  }
+
+  // The admin keeps the permission and the rank over the player for as long as the view lasts: a demotion ends it at once
+  private async viewAsPrincipal(admin: User, identity: Identity): Promise<Principal> {
+    const view = identity.viewAs as NonNullable<Identity['viewAs']>
+    const target = await this.users?.findById(view.userId)
+
+    if (!target || !hasPermission(admin.status, 'players.view-as')) {
+      throw new UnauthorizedError('The view has ended')
+    }
+    try {
+      assertOutranks(admin, target)
+    } catch {
+      throw new UnauthorizedError('The view has ended')
+    }
+
+    return {
+      user: target,
+      identity,
+      viewAs: { adminId: admin.id, adminStatus: admin.status, reason: view.reason, expiresAt: view.expiresAt }
+    }
   }
 }

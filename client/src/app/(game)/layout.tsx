@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { I18nProvider } from '../../shared/i18n/I18nProvider'
 import { RootShell } from '../../shared/RootShell'
 import MaintenanceBanner from '../../features/maintenance/MaintenanceBanner'
+import ViewAsBanner from '../../features/viewas/ViewAsBanner'
 import { Providers } from '../Providers'
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function GameLayout({ children }: { children: ReactNode }) {
     <RootShell lang="en">
       <I18nProvider>
         <Providers>
+          <ViewAsBanner />
           <MaintenanceBanner />
           {children}
         </Providers>

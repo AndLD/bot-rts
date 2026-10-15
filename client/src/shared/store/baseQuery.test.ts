@@ -88,4 +88,21 @@ describe('baseQueryWithRefresh', () => {
     expect(mockFetch.mock.calls[1][0]).toMatchObject({ url: '/api/v1/auth/logout', method: 'POST' })
     expect(store.getState().session.token).toBeNull()
   })
+
+  it('ends a view that has run out without refreshing, and leaves the stored token alone', async () => {
+    localStorage.setItem('token', 'admins-own')
+    sessionStorage.setItem('viewAs', JSON.stringify({ token: 'x', expiresAt: 1, playerName: 'Alice' }))
+    const store = setupStore()
+    store.dispatch(setToken(makeJwt(-10)))
+    mockFetch.mockResolvedValue({ error: { status: 401 } })
+
+    await run(store)
+
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(mockFetch.mock.calls[0][0]).toBe('/api/v1/users/me')
+    expect(store.getState().session.token).toBeNull()
+    expect(sessionStorage.getItem('viewAs')).toBeNull()
+    expect(localStorage.getItem('token')).toBe('admins-own')
+    sessionStorage.clear()
+  })
 })

@@ -102,3 +102,12 @@ export interface ISupervisionState {
 // The words an admin types to confirm the two world-wide switches
 export const PAUSE_CONFIRMATION = 'PAUSE'
 export const HALT_CONFIRMATION = 'HALT'
+
+// "View as player" (design §25.2): what starting it returns. The access token belongs to the admin and is limited to the target
+// player's data in read-only mode; it ends at `expiresAt` or when the admin exits.
+export interface IViewAsStart {
+  accessToken: string
+  // Milliseconds since the epoch
+  expiresAt: number
+  player: { _id: string; name: string }
+}

@@ -1,5 +1,6 @@
 import { SerializedError } from '@reduxjs/toolkit'
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import { readViewAs } from '../viewas/view-as-storage'
 import { refreshOnce } from '../../shared/store/refresh'
 import { setToken } from '../../shared/store/session.slice'
 import type { AppStore } from '../../shared/store'
@@ -63,6 +64,10 @@ export function createLocalAuthClient(store: AppStore): AuthClient {
     },
 
     async refresh() {
+      // The cookie belongs to the admin's own session, which a view must never take over
+      if (readViewAs()) {
+        return null
+      }
       const token = await refreshOnce(async () => {
         try {
           return (await store.dispatch(endpoints.authRefresh.initiate()).unwrap()).accessToken

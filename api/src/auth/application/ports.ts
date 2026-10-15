@@ -52,8 +52,13 @@ export interface AccessTokenClaims {
   sessionId: string
 }
 
+export interface AccessTokenSigning extends AccessTokenClaims {
+  // Overrides the usual lifetime; a "view as player" token lives as long as its session
+  ttlSeconds?: number
+}
+
 export interface AccessTokenService {
-  sign(claims: AccessTokenClaims): string
+  sign(claims: AccessTokenSigning): string
   // Throws AccessTokenExpiredError for an expired token and UnauthorizedError for any other invalid one
   verify(token: string): AccessTokenClaims
 }

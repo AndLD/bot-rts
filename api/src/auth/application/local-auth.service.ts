@@ -378,7 +378,8 @@ export class LocalAuthService implements CredentialAuthService {
       lastUsedAt: now,
       expiresAt: new Date(now.getTime() + this.deps.policy.sessionTtlMs),
       revokedAt: null,
-      userAgent: userAgent ?? null
+      userAgent: userAgent ?? null,
+      viewAs: null
     })
 
     return { accessToken: this.deps.accessTokens.sign({ userId, sessionId }), refreshToken }

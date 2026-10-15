@@ -2125,6 +2125,118 @@
         ]
       }
     },
+    "/api/v1/admin/players/{id}/view-as": {
+      "post": {
+        "operationId": "viewAsStart",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewAsStartResponse"
+                },
+                "example": {
+                  "accessToken": "string",
+                  "expiresAt": 1,
+                  "player": {
+                    "_id": "string",
+                    "name": "string"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "players.view-as",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/players/00000000-0000-4000-8000-000000000000/view-as\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/view-as/exit": {
+      "post": {
+        "operationId": "viewAsExit",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/view-as/exit\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/inspector/search": {
       "get": {
         "operationId": "inspectorSearch",
@@ -8495,6 +8607,7 @@
               "PLAYER_QUARANTINED",
               "REQUEST_TIMEOUT",
               "MANUAL_CATEGORY_DISABLED",
+              "VIEW_AS_READ_ONLY",
               "INTERNAL_ERROR",
               "BLOCKED",
               "EMPTY",
@@ -8854,6 +8967,7 @@
                 "players.notes",
                 "players.change-role",
                 "players.delete",
+                "players.view-as",
                 "inspector.read",
                 "inspector.files.read",
                 "inspector.kill-execution",
@@ -9489,6 +9603,42 @@
         },
         "required": [
           "text"
+        ]
+      },
+      "ViewAsPlayerModel": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "_id",
+          "name"
+        ]
+      },
+      "ViewAsStartResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "A token for the game screens of the player; it is read-only and ends at `expiresAt`"
+          },
+          "expiresAt": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "player": {
+            "$ref": "#/components/schemas/ViewAsPlayerModel"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "player"
         ]
       },
       "SearchResultResponse": {

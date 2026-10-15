@@ -6,6 +6,7 @@ import { AchievementsModule } from './achievements/achievements.module'
 import { InspectorModule } from './inspector/inspector.module'
 import { SupervisionModule } from './supervision/supervision.module'
 import { PlayersModule } from './players/players.module'
+import { ViewAsModule } from './viewas/viewas.module'
 import { PlayerNotificationsModule } from './player-notifications/player-notifications.module'
 import { AuthModule } from './auth/auth.module'
 import { BotsModule } from './bots/bots.module'
@@ -53,6 +54,7 @@ export class AppModule {
         AuthModule,
         AdminModule,
         PlayersModule,
+        ViewAsModule,
         InspectorModule,
         SupervisionModule,
         LogsModule,

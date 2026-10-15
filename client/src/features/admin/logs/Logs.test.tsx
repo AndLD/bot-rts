@@ -67,7 +67,8 @@ function serve(handler: (call: Call) => unknown = () => undefined) {
         data: {
           result: [
             entry(),
-            entry({ _id: 'a2', outcome: 'denied', before: null, after: null, targetId: null, reason: null })
+            entry({ _id: 'a2', outcome: 'denied', before: null, after: null, targetId: null, reason: null }),
+            entry({ _id: 'a3', action: 'cell.touch', targetType: null, targetId: 'c1', before: null, after: null })
           ],
           meta: { pagination: { page: 1, results: 25, total: 60 } }
         }
@@ -198,6 +199,19 @@ describe('AuditViewer', () => {
     await waitFor(() => expect(calls.some((call) => call.params?.page === 2)).toBe(true))
   })
 
+  it('filters without dates, and shows a target that names no type', async () => {
+    const calls = serve()
+    renderAs('admin', <AuditViewer />)
+    expect(await screen.findByText('c1')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText('Action'), { target: { value: 'cell.touch' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+
+    await waitFor(() =>
+      expect(calls.some((call) => call.params?.action === 'cell.touch' && call.params?.from === undefined)).toBe(true)
+    )
+  })
+
   it('says so when the trail cannot be loaded', async () => {
     serve((call) => (call.url === '/api/v1/admin/audit' ? { error: { status: 500, data: {} } } : undefined))
     renderAs('admin', <AuditViewer />)
@@ -230,15 +244,18 @@ describe('the audit export', () => {
   })
 
   it('downloads the trail as a file, with the token of the session', async () => {
-    serve()
+    const calls = serve()
     global.fetch = jest.fn(async () => answer(true, undefined)) as never
     renderAs('admin', <AuditViewer />)
     await screen.findAllByText('players.ban')
+    fireEvent.change(screen.getByPlaceholderText('Action'), { target: { value: 'players.ban' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
+    await waitFor(() => expect(calls.some((call) => call.params?.action === 'players.ban')).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
 
     await waitFor(() => expect(click).toHaveBeenCalled())
     const [url, init] = (global.fetch as jest.Mock).mock.calls[0]
-    expect(url).toBe('http://api.test/api/v1/admin/audit/export?')
+    expect(url).toBe('http://api.test/api/v1/admin/audit/export?action=players.ban')
     expect((init as RequestInit).headers).toMatchObject({ Authorization: expect.stringMatching(/^Bearer /) })
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:csv')
   })

@@ -55,4 +55,4 @@ AGENTS.md §7.1).
 | `feature/9.7-security` | 9.7 | [#158](https://github.com/AndLD/bot-rts/pull/158) | merged |
 | `feature/9.8-economy-balance` | 9.8 | [#159](https://github.com/AndLD/bot-rts/pull/159) | open |
 | `feature/9.9-operations` | 9.9 | [#160](https://github.com/AndLD/bot-rts/pull/160) | open |
-| `feature/9.12-devtools` | 9.12 | _this PR_ | open |
+| `feature/9.12-devtools` | 9.12 | [#161](https://github.com/AndLD/bot-rts/pull/161) | open |

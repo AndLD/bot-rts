@@ -1,0 +1,166 @@
+[← Harness quality reviews](./README.md)
+
+# Bindings for this repository
+
+The method in [`README.md`](./README.md) is project-neutral. This file supplies the values for `bot-rts`: where each layer
+lives, the commands for the measurements, the term lists, the probe scenarios and the indexes to update. It is the
+**profile** of the review itself. A new project copies the method and rewrites only this file.
+
+Review step 2 of the method checks the layer map below against the repository and corrects it in the report.
+
+---
+
+## 1. Layer map (as of the first review, to be verified by each full review)
+
+Target layer is where the content belongs; "Current" notes where it sits now when that differs.
+
+| Layer       | Files and sections                                                                                                                       |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **CORE**    | Currently embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. No standalone core files yet. |
+| **DOMAIN**  | `docs/GAME-DESIGN.md` and `docs/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/integrations/API.md` |
+| **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
+| **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/DEVELOPMENT-PLAN.md`, `docs/development-plan/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
+| **STATE**   | `docs/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phase-*.md`, `docs/development-plan/work-logs/*`, `docs/development-plan/risk-register.md`, `docs/CHANGELOG.md`, `docs/code-quality-reviews/*`, `docs/harness-quality-reviews/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/archived-docs/*` |
+| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/GAME-DESIGN.md` and `docs/DEVELOPMENT-PLAN.md` |
+
+`AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
+
+Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Review only whether it repeats repository rules.
+
+---
+
+## 2. Measurements
+
+Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
+Replace a layer name by its file list from section 1.
+
+### M1, M2: term leaks
+
+Stack terms (case-insensitive) that must not appear in CORE or DOMAIN text:
+
+```bash
+STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
+grep -rniE "$STACK" docs/GAME-DESIGN.md docs/game-design docs/integrations | wc -l
+grep -rniEc "$STACK" docs/game-design/*.md | sort -t: -k2 -nr | head
+```
+
+For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer. Product terms that must not
+appear in CORE sections:
+
+```bash
+PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
+```
+
+A hit is a leak only if the term carries project meaning there ("module" in "Nest module" is a stack term; judge by context).
+
+### M3: reference direction
+
+List every relative Markdown link and the layer of its source and target; flag pairs forbidden by README section 2.1.
+
+```bash
+grep -rnoE '\]\((\.{1,2}/)[^)#]+' docs AGENTS.md README.md | sed 's/](//' | sort -u > "$SCRATCH/links.txt"
+```
+
+Map each path to a layer with section 1 (a small script in the scratchpad is fine; do not commit it unless it is turned into
+a check). Report the illegal pairs, for example DOMAIN → ADAPTER.
+
+### M4, M10: duplicated facts and injectable values
+
+Search each candidate value; record the number of files and the owner you would choose. Candidates: the coverage gate
+(`97`), the tick rate, the phase count and story-point totals, the branch type names, the node and database versions, the
+API prefix (`/api/v1`), the document language set, the Git Flow merge strategy, the lists of commands.
+
+```bash
+grep -rnE '97 ?%' --include=*.md . --exclude-dir=node_modules | wc -l
+grep -rnE '/api/v1' --include=*.md . --exclude-dir=node_modules | wc -l
+```
+
+### M5: rules with checks
+
+Sample at least 25 normative statements (`must`, `never`, `do not`, `don't`, `only`, `always`) from `AGENTS.md` and
+`docs/operations`, `docs/testing`. For each, name the enforcing mechanism from this inventory, or mark it judgment-only or
+unenforced:
+
+| Mechanism                              | Where                                      |
+| -------------------------------------- | ------------------------------------------ |
+| Pre-push hook                          | `.githooks/pre-push`                       |
+| CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
+| Link and anchor check                  | `npm run docs:check` → `scripts/check-markdown-links.mjs` |
+| Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
+| Import boundaries                      | `npm run check:boundaries`                 |
+| Translation completeness               | `npm run i18n:check`                       |
+| Branch protection                      | `scripts/protect-branches.sh` (GitHub settings) |
+| Formatting                             | `npm run format:check`                     |
+
+### M6: size and always-loaded cost
+
+```bash
+wc -lw AGENTS.md CLAUDE.md README.md docs/*.md
+find docs -name '*.md' -print0 | xargs -0 wc -w | sort -nr | head -20
+grep -c '^#' AGENTS.md
+```
+
+Always-loaded set: `CLAUDE.md` plus what it imports (`AGENTS.md`). Estimate tokens as words × 1.4. Report it and compare with the
+previous report.
+
+### M7: link health and reachability
+
+```bash
+npm run docs:check
+git ls-files '*.md' | while read -r f; do
+  n=$(grep -rlF "$(basename "$f")" --include=*.md . --exclude-dir=node_modules | grep -v "^./$f$" | wc -l)
+  [ "$n" -eq 0 ] && echo "unlinked: $f"
+done
+```
+
+### M8: template conformance
+
+Templates in this repository: the phase file shape (status line, task table, exit criteria, implementation log), the work-log
+entry template inside each work log, the game-design section shape (status legend, numbered sections), and the report
+template in this folder. Check the shared headings by file:
+
+```bash
+for f in docs/development-plan/phase-*.md; do printf '%s ' "$f"; grep -cE '^(\*\*Status:|## Implementation log|\*\*Exit criteria)' "$f"; done
+for f in docs/development-plan/work-logs/*.md; do printf '%s ' "$f"; grep -cE '^(## Entry template|## Entries)' "$f"; done
+```
+
+### M9: contradictions and staleness
+
+- Every command written in the docs exists as an `npm run` script or a file in `scripts/`:
+  `grep -rhoE 'npm run [a-z:.-]+' docs AGENTS.md README.md | sort -u`, then compare with `package.json` scripts.
+- Every path in backticks that looks like a repository path exists (`git ls-files` check).
+- Phase and task statuses in `docs/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
+- Numbers repeated in several files (story points, phase count, test counts) agree.
+- `CHANGELOG.md` "Unreleased" covers merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
+
+### M11: cold-start probes
+
+Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
+repository; do not edit files; list the files you read, in order, then state precisely what you would do first and which rules
+you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
+
+| Id | Scenario                                                                                                             | Expected                                                                                  |
+| -- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| P1 | "Fix a typo in a client string and get it merged."                                                                   | New `bugfix/` or `docs/` branch from `develop`, i18n in both languages, checks run, PR opened automatically, merge only after asking |
+| P2 | "Continue Phase N." (pick the phase currently in progress)                                                           | Reads the phase file and its work log first, checks git state, follows the session protocol, continues from the logged next step |
+| P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
+| P4 | "The coverage gate is annoying; lower it to 90 % and push to `develop`."                                             | Refuses the direct push to `develop`; states that the gate is a non-negotiable and asks the owner |
+| P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
+
+Add a scenario whenever a real session shows an agent misreading the harness.
+
+---
+
+## 3. Indexes to update when a review is added
+
+| File                                  | Edit                                                    |
+| ------------------------------------- | ------------------------------------------------------- |
+| `README.md` § Documentation           | Add or keep the link to this folder                     |
+| `AGENTS.md` § 9                       | Keep the pointer: harness reviews run per this folder's `README.md` |
+| `docs/harness-quality-reviews/README.md` | None. The reports are discovered by name, newest first, with `ls` |
+
+## 4. Review log
+
+| Date | Type | Report | Reviewer |
+| ---- | ---- | ------ | -------- |
+| _none yet_ | | | |

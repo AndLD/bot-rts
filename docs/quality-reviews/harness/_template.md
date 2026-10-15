@@ -23,6 +23,7 @@ Scale `1` (poor) to `5` (excellent). Carried scores (delta reviews) are marked `
 | D10 State and resumability         |          |         | 4      |       |
 | D11 Product integrity              |          |         | 4      |       |
 | D12 Open items and completeness    |          |         | 4      |       |
+| D13 Complexity                     |          |         | 4      |       |
 | **Blueprint readiness**            |          | `%`     | 90 %   |       |
 
 Gate: pass | fail (reason).
@@ -83,7 +84,19 @@ Inventory (one row per open item):
 
 Evaluation: blockers of the next milestones, items without owner, the questions that must be answered and by whom.
 
-## 9. Export dry run
+## 9. Complexity (D13)
+
+Numbers against budgets (the first review proposes the budgets):
+
+| Aspect | Measure | Value | Budget | Previous | Trend |
+| ------ | ------- | ----- | ------ | -------- | ----- |
+
+Hotspots per aspect (top ten), each classified essential or accidental, with the proposed simplification for the accidental ones.
+
+| Subject | Aspect | Hotspot | Essential or accidental | Why | Simplification |
+| ------- | ------ | ------- | ----------------------- | --- | -------------- |
+
+## 10. Export dry run
 
 | Bucket                                   | Content |
 | ---------------------------------------- | ------- |
@@ -93,7 +106,7 @@ Evaluation: blockers of the next milestones, items without owner, the questions 
 | Drop (DOMAIN, STATE)                     |         |
 | Extraction blockers                      |         |
 
-## 10. Follow-up
+## 11. Follow-up
 
 | Finding | Action (task id, pull request or backlog item) | Owner |
 | ------- | ---------------------------------------------- | ----- |

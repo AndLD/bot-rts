@@ -215,6 +215,44 @@ Formulas (record the variant used; keep it fixed between reviews so the trend is
 The two views answer different questions and must not be merged: *documented* says how much is known, *delivered* says how
 much exists.
 
+### M20 to M26: complexity
+
+Compute after the claims ledger (M12) and the probes (M11) exist. Record the exact command or method, then rank the top ten
+hotspots per aspect. Budgets: none yet; the first review proposes them from its baseline and, once approved, they are written
+into the table at the end of this section.
+
+```bash
+# M20 rule load: normative words and exception words in the always-loaded set (CLAUDE.md imports AGENTS.md)
+grep -oiE "\b(must|never|do not|don't|always|only)\b" AGENTS.md | wc -l
+grep -oiE "\b(unless|except|only when|only if|but not|apart from|if .* then)\b" AGENTS.md | wc -l
+# M21 reference structure: fan-out per markdown file, fan-in per target (relative links only)
+for f in $(git ls-files '*.md'); do printf '%s out=%s\n' "$f" "$(grep -oE '\]\(\.[^)#]*' "$f" | sort -u | wc -l)"; done | sort -t= -k2 -nr | head -15
+for f in $(git ls-files '*.md'); do b=$(basename "$f"); printf '%s in=%s\n' "$f" "$(grep -rlF "$b" --include=*.md . --exclude-dir=node_modules | grep -vc "^./$f$")"; done | sort -t= -k2 -nr | head -15
+# M23 concept load: glossary terms, sections and words per context
+grep -c '^| \*\*' docs/game-design/02-glossary.md
+wc -w docs/game-design/*.md | sort -nr | head -12
+# M24 and M25 cross-context references: section numbers cited from each design file
+for f in docs/game-design/[0-9]*.md; do n=$(basename "$f" | cut -c1-2); printf '%s -> ' "$n"; grep -oE '§[0-9]+' "$f" | sort | uniq -c | awk -v me="§${n#0}" '$2!=me {printf "%s×%s ", $2,$1}'; echo; done
+```
+
+- **M22 process:** list each workflow of `AGENTS.md` (start a task, open and merge a pull request, release, resume a phase,
+  end a session, database step after a phase) as numbered steps with decision points; mark every step that a script, hook or CI
+  job already performs, and every manual step that could be automated.
+- **M24 rule interaction and state space:** from the claims ledger count rules per entity, rules whose condition names
+  another rule's outcome, the longest such chain, and the share of rules phrased as exceptions. Extract the lifecycles (bot,
+  module, base, order, session, script run) as states and transitions and count both.
+- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5).
+
+Essential versus accidental: the economy, the script runtime and the market are essential complexity of this product; judge how
+they are written, not that they exist. Typical accidental signs here: the same rule restated in `AGENTS.md`, a design section and
+a phase file; a rule with an exception list in a different file; a process step performed by hand that a script could check.
+
+Budgets (filled after the first review is approved):
+
+| Aspect | Number | Budget | Set on |
+| ------ | ------ | ------ | ------ |
+| _none yet_ | | | |
+
 ### M11: cold-start probes
 
 Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this

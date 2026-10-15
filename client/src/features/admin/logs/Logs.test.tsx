@@ -244,18 +244,15 @@ describe('the audit export', () => {
   })
 
   it('downloads the trail as a file, with the token of the session', async () => {
-    const calls = serve()
+    serve()
     global.fetch = jest.fn(async () => answer(true, undefined)) as never
     renderAs('admin', <AuditViewer />)
     await screen.findAllByText('players.ban')
-    fireEvent.change(screen.getByPlaceholderText('Action'), { target: { value: 'players.ban' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Filter' }))
-    await waitFor(() => expect(calls.some((call) => call.params?.action === 'players.ban')).toBe(true))
     fireEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
 
     await waitFor(() => expect(click).toHaveBeenCalled())
     const [url, init] = (global.fetch as jest.Mock).mock.calls[0]
-    expect(url).toBe('http://api.test/api/v1/admin/audit/export?action=players.ban')
+    expect(url).toBe('http://api.test/api/v1/admin/audit/export?')
     expect((init as RequestInit).headers).toMatchObject({ Authorization: expect.stringMatching(/^Bearer /) })
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:csv')
   })

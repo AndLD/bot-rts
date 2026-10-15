@@ -70,4 +70,4 @@ AGENTS.md §7.1).
 | `feature/9.18-feature-switches` | 9.18 | [#179](https://github.com/AndLD/bot-rts/pull/179) | open |
 | `feature/9.19-retention-console` | 9.19 | [#180](https://github.com/AndLD/bot-rts/pull/180) | open |
 | `feature/9.17-game-clock` | 9.17 | [#181](https://github.com/AndLD/bot-rts/pull/181) | open |
-| `feature/9.17a-game-time-controls` | 9.17a, 9.17b | PR_PLACEHOLDER | open |
+| `feature/9.17a-game-time-controls` | 9.17a, 9.17b | [#182](https://github.com/AndLD/bot-rts/pull/182) | open |

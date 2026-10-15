@@ -53,10 +53,10 @@ AGENTS.md §7.1).
 | `feature/9.6-supervision` | 9.6 | [#156](https://github.com/AndLD/bot-rts/pull/156) | merged |
 | `feature/9.10-logs-audit` | 9.10 | [#157](https://github.com/AndLD/bot-rts/pull/157) | merged |
 | `feature/9.7-security` | 9.7 | [#158](https://github.com/AndLD/bot-rts/pull/158) | merged |
-| `feature/9.8-economy-balance` | 9.8 | [#159](https://github.com/AndLD/bot-rts/pull/159) | open |
-| `feature/9.9-operations` | 9.9 | [#160](https://github.com/AndLD/bot-rts/pull/160) | open |
-| `feature/9.12-devtools` | 9.12 | [#161](https://github.com/AndLD/bot-rts/pull/161) | open |
-| `feature/9.11-analytics` | 9.11 | _this PR_ | open |
-| `feature/9.15-admin-docs` | 9.15 | _this PR_ | open |
-| `feature/9.14-authorization-matrix` | 9.14 | _this PR_ | open |
-| `feature/9.13-admin-e2e` | 9.13 | _this PR_ | open |
+| `feature/9.8-economy-balance` | 9.8 | [#159](https://github.com/AndLD/bot-rts/pull/159) | merged |
+| `feature/9.9-operations` | 9.9 | [#160](https://github.com/AndLD/bot-rts/pull/160) | merged |
+| `feature/9.12-devtools` | 9.12 | [#161](https://github.com/AndLD/bot-rts/pull/161) | merged |
+| `feature/9.11-analytics` | 9.11 | [#162](https://github.com/AndLD/bot-rts/pull/162) | open |
+| `feature/9.15-admin-docs` | 9.15 | [#163](https://github.com/AndLD/bot-rts/pull/163) | open |
+| `feature/9.14-authorization-matrix` | 9.14 | [#164](https://github.com/AndLD/bot-rts/pull/164) | open |
+| `feature/9.13-admin-e2e` | 9.13 | [#165](https://github.com/AndLD/bot-rts/pull/165) | open |

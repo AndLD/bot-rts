@@ -51,6 +51,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   exist, and an editor for the balance of the game (resource spawn weights and amounts, recipes, crafting numbers) with a check, a diff,
   versions that are only added, and rollback; the active version applies when the server next starts
   (`/api/v1/admin/economy`, `/api/v1/admin/balance`). The links for the pages of the console now appear in its menu.
+- Operations in the admin console: the state of the engine (uptime, tick, running scripts), the last pass of the data lifecycle job, the
+  age of the last backup (`BACKUP_STATUS_FILE`), announcements to every player through the notifications, a scheduled maintenance banner
+  and a notice while the world is paused (shown in the game and on its sign-in pages; public `GET /api/v1/maintenance`), and a restart of
+  all running scripts (`/api/v1/admin/operations/*`).
 
 ### Changed
 

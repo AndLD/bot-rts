@@ -366,6 +366,40 @@ const injectedRtkApi = api.injectEndpoints({
         body: queryArg.reasonDto
       })
     }),
+    operationsStatus: build.query<OperationsStatusApiResponse, OperationsStatusApiArg>({
+      query: () => ({ url: `/api/v1/admin/operations` })
+    }),
+    operationsAnnounce: build.mutation<OperationsAnnounceApiResponse, OperationsAnnounceApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/operations/announcements`,
+        method: 'POST',
+        body: queryArg.announceDto
+      })
+    }),
+    operationsSetBanner: build.mutation<OperationsSetBannerApiResponse, OperationsSetBannerApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/operations/maintenance-banner`,
+        method: 'PUT',
+        body: queryArg.maintenanceBannerDto
+      })
+    }),
+    operationsClearBanner: build.mutation<OperationsClearBannerApiResponse, OperationsClearBannerApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/operations/maintenance-banner`,
+        method: 'DELETE',
+        body: queryArg.reasonDto
+      })
+    }),
+    operationsRestartRuntime: build.mutation<OperationsRestartRuntimeApiResponse, OperationsRestartRuntimeApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/operations/restart-runtime`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
+    }),
+    maintenanceStatus: build.query<MaintenanceStatusApiResponse, MaintenanceStatusApiArg>({
+      query: () => ({ url: `/api/v1/maintenance` })
+    }),
     craftingRecipeList: build.query<CraftingRecipeListApiResponse, CraftingRecipeListApiArg>({
       query: () => ({ url: `/api/v1/crafting/recipes` })
     }),
@@ -906,6 +940,26 @@ export type BalanceRollbackApiArg = {
   version: number
   reasonDto: ReasonDto
 }
+export type OperationsStatusApiResponse = /** status 200  */ OperationsStatusResponse
+export type OperationsStatusApiArg = void
+export type OperationsAnnounceApiResponse = /** status 200  */ AnnouncementResultResponse
+export type OperationsAnnounceApiArg = {
+  announceDto: AnnounceDto
+}
+export type OperationsSetBannerApiResponse = unknown
+export type OperationsSetBannerApiArg = {
+  maintenanceBannerDto: MaintenanceBannerDto
+}
+export type OperationsClearBannerApiResponse = unknown
+export type OperationsClearBannerApiArg = {
+  reasonDto: ReasonDto
+}
+export type OperationsRestartRuntimeApiResponse = /** status 200  */ RestartResultResponse
+export type OperationsRestartRuntimeApiArg = {
+  reasonDto: ReasonDto
+}
+export type MaintenanceStatusApiResponse = /** status 200  */ MaintenanceStatusResponse
+export type MaintenanceStatusApiArg = void
 export type CraftingRecipeListApiResponse = /** status 200  */ RecipeResponse[]
 export type CraftingRecipeListApiArg = void
 export type FilesDrivesApiResponse = /** status 200  */ DriveResponse[]
@@ -1729,6 +1783,66 @@ export type BalanceDocumentDto = {
     [key: string]: object
   }
 }
+export type EngineStatusModel = {
+  isResponding: boolean
+  uptimeMs: number
+  tick: number
+  lastTickMs: number
+  p95TickMs: number
+  executions: number
+  memoryBytes: number
+}
+export type JobStatusModel = {
+  name: string
+  lastRunAt: number | null
+  failures: number
+  totals: {
+    [key: string]: number
+  }
+}
+export type BackupStatusModel = {
+  isConfigured: boolean
+  finishedAt: number | null
+  sizeBytes: number | null
+  location: string | null
+}
+export type MaintenanceBannerModel = {
+  message: string
+  startsAt: number
+  endsAt: number | null
+}
+export type OperationsStatusResponse = {
+  engine: EngineStatusModel
+  isPaused: boolean
+  areScriptsHalted: boolean
+  jobs: JobStatusModel[]
+  backup: BackupStatusModel
+  banner: MaintenanceBannerModel | null
+}
+export type AnnouncementResultResponse = {
+  recipients: number
+}
+export type AnnounceDto = {
+  reason: string
+  /** What every player is told */
+  text: string
+}
+export type MaintenanceBannerDto = {
+  reason: string
+  message: string
+  /** When maintenance starts (ms since the epoch) */
+  startsAt: number
+  /** When it should end, if known */
+  endsAt?: number | null
+}
+export type RestartResultResponse = {
+  restarted: number
+  failedBots: number
+}
+export type MaintenanceStatusResponse = {
+  isPaused: boolean
+  banner: MaintenanceBannerModel | null
+}
 export type RecipeResourceResponse = {
   resource: 'iron' | 'stone' | 'wood' | 'oil' | 'crystal' | 'gold'
   amount: number
@@ -2307,6 +2421,12 @@ export const {
   useBalanceVersionQuery,
   useBalancePreviewMutation,
   useBalanceRollbackMutation,
+  useOperationsStatusQuery,
+  useOperationsAnnounceMutation,
+  useOperationsSetBannerMutation,
+  useOperationsClearBannerMutation,
+  useOperationsRestartRuntimeMutation,
+  useMaintenanceStatusQuery,
   useCraftingRecipeListQuery,
   useFilesDrivesQuery,
   useFilesListQuery,

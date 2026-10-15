@@ -19,6 +19,8 @@ import { LIFECYCLE_REPOSITORY, LifecycleRepository } from './application/lifecyc
 import { LifecycleService } from './application/lifecycle.service'
 import { LIFECYCLE_POLICY, LifecyclePolicy } from './domain/lifecycle-policy'
 import { EmailInactivityNotifier } from './infrastructure/email-inactivity-notifier'
+import { JOB_STATUS_STORE, JobStatusStore } from '../operations/application/ports'
+import { PrismaOperationsStore } from '../operations/infrastructure/prisma-operations.store'
 import { LifecycleScheduler } from './infrastructure/lifecycle-scheduler'
 import { PrismaLifecycleRepository } from './infrastructure/prisma-lifecycle.repository'
 
@@ -33,6 +35,11 @@ const FIRST_RUN_DELAY_MS = 60_000
   providers: [
     { provide: LIFECYCLE_POLICY, inject: [APP_CONFIG], useFactory: (config: AppConfig) => config.lifecycle },
     LifecycleStatus,
+    {
+      provide: JOB_STATUS_STORE,
+      inject: [PRISMA_CLIENT, CLOCK],
+      useFactory: (client: PrismaClient, clock: Clock) => new PrismaOperationsStore(client, clock)
+    },
     {
       provide: LIFECYCLE_REPOSITORY,
       inject: [PRISMA_CLIENT],
@@ -55,6 +62,7 @@ const FIRST_RUN_DELAY_MS = 60_000
         TERMINAL_RETENTION,
         CLOCK,
         LifecycleStatus,
+        JOB_STATUS_STORE,
         LOGGER
       ],
       useFactory: (
@@ -66,6 +74,7 @@ const FIRST_RUN_DELAY_MS = 60_000
         retention: TerminalRetention,
         clock: Clock,
         status: LifecycleStatus,
+        jobs: JobStatusStore,
         logger: Logger
       ) =>
         new LifecycleService({
@@ -77,6 +86,7 @@ const FIRST_RUN_DELAY_MS = 60_000
           retention,
           clock,
           status,
+          jobs,
           logger
         })
     }

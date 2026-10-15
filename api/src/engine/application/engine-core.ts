@@ -124,7 +124,11 @@ export class EngineCore {
   private tickNumber = 0
   private controlState: ControlState = INITIAL_CONTROL_STATE
 
-  constructor(private readonly deps: EngineDependencies) {}
+  private readonly startedAtMs: number
+
+  constructor(private readonly deps: EngineDependencies) {
+    this.startedAtMs = deps.monotonicMs()
+  }
 
   get tick(): number {
     return this.tickNumber
@@ -404,7 +408,12 @@ export class EngineCore {
   // The memory of every sandbox is measured on request, not every tick
   snapshot(): EngineMetricsSnapshot {
     const memoryBytes = [...this.live.values()].reduce((sum, live) => sum + live.memoryBytes(), 0)
-    return { ...this.metrics.snapshot(), executions: this.live.size, memoryBytes }
+    return {
+      ...this.metrics.snapshot(),
+      executions: this.live.size,
+      memoryBytes,
+      uptimeMs: this.deps.monotonicMs() - this.startedAtMs
+    }
   }
 
   // One game tick

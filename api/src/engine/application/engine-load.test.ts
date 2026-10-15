@@ -126,7 +126,12 @@ describe('the engine under load', () => {
     const honest = Array.from({ length: 60 }, (_, i) => ({ id: `honest-${i}`, script: HONEST }))
     const hogs = Array.from({ length: 20 }, (_, i) => ({ id: `hog-${i}`, script: HOG }))
 
-    const { progress, durations, core } = await stage([...honest, ...hogs], 40)
+    // The slice is real time, so a busy machine must not end honest scripts that a hog's slice would also allow; the hogs are killed in the
+    // first tick whatever the slice is
+    const { progress, durations, core } = await stage([...honest, ...hogs], 40, {
+      ...DEFAULT_ENGINE_CONFIG,
+      sliceMs: 50
+    })
 
     for (const player of honest) {
       expect(progress.get(player.id)).toBeGreaterThan(5)

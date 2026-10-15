@@ -79,6 +79,8 @@ export interface ObservabilityConfig {
   metricsToken: string | undefined
   // How many of the newest log lines are kept in memory for the admin console
   logBufferSize: number
+  // The file the backup job writes when it finishes, which the Operations page of the console reads; undefined: not reported
+  backupStatusFile: string | undefined
 }
 
 export interface AdminConfig {
@@ -373,7 +375,8 @@ export function loadConfig(env: Env): AppConfig {
     balance: { base: { resources: world.resources, crafting }, version: null, problem: null },
     observability: {
       metricsToken: env.METRICS_TOKEN || undefined,
-      logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000)
+      logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000),
+      backupStatusFile: env.BACKUP_STATUS_FILE || undefined
     },
     deployment: {
       role,

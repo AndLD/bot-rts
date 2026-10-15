@@ -56,6 +56,10 @@ export const api = generated.enhanceEndpoints({
     supervisionCompensate: { invalidatesTags: ['Supervision'] },
     supervisionRemove: { invalidatesTags: ['Supervision'] },
     supervisionRestore: { invalidatesTags: ['Supervision'] },
+    operationsStatus: { providesTags: ['Operations'] },
+    operationsSetBanner: { invalidatesTags: ['Operations'] },
+    operationsClearBanner: { invalidatesTags: ['Operations'] },
+    operationsRestartRuntime: { invalidatesTags: ['Operations'] },
     balanceState: { providesTags: ['Balance'] },
     balanceSave: { invalidatesTags: ['Balance'] },
     balanceRollback: { invalidatesTags: ['Balance'] },
@@ -71,6 +75,12 @@ export const api = generated.enhanceEndpoints({
 })
 
 export const {
+  useMaintenanceStatusQuery,
+  useOperationsStatusQuery,
+  useOperationsAnnounceMutation,
+  useOperationsSetBannerMutation,
+  useOperationsClearBannerMutation,
+  useOperationsRestartRuntimeMutation,
   useBalanceOverviewQuery,
   useBalanceStateQuery,
   useLazyBalanceVersionQuery,

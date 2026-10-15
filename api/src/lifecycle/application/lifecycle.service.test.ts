@@ -60,6 +60,7 @@ function setup(policy: Partial<LifecyclePolicy> = {}) {
   const notifications = { purge: jest.fn(async () => 6) }
   const status = new LifecycleStatus()
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
+  const jobs = { record: jest.fn(async () => undefined), list: jest.fn(async () => []) }
   const service = new LifecycleService({
     repository,
     unitOfWork: world.unitOfWork,
@@ -69,9 +70,10 @@ function setup(policy: Partial<LifecyclePolicy> = {}) {
     retention: DEFAULT_TERMINAL_RETENTION,
     clock: world.clock,
     status,
+    jobs,
     logger
   })
-  return { ...world, repository, notifier, notifications, status, logger, service }
+  return { ...world, repository, notifier, notifications, status, jobs, logger, service }
 }
 
 const account = (userId: string, noticeSentAt: Date | null = null): InactiveAccount => ({
@@ -82,6 +84,22 @@ const account = (userId: string, noticeSentAt: Date | null = null): InactiveAcco
 })
 
 describe('LifecycleService', () => {
+  it('stores the result of a pass for the console, and carries on when it cannot', async () => {
+    const { service, jobs, logger, clock } = setup()
+
+    await service.runOnce()
+    expect(jobs.record).toHaveBeenCalledWith({
+      name: 'lifecycle',
+      lastRunAt: clock.now().getTime(),
+      failures: 0,
+      totals: expect.objectContaining({ terminalLogsDeleted: expect.any(Number) })
+    })
+
+    jobs.record.mockRejectedValueOnce(new Error('database is down'))
+    await expect(service.runOnce()).resolves.toBeDefined()
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('database is down'))
+  })
+
   it('applies each retention to its own cut-off date and reports what was removed', async () => {
     const { service, repository, clock } = setup()
     repository.unverified = ['u1', 'u2']

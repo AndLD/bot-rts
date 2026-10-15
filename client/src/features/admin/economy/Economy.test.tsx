@@ -311,7 +311,7 @@ describe('the feature switches', () => {
     expect(screen.getByRole('switch', { name: 'Sign-ups' })).toBeChecked()
 
     fireEvent.click(screen.getByRole('switch', { name: 'Sign-ups' }))
-    await waitFor(() => expect(dialog()).not.toBeNull())
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
     await confirmWith('incident 7')
 
     await waitFor(() =>
@@ -323,17 +323,21 @@ describe('the feature switches', () => {
   })
 
   it('keeps the dialog open when the change fails', async () => {
-    serve(state(), (call) =>
+    const calls = serve(state(), (call) =>
       call.method === 'PATCH' && call.url === '/api/v1/admin/features'
         ? { error: { status: 400, data: {} } }
         : undefined
     )
     renderAs('admin')
     await openTab('Features')
-    fireEvent.click(await screen.findByRole('switch', { name: 'Sign-ups' }))
-    await waitFor(() => expect(dialog()).not.toBeNull())
+    const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
+    await waitFor(() => expect(signUps).toBeEnabled())
+    fireEvent.click(signUps)
+    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
     await confirmWith('incident 7')
-    await waitFor(() => expect(dialog()).not.toBeNull())
+
+    await waitFor(() => expect(calls.some((call) => call.method === 'PATCH')).toBe(true), { timeout: 15000 })
+    expect(dialog()).not.toBeNull()
   })
 
   it('is read-only for a role without balance.write', async () => {

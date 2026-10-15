@@ -6,6 +6,7 @@ import { AchievementService } from '../achievements/application/achievement.serv
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
+import { GAME_CLOCK } from '../shared/application/game-clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
 import {
@@ -41,15 +42,16 @@ export const PURGE_MS = 3_600_000
     },
     {
       provide: NotificationService,
-      inject: [NOTIFICATION_REPOSITORY, NOTIFICATION_PREFERENCES, CLOCK, ID_GENERATOR, LOGGER, APP_CONFIG],
+      inject: [NOTIFICATION_REPOSITORY, NOTIFICATION_PREFERENCES, CLOCK, ID_GENERATOR, LOGGER, APP_CONFIG, GAME_CLOCK],
       useFactory: (
         repository: NotificationRepository,
         preferences: NotificationPreferenceRepository,
         clock: Clock,
         ids: IdGenerator,
         logger: Logger,
-        config: AppConfig
-      ) => new NotificationService(repository, preferences, clock, ids, logger, config.notifications)
+        config: AppConfig,
+        gameClock: Clock
+      ) => new NotificationService(repository, preferences, clock, ids, logger, config.notifications, gameClock)
     }
   ],
   exports: [NotificationService]

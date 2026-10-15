@@ -1,3 +1,4 @@
+import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import { AppError } from '../../shared/domain/app-error'
 import { Logger } from '../../shared/application/logger'
 import { EngineCore } from '../application/engine-core'
@@ -30,7 +31,9 @@ export class EngineHost {
     private readonly channel: MessageChannel<ControlMessage, EngineMessage>,
     private readonly logger: Logger,
     tickIntervalMs: number,
-    timers: Timers
+    timers: Timers,
+    // Applies the settings of the game's time; the host serves requests between ticks, so a change never lands inside one
+    private readonly applyGameTime: (settings: GameTimeSettings) => void = () => undefined
   ) {
     this.loop = new TickLoop(
       () => core.runTick(),
@@ -83,6 +86,9 @@ export class EngineHost {
         return this.core.act(request.name, request.args)
       case 'control':
         return this.core.control(request.command)
+      case 'setGameTime':
+        this.applyGameTime(request.settings)
+        return Promise.resolve(null)
       case 'reboot':
         return this.core.reboot(request.botId)
       case 'top':

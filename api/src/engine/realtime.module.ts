@@ -34,7 +34,8 @@ export const GAME_EVENT_DISPATCHER = Symbol('GameEventDispatcher')
       useFactory: (engine: EnginePort, consumers: GameEventConsumer[], logger: Logger) =>
         new GameEventDispatcher(engine, consumers, logger)
     }
-  ]
+  ],
+  exports: [RealtimeGateway]
 })
 export class RealtimeModule implements OnApplicationBootstrap, OnApplicationShutdown {
   private offUnlocks: (() => void) | null = null

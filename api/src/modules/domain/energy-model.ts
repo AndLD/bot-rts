@@ -46,7 +46,8 @@ export class EnergyModel {
   constructor(
     private readonly registry: ModuleRegistry,
     private readonly balance: EnergyBalance = DEFAULT_ENERGY_BALANCE,
-    private readonly time: GameTimeConfig = DEFAULT_GAME_TIME
+    // The day cycle: a config, or a function that gives the one in force now (the console can change it while the server runs)
+    private readonly time: GameTimeConfig | (() => GameTimeConfig) = DEFAULT_GAME_TIME
   ) {}
 
   // The energy in the batteries that are connected and working
@@ -162,7 +163,9 @@ export class EnergyModel {
     const advanced = source.delay > 0 ? Math.max(last + due * source.delay, last) : now
     let current = [...records]
 
-    const perCycle = clean(source.energyPerCycle * source.outputAt(now, this.time))
+    const perCycle = clean(
+      source.energyPerCycle * source.outputAt(now, typeof this.time === 'function' ? this.time() : this.time)
+    )
     const room = perCycle > 0 ? Math.ceil((this.capacity(current) - this.stored(current)) / perCycle) : 0
     const wanted = Math.min(due, Math.max(room, 0))
     const fuelled =

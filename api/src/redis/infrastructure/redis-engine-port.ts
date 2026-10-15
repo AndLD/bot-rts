@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto'
+import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import Redis from 'ioredis'
 import { AppError } from '../../shared/domain/app-error'
 import { ExecutionUsage, ExecutionView } from '../../engine/domain/execution'
@@ -65,6 +66,10 @@ export class RedisEnginePort implements EnginePort {
 
   control(command: EngineControl): Promise<ControlState> {
     return this.ask({ op: 'control', command }) as Promise<ControlState>
+  }
+
+  async setGameTime(settings: GameTimeSettings): Promise<void> {
+    await this.ask({ op: 'setGameTime', settings })
   }
 
   reboot(botId: string): Promise<ExecutionView[]> {

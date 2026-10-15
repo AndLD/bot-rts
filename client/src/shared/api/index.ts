@@ -20,6 +20,7 @@ export const api = generated.enhanceEndpoints({
     settingsUpdate: { invalidatesTags: ['Settings'] },
     adminSettingsGet: { providesTags: ['Settings'] },
     adminSettingsUpdate: { invalidatesTags: ['Settings'] },
+    gameTimeCurrent: { providesTags: ['GameTime'] },
     retentionGet: { providesTags: ['Retention'] },
     retentionUpdate: { invalidatesTags: ['Retention', 'Operations'] },
     retentionReset: { invalidatesTags: ['Retention', 'Operations'] },

@@ -51,7 +51,7 @@ change only Markdown skip it.
 - Unit tests are `*.test.ts` next to the code; integration tests are `*.int.test.ts`; contract tests and fakes of ports live in
   `api/tests/` (`contracts`, `fakes`, `integration`).
 - Fakes are hand-written for ports or `jest.fn`. No in-memory or embedded database is ever used.
-- Game logic never calls `Date.now()` or `Math.random()`; tests inject the clock and the seeded RNG, so a run is repeatable.
+- Game logic never calls `Date.now()` or `Math.random()`; tests inject the clock and the seeded RNG, so a run is repeatable. Which of the two clocks (the real one, or the game's) a piece of code reads is classified in [clock-consumers.md](./clock-consumers.md) and enforced by a test.
 - An event is an edge, not a level: a test runs many ticks in an unchanged state and asserts the event fires once
   (design §24.1).
 - Cypress specs are in `client/cypress/e2e/<flow>.cy.ts`, run against a seeded backend with deterministic data, and are listed

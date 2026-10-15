@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { DAY_PHASE, DayPhase, DayPhaseSpan, GameTimeConfig } from '../../../../lib/utils/game-time'
 import { GameTimeView } from '../application/game-time.service'
 
@@ -22,6 +22,12 @@ class GameTimeConfigResponse implements GameTimeConfig {
 
   @ApiProperty({ type: [DayPhaseSpanResponse] })
   spans!: DayPhaseSpanResponse[]
+
+  @ApiPropertyOptional({ description: 'The game clock instant at which the in-game time is 00:00' })
+  anchorMs?: number
+
+  @ApiPropertyOptional({ description: 'The IANA time zone whose wall-clock time the game shows (real-world mode)' })
+  timeZone?: string
 }
 
 export class GameTimeResponse implements GameTimeView {

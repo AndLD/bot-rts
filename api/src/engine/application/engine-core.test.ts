@@ -46,7 +46,9 @@ class StubHandler implements ScriptFunctionHandler {
   }
 }
 
-async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () => number; withWatch?: boolean } = {}) {
+async function setup(
+  options: { config?: Partial<EngineConfig>; monotonic?: () => number; withWatch?: boolean; gameClock?: FakeClock } = {}
+) {
   const runtime = await QuickJsScriptRuntime.create()
   const executions = new InMemoryExecutionRepository()
   const bots = new FakeBotStateSource()
@@ -115,6 +117,7 @@ async function setup(options: { config?: Partial<EngineConfig>; monotonic?: () =
     sink,
     ids: new SequentialIdGenerator(),
     clock: new FakeClock(),
+    gameClock: options.gameClock,
     logger,
     monotonicMs: options.monotonic ?? (() => 0)
   })
@@ -765,6 +768,33 @@ describe('EngineCore', () => {
       await ticks(1)
 
       expect(outbox.drain().map((e) => e.type)).toEqual(['EnergyLow', 'OutOfFuel', 'LiveScanStopped'])
+    })
+  })
+
+  describe('the clock of the rules', () => {
+    it('gives the energy of the bots the game time, while the tick count stays on the tick loop', async () => {
+      const gameClock = new FakeClock(new Date('2027-01-01T05:00:00.000Z'))
+      const { ticks, world } = await setup({ gameClock })
+      const tickEnergy = jest.spyOn(world, 'tickEnergy').mockReturnValue([])
+
+      await ticks(2)
+      gameClock.current = new Date(gameClock.current.getTime() + 3_600_000)
+      await ticks(1)
+
+      expect(tickEnergy.mock.calls.map(([now]) => now)).toEqual([
+        Date.parse('2027-01-01T05:00:00.000Z'),
+        Date.parse('2027-01-01T05:00:00.000Z'),
+        Date.parse('2027-01-01T06:00:00.000Z')
+      ])
+    })
+
+    it('uses the clock of the records for the game time when no other is given', async () => {
+      const { ticks, world } = await setup()
+      const tickEnergy = jest.spyOn(world, 'tickEnergy').mockReturnValue([])
+
+      await ticks(1)
+
+      expect(tickEnergy).toHaveBeenCalledWith(new FakeClock().now().getTime())
     })
   })
 

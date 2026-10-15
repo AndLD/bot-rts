@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { GAME_TIME, GameTimeSource } from '../shared/application/game-clock'
 import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { ModuleRepository } from './application/module.repository'
@@ -20,8 +21,9 @@ import { PrismaModuleRepository } from './infrastructure/prisma-module.repositor
     { provide: ModuleRegistry, useFactory: createModuleRegistry },
     {
       provide: EnergyModel,
-      inject: [ModuleRegistry],
-      useFactory: (registry: ModuleRegistry) => new EnergyModel(registry)
+      inject: [ModuleRegistry, GAME_TIME],
+      useFactory: (registry: ModuleRegistry, time: GameTimeSource) =>
+        new EnergyModel(registry, undefined, () => time.config())
     },
     {
       provide: EnergyService,

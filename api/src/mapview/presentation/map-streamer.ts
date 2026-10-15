@@ -7,7 +7,8 @@ import { GameEventConsumer } from '../../engine/application/game-event-dispatche
 import { EngineEvent } from '../../engine/application/engine-ports'
 import { GameEvent } from '../../engine/domain/game-event'
 import { roomOf } from '../../engine/presentation/realtime.gateway'
-import { Clock, CLOCK } from '../../shared/application/clock'
+import { Clock } from '../../shared/application/clock'
+import { GAME_CLOCK } from '../../shared/application/game-clock'
 import { LOGGER, Logger } from '../../shared/application/logger'
 import { MapViewService } from '../application/map-view.service'
 
@@ -22,7 +23,7 @@ export class MapStreamer implements OnGatewayInit, OnApplicationShutdown, GameEv
   constructor(
     @Inject(ENGINE_PORT) private readonly engine: EnginePort,
     private readonly view: MapViewService,
-    @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(GAME_CLOCK) private readonly clock: Clock,
     @Inject(LOGGER) private readonly logger: Logger
   ) {}
 

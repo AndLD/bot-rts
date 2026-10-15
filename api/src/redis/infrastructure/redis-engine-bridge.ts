@@ -48,6 +48,8 @@ export class RedisEngineBridge {
         return this.engine.manual(request.userId, request.botId, request.fn, request.args)
       case 'control':
         return this.engine.control(request.command)
+      case 'setGameTime':
+        return this.engine.setGameTime(request.settings).then(() => null)
       case 'reboot':
         return this.engine.reboot(request.botId)
       case 'top':

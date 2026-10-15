@@ -2518,6 +2518,10 @@ export type GameTimeConfigResponse = {
   dayLengthMs: number
   hoursPerDay: number
   spans: DayPhaseSpanResponse[]
+  /** The game clock instant at which the in-game time is 00:00 */
+  anchorMs?: number
+  /** The IANA time zone whose wall-clock time the game shows (real-world mode) */
+  timeZone?: string
 }
 export type GameTimeResponse = {
   /** The server instant in ms */

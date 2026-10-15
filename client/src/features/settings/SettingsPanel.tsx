@@ -71,13 +71,13 @@ function CategoryRow({
   category,
   label,
   isOn,
-  isOffInGame = false,
+  isOffInGame,
   onChange
 }: {
   category: ManualCategory
   label: string
   isOn: boolean
-  isOffInGame?: boolean
+  isOffInGame: boolean
   onChange(isOn: boolean): void
 }) {
   const t = useTranslations('settings')

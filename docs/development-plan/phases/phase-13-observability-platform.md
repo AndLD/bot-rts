@@ -41,4 +41,4 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/13.1-otel-logs-traces` | 13.1 | [#190](https://github.com/AndLD/bot-rts/pull/190) | ✅ Merged |
-| `feature/13.2-collector-gateway-elasticsearch` | 13.2 | pending | 🟡 In review |
+| `feature/13.2-collector-gateway-elasticsearch` | 13.2 | [#191](https://github.com/AndLD/bot-rts/pull/191) | 🟡 In review |

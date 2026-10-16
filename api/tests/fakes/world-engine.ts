@@ -1,4 +1,5 @@
 import { BOT_TYPE } from '../../../lib/utils/interfaces/bots'
+import { MetricRecorder } from '../../src/engine/application/engine-metrics'
 import { MapPointType } from '../../../lib/utils/interfaces/map'
 import { DEFAULT_RESOURCE_BALANCE, RESOURCE } from '../../../lib/utils/interfaces/resources'
 import { BotState } from '../../src/engine/domain/bot-state'
@@ -84,7 +85,13 @@ export const FULL_KIT = [
 ]
 
 export function createEngineWorld(
-  options: { seed?: number; states?: Map<string, BotState>; writeBehind?: WriteBehind; maxChunks?: number } = {}
+  options: {
+    seed?: number
+    states?: Map<string, BotState>
+    writeBehind?: WriteBehind
+    maxChunks?: number
+    recorder?: MetricRecorder
+  } = {}
 ) {
   const source = new FakeWorldSource(options.states)
   const batches: WorldStateBatch[] = []
@@ -100,7 +107,8 @@ export function createEngineWorld(
     16,
     (seed) => new SeededRng(seed),
     options.seed ?? 1,
-    options.maxChunks ?? 512
+    options.maxChunks ?? 512,
+    options.recorder
   )
   const ids = new SequentialIdGenerator()
   const modules = new ModuleFactory(ids)

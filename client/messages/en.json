@@ -1079,6 +1079,7 @@
       "areas": {
         "engine": "Engine",
         "scripts": "Scripts",
+        "world": "World",
         "api": "API",
         "infrastructure": "Infrastructure"
       },
@@ -1096,20 +1097,45 @@
           "tickP95Ms": "Tick duration, 95th percentile",
           "tickP95Ratio": "Tick duration vs the interval",
           "overrunRate": "Tick overruns",
-          "cutTicks": "Ticks cut at the cap"
+          "cutTicks": "Ticks cut at the cap",
+          "tickP50Ms": "Tick duration, median",
+          "tickP99Ms": "Tick duration, 99th percentile",
+          "ticksSkipped": "Ticks skipped",
+          "flushMs": "World write, duration",
+          "flushLagMs": "World write, lag",
+          "flushPending": "Rows in the last world write",
+          "crashLoopKills": "Executions killed for restarting too often",
+          "restarts": "Engine restarts",
+          "commandsPerTick": "Game calls applied per tick",
+          "conflictRate": "Calls the world refused (blocked or empty)"
         },
         "scripts": {
           "running": "Running scripts",
           "queued": "Queued executions",
           "deferred": "Deferred executions",
           "maxWaitTicks": "Longest wait for a turn (ticks)",
-          "sandboxMemoryBytes": "Script memory"
+          "sandboxMemoryBytes": "Script memory",
+          "opsUsedRatio": "Operations used of the budget",
+          "killedBySlice": "Scripts stopped for using too much of a tick",
+          "waitSpreadTicks": "Spread of waits between players (ticks)"
+        },
+        "world": {
+          "activeBots": "Bots with a script running",
+          "activePlayers": "Players with a script running",
+          "botsPerPlayer": "Bots per player",
+          "liveAreas": "Live scan areas",
+          "liveWatchers": "Players watching a live area",
+          "visionDiffsPerSecond": "Live-view updates per second",
+          "eventsPerSecond": "Events per second",
+          "chunkCacheHitRate": "Map cache hit rate"
         },
         "api": {
           "requestsPerSecond": "Requests per second",
           "errorRate5xx": "Server errors (5xx)",
           "errorRate4xx": "Client errors (4xx)",
-          "latencyP95Ms": "Request latency, 95th percentile"
+          "latencyP95Ms": "Request latency, 95th percentile",
+          "latencyP50Ms": "Request latency, median",
+          "latencyP99Ms": "Request latency, 99th percentile"
         },
         "infrastructure": {
           "rssBytes": "Process memory",

@@ -132,7 +132,7 @@ export interface IAuditPage {
 }
 
 // Health and metrics shown by the console (design §25.5)
-export const MONITOR_AREAS = ['engine', 'scripts', 'api', 'infrastructure'] as const
+export const MONITOR_AREAS = ['engine', 'scripts', 'world', 'api', 'infrastructure'] as const
 
 export type MonitorArea = (typeof MONITOR_AREAS)[number]
 

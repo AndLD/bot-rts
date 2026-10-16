@@ -85,6 +85,8 @@ import { ScriptApi } from './application/script-api'
 import { ScriptRuntime } from './application/script-runtime'
 import { WriteBehind } from './application/write-behind'
 import { ServiceBotStateSource } from './infrastructure/bot-state.source'
+import { CountingSink } from './application/counting-sink'
+import { EngineMetrics } from './application/engine-metrics'
 import { ChannelSink, EngineHost } from './infrastructure/engine-host'
 import { FilesScriptSource } from './infrastructure/files-script.source'
 import { PrismaControlStateStore } from './infrastructure/prisma-control-state.store'
@@ -92,6 +94,7 @@ import { PrismaExecutionRepository } from './infrastructure/prisma-execution.rep
 import { QuickJsScriptRuntime } from './infrastructure/quickjs-script-runtime'
 import { SYSTEM_TIMERS } from './infrastructure/tick-loop'
 
+const ENGINE_METRICS = Symbol('EngineMetrics')
 const ENGINE_CHANNEL = Symbol('EngineChannel')
 const ENGINE_SINK = Symbol('EngineSink')
 const SCRIPT_RUNTIME = Symbol('ScriptRuntime')
@@ -133,6 +136,7 @@ export class EngineWorkerModule {
       ],
       providers: [
         { provide: ENGINE_CHANNEL, useValue: channel },
+        { provide: ENGINE_METRICS, useFactory: () => new EngineMetrics() },
         {
           provide: CONTROL_STATE_STORE,
           inject: [PRISMA_CLIENT, CLOCK],
@@ -194,14 +198,15 @@ export class EngineWorkerModule {
         },
         {
           provide: World,
-          inject: [WORLD_SOURCE, WriteBehind, ModuleRegistry, EnergyModel, WORLD_CONFIG, APP_CONFIG],
+          inject: [WORLD_SOURCE, WriteBehind, ModuleRegistry, EnergyModel, WORLD_CONFIG, APP_CONFIG, ENGINE_METRICS],
           useFactory: (
             source: WorldSource,
             writeBehind: WriteBehind,
             registry: ModuleRegistry,
             energy: EnergyModel,
             world: WorldConfig,
-            app: AppConfig
+            app: AppConfig,
+            metrics: EngineMetrics
           ) =>
             new World(
               source,
@@ -211,12 +216,22 @@ export class EngineWorkerModule {
               world.chunkSize,
               (seed) => new SeededRng(seed),
               app.worldSeed ?? 0,
-              app.engine.maxChunks
+              app.engine.maxChunks,
+              metrics
             )
         },
         {
           provide: LiveVision,
-          inject: [World, WORLD_SOURCE, WriteBehind, ID_GENERATOR, ENGINE_SINK, APP_CONFIG, WORLD_CONFIG],
+          inject: [
+            World,
+            WORLD_SOURCE,
+            WriteBehind,
+            ID_GENERATOR,
+            ENGINE_SINK,
+            APP_CONFIG,
+            WORLD_CONFIG,
+            ENGINE_METRICS
+          ],
           useFactory: (
             world: World,
             source: WorldSource,
@@ -224,8 +239,19 @@ export class EngineWorkerModule {
             ids: IdGenerator,
             sink: EngineSink,
             app: AppConfig,
-            worldConfig: WorldConfig
-          ) => new LiveVision(world, source, writeBehind, ids, sink, app.engine.tickIntervalMs, worldConfig.chunkSize)
+            worldConfig: WorldConfig,
+            metrics: EngineMetrics
+          ) =>
+            new LiveVision(
+              world,
+              source,
+              writeBehind,
+              ids,
+              sink,
+              app.engine.tickIntervalMs,
+              worldConfig.chunkSize,
+              metrics
+            )
         },
         { provide: EventOutbox, inject: [GAME_CLOCK], useFactory: (clock: Clock) => new EventOutbox(clock) },
         {
@@ -334,15 +360,16 @@ export class EngineWorkerModule {
         },
         {
           provide: WriteBehind,
-          inject: [WORLD_STATE_STORE, APP_CONFIG, TRACING],
-          useFactory: (store: WorldStateStore, app: AppConfig, tracing: Tracing) =>
-            new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures, tracing)
+          inject: [WORLD_STATE_STORE, APP_CONFIG, TRACING, ENGINE_METRICS],
+          useFactory: (store: WorldStateStore, app: AppConfig, tracing: Tracing, metrics: EngineMetrics) =>
+            new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures, tracing, metrics)
         },
         { provide: STEP_WATCH, useValue: stepWatch ? new StepWatchWriter(stepWatch) : undefined },
         {
           provide: ENGINE_SINK,
-          inject: [ENGINE_CHANNEL, TRACING],
-          useFactory: (c: typeof channel, tracing: Tracing) => new ChannelSink(c, tracing)
+          inject: [ENGINE_CHANNEL, TRACING, ENGINE_METRICS],
+          useFactory: (c: typeof channel, tracing: Tracing, metrics: EngineMetrics) =>
+            new CountingSink(new ChannelSink(c, tracing), metrics)
         },
         {
           provide: EngineCore,
@@ -371,7 +398,8 @@ export class EngineWorkerModule {
             CLOCK,
             LOGGER,
             GAME_CLOCK,
-            TRACING
+            TRACING,
+            ENGINE_METRICS
           ],
           useFactory: (
             app: AppConfig,
@@ -398,7 +426,8 @@ export class EngineWorkerModule {
             clock: Clock,
             logger: Logger,
             gameClock: Clock,
-            tracing: Tracing
+            tracing: Tracing,
+            metrics: EngineMetrics
           ) =>
             new EngineCore({
               config: app.engine,
@@ -428,6 +457,7 @@ export class EngineWorkerModule {
               gameClock,
               logger,
               tracing,
+              metrics,
               monotonicMs: () => performance.now()
             })
         },

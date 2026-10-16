@@ -14,6 +14,8 @@ export function formatMetric(value: number | null, unit: IMetricHealth['unit']):
       return `${(value / (1024 * 1024)).toFixed(1)} MB`
     case 'perSecond':
       return `${value.toFixed(1)}/s`
+    case 'number':
+      return value.toFixed(1)
     case 'flag':
       return value >= 1 ? '✓' : '✗'
     default:

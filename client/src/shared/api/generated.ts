@@ -2667,20 +2667,20 @@ export type HealthResponse = {
 }
 export type MetricHealthModel = {
   id: string
-  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
   unit: string
   value: number | null
   status: 'green' | 'yellow' | 'red'
 }
 export type AreaHealthModel = {
-  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
   status: 'green' | 'yellow' | 'red'
   metrics: MetricHealthModel[]
 }
 export type AlertResponse = {
   _id: string
   metric: string
-  area: 'engine' | 'scripts' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
   severity: 'yellow' | 'red'
   value: number
   threshold: number

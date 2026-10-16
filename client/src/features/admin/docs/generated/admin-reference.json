@@ -91,6 +91,8 @@
     { "metric": "engine.up", "direction": "below", "red": 1 },
     { "metric": "engine.tickP95Ratio", "direction": "above", "yellow": 0.8 },
     { "metric": "engine.overrunRate", "direction": "above", "red": 0.01 },
+    { "metric": "engine.flushMs", "direction": "above", "red": 5000 },
+    { "metric": "engine.flushLagMs", "direction": "above", "red": 5000 },
     { "metric": "scripts.maxWaitTicks", "direction": "above", "yellow": 50, "red": 200 },
     { "metric": "api.errorRate5xx", "direction": "above", "yellow": 0.01, "red": 0.05 },
     { "metric": "api.latencyP95Ms", "direction": "above", "yellow": 500, "red": 2000 },

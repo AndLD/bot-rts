@@ -23,11 +23,11 @@ import { shuffled } from '../domain/shuffle'
 import { EngineConfig } from '../domain/engine-config'
 import { Execution, ExecutionState, ExecutionStatus, ExecutionUsage, ExecutionView } from '../domain/execution'
 import { JsonValue } from '../domain/json-value'
-import { ScriptFailure } from '../domain/script-failure'
+import { ScriptFailure, ScriptFailureCode } from '../domain/script-failure'
 import { SHELL_FILE, shellSource } from '../domain/shell-script'
 import { ScriptMisuseError } from '../domain/script-misuse'
 import { BotCapacities } from './bot-capacities'
-import { EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
+import { ENGINE_COUNTER, ENGINE_GAUGE, EngineMetrics, EngineMetricsSnapshot } from './engine-metrics'
 import { BotStateSource, EngineSink, ManualPolicy } from './engine-ports'
 import type { StepWatch } from '../infrastructure/step-watch'
 import { ModuleLoader } from './module-loader'
@@ -105,6 +105,8 @@ export interface EngineDependencies {
   logger: Logger
   // Spans for the ticks, the requests the engine serves and the executions; without it nothing is traced
   tracing?: Tracing
+  // Where the engine and its parts record their counters and gauges; the engine makes its own when none is given
+  metrics?: EngineMetrics
   // A monotonic wall clock in ms, used only to measure slices and tick duration
   monotonicMs: () => number
 }
@@ -130,7 +132,9 @@ export class EngineCore {
   private readonly busyUntil = new Map<string, number>()
   // Game calls the bots' op budgets have not let through yet, oldest first
   private backlog: EngineCommand[] = []
-  private readonly metrics = new EngineMetrics()
+  private readonly metrics: EngineMetrics
+  // When the last tick began (ms), to see a tick that the loop did not run; none after a pause
+  private lastTickAt: number | null = null
   private readonly waitedTicks = new Map<string, number>()
   private tickNumber = 0
   private controlState: ControlState = INITIAL_CONTROL_STATE
@@ -143,6 +147,7 @@ export class EngineCore {
   constructor(private readonly deps: EngineDependencies) {
     this.startedAtMs = deps.monotonicMs()
     this.tracing = deps.tracing ?? NO_TRACING
+    this.metrics = deps.metrics ?? new EngineMetrics()
   }
 
   get tick(): number {
@@ -156,6 +161,7 @@ export class EngineCore {
     await this.deps.vision.restore()
     for (const record of await this.deps.executions.listActive()) {
       if (record.restarts >= this.deps.config.maxRestarts) {
+        this.metrics.count(ENGINE_COUNTER.crashLoopKills)
         await this.end(record, ExecutionStatus.KILLED, 'crash-loop: the engine restarted too often while it ran')
         continue
       }
@@ -441,10 +447,12 @@ export class EngineCore {
     if (this.controlState.isPaused) {
       // Maintenance: requests are still answered (the console resumes the world through one), but nothing moves
       await this.drainInbox()
+      this.lastTickAt = null
       return
     }
     const { config } = this.deps
     const startedAt = this.deps.monotonicMs()
+    this.countSkipped(startedAt)
     this.tickNumber += 1
     const tick = this.tickNumber
     span.setAttribute('botrts.tick', tick)
@@ -479,6 +487,8 @@ export class EngineCore {
     this.deps.bus.deliver()
     await this.deps.writeBehind.flushIfDue(tick)
     this.deps.world.evictCold()
+    this.metrics.gauge(ENGINE_GAUGE.flushLagTicks, this.deps.writeBehind.ticksSinceFlush(tick))
+    this.recordPopulation()
 
     this.metrics.record({
       tick,
@@ -490,6 +500,26 @@ export class EngineCore {
       maxWaitTicks,
       traceId: span.context?.traceId ?? null
     })
+  }
+
+  // The loop keeps its rate and does not make up a tick that came late by more than an interval: those ticks never ran
+  private countSkipped(startedAt: number): void {
+    const { tickIntervalMs } = this.deps.config
+    if (this.lastTickAt !== null) {
+      const missed = Math.round((startedAt - this.lastTickAt) / tickIntervalMs) - 1
+      if (missed > 0) {
+        this.metrics.count(ENGINE_COUNTER.ticksSkipped, missed)
+      }
+    }
+    this.lastTickAt = startedAt
+  }
+
+  // How many bots and players have a script running
+  private recordPopulation(): void {
+    const executions = [...this.live.values()]
+
+    this.metrics.gauge(ENGINE_GAUGE.activeBots, new Set(executions.map((live) => live.record.botId)).size)
+    this.metrics.gauge(ENGINE_GAUGE.activePlayers, new Set(executions.map((live) => live.record.userId)).size)
   }
 
   // Counts how many ticks in a row each planned execution was kept from running by the tick cap, and returns the longest wait.
@@ -506,8 +536,20 @@ export class EngineCore {
     }
     this.waitedTicks.clear()
     waited.forEach((ticks, id) => this.waitedTicks.set(id, ticks))
+    this.recordWaitSpread(planned, waited)
 
     return longest
+  }
+
+  // The difference between the player who has waited longest for a turn and the one who has waited least (fairness between players)
+  private recordWaitSpread(planned: readonly LiveExecution[], waited: ReadonlyMap<string, number>): void {
+    const longestOfPlayer = new Map<string, number>()
+    for (const { record } of planned) {
+      longestOfPlayer.set(record.userId, Math.max(longestOfPlayer.get(record.userId) ?? 0, waited.get(record.id) ?? 0))
+    }
+    const waits = [...longestOfPlayer.values()]
+
+    this.metrics.gauge(ENGINE_GAUGE.waitSpreadTicks, waits.length ? Math.max(...waits) - Math.min(...waits) : 0)
   }
 
   private submit<T>(label: string, run: () => Promise<T>): Promise<T> {
@@ -607,6 +649,9 @@ export class EngineCore {
       this.deps.watch?.end()
     }
     const { outcome, commands } = stepped
+    if (outcome.status === 'failed' && outcome.failure.code === ScriptFailureCode.TIME_LIMIT) {
+      this.metrics.count(ENGINE_COUNTER.killedBySlice)
+    }
     if (outcome.status === 'finished') {
       if (live.record.file === SHELL_FILE && outcome.value !== undefined) {
         this.log(live.record, 'output', format(outcome.value))
@@ -656,6 +701,7 @@ export class EngineCore {
           waiting.push(command)
         } else {
           used += cost
+          this.metrics.count(ENGINE_COUNTER.commandsApplied)
           const manual = this.manualCalls.get(command.executionId)
           // A manual call is applied in the trace of the request that made it; a script's call, in the tick
           const { answer, delayTicks } = manual
@@ -672,6 +718,10 @@ export class EngineCore {
             live.answer(command.callId, answer, tick + 1 + delayTicks)
           }
         }
+      }
+      if (used > 0) {
+        this.metrics.count(ENGINE_COUNTER.opsUsed, used)
+        this.metrics.count(ENGINE_COUNTER.opsBudget, budget)
       }
     }
     this.backlog = waiting
@@ -694,6 +744,9 @@ export class EngineCore {
       }
       this.learn(bot.state)
       const outcome = await this.deps.api.execute(bot.state, command.fn, command.args)
+      if (!outcome.ok && (outcome.code === ResultCode.BLOCKED || outcome.code === ResultCode.EMPTY)) {
+        this.metrics.count(ENGINE_COUNTER.conflicts)
+      }
       return { answer: { value: valueOf(outcome) }, delayTicks: outcome.delayTicks ?? 0 }
     } catch (error) {
       if (error instanceof ScriptMisuseError) {

@@ -18,8 +18,12 @@ export const HISTOGRAM_IDS = HISTOGRAMS.map((histogram) => histogram.id)
 
 // The metrics of the catalog that are a percentile of a distribution, and which one
 export const PERCENTILE_METRICS: Readonly<Record<string, { histogram: string; quantile: number }>> = {
+  'api.latencyP50Ms': { histogram: 'api.latencyMs', quantile: 0.5 },
   'api.latencyP95Ms': { histogram: 'api.latencyMs', quantile: 0.95 },
-  'engine.tickP95Ms': { histogram: 'engine.tickMs', quantile: 0.95 }
+  'api.latencyP99Ms': { histogram: 'api.latencyMs', quantile: 0.99 },
+  'engine.tickP50Ms': { histogram: 'engine.tickMs', quantile: 0.5 },
+  'engine.tickP95Ms': { histogram: 'engine.tickMs', quantile: 0.95 },
+  'engine.tickP99Ms': { histogram: 'engine.tickMs', quantile: 0.99 }
 }
 
 export const histogramOf = (id: string): HistogramDefinition | undefined =>

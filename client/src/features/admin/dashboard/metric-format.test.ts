@@ -9,6 +9,7 @@ describe('formatMetric', () => {
     [0.5, 'ratio', '50 %'],
     [5 * 1024 * 1024, 'bytes', '5.0 MB'],
     [2.345, 'perSecond', '2.3/s'],
+    [2.34, 'number', '2.3'],
     [1, 'flag', '✓'],
     [0, 'flag', '✗'],
     [4.6, 'count', '5'],

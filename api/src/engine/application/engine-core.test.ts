@@ -1275,6 +1275,108 @@ describe('EngineCore', () => {
   })
 })
 
+describe('EngineCore metrics', () => {
+  const active = (id: string, botId: string, restarts: number): Execution => ({
+    id,
+    botId,
+    userId: OWNER,
+    file: FILE,
+    args: [],
+    status: ExecutionStatus.ACTIVE,
+    restarts,
+    reason: null,
+    createdAt: new Date(0),
+    endedAt: null
+  })
+  const counters = (core: EngineCore) => core.snapshot().counters
+  const gauges = (core: EngineCore) => core.snapshot().gauges
+
+  it('counts the game calls applied and the operations they used against the budget of the bots that made them', async () => {
+    const { core, start, ticks } = await setup()
+
+    await start('export async function main(bot) { await bot.scan(); await bot.scan() }')
+    await ticks(6)
+
+    const { commandsApplied, opsUsed, opsBudget } = counters(core)
+    expect(commandsApplied).toBe(2)
+    expect(opsUsed).toBeGreaterThan(0)
+    expect(opsBudget).toBe(4)
+    expect(opsUsed).toBeLessThanOrEqual(opsBudget)
+  })
+
+  it('counts the calls the world answered BLOCKED or EMPTY, and not the others', async () => {
+    const { core, start, ticks, handler } = await setup()
+    const answers: Array<() => Promise<CallOutcome>> = [
+      async () => ({ ok: false, code: 'BLOCKED', msg: 'occupied' }) as CallOutcome,
+      async () => ({ ok: false, code: 'EMPTY', msg: 'nothing' }) as CallOutcome,
+      async () => ({ ok: false, code: 'NO_ENERGY', msg: 'flat' }) as CallOutcome,
+      async () => ok({ cells: 1 })
+    ]
+    handler.next = () => (answers.shift() as () => Promise<CallOutcome>)()
+
+    await start('export async function main(bot) { for (let i = 0; i < 4; i++) await bot.scan() }')
+    await ticks(10)
+
+    expect(counters(core)).toMatchObject({ commandsApplied: 4, conflicts: 2 })
+  })
+
+  it('counts a script that ran past its slice, and an execution killed for restarting too often', async () => {
+    const { core, executions, base, start, ticks } = await setup()
+    await executions.add(active('crashing', base.id, 3))
+    await core.recover()
+
+    await start('export async function main() { for (;;) {} }')
+    await ticks(1)
+
+    expect(counters(core)).toMatchObject({ killedBySlice: 1, crashLoopKills: 1 })
+  })
+
+  it('counts the ticks the loop did not run, but not the ones a pause held back', async () => {
+    let now = 0
+    const { core } = await setup({ config: { tickIntervalMs: 100 }, monotonic: () => now })
+
+    await core.runTick()
+    now = 100
+    await core.runTick()
+    expect(counters(core).ticksSkipped).toBeUndefined()
+    now = 400
+    await core.runTick()
+    expect(counters(core).ticksSkipped).toBe(2)
+
+    const paused = core.control({ type: 'pause' })
+    await core.runTick()
+    await paused
+    now = 5000
+    await core.runTick()
+    const resumed = core.control({ type: 'resume' })
+    await core.runTick()
+    await resumed
+    now = 5100
+    await core.runTick()
+    expect(counters(core).ticksSkipped).toBe(2)
+  })
+
+  it('tells how many bots and players have a script running, and how long the world has gone without a write', async () => {
+    const { core, bots, sources, ticks } = await setup({ config: { flushEveryTicks: 5 } })
+    sources.files.set(FILE, 'export async function main(bot) { for (;;) { await sleep(1) } }')
+    for (const player of ['p1', 'p2', 'p2']) {
+      const base = buildBase(player)
+      bots.states.set(base.id, {
+        bot: base,
+        ownerId: player,
+        modules: [buildModule(base.id, { type: 'processor', props: { opsPerTick: 2, parallelExecutions: 1 } })]
+      })
+      void core.start({ userId: player, botId: base.id, file: FILE, args: [] })
+    }
+
+    await ticks(3)
+
+    expect(gauges(core)).toMatchObject({ activeBots: 3, activePlayers: 2, flushLagTicks: 3, waitSpreadTicks: 0 })
+    await ticks(2)
+    expect(gauges(core).flushLagTicks).toBe(0)
+  })
+})
+
 describe('EngineCore tracing', () => {
   const byName = (spans: ReturnType<ReturnType<typeof testTelemetry>['spans']>, name: string) =>
     spans.filter((span) => span.name === name)

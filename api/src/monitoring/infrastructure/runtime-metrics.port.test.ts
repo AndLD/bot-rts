@@ -21,6 +21,8 @@ const snapshot = (overrides: Partial<EngineMetricsSnapshot> = {}): EngineMetrics
   slowTicks: [],
   tickBuckets: TICKS_NONE,
   slowestTicks: [],
+  counters: {},
+  gauges: {},
   ...overrides
 })
 

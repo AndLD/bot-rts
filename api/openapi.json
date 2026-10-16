@@ -14641,6 +14641,7 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
               "infrastructure"
             ]
@@ -14677,6 +14678,7 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
               "infrastructure"
             ]
@@ -14717,6 +14719,7 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
               "infrastructure"
             ]

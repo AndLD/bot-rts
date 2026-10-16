@@ -1,4 +1,5 @@
 import { BOT_TYPE } from '../../../../../lib/utils/interfaces/bots'
+import { ENGINE_COUNTER, MetricRecorder, NO_RECORDER } from '../engine-metrics'
 import { Heading, MapPointType } from '../../../../../lib/utils/interfaces/map'
 import { RESOURCE } from '../../../../../lib/utils/interfaces/resources'
 import { Result } from '../../../../../lib/utils/result'
@@ -55,7 +56,9 @@ export class World {
     private readonly createRng: (seed: number) => Rng,
     private readonly seed: number,
     // How many chunks of cells stay in memory; the least recently used go first (design §4.4)
-    private readonly maxChunks: number
+    private readonly maxChunks: number,
+    // Counts the cells and bots found in memory and those loaded (the cache hit rate of the console)
+    private readonly recorder: MetricRecorder = NO_RECORDER
   ) {
     // A batch the database refused is gone: what is in memory may differ from what is stored, so start from the database
     writeBehind.onDiscard(() => this.evict())
@@ -78,8 +81,10 @@ export class World {
   async bot(botId: string): Promise<WorldBot | null> {
     const cached = this.bots.get(botId)
     if (cached) {
+      this.recorder.count(ENGINE_COUNTER.cacheHits)
       return cached
     }
+    this.recorder.count(ENGINE_COUNTER.cacheMisses)
     const stored: StoredBot | null = await this.source.loadBot(botId)
     if (!stored) {
       return null
@@ -106,7 +111,10 @@ export class World {
     const key = locationKey(location)
     const chunk = chunkKeyOf(location, this.chunkSize)
     this.chunkUse.set(chunk, this.currentTick)
-    if (!this.cells.has(key)) {
+    if (this.cells.has(key)) {
+      this.recorder.count(ENGINE_COUNTER.cacheHits)
+    } else {
+      this.recorder.count(ENGINE_COUNTER.cacheMisses)
       await this.loadChunk(location)
     }
     const existing = this.cells.get(key)

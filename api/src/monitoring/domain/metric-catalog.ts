@@ -4,30 +4,92 @@ import type { HealthStatus, MonitorArea } from '../../../../lib/utils/admin'
 export interface MetricDefinition {
   id: string
   area: MonitorArea
-  unit: 'ms' | 'ratio' | 'count' | 'perSecond' | 'bytes' | 'ticks' | 'flag'
+  unit: 'ms' | 'ratio' | 'count' | 'number' | 'perSecond' | 'bytes' | 'ticks' | 'seconds' | 'flag'
 }
 
 export const METRIC_CATALOG: readonly MetricDefinition[] = [
   { id: 'engine.up', area: 'engine', unit: 'flag' },
   { id: 'engine.lastTickMs', area: 'engine', unit: 'ms' },
+  { id: 'engine.tickP50Ms', area: 'engine', unit: 'ms' },
   { id: 'engine.tickP95Ms', area: 'engine', unit: 'ms' },
+  { id: 'engine.tickP99Ms', area: 'engine', unit: 'ms' },
   // The 95th percentile tick as a share of the tick interval
   { id: 'engine.tickP95Ratio', area: 'engine', unit: 'ratio' },
   // Ticks over the interval, as a share of the ticks since the previous sample
   { id: 'engine.overrunRate', area: 'engine', unit: 'ratio' },
   { id: 'engine.cutTicks', area: 'engine', unit: 'count' },
+  // Ticks that never ran because the loop was late by more than an interval, per sample
+  { id: 'engine.ticksSkipped', area: 'engine', unit: 'count' },
+  // How long the last write of the world took, how long the world has gone without one, and how many rows it held
+  { id: 'engine.flushMs', area: 'engine', unit: 'ms' },
+  { id: 'engine.flushLagMs', area: 'engine', unit: 'ms' },
+  { id: 'engine.flushPending', area: 'engine', unit: 'count' },
+  // Executions killed at the start for having been restarted too often, and restarts of the engine seen
+  { id: 'engine.crashLoopKills', area: 'engine', unit: 'count' },
+  { id: 'engine.restarts', area: 'engine', unit: 'count' },
+  // Game calls applied per tick, and the share the world answered BLOCKED or EMPTY
+  { id: 'engine.commandsPerTick', area: 'engine', unit: 'number' },
+  { id: 'engine.conflictRate', area: 'engine', unit: 'ratio' },
   { id: 'scripts.running', area: 'scripts', unit: 'count' },
   { id: 'scripts.queued', area: 'scripts', unit: 'count' },
   { id: 'scripts.deferred', area: 'scripts', unit: 'count' },
   { id: 'scripts.maxWaitTicks', area: 'scripts', unit: 'ticks' },
   { id: 'scripts.sandboxMemoryBytes', area: 'scripts', unit: 'bytes' },
+  // Operations used against the budget of the bots that made calls, and scripts stopped for using more than the slice of a tick
+  { id: 'scripts.opsUsedRatio', area: 'scripts', unit: 'ratio' },
+  { id: 'scripts.killedBySlice', area: 'scripts', unit: 'count' },
+  // The longest wait for a turn of one player less the shortest of another (fairness between players)
+  { id: 'scripts.waitSpreadTicks', area: 'scripts', unit: 'ticks' },
+  { id: 'world.onlinePlayers', area: 'world', unit: 'count' },
+  { id: 'world.activeBots', area: 'world', unit: 'count' },
+  { id: 'world.activePlayers', area: 'world', unit: 'count' },
+  { id: 'world.botsPerPlayer', area: 'world', unit: 'number' },
+  { id: 'world.liveAreas', area: 'world', unit: 'count' },
+  { id: 'world.liveWatchers', area: 'world', unit: 'count' },
+  { id: 'world.visionDiffsPerSecond', area: 'world', unit: 'perSecond' },
+  { id: 'world.eventsPerSecond', area: 'world', unit: 'perSecond' },
+  { id: 'world.chunkCacheHitRate', area: 'world', unit: 'ratio' },
   { id: 'api.requestsPerSecond', area: 'api', unit: 'perSecond' },
   { id: 'api.errorRate5xx', area: 'api', unit: 'ratio' },
   { id: 'api.errorRate4xx', area: 'api', unit: 'ratio' },
+  // Sockets open now, sockets opened and players who came back within a minute (per sample), and requests the rate limit refused (per sample)
+  // How long ago the data lifecycle job last ran, how long its pass took, and the steps that failed since the last sample
+  { id: 'jobs.lifecycleAgeSeconds', area: 'jobs', unit: 'seconds' },
+  { id: 'jobs.lifecycleDurationMs', area: 'jobs', unit: 'ms' },
+  { id: 'jobs.lifecycleFailures', area: 'jobs', unit: 'count' },
+  // Notifications whose time has come and that wait for delivery, how long the oldest has waited, and emails the mail server refused
+  { id: 'notifications.queueDepth', area: 'jobs', unit: 'count' },
+  { id: 'notifications.deliveryLagMs', area: 'jobs', unit: 'ms' },
+  { id: 'notifications.emailFailures', area: 'jobs', unit: 'count' },
+  { id: 'database.queryP50Ms', area: 'database', unit: 'ms' },
+  { id: 'database.queryP95Ms', area: 'database', unit: 'ms' },
+  { id: 'database.queryP99Ms', area: 'database', unit: 'ms' },
+  { id: 'database.queriesPerSecond', area: 'database', unit: 'perSecond' },
+  // Queries at least `SLOW_QUERY_MS` long, per sample
+  { id: 'database.slowQueries', area: 'database', unit: 'count' },
+  // Connections open to the database, and their share of those the server allows
+  { id: 'database.connections', area: 'database', unit: 'count' },
+  { id: 'database.connectionsRatio', area: 'database', unit: 'ratio' },
+  { id: 'database.sizeBytes', area: 'database', unit: 'bytes' },
+  { id: 'database.largestTableBytes', area: 'database', unit: 'bytes' },
+  { id: 'database.growthBytesPerDay', area: 'database', unit: 'bytes' },
+  { id: 'api.socketConnections', area: 'api', unit: 'count' },
+  { id: 'api.socketConnects', area: 'api', unit: 'count' },
+  { id: 'api.socketReconnects', area: 'api', unit: 'count' },
+  { id: 'api.rateLimitHits', area: 'api', unit: 'count' },
+  { id: 'api.latencyP50Ms', area: 'api', unit: 'ms' },
   { id: 'api.latencyP95Ms', area: 'api', unit: 'ms' },
+  { id: 'api.latencyP99Ms', area: 'api', unit: 'ms' },
   { id: 'infrastructure.rssBytes', area: 'infrastructure', unit: 'bytes' },
   { id: 'infrastructure.heapUsedBytes', area: 'infrastructure', unit: 'bytes' },
   // The collector gateway for logs and traces: whether it answers, and the batches waiting in its export queue
+  // The CPU the process uses (cores), the load of the machine, its free memory, the disks of the logs and of the data, the age of the last backup
+  { id: 'infrastructure.cpuUsage', area: 'infrastructure', unit: 'number' },
+  { id: 'infrastructure.loadAverage', area: 'infrastructure', unit: 'number' },
+  { id: 'infrastructure.memoryFreeRatio', area: 'infrastructure', unit: 'ratio' },
+  { id: 'infrastructure.logDiskUsedRatio', area: 'infrastructure', unit: 'ratio' },
+  { id: 'infrastructure.dataDiskUsedRatio', area: 'infrastructure', unit: 'ratio' },
+  { id: 'infrastructure.backupAgeSeconds', area: 'infrastructure', unit: 'seconds' },
   { id: 'infrastructure.gatewayUp', area: 'infrastructure', unit: 'flag' },
   { id: 'infrastructure.gatewayQueueSize', area: 'infrastructure', unit: 'count' }
 ]
@@ -51,6 +113,20 @@ export const ALERT_RULES: readonly AlertRule[] = [
   { metric: 'engine.up', direction: 'below', defaults: { red: 1 } },
   { metric: 'engine.tickP95Ratio', direction: 'above', defaults: { yellow: 0.8 } },
   { metric: 'engine.overrunRate', direction: 'above', defaults: { red: 0.01 } },
+  // The job runs every hour by default; twice that is late, a day is dead
+  { metric: 'jobs.lifecycleAgeSeconds', direction: 'above', defaults: { yellow: 7200, red: 86400 } },
+  { metric: 'jobs.lifecycleFailures', direction: 'above', defaults: { yellow: 0 } },
+  { metric: 'notifications.deliveryLagMs', direction: 'above', defaults: { yellow: 60000, red: 300000 } },
+  { metric: 'notifications.emailFailures', direction: 'above', defaults: { yellow: 0 } },
+  { metric: 'infrastructure.logDiskUsedRatio', direction: 'above', defaults: { yellow: 0.8, red: 0.95 } },
+  { metric: 'infrastructure.dataDiskUsedRatio', direction: 'above', defaults: { yellow: 0.8, red: 0.95 } },
+  // A backup a day: later than 28 hours is late, two days is missing
+  { metric: 'infrastructure.backupAgeSeconds', direction: 'above', defaults: { yellow: 100800, red: 172800 } },
+  { metric: 'database.queryP95Ms', direction: 'above', defaults: { yellow: 250, red: 1000 } },
+  { metric: 'database.connectionsRatio', direction: 'above', defaults: { yellow: 0.7, red: 0.9 } },
+  // The world is written behind: a write that takes longer than this, or a world that has gone this long without one, is a danger to it
+  { metric: 'engine.flushMs', direction: 'above', defaults: { red: 5000 } },
+  { metric: 'engine.flushLagMs', direction: 'above', defaults: { red: 5000 } },
   { metric: 'scripts.maxWaitTicks', direction: 'above', defaults: { yellow: 50, red: 200 } },
   { metric: 'api.errorRate5xx', direction: 'above', defaults: { yellow: 0.01, red: 0.05 } },
   { metric: 'api.latencyP95Ms', direction: 'above', defaults: { yellow: 500, red: 2000 } },

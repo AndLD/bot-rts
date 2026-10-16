@@ -3,6 +3,7 @@ import { Item } from '../../crafting/domain/item.entity'
 import { KnownPoint, MapPoint } from '../../map/domain/map-point.entity'
 import { Module } from '../../modules/domain/module.entity'
 import { NO_TRACING, Tracing } from '../../shared/application/tracing'
+import { ENGINE_GAUGE, MetricRecorder, NO_RECORDER } from './engine-metrics'
 import { WorldStateBatch, WorldStateStore } from '../../persistence/application/world-state-store'
 
 // Collects what the engine changed and writes it in one batch every `everyTicks` ticks (design §12.3.1, §14.2): the world
@@ -26,8 +27,16 @@ export class WriteBehind {
     // A batch that fails this many times in a row is dropped, so that one bad row (a bot deleted behind the engine's back, say)
     // cannot keep every later write from reaching the database
     private readonly maxFailures: number,
-    private readonly tracing: Tracing = NO_TRACING
+    private readonly tracing: Tracing = NO_TRACING,
+    // Tells how long the last write took and how many rows it held
+    private readonly recorder: MetricRecorder = NO_RECORDER,
+    private readonly nowMs: () => number = () => performance.now()
   ) {}
+
+  // How many ticks the world has gone without a write
+  ticksSinceFlush(tick: number): number {
+    return tick - this.lastFlushTick
+  }
 
   // Told when a batch is given up on; what the engine holds in memory can no longer be trusted
   onDiscard(listener: () => void): void {
@@ -101,11 +110,14 @@ export class WriteBehind {
     this.items = new Map()
     this.removedItems = new Set()
     this.headings = new Map()
+    const startedAt = this.nowMs()
+    this.recorder.gauge(ENGINE_GAUGE.flushPending, this.rowsOf(batch))
     try {
       await this.tracing.withSpan('engine.world-flush', { attributes: { 'botrts.rows': this.rowsOf(batch) } }, () =>
         this.store.flush(batch)
       )
       this.failures = 0
+      this.recorder.gauge(ENGINE_GAUGE.flushMs, this.nowMs() - startedAt)
     } catch (error) {
       this.failures += 1
       if (this.failures >= this.maxFailures) {

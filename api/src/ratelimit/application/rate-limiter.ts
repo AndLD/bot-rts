@@ -28,7 +28,11 @@ export interface RateLimitDecision {
 
 // Fixed-window rate limiting by bucket (a named rule such as `auth` or `api`) and subject (a client address or an API key)
 export class RateLimiter {
-  constructor(private readonly store: RateLimitStore) {}
+  // `activity` is told of every request refused, for the console's rate-limit hits
+  constructor(
+    private readonly store: RateLimitStore,
+    private readonly activity?: { rateLimitHit(): void }
+  ) {}
 
   // Counts the request and returns what is left; throws TooManyRequestsError once the rule is used up
   async consume(bucket: string, subject: string, rule: RateLimitRule): Promise<RateLimitDecision> {
@@ -36,6 +40,7 @@ export class RateLimiter {
     const resetInSeconds = Math.max(1, Math.ceil(resetInMs / 1000))
 
     if (hits > rule.limit) {
+      this.activity?.rateLimitHit()
       throw new TooManyRequestsError(resetInSeconds)
     }
 

@@ -1079,7 +1079,10 @@
       "areas": {
         "engine": "Engine",
         "scripts": "Scripts",
+        "world": "World",
         "api": "API",
+        "database": "Database",
+        "jobs": "Jobs and notifications",
         "infrastructure": "Infrastructure"
       },
       "ranges": {
@@ -1096,26 +1099,84 @@
           "tickP95Ms": "Tick duration, 95th percentile",
           "tickP95Ratio": "Tick duration vs the interval",
           "overrunRate": "Tick overruns",
-          "cutTicks": "Ticks cut at the cap"
+          "cutTicks": "Ticks cut at the cap",
+          "tickP50Ms": "Tick duration, median",
+          "tickP99Ms": "Tick duration, 99th percentile",
+          "ticksSkipped": "Ticks skipped",
+          "flushMs": "World write, duration",
+          "flushLagMs": "World write, lag",
+          "flushPending": "Rows in the last world write",
+          "crashLoopKills": "Executions killed for restarting too often",
+          "restarts": "Engine restarts",
+          "commandsPerTick": "Game calls applied per tick",
+          "conflictRate": "Calls the world refused (blocked or empty)"
         },
         "scripts": {
           "running": "Running scripts",
           "queued": "Queued executions",
           "deferred": "Deferred executions",
           "maxWaitTicks": "Longest wait for a turn (ticks)",
-          "sandboxMemoryBytes": "Script memory"
+          "sandboxMemoryBytes": "Script memory",
+          "opsUsedRatio": "Operations used of the budget",
+          "killedBySlice": "Scripts stopped for using too much of a tick",
+          "waitSpreadTicks": "Spread of waits between players (ticks)"
+        },
+        "world": {
+          "activeBots": "Bots with a script running",
+          "activePlayers": "Players with a script running",
+          "botsPerPlayer": "Bots per player",
+          "liveAreas": "Live scan areas",
+          "liveWatchers": "Players watching a live area",
+          "visionDiffsPerSecond": "Live-view updates per second",
+          "eventsPerSecond": "Events per second",
+          "chunkCacheHitRate": "Map cache hit rate",
+          "onlinePlayers": "Players online"
         },
         "api": {
           "requestsPerSecond": "Requests per second",
           "errorRate5xx": "Server errors (5xx)",
           "errorRate4xx": "Client errors (4xx)",
-          "latencyP95Ms": "Request latency, 95th percentile"
+          "latencyP95Ms": "Request latency, 95th percentile",
+          "latencyP50Ms": "Request latency, median",
+          "latencyP99Ms": "Request latency, 99th percentile",
+          "socketConnections": "Sockets open",
+          "socketConnects": "Sockets opened",
+          "socketReconnects": "Reconnects",
+          "rateLimitHits": "Requests refused by the rate limit"
+        },
+        "database": {
+          "queryP50Ms": "Query duration, median",
+          "queryP95Ms": "Query duration, 95th percentile",
+          "queryP99Ms": "Query duration, 99th percentile",
+          "queriesPerSecond": "Queries per second",
+          "slowQueries": "Slow queries",
+          "connections": "Connections open",
+          "connectionsRatio": "Connections of the maximum",
+          "sizeBytes": "Database size",
+          "largestTableBytes": "Largest table",
+          "growthBytesPerDay": "Growth per day"
+        },
+        "jobs": {
+          "lifecycleAgeSeconds": "Cleanup job, time since its last run",
+          "lifecycleDurationMs": "Cleanup job, duration of the last pass",
+          "lifecycleFailures": "Cleanup job, failed steps"
+        },
+        "notifications": {
+          "queueDepth": "Notifications waiting",
+          "deliveryLagMs": "Notifications, wait of the oldest",
+          "emailFailures": "Emails the mail server refused"
         },
         "infrastructure": {
           "rssBytes": "Process memory",
           "heapUsedBytes": "Heap in use",
           "gatewayUp": "Log gateway reachable",
-          "gatewayQueueSize": "Log gateway queue (batches)"
+          "gatewayQueueSize": "Log gateway queue (batches)",
+          "cpuUsage": "CPU used by the process (cores)",
+          "loadAverage": "Load average",
+          "memoryFreeRatio": "Free memory",
+          "logDiskUsedRatio": "Disk of the logs, used",
+          "dataDiskUsedRatio": "Disk of the data, used",
+          "backupAgeSeconds": "Age of the last backup"
         }
       }
     },
@@ -1371,6 +1432,10 @@
       "time": "Time",
       "message": "Message",
       "slowFailed": "Could not load the slow ticks",
+      "slowQueries": "Slow database queries",
+      "noSlowQueries": "No slow queries",
+      "queryDuration": "Duration",
+      "statement": "Statement (without parameters)",
       "noSlowTicks": "No slow ticks",
       "tick": "Tick",
       "duration": "Duration / interval",

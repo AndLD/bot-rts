@@ -4127,6 +4127,61 @@
         ]
       }
     },
+    "/api/v1/admin/logs/slow-queries": {
+      "get": {
+        "operationId": "logsSlowQueries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SlowQueryResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "at": 1,
+                    "durationMs": 1,
+                    "statement": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "logs.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/logs/slow-queries\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/logs/slow-ticks": {
       "get": {
         "operationId": "logsSlowTicks",
@@ -11851,6 +11906,27 @@
           "services"
         ]
       },
+      "SlowQueryResponse": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "statement": {
+            "type": "string",
+            "description": "The statement of the query, with its parameters left out"
+          }
+        },
+        "required": [
+          "at",
+          "durationMs",
+          "statement"
+        ]
+      },
       "SlowTickResponse": {
         "type": "object",
         "properties": {
@@ -14641,7 +14717,10 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
+              "database",
+              "jobs",
               "infrastructure"
             ]
           },
@@ -14677,7 +14756,10 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
+              "database",
+              "jobs",
               "infrastructure"
             ]
           },
@@ -14717,7 +14799,10 @@
             "enum": [
               "engine",
               "scripts",
+              "world",
               "api",
+              "database",
+              "jobs",
               "infrastructure"
             ]
           },

@@ -1,5 +1,8 @@
+import { EventEmitter } from 'events'
 import { ConfiguredIoAdapter } from './configured-io.adapter'
 import { Logger } from '../application/logger'
+import { FakeClock } from '../../../tests/fakes/fakes'
+import { ApiActivity } from '../application/api-activity'
 import { NO_TRACING } from '../application/tracing'
 import { AppError } from '../domain/app-error'
 import { guarded, toSocketError } from './socket-handlers'
@@ -35,10 +38,42 @@ describe('guarded', () => {
   })
 })
 
+describe('ConfiguredIoAdapter sockets', () => {
+  it("tells the traffic counters when a player's socket opens and closes", () => {
+    const activity = new ApiActivity()
+    const clock = new FakeClock()
+    const server = new EventEmitter()
+    const create = jest
+      .spyOn(Object.getPrototypeOf(ConfiguredIoAdapter.prototype), 'createIOServer')
+      .mockReturnValue(Object.assign(server, { adapter: jest.fn() }) as never)
+    new ConfiguredIoAdapter(
+      { get: jest.fn(), resolve: jest.fn() } as never,
+      () => true,
+      NO_TRACING,
+      activity,
+      clock
+    ).createIOServer(0)
+    const socket = Object.assign(new EventEmitter(), { principal: { user: { id: 'alice' } }, use: jest.fn() })
+
+    server.emit('connection', socket)
+    expect(activity.snapshot()).toMatchObject({ socketsOpen: 1, onlinePlayers: 1 })
+    socket.emit('disconnect')
+
+    expect(activity.snapshot()).toMatchObject({ socketsOpen: 0, onlinePlayers: 0 })
+    create.mockRestore()
+  })
+})
+
 describe('ConfiguredIoAdapter', () => {
   it('takes the CORS origins from the configuration', () => {
     const allowed = (origin: string | undefined) => origin === 'https://play.example'
-    const adapter = new ConfiguredIoAdapter({ get: jest.fn(), resolve: jest.fn() } as never, allowed, NO_TRACING)
+    const adapter = new ConfiguredIoAdapter(
+      { get: jest.fn(), resolve: jest.fn() } as never,
+      allowed,
+      NO_TRACING,
+      new ApiActivity(),
+      new FakeClock()
+    )
     const create = jest
       .spyOn(Object.getPrototypeOf(ConfiguredIoAdapter.prototype), 'createIOServer')
       .mockReturnValue({ on: jest.fn() } as never)

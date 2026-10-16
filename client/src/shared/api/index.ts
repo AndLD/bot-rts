@@ -130,6 +130,7 @@ export const {
   useLogsNodesQuery,
   useTracesReadQuery,
   useLogsSlowTicksQuery,
+  useLogsSlowQueriesQuery,
   useSupervisionStateQuery,
   useSupervisionKillMutation,
   useSupervisionRebootMutation,

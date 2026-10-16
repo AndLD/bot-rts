@@ -49,6 +49,7 @@ export class LifecycleService {
 
   async runOnce(): Promise<LifecycleReport> {
     const report = { ...EMPTY_REPORT }
+    const startedAt = this.now().getTime()
     const settings = await this.deps.settings.current()
     this.nextIntervalMs = Math.round((settings.lifecycle.intervalMinutes as number) * 60_000)
 
@@ -90,7 +91,7 @@ export class LifecycleService {
     }
 
     this.deps.status.recordRun(report, this.now())
-    await this.reportStatus({ ...report, failedSteps })
+    await this.reportStatus({ ...report, failedSteps, durationMs: this.now().getTime() - startedAt })
     this.deps.logger.info(`Data lifecycle pass: ${JSON.stringify(report)}`)
     return report
   }

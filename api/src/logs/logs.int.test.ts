@@ -3,6 +3,7 @@ import { signUpAdmin } from '../../tests/integration/admin'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
 import { SignedUp, signUpVerified, startTestApp, TestApp } from '../../tests/integration/test-app'
 import { ENGINE_PORT } from '../engine/application/engine-port'
+import { QUERY_STATS, QueryStats } from '../persistence/application/query-stats'
 
 let database: TestDatabase
 let testApp: TestApp
@@ -76,6 +77,20 @@ describe('the log search', () => {
     expect(nodes.body).toEqual([{ id: byTrace.body.lines[0].node, services: ['botrts-api'] }])
     const elsewhere = await api().get('/api/v1/admin/logs?node=elsewhere:1').set(bearer(admin)).expect(200)
     expect(elsewhere.body.lines).toEqual([])
+  })
+
+  it('lists the slow database queries of the node, without parameters', async () => {
+    const stats = testApp.app.get<QueryStats>(QUERY_STATS)
+    stats.observe(5000, 'SELECT * FROM "users" WHERE "email" = $1')
+
+    const slow = await api().get('/api/v1/admin/logs/slow-queries').set(bearer(admin)).expect(200)
+
+    expect(slow.body[0]).toEqual({
+      at: expect.any(Number),
+      durationMs: 5000,
+      statement: 'SELECT * FROM "users" WHERE "email" = $1'
+    })
+    await api().get('/api/v1/admin/logs/slow-queries').set(bearer(moderator)).expect(403)
   })
 
   it('filters by time and level, and validates the query', async () => {

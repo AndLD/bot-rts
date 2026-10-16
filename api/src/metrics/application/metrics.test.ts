@@ -18,7 +18,9 @@ const snapshot: EngineMetricsSnapshot = {
   uptimeMs: 5000,
   slowTicks: [],
   tickBuckets: [],
-  slowestTicks: []
+  slowestTicks: [],
+  counters: {},
+  gauges: {}
 }
 const stats = () => ({ uptimeSeconds: 12, rssBytes: 100, heapUsedBytes: 50 })
 const engine = (metrics: () => Promise<EngineMetricsSnapshot>) => ({ metrics }) as unknown as EnginePort

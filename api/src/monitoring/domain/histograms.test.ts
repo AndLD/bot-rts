@@ -1,3 +1,4 @@
+import { QUERY_BOUNDS_MS } from '../../persistence/application/query-stats'
 import { TICK_BOUNDS_MS } from '../../engine/application/engine-metrics'
 import { HTTP_BOUNDS_SECONDS } from '../../metrics/application/http-metrics'
 import { addCounts, emptyCounts, histogramOf, HISTOGRAMS, percentileOf } from './histograms'
@@ -8,6 +9,7 @@ describe('the histograms', () => {
   it('have the bounds of the code that fills them', () => {
     expect(histogramOf('engine.tickMs')?.boundsMs).toEqual(TICK_BOUNDS_MS)
     expect(histogramOf('api.latencyMs')?.boundsMs).toEqual(HTTP_BOUNDS_SECONDS.map((seconds) => seconds * 1000))
+    expect(histogramOf('db.queryMs')?.boundsMs).toEqual(QUERY_BOUNDS_MS)
     expect(histogramOf('nothing')).toBeUndefined()
   })
 

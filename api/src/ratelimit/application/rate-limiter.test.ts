@@ -33,6 +33,18 @@ describe('RateLimiter', () => {
     await expect(limiter.consume('auth', '1.1.1.1', rule)).resolves.toMatchObject({ remaining: 1 })
   })
 
+  it('tells the traffic counters of every request it refuses', async () => {
+    const rateLimitHit = jest.fn()
+    const limiter = new RateLimiter(new MemoryRateLimitStore(new TestClock()), { rateLimitHit })
+
+    await limiter.consume('api', 'a', { limit: 1, windowMs: 1000 })
+    expect(rateLimitHit).not.toHaveBeenCalled()
+    await expect(limiter.consume('api', 'a', { limit: 1, windowMs: 1000 })).rejects.toBeInstanceOf(TooManyRequestsError)
+    await expect(limiter.consume('api', 'a', { limit: 1, windowMs: 1000 })).rejects.toBeInstanceOf(TooManyRequestsError)
+
+    expect(rateLimitHit).toHaveBeenCalledTimes(2)
+  })
+
   it('counts each bucket and subject on its own', async () => {
     const limiter = new RateLimiter(new MemoryRateLimitStore(new TestClock()))
 

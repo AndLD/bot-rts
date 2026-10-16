@@ -20,6 +20,17 @@ export interface MetricSample {
   histograms?: Readonly<Record<string, HistogramSample>>
 }
 
+// A part of the picture that is read on its own and keeps its own earlier readings (the gateway, the sockets, the database, the host):
+// the sampler asks each in turn and merges what they say
+export interface MetricReading {
+  values: Record<string, number>
+  histograms?: Record<string, HistogramSample>
+}
+
+export interface MetricSource {
+  read(): Promise<MetricReading>
+}
+
 // Where the console gets its numbers: the engine, the API tier and the process (design §25.5)
 export interface MetricsPort {
   sample(): Promise<MetricSample>

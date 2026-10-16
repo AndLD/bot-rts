@@ -1,4 +1,4 @@
-import { EngineMetrics, TICK_BOUNDS_MS } from './engine-metrics'
+import { EngineMetrics, NO_RECORDER, TICK_BOUNDS_MS } from './engine-metrics'
 
 const EMPTY_BUCKETS = TICK_BOUNDS_MS.map(() => 0).concat(0)
 
@@ -26,7 +26,9 @@ describe('EngineMetrics', () => {
       maxWaitTicks: 0,
       slowTicks: [],
       tickBuckets: EMPTY_BUCKETS,
-      slowestTicks: []
+      slowestTicks: [],
+      counters: {},
+      gauges: {}
     })
   })
 
@@ -49,7 +51,9 @@ describe('EngineMetrics', () => {
       ],
       // ticks of 1 to 20 ms: 1 | 2 | 3-5 (3) | 6-10 (5) | 11-20 (10); 150 ms is in the bucket up to 200
       tickBuckets: [1, 1, 3, 5, 10, 0, 0, 1, 0, 0, 0],
-      slowestTicks: [{ tick: 21, durationMs: 150, traceId: null }]
+      slowestTicks: [{ tick: 21, durationMs: 150, traceId: null }],
+      counters: {},
+      gauges: {}
     })
   })
 
@@ -109,5 +113,19 @@ describe('EngineMetrics', () => {
     first.record({ ...sample(2, 9), traceId: 'b'.repeat(32) })
     first.record({ ...sample(3, 6), traceId: 'c'.repeat(32) })
     expect(first.snapshot().slowestTicks).toEqual([{ tick: 2, durationMs: 9, traceId: 'b'.repeat(32) }])
+  })
+
+  it('counts and gauges by name: counters add up, gauges keep the last value', () => {
+    const metrics = new EngineMetrics()
+
+    metrics.count('events')
+    metrics.count('events', 4)
+    metrics.count('conflicts', 2)
+    metrics.gauge('activeBots', 7)
+    metrics.gauge('activeBots', 5)
+
+    expect(metrics.snapshot()).toMatchObject({ counters: { events: 5, conflicts: 2 }, gauges: { activeBots: 5 } })
+    expect(() => NO_RECORDER.count('x', 2)).not.toThrow()
+    expect(() => NO_RECORDER.gauge('x', 2)).not.toThrow()
   })
 })

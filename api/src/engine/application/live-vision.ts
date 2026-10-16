@@ -1,4 +1,5 @@
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
+import { ENGINE_GAUGE, MetricRecorder, NO_RECORDER } from './engine-metrics'
 import { KnownPoint, MapPoint, Location } from '../../map/domain/map-point.entity'
 import { chunkKeyOf, locationKey } from '../../map/domain/location'
 import { ScannerModule } from '../../modules/domain/scanner-module'
@@ -73,7 +74,8 @@ export class LiveVision {
     private readonly ids: IdGenerator,
     private readonly sink: EngineSink,
     private readonly tickIntervalMs: number,
-    private readonly chunkSize: number
+    private readonly chunkSize: number,
+    private readonly recorder: MetricRecorder = NO_RECORDER
   ) {
     world.onEvict(() => this.forgetKnowledge())
   }
@@ -160,6 +162,8 @@ export class LiveVision {
         this.deliver(area, tick)
       }
     }
+    this.recorder.gauge(ENGINE_GAUGE.liveAreas, this.areas.size)
+    this.recorder.gauge(ENGINE_GAUGE.liveWatchers, new Set([...this.areas.values()].map((area) => area.userId)).size)
   }
 
   // Tells a player where their live areas are now, once per change (and an empty list when the last one is gone)

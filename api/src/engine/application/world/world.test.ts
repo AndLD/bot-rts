@@ -1,7 +1,26 @@
 import { MapPointType } from '../../../../../lib/utils/interfaces/map'
+import { EngineMetrics } from '../engine-metrics'
 import { createEngineWorld } from '../../../../tests/fakes/world-engine'
 import { BOT_TYPE } from '../../../../../lib/utils/interfaces/bots'
 import { buildItem } from '../../../../tests/integration/builders'
+
+describe('World cache metrics', () => {
+  it('counts the bots and the cells found in memory, and the ones that had to be loaded', async () => {
+    const metrics = new EngineMetrics()
+    const { world, addBot, placeCell } = createEngineWorld({ recorder: metrics })
+    addBot('b1', { x: 2, y: 2, z: 0 })
+    placeCell({ x: 1, y: 1, z: 0 })
+
+    await world.bot('b1')
+    await world.bot('b1')
+    await world.bot('missing')
+    await world.cell({ x: 1, y: 1, z: 0 })
+    await world.cell({ x: 1, y: 1, z: 0 })
+
+    // 1 bot found, 2 bots loaded (one missing), 1 cell found, 1 cell loaded
+    expect(metrics.snapshot().counters).toEqual({ cacheHits: 2, cacheMisses: 3 })
+  })
+})
 
 describe('World', () => {
   it('loads a bot once and keeps handing out the same one', async () => {

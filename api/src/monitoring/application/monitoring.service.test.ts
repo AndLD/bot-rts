@@ -50,7 +50,15 @@ describe('MonitoringService health', () => {
 
     expect(health.sampledAt).toBeNull()
     expect(health.status).toBe('green')
-    expect(health.areas.map((area) => area.area)).toEqual(['engine', 'scripts', 'api', 'infrastructure'])
+    expect(health.areas.map((area) => area.area)).toEqual([
+      'engine',
+      'scripts',
+      'world',
+      'api',
+      'database',
+      'jobs',
+      'infrastructure'
+    ])
     expect(health.areas[0].metrics.every((metric) => metric.value === null)).toBe(true)
   })
 

@@ -2,7 +2,9 @@ import { EnginePort } from '../../engine/application/engine-port'
 import { EngineMetricsSnapshot, SlowestTick } from '../../engine/application/engine-metrics'
 import { HttpMetrics, HttpTotals } from '../../metrics/application/http-metrics'
 import { Clock } from '../../shared/application/clock'
-import { GatewayProbe, HistogramSample, MetricSample, MetricsPort } from '../application/ports'
+import { engineDerivedMetrics } from './engine-derived-metrics'
+import { HistogramDefinition, histogramOf, percentileOf } from '../domain/histograms'
+import { HistogramSample, MetricSample, MetricSource, MetricsPort } from '../application/ports'
 
 export interface ProcessReading {
   rssBytes: number
@@ -19,6 +21,23 @@ function latencyP95Ms(previous: HttpTotals, current: HttpTotals): number | undef
   const bucket = current.buckets.find((candidate, index) => candidate.count - previous.buckets[index].count >= target)
 
   return (bucket ? bucket.le : current.buckets[current.buckets.length - 1].le) * 1000
+}
+
+// The percentiles of a period, from its buckets, for the metrics that are one
+function putPercentiles(
+  values: Record<string, number>,
+  histogramId: string,
+  counts: readonly number[],
+  ...wanted: Array<[string, number]>
+): void {
+  const histogram = histogramOf(histogramId) as HistogramDefinition
+
+  for (const [metric, quantile] of wanted) {
+    const value = percentileOf(histogram, counts, quantile)
+    if (value !== null) {
+      values[metric] = value
+    }
+  }
 }
 
 // The requests of a period per latency bucket, from two readings of the cumulative counts, and the ones above the last bound
@@ -61,8 +80,8 @@ export class RuntimeMetricsPort implements MetricsPort {
     private readonly process: () => ProcessReading,
     private readonly tickIntervalMs: number,
     private readonly clock: Clock,
-    // Absent when the node has no gateway to watch
-    private readonly gateway?: GatewayProbe
+    // What else is read: the gateway, the sockets, the database, the host (see the sources in this folder)
+    private readonly sources: readonly MetricSource[] = []
   ) {
     this.previousHttp = http.totals()
     this.previousAt = clock.now().getTime()
@@ -73,29 +92,38 @@ export class RuntimeMetricsPort implements MetricsPort {
     const values: Record<string, number> = {}
     const histograms: Record<string, HistogramSample> = {}
 
-    await this.readEngine(values, histograms)
+    await this.readEngine(values, histograms, (at.getTime() - this.previousAt) / 1000)
     this.readHttp(values, histograms, at.getTime())
     const { rssBytes, heapUsedBytes } = this.process()
     values['infrastructure.rssBytes'] = rssBytes
     values['infrastructure.heapUsedBytes'] = heapUsedBytes
-    await this.readGateway(values)
+    await this.readSources(values, histograms)
     this.previousAt = at.getTime()
 
     return { at, values, histograms }
   }
 
-  private async readGateway(values: Record<string, number>): Promise<void> {
-    if (!this.gateway) {
-      return
-    }
-    const { isUp, queueSize } = await this.gateway.read()
-    values['infrastructure.gatewayUp'] = isUp ? 1 : 0
-    if (queueSize !== null) {
-      values['infrastructure.gatewayQueueSize'] = queueSize
+  // A source that fails is left out of this sample and does not stop the others
+  private async readSources(
+    values: Record<string, number>,
+    histograms: Record<string, HistogramSample>
+  ): Promise<void> {
+    for (const source of this.sources) {
+      try {
+        const reading = await source.read()
+        Object.assign(values, reading.values)
+        Object.assign(histograms, reading.histograms)
+      } catch {
+        // its metrics are absent for this sample
+      }
     }
   }
 
-  private async readEngine(values: Record<string, number>, histograms: Record<string, HistogramSample>): Promise<void> {
+  private async readEngine(
+    values: Record<string, number>,
+    histograms: Record<string, HistogramSample>,
+    seconds: number
+  ): Promise<void> {
     let snapshot: EngineMetricsSnapshot
     try {
       snapshot = await this.engine.metrics()
@@ -118,10 +146,12 @@ export class RuntimeMetricsPort implements MetricsPort {
     values['scripts.deferred'] = snapshot.deferredExecutions
     values['scripts.maxWaitTicks'] = snapshot.maxWaitTicks
     values['scripts.sandboxMemoryBytes'] = snapshot.memoryBytes
+    Object.assign(values, engineDerivedMetrics(previous, snapshot, seconds, this.tickIntervalMs))
     if (previous) {
       const histogram = tickHistogram(previous, snapshot)
       if (histogram) {
         histograms['engine.tickMs'] = histogram
+        putPercentiles(values, 'engine.tickMs', histogram.counts, ['engine.tickP50Ms', 0.5], ['engine.tickP99Ms', 0.99])
       }
     }
     this.previousEngine = snapshot
@@ -145,8 +175,10 @@ export class RuntimeMetricsPort implements MetricsPort {
     }
     if (requests > 0) {
       const slowest = this.http.takeSlowest()
+      const counts = bucketCounts(this.previousHttp, current)
+      putPercentiles(values, 'api.latencyMs', counts, ['api.latencyP50Ms', 0.5], ['api.latencyP99Ms', 0.99])
       histograms['api.latencyMs'] = {
-        counts: bucketCounts(this.previousHttp, current),
+        counts,
         slowestMs: slowest?.durationMs ?? null,
         slowestTraceId: slowest?.traceId ?? null
       }

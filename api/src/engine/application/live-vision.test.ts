@@ -4,6 +4,7 @@ import { RecordingSink } from '../../../tests/fakes/engine'
 import { SequentialIdGenerator } from '../../../tests/fakes/fakes'
 import { createEngineWorld, FULL_KIT } from '../../../tests/fakes/world-engine'
 import { KnownPoint } from '../../map/domain/map-point.entity'
+import { EngineMetrics } from './engine-metrics'
 import { LiveVision } from './live-vision'
 
 const at = (x: number, y: number) => ({ x, y, z: 0 })
@@ -12,6 +13,7 @@ const KIT = [...FULL_KIT, 'scanner-class1']
 
 async function setup() {
   const engine = createEngineWorld()
+  const metrics = new EngineMetrics()
   const sink = new RecordingSink()
   const vision = new LiveVision(
     engine.world,
@@ -20,7 +22,8 @@ async function setup() {
     new SequentialIdGenerator(),
     sink,
     100,
-    16
+    16,
+    metrics
   )
   const bot = (id: string, position: ReturnType<typeof at> | null, owner = `owner-${id}`) => {
     engine.addBot(id, position, KIT, { ownerId: owner })
@@ -51,7 +54,7 @@ async function setup() {
     await engine.writeBehind.flush(tick)
     return engine.batches.flatMap((batch) => batch.knownPoints)
   }
-  return { ...engine, sink, vision, bot, goLive, switchScanner, scanner, advance, visions, staged }
+  return { ...engine, metrics, sink, vision, bot, goLive, switchScanner, scanner, advance, visions, staged }
 }
 
 describe('LiveVision', () => {
@@ -307,5 +310,19 @@ describe('LiveVision', () => {
       ['old', 600],
       ['fresh', 300]
     ])
+  })
+
+  it('tells how many live areas there are and how many players watch them', async () => {
+    const t = await setup()
+    t.bot('b1', at(5, 5), 'alice')
+    t.bot('b2', at(40, 40), 'alice')
+    t.bot('b3', at(80, 80), 'bob')
+    await t.goLive('b1')
+    await t.goLive('b2')
+    await t.goLive('b3')
+
+    await t.advance(2)
+
+    expect(t.metrics.snapshot().gauges).toMatchObject({ liveAreas: 3, liveWatchers: 2 })
   })
 })

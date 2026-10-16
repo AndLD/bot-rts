@@ -2,7 +2,9 @@ import { INestApplicationContext } from '@nestjs/common'
 import { IoAdapter } from '@nestjs/platform-socket.io'
 import { createAdapter } from '@socket.io/redis-adapter'
 import Redis from 'ioredis'
-import { ServerOptions } from 'socket.io'
+import { Server, ServerOptions, Socket } from 'socket.io'
+import { ApiActivity } from '../application/api-activity'
+import { Clock } from '../application/clock'
 import { Tracing } from '../application/tracing'
 import { traceSocketEvents } from './socket-tracing'
 
@@ -10,6 +12,15 @@ import { traceSocketEvents } from './socket-tracing'
 export interface RoomSharing {
   publisher: Redis
   subscriber: Redis
+}
+
+// Tells the traffic counters when a socket opens and closes, and whose it is (the handshake has authenticated it by then)
+function countSockets(server: Pick<Server, 'on'>, activity: ApiActivity, clock: Clock): void {
+  server.on('connection', (socket: Socket) => {
+    const userId = socket.principal?.user.id
+    activity.socketOpened(userId, clock.now().getTime())
+    socket.on('disconnect', () => activity.socketClosed(userId, clock.now().getTime()))
+  })
 }
 
 // Socket.IO with the allowed origins taken from the configuration instead of a decorator constant (the same list as CORS). With `sharing` the rooms
@@ -20,6 +31,8 @@ export class ConfiguredIoAdapter extends IoAdapter {
     app: INestApplicationContext,
     private readonly isAllowedOrigin: (origin: string | undefined) => boolean,
     private readonly tracing: Tracing,
+    private readonly activity: ApiActivity,
+    private readonly clock: Clock,
     private readonly sharing?: RoomSharing
   ) {
     super(app)
@@ -36,6 +49,7 @@ export class ConfiguredIoAdapter extends IoAdapter {
     })
 
     traceSocketEvents(server, this.tracing)
+    countSockets(server, this.activity, this.clock)
 
     if (this.sharing) {
       server.adapter(createAdapter(this.sharing.publisher, this.sharing.subscriber))

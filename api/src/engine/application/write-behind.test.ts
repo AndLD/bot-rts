@@ -1,6 +1,7 @@
 import { Module } from '../../modules/domain/module.entity'
 import { WorldStateBatch, WorldStateStore } from '../../persistence/application/world-state-store'
 import { buildItem, buildModule } from '../../../tests/integration/builders'
+import { EngineMetrics } from './engine-metrics'
 import { WriteBehind } from './write-behind'
 
 const point = (id: string) => ({ id, location: { x: 0, y: 0, z: 0 }, type: null, contentId: null, resource: null })
@@ -111,5 +112,37 @@ describe('WriteBehind', () => {
     expect(batches[0].knownPoints).toHaveLength(1)
     expect(batches[0].items.map((item) => item.id)).toEqual(['i'])
     expect(batches[0].headings).toEqual([{ botId: 'b', heading: 1 }])
+  })
+})
+
+describe('WriteBehind metrics', () => {
+  it('tells how many rows the last write held and how long it took, and how many ticks the world went without one', async () => {
+    const metrics = new EngineMetrics()
+    let now = 100
+    const store: WorldStateStore = {
+      flush: async () => {
+        now += 42
+      }
+    }
+    const writeBehind = new WriteBehind(store, 10, 3, undefined, metrics, () => now)
+    writeBehind.stageMapPoint(point('p1'))
+    writeBehind.stageMapPoint(point('p2'))
+    writeBehind.stageHeading('b', 1)
+
+    await writeBehind.flush(10)
+
+    expect(metrics.snapshot().gauges).toEqual({ flushPending: 3, flushMs: 42 })
+    expect(writeBehind.ticksSinceFlush(14)).toBe(4)
+  })
+
+  it('does not report the duration of a write that failed', async () => {
+    const metrics = new EngineMetrics()
+    const store: WorldStateStore = { flush: jest.fn().mockRejectedValue(new Error('down')) }
+    const writeBehind = new WriteBehind(store, 10, 3, undefined, metrics)
+    writeBehind.stageHeading('b', 1)
+
+    await expect(writeBehind.flush(10)).rejects.toThrow('down')
+
+    expect(metrics.snapshot().gauges).toEqual({ flushPending: 1 })
   })
 })

@@ -24,10 +24,24 @@ import {
 import { PrismaMetricHistoryRepository } from './infrastructure/prisma-metric-history.repository'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { PrismaClient } from '@prisma/client'
+import { API_ACTIVITY, ApiActivity } from '../shared/application/api-activity'
 import { nodeId } from '../shared/infrastructure/node-id'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
+import { QUERY_STATS, QueryStats } from '../persistence/application/query-stats'
+import { DATABASE_STATS_REPOSITORY, DatabaseStatsRepository } from './application/database-stats.repository'
+import { DatabaseMetricSource } from './infrastructure/database-metric.source'
+import { PrismaDatabaseStatsRepository } from './infrastructure/prisma-database-stats.repository'
+import { JOB_STATUS_STORE, JobStatusStore } from '../operations/application/ports'
+import { FileBackupStatusReader } from '../operations/infrastructure/file-backup-status.reader'
+import { JOB_STATS_REPOSITORY, JobStatsRepository } from './application/job-stats.repository'
+import { HostMetricSource, SYSTEM_HOST } from './infrastructure/host-metric.source'
+import { JobsMetricSource } from './infrastructure/jobs-metric.source'
+import { PrismaJobStatsRepository } from './infrastructure/prisma-job-stats.repository'
+import { ActivityMetricSource } from './infrastructure/activity-metric.source'
+import { GatewayMetricSource } from './infrastructure/gateway-metric.source'
+import { MetricSource } from './application/ports'
 import { gatewayProbeFor } from './infrastructure/http-gateway.probe'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
@@ -38,6 +52,35 @@ import { MonitoringGateway } from './presentation/monitoring.gateway'
 const DAY_MS = 24 * 60 * 60 * 1000
 // A sample must not wait for a gateway that does not answer
 const GATEWAY_TIMEOUT_MS = 2000
+// The size of the database is read this often; it changes slowly and costs a scan
+const DATABASE_SIZE_EVERY_MS = 5 * 60_000
+
+// What else the sampler reads, for this node
+export function metricSourcesFor(
+  config: AppConfig,
+  activity: ApiActivity,
+  queries: QueryStats,
+  database: DatabaseStatsRepository,
+  jobStatus: JobStatusStore,
+  jobStats: JobStatsRepository,
+  clock: Clock
+): MetricSource[] {
+  const gateway = gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS)
+
+  return [
+    ...(gateway ? [new GatewayMetricSource(gateway)] : []),
+    new ActivityMetricSource(activity),
+    new DatabaseMetricSource(queries, database, clock, DATABASE_SIZE_EVERY_MS),
+    new JobsMetricSource(jobStatus, jobStats, clock),
+    new HostMetricSource(
+      SYSTEM_HOST,
+      new FileBackupStatusReader(config.observability.backupStatusFile ?? null),
+      clock,
+      'logs',
+      process.cwd()
+    )
+  ]
+}
 
 // Chooses where the history is kept (`MONITORING_HISTORY`)
 export function createHistoryStore(
@@ -63,15 +106,35 @@ export function createHistoryStore(
     MonitoringGateway,
     {
       provide: METRICS_PORT,
-      inject: [ENGINE_PORT, HttpMetrics, APP_CONFIG, CLOCK],
-      useFactory: (engine: EnginePort, http: HttpMetrics, config: AppConfig, clock: Clock) =>
+      inject: [
+        ENGINE_PORT,
+        HttpMetrics,
+        APP_CONFIG,
+        CLOCK,
+        API_ACTIVITY,
+        QUERY_STATS,
+        DATABASE_STATS_REPOSITORY,
+        JOB_STATUS_STORE,
+        JOB_STATS_REPOSITORY
+      ],
+      useFactory: (
+        engine: EnginePort,
+        http: HttpMetrics,
+        config: AppConfig,
+        clock: Clock,
+        activity: ApiActivity,
+        queries: QueryStats,
+        database: DatabaseStatsRepository,
+        jobStatus: JobStatusStore,
+        jobStats: JobStatsRepository
+      ) =>
         new RuntimeMetricsPort(
           engine,
           http,
           () => ({ rssBytes: process.memoryUsage().rss, heapUsedBytes: process.memoryUsage().heapUsed }),
           config.engine.tickIntervalMs,
           clock,
-          gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS)
+          metricSourcesFor(config, activity, queries, database, jobStatus, jobStats, clock)
         )
     },
     {
@@ -79,6 +142,16 @@ export function createHistoryStore(
       inject: [EMAIL_SENDER, APP_CONFIG],
       useFactory: (sender: EmailSender | undefined, config: AppConfig) =>
         new EmailAlertNotifier(sender, config.monitoring.alertEmails, config.adminUrl)
+    },
+    {
+      provide: JOB_STATS_REPOSITORY,
+      inject: [PRISMA_CLIENT],
+      useFactory: (client: PrismaClient) => new PrismaJobStatsRepository(client)
+    },
+    {
+      provide: DATABASE_STATS_REPOSITORY,
+      inject: [PRISMA_CLIENT],
+      useFactory: (client: PrismaClient) => new PrismaDatabaseStatsRepository(client)
     },
     {
       provide: METRIC_HISTORY_REPOSITORY,

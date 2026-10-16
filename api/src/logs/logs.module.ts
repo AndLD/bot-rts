@@ -7,6 +7,7 @@ import { CLOCK, Clock } from '../shared/application/clock'
 import { LOG_BUFFER, LogBuffer } from '../shared/application/log-buffer'
 import { LOGGER, Logger } from '../shared/application/logger'
 import { nodeId } from '../shared/infrastructure/node-id'
+import { QUERY_STATS, QueryStats } from '../persistence/application/query-stats'
 import { LOG_STORE, LogStore } from './application/log-store'
 import { LogsService } from './application/logs.service'
 import { TRACE_STORE, TraceStore } from './application/trace-store'
@@ -91,8 +92,8 @@ export function createTraceStore(config: AppConfig, clock: Clock, logger: Logger
     },
     {
       provide: LOGS_SERVICE,
-      inject: [LOG_STORE, ENGINE_PORT],
-      useFactory: (store: LogStore, engine: EnginePort) => new LogsService(store, engine)
+      inject: [LOG_STORE, ENGINE_PORT, QUERY_STATS],
+      useFactory: (store: LogStore, engine: EnginePort, queries: QueryStats) => new LogsService(store, engine, queries)
     }
   ]
 })

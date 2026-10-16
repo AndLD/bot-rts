@@ -2,6 +2,9 @@ import { FakeClock } from '../../../tests/fakes/fakes'
 import { EngineMetricsSnapshot, TICK_BOUNDS_MS } from '../../engine/application/engine-metrics'
 import { EnginePort } from '../../engine/application/engine-port'
 import { HttpMetrics } from '../../metrics/application/http-metrics'
+import { ApiActivity } from '../../shared/application/api-activity'
+import { ActivityMetricSource } from './activity-metric.source'
+import { GatewayMetricSource } from './gateway-metric.source'
 import { RuntimeMetricsPort } from './runtime-metrics.port'
 
 const TICKS_NONE = TICK_BOUNDS_MS.map(() => 0).concat(0)
@@ -21,6 +24,8 @@ const snapshot = (overrides: Partial<EngineMetricsSnapshot> = {}): EngineMetrics
   slowTicks: [],
   tickBuckets: TICKS_NONE,
   slowestTicks: [],
+  counters: {},
+  gauges: {},
   ...overrides
 })
 
@@ -47,7 +52,7 @@ describe('RuntimeMetricsPort and the gateway', () => {
       () => ({ rssBytes: 7, heapUsedBytes: 8 }),
       100,
       new FakeClock(),
-      { read: async () => reading }
+      [new GatewayMetricSource({ read: async () => reading })]
     )
 
   it('reports whether the gateway is up and how full its queue is', async () => {
@@ -236,5 +241,76 @@ describe('RuntimeMetricsPort distributions', () => {
     const { histograms } = await port.sample()
 
     expect(histograms?.['engine.tickMs']).toMatchObject({ slowestMs: null, slowestTraceId: null })
+  })
+})
+
+describe('RuntimeMetricsPort sockets and the rate limit', () => {
+  it('reports the sockets open and the players on them, and the rest per sample from the second reading on', async () => {
+    const activity = new ApiActivity()
+    const port = new RuntimeMetricsPort(
+      { metrics: async () => snapshot() } as unknown as EnginePort,
+      new HttpMetrics(),
+      () => ({ rssBytes: 1, heapUsedBytes: 1 }),
+      100,
+      new FakeClock(),
+      [new ActivityMetricSource(activity)]
+    )
+    activity.socketOpened('alice', 0)
+    const first = await port.sample()
+    activity.socketOpened('bob', 1)
+    activity.socketClosed('alice', 2)
+    activity.socketOpened('alice', 3)
+    activity.rateLimitHit()
+    activity.rateLimitHit()
+
+    const second = await port.sample()
+
+    expect(first.values).toMatchObject({ 'api.socketConnections': 1, 'world.onlinePlayers': 1 })
+    expect(first.values).not.toHaveProperty('api.socketConnects')
+    expect(second.values).toMatchObject({
+      'api.socketConnections': 2,
+      'world.onlinePlayers': 2,
+      'api.socketConnects': 2,
+      'api.socketReconnects': 1,
+      'api.rateLimitHits': 2,
+      'notifications.emailFailures': 0
+    })
+  })
+
+  it('reports nothing about sockets for a node without the counters', async () => {
+    const { port } = setup()
+
+    expect((await port.sample()).values).not.toHaveProperty('api.socketConnections')
+  })
+})
+
+describe('RuntimeMetricsPort sources', () => {
+  it('merges what its sources read, and leaves out one that fails without stopping the others', async () => {
+    const port = new RuntimeMetricsPort(
+      { metrics: async () => snapshot() } as unknown as EnginePort,
+      new HttpMetrics(),
+      () => ({ rssBytes: 1, heapUsedBytes: 1 }),
+      100,
+      new FakeClock(),
+      [
+        { read: async () => ({ values: { 'a.one': 1 } }) },
+        {
+          read: async () => {
+            throw new Error('down')
+          }
+        },
+        {
+          read: async () => ({
+            values: { 'a.two': 2 },
+            histograms: { 'db.queryMs': { counts: [1], slowestMs: null, slowestTraceId: null } }
+          })
+        }
+      ]
+    )
+
+    const { values, histograms } = await port.sample()
+
+    expect(values).toMatchObject({ 'a.one': 1, 'a.two': 2 })
+    expect(Object.keys(histograms ?? {})).toContain('db.queryMs')
   })
 })

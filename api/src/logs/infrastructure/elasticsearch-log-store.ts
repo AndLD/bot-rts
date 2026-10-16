@@ -92,8 +92,9 @@ export class ElasticsearchLogStore implements LogStore {
       query: { range: { '@timestamp': { gte: this.isoBefore(to, this.settings.maxWindowDays * DAY_MS) } } },
       aggs: {
         nodes: {
-          terms: { field: 'service.node.name', size: NODE_LIMIT },
-          aggs: { services: { terms: { field: 'service.name', size: 10 } } }
+          // The processes that logged most recently, so that a crowd of old ones never pushes a live one out of the list
+          terms: { field: 'service.node.name', size: NODE_LIMIT, order: { latest: 'desc' } },
+          aggs: { latest: { max: { field: '@timestamp' } }, services: { terms: { field: 'service.name', size: 10 } } }
         }
       }
     })

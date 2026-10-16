@@ -48,6 +48,6 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/14.1-admin-read-scopes` | 14.1 | [#202](https://github.com/AndLD/bot-rts/pull/202) | ✅ merged |
-| `feature/14.2-admin-ops-api` | 14.2 | [#203](https://github.com/AndLD/bot-rts/pull/203) | 🟡 |
+| `feature/14.2-admin-ops-api` | 14.2 | [#203](https://github.com/AndLD/bot-rts/pull/203) | ✅ merged |
 | `feature/14.3-admin-mcp-tools` | 14.3 | [#204](https://github.com/AndLD/bot-rts/pull/204) | 🟡 |
-| `feature/14.4-admin-keys-console` | 14.4 | _PR number added at merge_ | 🟡 |
+| `feature/14.4-admin-keys-console` | 14.4 | [#205](https://github.com/AndLD/bot-rts/pull/205) | 🟡 |

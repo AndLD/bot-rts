@@ -24,13 +24,13 @@ The **harness** is:
 The **product knowledge** (the product specification and everything that states what the product is and must do) is in
 scope in two ways: its *structure* (layers, language, duplication; D1 to D3) and its *logical integrity* (D11: whether it is
 consistent, complete and buildable as written) and its *completeness* (D12: what is still open, and how much of the product is
-specified and delivered). The **complexity** of both the harness and the product knowledge is assessed (D13).
+specified and delivered). The **complexity** of both the harness and the product knowledge is assessed (D13), and so is how well the plan can be executed by several agents in parallel or asynchronously (D14).
 
 Not reviewed: product source code (reviewed separately) and whether a product decision is *good* (taste, fun, market fit,
 balance quality). A decision that contradicts another decision, or a number that cannot hold under the specification's own
 rules, is a D11 finding; an opinion that a number should be different is not.
 
-**Goal of the review:** answer seven questions with evidence.
+**Goal of the review:** answer eight questions with evidence.
 
 1. Does an agent that starts cold do the right thing, quickly, with little context? (effectiveness)
 2. Is each rule and fact written once, in the right place, and true today? (integrity)
@@ -39,6 +39,7 @@ rules, is a D11 finding; an opinion that a number should be different is not.
 5. Is the product knowledge free of contradictions and gaps, so that someone can build from it without guessing? (product integrity)
 6. How much of the product is specified, how much is delivered, and what remains open or undecided? (completeness and progress)
 7. How complex is the harness and the product knowledge, how much of it is essential, and is it growing faster than it pays for itself? (complexity)
+8. How much of the remaining plan can several agents execute at once, what stops them, and what is the best number of agents? (parallel execution)
 
 ---
 
@@ -221,6 +222,32 @@ Evidence: M20 to M26. Judge each hotspot: can it be simplified without losing a 
 tool, replace several special cases with one rule)? If yes, it is accidental.
 `1` complexity unmeasured and visibly beyond a reader's reach · `3` measured, some accidental hotspots, no budget or a budget partly exceeded · `5` budgets exist and are met, hotspots are essential, growth is tracked and justified.
 
+### Group E: parallel execution
+
+**D14 Parallel execution.** Could the plan be split among several agents (or people) and executed concurrently or
+asynchronously, and how efficiently? D14 evaluates the plan, its tasks, the shared state of the repository and the working
+environment together, because parallelism fails at the weakest of them.
+
+| Aspect | The question | What is measured |
+| ------ | ------------ | ---------------- |
+| Dependency structure | How much of the work must be done in sequence? | The task dependency graph; total work and the critical path (the longest chain, in the plan's size unit); the theoretical speedup (total work ÷ critical path); how many tasks could run at once at each stage (width) |
+| Task independence | Can tasks be built without waiting for each other? | Tasks that depend on an interface, contract or data shape that no earlier task defines; whether contracts are defined first so consumers can start; tasks that touch the same area |
+| Shared-state hotspots | Which files and records does everyone edit? | Files changed by many tasks (indexes, registries, lock files, generated files, ordered migrations, message catalogues, summary tables, logs): each is a merge conflict or a forced serialization; classify as remove (split, generate, one fragment per task), serialize deliberately (one owner), or accept |
+| Delegation readiness | Can a task be handed to an agent that has no other context? | Share of tasks that are self-contained: goal, inputs, cited specification, acceptance check, size within one session, no blocking open item, no human decision needed midway |
+| Environment isolation | Can N agents work at the same moment without colliding? | Working copies, network ports, databases, caches, global state shared between working copies, secrets, CI capacity; every collision found, by resource |
+| Coordination | How do agents claim work, record state and integrate? | How a task is claimed; whether state is written to per-task records instead of one shared file; who integrates and merges; how conflicts and review queues are handled; whether the rules assume a single serial worker |
+| Asynchrony | Does one waiting item block everyone? | Whether a pending decision, review or failing check blocks only the dependent tasks, and whether open items are queued with an owner |
+| Overhead | At what point does adding agents stop paying? | Estimated coordination cost per extra agent against the added throughput; the number of agents at which speedup saturates |
+
+**Deliverables of the evaluation** (not only a score): a **parallel schedule** for the remaining plan as waves (sets of tasks that can
+run together, with the gate between waves), **lanes** (an area or layer owned by one agent, to avoid overlapping writes), the list of
+**blockers to parallelism** with a fix for each, and the **recommended number of agents** with the expected speedup for 2, 3 and 4
+agents (bounded by the width and the critical path).
+
+Evidence: M27 to M31 and probe P7. The review does not run agents in parallel for real; it forecasts conflicts from the plan, the
+history and the configuration, and checks the forecast with the write-set probe.
+`1` the plan assumes one serial worker and every task touches shared files · `3` independent areas exist but hotspots and environment collisions would make parallel work fail or need manual care · `5` contracts first, hotspots removed or owned, isolated environments, a published schedule and claim protocol that agents can follow.
+
 ### Blueprint readiness (derived, not a dimension)
 
 A verdict from D1, D3, D4, D6 plus an **export dry run** (section 4, step 6): list what would be copied to a new project
@@ -248,9 +275,9 @@ report is approved.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
    that fits no layer, or fits two, is a D1/D4 finding.
-3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M26). Quote the command and
+3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M31). Quote the command and
    the date so the run can be repeated. Measurements are evidence, not verdicts: a hit is judged in context.
-4. **Review by dimension.** Go through D1 to D13, collect evidence, write findings (section 5), then score.
+4. **Review by dimension.** Go through D1 to D14, collect evidence, write findings (section 5), then score.
    - **4b. Product integrity pass (D11).** Treat the product knowledge as a system to be checked, not text to be skimmed:
      1. *Partition* the corpus into bounded contexts (`bindings.md` lists them). A full review reads **every** section; record
         coverage (sections read of total). A delta review reads the changed sections and every section that references them.
@@ -277,6 +304,12 @@ report is approved.
      Rank the hotspots in each aspect; classify each as essential or accidental with the reason; propose the simplification for
      each accidental one (split, merge, delete, automate, unify); on the first review, propose the budgets. Do not simplify
      anything during the review.
+   - **4e. Parallelism pass (D14).** After 4d. Build the dependency graph of the remaining tasks from the plan files (explicit
+     dependencies, the execution order, the gates, and the interfaces and sections each task cites; mark edges you inferred). Compute
+     work, critical path, speedup bound and width (M27). Find shared-state hotspots from the history of finished tasks and from the
+     files the remaining tasks will touch (M28). Judge delegation readiness task by task (M29). Inspect the environment for
+     collisions (M30) and the coordination rules (M31). Check the forecast with probe P7 in step 5. Then write the schedule, lanes,
+     blockers and the recommended number of agents. Do not change the plan or the repository during the review.
 5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only subagents that receive only the task text
    and the repository (no conversation context). Record the files each read, the first action it took, and any wrong or
    uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
@@ -300,6 +333,7 @@ One finding per problem, so it can become one task.
 | Dimension      | D1 to D13                                                                                     |
 | Kind (D11)     | contradiction · gap · duplication · invariant · terminology · status · traceability · feasibility |
 | Kind (D12)     | hidden open item · stale open item · unowned · blocker · unregistered decision                   |
+| Kind (D14)     | hidden dependency · missing contract · shared-file hotspot · non-delegable task · environment collision · coordination gap · serial bottleneck |
 | Kind (D13)     | hub · deep chain · cycle · exception-heavy rule · concept overload · duplicated mechanism · automatable step · budget exceeded |
 | Evidence       | `path:line` or the measured number; for a contradiction, both statements with locations; for a gap, the unanswerable question |
 | Why it matters | The concrete failure for an agent, a maintainer or the export                                 |
@@ -321,6 +355,7 @@ does not undo it.
 | End of each plan milestone                                                    | **Delta**: layers touched since the last report, D8, D10, one probe |
 | Product knowledge changed (sections added or edited)                                  | **Delta D11**: changed sections plus their referrers, all invariants, traceability |
 | End of each plan milestone and before starting the next                              | **Delta D12**: refresh the inventory and M16 to M19, report the trend of the percentages |
+| Before a plan milestone starts                                                       | **Delta D14**: refresh M27 to M31 and publish the schedule for that milestone |
 | End of each plan milestone                                                           | **Delta D13**: refresh M20 to M26 and compare with the budgets and the previous report |
 | After a large change to an entry point, the hooks, CI, or the layer structure          | **Delta** on the affected dimensions          |
 | A probe or a real session shows an agent misreading the harness                         | **Targeted**: the failing scenario and the owning document |
@@ -344,8 +379,9 @@ A delta report states which dimensions it did not re-score and carries their pre
 | 2026-10-15 | Product knowledge integrity (D11, claims ledger, M12–M15) added to scope. |
 | 2026-10-15 | Open items and completeness (D12, M16–M19) added: inventory, declared against hidden, documented and delivered percentages. |
 | 2026-10-16 | Complexity (D13, M20–M26) added for the harness and the product knowledge: essential versus accidental, hotspots, budgets set from the first baseline. |
+| 2026-10-16 | Parallel execution (D14, M27–M31, probe P7) added: dependency graph and critical path, hotspots, delegation readiness, environment isolation, coordination, schedule and recommended number of agents. |
 
-### Measurements (M1 to M26) in one line each
+### Measurements (M1 to M31) in one line each
 
 | Id  | Measurement                                                                                  |
 | --- | -------------------------------------------------------------------------------------------- |
@@ -375,3 +411,8 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M24 | Product rule interaction: rules per entity, dependent rules, longest chain, exception share, cycles |
 | M25 | Product state space and cross-context coupling: states and transitions per lifecycle; references in and out per context |
 | M26 | Time to first action: words read before the first correct action, per probe scenario          |
+| M27 | Dependency graph of the remaining tasks: work, critical path, speedup bound, width per stage    |
+| M28 | Shared-state hotspots: files changed by many tasks, by history and forecast, classified          |
+| M29 | Delegation readiness: share of remaining tasks that are self-contained; failures by reason       |
+| M30 | Environment collisions between parallel working copies, by resource                             |
+| M31 | Coordination: how work is claimed and recorded; shared records every task writes; recommended agent count and speedup |

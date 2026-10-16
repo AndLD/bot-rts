@@ -118,13 +118,18 @@ describe('ElasticsearchLogStore search', () => {
     const { store } = setup({
       body: {
         hits: {
-          total: { value: 1 },
-          hits: [{ _source: { '@timestamp': '2026-10-16T10:00:00Z', log: { level: 'DEBUG' } } }]
+          total: { value: 2 },
+          hits: [
+            { _source: { '@timestamp': '2026-10-16T10:00:00Z', log: { level: 'DEBUG' } } },
+            { _source: { '@timestamp': '2026-10-16T10:00:01Z' } }
+          ]
         }
       }
     })
 
-    expect((await store.search({}, page)).entries[0]).toMatchObject({
+    const { entries } = await store.search({}, page)
+    expect(entries.map((entry) => entry.level)).toEqual(['info', 'info'])
+    expect(entries[0]).toMatchObject({
       level: 'info',
       message: '',
       requestId: null,

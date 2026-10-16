@@ -207,3 +207,16 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Not done:** a Cypress step (the e2e backend has no sampled traces); the charts of the database query latency have no trace (the query log has none).
 - **Next step:** 13.7, the cutover and the runbook.
 - **Verify with:** `npm test -w api -- --selectProjects unit --testPathPattern metric-history-store`, `npm test -w client -- AdminDashboard slowest-marks`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`
+
+### 2026-10-16 — task 13.7 built; Phase 13 complete
+- **Tasks:** 13.7 (cutover, cleanup and runbook); with 13.1 to 13.6 and 13.8 the exit criteria of the phase hold
+- **Branch:** `feature/13.7-cutover-runbook` — done, pull request open; branched from `develop` after 13.6 (#198)
+- **Decisions / deviations from the plan:**
+  - **No log files in production.** `LOG_FILE` defaults to `false` when `NODE_ENV=production` and to `true` otherwise; `LOG_FILE=true` still turns the file on (the container image already set `false`). The record of a production node is the console and the gateway.
+  - **log4js** was removed with 13.1; a search of the repository finds it only in the work logs and the changelog, so there was nothing left to delete.
+  - **Documentation.** The deployment page lost its "until then" note, says what writes where, and has a runbook (following one request, the size of the indices, the log store down, the gateway down); the README row and `.env.example` follow; the admin documentation page "Logs and audit" gained a fifth step about following a request, in English and Russian.
+- **Problems / blockers / findings:** the `achievements` Cypress spec failed once on #198 (a badge not found, unrelated to the change) and passed on rerun; #196 had one SIGABRT of a Jest worker, also green on rerun.
+- **Local database:** `npm run db:up` and `npm run db:migrate -w api` run on 2026-10-16 after the merge of 13.6: migration `20261016120000_metric_history` applied, now up to date. The seed data did not change in this phase.
+- **Not done:** an alert on the index size (the dashboard watches the gateway queue, not Elasticsearch's disk); the backlog question of Prometheus and Grafana stays in design §25.6.
+- **Next step:** none in this phase; Phase 10 follows when the owner asks for it.
+- **Verify with:** `npm test -w api -- --selectProjects unit --testPathPattern app-config`, `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`

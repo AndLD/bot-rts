@@ -130,11 +130,27 @@ kept but nothing is applied.
 **When something is down.**
 
 - *The gateway is down or slow:* the SDK exporters hold at most `OTEL_EXPORT_QUEUE_SIZE` records or spans and drop the rest; the
-  console and the log files of the nodes keep every line, and the game is not affected. The dashboard shows a warning.
+  console of the nodes (their container logs) keeps every line, and the game is not affected. The dashboard shows a warning.
 - *Elasticsearch is down:* the gateway keeps what it received in its queue on disk and retries; a restart of the gateway keeps the
   queue (tested). Records are searchable again once Elasticsearch is back.
-- *The log store is down:* searching the logs fails with `LOG_STORE_UNAVAILABLE`; the nodes keep logging to the console and the files, and the gateway keeps its queue.
+- *The log store is down:* searching the logs fails with `LOG_STORE_UNAVAILABLE`; the nodes keep logging to the console, and the gateway keeps its queue.
 - *The queue grows:* the dashboard warns above 5,000 batches and goes red above 9,000; at 10,000 the gateway refuses data.
+
+**Runbook.**
+
+- *Following one request.* Take the trace id from the `X-Trace-Id` header of the response (or from the player's report, or from a log
+  line) and paste it into **Logs → Trace id**; the trace opens with its spans over the nodes and every line written in it. A slow
+  tick or slow request is opened from the **Open the trace** point of its chart on the dashboard. Without a log store, search the
+  recent lines of the node that answers by the request id.
+- *The size of the indices.* `GET _cat/indices/botrts-*?v&s=store.size:desc` shows the data streams' backing indices. The size is
+  governed by the `logs` retention (Operations page; `botrts-retention` rolls over daily and deletes after the days); to shrink it,
+  lower the days or the trace sampling (`OTEL_TRACES_SAMPLER_ARG`). Keep at least 15 % of the disk free: Elasticsearch turns indices
+  read-only above its flood-stage watermark, and the gateway then queues on disk instead of losing data.
+- *The log store is down.* The Logs page shows `LOG_STORE_UNAVAILABLE`; nothing else of the console or the game is affected. Check
+  `docker compose ps` / the service, its disk (above), and `ELASTICSEARCH_URL` and the read-only account. Once it is back the gateway
+  drains its queue by itself. To read logs meanwhile, use the container logs of the nodes (they carry the trace id on every line).
+- *The gateway is down.* The dashboard shows it (`OTEL_GATEWAY_HEALTH_URL`); nodes keep the newest `OTEL_EXPORT_QUEUE_SIZE` records and
+  drop the rest, so restart it promptly. Records dropped meanwhile are in the nodes' container logs only.
 
 ## Reverse proxy
 
@@ -155,17 +171,16 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
 
 ## Observability (Phase 8.3)
 
-> **Phase 13:** logs and traces run on OpenTelemetry. The collector gateway and Elasticsearch, which let the console search the logs
-> of every node and follow a request by its trace id, come with tasks 13.2 to 13.4. Until then the log search of the console reads the
-> recent lines of the node that answers (`LOG_BUFFER_SIZE`), and the files and the console remain the record. See
-> [Phase 13](../development-plan/phases/phase-13-observability-platform.md).
+> **Phase 13:** logs and traces run on OpenTelemetry. The collector gateway and Elasticsearch (see "Log gateway and Elasticsearch"
+> above) let the console search the logs of every node and follow a request by its trace id; in production they are the record, and
+> the nodes write no log files. See [Phase 13](../development-plan/phases/phase-13-observability-platform.md).
 
-- **Logs** go to the console (and to `api/logs/` unless `LOG_FILE=false`). With `LOG_FORMAT=json` (the default in production)
+- **Logs** go to the console, and to the gateway when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. A file under `api/logs/` is written only in development, or when `LOG_FILE=true` (production default: no file, so a node's disk does not fill and the record is the log store). With `LOG_FORMAT=json` (the default in production)
   every line is one JSON object: `time`, `level`, `category`, `traceId`, `spanId`, `requestId`, `message`. Each HTTP request logs one
   line when it finishes (method, path without the query string, status, duration). With `OTEL_EXPORTER_OTLP_ENDPOINT` set, every
   record is also sent to that OTLP endpoint (headers from `OTEL_EXPORTER_OTLP_HEADERS`, for example a bearer token); the exporter
-  keeps at most `OTEL_EXPORT_QUEUE_SIZE` records while the gateway is slow or away and drops the rest, and the console and the files
-  keep every line.
+  keeps at most `OTEL_EXPORT_QUEUE_SIZE` records while the gateway is slow or away and drops the rest, and the console (and the file, when
+  `LOG_FILE=true`) keeps every line.
 - **Traces:** every HTTP request, Socket.IO event, engine tick and scheduled job (lifecycle pass, monitoring sample, achievements
   flush, ban sweep, notification delivery and purge, game-time refresh) is a span, and every log record written inside carries its
   trace id. The trace continues over the engine thread, the Redis link between an API node and the engine node, the events an engine

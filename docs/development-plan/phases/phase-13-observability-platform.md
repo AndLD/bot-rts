@@ -42,4 +42,4 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/13.1-otel-logs-traces` | 13.1 | [#190](https://github.com/AndLD/bot-rts/pull/190) | ✅ Merged |
 | `feature/13.2-collector-gateway-elasticsearch` | 13.2 | [#191](https://github.com/AndLD/bot-rts/pull/191) | 🟡 In review |
-| `feature/13.8a-metrics-history` | 13.8 (a) | pending | 🟡 In review |
+| `feature/13.8a-metrics-history` | 13.8 (a) | [#196](https://github.com/AndLD/bot-rts/pull/196) | 🟡 In review |

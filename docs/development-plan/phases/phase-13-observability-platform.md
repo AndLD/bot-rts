@@ -40,4 +40,4 @@ AGENTS.md §7.1).
 
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
-| `feature/13.1-otel-logs-traces` | 13.1 | pending | 🟡 In review |
+| `feature/13.1-otel-logs-traces` | 13.1 | [#190](https://github.com/AndLD/bot-rts/pull/190) | 🟡 In review |

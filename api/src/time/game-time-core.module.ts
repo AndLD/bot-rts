@@ -1,4 +1,5 @@
 import { Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
+import { runJob, TRACING, Tracing } from '../shared/application/tracing'
 import { Inject } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
@@ -29,11 +30,17 @@ export const GAME_TIME_POLL_MS = 1000
 export class GameTimeCoreModule implements OnApplicationBootstrap, OnApplicationShutdown {
   private timer: NodeJS.Timeout | null = null
 
-  constructor(@Inject(GameTimeSettingsService) private readonly settings: GameTimeSettingsService) {}
+  constructor(
+    @Inject(GameTimeSettingsService) private readonly settings: GameTimeSettingsService,
+    @Inject(TRACING) private readonly tracing: Tracing
+  ) {}
 
   // The first read comes with the first poll, a second after the start, so that creating the application never needs the database
   onApplicationBootstrap() {
-    this.timer = setInterval(() => void this.settings.refresh(), GAME_TIME_POLL_MS)
+    this.timer = setInterval(
+      () => void runJob(this.tracing, 'game-time-refresh', () => this.settings.refresh()),
+      GAME_TIME_POLL_MS
+    )
     this.timer.unref()
   }
 

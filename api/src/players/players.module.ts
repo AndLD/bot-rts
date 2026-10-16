@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
+import { runJob, TRACING, Tracing } from '../shared/application/tracing'
 import { PrismaClient } from '@prisma/client'
 import { AdminModule } from '../admin/admin.module'
 import { AuditService } from '../admin/application/audit.service'
@@ -67,12 +68,16 @@ export class PlayersModule implements OnApplicationBootstrap, OnApplicationShutd
 
   constructor(
     @Inject(PLAYERS_SERVICE) private readonly players: PlayersService,
-    @Inject(APP_CONFIG) private readonly config: AppConfig
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+    @Inject(TRACING) private readonly tracing: Tracing
   ) {}
 
   onApplicationBootstrap() {
     if (this.config.lifecycle.isEnabled && this.config.deployment.role !== 'api') {
-      this.timer = setInterval(() => void this.players.sweepExpiredBans(), this.config.admin.banCheckIntervalMs)
+      this.timer = setInterval(
+        () => void runJob(this.tracing, 'ban-sweep', () => this.players.sweepExpiredBans()),
+        this.config.admin.banCheckIntervalMs
+      )
       this.timer.unref()
     }
   }

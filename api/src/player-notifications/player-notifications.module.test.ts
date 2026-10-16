@@ -1,7 +1,9 @@
 import { fakeRetentionPolicy } from '../../tests/fakes/retention'
+import { testTelemetry } from '../../tests/fakes/telemetry'
 import { DELIVER_DUE_MS, PlayerNotificationsModule, PURGE_MS } from './player-notifications.module'
 
 function setup(retentionOverrides: Parameters<typeof fakeRetentionPolicy>[0] = {}) {
+  const traced = testTelemetry()
   const unlock = jest.fn()
   const off = jest.fn()
   const notifications = {
@@ -21,10 +23,11 @@ function setup(retentionOverrides: Parameters<typeof fakeRetentionPolicy>[0] = {
     notifications as never,
     achievements as never,
     logger as never,
-    retention
+    retention,
+    traced.telemetry.tracing
   )
 
-  return { module, notifications, unlock, off, logger, retention }
+  return { module, notifications, unlock, off, logger, retention, traced }
 }
 
 describe('PlayerNotificationsModule', () => {
@@ -43,6 +46,18 @@ describe('PlayerNotificationsModule', () => {
     expect(notifications.deliverDue).toHaveBeenCalled()
     expect(notifications.purge).toHaveBeenCalledTimes(1)
     expect(notifications.purge).toHaveBeenCalledWith(30)
+    module.onApplicationShutdown()
+  })
+
+  it('runs each timer in a trace of its own', async () => {
+    const { module, traced } = setup()
+    module.onApplicationBootstrap()
+
+    await jest.advanceTimersByTimeAsync(PURGE_MS)
+
+    const names = new Set(traced.spans().map((span) => span.name))
+    expect(names).toEqual(new Set(['job notifications-deliver', 'job notifications-purge']))
+    expect(traced.spans().every((span) => span.parentSpanContext === undefined)).toBe(true)
     module.onApplicationShutdown()
   })
 

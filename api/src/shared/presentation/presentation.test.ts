@@ -1,5 +1,6 @@
 import { ConfiguredIoAdapter } from './configured-io.adapter'
 import { Logger } from '../application/logger'
+import { NO_TRACING } from '../application/tracing'
 import { AppError } from '../domain/app-error'
 import { guarded, toSocketError } from './socket-handlers'
 
@@ -37,10 +38,10 @@ describe('guarded', () => {
 describe('ConfiguredIoAdapter', () => {
   it('takes the CORS origins from the configuration', () => {
     const allowed = (origin: string | undefined) => origin === 'https://play.example'
-    const adapter = new ConfiguredIoAdapter({ get: jest.fn(), resolve: jest.fn() } as never, allowed)
+    const adapter = new ConfiguredIoAdapter({ get: jest.fn(), resolve: jest.fn() } as never, allowed, NO_TRACING)
     const create = jest
       .spyOn(Object.getPrototypeOf(ConfiguredIoAdapter.prototype), 'createIOServer')
-      .mockReturnValue({} as never)
+      .mockReturnValue({ on: jest.fn() } as never)
 
     adapter.createIOServer(0, { path: '/x' } as never)
 

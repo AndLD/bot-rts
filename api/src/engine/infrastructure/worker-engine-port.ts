@@ -15,12 +15,15 @@ import {
 } from '../application/engine-protocol'
 import { EngineEvent } from '../application/engine-ports'
 import { ServiceUnavailableError } from '../domain/engine.errors'
+import { NO_TRACING, Span, Tracing } from '../../shared/application/tracing'
 import { LinkStatus } from '../application/radio-network'
 import { WorldActionName, WorldActions } from '../application/world-actions'
 
 interface Waiting {
   resolve(data: EngineReplyData): void
   reject(error: unknown): void
+  // The span of the round trip, ended when the engine answers
+  span: Span
 }
 
 // The API thread's side of the link to the engine thread: a request/reply protocol with ids over the channel, and the fan-out
@@ -30,7 +33,10 @@ export class ChannelEnginePort implements EnginePort {
   private readonly listeners = new Set<(event: EngineEvent) => void>()
   private nextId = 1
 
-  constructor(private readonly channel: MessageChannel<EngineMessage, ControlMessage>) {
+  constructor(
+    private readonly channel: MessageChannel<EngineMessage, ControlMessage>,
+    private readonly tracing: Tracing = NO_TRACING
+  ) {
     channel.onMessage((message) => this.receive(message))
   }
 
@@ -86,6 +92,8 @@ export class ChannelEnginePort implements EnginePort {
   // The engine died or was stopped: everything waiting for it fails
   abandon(): void {
     for (const waiting of this.waiting.values()) {
+      waiting.span.fail('the engine is gone')
+      waiting.span.end()
       waiting.reject(new ServiceUnavailableError())
     }
     this.waiting.clear()
@@ -94,11 +102,14 @@ export class ChannelEnginePort implements EnginePort {
   private ask(request: EngineRequest): Promise<EngineReplyData> {
     return new Promise((resolve, reject) => {
       const id = this.nextId++
-      this.waiting.set(id, { resolve, reject })
+      const span = this.tracing.startSpan(`engine ${request.op}`, { kind: 'client' })
+      this.waiting.set(id, { resolve, reject, span })
       try {
-        this.channel.post({ kind: 'request', id, request })
+        this.channel.post({ kind: 'request', id, request, traceparent: span.traceparent })
       } catch (error) {
         this.waiting.delete(id)
+        span.fail(error)
+        span.end()
         reject(error)
       }
     })
@@ -106,7 +117,12 @@ export class ChannelEnginePort implements EnginePort {
 
   private receive(message: EngineMessage): void {
     if (message.kind === 'event') {
-      this.listeners.forEach((listener) => listener(message.event))
+      // What the listeners do about the event (a notification, say) belongs to the trace the engine raised it in
+      this.tracing.withSpan(
+        `engine event ${message.event.type}`,
+        { kind: 'consumer', parent: message.traceparent },
+        () => this.listeners.forEach((listener) => listener(message.event))
+      )
       return
     }
     if (message.kind === 'ready' || message.kind === 'stopped') {
@@ -115,8 +131,11 @@ export class ChannelEnginePort implements EnginePort {
     const waiting = this.waiting.get(message.id)
     this.waiting.delete(message.id)
     if (message.kind === 'reply') {
+      waiting?.span.end()
       waiting?.resolve(message.data)
     } else {
+      waiting?.span.fail(message.error.code)
+      waiting?.span.end()
       waiting?.reject(new AppError(message.error.statusCode, message.error.code, message.error.message))
     }
   }

@@ -11,6 +11,8 @@ import {
 } from '../../../tests/fakes/engine'
 import { FakeClock, SequentialIdGenerator } from '../../../tests/fakes/fakes'
 import { createEngineWorld } from '../../../tests/fakes/world-engine'
+import { testTelemetry } from '../../../tests/fakes/telemetry'
+import { Tracing } from '../../shared/application/tracing'
 import { createModuleRegistry } from '../../modules/domain/module-registry'
 import { WorldStateStore } from '../../persistence/application/world-state-store'
 import { SeededRng } from '../../shared/infrastructure/seeded-rng'
@@ -47,7 +49,13 @@ class StubHandler implements ScriptFunctionHandler {
 }
 
 async function setup(
-  options: { config?: Partial<EngineConfig>; monotonic?: () => number; withWatch?: boolean; gameClock?: FakeClock } = {}
+  options: {
+    config?: Partial<EngineConfig>
+    monotonic?: () => number
+    withWatch?: boolean
+    gameClock?: FakeClock
+    tracing?: Tracing
+  } = {}
 ) {
   const runtime = await QuickJsScriptRuntime.create()
   const executions = new InMemoryExecutionRepository()
@@ -80,7 +88,7 @@ async function setup(
   }
   const vision = { restore: jest.fn(async () => undefined), refresh: jest.fn(async () => undefined) }
   const actions = { execute: jest.fn(async (name: string, args: unknown[]): Promise<unknown> => ({ name, args })) }
-  const writeBehind = new WriteBehind(store, config.flushEveryTicks, 3)
+  const writeBehind = new WriteBehind(store, config.flushEveryTicks, 3, options.tracing)
   const { world } = createEngineWorld({ states: bots.states, writeBehind })
   const policy = { isAllowed: jest.fn(async (_userId: string, _category: string) => true) }
   const watch = {
@@ -119,6 +127,7 @@ async function setup(
     clock: new FakeClock(),
     gameClock: options.gameClock,
     logger,
+    tracing: options.tracing,
     monotonicMs: options.monotonic ?? (() => 0)
   })
 
@@ -1263,6 +1272,139 @@ describe('EngineCore', () => {
       await core.runTick()
       expect(await after).toMatchObject({ areScriptsHalted: true, isPaused: false })
     })
+  })
+})
+
+describe('EngineCore tracing', () => {
+  const byName = (spans: ReturnType<ReturnType<typeof testTelemetry>['spans']>, name: string) =>
+    spans.filter((span) => span.name === name)
+
+  it('runs every tick in a trace of its own, numbered', async () => {
+    const traced = testTelemetry()
+    const { ticks } = await setup({ tracing: traced.telemetry.tracing })
+
+    await ticks(2)
+
+    const [first, second] = byName(traced.spans(), 'engine.tick')
+    expect(first.attributes['botrts.tick']).toBe(1)
+    expect(second.attributes['botrts.tick']).toBe(2)
+    expect(first.parentSpanContext).toBeUndefined()
+    expect(first.spanContext().traceId).not.toBe(second.spanContext().traceId)
+  })
+
+  it('serves a request inside the trace it came in with, even though the tick that serves it is another trace', async () => {
+    const traced = testTelemetry()
+    const { tracing } = traced.telemetry
+    const { core, base } = await setup({ tracing })
+
+    const requestTrace = tracing.withSpan('POST /scripts', { kind: 'server' }, (request) => {
+      void core.list(OWNER)
+      return request.context
+    })
+    await core.runTick()
+
+    const served = byName(traced.spans(), 'engine.list')[0]
+    expect(served.spanContext().traceId).toBe(requestTrace?.traceId)
+    expect(served.parentSpanContext?.spanId).toBe(requestTrace?.spanId)
+    expect(base).toBeDefined()
+  })
+
+  it('gives a script execution a trace of its own, linked to the request that started it, and ends it with the script', async () => {
+    const traced = testTelemetry()
+    const { tracing } = traced.telemetry
+    const { core, base, sources, ticks } = await setup({ tracing })
+    sources.files.set(FILE, 'export async function main(bot) { bot.log("hi") }')
+
+    const requestTrace = tracing.withSpan('POST /scripts', { kind: 'server' }, (request) => {
+      void core.start({ userId: OWNER, botId: base.id, file: FILE, args: [] })
+      return request.context
+    })
+    await ticks(2)
+
+    const [start] = byName(traced.spans(), 'engine.start')
+    const [execution] = byName(traced.spans(), 'script.execution')
+    expect(start.spanContext().traceId).toBe(requestTrace?.traceId)
+    expect(execution.spanContext().traceId).not.toBe(requestTrace?.traceId)
+    expect(execution.parentSpanContext).toBeUndefined()
+    expect(execution.links.map((link) => link.context.spanId)).toEqual([start.spanContext().spanId])
+    expect(execution.attributes).toMatchObject({
+      'botrts.bot_id': base.id,
+      'botrts.file': FILE,
+      'botrts.status': 'finished'
+    })
+    expect(execution.status.code).toBe(0)
+  })
+
+  it('marks the execution of a script that was killed as failed, and ends the ones still running at shutdown', async () => {
+    const traced = testTelemetry()
+    const { core, start, ticks } = await setup({ tracing: traced.telemetry.tracing })
+
+    await start('export async function main(bot) { while (true) { await bot.scan() } }')
+    await ticks(1)
+    const [view] = await listNow(core)
+    const killed = core.kill(OWNER, view.id)
+    await ticks(1)
+    await killed
+    await start('export async function main(bot) { while (true) { await bot.scan() } }')
+    await ticks(1)
+    await core.shutdown()
+
+    const [first, second] = byName(traced.spans(), 'script.execution')
+    expect(first.status.code).toBe(2)
+    expect(first.attributes['botrts.status']).toBe('killed')
+    expect(second.status.code).toBe(0)
+    expect(second.attributes['botrts.status']).toBeUndefined()
+  })
+
+  it('applies a manual call in the trace of the request that made it', async () => {
+    const traced = testTelemetry()
+    const { tracing } = traced.telemetry
+    const { core, base } = await setup({ tracing })
+
+    const requestTrace = tracing.withSpan('POST /manual', { kind: 'server' }, (request) => {
+      void core.manual(OWNER, base.id, 'scan', [])
+      return request.context
+    })
+    await core.runTick()
+
+    const [call] = byName(traced.spans(), 'engine.call scan')
+    expect(call.spanContext().traceId).toBe(requestTrace?.traceId)
+    expect(byName(traced.spans(), 'engine.manual')[0].spanContext().spanId).toBe(call.parentSpanContext?.spanId)
+  })
+
+  it('writes the world behind in a span of the tick, with the rows it writes', async () => {
+    const traced = testTelemetry()
+    const { writeBehind, core, config } = await setup({
+      tracing: traced.telemetry.tracing,
+      config: { flushEveryTicks: 1 }
+    })
+    writeBehind.stageHeading('b1', 0 as never)
+
+    await core.runTick()
+
+    const [flush] = byName(traced.spans(), 'engine.world-flush')
+    const [tick] = byName(traced.spans(), 'engine.tick')
+    expect(flush.attributes['botrts.rows']).toBe(1)
+    expect(flush.parentSpanContext?.spanId).toBe(tick.spanContext().spanId)
+    expect(config.flushEveryTicks).toBe(1)
+  })
+
+  it('logs what goes wrong while applying a call inside the tick', async () => {
+    const traced = testTelemetry()
+    const { tracing } = traced.telemetry
+    const { core, handler, logger, base } = await setup({ tracing })
+    const seenIn: Array<string | undefined> = []
+    logger.error.mockImplementation(() => void seenIn.push(tracing.current()?.traceId))
+    handler.next = async () => {
+      throw new Error('bug')
+    }
+
+    const answer = core.manual(OWNER, base.id, 'scan', [])
+    await core.runTick()
+
+    await expect(answer).rejects.toThrow('Internal error')
+    expect(seenIn).toHaveLength(1)
+    expect(seenIn[0]).toBeDefined()
   })
 })
 

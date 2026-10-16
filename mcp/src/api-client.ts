@@ -1,3 +1,6 @@
+import { TRACEPARENT_HEADER } from '../../lib/utils/trace-context'
+import { NO_TELEMETRY, Telemetry } from './telemetry'
+
 // The only way this package reaches the game: the public API (/api/v1) with an API key. It has no other access.
 
 export class ApiError extends Error {
@@ -19,7 +22,8 @@ export class ApiClient {
   constructor(
     private readonly apiUrl: string,
     private readonly apiKey: string,
-    private readonly fetchImpl: Fetch = fetch
+    private readonly fetchImpl: Fetch = fetch,
+    private readonly telemetry: Telemetry = NO_TELEMETRY
   ) {}
 
   get<T = unknown>(path: string, query?: Query): Promise<T> {
@@ -50,17 +54,20 @@ export class ApiClient {
       }
     }
 
+    const call = this.telemetry.startApiCall(method, path)
     let response: Response
     try {
       response = await this.fetchImpl(url, {
         method,
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
+          ...(call.traceparent ? { [TRACEPARENT_HEADER]: call.traceparent } : {}),
           ...(body === undefined ? {} : { 'Content-Type': 'application/json' })
         },
         body: body === undefined ? undefined : JSON.stringify(body)
       })
     } catch (error) {
+      call.finish({ failure: (error as Error).message })
       throw new ApiError(
         0,
         'UNREACHABLE',
@@ -68,6 +75,7 @@ export class ApiClient {
       )
     }
 
+    call.finish({ status: response.status, failure: response.ok ? undefined : `HTTP ${response.status}` })
     const text = await response.text()
     const parsed = text ? safeJson(text) : undefined
 

@@ -41,6 +41,7 @@ Each client sends its own key, `Authorization: Bearer botrts_…`, to `POST /mcp
 | `BOTRTS_API_KEY` | – | The key (required for stdio) |
 | `MCP_TRANSPORT` | `stdio` | `stdio` or `http` |
 | `MCP_HOST`, `MCP_PORT` | `127.0.0.1`, `3000` | Where the HTTP transport listens |
+| `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS` | – | The collector gateway for the traces and logs of the server; every call of a tool is a span, and the API continues its trace (the `traceparent` header). Logs go to the standard error, never to the standard output of the stdio protocol |
 
 ## The tools
 

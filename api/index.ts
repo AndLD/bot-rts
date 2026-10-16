@@ -1,8 +1,12 @@
 import './src/load-env'
 import { bootstrap } from './src/bootstrap'
-import { Log4jsLogger } from './src/shared/infrastructure/log4js-logger'
+import { ConsoleLogSink } from './src/shared/infrastructure/log-sinks'
+import { TelemetryLogger } from './src/shared/infrastructure/telemetry-logger'
 
-const logger = new Log4jsLogger('index')
+// Reports what goes wrong before the application exists (or outside it), to the console only
+const logger = new TelemetryLogger('index', [
+  new ConsoleLogSink(process.env.NODE_ENV === 'production' ? 'json' : 'text')
+])
 
 bootstrap(process.env).catch((error) => {
   logger.error(`Failed to start: ${error}`)

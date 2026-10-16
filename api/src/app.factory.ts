@@ -10,6 +10,7 @@ import { AppModule } from './app.module'
 import { REFRESH_COOKIE } from './auth/presentation/refresh-cookie'
 import { AppConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
+import { TRACING, Tracing } from './shared/application/tracing'
 import { ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
 import { ConfiguredIoAdapter } from './shared/presentation/configured-io.adapter'
@@ -69,12 +70,14 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
   app.useBodyParser('json', { limit: config.http.bodyLimitBytes })
   app.use(cookieParser())
   const httpMetrics = app.get(HttpMetrics)
-  app.use(createRequestLogger(logger, (request) => httpMetrics.observe(request)))
+  const tracing = app.get<Tracing>(TRACING)
+  app.use(createRequestLogger(logger, tracing, (request) => httpMetrics.observe(request)))
   const connect = app.get<RedisConnector>(REDIS_CONNECTOR)
   app.useWebSocketAdapter(
     new ConfiguredIoAdapter(
       app,
       originMatcher([...config.corsOrigins, config.adminUrl]),
+      tracing,
       connect ? { publisher: connect(), subscriber: connect() } : undefined
     )
   )

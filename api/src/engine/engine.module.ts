@@ -3,6 +3,7 @@ import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { LOGGER, Logger } from '../shared/application/logger'
+import { TRACING, Tracing } from '../shared/application/tracing'
 import { ENGINE_PORT, EnginePort } from './application/engine-port'
 import { PrismaExecutionRepository } from './infrastructure/prisma-execution.repository'
 import { killStalled } from './infrastructure/kill-stalled'
@@ -28,8 +29,8 @@ const RESPAWN_DELAY_MS = 1_000
   providers: [
     {
       provide: ENGINE_PROCESS,
-      inject: [APP_CONFIG, LOGGER, PRISMA_CLIENT],
-      useFactory: async (config: AppConfig, logger: Logger, client: PrismaClient) => {
+      inject: [APP_CONFIG, LOGGER, PRISMA_CLIENT, TRACING],
+      useFactory: async (config: AppConfig, logger: Logger, client: PrismaClient, tracing: Tracing) => {
         // An `api` node leaves the engine to the engine node (design §12.2.2)
         if (!config.engine.isEnabled || config.deployment.role === 'api') {
           return null
@@ -52,6 +53,7 @@ const RESPAWN_DELAY_MS = 1_000
             onStall: (executionId) => killStalled(executions, process, executionId)
           },
           logger,
+          tracing,
           readyTimeoutMs: READY_TIMEOUT_MS,
           stopTimeoutMs: STOP_TIMEOUT_MS,
           respawnDelayMs: RESPAWN_DELAY_MS
@@ -62,10 +64,15 @@ const RESPAWN_DELAY_MS = 1_000
     },
     {
       provide: ENGINE_PORT,
-      inject: [ENGINE_PROCESS, APP_CONFIG, REDIS_CONNECTOR],
-      useFactory: async (process: EngineProcess | null, config: AppConfig, connect: RedisConnector) => {
+      inject: [ENGINE_PROCESS, APP_CONFIG, REDIS_CONNECTOR, TRACING],
+      useFactory: async (
+        process: EngineProcess | null,
+        config: AppConfig,
+        connect: RedisConnector,
+        tracing: Tracing
+      ) => {
         if (config.deployment.role === 'api' && config.engine.isEnabled && connect) {
-          const port = new RedisEnginePort(connect(), connect(), config.deployment.engineRequestTimeoutMs)
+          const port = new RedisEnginePort(connect(), connect(), config.deployment.engineRequestTimeoutMs, tracing)
           await port.open()
           return port
         }
@@ -74,12 +81,18 @@ const RESPAWN_DELAY_MS = 1_000
     },
     {
       provide: ENGINE_BRIDGE,
-      inject: [ENGINE_PORT, APP_CONFIG, REDIS_CONNECTOR, LOGGER],
-      useFactory: async (engine: EnginePort, config: AppConfig, connect: RedisConnector, logger: Logger) => {
+      inject: [ENGINE_PORT, APP_CONFIG, REDIS_CONNECTOR, LOGGER, TRACING],
+      useFactory: async (
+        engine: EnginePort,
+        config: AppConfig,
+        connect: RedisConnector,
+        logger: Logger,
+        tracing: Tracing
+      ) => {
         if (config.deployment.role !== 'engine' || !config.engine.isEnabled || !connect) {
           return null
         }
-        const bridge = new RedisEngineBridge(engine, connect(), connect(), logger)
+        const bridge = new RedisEngineBridge(engine, connect(), connect(), logger, tracing)
         await bridge.open()
         return bridge
       }

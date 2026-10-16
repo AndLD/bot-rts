@@ -47,13 +47,21 @@ content moves into the report or the pull request description):
 percentages, complexity budgets (proposed), and the export dry run. **Exit criteria:** the report is merged; you have read the
 scorecard, the top findings and the blockers list.
 
-**Procedure:** exactly the method; the start prompt is section 5 of the bindings. Notes:
+**Procedure:** exactly the method. The start prompt below defers to the full-review prompt in section 5 of the bindings, which holds the delegation details. Notes:
 
 - Use Opus 5.5 at high effort for the orchestrating session; subagents on Sonnet 5.5 at medium effort.
 - If your usage limit is tight, split it: first steps 1 to 4 for D1 to D10 with the probes, later D11 to D13.
 - The report must include the **extraction blockers** list and the **export dry run**; step 3 builds on them.
 
 **After the report:** you triage the findings (step 2 input), see below.
+
+### Start prompt (step 1)
+
+```text
+Execute step 1 of docs/harness-framework/README.md: run the first full harness quality review.
+
+Follow the "Full review prompt" in section 5 of docs/quality-reviews/harness/bindings.md exactly: you are the orchestrator, spawn the context subagents and the probes as it says (model "sonnet", effort "medium"), verify every finding yourself, and open the pull request without merging it. Keep docs/harness-framework/progress.md on the branch as in the plan, so a new session can resume if this one is interrupted. Finish with the summary the prompt asks for, plus the extraction blockers and the proposed complexity budgets.
+```
 
 ---
 

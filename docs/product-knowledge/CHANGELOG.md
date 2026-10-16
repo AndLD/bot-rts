@@ -83,6 +83,12 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   deployment, the notifications an engine event causes, and from the MCP server into the API. A caller may send a W3C `traceparent`; every
   response carries `X-Trace-Id` and `traceresponse`, and `X-Request-Id` is the trace id unless the caller sent its own. With
   `OTEL_EXPORTER_OTLP_ENDPOINT` set, logs and traces are sent to a collector gateway (`OTEL_TRACES_SAMPLER_ARG` samples new traces).
+- The dashboard's history can be kept in the database (`MONITORING_HISTORY=postgres`, the default in production and on a node of a scaled
+  deployment): every node, the engine node included, writes a one-minute row per metric (a sum and a count, so that averages merge) and
+  per distribution (the API latency and the engine's tick duration as counts per bucket, with the slowest request or tick and its
+  trace id). The charts show every node together, or one node chosen in a list; the 95th percentile of several nodes is computed from the
+  merged buckets and never by averaging their percentiles. The retention of the "coarse series" of the Operations page now applies to
+  these rows, and the cleanup job removes the older ones (new tables `metric_minutes` and `histogram_minutes`).
 - The admin dashboard shows whether the log gateway is up and how full its export queue is, when `OTEL_GATEWAY_HEALTH_URL` and
   `OTEL_GATEWAY_METRICS_URL` are set (warnings when the gateway is down or its queue is more than half full).
 - `docker compose --profile observability up -d` (or `npm run obs:up`) starts the log gateway (an OpenTelemetry Collector that checks a

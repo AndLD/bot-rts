@@ -70,7 +70,9 @@ export class LifecycleService {
       ['logins and links', settings.authData, async () => this.expireAuthData(report, settings)],
       ['unverified accounts', settings.unverifiedAccounts, async () => this.deleteUnverified(report, settings)],
       ['inactive accounts', settings.inactiveAccounts, async () => this.handleInactive(report, settings)],
-      ['player activity', settings.playerActivity, async () => this.expireActivity(report, settings)]
+      ['player activity', settings.playerActivity, async () => this.expireActivity(report, settings)],
+      // The history has no switch of its own: it is cleaned whenever the job runs
+      ['monitoring history', { isEnabled: true }, async () => this.expireMonitoringHistory(report, settings)]
     ]
     let failedSteps = 0
 
@@ -127,6 +129,12 @@ export class LifecycleService {
     )
     report.terminalLogsDeleted = ordinary + security
     report.terminalSessionsDeleted = await repository.deleteEndedTerminalSessionsWithoutLogs(logAge)
+  }
+
+  private async expireMonitoringHistory(report: LifecycleReport, { monitoring }: RetentionSettings) {
+    report.monitoringHistoryDeleted = await this.deps.repository.deleteMetricHistoryBefore(
+      this.ago(days(monitoring.coarseDays as number))
+    )
   }
 
   private async expireExecutions(report: LifecycleReport, { executions }: RetentionSettings) {

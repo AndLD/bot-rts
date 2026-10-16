@@ -54,6 +54,9 @@ class FakeLifecycleRepository implements LifecycleRepository {
   deletePlayerActivityBefore(before: Date) {
     return this.record('activity', [before], 8)
   }
+  deleteMetricHistoryBefore(before: Date) {
+    return this.record('history', [before], 12)
+  }
 }
 
 function setup(overrides: Partial<Record<RetentionJob, RetentionValues>> = {}) {
@@ -119,7 +122,8 @@ describe('LifecycleService', () => {
       executionsDeleted: 4,
       notificationsDeleted: 6,
       authRowsDeleted: 5,
-      playerActivityDeleted: 8
+      playerActivityDeleted: 8,
+      monitoringHistoryDeleted: 12
     })
     const cutoff = (name: string, index = 0) =>
       (repository.calls.filter(([call]) => call === name)[index][1] as Date[]).find(
@@ -129,6 +133,7 @@ describe('LifecycleService', () => {
     expect(now - cutoff('executions').getTime()).toBe(30 * DAY)
     expect(now - cutoff('auth').getTime()).toBe(7 * DAY)
     expect(now - cutoff('activity').getTime()).toBe(400 * DAY)
+    expect(now - cutoff('history').getTime()).toBe(30 * DAY)
     expect(now - (repository.calls.find(([call]) => call === 'logs')![1][1] as Date).getTime()).toBe(30 * DAY)
     expect(now - (repository.calls.filter(([call]) => call === 'logs')[1][1][1] as Date).getTime()).toBe(90 * DAY)
     expect(repository.deletedUsers).toEqual([['u1', 'u2']])

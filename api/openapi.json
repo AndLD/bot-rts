@@ -8610,6 +8610,15 @@
                 "30d"
               ]
             }
+          },
+          {
+            "name": "node",
+            "required": false,
+            "in": "query",
+            "description": "One node (host and process id, from the nodes list); the default is every node",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8658,6 +8667,73 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/monitoring/series\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/monitoring/nodes": {
+      "get": {
+        "operationId": "monitoringNodes",
+        "parameters": [
+          {
+            "name": "range",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1h",
+                "6h",
+                "24h",
+                "7d",
+                "30d"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [
+                  "string"
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/monitoring/nodes\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }

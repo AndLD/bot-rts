@@ -10,6 +10,13 @@ export interface SlowTick {
   deferredExecutions: number
 }
 
+// The slowest tick of a block of ticks, with the trace it ran in, for following a slow stretch of the charts to its cause
+export interface SlowestTick {
+  tick: number
+  durationMs: number
+  traceId: string | null
+}
+
 export interface TickMetrics {
   tick: number
   lastTickMs: number
@@ -25,6 +32,10 @@ export interface TickMetrics {
   maxWaitTicks: number
   // The newest slow ticks, oldest first
   slowTicks: SlowTick[]
+  // How many ticks took each duration since the engine started, one count per bound of `TICK_BOUNDS_MS` and one above the last
+  tickBuckets: number[]
+  // The slowest tick of each of the newest blocks of ticks, oldest first
+  slowestTicks: SlowestTick[]
 }
 
 export interface TickSample {
@@ -35,6 +46,8 @@ export interface TickSample {
   queuedExecutions: number
   deferredExecutions: number
   maxWaitTicks: number
+  // The trace the tick ran in, if tracing is on
+  traceId?: string | null
 }
 
 export interface EngineMetricsSnapshot extends TickMetrics {
@@ -47,10 +60,17 @@ export interface EngineMetricsSnapshot extends TickMetrics {
 
 const WINDOW = 100
 const SLOW_TICKS_KEPT = 20
+// Upper bounds of the tick duration histogram in ms (the console's `engine.tickMs`, see monitoring/domain/histograms.ts)
+export const TICK_BOUNDS_MS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+// A block is about the sampling interval of the console at the default tick rate
+const BLOCK_TICKS = 100
+const BLOCKS_KEPT = 12
 
 export class EngineMetrics {
   private readonly durations: number[] = []
   private slowTicks: SlowTick[] = []
+  private readonly buckets: number[] = TICK_BOUNDS_MS.map(() => 0).concat(0)
+  private blocks: SlowestTick[] = []
   private tick = 0
   private overrunTicks = 0
   private cutTicks = 0
@@ -63,6 +83,8 @@ export class EngineMetrics {
       deferredExecutions: sample.deferredExecutions,
       maxWaitTicks: sample.maxWaitTicks
     }
+    this.countBucket(sample.durationMs)
+    this.keepSlowest(sample)
     this.durations.push(sample.durationMs)
     if (this.durations.length > WINDOW) {
       this.durations.shift()
@@ -95,7 +117,26 @@ export class EngineMetrics {
       overrunTicks: this.overrunTicks,
       cutTicks: this.cutTicks,
       slowTicks: [...this.slowTicks],
+      tickBuckets: [...this.buckets],
+      slowestTicks: this.blocks.map((block) => ({ ...block })),
       ...this.last
+    }
+  }
+
+  private countBucket(durationMs: number): void {
+    const index = TICK_BOUNDS_MS.findIndex((bound) => durationMs <= bound)
+    this.buckets[index === -1 ? TICK_BOUNDS_MS.length : index] += 1
+  }
+
+  // The slowest tick of the block this tick is in; a new block starts every BLOCK_TICKS ticks
+  private keepSlowest({ tick, durationMs, traceId }: TickSample): void {
+    const current = this.blocks[this.blocks.length - 1]
+    const isSameBlock = current && Math.floor((current.tick - 1) / BLOCK_TICKS) === Math.floor((tick - 1) / BLOCK_TICKS)
+
+    if (!isSameBlock) {
+      this.blocks = [...this.blocks, { tick, durationMs, traceId: traceId ?? null }].slice(-BLOCKS_KEPT)
+    } else if (durationMs > current.durationMs) {
+      this.blocks[this.blocks.length - 1] = { tick, durationMs, traceId: traceId ?? null }
     }
   }
 }

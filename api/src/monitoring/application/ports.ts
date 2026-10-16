@@ -4,10 +4,20 @@ export const METRICS_PORT = Symbol('MetricsPort')
 export const GATEWAY_PROBE = Symbol('GatewayProbe')
 export const ALERT_NOTIFIER = Symbol('AlertNotifier')
 
+// The observations of a distribution since the previous sample: how many fell into each bucket, and the slowest with its trace
+export interface HistogramSample {
+  // One count per bound of the histogram (monitoring/domain/histograms.ts), then one for what is above the last bound
+  counts: readonly number[]
+  slowestMs: number | null
+  slowestTraceId: string | null
+}
+
 export interface MetricSample {
   at: Date
   // By metric id; a metric that could not be read is absent
   values: Readonly<Record<string, number>>
+  // By histogram id; a distribution that could not be read is absent
+  histograms?: Readonly<Record<string, HistogramSample>>
 }
 
 // Where the console gets its numbers: the engine, the API tier and the process (design §25.5)

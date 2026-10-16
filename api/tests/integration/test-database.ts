@@ -16,7 +16,9 @@ const TABLES = [
   'sessions',
   'local_credentials',
   'identities',
-  'users'
+  'users',
+  'metric_minutes',
+  'histogram_minutes'
 ]
 
 export interface TestDatabase {

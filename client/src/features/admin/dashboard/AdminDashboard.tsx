@@ -1,9 +1,10 @@
 'use client'
 
-import { Alert, Card, Col, Row, Segmented, Space, Statistic, Tag } from 'antd'
+import { Alert, Card, Col, Row, Segmented, Select, Space, Statistic, Tag } from 'antd'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { HealthStatus, IAreaHealth, METRIC_RANGES, MetricRange } from '@lib/utils/admin'
+import { useMonitoringNodesQuery } from '../../../shared/api'
 import AlertList from './AlertList'
 import MetricChart from './MetricChart'
 import { formatMetric } from './metric-format'
@@ -49,6 +50,8 @@ function AreaTile({ area }: { area: IAreaHealth }) {
 export default function AdminDashboard() {
   const t = useTranslations('admin.dashboard')
   const [range, setRange] = useState<MetricRange>('1h')
+  const [node, setNode] = useState<string | undefined>(undefined)
+  const { data: nodes } = useMonitoringNodesQuery({ range })
   const { data: health, isError, isLive } = useLiveHealth()
 
   if (isError) {
@@ -75,6 +78,14 @@ export default function AdminDashboard() {
           onChange={(value) => setRange(value as MetricRange)}
           options={METRIC_RANGES.map((value) => ({ value, label: t(`ranges.${value}`) }))}
         />
+        <Select
+          allowClear
+          value={node}
+          onChange={(value) => setNode(value)}
+          placeholder={t('allNodes')}
+          style={{ minWidth: 220 }}
+          options={(nodes ?? []).map((id) => ({ value: id, label: id }))}
+        />
       </Space>
 
       <Row gutter={[16, 16]}>
@@ -92,7 +103,7 @@ export default function AdminDashboard() {
       <Row gutter={[16, 16]}>
         {charts.map((metric) => (
           <Col key={metric} xs={24} md={12} xl={8}>
-            <MetricChart metric={metric} unit={(units[metric] ?? 'count') as never} range={range} />
+            <MetricChart metric={metric} unit={(units[metric] ?? 'count') as never} range={range} node={node} />
           </Col>
         ))}
       </Row>

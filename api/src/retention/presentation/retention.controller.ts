@@ -20,7 +20,7 @@ const REPORT_KEYS: Readonly<Record<RetentionJob, readonly string[] | null>> = {
   unverifiedAccounts: ['unverifiedAccountsDeleted'],
   inactiveAccounts: ['inactiveAccountsErased'],
   playerActivity: ['playerActivityDeleted'],
-  monitoring: null
+  monitoring: ['monitoringHistoryDeleted']
 }
 
 // The retention settings of the Operations page (design §25.3): every retention job with its switch, its ranges and its last pass

@@ -16,7 +16,9 @@ const snapshot: EngineMetricsSnapshot = {
   executions: 9,
   memoryBytes: 1024,
   uptimeMs: 5000,
-  slowTicks: []
+  slowTicks: [],
+  tickBuckets: [],
+  slowestTicks: []
 }
 const stats = () => ({ uptimeSeconds: 12, rssBytes: 100, heapUsedBytes: 50 })
 const engine = (metrics: () => Promise<EngineMetricsSnapshot>) => ({ metrics }) as unknown as EnginePort
@@ -27,6 +29,20 @@ describe('PrometheusText', () => {
 
     expect(text.toString()).toBe('# HELP x_total Things\n# TYPE x_total counter\nx_total{path="a\\"b\\\\c\\nd"} 3\n')
     expect(new PrometheusText().sample('plain', 1).toString()).toBe('plain 1\n')
+  })
+})
+
+describe('HttpMetrics slowest request', () => {
+  it('keeps the slowest request with its trace until it is taken, and starts over', () => {
+    const http = new HttpMetrics()
+    expect(http.takeSlowest()).toBeNull()
+
+    http.observe({ method: 'GET', route: '/a', status: 200, durationMs: 20, traceId: 't1' })
+    http.observe({ method: 'GET', route: '/a', status: 200, durationMs: 90 })
+    http.observe({ method: 'GET', route: '/a', status: 200, durationMs: 50, traceId: 't3' })
+
+    expect(http.takeSlowest()).toEqual({ durationMs: 90, traceId: null })
+    expect(http.takeSlowest()).toBeNull()
   })
 })
 

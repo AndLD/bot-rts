@@ -187,3 +187,87 @@ describe('the live dashboard namespace', () => {
     }
   })
 })
+
+describe('the monitoring history in the database', () => {
+  let shared: TestApp
+  let service: MonitoringService
+  let viewer: SignedUp
+
+  const MINUTE = 60_000
+
+  beforeAll(async () => {
+    shared = await startTestApp(database, { RATE_LIMIT_API_MAX: '100000', MONITORING_HISTORY: 'postgres' })
+    service = shared.app.get<MonitoringService>(MONITORING_SERVICE)
+    counter += 1
+    viewer = await signUpVerified(shared, database, `history${counter}@example.com`)
+    await database.client.user.update({ where: { id: viewer.userId }, data: { status: 'analyst' } })
+    const begun = await request(shared.url).post('/api/v1/admin/2fa/enroll').set(bearer(viewer.accessToken)).expect(201)
+    await request(shared.url)
+      .post('/api/v1/admin/2fa/confirm')
+      .set(bearer(viewer.accessToken))
+      .send({ code: totpCodeAt(begun.body.secret, Date.now()) })
+      .expect(200)
+  })
+  afterAll(() => shared.close())
+
+  it('keeps the minutes of every node, which the console reads together or for one node, and names the nodes', async () => {
+    const minute = Math.floor(Date.now() / MINUTE) * MINUTE - 5 * MINUTE
+    await database.client.metricMinute.createMany({
+      data: [
+        { node: 'other-node:1', minute: new Date(minute), metric: 'infrastructure.rssBytes', sum: 2000, count: 2 },
+        {
+          node: 'other-node:1',
+          minute: new Date(minute + MINUTE),
+          metric: 'infrastructure.rssBytes',
+          sum: 3000,
+          count: 1
+        }
+      ]
+    })
+    await service.sampleOnce()
+    await service.flushHistory()
+
+    const get = (query: string) =>
+      request(shared.url).get(`/api/v1/admin/monitoring/${query}`).set(bearer(viewer.accessToken)).expect(200)
+    const nodes = await get('nodes?range=1h')
+    const all = await get('series?metric=infrastructure.rssBytes&range=1h')
+    const other = await get('series?metric=infrastructure.rssBytes&range=1h&node=other-node:1')
+
+    expect(nodes.body).toContain('other-node:1')
+    expect(nodes.body.length).toBe(2)
+    expect(all.body.stepMs).toBe(MINUTE)
+    expect(all.body.points.length).toBeGreaterThanOrEqual(3)
+    expect(other.body.points).toEqual([
+      [minute, 1000],
+      [minute + MINUTE, 3000]
+    ])
+    await request(shared.url).get('/api/v1/admin/monitoring/nodes?range=2h').set(bearer(viewer.accessToken)).expect(400)
+  })
+
+  it('writes the percentiles of the latency from the distributions of the minute', async () => {
+    const minute = Math.floor(Date.now() / MINUTE) * MINUTE - 10 * MINUTE
+    await database.client.histogramMinute.createMany({
+      data: [
+        {
+          node: 'other-node:1',
+          minute: new Date(minute),
+          histogram: 'api.latencyMs',
+          counts: [1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        {
+          node: 'other-node:2',
+          minute: new Date(minute),
+          histogram: 'api.latencyMs',
+          counts: [0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0]
+        }
+      ]
+    })
+
+    const series = await request(shared.url)
+      .get('/api/v1/admin/monitoring/series?metric=api.latencyP95Ms&range=1h')
+      .set(bearer(viewer.accessToken))
+      .expect(200)
+
+    expect(series.body.points).toContainEqual([minute, 5])
+  })
+})

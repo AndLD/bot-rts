@@ -14,6 +14,17 @@ import { AdminModule } from '../admin/admin.module'
 import { AuthModule } from '../auth/auth.module'
 import { AlertManager } from './application/alert-manager'
 import { MetricHistory } from './application/metric-history'
+import { MetricHistoryRepository, METRIC_HISTORY_REPOSITORY } from './application/metric-history.repository'
+import {
+  MemoryMetricHistoryStore,
+  METRIC_HISTORY_STORE,
+  MetricHistoryStore,
+  PersistentMetricHistoryStore
+} from './application/metric-history-store'
+import { PrismaMetricHistoryRepository } from './infrastructure/prisma-metric-history.repository'
+import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
+import { PrismaClient } from '@prisma/client'
+import { nodeId } from '../shared/infrastructure/node-id'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
@@ -22,10 +33,28 @@ import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
 import { MonitoringGateway } from './presentation/monitoring.gateway'
 
-// Health, performance and load for the admin console (design §25.5). Each process samples itself: its history is in memory.
+// Health, performance and load for the admin console (design §25.5). Each process samples itself. Its finest tier is in its memory; with
+// `MONITORING_HISTORY=postgres` the one-minute tier of every node is in the database, so the console shows them together.
 const DAY_MS = 24 * 60 * 60 * 1000
 // A sample must not wait for a gateway that does not answer
 const GATEWAY_TIMEOUT_MS = 2000
+
+// Chooses where the history is kept (`MONITORING_HISTORY`)
+export function createHistoryStore(
+  config: AppConfig,
+  repository: MetricHistoryRepository,
+  logger: Logger
+): MetricHistoryStore {
+  const { monitoring } = config
+  const fine = { stepMs: monitoring.sampleIntervalMs, retentionMs: monitoring.fineRetentionMs }
+
+  return monitoring.history === 'postgres'
+    ? new PersistentMetricHistoryStore(new MetricHistory([fine]), repository, nodeId(), logger)
+    : new MemoryMetricHistoryStore(
+        new MetricHistory([fine, { stepMs: monitoring.coarseStepMs, retentionMs: monitoring.coarseRetentionMs }]),
+        nodeId()
+      )
+}
 
 @Module({
   imports: [NotificationsModule, AdminModule, AuthModule],
@@ -52,10 +81,21 @@ const GATEWAY_TIMEOUT_MS = 2000
         new EmailAlertNotifier(sender, config.monitoring.alertEmails, config.adminUrl)
     },
     {
+      provide: METRIC_HISTORY_REPOSITORY,
+      inject: [PRISMA_CLIENT],
+      useFactory: (client: PrismaClient) => new PrismaMetricHistoryRepository(client)
+    },
+    {
+      provide: METRIC_HISTORY_STORE,
+      inject: [APP_CONFIG, METRIC_HISTORY_REPOSITORY, LOGGER],
+      useFactory: createHistoryStore
+    },
+    {
       provide: MONITORING_SERVICE,
-      inject: [METRICS_PORT, ALERT_NOTIFIER, ID_GENERATOR, CLOCK, APP_CONFIG, LOGGER],
+      inject: [METRICS_PORT, METRIC_HISTORY_STORE, ALERT_NOTIFIER, ID_GENERATOR, CLOCK, APP_CONFIG, LOGGER],
       useFactory: (
         port: MetricsPort,
+        history: MetricHistoryStore,
         notifier: AlertNotifier,
         ids: IdGenerator,
         clock: Clock,
@@ -64,10 +104,7 @@ const GATEWAY_TIMEOUT_MS = 2000
       ) =>
         new MonitoringService(
           port,
-          new MetricHistory([
-            { stepMs: config.monitoring.sampleIntervalMs, retentionMs: config.monitoring.fineRetentionMs },
-            { stepMs: config.monitoring.coarseStepMs, retentionMs: config.monitoring.coarseRetentionMs }
-          ]),
+          history,
           new AlertManager(config.monitoring.thresholds, notifier, ids, clock),
           clock,
           logger
@@ -119,9 +156,10 @@ export class MonitoringModule implements OnModuleInit, OnApplicationBootstrap, O
     await this.monitoring.sampleOnce()
   }
 
-  onApplicationShutdown() {
+  async onApplicationShutdown() {
     if (this.timer) {
       clearInterval(this.timer)
     }
+    await this.monitoring.flushHistory()
   }
 }

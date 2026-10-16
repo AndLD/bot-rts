@@ -8,7 +8,13 @@ import { ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { HealthView, MONITORING_SERVICE, MonitoringService } from '../application/monitoring.service'
 import { Alert } from '../domain/alert'
-import { AlertResponse, HealthReportResponse, MetricSeriesResponse, SeriesQueryDto } from './dto/monitoring.dto'
+import {
+  AlertResponse,
+  HealthReportResponse,
+  MetricSeriesResponse,
+  NodesQueryDto,
+  SeriesQueryDto
+} from './dto/monitoring.dto'
 
 const toAlertDto = ({ id, openedAt, clearedAt, acknowledgedAt, ...alert }: Alert): IAlert => ({
   _id: id,
@@ -43,8 +49,15 @@ export class MonitoringController {
   @RequirePermission('dashboard.read')
   @ApiOkResponse({ type: MetricSeriesResponse })
   @Get('series')
-  series(@Query() { metric, range }: SeriesQueryDto): IMetricSeries {
-    return this.monitoring.series(metric, range)
+  series(@Query() { metric, range, node }: SeriesQueryDto): Promise<IMetricSeries> {
+    return this.monitoring.series(metric, range, node)
+  }
+
+  @RequirePermission('dashboard.read')
+  @ApiOkResponse({ type: [String] })
+  @Get('nodes')
+  nodes(@Query() { range }: NodesQueryDto): Promise<string[]> {
+    return this.monitoring.nodes(range)
   }
 
   @RequirePermission('dashboard.read')

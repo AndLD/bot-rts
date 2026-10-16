@@ -5,7 +5,8 @@ import { ValidationError } from '../../shared/domain/errors'
 import { Alert } from '../domain/alert'
 import { ALERT_RULES, evaluateRule, METRIC_CATALOG, METRIC_IDS, worstOf } from '../domain/metric-catalog'
 import { AlertManager } from './alert-manager'
-import { MetricHistory, SeriesResult } from './metric-history'
+import { MetricHistoryStore } from './metric-history-store'
+import { SeriesResult } from './metric-history'
 import { MetricSample, MetricsPort } from './ports'
 
 export const MONITORING_SERVICE = Symbol('MonitoringService')
@@ -32,7 +33,7 @@ export class MonitoringService {
 
   constructor(
     private readonly port: MetricsPort,
-    private readonly history: MetricHistory,
+    private readonly history: MetricHistoryStore,
     private readonly alerts: AlertManager,
     private readonly clock: Clock,
     private readonly logger: Logger
@@ -48,7 +49,7 @@ export class MonitoringService {
     try {
       const sample = await this.port.sample()
       this.latest = sample
-      this.history.record(sample.at.getTime(), sample.values)
+      await this.history.record(sample)
       await this.alerts.evaluate(sample)
       const health = this.health()
       this.listeners.forEach((listener) => listener(health))
@@ -86,13 +87,29 @@ export class MonitoringService {
     }
   }
 
-  series(metric: string, range: MetricRange): SeriesResult & { metric: string } {
+  // `node` narrows the series to one node; without it the series is over every node
+  async series(metric: string, range: MetricRange, node?: string): Promise<SeriesResult & { metric: string }> {
     if (!METRIC_IDS.includes(metric) || !METRIC_RANGES.includes(range)) {
       throw new ValidationError('Unknown metric or range')
     }
     const now = this.clock.now().getTime()
 
-    return { metric, ...this.history.series(metric, now - RANGE_MS[range], now) }
+    return { metric, ...(await this.history.series({ metric, fromMs: now - RANGE_MS[range], toMs: now, node })) }
+  }
+
+  // The nodes that took part in the monitoring in the range
+  nodes(range: MetricRange): Promise<string[]> {
+    if (!METRIC_RANGES.includes(range)) {
+      throw new ValidationError('Unknown range')
+    }
+    const now = this.clock.now().getTime()
+
+    return this.history.nodes(now - RANGE_MS[range], now)
+  }
+
+  // Writes the minute that is still open (at shutdown)
+  flushHistory(): Promise<void> {
+    return this.history.flush()
   }
 
   listAlerts(): Alert[] {

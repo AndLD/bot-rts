@@ -19,6 +19,8 @@ export interface FinishedRequest {
   route: string
   status: number
   durationMs: number
+  // The trace the request was served in, kept for the slowest request of a period
+  traceId?: string
 }
 
 export type RequestObserver = (request: FinishedRequest) => void
@@ -58,7 +60,7 @@ export function createRequestLogger(logger: Logger, tracing: Tracing, observe: R
           logger.info(`${req.method} ${path} ${res.statusCode} ${durationMs.toFixed(1)}ms`)
         )
       )
-      observe({ method: req.method, route, status: res.statusCode, durationMs })
+      observe({ method: req.method, route, status: res.statusCode, durationMs, traceId: span.context?.traceId })
     })
     // `close` follows `finish`, and also comes when the client went away before the answer
     res.on('close', () => span.end())

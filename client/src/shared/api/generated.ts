@@ -690,6 +690,15 @@ const injectedRtkApi = api.injectEndpoints({
         url: `/api/v1/admin/monitoring/series`,
         params: {
           metric: queryArg.metric,
+          range: queryArg.range,
+          node: queryArg.node
+        }
+      })
+    }),
+    monitoringNodes: build.query<MonitoringNodesApiResponse, MonitoringNodesApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/monitoring/nodes`,
+        params: {
           range: queryArg.range
         }
       })
@@ -1289,6 +1298,12 @@ export type MonitoringHealthApiArg = void
 export type MonitoringSeriesApiResponse = /** status 200  */ MetricSeriesResponse
 export type MonitoringSeriesApiArg = {
   metric: string
+  range: '1h' | '6h' | '24h' | '7d' | '30d'
+  /** One node (host and process id, from the nodes list); the default is every node */
+  node?: string
+}
+export type MonitoringNodesApiResponse = /** status 200  */ string[]
+export type MonitoringNodesApiArg = {
   range: '1h' | '6h' | '24h' | '7d' | '30d'
 }
 export type MonitoringAlertsApiResponse = /** status 200  */ AlertResponse[]
@@ -2844,6 +2859,7 @@ export const {
   useHealthLiveQuery,
   useMonitoringHealthQuery,
   useMonitoringSeriesQuery,
+  useMonitoringNodesQuery,
   useMonitoringAlertsQuery,
   useMonitoringAcknowledgeMutation,
   useGameTimeCurrentQuery,

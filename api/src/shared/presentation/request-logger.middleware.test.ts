@@ -92,7 +92,8 @@ describe('createRequestLogger', () => {
       method: 'POST',
       route: '/api/v1/bots/:botId/scan',
       status: 201,
-      durationMs: expect.any(Number)
+      durationMs: expect.any(Number),
+      traceId: traced.spans()[0].spanContext().traceId
     })
     expect(traced.spans()).toHaveLength(1)
   })

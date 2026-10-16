@@ -57,6 +57,20 @@ second app entry with `APP_ROLE=engine` (exactly one) and set `APP_ROLE=api` on 
 
 Locally `npm run db:up` starts PostgreSQL and Redis (`docker-compose.yml`).
 
+## Monitoring history (Phase 13.8)
+
+The dashboard of the admin console samples the metrics of a node every `MONITORING_INTERVAL_MS` (10 s). With `MONITORING_HISTORY=memory`
+(the default for a single node outside production) each process keeps two tiers in its memory and the console shows the node that answers.
+With `MONITORING_HISTORY=postgres` (the default in production and with `APP_ROLE=api` or `engine`) every node, the engine node included,
+keeps the 10-second tier in its memory as the live view of that node, and writes one row per node, minute and metric to the database
+(`metric_minutes`: a sum and a count, so that averages weigh the samples) and one row per node, minute and distribution
+(`histogram_minutes`: the API latency and the engine's tick duration as counts per bucket, with the slowest observation and its trace id).
+The console reads the rows of every node together (a step of 1 minute up to 6 hours, 5 minutes up to a day, 30 minutes up to a week,
+2 hours beyond) or of one node chosen in the list; it takes the 95th percentile of several nodes from the merged buckets, never from
+the average of their percentiles. A minute is written when it is over (and the open one at shutdown), so a chart is up to a minute behind;
+a write that fails is kept and tried again with the next minute, for up to two hours. The retention of the "coarse series" on the
+Operations page (7 to 365 days, default 30) is how long the rows are kept: the data lifecycle job deletes the older ones.
+
 ## Log gateway and Elasticsearch (Phase 13.2)
 
 Every node that logs (each API node, the engine node, the MCP server) sends its logs and traces over OTLP/HTTP to **one shared gateway

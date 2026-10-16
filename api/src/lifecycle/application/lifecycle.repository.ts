@@ -28,4 +28,6 @@ export interface LifecycleRepository {
   deleteExpiredAuthData(before: Date): Promise<number>
   // The days of activity of players (for the analytics) before `before`
   deletePlayerActivityBefore(before: Date): Promise<number>
+  // The coarse tier of the monitoring history, of every node
+  deleteMetricHistoryBefore(before: Date): Promise<number>
 }

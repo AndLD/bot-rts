@@ -86,6 +86,7 @@ unenforced:
 | Mechanism                              | Where                                      |
 | -------------------------------------- | ------------------------------------------ |
 | Pre-push hook                          | `.githooks/pre-push`                       |
+| Agent-runtime hooks and skills         | `.claude/settings.json` hooks, `.claude/skills/` (none yet; see M32) |
 | CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
 | Link and anchor check                  | `npm run docs:check` → `scripts/check-markdown-links.mjs` |
 | Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
@@ -291,6 +292,33 @@ git log --since="60 days ago" --first-parent origin/develop --pretty=format:'@%h
 Typical fixes to propose when found: define contracts and ports as the first task of a phase so consumers can start; one log fragment per task
 instead of one appended file; generate index and summary tables; isolate host ports per worktree (environment variables or compose project
 ports); a claim convention (a branch name or an issue per task) that agents follow; a rule on who owns each hotspot file.
+
+### M32, M33: skills and hooks
+
+Carrier inventory (M32), read-only:
+
+| Carrier | Where to look |
+| ------- | ------------- |
+| Skills | `.claude/skills/*/SKILL.md` in the repository (none today); user-level skills in `~/.claude/skills` are reviewed only for duplication of repository rules |
+| Agent-runtime hooks | `hooks` in `.claude/settings.json` and `.claude/settings.local.json` (none today) |
+| Version-control hooks | `.githooks/` (`pre-push` today), installed through the Git `core.hooksPath` setting |
+| CI jobs | `.github/workflows/ci.yml`, `release.yml` |
+
+Rule-to-carrier map (M33): reuse the M5 sample and the workflows counted in M22. Candidates to check each time:
+
+- **Hook candidates** (mechanical, must always hold): never commit or push on `main` or `develop` (`AGENTS.md` §7.5); no `console.log`
+  or commented-out code in committed files; formatting after an edit; regenerate `api/openapi.json` and the client after an endpoint or DTO
+  change (§6.5); the changed-file coverage check before push (memory note on `scripts/check-changed-coverage.mjs`); never delete a remote
+  branch (§7.3); never edit `.env`; a reminder of the session protocol at session start (§7.6).
+- **Skill candidates** (procedures used by some tasks): start a phase or task (§7.5, §7.6); end a session and write the work-log entry
+  (§7.6); open a PR, bind it and turn on CI Auto-fix (§7.5); add an endpoint with its DTO, OpenAPI, API-key scope, client regeneration and
+  tests (§6.5, §9); add a Prisma migration and apply it locally (§3.4, §7.6); add a message-catalogue key in English and Russian (§9);
+  add a Cypress spec and its matrix row (§6.4); run this harness review.
+- **Keep as text**: mission and non-negotiables, layering and dependency direction, SOLID checklist, determinism and single-writer rules.
+
+Typical proposals: a `PreToolUse` hook that blocks edits and commits on protected branches; a `PostToolUse` hook that runs Prettier on the
+edited file; a `Stop` or pre-push hook that runs the changed-file coverage and generated-file checks; skills named after the workflows above,
+each with a trigger description that names the situation, so that §7 and §6.5 shrink to the rule and a link.
 
 ### M11: cold-start probes
 

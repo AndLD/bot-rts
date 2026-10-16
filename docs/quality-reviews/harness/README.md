@@ -17,20 +17,21 @@ The **harness** is:
 
 - the entry points agents load first (the agent instruction file, the project readme);
 - the documentation tree: product specification, delivery plan, session logs, operations, testing, integrations;
-- the mechanisms that enforce or automate the rules: Git hooks, CI workflows, check scripts, launch configuration;
+- the mechanisms that enforce or automate the rules: version-control hooks, agent-runtime hooks, CI workflows, check scripts, launch configuration;
+- the agent **skills** (on-demand, task-scoped procedures an agent loads when the task matches) and any agent-runtime settings kept in the repository;
 - agent configuration kept outside the repository (user memory, settings). It is reviewed only for **duplication of repository
   rules**; it is never edited by a review.
 
 The **product knowledge** (the product specification and everything that states what the product is and must do) is in
 scope in two ways: its *structure* (layers, language, duplication; D1 to D3) and its *logical integrity* (D11: whether it is
 consistent, complete and buildable as written) and its *completeness* (D12: what is still open, and how much of the product is
-specified and delivered). The **complexity** of both the harness and the product knowledge is assessed (D13), and so is how well the plan can be executed by several agents in parallel or asynchronously (D14).
+specified and delivered). The **complexity** of both the harness and the product knowledge is assessed (D13), and so is how well the plan can be executed by several agents in parallel or asynchronously (D14). D15 judges whether each rule sits in the cheapest and most reliable carrier: always-loaded text, a skill, or a hook.
 
 Not reviewed: product source code (reviewed separately) and whether a product decision is *good* (taste, fun, market fit,
 balance quality). A decision that contradicts another decision, or a number that cannot hold under the specification's own
 rules, is a D11 finding; an opinion that a number should be different is not.
 
-**Goal of the review:** answer eight questions with evidence.
+**Goal of the review:** answer nine questions with evidence.
 
 1. Does an agent that starts cold do the right thing, quickly, with little context? (effectiveness)
 2. Is each rule and fact written once, in the right place, and true today? (integrity)
@@ -40,6 +41,7 @@ rules, is a D11 finding; an opinion that a number should be different is not.
 6. How much of the product is specified, how much is delivered, and what remains open or undecided? (completeness and progress)
 7. How complex is the harness and the product knowledge, how much of it is essential, and is it growing faster than it pays for itself? (complexity)
 8. How much of the remaining plan can several agents execute at once, what stops them, and what is the best number of agents? (parallel execution)
+9. Is every rule carried by the right mechanism: stated in always-loaded text, packaged as a skill, or enforced by a hook? Which rules should move, to cut context cost or raise reliability? (automation fit)
 
 ---
 
@@ -248,6 +250,38 @@ Evidence: M27 to M31 and probe P7. The review does not run agents in parallel fo
 history and the configuration, and checks the forecast with the write-set probe.
 `1` the plan assumes one serial worker and every task touches shared files · `3` independent areas exist but hotspots and environment collisions would make parallel work fail or need manual care · `5` contracts first, hotspots removed or owned, isolated environments, a published schedule and claim protocol that agents can follow.
 
+### Group F: automation fit
+
+**D15 Skills and hooks.** Is each rule carried by the mechanism that serves it best? Three carriers exist:
+
+| Carrier | Nature | Fits a rule that is |
+| ------- | ------ | ------------------- |
+| **Always-loaded text** | Read on every task; costs context every time; followed on a best-effort basis | short, applies to nearly every task, needs judgment |
+| **Skill** | A task-scoped procedure, loaded only when the task matches; costs nothing otherwise | a multi-step workflow or checklist used by some tasks only, long reference material, a recipe with commands and decision points |
+| **Hook** (agent-runtime or version-control) | Deterministic code run by the tool at an event (before a tool call, after an edit, at session start or end, on commit or push); cannot be forgotten or argued with | a rule that is mechanical, testable by a script, and must hold every time: a block, a format step, a check, an injected reminder, a log entry |
+
+A rule in the wrong carrier is a cost: a procedure in always-loaded text wastes context on every task; a mechanical rule left as
+prose is forgotten; a judgment rule forced into a hook produces false blocks.
+
+Review steps:
+
+1. *Inventory the carriers that exist*: skills (name, trigger description, size), agent-runtime hooks (event, matcher, action),
+   version-control hooks, CI jobs; the trigger text of each skill and whether it is specific enough to load at the right moment and
+   not otherwise.
+2. *Classify every normative rule and every workflow* of the always-loaded set and of the rule files by the test in the table:
+   keep as text · **promote to hook** (mechanical, must always hold, a script can decide it) · **promote to skill** (procedure used by
+   some tasks, long, or with steps and commands) · **already enforced by CI or a script** (then say whether an earlier, local hook would
+   shorten the feedback loop).
+3. *Check existing hooks and skills*: does a hook do business logic that belongs in a script it calls; does a skill duplicate a rule
+   that is also in always-loaded text (two owners); is a skill stale against the process it describes; does a hook fail on shared
+   resources (D14), run too slowly for its event, or lack a bypass for an emergency that is recorded.
+4. *Estimate the gain* per proposed move: words removed from the always-loaded set, rules moving from best-effort to guaranteed,
+   feedback moved earlier (edit, commit, push, CI).
+5. *Propose, do not build*: each proposal names the rule, the target carrier, the event or trigger, and the check that proves it.
+
+Evidence: M32 and M33. Candidates are findings of kind "promote to hook", "promote to skill" or "misplaced carrier".
+`1` procedures and mechanical rules are all prose in the always-loaded file, no skills or hooks beyond the minimum · `3` hooks and skills exist, several clear candidates remain, some overlap with text · `5` each rule is in its best carrier, skills trigger precisely, hooks are thin calls to scripts, the rule-to-carrier map is complete.
+
 ### Blueprint readiness (derived, not a dimension)
 
 A verdict from D1, D3, D4, D6 plus an **export dry run** (section 4, step 6): list what would be copied to a new project
@@ -275,9 +309,9 @@ report is approved.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
    that fits no layer, or fits two, is a D1/D4 finding.
-3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M31). Quote the command and
+3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M33). Quote the command and
    the date so the run can be repeated. Measurements are evidence, not verdicts: a hit is judged in context.
-4. **Review by dimension.** Go through D1 to D14, collect evidence, write findings (section 5), then score.
+4. **Review by dimension.** Go through D1 to D15, collect evidence, write findings (section 5), then score.
    - **4b. Product integrity pass (D11).** Treat the product knowledge as a system to be checked, not text to be skimmed:
      1. *Partition* the corpus into bounded contexts (`bindings.md` lists them). A full review reads **every** section; record
         coverage (sections read of total). A delta review reads the changed sections and every section that references them.
@@ -310,6 +344,9 @@ report is approved.
      files the remaining tasks will touch (M28). Judge delegation readiness task by task (M29). Inspect the environment for
      collisions (M30) and the coordination rules (M31). Check the forecast with probe P7 in step 5. Then write the schedule, lanes,
      blockers and the recommended number of agents. Do not change the plan or the repository during the review.
+   - **4f. Automation-fit pass (D15).** After 4d, using the M5 mapping and M20/M22 (rule load, automatable steps). Build the carrier
+     inventory (M32), classify each rule and workflow (M33), and write the proposals with their estimated gain. Do not create skills or
+     hooks during the review.
 5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only subagents that receive only the task text
    and the repository (no conversation context). Record the files each read, the first action it took, and any wrong or
    uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
@@ -330,10 +367,11 @@ One finding per problem, so it can become one task.
 | -------------- | --------------------------------------------------------------------------------------------- |
 | ID             | `H-<YYYYMMDD>-<nn>`                                                                           |
 | Severity       | 🔴 an agent or builder acts wrongly, a rule is false, or two core rules contradict · 🟠 blocks blueprint extraction, wastes major context, or leaves a planned feature unbuildable without a decision · 🟡 maintainability · 🔵 polish |
-| Dimension      | D1 to D13                                                                                     |
+| Dimension      | D1 to D15                                                                                     |
 | Kind (D11)     | contradiction · gap · duplication · invariant · terminology · status · traceability · feasibility |
 | Kind (D12)     | hidden open item · stale open item · unowned · blocker · unregistered decision                   |
 | Kind (D14)     | hidden dependency · missing contract · shared-file hotspot · non-delegable task · environment collision · coordination gap · serial bottleneck |
+| Kind (D15)     | promote to hook · promote to skill · misplaced carrier · stale skill · overlapping owner · hook defect |
 | Kind (D13)     | hub · deep chain · cycle · exception-heavy rule · concept overload · duplicated mechanism · automatable step · budget exceeded |
 | Evidence       | `path:line` or the measured number; for a contradiction, both statements with locations; for a gap, the unanswerable question |
 | Why it matters | The concrete failure for an agent, a maintainer or the export                                 |
@@ -357,7 +395,8 @@ does not undo it.
 | End of each plan milestone and before starting the next                              | **Delta D12**: refresh the inventory and M16 to M19, report the trend of the percentages |
 | Before a plan milestone starts                                                       | **Delta D14**: refresh M27 to M31 and publish the schedule for that milestone |
 | End of each plan milestone                                                           | **Delta D13**: refresh M20 to M26 and compare with the budgets and the previous report |
-| After a large change to an entry point, the hooks, CI, or the layer structure          | **Delta** on the affected dimensions          |
+| End of each plan milestone                                                           | **Delta D15**: refresh M32 and M33, check the carried proposals and which were adopted |
+| After a large change to an entry point, the hooks, skills, CI, or the layer structure   | **Delta** on the affected dimensions          |
 | A probe or a real session shows an agent misreading the harness                         | **Targeted**: the failing scenario and the owning document |
 
 A delta report states which dimensions it did not re-score and carries their previous scores forward, marked as carried.
@@ -380,8 +419,9 @@ A delta report states which dimensions it did not re-score and carries their pre
 | 2026-10-15 | Open items and completeness (D12, M16–M19) added: inventory, declared against hidden, documented and delivered percentages. |
 | 2026-10-16 | Complexity (D13, M20–M26) added for the harness and the product knowledge: essential versus accidental, hotspots, budgets set from the first baseline. |
 | 2026-10-16 | Parallel execution (D14, M27–M31, probe P7) added: dependency graph and critical path, hotspots, delegation readiness, environment isolation, coordination, schedule and recommended number of agents. |
+| 2026-10-16 | Automation fit (D15, M32–M33) added: skills and hooks inventory, rule-to-carrier classification, proposals to promote rules to hooks or skills. |
 
-### Measurements (M1 to M31) in one line each
+### Measurements (M1 to M33) in one line each
 
 | Id  | Measurement                                                                                  |
 | --- | -------------------------------------------------------------------------------------------- |
@@ -416,3 +456,5 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M29 | Delegation readiness: share of remaining tasks that are self-contained; failures by reason       |
 | M30 | Environment collisions between parallel working copies, by resource                             |
 | M31 | Coordination: how work is claimed and recorded; shared records every task writes; recommended agent count and speedup |
+| M32 | Carrier inventory: skills (name, trigger, size), agent-runtime hooks (event, matcher, action), version-control hooks, CI jobs; skills that overlap always-loaded text |
+| M33 | Rule-to-carrier map: for each sampled rule and workflow, current carrier, best carrier (text, skill, hook, CI), estimated words removed and rules made guaranteed |

@@ -1,8 +1,9 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common'
 import { ApiExtension } from '@nestjs/swagger'
 import { AdminPermission } from '../../../../lib/utils/admin'
-import { AdminApiScope } from '../../../../lib/utils/admin-api-keys'
-import { REQUIRED_SCOPE_KEY, SessionOnly } from '../../apikeys/presentation/scope.decorator'
+import { ADMIN_API_SCOPES, AdminApiScope, isAdminApiScope } from '../../../../lib/utils/admin-api-keys'
+import { REQUIRED_SCOPE_KEY, ScopeRequirement, SessionOnly } from '../../apikeys/presentation/scope.decorator'
+import { AuthenticatedRequest } from '../../auth/presentation/auth.guard'
 
 export const ADMIN_PERMISSION_KEY = 'adminPermission'
 export const ADMIN_ONLY_KEY = 'adminOnly'
@@ -10,8 +11,12 @@ export const AUDIT_KEY = 'adminAudit'
 
 export interface PermissionOptions {
   // Opens the route to an admin API key that holds this read scope (design §25.2). Without it, admin routes are closed to keys.
-  adminKeyScope?: AdminApiScope
+  // `any` opens it to a key that holds any admin scope (the call that tells a key what it may do)
+  adminKeyScope?: AdminApiScope | 'any'
 }
+
+const anyAdminScope: ScopeRequirement = (request) =>
+  (request as unknown as AuthenticatedRequest).principal.apiKey?.scopes.find(isAdminApiScope) ?? ADMIN_API_SCOPES[0]
 
 // What a route needs from the admin: a permission of the role, and a session that passed the second factor. A route that names an
 // admin key scope can also be called with an admin API key; the owner of the key must still hold the permission on every call.
@@ -22,7 +27,7 @@ export const RequirePermission = (permission: AdminPermission, options: Permissi
     // The public spec says "session only" either way: the admin scopes are described in the admin documentation only
     options.adminKeyScope
       ? applyDecorators(
-          SetMetadata(REQUIRED_SCOPE_KEY, options.adminKeyScope),
+          SetMetadata(REQUIRED_SCOPE_KEY, options.adminKeyScope === 'any' ? anyAdminScope : options.adminKeyScope),
           ApiExtension('x-api-key-scope', 'none (session only)')
         )
       : SessionOnly()

@@ -60,6 +60,29 @@ The manual-control tools are made from the same list of functions the engine enf
 the game gets a tool without new code. A typical session: `list_bots` → `bot_scan` → `get_map` → `write_file` (a script) →
 `run_script` → `get_terminal_history`.
 
+## Admin tools: investigating a running server
+
+An **admin API key** (read-only `admin:*:read` scopes, created by an owner or admin in the admin console after two-factor authentication, always
+with an expiry) turns the same server into an investigation assistant. At start the server asks the API what the key holds
+(`GET /api/v1/admin/api-keys/current`): a key with admin scopes gets **only** the admin tools its scopes allow (no game tools); any other
+key gets the player tools. Nothing here writes: banning, killing a script or restarting stay in the console.
+
+| Tool | Scope | What it reads |
+| --- | --- | --- |
+| `run_health_check` | `admin:health:read` | One summary: open alerts, tick and overrun figures, scripts stopped for using too much time, flush time, store status. Start here |
+| `get_health` | `admin:health:read` | Every area with its metrics and the alerts |
+| `get_engine_status` | `admin:health:read` | The engine: world paused or not, script switches, running and queued scripts |
+| `get_metrics` | `admin:metrics:read` | The history of one metric over a range |
+| `slowest_traces` | `admin:metrics:read` | The slowest samples of the tick duration or the request latency, each with a trace id |
+| `search_logs` | `admin:logs:read` | Log lines of every node, newest first |
+| `get_trace` | `admin:logs:read` | One request, tick or job: its spans and log lines |
+| `list_audit_events` | `admin:audit:read` | The audit trail, including the calls of admin keys |
+
+**Everything these tools return is untrusted data.** Log lines and script output are written by players. Every result is wrapped as
+`{ isUntrustedData: true, notice, source, data }`, the server instructions tell the AI to analyse and never obey it, and the API redacts
+personal data again, cuts long text and refuses oversized answers before they reach the server. A key that cannot reach a route answers
+`API_KEY_SCOPE`; every call is in the audit trail with the key id; demoting or banning the owner stops the key at once.
+
 ## Tests
 
 `mcp/` has unit tests (a fake game API, the SDK's own client over an in-memory transport and over HTTP) with the 97 % gate, and

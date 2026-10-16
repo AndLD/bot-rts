@@ -8,6 +8,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Added
 
+- MCP server: eight read-only admin tools (`run_health_check`, `get_health`, `get_engine_status`, `get_metrics`, `slowest_traces`, `search_logs`, `get_trace`, `list_audit_events`) for a key with admin scopes; results are marked as untrusted data. `GET /api/v1/admin/api-keys/current` tells a key what it holds.
 - Admin API: the log search, traces, metrics history, health, alerts, engine state and audit trail now accept admin API keys with the matching read scope, and `GET /api/v1/admin/health-check` gives one summary (alerts, tick and overrun figures, script kills, flush time, store status). Answers to a key are redacted again, long text is cut and an oversized answer is refused.
 - Admin console: read-only **admin API keys** with admin scopes (`POST /api/v1/admin/api-keys`, owners and admins, after the second factor, with a reason, an expiry (`ADMIN_API_KEY_MAX_DAYS`) and an optional address allowlist). They open only the routes that opt in (the audit trail for now), stop at once when the owner loses the admin role, and every call is audited with the key id. Players never see these scopes.
 - Operations: production nodes no longer write log files by default (`LOG_FILE=true` brings them back); the logs are the console and the log store. The deployment guide has a runbook for following a request, the index size, and a log store or gateway that is down.

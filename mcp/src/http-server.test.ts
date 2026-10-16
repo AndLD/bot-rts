@@ -3,7 +3,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { Server } from 'node:http'
 import { McpConfig } from './config'
-import { createMcpHttpServer } from './http-server'
+import { ApiClient } from './api-client'
+import { createMcpHttpServer, toolsCache } from './http-server'
 import { fakeApi } from './test-support'
 
 const config = (apiKey?: string): McpConfig => ({
@@ -121,7 +122,11 @@ describe('the MCP server over HTTP', () => {
 
     expect(result.isError).toBe(true)
     expect((result.content as Array<{ text: string }>)[0].text).toContain('UNAUTHORIZED')
-    expect(api.calls).toHaveLength(1)
+    // One question about the scopes of the key (answered once for all the messages), then the call itself
+    expect(api.calls.map((call) => call.url)).toEqual([
+      expect.stringContaining('/admin/api-keys/current'),
+      expect.stringContaining('/users/me')
+    ])
     await client.close()
   })
 
@@ -134,5 +139,42 @@ describe('the MCP server over HTTP', () => {
     })
 
     expect(response.status).toBeGreaterThanOrEqual(400)
+  })
+})
+
+describe('toolsCache', () => {
+  const adminAnswer = () => ({ body: { scopes: ['admin:health:read'] } })
+
+  it('asks the API once for a key for a while, and again after that', async () => {
+    let time = 0
+    const api = fakeApi(adminAnswer)
+    const client = new ApiClient('https://g', 'botrts_k', api.fetchImpl)
+    const toolsOf = toolsCache(() => time)
+
+    const first = await toolsOf('botrts_k', client)
+    time = 60_000
+    const second = await toolsOf('botrts_k', client)
+    time = 6 * 60_000
+    await toolsOf('botrts_k', client)
+
+    expect(second).toBe(first)
+    expect(first.map((tool) => tool.name).sort()).toEqual(['get_engine_status', 'get_health', 'run_health_check'])
+    expect(api.calls).toHaveLength(2)
+  })
+
+  it('keeps a separate answer for each key, and forgets them all when it holds too many', async () => {
+    const api = fakeApi(adminAnswer)
+    const client = new ApiClient('https://g', 'botrts_k', api.fetchImpl)
+    const toolsOf = toolsCache(() => 0)
+
+    await toolsOf('botrts_a', client)
+    await toolsOf('botrts_b', client)
+    await toolsOf('botrts_a', client)
+    expect(api.calls).toHaveLength(2)
+    for (let n = 0; n < 1000; n++) {
+      await toolsOf(`botrts_k${n}`, client)
+    }
+    await toolsOf('botrts_a', client)
+    expect(api.calls).toHaveLength(1003)
   })
 })

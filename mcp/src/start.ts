@@ -5,6 +5,7 @@ import { McpConfig } from './config'
 import { createMcpHttpServer } from './http-server'
 import { createServer } from './server'
 import { NO_TELEMETRY, Telemetry } from './telemetry'
+import { selectTools } from './tools/select'
 
 export interface Running {
   // Where it listens (HTTP) or null (stdio)
@@ -19,11 +20,8 @@ export async function start(
   telemetry: Telemetry = NO_TELEMETRY
 ): Promise<Running> {
   if (config.transport === 'stdio') {
-    const server = createServer(
-      new ApiClient(config.apiUrl, config.apiKey as string, fetchImpl, telemetry),
-      undefined,
-      telemetry
-    )
+    const client = new ApiClient(config.apiUrl, config.apiKey as string, fetchImpl, telemetry)
+    const server = createServer(client, await selectTools(client), telemetry)
     await server.connect(new StdioServerTransport())
 
     return { address: null, stop: () => server.close() }

@@ -171,3 +171,28 @@ describe('where the admin scopes are visible', () => {
     expect(hasAdminScope(JSON.stringify((await docs).body))).toBe(false)
   })
 })
+
+describe('what a key may do', () => {
+  it('is told to the key itself, whichever admin scope it holds, and to no one else', async () => {
+    const owner = await signUpAdmin(testApp, database, 'admin')
+    const { body } = await grant(owner.accessToken, { scopes: ['admin:logs:read', 'admin:health:read'] }).expect(201)
+
+    const current = await request(testApp.url)
+      .get('/api/v1/admin/api-keys/current')
+      .set(bearer(body.secret))
+      .expect(200)
+    expect(current.body).toMatchObject({ _id: body._id, scopes: ['admin:logs:read', 'admin:health:read'] })
+    // A session has no key, and a player key holds no admin scope
+    await request(testApp.url).get('/api/v1/admin/api-keys/current').set(bearer(owner.accessToken)).expect(404)
+    const playerKey = await request(testApp.url)
+      .post('/api/v1/api-keys')
+      .set(bearer(owner.accessToken))
+      .send({ name: 'p', scopes: ['read'] })
+      .expect(201)
+    const refused = await request(testApp.url)
+      .get('/api/v1/admin/api-keys/current')
+      .set(bearer(playerKey.body.secret))
+      .expect(403)
+    expect(refused.body.code).toBe('API_KEY_SCOPE')
+  })
+})

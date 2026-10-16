@@ -82,7 +82,7 @@ export class SearchLogsQueryDto {
   offset: number = 0
 }
 
-class LogLineModel implements ILogLine {
+export class LogLineModel implements ILogLine {
   @ApiProperty({ description: 'Milliseconds since the epoch' })
   at!: number
 

@@ -365,6 +365,9 @@ const injectedRtkApi = api.injectEndpoints({
     logsSlowTicks: build.query<LogsSlowTicksApiResponse, LogsSlowTicksApiArg>({
       query: () => ({ url: `/api/v1/admin/logs/slow-ticks` })
     }),
+    tracesRead: build.query<TracesReadApiResponse, TracesReadApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/traces/${queryArg.id}` })
+    }),
     securityOverview: build.query<SecurityOverviewApiResponse, SecurityOverviewApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/security`,
@@ -1052,6 +1055,11 @@ export type LogsNodesApiResponse = /** status 200  */ LogNodeResponse[]
 export type LogsNodesApiArg = void
 export type LogsSlowTicksApiResponse = /** status 200  */ SlowTickResponse[]
 export type LogsSlowTicksApiArg = void
+export type TracesReadApiResponse = /** status 200  */ TraceViewResponse
+export type TracesReadApiArg = {
+  /** The trace id of a request, a tick or a job, or the request id of a request from before trace ids */
+  id: string
+}
 export type SecurityOverviewApiResponse = /** status 200  */ SecurityOverviewResponse
 export type SecurityOverviewApiArg = {
   /** How far back to look, in hours */
@@ -1934,6 +1942,30 @@ export type SlowTickResponse = {
   queuedExecutions: number
   deferredExecutions: number
 }
+export type TraceSpanModel = {
+  spanId: string
+  parentSpanId: string | null
+  name: string
+  kind: 'internal' | 'server' | 'client' | 'producer' | 'consumer'
+  /** botrts-api or botrts-engine */
+  service: string | null
+  /** The process that ran it (host and process id) */
+  node: string | null
+  /** Milliseconds since the epoch */
+  startedAt: number
+  durationMs: number
+  status: 'unset' | 'ok' | 'error'
+}
+export type TraceViewResponse = {
+  traceId: string
+  /** Where the spans are kept; with `memory` there are none, only the lines */
+  store: 'memory' | 'elasticsearch'
+  spans: TraceSpanModel[]
+  /** Every line written in the trace by every node, oldest first */
+  logs: LogLineModel[]
+  /** True when the trace has more lines than one answer holds */
+  isLogCut: boolean
+}
 export type FailedLoginModel = {
   key: string
   failures: number
@@ -2812,6 +2844,7 @@ export const {
   useLogsSearchQuery,
   useLogsNodesQuery,
   useLogsSlowTicksQuery,
+  useTracesReadQuery,
   useSecurityOverviewQuery,
   useSecurityRevokeKeyMutation,
   useBalanceOverviewQuery,

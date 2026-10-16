@@ -58,3 +58,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the history of design §25.5 is in process memory today (`api/src/monitoring/application/metric-history.ts`), so with several API nodes the console shows only the node that answers; the log search of 9.10 has the same limit, which 13.3 removes.
 - **Next step:** the owner approves or changes the proposed persistence task; then 13.1 when the phase is reached.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-16 — task 13.8 added; Phase 13 is 40 SP
+- **Tasks:** 13.8 (new, 5 SP), 13.6 (text changed); none started
+- **Branch:** `docs/metrics-storage-decision` — the plan and the design only
+- **Decisions / deviations from the plan:** the owner approved the persistence task proposed in the entry above. **13.8** persists the metrics history in PostgreSQL, multi-node-ready (design §25.5), with the cheap missing metrics. **13.6** is no longer an open decision: its text now states the decision and its work is the trace links from the dashboard charts, which need 13.4 and 13.8. The phase becomes 40 SP, the total of Phases 0–13 becomes 992 SP. 13.8 does not depend on OpenTelemetry, so it can run in parallel with 13.1 to 13.5.
+- **Problems / blockers / findings:** none.
+- **Next step:** 13.1 when the phase is reached (after Phase 9).
+- **Verify with:** `npm run docs:check`

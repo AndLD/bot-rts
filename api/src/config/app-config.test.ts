@@ -81,6 +81,14 @@ describe('loadConfig', () => {
         otlpHeaders: {},
         traceSampleRatio: 1,
         exportQueueSize: 2048,
+        logStore: 'memory',
+        elasticsearchUrl: undefined,
+        elasticsearchApiKey: undefined,
+        elasticsearchUsername: undefined,
+        elasticsearchPassword: undefined,
+        logIndex: 'botrts-logs',
+        logSearchTimeoutMs: 5000,
+        logSearchMaxWindowDays: 7,
         gatewayHealthUrl: undefined,
         gatewayMetricsUrl: undefined,
         backupStatusFile: undefined
@@ -96,6 +104,40 @@ describe('loadConfig', () => {
         activityDays: 400
       },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
+    })
+  })
+
+  describe('log store settings', () => {
+    it('reads the store, the Elasticsearch address and account, the index and the limits of a search', () => {
+      expect(
+        loadConfig({
+          ...base,
+          LOG_STORE: 'elasticsearch',
+          ELASTICSEARCH_URL: 'https://es.example:9200',
+          ELASTICSEARCH_API_KEY: 'key',
+          ELASTICSEARCH_USERNAME: 'reader',
+          ELASTICSEARCH_PASSWORD: 'secret',
+          LOG_INDEX: 'logs-x',
+          LOG_SEARCH_TIMEOUT_MS: '1000',
+          LOG_SEARCH_MAX_WINDOW_DAYS: '3'
+        }).observability
+      ).toMatchObject({
+        logStore: 'elasticsearch',
+        elasticsearchUrl: 'https://es.example:9200',
+        elasticsearchApiKey: 'key',
+        elasticsearchUsername: 'reader',
+        elasticsearchPassword: 'secret',
+        logIndex: 'logs-x',
+        logSearchTimeoutMs: 1000,
+        logSearchMaxWindowDays: 3
+      })
+    })
+
+    it('refuses an unknown store, and the Elasticsearch store without an address', () => {
+      expect(() => loadConfig({ ...base, LOG_STORE: 'file' })).toThrow('LOG_STORE must be memory or elasticsearch')
+      expect(() => loadConfig({ ...base, LOG_STORE: 'elasticsearch' })).toThrow(
+        'ELASTICSEARCH_URL is required when LOG_STORE is elasticsearch'
+      )
     })
   })
 

@@ -83,6 +83,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   deployment, the notifications an engine event causes, and from the MCP server into the API. A caller may send a W3C `traceparent`; every
   response carries `X-Trace-Id` and `traceresponse`, and `X-Request-Id` is the trace id unless the caller sent its own. With
   `OTEL_EXPORTER_OTLP_ENDPOINT` set, logs and traces are sent to a collector gateway (`OTEL_TRACES_SAMPLER_ARG` samples new traces).
+- The Logs page of the admin console can search the log of every node (`LOG_STORE=elasticsearch`, with a read-only Elasticsearch
+  account): by text, level, request id, trace id, player, bot, node and time, with a node filter, the trace id of each line and paging.
+  A search is limited in time range (`LOG_SEARCH_MAX_WINDOW_DAYS`) and duration (`LOG_SEARCH_TIMEOUT_MS`); when the store is down the
+  console says so (`LOG_STORE_UNAVAILABLE`). The default stays the recent log of the node that answers (`LOG_STORE=memory`).
 - The dashboard's history can be kept in the database (`MONITORING_HISTORY=postgres`, the default in production and on a node of a scaled
   deployment): every node, the engine node included, writes a one-minute row per metric (a sum and a count, so that averages merge) and
   per distribution (the API latency and the engine's tick duration as counts per bucket, with the slowest request or tick and its

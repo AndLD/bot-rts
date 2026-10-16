@@ -94,6 +94,17 @@ export interface ObservabilityConfig {
   otlpHeaders: Record<string, string>
   // The share of new traces that are recorded and exported (parent-based: a trace that was started elsewhere keeps its decision)
   traceSampleRatio: number
+  // Where the console's log search reads: `memory` (the recent lines of the node that answers) or `elasticsearch` (the lines of every node)
+  logStore: 'memory' | 'elasticsearch'
+  // The Elasticsearch the log search reads, with a read-only account: an API key, or a user and a password
+  elasticsearchUrl: string | undefined
+  elasticsearchApiKey: string | undefined
+  elasticsearchUsername: string | undefined
+  elasticsearchPassword: string | undefined
+  // The data stream the gateway writes the logs to, and the limits of a search: how long it may take, and how wide a time range
+  logIndex: string
+  logSearchTimeoutMs: number
+  logSearchMaxWindowDays: number
   // Where the console reads the health and the queue size of the gateway collector (its health-check extension and its Prometheus
   // metrics); without them the console shows no gateway metrics
   gatewayHealthUrl: string | undefined
@@ -320,6 +331,13 @@ export function loadConfig(env: Env): AppConfig {
   if (monitoringHistory !== 'memory' && monitoringHistory !== 'postgres') {
     problems.push('MONITORING_HISTORY must be memory or postgres')
   }
+  const logStore = env.LOG_STORE || 'memory'
+  if (logStore !== 'memory' && logStore !== 'elasticsearch') {
+    problems.push('LOG_STORE must be memory or elasticsearch')
+  }
+  if (logStore === 'elasticsearch' && !env.ELASTICSEARCH_URL) {
+    problems.push('ELASTICSEARCH_URL is required when LOG_STORE is elasticsearch')
+  }
   const role = (env.APP_ROLE || 'all') as AppRole
   if (!APP_ROLES.includes(role)) {
     problems.push(`APP_ROLE must be one of ${APP_ROLES.join(', ')}`)
@@ -449,6 +467,14 @@ export function loadConfig(env: Env): AppConfig {
       otlpHeaders: headerList(env.OTEL_EXPORTER_OTLP_HEADERS),
       traceSampleRatio: ratio(env.OTEL_TRACES_SAMPLER_ARG, 1),
       exportQueueSize: positiveInt(env.OTEL_EXPORT_QUEUE_SIZE, 2048),
+      logStore: logStore as 'memory' | 'elasticsearch',
+      elasticsearchUrl: env.ELASTICSEARCH_URL || undefined,
+      elasticsearchApiKey: env.ELASTICSEARCH_API_KEY || undefined,
+      elasticsearchUsername: env.ELASTICSEARCH_USERNAME || undefined,
+      elasticsearchPassword: env.ELASTICSEARCH_PASSWORD || undefined,
+      logIndex: env.LOG_INDEX || 'botrts-logs',
+      logSearchTimeoutMs: positiveInt(env.LOG_SEARCH_TIMEOUT_MS, 5000),
+      logSearchMaxWindowDays: positiveInt(env.LOG_SEARCH_MAX_WINDOW_DAYS, 7),
       gatewayHealthUrl: env.OTEL_GATEWAY_HEALTH_URL || undefined,
       gatewayMetricsUrl: env.OTEL_GATEWAY_METRICS_URL || undefined,
       backupStatusFile: env.BACKUP_STATUS_FILE || undefined

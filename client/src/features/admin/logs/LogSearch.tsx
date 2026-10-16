@@ -3,32 +3,67 @@
 import { Alert, Button, Form, Input, Select, Space, Table, Tag } from 'antd'
 import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
-import { LOG_LEVELS, LogLevelName } from '@lib/utils/admin-logs'
-import { useLogsSearchQuery } from '../../../shared/api'
+import { LOG_LEVELS, LOG_PAGE_MAX, LogLevelName } from '@lib/utils/admin-logs'
+import { useLogsNodesQuery, useLogsSearchQuery } from '../../../shared/api'
 
 const LEVEL_COLOR: Record<LogLevelName, string> = { info: 'default', warn: 'gold', error: 'red' }
+const PAGE = 100
 
 interface Filters {
   q?: string
   level?: LogLevelName
   requestId?: string
+  traceId?: string
+  userId?: string
+  botId?: string
+  node?: string
 }
 
-// The recent log of the node that answers (design §25.3): by a part of the text (the id of a player or a bot) or by request
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// The log of the nodes (design §25.3): by a part of the text, request, trace, player, bot, level and node. With the log store it
+// spans every node and shows the trace id of each line; without it, it is the recent log of the node that answers.
 export default function LogSearch() {
   const t = useTranslations('admin.logs')
   const format = useFormatter()
   const [filters, setFilters] = useState<Filters>({})
-  const { data, isFetching, isError, refetch } = useLogsSearchQuery({ ...filters, results: 100 })
+  const [results, setResults] = useState(PAGE)
+  const { data, isFetching, isError, refetch } = useLogsSearchQuery({ ...filters, results })
+  const { data: nodes } = useLogsNodesQuery()
+
+  const search = (values: Filters) => {
+    setResults(PAGE)
+    setFilters(values)
+  }
 
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-      <Form layout="inline" onFinish={(values: Filters) => setFilters(values)}>
+      <Form layout="inline" onFinish={search} style={{ rowGap: 8 }}>
         <Form.Item name="q">
           <Input allowClear placeholder={t('text')} />
         </Form.Item>
         <Form.Item name="requestId" rules={[{ pattern: /^[\w.-]{1,64}$/ }]}>
           <Input allowClear placeholder={t('requestId')} />
+        </Form.Item>
+        <Form.Item name="traceId" rules={[{ pattern: /^[0-9a-f]{32}$/ }]}>
+          <Input allowClear placeholder={t('traceId')} />
+        </Form.Item>
+        <Form.Item name="userId" rules={[{ pattern: UUID }]}>
+          <Input allowClear placeholder={t('userId')} />
+        </Form.Item>
+        <Form.Item name="botId" rules={[{ pattern: UUID }]}>
+          <Input allowClear placeholder={t('botId')} />
+        </Form.Item>
+        <Form.Item name="node">
+          <Select
+            allowClear
+            placeholder={t('allNodes')}
+            style={{ width: 220 }}
+            options={(nodes ?? []).map((node) => ({
+              value: node.id,
+              label: `${node.id} (${node.services.join(', ')})`
+            }))}
+          />
         </Form.Item>
         <Form.Item name="level">
           <Select
@@ -45,11 +80,15 @@ export default function LogSearch() {
       </Form>
       {isError ? <Alert type="error" message={t('loadFailed')} /> : null}
       {data ? (
-        <span>{t('shown', { shown: data.lines.length, total: data.total, capacity: data.capacity })}</span>
+        <span>
+          {data.capacity === null
+            ? t('shownStore', { shown: data.lines.length, total: data.total })
+            : t('shown', { shown: data.lines.length, total: data.total, capacity: data.capacity })}
+        </span>
       ) : null}
       <Table
         size="small"
-        rowKey={(line) => `${line.at}-${line.message}`}
+        rowKey={(line) => `${line.at}-${line.node}-${line.message}`}
         loading={isFetching}
         pagination={false}
         dataSource={data?.lines ?? []}
@@ -66,7 +105,18 @@ export default function LogSearch() {
             width: 90,
             render: (level: LogLevelName) => <Tag color={LEVEL_COLOR[level]}>{level}</Tag>
           },
-          { title: t('requestId'), dataIndex: 'requestId', width: 260, render: (id: string | null) => id ?? '–' },
+          {
+            title: t('node'),
+            dataIndex: 'node',
+            width: 200,
+            render: (node: string | null, line) => (node ? `${node} · ${line.service ?? ''}` : '–')
+          },
+          {
+            title: t('traceId'),
+            dataIndex: 'traceId',
+            width: 270,
+            render: (id: string | null) => (id ? <code>{id}</code> : '–')
+          },
           {
             title: t('message'),
             dataIndex: 'message',
@@ -74,6 +124,9 @@ export default function LogSearch() {
           }
         ]}
       />
+      {data && data.lines.length < data.total && data.lines.length >= results && results < LOG_PAGE_MAX ? (
+        <Button onClick={() => setResults(results + PAGE)}>{t('more')}</Button>
+      ) : null}
     </Space>
   )
 }

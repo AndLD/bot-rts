@@ -46,13 +46,33 @@ function serve(handler: (call: Call) => unknown = () => undefined) {
       return {
         data: {
           lines: [
-            { at: Date.UTC(2026, 5, 1, 12), level: 'warn', message: 'slow query for bot b1', requestId: 'req-1' },
-            { at: Date.UTC(2026, 5, 1, 11), level: 'info', message: 'started', requestId: null }
+            {
+              at: Date.UTC(2026, 5, 1, 12),
+              level: 'warn',
+              message: 'slow query for bot b1',
+              requestId: 'req-1',
+              traceId: 'a'.repeat(32),
+              node: 'host:1',
+              service: 'botrts-api'
+            },
+            {
+              at: Date.UTC(2026, 5, 1, 11),
+              level: 'info',
+              message: 'started',
+              requestId: null,
+              traceId: null,
+              node: null,
+              service: null
+            }
           ],
           total: 9,
-          capacity: 5000
+          capacity: 5000,
+          store: 'memory'
         }
       }
+    }
+    if (args.url === '/api/v1/admin/logs/nodes') {
+      return { data: [{ id: 'host:1', services: ['botrts-api', 'botrts-engine'] }] }
     }
     if (args.url === '/api/v1/admin/logs/slow-ticks') {
       return {
@@ -100,7 +120,8 @@ describe('LogSearch', () => {
     renderAs('admin', <LogSearch />)
 
     expect(await screen.findByText('slow query for bot b1')).toBeInTheDocument()
-    expect(screen.getByText('req-1')).toBeInTheDocument()
+    expect(screen.getByText('a'.repeat(32))).toBeInTheDocument()
+    expect(screen.getByText('host:1 · botrts-api')).toBeInTheDocument()
     expect(screen.getByText('warn')).toBeInTheDocument()
     expect(screen.getByText('2 of 9 matching lines (the node keeps the newest 5000)')).toBeInTheDocument()
   })
@@ -122,6 +143,63 @@ describe('LogSearch', () => {
     const before = calls.length
     fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
     await waitFor(() => expect(calls.length).toBeGreaterThan(before))
+  })
+
+  it('searches by trace, player, bot and node, and clears the filters it leaves empty', async () => {
+    const calls = serve()
+    renderAs('admin', <LogSearch />)
+    await screen.findByText('started')
+    const ids = { user: '11111111-1111-4111-8111-111111111111', bot: '22222222-2222-4222-8222-222222222222' }
+
+    fireEvent.change(screen.getByPlaceholderText('Trace id'), { target: { value: 'b'.repeat(32) } })
+    fireEvent.change(screen.getByPlaceholderText('Player id'), { target: { value: ids.user } })
+    fireEvent.change(screen.getByPlaceholderText('Bot id'), { target: { value: ids.bot } })
+    fireEvent.mouseDown(screen.getByText('All nodes'))
+    fireEvent.click(await screen.findByText('host:1 (botrts-api, botrts-engine)'))
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+
+    await waitFor(() =>
+      expect(
+        calls.some(
+          (call) =>
+            call.params?.traceId === 'b'.repeat(32) &&
+            call.params?.userId === ids.user &&
+            call.params?.botId === ids.bot &&
+            call.params?.node === 'host:1'
+        )
+      ).toBe(true)
+    )
+  })
+
+  it('reads the log store of every node: says so, and asks for older lines a page at a time', async () => {
+    const calls = serve((call) =>
+      call.url === '/api/v1/admin/logs'
+        ? {
+            data: {
+              lines: Array.from({ length: call.params?.results as number }, (_, n) => ({
+                at: 1000 - n,
+                level: 'info',
+                message: `line ${n}`,
+                requestId: null,
+                traceId: null,
+                node: 'host:2',
+                service: n === 0 ? null : 'botrts-engine'
+              })),
+              total: 1000,
+              capacity: null,
+              store: 'elasticsearch'
+            }
+          }
+        : undefined
+    )
+    renderAs('admin', <LogSearch />)
+
+    expect(await screen.findByText('100 of 1000 matching lines from the log store')).toBeInTheDocument()
+    expect(screen.getByText('host:2 ·')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Older lines' }))
+
+    expect(await screen.findByText('200 of 1000 matching lines from the log store')).toBeInTheDocument()
+    expect(calls.some((call) => call.params?.results === 200)).toBe(true)
   })
 
   it('says so when the log cannot be loaded', async () => {

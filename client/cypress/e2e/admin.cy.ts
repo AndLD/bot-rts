@@ -183,6 +183,17 @@ describe('the inspector', () => {
           )
           cy.visitSignedIn('/admin/logs', token)
           cy.contains('inspector.read-file')
+          // The application log: every line carries the trace it was written in, and the filters of the log store are there
+          cy.contains('[role="tab"]', 'Application log').click()
+          cy.get('input[placeholder="Trace id"]').should('be.visible')
+          cy.get('input[placeholder="Player id"]').should('be.visible')
+          cy.contains('All nodes')
+          cy.apiRequest({ path: '/api/v1/admin/logs?results=5', headers: bearer(token) }).then((logs) => {
+            const page = logs.body as { store: string; lines: Array<{ traceId: string; node: string }> }
+            expect(page.store).to.eq('memory')
+            expect(page.lines[0].traceId).to.match(/^[0-9a-f]{32}$/)
+            expect(page.lines[0].node).to.be.a('string')
+          })
         })
       })
     })

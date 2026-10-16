@@ -1,4 +1,3 @@
-import { hostname } from 'os'
 import { context } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
@@ -16,6 +15,7 @@ import { ObservabilityConfig } from '../../config/app-config'
 import { Logger } from '../application/logger'
 import { Tracing } from '../application/tracing'
 import { ConsoleLogSink, FileLogSink, LogSink, OtlpLogSink } from './log-sinks'
+import { nodeId } from './node-id'
 import { OtelTracing } from './otel-tracing'
 import { TelemetryLogger } from './telemetry-logger'
 
@@ -64,7 +64,7 @@ export class Telemetry {
     enableContextManager()
     const resource = resourceFromAttributes({
       'service.name': settings.serviceName,
-      'service.instance.id': `${hostname()}:${process.pid}`
+      'service.instance.id': nodeId()
     })
     const queue = { maxQueueSize: settings.exportQueueSize }
     const headers = settings.otlpHeaders

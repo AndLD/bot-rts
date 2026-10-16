@@ -84,6 +84,18 @@ export interface ObservabilityConfig {
   metricsToken: string | undefined
   // How many of the newest log lines are kept in memory for the admin console
   logBufferSize: number
+  // `json` (one object per line, for log collectors) or `text`; json by default in production
+  logFormat: 'json' | 'text'
+  // Whether the log also goes to a file in `logs/` (development); containers log to the console only
+  isLogFileEnabled: boolean
+  // The OTLP endpoint of the collector gateway (design §25.3); without one nothing is exported and the console and the files remain
+  otlpEndpoint: string | undefined
+  // Headers sent with every export, for example the bearer token of the gateway (`OTEL_EXPORTER_OTLP_HEADERS`)
+  otlpHeaders: Record<string, string>
+  // The share of new traces that are recorded and exported (parent-based: a trace that was started elsewhere keeps its decision)
+  traceSampleRatio: number
+  // How many records and spans the exporters hold while the gateway is slow or away; further ones are dropped
+  exportQueueSize: number
   // The file the backup job writes when it finishes, which the Operations page of the console reads; undefined: not reported
   backupStatusFile: string | undefined
 }
@@ -203,6 +215,24 @@ function list(value: string | undefined): string[] {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+// A share between 0 and 1 (1 records every new trace, 0 none)
+function ratio(value: string | undefined, fallback: number): number {
+  const parsed = value === undefined || value === '' ? Number.NaN : Number(value)
+  return parsed >= 0 && parsed <= 1 ? parsed : fallback
+}
+
+// `name=value,name2=value2`, the form of OTEL_EXPORTER_OTLP_HEADERS
+function headerList(value: string | undefined): Record<string, string> {
+  return Object.fromEntries(
+    list(value)
+      .map((pair): [string, string] => [
+        pair.slice(0, pair.indexOf('=')).trim(),
+        pair.slice(pair.indexOf('=') + 1).trim()
+      ])
+      .filter(([name]) => name !== '')
+  )
 }
 
 // ADMIN_ALERT_THRESHOLDS: {"api.errorRate5xx":{"yellow":0.02,"red":0.1}} overrides the defaults of those metrics
@@ -394,6 +424,17 @@ export function loadConfig(env: Env): AppConfig {
     observability: {
       metricsToken: env.METRICS_TOKEN || undefined,
       logBufferSize: positiveInt(env.LOG_BUFFER_SIZE, 5000),
+      logFormat:
+        env.LOG_FORMAT === 'json' || env.LOG_FORMAT === 'text'
+          ? env.LOG_FORMAT
+          : nodeEnv === 'production'
+            ? 'json'
+            : 'text',
+      isLogFileEnabled: env.LOG_FILE !== 'false',
+      otlpEndpoint: env.OTEL_EXPORTER_OTLP_ENDPOINT || undefined,
+      otlpHeaders: headerList(env.OTEL_EXPORTER_OTLP_HEADERS),
+      traceSampleRatio: ratio(env.OTEL_TRACES_SAMPLER_ARG, 1),
+      exportQueueSize: positiveInt(env.OTEL_EXPORT_QUEUE_SIZE, 2048),
       backupStatusFile: env.BACKUP_STATUS_FILE || undefined
     },
     deployment: {

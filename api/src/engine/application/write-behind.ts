@@ -2,6 +2,7 @@ import { Heading } from '../../../../lib/utils/interfaces/map'
 import { Item } from '../../crafting/domain/item.entity'
 import { KnownPoint, MapPoint } from '../../map/domain/map-point.entity'
 import { Module } from '../../modules/domain/module.entity'
+import { NO_TRACING, Tracing } from '../../shared/application/tracing'
 import { WorldStateBatch, WorldStateStore } from '../../persistence/application/world-state-store'
 
 // Collects what the engine changed and writes it in one batch every `everyTicks` ticks (design §12.3.1, §14.2): the world
@@ -24,7 +25,8 @@ export class WriteBehind {
     private readonly everyTicks: number,
     // A batch that fails this many times in a row is dropped, so that one bad row (a bot deleted behind the engine's back, say)
     // cannot keep every later write from reaching the database
-    private readonly maxFailures: number
+    private readonly maxFailures: number,
+    private readonly tracing: Tracing = NO_TRACING
   ) {}
 
   // Told when a batch is given up on; what the engine holds in memory can no longer be trusted
@@ -100,7 +102,9 @@ export class WriteBehind {
     this.removedItems = new Set()
     this.headings = new Map()
     try {
-      await this.store.flush(batch)
+      await this.tracing.withSpan('engine.world-flush', { attributes: { 'botrts.rows': this.rowsOf(batch) } }, () =>
+        this.store.flush(batch)
+      )
       this.failures = 0
     } catch (error) {
       this.failures += 1
@@ -112,6 +116,17 @@ export class WriteBehind {
       }
       throw error
     }
+  }
+
+  private rowsOf(batch: WorldStateBatch): number {
+    return (
+      batch.modules.length +
+      batch.mapPoints.length +
+      batch.knownPoints.length +
+      batch.items.length +
+      batch.removedItemIds.length +
+      batch.headings.length
+    )
   }
 
   // The failed batch goes back below whatever was staged meanwhile

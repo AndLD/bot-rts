@@ -1,3 +1,4 @@
+import { testTelemetry } from '../../tests/fakes/telemetry'
 import { LifecycleModule } from './lifecycle.module'
 
 describe('LifecycleModule', () => {
@@ -7,15 +8,17 @@ describe('LifecycleModule', () => {
     jest.useFakeTimers()
     const service = { runOnce: jest.fn(async () => ({})), intervalMs: jest.fn(() => 500) }
     const collectors = { register: jest.fn() }
+    const traced = testTelemetry()
     const module = new LifecycleModule(
       service as never,
       { isEnabled, intervalMs: 1000 } as never,
       { deployment: { role } } as never,
       {} as never,
-      collectors as never
+      collectors as never,
+      traced.telemetry.tracing
     )
 
-    return { module, service, collectors }
+    return { module, service, collectors, traced }
   }
 
   it('registers its metrics, and runs the job after the first delay and then at the interval in force', async () => {
@@ -30,6 +33,16 @@ describe('LifecycleModule', () => {
     expect(service.intervalMs).toHaveBeenCalledWith(1000)
     expect(service.runOnce).toHaveBeenCalledTimes(2)
     expect(collectors.register).toHaveBeenCalledTimes(1)
+    module.onApplicationShutdown()
+  })
+
+  it('runs each pass in a trace of its own', async () => {
+    const { module, traced } = setup(true)
+    module.onApplicationBootstrap()
+
+    await jest.advanceTimersByTimeAsync(60_000)
+
+    expect(traced.spans().map((span) => span.name)).toEqual(['job lifecycle'])
     module.onApplicationShutdown()
   })
 

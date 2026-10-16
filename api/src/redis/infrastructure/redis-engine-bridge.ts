@@ -1,9 +1,10 @@
 import Redis from 'ioredis'
 import { Logger } from '../../shared/application/logger'
+import { NO_TRACING, Tracing } from '../../shared/application/tracing'
 import { AppError } from '../../shared/domain/app-error'
 import { EnginePort } from '../../engine/application/engine-port'
 import { EngineReplyData, EngineRequest, SerializedError } from '../../engine/application/engine-protocol'
-import { decode, encode, ENGINE_REQUEST_CHANNEL, LinkRequest } from './engine-link'
+import { decode, encode, ENGINE_REQUEST_CHANNEL, LinkReply, LinkRequest } from './engine-link'
 
 // The engine node's side of the link: answers the requests the API nodes publish by calling the local engine
 export class RedisEngineBridge {
@@ -11,7 +12,8 @@ export class RedisEngineBridge {
     private readonly engine: EnginePort,
     private readonly publisher: Redis,
     private readonly subscriber: Redis,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly tracing: Tracing = NO_TRACING
   ) {}
 
   async open(): Promise<void> {
@@ -22,14 +24,16 @@ export class RedisEngineBridge {
     await this.subscriber.subscribe(ENGINE_REQUEST_CHANNEL)
   }
 
-  private async handle({ id, replyTo, request }: LinkRequest): Promise<void> {
-    let reply
-    try {
-      reply = { id, data: await this.serve(request) }
-    } catch (error) {
-      reply = { id, error: this.serialize(error) }
-    }
-    await this.publisher.publish(replyTo, encode(reply))
+  private async handle({ id, replyTo, request, traceparent }: LinkRequest): Promise<void> {
+    let reply: LinkReply | undefined
+    await this.tracing.withSpan(`engine ${request.op}`, { kind: 'server', parent: traceparent }, async () => {
+      try {
+        reply = { id, data: await this.serve(request) }
+      } catch (error) {
+        reply = { id, error: this.serialize(error) }
+      }
+    })
+    await this.publisher.publish(replyTo, encode(reply as LinkReply))
   }
 
   private serve(request: EngineRequest): Promise<EngineReplyData> {

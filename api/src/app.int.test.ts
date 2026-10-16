@@ -42,12 +42,25 @@ describe('the Nest application', () => {
     expect(response.body).toEqual({ status: 'ok' })
   })
 
-  it('tags every response with a request id and keeps one the caller sends', async () => {
+  it('tags every response with a trace id, which is also the request id, and keeps the id the caller sends', async () => {
     const generated = await request(url).get('/api/v1/health')
-    const kept = await request(url).get('/api/v1/health').set('X-Request-Id', 'trace-42')
+    const kept = await request(url).get('/api/v1/health').set('X-Request-Id', 'req-42')
 
-    expect(generated.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/)
-    expect(kept.headers['x-request-id']).toBe('trace-42')
+    expect(generated.headers['x-trace-id']).toMatch(/^[0-9a-f]{32}$/)
+    expect(generated.headers['x-request-id']).toBe(generated.headers['x-trace-id'])
+    expect(generated.headers['traceresponse']).toMatch(
+      new RegExp(`^00-${generated.headers['x-trace-id']}-[0-9a-f]{16}-0[01]$`)
+    )
+    expect(kept.headers['x-request-id']).toBe('req-42')
+    expect(kept.headers['x-trace-id']).toMatch(/^[0-9a-f]{32}$/)
+  })
+
+  it('continues the trace of a caller that sends a traceparent', async () => {
+    const response = await request(url)
+      .get('/api/v1/health')
+      .set('traceparent', '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01')
+
+    expect(response.headers['x-trace-id']).toBe('4bf92f3577b34da6a3ce929d0e0e4736')
   })
 
   it('exports metrics to a scraper that has the token, with the route pattern as the label', async () => {

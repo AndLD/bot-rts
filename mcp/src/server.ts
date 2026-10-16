@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { ZodRawShapeCompat } from '@modelcontextprotocol/sdk/server/zod-compat.js'
 import { ApiClient, ApiError } from './api-client'
+import { NO_TELEMETRY, Telemetry } from './telemetry'
 import { allTools } from './tools'
 import { ToolDefinition } from './tools/types'
 
@@ -45,7 +46,7 @@ type RegisterTool = (
   callback: (input: unknown) => Promise<ToolResult>
 ) => unknown
 
-function register(server: McpServer, client: ApiClient, tool: ToolDefinition): void {
+function register(server: McpServer, client: ApiClient, tool: ToolDefinition, telemetry: Telemetry): void {
   const registerTool = server.registerTool as unknown as RegisterTool
 
   registerTool.call(
@@ -58,18 +59,26 @@ function register(server: McpServer, client: ApiClient, tool: ToolDefinition): v
       annotations: { readOnlyHint: tool.isReadOnly, openWorldHint: false }
     },
     async (input: unknown): Promise<ToolResult> => {
-      try {
-        const result = await tool.run(client, input)
-        return text(JSON.stringify(result ?? null, null, 2))
-      } catch (error) {
-        return text(describeFailure(error), true)
-      }
+      return telemetry.tool(tool.name, async () => {
+        try {
+          const result = await tool.run(client, input)
+          return text(JSON.stringify(result ?? null, null, 2))
+        } catch (error) {
+          const failure = describeFailure(error)
+          telemetry.logger.error(`${tool.name} failed: ${failure}`)
+          return text(failure, true)
+        }
+      })
     }
   )
 }
 
 // An MCP server that plays as the player of the API key behind `client`. It knows nothing the API does not tell it.
-export function createServer(client: ApiClient, tools: ToolDefinition[] = allTools): McpServer {
+export function createServer(
+  client: ApiClient,
+  tools: ToolDefinition[] = allTools,
+  telemetry: Telemetry = NO_TELEMETRY
+): McpServer {
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
     {
@@ -80,7 +89,7 @@ export function createServer(client: ApiClient, tools: ToolDefinition[] = allToo
     }
   )
 
-  tools.forEach((tool) => register(server, client, tool))
+  tools.forEach((tool) => register(server, client, tool, telemetry))
 
   return server
 }

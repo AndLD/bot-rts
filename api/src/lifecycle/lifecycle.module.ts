@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
+import { TRACING, Tracing } from '../shared/application/tracing'
 import { PrismaClient } from '@prisma/client'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { EMAIL_SENDER, EmailSender } from '../notifications/application/email-sender'
@@ -97,7 +98,8 @@ export class LifecycleModule implements OnModuleInit, OnApplicationBootstrap, On
     @Inject(LIFECYCLE_POLICY) private readonly policy: LifecyclePolicy,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly status: LifecycleStatus,
-    private readonly collectors: MetricCollectors
+    private readonly collectors: MetricCollectors,
+    @Inject(TRACING) private readonly tracing: Tracing
   ) {}
 
   onModuleInit() {
@@ -109,7 +111,8 @@ export class LifecycleModule implements OnModuleInit, OnApplicationBootstrap, On
       this.scheduler = new LifecycleScheduler(
         this.service.runOnce.bind(this.service),
         () => this.service.intervalMs(this.policy.intervalMs),
-        FIRST_RUN_DELAY_MS
+        FIRST_RUN_DELAY_MS,
+        this.tracing
       )
       this.scheduler.start()
     }

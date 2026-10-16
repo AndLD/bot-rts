@@ -31,6 +31,8 @@ import { CLOCK, Clock } from '../shared/application/clock'
 import { GAME_CLOCK, GAME_TIME, GameTimeState } from '../shared/application/game-clock'
 import { ID_GENERATOR, IdGenerator } from '../shared/application/id-generator'
 import { LOGGER, Logger } from '../shared/application/logger'
+import { TRACING, Tracing } from '../shared/application/tracing'
+import { Telemetry, TELEMETRY } from '../shared/infrastructure/telemetry'
 import { SeededRng } from '../shared/infrastructure/seeded-rng'
 import { RateLimitModule } from '../ratelimit/ratelimit.module'
 import { RedisModule } from '../redis/redis.module'
@@ -332,12 +334,16 @@ export class EngineWorkerModule {
         },
         {
           provide: WriteBehind,
-          inject: [WORLD_STATE_STORE, APP_CONFIG],
-          useFactory: (store: WorldStateStore, app: AppConfig) =>
-            new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures)
+          inject: [WORLD_STATE_STORE, APP_CONFIG, TRACING],
+          useFactory: (store: WorldStateStore, app: AppConfig, tracing: Tracing) =>
+            new WriteBehind(store, app.engine.flushEveryTicks, app.engine.flushMaxFailures, tracing)
         },
         { provide: STEP_WATCH, useValue: stepWatch ? new StepWatchWriter(stepWatch) : undefined },
-        { provide: ENGINE_SINK, inject: [ENGINE_CHANNEL], useFactory: (c: typeof channel) => new ChannelSink(c) },
+        {
+          provide: ENGINE_SINK,
+          inject: [ENGINE_CHANNEL, TRACING],
+          useFactory: (c: typeof channel, tracing: Tracing) => new ChannelSink(c, tracing)
+        },
         {
           provide: EngineCore,
           inject: [
@@ -364,7 +370,8 @@ export class EngineWorkerModule {
             ID_GENERATOR,
             CLOCK,
             LOGGER,
-            GAME_CLOCK
+            GAME_CLOCK,
+            TRACING
           ],
           useFactory: (
             app: AppConfig,
@@ -390,7 +397,8 @@ export class EngineWorkerModule {
             ids: IdGenerator,
             clock: Clock,
             logger: Logger,
-            gameClock: Clock
+            gameClock: Clock,
+            tracing: Tracing
           ) =>
             new EngineCore({
               config: app.engine,
@@ -419,14 +427,32 @@ export class EngineWorkerModule {
               clock,
               gameClock,
               logger,
+              tracing,
               monotonicMs: () => performance.now()
             })
         },
         {
           provide: EngineHost,
-          inject: [EngineCore, ENGINE_CHANNEL, LOGGER, APP_CONFIG, GAME_TIME],
-          useFactory: (core: EngineCore, c: typeof channel, logger: Logger, app: AppConfig, time: GameTimeState) =>
-            new EngineHost(core, c, logger, app.engine.tickIntervalMs, SYSTEM_TIMERS, time.apply.bind(time))
+          inject: [EngineCore, ENGINE_CHANNEL, LOGGER, APP_CONFIG, GAME_TIME, TRACING, TELEMETRY],
+          useFactory: (
+            core: EngineCore,
+            c: typeof channel,
+            logger: Logger,
+            app: AppConfig,
+            time: GameTimeState,
+            tracing: Tracing,
+            telemetry: Telemetry
+          ) =>
+            new EngineHost(
+              core,
+              c,
+              logger,
+              app.engine.tickIntervalMs,
+              SYSTEM_TIMERS,
+              time.apply.bind(time),
+              tracing,
+              () => telemetry.shutdown()
+            )
         }
       ]
     }

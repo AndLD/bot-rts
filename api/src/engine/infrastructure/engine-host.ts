@@ -1,6 +1,7 @@
 import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import { AppError } from '../../shared/domain/app-error'
 import { Logger } from '../../shared/application/logger'
+import { NO_TRACING, Tracing } from '../../shared/application/tracing'
 import { EngineCore } from '../application/engine-core'
 import {
   ControlMessage,
@@ -14,10 +15,14 @@ import { TickLoop, Timers } from './tick-loop'
 
 // Forwards the engine's events over the channel
 export class ChannelSink implements EngineSink {
-  constructor(private readonly channel: MessageChannel<ControlMessage, EngineMessage>) {}
+  constructor(
+    private readonly channel: MessageChannel<ControlMessage, EngineMessage>,
+    private readonly tracing: Tracing = NO_TRACING
+  ) {}
 
+  // The event carries the trace it was raised in (a tick, a request), which the notifications it causes continue
   emit(event: EngineEvent): void {
-    this.channel.post({ kind: 'event', event })
+    this.channel.post({ kind: 'event', event, traceparent: this.tracing.traceparent() })
   }
 }
 
@@ -33,7 +38,10 @@ export class EngineHost {
     tickIntervalMs: number,
     timers: Timers,
     // Applies the settings of the game's time; the host serves requests between ticks, so a change never lands inside one
-    private readonly applyGameTime?: (settings: GameTimeSettings) => void
+    private readonly applyGameTime?: (settings: GameTimeSettings) => void,
+    private readonly tracing: Tracing = NO_TRACING,
+    // Runs after the engine has stopped and before the API thread is told: the thread must send its telemetry before it ends
+    private readonly onStopped: () => Promise<void> = () => Promise.resolve()
   ) {
     this.loop = new TickLoop(
       () => core.runTick(),
@@ -59,15 +67,19 @@ export class EngineHost {
   private async handle(message: ControlMessage): Promise<void> {
     if (message.kind === 'stop') {
       await this.stop()
+      await this.onStopped()
       this.channel.post({ kind: 'stopped' })
       return
     }
     const { id, request } = message
-    try {
-      this.channel.post({ kind: 'reply', id, data: await this.serve(request) })
-    } catch (error) {
-      this.channel.post({ kind: 'failure', id, error: this.serialize(error) })
-    }
+    // The span of the request lasts until the answer, so it includes the wait for the next tick
+    await this.tracing.withSpan(`engine ${request.op}`, { kind: 'server', parent: message.traceparent }, async () => {
+      try {
+        this.channel.post({ kind: 'reply', id, data: await this.serve(request) })
+      } catch (error) {
+        this.channel.post({ kind: 'failure', id, error: this.serialize(error) })
+      }
+    })
   }
 
   private serve(request: EngineRequest): Promise<EngineReplyData> {

@@ -71,7 +71,17 @@ describe('loadConfig', () => {
         problem: null
       },
       devTools: { isEnabled: false },
-      observability: { metricsToken: undefined, logBufferSize: 5000, backupStatusFile: undefined },
+      observability: {
+        metricsToken: undefined,
+        logBufferSize: 5000,
+        logFormat: 'text',
+        isLogFileEnabled: true,
+        otlpEndpoint: undefined,
+        otlpHeaders: {},
+        traceSampleRatio: 1,
+        exportQueueSize: 2048,
+        backupStatusFile: undefined
+      },
       lifecycle: {
         isEnabled: true,
         intervalMs: 3600000,
@@ -83,6 +93,39 @@ describe('loadConfig', () => {
         activityDays: 400
       },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
+    })
+  })
+
+  describe('telemetry settings', () => {
+    it('reads the log format, the file, the gateway, its headers, the sampling and the queue', () => {
+      const { observability } = loadConfig({
+        ...base,
+        JWT_ACCESS_SECRET: 'a',
+        NODE_ENV: 'production',
+        LOG_FORMAT: 'text',
+        LOG_FILE: 'false',
+        OTEL_EXPORTER_OTLP_ENDPOINT: 'https://gateway.example:4318',
+        OTEL_EXPORTER_OTLP_HEADERS: 'authorization=Bearer abc=, x-team = core ,=ignored,',
+        OTEL_TRACES_SAMPLER_ARG: '0.25',
+        OTEL_EXPORT_QUEUE_SIZE: '100'
+      })
+
+      expect(observability).toMatchObject({
+        logFormat: 'text',
+        isLogFileEnabled: false,
+        otlpEndpoint: 'https://gateway.example:4318',
+        otlpHeaders: { authorization: 'Bearer abc=', 'x-team': 'core' },
+        traceSampleRatio: 0.25,
+        exportQueueSize: 100
+      })
+    })
+
+    it('logs JSON in production, and keeps every trace when the sampling share is missing or out of range', () => {
+      expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'a', NODE_ENV: 'production' }).observability.logFormat).toBe(
+        'json'
+      )
+      expect(loadConfig({ ...base, OTEL_TRACES_SAMPLER_ARG: '2' }).observability.traceSampleRatio).toBe(1)
+      expect(loadConfig({ ...base, OTEL_TRACES_SAMPLER_ARG: '0' }).observability.traceSampleRatio).toBe(0)
     })
   })
 

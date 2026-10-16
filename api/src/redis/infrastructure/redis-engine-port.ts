@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { GameTimeSettings } from '../../../../lib/utils/game-time'
 import Redis from 'ioredis'
 import { AppError } from '../../shared/domain/app-error'
+import { NO_TRACING, Span, Tracing } from '../../shared/application/tracing'
 import { ExecutionUsage, ExecutionView } from '../../engine/domain/execution'
 import { JsonValue } from '../../engine/domain/json-value'
 import { ServiceUnavailableError } from '../../engine/domain/engine.errors'
@@ -18,6 +19,8 @@ interface Waiting {
   resolve(data: EngineReplyData): void
   reject(error: unknown): void
   timer: NodeJS.Timeout
+  // The span of the round trip over Redis
+  span: Span
 }
 
 // The engine as an API node sees it when the engine runs on another node: requests go over Redis. The engine's events do
@@ -30,7 +33,8 @@ export class RedisEnginePort implements EnginePort {
   constructor(
     private readonly publisher: Redis,
     private readonly subscriber: Redis,
-    private readonly timeoutMs: number
+    private readonly timeoutMs: number,
+    private readonly tracing: Tracing = NO_TRACING
   ) {
     subscriber.on('messageBuffer', (_channel: Buffer, payload: Buffer) => this.receive(decode<LinkReply>(payload)))
   }
@@ -91,6 +95,8 @@ export class RedisEnginePort implements EnginePort {
   close(): void {
     for (const waiting of this.waiting.values()) {
       clearTimeout(waiting.timer)
+      waiting.span.fail('the link was closed')
+      waiting.span.end()
       waiting.reject(new ServiceUnavailableError())
     }
     this.waiting.clear()
@@ -98,28 +104,39 @@ export class RedisEnginePort implements EnginePort {
 
   private async ask(request: EngineRequest): Promise<EngineReplyData> {
     const id = randomUUID()
+    const span = this.tracing.startSpan(`engine ${request.op}`, { kind: 'client' })
     const answer = new Promise<EngineReplyData>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.waiting.delete(id)
+        span.fail('the engine did not answer in time')
+        span.end()
         reject(new ServiceUnavailableError())
       }, this.timeoutMs)
-      this.waiting.set(id, { resolve, reject, timer })
+      this.waiting.set(id, { resolve, reject, timer, span })
     })
 
     try {
       // Publishing returns how many engine nodes heard the request: nobody listening means the engine is down
       const listeners = await this.publisher.publish(
         ENGINE_REQUEST_CHANNEL,
-        encode({ id, replyTo: engineReplyChannel(this.nodeId), request })
+        encode({ id, replyTo: engineReplyChannel(this.nodeId), request, traceparent: span.traceparent })
       )
       if (listeners === 0) {
-        this.settle(id)?.reject(new ServiceUnavailableError())
+        this.abandon(id)
       }
     } catch {
-      this.settle(id)?.reject(new ServiceUnavailableError())
+      this.abandon(id)
     }
 
     return answer
+  }
+
+  // Nobody can answer: the request fails now and not after the timeout
+  private abandon(id: string): void {
+    const waiting = this.settle(id)
+    waiting?.span.fail('no engine node is listening')
+    waiting?.span.end()
+    waiting?.reject(new ServiceUnavailableError())
   }
 
   private receive(reply: LinkReply): void {
@@ -128,8 +145,11 @@ export class RedisEnginePort implements EnginePort {
       return
     }
     if ('error' in reply) {
+      waiting.span.fail(reply.error.code)
+      waiting.span.end()
       waiting.reject(new AppError(reply.error.statusCode, reply.error.code, reply.error.message))
     } else {
+      waiting.span.end()
       waiting.resolve(reply.data)
     }
   }

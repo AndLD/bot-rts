@@ -38,6 +38,8 @@ export interface RequestMessage {
   kind: 'request'
   id: number
   request: EngineRequest
+  // The trace context of the caller (W3C `traceparent`), so that the work of the engine continues the caller's trace
+  traceparent?: string
 }
 
 // API thread -> engine: finish what is running and stop (a deliberate stop is not a crash)
@@ -53,7 +55,7 @@ export type EngineMessage =
   | { kind: 'stopped' }
   | { kind: 'reply'; id: number; data: EngineReplyData }
   | { kind: 'failure'; id: number; error: SerializedError }
-  | { kind: 'event'; event: EngineEvent }
+  | { kind: 'event'; event: EngineEvent; traceparent?: string }
 
 // One end of the link between the threads
 export interface MessageChannel<Incoming, Outgoing> {

@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { ApiClient, Fetch } from './api-client'
 import { McpConfig } from './config'
 import { createServer } from './server'
+import { NO_TELEMETRY, Telemetry } from './telemetry'
 
 const MAX_BODY_BYTES = 1024 * 1024
 
@@ -34,7 +35,7 @@ function keyOf(request: IncomingMessage, fallback: string | undefined): string |
 }
 
 // Streamable HTTP (stateless): POST /mcp carries each JSON-RPC message; GET /health is for the load balancer
-export function createMcpHttpServer(config: McpConfig, fetchImpl?: Fetch): Server {
+export function createMcpHttpServer(config: McpConfig, fetchImpl?: Fetch, telemetry: Telemetry = NO_TELEMETRY): Server {
   return createHttpServer(async (request, response) => {
     const path = new URL(request.url as string, 'http://localhost').pathname
 
@@ -65,7 +66,7 @@ export function createMcpHttpServer(config: McpConfig, fetchImpl?: Fetch): Serve
       )
     }
 
-    const server = createServer(new ApiClient(config.apiUrl, key, fetchImpl))
+    const server = createServer(new ApiClient(config.apiUrl, key, fetchImpl, telemetry), undefined, telemetry)
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
     response.on('close', () => {
       void transport.close()

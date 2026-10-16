@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
+import { runJob, TRACING, Tracing } from '../shared/application/tracing'
 import { PrismaClient } from '@prisma/client'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { CLOCK, Clock } from '../shared/application/clock'
@@ -31,10 +32,16 @@ export const ACHIEVEMENT_FLUSH_MS = 2000
 export class AchievementsModule implements OnModuleInit, OnApplicationShutdown {
   private timer: NodeJS.Timeout | null = null
 
-  constructor(@Inject(AchievementService) private readonly achievements: AchievementService) {}
+  constructor(
+    @Inject(AchievementService) private readonly achievements: AchievementService,
+    @Inject(TRACING) private readonly tracing: Tracing
+  ) {}
 
   onModuleInit() {
-    this.timer = setInterval(() => void this.achievements.flush(), ACHIEVEMENT_FLUSH_MS)
+    this.timer = setInterval(
+      () => void runJob(this.tracing, 'achievements-flush', () => this.achievements.flush()),
+      ACHIEVEMENT_FLUSH_MS
+    )
     this.timer.unref()
   }
 
@@ -42,6 +49,6 @@ export class AchievementsModule implements OnModuleInit, OnApplicationShutdown {
     if (this.timer) {
       clearInterval(this.timer)
     }
-    await this.achievements.flush()
+    await runJob(this.tracing, 'achievements-flush', () => this.achievements.flush())
   }
 }

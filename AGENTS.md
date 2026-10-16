@@ -204,7 +204,7 @@ The database is an implementation detail that must stay replaceable (clean archi
 - TypeScript `strict: true`; no `any` unless documented with a `// TODO(type)` and a reason.
 - Errors: typed error classes extending a base `AppError(statusCode, code, message)`; don't throw raw `Error` with
   human-facing messages, don't string-match error messages.
-- Logging: inject the `Logger` port (`api/src/shared/application/logger.ts`, log4js-backed today; Phase 13 moves it to OpenTelemetry behind the same port) — no `console.log`.
+- Logging: inject the `Logger` port (`api/src/shared/application/logger.ts`, OpenTelemetry-backed: every record carries the trace id and the span id of the span it is written in) — no `console.log`.
 
 ### 5.3 Shared code
 

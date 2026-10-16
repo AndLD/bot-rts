@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown, OnModuleInit } from '@nestjs/common'
+import { runJob, TRACING, Tracing } from '../shared/application/tracing'
 import { RETENTION_POLICY, RetentionPolicy } from '../retention/application/retention-settings.service'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { ENGINE_PORT, EnginePort } from '../engine/application/engine-port'
@@ -78,7 +79,8 @@ export class MonitoringModule implements OnModuleInit, OnApplicationBootstrap, O
     @Inject(MONITORING_SERVICE) private readonly monitoring: MonitoringService,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     private readonly collectors: MetricCollectors,
-    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy
+    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy,
+    @Inject(TRACING) private readonly tracing: Tracing
   ) {}
 
   // Open alerts are also a series for the operator's scraper
@@ -94,7 +96,10 @@ export class MonitoringModule implements OnModuleInit, OnApplicationBootstrap, O
 
   onApplicationBootstrap() {
     if (this.config.monitoring.isEnabled) {
-      this.timer = setInterval(() => void this.tick(), this.config.monitoring.sampleIntervalMs)
+      this.timer = setInterval(
+        () => void runJob(this.tracing, 'monitoring-sample', () => this.tick()),
+        this.config.monitoring.sampleIntervalMs
+      )
       this.timer.unref()
     }
   }

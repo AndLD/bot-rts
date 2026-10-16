@@ -76,16 +76,27 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
 
 ## Observability (Phase 8.3)
 
-> **Planned (Phase 13):** the logs move to OpenTelemetry, with tracing, through **one shared collector gateway** for all nodes, and are
-> stored in Elasticsearch, so the console can search the logs of every node and follow a request by its trace id. Until then the
-> log search of the console reads the recent lines of the node that answers (`LOG_BUFFER_SIZE`), and the files and the console
-> remain the record. See [Phase 13](../development-plan/phases/phase-13-observability-platform.md).
+> **Phase 13:** logs and traces run on OpenTelemetry. The collector gateway and Elasticsearch, which let the console search the logs
+> of every node and follow a request by its trace id, come with tasks 13.2 to 13.4. Until then the log search of the console reads the
+> recent lines of the node that answers (`LOG_BUFFER_SIZE`), and the files and the console remain the record. See
+> [Phase 13](../development-plan/phases/phase-13-observability-platform.md).
 
 - **Logs** go to the console (and to `api/logs/` unless `LOG_FILE=false`). With `LOG_FORMAT=json` (the default in production)
-  every line is one JSON object: `time`, `level`, `category`, `requestId`, `message`. Each HTTP request logs one line when it
-  finishes (method, path without the query string, status, duration).
-- **Request ids:** every response carries `X-Request-Id`. A caller (or the load balancer) may send its own id (up to 64 characters of
-  `A-Z a-z 0-9 _ . -`); everything the request logs carries it, so a player's report can be traced.
+  every line is one JSON object: `time`, `level`, `category`, `traceId`, `spanId`, `requestId`, `message`. Each HTTP request logs one
+  line when it finishes (method, path without the query string, status, duration). With `OTEL_EXPORTER_OTLP_ENDPOINT` set, every
+  record is also sent to that OTLP endpoint (headers from `OTEL_EXPORTER_OTLP_HEADERS`, for example a bearer token); the exporter
+  keeps at most `OTEL_EXPORT_QUEUE_SIZE` records while the gateway is slow or away and drops the rest, and the console and the files
+  keep every line.
+- **Traces:** every HTTP request, Socket.IO event, engine tick and scheduled job (lifecycle pass, monitoring sample, achievements
+  flush, ban sweep, notification delivery and purge, game-time refresh) is a span, and every log record written inside carries its
+  trace id. The trace continues over the engine thread, the Redis link between an API node and the engine node, the events an engine
+  tick raises (and the notifications they cause), and from the MCP server into the API. A running script is a trace of its own, linked
+  to the request that started it. Send a W3C `traceparent` header and the request continues your trace; without one a new trace
+  starts, sampled with the ratio `OTEL_TRACES_SAMPLER_ARG` (default `1`: every trace; a sampled-out trace keeps its ids, so its logs
+  can still be found). Spans are sent to the same OTLP endpoint as the logs.
+- **Request ids:** every response carries the trace id as `X-Trace-Id`, the context of its span as `traceresponse`, and
+  `X-Request-Id`, which is the trace id unless the caller (or the load balancer) sent its own id (up to 64 characters of
+  `A-Z a-z 0-9 _ . -`); everything the request logs carries both, so a player's report can be traced.
 - **Health:** `GET /api/v1/health/live` answers while the process runs (use it for restarts). `GET /api/v1/health` is readiness: it
   checks the database, Redis (when configured) and the engine (when the node uses it) and answers `503` naming what is down
   (use it for taking a node out of rotation).

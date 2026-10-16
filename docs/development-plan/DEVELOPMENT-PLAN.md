@@ -32,7 +32,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 10    | Market, currency, chat & transfers   | 115          | ⬜ Not started |
 | 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
 | 12    | Issues and stabilization (open-ended; issues found in use are added as tasks, so its points grow) | 5 (grows) | ⬜ Not started |
-| 13    | Observability platform (OpenTelemetry logs and traces, a shared collector gateway, Elasticsearch, the admin log search and trace view on it; **approved 2026-10-15, developed after Phase 9 and before Phase 10**) | 48 | ⬜ Not started |
+| 13    | Observability platform (OpenTelemetry logs and traces, a shared collector gateway, Elasticsearch, the admin log search and trace view on it; **approved 2026-10-15, developed after Phase 9 and before Phase 10**) | 48 | 🟡 In progress |
 |        | **Total of Phases 0–13**             | **1000** (Phase 12 grows as issues are added) | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first

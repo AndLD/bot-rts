@@ -78,6 +78,11 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Changed
 
+- Logs and traces run on OpenTelemetry (replacing log4js): every log record carries the trace id and the span id of the request, socket
+  event, engine tick or scheduled job it was written in, and the trace continues over the engine thread, the Redis link of a scaled
+  deployment, the notifications an engine event causes, and from the MCP server into the API. A caller may send a W3C `traceparent`; every
+  response carries `X-Trace-Id` and `traceresponse`, and `X-Request-Id` is the trace id unless the caller sent its own. With
+  `OTEL_EXPORTER_OTLP_ENDPOINT` set, logs and traces are sent to a collector gateway (`OTEL_TRACES_SAMPLER_ARG` samples new traces).
 - Authentication is cached for two seconds between requests (`AUTH_CACHE_TTL_MS`).
 
 ### Removed

@@ -10,6 +10,8 @@ export interface LinkRequest {
   id: string
   replyTo: string
   request: EngineRequest
+  // The trace context of the API node's call (W3C `traceparent`)
+  traceparent?: string
 }
 
 export type LinkReply = { id: string; data: EngineReplyData } | { id: string; error: SerializedError }

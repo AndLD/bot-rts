@@ -1,4 +1,5 @@
 import { Inject, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common'
+import { runJob, TRACING, Tracing } from '../shared/application/tracing'
 import { RETENTION_POLICY, RetentionPolicy } from '../retention/application/retention-settings.service'
 import { PrismaClient } from '@prisma/client'
 import { AchievementsModule } from '../achievements/achievements.module'
@@ -64,7 +65,8 @@ export class PlayerNotificationsModule implements OnApplicationBootstrap, OnAppl
     @Inject(NotificationService) private readonly notifications: NotificationService,
     @Inject(AchievementService) private readonly achievements: AchievementService,
     @Inject(LOGGER) private readonly logger: Logger,
-    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy
+    @Inject(RETENTION_POLICY) private readonly retention: RetentionPolicy,
+    @Inject(TRACING) private readonly tracing: Tracing
   ) {}
 
   onApplicationBootstrap() {
@@ -73,10 +75,19 @@ export class PlayerNotificationsModule implements OnApplicationBootstrap, OnAppl
     )
     this.timers = [
       setInterval(
-        () => void this.notifications.deliverDue().catch((error) => this.logger.error(error)),
+        () =>
+          void runJob(this.tracing, 'notifications-deliver', () => this.notifications.deliverDue()).catch((error) =>
+            this.logger.error(error)
+          ),
         DELIVER_DUE_MS
       ),
-      setInterval(() => void this.purge().catch((error) => this.logger.error(error)), PURGE_MS)
+      setInterval(
+        () =>
+          void runJob(this.tracing, 'notifications-purge', () => this.purge()).catch((error) =>
+            this.logger.error(error)
+          ),
+        PURGE_MS
+      )
     ]
     this.timers.forEach((timer) => timer.unref())
   }

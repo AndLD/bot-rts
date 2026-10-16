@@ -1,4 +1,5 @@
 import { Logger } from '../../shared/application/logger'
+import { Tracing } from '../../shared/application/tracing'
 import { EngineEvent } from '../application/engine-ports'
 import { ControlMessage, EngineMessage, MessageChannel } from '../application/engine-protocol'
 import { ServiceUnavailableError } from '../domain/engine.errors'
@@ -17,6 +18,8 @@ export interface WorkerLike {
 export interface EngineProcessOptions {
   spawn(): WorkerLike
   logger: Logger
+  // Carries the trace context of a request over to the engine thread
+  tracing?: Tracing
   // How long to wait for the engine to announce itself, and to confirm a stop
   readyTimeoutMs: number
   stopTimeoutMs: number
@@ -60,7 +63,7 @@ export class EngineProcess {
       },
       onMessage: (handler) => void (this.incoming = handler)
     }
-    this.port = new ChannelEnginePort(channel)
+    this.port = new ChannelEnginePort(channel, options.tracing)
   }
 
   // Starts the engine thread and resolves when it is ready to serve

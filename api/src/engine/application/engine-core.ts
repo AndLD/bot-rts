@@ -4,6 +4,7 @@ import { ModuleRegistry } from '../../modules/domain/module-registry'
 import { Clock } from '../../shared/application/clock'
 import { IdGenerator } from '../../shared/application/id-generator'
 import { Logger } from '../../shared/application/logger'
+import { NO_TRACING, Span, Tracing } from '../../shared/application/tracing'
 import { AppError } from '../../shared/domain/app-error'
 import { ForbiddenError, NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { ControlState, EngineControl, INITIAL_CONTROL_STATE } from '../domain/engine-control'
@@ -60,6 +61,8 @@ export interface StartRequest {
 interface ManualCall {
   resolve(value: JsonValue): void
   reject(error: unknown): void
+  // The trace of the request the call came in with, which applying the call continues
+  traceparent: string | undefined
 }
 
 export class ExecutionNotRunningError extends AppError {
@@ -100,11 +103,17 @@ export interface EngineDependencies {
   // The clock of the rules (the energy of the bots); the real one is used for the records of executions. Defaults to `clock`.
   gameClock?: Clock
   logger: Logger
+  // Spans for the ticks, the requests the engine serves and the executions; without it nothing is traced
+  tracing?: Tracing
   // A monotonic wall clock in ms, used only to measure slices and tick duration
   monotonicMs: () => number
 }
 
 interface InboxItem {
+  // What the request is, for the span it runs in
+  label: string
+  // The trace of the request, which the work continues when the tick takes it up
+  traceparent: string | undefined
   run(): Promise<unknown>
   resolve(value: unknown): void
   reject(error: unknown): void
@@ -126,10 +135,14 @@ export class EngineCore {
   private tickNumber = 0
   private controlState: ControlState = INITIAL_CONTROL_STATE
 
+  // The span of each running execution: a trace of its own, linked to the request that started it
+  private readonly executionSpans = new Map<string, Span>()
+  private readonly tracing: Tracing
   private readonly startedAtMs: number
 
   constructor(private readonly deps: EngineDependencies) {
     this.startedAtMs = deps.monotonicMs()
+    this.tracing = deps.tracing ?? NO_TRACING
   }
 
   get tick(): number {
@@ -167,12 +180,13 @@ export class EngineCore {
     for (const live of this.live.values()) {
       await this.deps.executions.update({ ...live.record, restarts: 0 })
       live.dispose()
+      this.endExecutionSpan(live.record.id)
     }
     this.live.clear()
   }
 
   start(request: StartRequest): Promise<ExecutionView> {
-    return this.submit(() => {
+    return this.submit('start', () => {
       this.assertMayStart(request.userId)
       return this.launch(request)
     })
@@ -226,7 +240,7 @@ export class EngineCore {
   // Maintenance, the script kill-switch and quarantine, from the console. Switching the kill-switch on kills every running
   // script; a quarantined player's scripts are only held, and go on when the quarantine ends.
   control(command: EngineControl): Promise<ControlState> {
-    return this.submit(async () => {
+    return this.submit('control', async () => {
       const next = this.nextControl(command)
       await this.deps.controls.save(next)
       const wasHalted = this.controlState.areScriptsHalted
@@ -262,7 +276,7 @@ export class EngineCore {
 
   // Restarts what runs on a bot: each script is killed and started again from the beginning
   reboot(botId: string): Promise<ExecutionView[]> {
-    return this.submit(async () => {
+    return this.submit('reboot', async () => {
       const running = [...this.live.values()].filter((live) => live.record.botId === botId)
       for (const { record } of running) {
         this.assertMayStart(record.userId)
@@ -283,7 +297,7 @@ export class EngineCore {
   // in the same turn order, and it takes the same time. The answer is the one a script would get.
   manual(userId: string, botId: string, fn: string, args: JsonValue[]): Promise<JsonValue> {
     return new Promise<JsonValue>((resolve, reject) => {
-      this.submit(async () => {
+      this.submit('manual', async () => {
         this.assertMayAct(userId)
         const spec = findScriptFunction(fn)
         if (!spec || spec.isScheduled) {
@@ -297,14 +311,14 @@ export class EngineCore {
         }
         this.learn(state)
         const executionId = `manual:${this.deps.ids.next()}`
-        this.manualCalls.set(executionId, { resolve, reject })
+        this.manualCalls.set(executionId, { resolve, reject, traceparent: this.tracing.traceparent() })
         this.backlog.push({ executionId, botId, callId: 0, fn, args })
       }).catch(reject)
     })
   }
 
   kill(userId: string, executionId: string): Promise<ExecutionView> {
-    return this.submit(async () => {
+    return this.submit('kill', async () => {
       const live = this.live.get(executionId)
       if (!live) {
         throw new ExecutionNotRunningError()
@@ -319,7 +333,7 @@ export class EngineCore {
   // A use case that changes the world, run between ticks: the memory is written first, so the use case reads the truth, and
   // forgotten afterwards, since the use case may have changed any of it (design §14.2)
   act(name: WorldActionName, args: unknown[]): Promise<unknown> {
-    return this.submit(async () => {
+    return this.submit(`act ${name}`, async () => {
       // The support actions of the admins are the way back from a pause or a quarantine, so they are not held by either
       if (!name.startsWith('support.')) {
         this.assertMayAct(String(args[0]))
@@ -381,18 +395,18 @@ export class EngineCore {
 
   // Whether a bot reaches its base through the radio network, and how well (design §11.2.1)
   link(userId: string, botId: string): Promise<LinkStatus> {
-    return this.submit(() => this.deps.radio.statusOf(userId, botId))
+    return this.submit('link', () => this.deps.radio.statusOf(userId, botId))
   }
 
   list(userId: string): Promise<ExecutionView[]> {
-    return this.submit(async () =>
+    return this.submit('list', async () =>
       [...this.live.values()].filter((live) => live.record.userId === userId).map((live) => live.view())
     )
   }
 
   // The running scripts that made the most calls, the biggest first
   top(limit: number): Promise<ExecutionUsage[]> {
-    return this.submit(async () =>
+    return this.submit('top', async () =>
       [...this.live.values()]
         .sort((a, b) => b.opsUsed - a.opsUsed)
         .slice(0, limit)
@@ -418,8 +432,12 @@ export class EngineCore {
     }
   }
 
-  // One game tick
-  async runTick(): Promise<void> {
+  // One game tick, in a trace of its own
+  runTick(): Promise<void> {
+    return this.tracing.withSpan('engine.tick', { isRoot: true }, (span) => this.runOneTick(span))
+  }
+
+  private async runOneTick(span: Span): Promise<void> {
     if (this.controlState.isPaused) {
       // Maintenance: requests are still answered (the console resumes the world through one), but nothing moves
       await this.drainInbox()
@@ -429,6 +447,7 @@ export class EngineCore {
     const startedAt = this.deps.monotonicMs()
     this.tickNumber += 1
     const tick = this.tickNumber
+    span.setAttribute('botrts.tick', tick)
 
     this.deps.world.beginTick(tick)
     await this.drainInbox()
@@ -490,16 +509,24 @@ export class EngineCore {
     return longest
   }
 
-  private submit<T>(run: () => Promise<T>): Promise<T> {
+  private submit<T>(label: string, run: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      this.inbox.push({ run, resolve: resolve as (value: unknown) => void, reject })
+      this.inbox.push({
+        label,
+        traceparent: this.tracing.traceparent(),
+        run,
+        resolve: resolve as (value: unknown) => void,
+        reject
+      })
     })
   }
 
   private async drainInbox(): Promise<void> {
     for (const item of this.inbox.splice(0)) {
       try {
-        item.resolve(await item.run())
+        item.resolve(
+          await this.tracing.withSpan(`engine.${item.label}`, { parent: item.traceparent }, () => item.run())
+        )
       } catch (error) {
         item.reject(error)
       }
@@ -547,6 +574,18 @@ export class EngineCore {
 
   private register(live: LiveExecution): void {
     this.live.set(live.record.id, live)
+    this.executionSpans.set(
+      live.record.id,
+      this.tracing.startSpan('script.execution', {
+        isRoot: true,
+        links: this.linksToCurrent(),
+        attributes: {
+          'botrts.execution_id': live.record.id,
+          'botrts.bot_id': live.record.botId,
+          'botrts.file': live.record.file
+        }
+      })
+    )
     this.deps.sink.emit({ type: 'execution', userId: live.record.userId, execution: live.view() })
   }
 
@@ -616,8 +655,13 @@ export class EngineCore {
           waiting.push(command)
         } else {
           used += cost
-          const { answer, delayTicks } = await this.answerFor(command)
           const manual = this.manualCalls.get(command.executionId)
+          // A manual call is applied in the trace of the request that made it; a script's call, in the tick
+          const { answer, delayTicks } = manual
+            ? await this.tracing.withSpan(`engine.call ${command.fn}`, { parent: manual.traceparent }, () =>
+                this.answerFor(command)
+              )
+            : await this.answerFor(command)
           if (manual) {
             this.manualCalls.delete(command.executionId)
             this.busyUntil.set(botId, tick + 1 + delayTicks)
@@ -673,7 +717,27 @@ export class EngineCore {
     return this.end(live.record, status, reason)
   }
 
+  // A long script is related to the call that started it, not a part of it
+  private linksToCurrent(): string[] {
+    const current = this.tracing.traceparent()
+
+    return current ? [current] : []
+  }
+
+  private endExecutionSpan(id: string, status?: ExecutionStatus, reason?: string | null): void {
+    const span = this.executionSpans.get(id)
+    this.executionSpans.delete(id)
+    if (status !== undefined) {
+      span?.setAttribute('botrts.status', status)
+    }
+    if (status === ExecutionStatus.KILLED) {
+      span?.fail(reason ?? 'killed')
+    }
+    span?.end()
+  }
+
   private async end(record: Execution, status: ExecutionStatus, reason: string | null): Promise<ExecutionView> {
+    this.endExecutionSpan(record.id, status, reason)
     const ended: Execution = { ...record, status, reason, endedAt: this.deps.clock.now() }
     await this.deps.executions.update(ended)
     const execution: ExecutionView = {

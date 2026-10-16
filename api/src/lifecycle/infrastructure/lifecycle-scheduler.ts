@@ -1,3 +1,5 @@
+import { NO_TRACING, runJob, Tracing } from '../../shared/application/tracing'
+
 // Calls `run` after `firstDelayMs` and then `intervalMs` after each pass has ended, so two passes never overlap; a pass that
 // fails does not end the schedule
 export class LifecycleScheduler {
@@ -7,7 +9,8 @@ export class LifecycleScheduler {
     private readonly run: () => Promise<unknown>,
     // The pause after a pass; a function, so that a change made in the console applies to the next pass
     private readonly intervalMs: number | (() => number),
-    private readonly firstDelayMs: number
+    private readonly firstDelayMs: number,
+    private readonly tracing: Tracing = NO_TRACING
   ) {}
 
   start(): void {
@@ -24,7 +27,7 @@ export class LifecycleScheduler {
 
   private async tick(): Promise<void> {
     try {
-      await this.run()
+      await runJob(this.tracing, 'lifecycle', this.run)
     } catch {
       // The service records and logs its failures; a thrown one must not end the schedule
     }

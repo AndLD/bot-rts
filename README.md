@@ -146,7 +146,7 @@ enforces the layer rules.
 | Engine      | Tick loop and fair scheduler in a worker thread (or its own node), **QuickJS compiled to WASM** as the script sandbox                    |
 | Auth        | JWT access + refresh tokens behind an identity-provider port, `bcrypt`, API keys with scopes                                            |
 | Email       | `nodemailer` (SMTP)                                                                                                                     |
-| Observability | `log4js` JSON logs, Prometheus metrics, health checks (Phase 13 plans OpenTelemetry logs and traces and Elasticsearch)                |
+| Observability | OpenTelemetry logs and traces (console, files, OTLP), Prometheus metrics, health checks (Phase 13 adds the collector gateway and Elasticsearch) |
 | Frontend    | Next.js (App Router) with React 19, Redux Toolkit (RTK Query), Ant Design 5, CodeMirror 6, `next-intl` (English, Russian), canvas map   |
 | AI access   | MCP server (`mcp/`) over the public API                                                                                                 |
 | Shared      | `lib/` (types, constants, game clock and other pure functions)                                                                          |
@@ -288,6 +288,8 @@ pm2 start ecosystem.config.json
 | `RATE_LIMIT_API_WINDOW_MS` / `RATE_LIMIT_API_MAX`    | api     | Rate limit of every other route (per IP; default 600 per minute) | `60000` / `600` |
 | `HTTP_BODY_LIMIT_BYTES`, `HTTP_HANDLER_TIMEOUT_MS`, `HTTP_REQUEST_TIMEOUT_MS`, `HTTP_HEADERS_TIMEOUT_MS`, `HTTP_KEEP_ALIVE_TIMEOUT_MS` | api | Largest JSON body, handler time before `503 REQUEST_TIMEOUT`, and Node's slow-client limits | `262144`, `30000`, `60000`, `15000`, `65000` |
 | `LOG_FORMAT` / `LOG_FILE`                           | api     | `json` or `text` log lines (`json` in production) / `false` logs to the console only | `text`, `true` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` / `OTEL_EXPORTER_OTLP_HEADERS` | api, mcp | The OTLP endpoint of the collector gateway that receives logs and traces (default: none, logs stay on the console and in the files) / headers sent with every export, `name=value,…`, for example the bearer token | – |
+| `OTEL_TRACES_SAMPLER_ARG` / `OTEL_EXPORT_QUEUE_SIZE` | api, mcp | The share of new traces that are recorded, 0 to 1 (a trace started by a caller keeps the caller's decision; a record keeps its trace id either way) / how many records and spans the exporters hold while the gateway is slow | `1` / `2048` |
 | `METRICS_TOKEN`                                     | api     | Bearer token of `GET /api/v1/metrics`; unset disables the endpoint | – |
 | `LIFECYCLE_ENABLED` / `LIFECYCLE_INTERVAL_MS`       | api     | The data lifecycle job (cleanup of old data and inactive accounts), default on except in tests / its interval | – / `3600000` |
 | `UNVERIFIED_ACCOUNT_DAYS`, `INACTIVE_ACCOUNT_DAYS`, `INACTIVE_ACCOUNT_NOTICE_DAYS`, `EXECUTION_RETENTION_DAYS`, `AUTH_DATA_RETENTION_DAYS` | api | Retention numbers of the job (`INACTIVE_ACCOUNT_DAYS=0` switches inactivity erasure off) | `7`, `365`, `30`, `30`, `7` |

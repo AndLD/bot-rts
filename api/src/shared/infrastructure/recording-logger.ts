@@ -2,14 +2,7 @@ import { Clock } from '../application/clock'
 import { LogBuffer, LogLevel } from '../application/log-buffer'
 import { Logger } from '../application/logger'
 import { currentRequestId } from '../application/request-context'
-
-function describe(error: unknown): string {
-  if (error instanceof Error) {
-    return error.stack ?? `${error.name}: ${error.message}`
-  }
-
-  return typeof error === 'string' ? error : JSON.stringify(error)
-}
+import { describe } from './log-format'
 
 // Writes through to the real logger and keeps each line in the buffer the console searches
 export class RecordingLogger implements Logger {

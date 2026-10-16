@@ -26,7 +26,10 @@ export const METRIC_CATALOG: readonly MetricDefinition[] = [
   { id: 'api.errorRate4xx', area: 'api', unit: 'ratio' },
   { id: 'api.latencyP95Ms', area: 'api', unit: 'ms' },
   { id: 'infrastructure.rssBytes', area: 'infrastructure', unit: 'bytes' },
-  { id: 'infrastructure.heapUsedBytes', area: 'infrastructure', unit: 'bytes' }
+  { id: 'infrastructure.heapUsedBytes', area: 'infrastructure', unit: 'bytes' },
+  // The collector gateway for logs and traces: whether it answers, and the batches waiting in its export queue
+  { id: 'infrastructure.gatewayUp', area: 'infrastructure', unit: 'flag' },
+  { id: 'infrastructure.gatewayQueueSize', area: 'infrastructure', unit: 'count' }
 ]
 
 export const METRIC_IDS = METRIC_CATALOG.map((metric) => metric.id)
@@ -50,7 +53,10 @@ export const ALERT_RULES: readonly AlertRule[] = [
   { metric: 'engine.overrunRate', direction: 'above', defaults: { red: 0.01 } },
   { metric: 'scripts.maxWaitTicks', direction: 'above', defaults: { yellow: 50, red: 200 } },
   { metric: 'api.errorRate5xx', direction: 'above', defaults: { yellow: 0.01, red: 0.05 } },
-  { metric: 'api.latencyP95Ms', direction: 'above', defaults: { yellow: 500, red: 2000 } }
+  { metric: 'api.latencyP95Ms', direction: 'above', defaults: { yellow: 500, red: 2000 } },
+  // The game works without the gateway, so a gateway that is down is a warning; the queue holds 10,000 batches
+  { metric: 'infrastructure.gatewayUp', direction: 'below', defaults: { yellow: 1 } },
+  { metric: 'infrastructure.gatewayQueueSize', direction: 'above', defaults: { yellow: 5000, red: 9000 } }
 ]
 
 export type Severity = Exclude<HealthStatus, 'green'>

@@ -57,6 +57,42 @@ second app entry with `APP_ROLE=engine` (exactly one) and set `APP_ROLE=api` on 
 
 Locally `npm run db:up` starts PostgreSQL and Redis (`docker-compose.yml`).
 
+## Log gateway and Elasticsearch (Phase 13.2)
+
+Every node that logs (each API node, the engine node, the MCP server) sends its logs and traces over OTLP/HTTP to **one shared gateway
+collector** (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer <token>`). The gateway is the only thing
+that knows Elasticsearch. Locally and in CI: `npm run obs:up` (`docker compose --profile observability up -d --wait otel-collector`)
+starts it with a single-node Elasticsearch; the `stack` profile includes both.
+
+| Part | File | What it does |
+| --- | --- | --- |
+| Gateway collector | `deploy/observability/otel-collector.yaml` | Receives OTLP on `4318` only with the bearer token (`OTEL_GATEWAY_TOKEN`), limits its memory (`OTEL_GATEWAY_MEMORY_MIB`, default 400), batches, writes logs and traces to Elasticsearch through a queue kept on disk (`/var/lib/otelcol`), retrying with a back-off |
+| Index lifecycle | `deploy/observability/elasticsearch/` | The data streams `botrts-logs` and `botrts-traces`, with the trace id, the span id and the service as `keyword` fields, and one retention policy (`LOG_RETENTION_DAYS`, default 14; the console takes it over in task 13.5) |
+| Health | `:13133` (health check), `:8888/metrics` | `OTEL_GATEWAY_HEALTH_URL` and `OTEL_GATEWAY_METRICS_URL` make the admin dashboard show whether the gateway is up and its queue size, with a warning when it is down or the queue is above half of its 10,000 batches |
+
+**Sizing.** The gateway's memory limit (400 MiB by default) makes it refuse data when it is full, and the SDKs then queue and retry,
+instead of running out of memory; watch the queue size on the dashboard and raise the limit when it grows. Elasticsearch is given a
+512 MiB heap in the compose file (`ES_JAVA_OPTS`), enough for development; size it and its disk for the records of the retention period
+(`LOG_RETENTION_DAYS`) of the real load, which has not been measured yet.
+
+**Scaling.** The gateway holds no state besides its queue on disk, so it can run as two replicas behind a load balancer (each with
+its own queue volume). Sampling stays parent-based in the SDKs, so the spans of one trace need not reach the same replica. Elasticsearch
+can be a cluster; the templates use one shard and no replicas, to be raised there.
+
+**The token and the network.** Give the gateway a long random `OTEL_GATEWAY_TOKEN` and the nodes the same value in
+`OTEL_EXPORTER_OTLP_HEADERS`; use TLS between them in production (put it behind the load balancer). Only the nodes may reach the
+gateway on `4318`; its health and metrics ports are for the operator and the API nodes. Elasticsearch is reachable only from the gateway
+(a write account) and from the API (a read-only account, task 13.3); the development compose file turns security off, a
+deployment must not.
+
+**When something is down.**
+
+- *The gateway is down or slow:* the SDK exporters hold at most `OTEL_EXPORT_QUEUE_SIZE` records or spans and drop the rest; the
+  console and the log files of the nodes keep every line, and the game is not affected. The dashboard shows a warning.
+- *Elasticsearch is down:* the gateway keeps what it received in its queue on disk and retries; a restart of the gateway keeps the
+  queue (tested). Records are searchable again once Elasticsearch is back.
+- *The queue grows:* the dashboard warns above 5,000 batches and goes red above 9,000; at 10,000 the gateway refuses data.
+
 ## Reverse proxy
 
 Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and allow WebSocket upgrades on `/socket.io`.

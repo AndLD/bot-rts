@@ -29,6 +29,61 @@ services:
       timeout: 3s
       retries: 10
 
+  # Logs and traces (Phase 13.2): `npm run obs:up`. One shared gateway collector that every node sends OTLP to, and a single-node
+  # Elasticsearch behind it (docs/operations/DEPLOYMENT.md, "Observability"). Security is off here, for development; a deployment turns
+  # it on and gives the API a read-only account.
+  elasticsearch:
+    profiles: [observability, stack]
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - '${ELASTICSEARCH_PORT:-9200}:9200'
+    volumes:
+      - botrts-esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fs http://localhost:9200/_cluster/health | grep -qE "\"status\":\"(green|yellow)\""']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Creates the lifecycle policy and the index templates of the log and trace indices, then stops
+  elasticsearch-init:
+    profiles: [observability, stack]
+    image: curlimages/curl:8.10.1
+    restart: 'no'
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      LOG_RETENTION_DAYS: ${LOG_RETENTION_DAYS:-14}
+    volumes:
+      - ./deploy/observability/elasticsearch:/init:ro
+    entrypoint: ['sh', '/init/init.sh']
+    depends_on:
+      elasticsearch: { condition: service_healthy }
+
+  otel-collector:
+    profiles: [observability, stack]
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    restart: unless-stopped
+    command: ['--config=/etc/otelcol/config.yaml']
+    # The queue directory is a fresh volume, owned by root; a deployment can give it to the image's user instead
+    user: '0:0'
+    environment:
+      OTEL_GATEWAY_TOKEN: ${OTEL_GATEWAY_TOKEN:-botrts-dev-gateway-token}
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - '${OTEL_GATEWAY_PORT:-4318}:4318'
+      - '${OTEL_GATEWAY_HEALTH_PORT:-13133}:13133'
+      - '${OTEL_GATEWAY_METRICS_PORT:-8888}:8888'
+    volumes:
+      - ./deploy/observability/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - botrts-otelqueue:/var/lib/otelcol
+    depends_on:
+      elasticsearch-init: { condition: service_completed_successfully }
+
   # The whole stack (docs/operations/DEPLOYMENT.md): `docker compose --profile stack up -d --build`. The services below are not started by
   # `npm run db:up`, which only starts the database and Redis for development.
   migrate:
@@ -55,6 +110,10 @@ services:
       WHITELIST_URLS: ${WHITELIST_URLS:-http://localhost:5173}
       ADMIN_URL: ${FRONTEND_URL:-http://localhost:5173}
       METRICS_TOKEN: ${METRICS_TOKEN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_HEADERS: authorization=Bearer ${OTEL_GATEWAY_TOKEN:-botrts-dev-gateway-token}
+      OTEL_GATEWAY_HEALTH_URL: http://otel-collector:13133
+      OTEL_GATEWAY_METRICS_URL: http://otel-collector:8888/metrics
       TRUST_PROXY: 'true'
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_USER: ${SMTP_USER:-}
@@ -64,6 +123,7 @@ services:
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+      otel-collector: { condition: service_started }
     healthcheck:
       test:
         [
@@ -87,8 +147,11 @@ services:
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
+      otel-collector: { condition: service_started }
     entrypoint: ['env', 'APP_ROLE=engine']
     command: ['node', 'ts-built/api/index.js']
 
 volumes:
   botrts-pgdata:
+  botrts-esdata:
+  botrts-otelqueue:

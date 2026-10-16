@@ -17,12 +17,15 @@ import { MetricHistory } from './application/metric-history'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
+import { HttpGatewayProbe } from './infrastructure/http-gateway.probe'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
 import { MonitoringGateway } from './presentation/monitoring.gateway'
 
 // Health, performance and load for the admin console (design §25.5). Each process samples itself: its history is in memory.
 const DAY_MS = 24 * 60 * 60 * 1000
+// A sample must not wait for a gateway that does not answer
+const GATEWAY_TIMEOUT_MS = 2000
 
 @Module({
   imports: [NotificationsModule, AdminModule, AuthModule],
@@ -38,7 +41,14 @@ const DAY_MS = 24 * 60 * 60 * 1000
           http,
           () => ({ rssBytes: process.memoryUsage().rss, heapUsedBytes: process.memoryUsage().heapUsed }),
           config.engine.tickIntervalMs,
-          clock
+          clock,
+          config.observability.gatewayHealthUrl || config.observability.gatewayMetricsUrl
+            ? new HttpGatewayProbe(
+                config.observability.gatewayHealthUrl,
+                config.observability.gatewayMetricsUrl,
+                GATEWAY_TIMEOUT_MS
+              )
+            : undefined
         )
     },
     {

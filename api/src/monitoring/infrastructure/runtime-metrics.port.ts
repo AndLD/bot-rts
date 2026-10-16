@@ -2,7 +2,7 @@ import { EnginePort } from '../../engine/application/engine-port'
 import { EngineMetricsSnapshot } from '../../engine/application/engine-metrics'
 import { HttpMetrics, HttpTotals } from '../../metrics/application/http-metrics'
 import { Clock } from '../../shared/application/clock'
-import { MetricSample, MetricsPort } from '../application/ports'
+import { GatewayProbe, MetricSample, MetricsPort } from '../application/ports'
 
 export interface ProcessReading {
   rssBytes: number
@@ -33,7 +33,9 @@ export class RuntimeMetricsPort implements MetricsPort {
     private readonly http: HttpMetrics,
     private readonly process: () => ProcessReading,
     private readonly tickIntervalMs: number,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    // Absent when the node has no gateway to watch
+    private readonly gateway?: GatewayProbe
   ) {
     this.previousHttp = http.totals()
     this.previousAt = clock.now().getTime()
@@ -48,9 +50,21 @@ export class RuntimeMetricsPort implements MetricsPort {
     const { rssBytes, heapUsedBytes } = this.process()
     values['infrastructure.rssBytes'] = rssBytes
     values['infrastructure.heapUsedBytes'] = heapUsedBytes
+    await this.readGateway(values)
     this.previousAt = at.getTime()
 
     return { at, values }
+  }
+
+  private async readGateway(values: Record<string, number>): Promise<void> {
+    if (!this.gateway) {
+      return
+    }
+    const { isUp, queueSize } = await this.gateway.read()
+    values['infrastructure.gatewayUp'] = isUp ? 1 : 0
+    if (queueSize !== null) {
+      values['infrastructure.gatewayQueueSize'] = queueSize
+    }
   }
 
   private async readEngine(values: Record<string, number>): Promise<void> {

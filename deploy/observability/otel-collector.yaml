@@ -1,0 +1,74 @@
+# The gateway collector (Phase 13.2): the one place every node sends its logs and traces to. It checks the bearer token, limits its
+# memory, batches, and writes both signals to Elasticsearch through a queue kept on disk, so that a restart of the gateway or an
+# outage of Elasticsearch does not lose what it holds. Sampling is decided in the SDKs of the nodes (parent-based), not here.
+extensions:
+  bearertokenauth/nodes:
+    scheme: Bearer
+    token: ${env:OTEL_GATEWAY_TOKEN}
+  file_storage/queue:
+    directory: /var/lib/otelcol/queue
+    create_directory: true
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+        auth:
+          authenticator: bearertokenauth/nodes
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: ${env:OTEL_GATEWAY_MEMORY_MIB:-400}
+    spike_limit_mib: 100
+  batch:
+    timeout: 2s
+    send_batch_size: 1024
+
+exporters:
+  elasticsearch:
+    endpoints: ['${env:ELASTICSEARCH_URL}']
+    logs_index: botrts-logs
+    traces_index: botrts-traces
+    mapping:
+      mode: ecs
+    # Synchronous bulk requests (the batcher), so that a failed write goes back to the queue on disk instead of being lost with the
+    # memory of an asynchronous bulk indexer; a bulk request waits at most this long for more documents
+    batcher:
+      enabled: true
+      flush_timeout: 5s
+      min_size_items: 1000
+    sending_queue:
+      enabled: true
+      queue_size: 10000
+      storage: file_storage/queue
+    retry:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      # about three days of trying at the longest interval, while the queue on disk keeps what has not been written
+      max_retries: 10000
+
+service:
+  extensions: [bearertokenauth/nodes, file_storage/queue, health_check]
+  telemetry:
+    metrics:
+      level: normal
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [elasticsearch]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [elasticsearch]

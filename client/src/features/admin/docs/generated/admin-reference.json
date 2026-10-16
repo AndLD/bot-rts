@@ -91,6 +91,8 @@
     { "metric": "engine.overrunRate", "direction": "above", "red": 0.01 },
     { "metric": "scripts.maxWaitTicks", "direction": "above", "yellow": 50, "red": 200 },
     { "metric": "api.errorRate5xx", "direction": "above", "yellow": 0.01, "red": 0.05 },
-    { "metric": "api.latencyP95Ms", "direction": "above", "yellow": 500, "red": 2000 }
+    { "metric": "api.latencyP95Ms", "direction": "above", "yellow": 500, "red": 2000 },
+    { "metric": "infrastructure.gatewayUp", "direction": "below", "yellow": 1 },
+    { "metric": "infrastructure.gatewayQueueSize", "direction": "above", "yellow": 5000, "red": 9000 }
   ]
 }

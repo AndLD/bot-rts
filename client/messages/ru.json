@@ -1111,7 +1111,9 @@
         },
         "infrastructure": {
           "rssBytes": "Память процесса",
-          "heapUsedBytes": "Занятая куча"
+          "heapUsedBytes": "Занятая куча",
+          "gatewayUp": "Шлюз логов доступен",
+          "gatewayQueueSize": "Очередь шлюза логов (пакеты)"
         }
       }
     },

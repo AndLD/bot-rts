@@ -123,8 +123,14 @@ jobs:
         run: npm run docs:check
       - name: Release scripts
         run: npm run test:scripts
+      - name: Start the log gateway and Elasticsearch
+        if: steps.changes.outputs.code == 'true'
+        # The same containers and configuration as docker-compose.yml: the gateway collector and a single-node Elasticsearch
+        run: docker compose --profile observability up -d --wait otel-collector
       - name: Unit and integration tests with the 97 % coverage gate
         if: steps.changes.outputs.code == 'true'
+        env:
+          REQUIRE_OBSERVABILITY: 'true'
         run: npm run test:coverage
       - name: Coverage report
         if: always() && steps.changes.outputs.code == 'true'

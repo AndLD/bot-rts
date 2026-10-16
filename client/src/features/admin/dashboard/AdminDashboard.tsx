@@ -23,6 +23,9 @@ const CHARTS = [
   'infrastructure.rssBytes'
 ] as const
 
+// Shown only when the node watches a log gateway (the metric has a value)
+const GATEWAY_CHART = 'infrastructure.gatewayQueueSize'
+
 function AreaTile({ area }: { area: IAreaHealth }) {
   const t = useTranslations('admin.dashboard')
   const headline = area.metrics.find((metric) => metric.value !== null)
@@ -52,6 +55,10 @@ export default function AdminDashboard() {
     return <Alert type="error" message={t('loadFailed')} />
   }
 
+  const hasGateway = (health?.areas ?? []).some((area) =>
+    area.metrics.some((metric) => metric.id === GATEWAY_CHART && metric.value !== null)
+  )
+  const charts = hasGateway ? [...CHARTS, GATEWAY_CHART] : CHARTS
   const units = Object.fromEntries(
     (health?.areas ?? []).flatMap((area) => area.metrics.map((metric) => [metric.id, metric.unit]))
   )
@@ -83,7 +90,7 @@ export default function AdminDashboard() {
       </Card>
 
       <Row gutter={[16, 16]}>
-        {CHARTS.map((metric) => (
+        {charts.map((metric) => (
           <Col key={metric} xs={24} md={12} xl={8}>
             <MetricChart metric={metric} unit={(units[metric] ?? 'count') as never} range={range} />
           </Col>

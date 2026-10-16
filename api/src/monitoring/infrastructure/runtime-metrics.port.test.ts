@@ -35,6 +35,32 @@ function setup() {
   return { state, http, clock, port }
 }
 
+describe('RuntimeMetricsPort and the gateway', () => {
+  const withGateway = (reading: { isUp: boolean; queueSize: number | null }) =>
+    new RuntimeMetricsPort(
+      { metrics: async () => snapshot() } as unknown as EnginePort,
+      new HttpMetrics(),
+      () => ({ rssBytes: 7, heapUsedBytes: 8 }),
+      100,
+      new FakeClock(),
+      { read: async () => reading }
+    )
+
+  it('reports whether the gateway is up and how full its queue is', async () => {
+    const { values } = await withGateway({ isUp: true, queueSize: 12 }).sample()
+
+    expect(values).toMatchObject({ 'infrastructure.gatewayUp': 1, 'infrastructure.gatewayQueueSize': 12 })
+  })
+
+  it('reports a gateway that is down without a queue size, and nothing when there is no gateway to watch', async () => {
+    const down = (await withGateway({ isUp: false, queueSize: null }).sample()).values
+
+    expect(down['infrastructure.gatewayUp']).toBe(0)
+    expect(down).not.toHaveProperty('infrastructure.gatewayQueueSize')
+    expect((await setup().port.sample()).values).not.toHaveProperty('infrastructure.gatewayUp')
+  })
+})
+
 describe('RuntimeMetricsPort', () => {
   it('reads the engine, the scheduler and the process', async () => {
     const { port } = setup()

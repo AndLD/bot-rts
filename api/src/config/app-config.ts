@@ -94,6 +94,10 @@ export interface ObservabilityConfig {
   otlpHeaders: Record<string, string>
   // The share of new traces that are recorded and exported (parent-based: a trace that was started elsewhere keeps its decision)
   traceSampleRatio: number
+  // Where the console reads the health and the queue size of the gateway collector (its health-check extension and its Prometheus
+  // metrics); without them the console shows no gateway metrics
+  gatewayHealthUrl: string | undefined
+  gatewayMetricsUrl: string | undefined
   // How many records and spans the exporters hold while the gateway is slow or away; further ones are dropped
   exportQueueSize: number
   // The file the backup job writes when it finishes, which the Operations page of the console reads; undefined: not reported
@@ -435,6 +439,8 @@ export function loadConfig(env: Env): AppConfig {
       otlpHeaders: headerList(env.OTEL_EXPORTER_OTLP_HEADERS),
       traceSampleRatio: ratio(env.OTEL_TRACES_SAMPLER_ARG, 1),
       exportQueueSize: positiveInt(env.OTEL_EXPORT_QUEUE_SIZE, 2048),
+      gatewayHealthUrl: env.OTEL_GATEWAY_HEALTH_URL || undefined,
+      gatewayMetricsUrl: env.OTEL_GATEWAY_METRICS_URL || undefined,
       backupStatusFile: env.BACKUP_STATUS_FILE || undefined
     },
     deployment: {

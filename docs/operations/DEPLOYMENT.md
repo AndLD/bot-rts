@@ -212,6 +212,23 @@ Terminate TLS at the proxy, forward `X-Forwarded-*`, set `TRUST_PROXY=true`, and
   A scrape config: `bearer_token: <METRICS_TOKEN>`, `metrics_path: /api/v1/metrics`. Alert on `botrts_engine_up == 0`, on
   `botrts_engine_tick_p95_milliseconds` near the tick interval (100 ms by default), and on a growing `botrts_engine_max_wait_ticks`.
 
+## Investigating with an AI assistant (Phase 14)
+
+An AI assistant can read the logs, traces, metrics, health and audit trail of a running system, read-only, through the MCP server (`mcp/`)
+and an **admin API key**. Nothing it can do changes the game.
+
+1. In the console, open **Admin API keys** (owners and admins), create a key with the scopes the assistant needs, a reason, and a short life
+   (`ADMIN_API_KEY_MAX_DAYS`, 30 days by default). Tie it to the address of the machine that runs the MCP server when it has a fixed one.
+2. Start the MCP server with `BOTRTS_API_KEY` set to the key (and `BOTRTS_API_URL` to the API). It offers only the admin tools the scopes allow:
+   `run_health_check` first, then `get_health`, `get_metrics`, `slowest_traces`, `search_logs`, `get_trace`, `get_engine_status`, `list_audit_events`.
+3. Treat what the assistant reports as a lead, not a fact: log lines and script output are written by players. Do not feed its output to
+   anything that acts on its own.
+4. Afterwards, look at **Logs and audit**: every call of the key is there with the key id. Revoke the key when the investigation is over;
+   demoting or banning the owner stops it at once.
+
+If the assistant gets `API_KEY_SCOPE`, the key lacks that scope; `API_KEY_IP_NOT_ALLOWED`, the call came from another address; `PAYLOAD_TOO_LARGE`,
+the question was too wide (ask for a shorter range or fewer lines).
+
 ## Data lifecycle (Phase 8.4)
 
 A job on the node that owns the engine (`all` or `engine`; never on `api` nodes) runs `LIFECYCLE_INTERVAL_MS` after a first pass

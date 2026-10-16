@@ -53,3 +53,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 14.4, the console page for admin keys, admin documentation (English and Russian), runbook section, Cypress spec and e2e matrix row.
 - **Verify with:** `npm run test:coverage -w mcp`, `npm run test:coverage -w api`
+
+### 2026-10-16 — 14.4 console page, documentation and e2e
+- **Tasks:** 14.4
+- **Branch:** `feature/14.4-admin-keys-console` (stacked on 14.3, PR #204) — WIP until its PR merges
+- **Decisions / deviations from the plan:** the page is `/admin/api-keys` (permission `apikeys.admin`), built on `ActionModal` so that creating and revoking both ask for a reason. The "two-factor step" is the second factor of the console session, which the grant endpoint already requires; no extra prompt was added. Texts and the admin documentation (a page per console page, plus the procedure page "Investigate with an AI assistant") exist in English and Russian; the runbook section is in `docs/operations/DEPLOYMENT.md`. The Cypress spec `admin-keys.cy.ts` covers create, scope limits, demotion, revocation and the role and player refusals.
+- **Problems / blockers / findings:** none.
+- **Next step:** merge the stack (#203, #204, then this PR) after green CI, record the PR numbers, then close the phase: check the exit criteria and run the local database steps of AGENTS.md §7.6.
+- **Verify with:** `npm run test:coverage -w client`, `E2E_API_PORT=18080 E2E_CLIENT_PORT=15173 node scripts/e2e.mjs -- --spec client/cypress/e2e/admin-keys.cy.ts`

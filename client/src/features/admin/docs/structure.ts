@@ -71,6 +71,7 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
   consolePage('analytics', 3, 'economy'),
   consolePage('logs', 5, 'audit-actions'),
   consolePage('game-time', 4, 'operations'),
+  consolePage('api-keys', 3, 'assistant', 'logs'),
   consolePage('devtools', 4),
   consolePage('docs', 2),
   {
@@ -84,6 +85,21 @@ export const ADMIN_DOC_PAGES: readonly AdminDocPage[] = [
       heading('emergencyTitle'),
       list('emergency1', 'emergency2', 'emergency3'),
       ...see('supervision', 'operations')
+    ]
+  },
+  {
+    slug: 'assistant',
+    id: 'assistant',
+    group: 'procedures',
+    blocks: [
+      intro,
+      heading('stepsTitle'),
+      list('step1', 'step2', 'step3', 'step4'),
+      heading('toolsTitle'),
+      list('tool1', 'tool2', 'tool3', 'tool4', 'tool5', 'tool6', 'tool7', 'tool8'),
+      heading('safetyTitle'),
+      list('safety1', 'safety2', 'safety3', 'safety4'),
+      ...see('api-keys', 'logs')
     ]
   },
   {
@@ -136,6 +152,7 @@ export const ADMIN_PAGE_DOCS: Readonly<Record<string, string>> = {
   '/admin/operations': 'operations',
   '/admin/game-time': 'game-time',
   '/admin/logs': 'logs',
+  '/admin/api-keys': 'api-keys',
   '/admin/devtools': 'devtools',
   '/admin/docs': 'docs'
 }

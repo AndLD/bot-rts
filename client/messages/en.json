@@ -1041,7 +1041,8 @@
       "devtools": "Dev tools",
       "analytics": "Analytics",
       "docs": "Documentation",
-      "gameTime": "Game time"
+      "gameTime": "Game time",
+      "apiKeys": "Admin API keys"
     },
     "twoFactor": {
       "setupTitle": "Set up two-factor authentication",
@@ -1828,6 +1829,43 @@
         "cycle": "Go back to the day cycle",
         "advance": "Advance the game clock"
       }
+    },
+    "apiKeys": {
+      "loadFailed": "Could not load the admin API keys",
+      "about": "A read-only key with admin scopes lets an AI assistant (through the MCP server) look at the logs, traces, metrics, health and audit trail. It never changes anything. It always expires, it stops at once if its owner stops being an admin, and every call it makes is in the audit trail. Only you see these keys: they are not in the account page of any player.",
+      "title": "Admin API keys",
+      "create": "Create a key",
+      "createTitle": "Create an admin API key",
+      "revokeTitle": "Revoke the admin API key",
+      "revoke": "Revoke",
+      "name": "Name",
+      "nameRequired": "Give the key a name",
+      "prefix": "Key",
+      "scopes": "Scopes",
+      "scopesRequired": "Choose at least one scope",
+      "reason": "Reason",
+      "addresses": "Addresses",
+      "addressesHint": "Type an address and press Enter. Empty: the key works from any address.",
+      "anyAddress": "any",
+      "expiresInDays": "Lives (days)",
+      "expiresHint": "The server limits how long a key may live (ADMIN_API_KEY_MAX_DAYS).",
+      "expires": "Expires",
+      "lastUsed": "Last used",
+      "state": {
+        "title": "State",
+        "active": "Active",
+        "revoked": "Revoked",
+        "expired": "Expired"
+      },
+      "secretTitle": "Copy the key now",
+      "secretHint": "It is shown only once. Put it in BOTRTS_API_KEY of the MCP server.",
+      "copy": "Copy the key",
+      "scopeHelp": {
+        "admin:logs:read": "log search and traces",
+        "admin:metrics:read": "metric history and the slowest traces",
+        "admin:audit:read": "the audit trail",
+        "admin:health:read": "health, alerts, engine state and the health check"
+      }
     }
   },
   "maintenance": {
@@ -2043,6 +2081,37 @@
         "action2": "Change the length of the day, from 1 minute to 24 hours, without a jump of the time of day.",
         "action3": "Show the real-world time of a time zone, and go back to the day cycle.",
         "action4": "Every change needs a reason, is audited, and every connected player is told and sees the new time at once."
+      },
+      "api-keys": {
+        "title": "Admin API keys",
+        "intro": "Read-only keys with admin scopes for an AI assistant. They open the same read pages of the API that the console uses (logs, traces, metrics, health, audit), through the MCP server.",
+        "actionsTitle": "What you can do",
+        "action1": "Create a key: choose the scopes, a reason, how many days it lives and, if you like, the addresses it may be used from. The key is shown once.",
+        "action2": "Revoke a key with a reason. Demoting or banning the owner of a key also stops it at once.",
+        "action3": "Read what a key did in Logs and audit: every call carries the id of the key."
+      },
+      "assistant": {
+        "title": "Investigate with an AI assistant",
+        "intro": "An AI assistant can search the logs, follow a trace, read the health and the metrics, and run a health check, through the MCP server and a read-only admin API key. It cannot change anything.",
+        "stepsTitle": "Set it up",
+        "step1": "On the Admin API keys page, create a key with the scopes the assistant needs, a short life (days, not months) and, if the assistant runs on a fixed machine, its address.",
+        "step2": "Copy the key when it is shown: it is shown once.",
+        "step3": "Start the MCP server with BOTRTS_API_KEY set to that key (see the MCP documentation of the repository). It offers only the admin tools the scopes allow.",
+        "step4": "Ask the assistant to run the health check first, then to follow what it finds.",
+        "toolsTitle": "What it can read",
+        "tool1": "run_health_check: one summary of alerts, ticks, script kills, flush time and the stores.",
+        "tool2": "get_health: every area with its metrics and the alerts.",
+        "tool3": "get_engine_status: whether the world is paused, the script switches, running and queued scripts.",
+        "tool4": "get_metrics: the history of one metric.",
+        "tool5": "slowest_traces: the slowest ticks or requests, each with a trace.",
+        "tool6": "search_logs: log lines of every node.",
+        "tool7": "get_trace: one request or tick followed over the nodes.",
+        "tool8": "list_audit_events: the audit trail, including the calls of admin keys.",
+        "safetyTitle": "Safety",
+        "safety1": "Log lines and script output are written by players. The assistant is told to treat them as data and never to obey them; do not paste its findings into a tool that acts without reading them.",
+        "safety2": "Personal data is redacted by the API, long text is cut and oversized answers are refused.",
+        "safety3": "Every call of a key is in the audit trail with the key id. Revoke a key that you no longer need; demoting its owner stops it at once.",
+        "safety4": "A key cannot answer the second factor. That is why it is read-only, expires and is audited."
       }
     }
   },

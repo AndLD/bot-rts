@@ -29,6 +29,9 @@ import { nodeId } from '../shared/infrastructure/node-id'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
+import { ActivityMetricSource } from './infrastructure/activity-metric.source'
+import { GatewayMetricSource } from './infrastructure/gateway-metric.source'
+import { MetricSource } from './application/ports'
 import { gatewayProbeFor } from './infrastructure/http-gateway.probe'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
@@ -39,6 +42,13 @@ import { MonitoringGateway } from './presentation/monitoring.gateway'
 const DAY_MS = 24 * 60 * 60 * 1000
 // A sample must not wait for a gateway that does not answer
 const GATEWAY_TIMEOUT_MS = 2000
+
+// What else the sampler reads, for this node
+export function metricSourcesFor(config: AppConfig, activity: ApiActivity): MetricSource[] {
+  const gateway = gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS)
+
+  return [...(gateway ? [new GatewayMetricSource(gateway)] : []), new ActivityMetricSource(activity)]
+}
 
 // Chooses where the history is kept (`MONITORING_HISTORY`)
 export function createHistoryStore(
@@ -72,8 +82,7 @@ export function createHistoryStore(
           () => ({ rssBytes: process.memoryUsage().rss, heapUsedBytes: process.memoryUsage().heapUsed }),
           config.engine.tickIntervalMs,
           clock,
-          gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS),
-          activity
+          metricSourcesFor(config, activity)
         )
     },
     {

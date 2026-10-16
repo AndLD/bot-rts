@@ -3,6 +3,8 @@ import { EngineMetricsSnapshot, TICK_BOUNDS_MS } from '../../engine/application/
 import { EnginePort } from '../../engine/application/engine-port'
 import { HttpMetrics } from '../../metrics/application/http-metrics'
 import { ApiActivity } from '../../shared/application/api-activity'
+import { ActivityMetricSource } from './activity-metric.source'
+import { GatewayMetricSource } from './gateway-metric.source'
 import { RuntimeMetricsPort } from './runtime-metrics.port'
 
 const TICKS_NONE = TICK_BOUNDS_MS.map(() => 0).concat(0)
@@ -50,7 +52,7 @@ describe('RuntimeMetricsPort and the gateway', () => {
       () => ({ rssBytes: 7, heapUsedBytes: 8 }),
       100,
       new FakeClock(),
-      { read: async () => reading }
+      [new GatewayMetricSource({ read: async () => reading })]
     )
 
   it('reports whether the gateway is up and how full its queue is', async () => {
@@ -251,8 +253,7 @@ describe('RuntimeMetricsPort sockets and the rate limit', () => {
       () => ({ rssBytes: 1, heapUsedBytes: 1 }),
       100,
       new FakeClock(),
-      undefined,
-      activity
+      [new ActivityMetricSource(activity)]
     )
     activity.socketOpened('alice', 0)
     const first = await port.sample()
@@ -279,5 +280,36 @@ describe('RuntimeMetricsPort sockets and the rate limit', () => {
     const { port } = setup()
 
     expect((await port.sample()).values).not.toHaveProperty('api.socketConnections')
+  })
+})
+
+describe('RuntimeMetricsPort sources', () => {
+  it('merges what its sources read, and leaves out one that fails without stopping the others', async () => {
+    const port = new RuntimeMetricsPort(
+      { metrics: async () => snapshot() } as unknown as EnginePort,
+      new HttpMetrics(),
+      () => ({ rssBytes: 1, heapUsedBytes: 1 }),
+      100,
+      new FakeClock(),
+      [
+        { read: async () => ({ values: { 'a.one': 1 } }) },
+        {
+          read: async () => {
+            throw new Error('down')
+          }
+        },
+        {
+          read: async () => ({
+            values: { 'a.two': 2 },
+            histograms: { 'db.queryMs': { counts: [1], slowestMs: null, slowestTraceId: null } }
+          })
+        }
+      ]
+    )
+
+    const { values, histograms } = await port.sample()
+
+    expect(values).toMatchObject({ 'a.one': 1, 'a.two': 2 })
+    expect(Object.keys(histograms ?? {})).toContain('db.queryMs')
   })
 })

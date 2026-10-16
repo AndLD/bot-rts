@@ -1,5 +1,6 @@
 import { context, ROOT_CONTEXT, SpanKind as OtelSpanKind, SpanStatusCode, trace, Tracer } from '@opentelemetry/api'
 import type { Context, Link, Span as OtelSpan, SpanContext } from '@opentelemetry/api'
+import { redact, redactValue } from '../../../../lib/utils/redaction'
 import { formatTraceparent, parseTraceparent, TraceContext } from '../../../../lib/utils/trace-context'
 import { Span, SpanKind, SpanOptions, Tracing, withSpan } from '../application/tracing'
 
@@ -34,16 +35,18 @@ class OtelSpanHandle implements Span {
   }
 
   rename(name: string): void {
-    this.span.updateName(name)
+    this.span.updateName(redact(name))
   }
 
   setAttribute(key: string, value: string | number | boolean): void {
-    this.span.setAttribute(key, value)
+    this.span.setAttribute(key, redactValue(value))
   }
 
   fail(error: unknown): void {
-    this.span.recordException(error instanceof Error ? error : String(error))
-    this.span.setStatus({ code: SpanStatusCode.ERROR, message: error instanceof Error ? error.message : String(error) })
+    const message = redact(error instanceof Error ? error.message : String(error))
+
+    this.span.recordException(message)
+    this.span.setStatus({ code: SpanStatusCode.ERROR, message })
   }
 
   end(): void {
@@ -71,9 +74,12 @@ export class OtelTracing implements Tracing {
       const linked = parseTraceparent(value)
       return linked ? [{ context: toSpanContext(linked) }] : []
     })
+    const attributes = Object.fromEntries(
+      Object.entries(options.attributes ?? {}).map(([key, value]) => [key, redactValue(value)])
+    )
     const span = this.tracer.startSpan(
-      name,
-      { kind: KINDS[options.kind ?? 'internal'], attributes: options.attributes, links },
+      redact(name),
+      { kind: KINDS[options.kind ?? 'internal'], attributes, links },
       parent
     )
 

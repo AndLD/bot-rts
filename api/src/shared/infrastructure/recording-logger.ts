@@ -1,3 +1,4 @@
+import { redact } from '../../../../lib/utils/redaction'
 import { Clock } from '../application/clock'
 import { LogBuffer, LogLevel } from '../application/log-buffer'
 import { Logger } from '../application/logger'
@@ -33,7 +34,7 @@ export class RecordingLogger implements Logger {
     this.buffer.add({
       at: this.clock.now(),
       level,
-      message,
+      message: redact(message),
       requestId: currentRequestId() ?? null,
       traceId: this.tracing.current()?.traceId ?? null
     })

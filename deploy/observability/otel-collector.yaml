@@ -28,6 +28,81 @@ processors:
     timeout: 2s
     send_batch_size: 1024
 
+  # The second line of defence of the privacy rule (Phase 13.5): the SDKs of the nodes already take emails, tokens, passwords and API
+  # keys out of every record and span (`lib/utils/redaction.ts`); a node that is old, third-party or wrong is covered here with the same
+  # patterns (without the look-ahead that this engine does not have). The integration test sends a corpus of secrets through the gateway
+  # and looks for them in Elasticsearch.
+  transform/redact:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - |-
+            replace_pattern(body.string, "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_pattern(body.string, "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_pattern(body.string, "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_pattern(body.string, "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_pattern(body.string, "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+          - |-
+            replace_all_patterns(attributes, "value", "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_all_patterns(attributes, "value", "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_all_patterns(attributes, "value", "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+    trace_statements:
+      - context: span
+        statements:
+          - |-
+            replace_pattern(name, "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_pattern(name, "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_pattern(name, "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_pattern(name, "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_pattern(name, "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+          - |-
+            replace_pattern(status.message, "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_pattern(status.message, "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_pattern(status.message, "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_pattern(status.message, "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_pattern(status.message, "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+          - |-
+            replace_all_patterns(attributes, "value", "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_all_patterns(attributes, "value", "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_all_patterns(attributes, "value", "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+      - context: spanevent
+        statements:
+          - |-
+            replace_all_patterns(attributes, "value", "\\beyJ[\\w-]{5,}\\.[\\w-]{5,}\\.[\\w-]*", "[token]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)\\b(Bearer|Basic)\\s+[\\w.~+/=-]{8,}", "$$1 [token]")
+          - |-
+            replace_all_patterns(attributes, "value", "\\bbotrts_[\\w-]{8,}", "[api-key]")
+          - |-
+            replace_all_patterns(attributes, "value", "(?i)([\"']?(?:password|passwd|pwd|secret|token|api[_-]?key|cookie|refresh|credentials?)[\"']?\\s*[:=]\\s*)(\"[^\"]*\"|'[^']*'|[^\\s,;&}\"']+)", "$$1[redacted]")
+          - |-
+            replace_all_patterns(attributes, "value", "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+", "[email]")
+
 exporters:
   elasticsearch:
     endpoints: ['${env:ELASTICSEARCH_URL}']
@@ -66,9 +141,9 @@ service:
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, transform/redact, batch]
       exporters: [elasticsearch]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, transform/redact, batch]
       exporters: [elasticsearch]

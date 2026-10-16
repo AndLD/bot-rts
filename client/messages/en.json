@@ -1601,7 +1601,8 @@
           "unverifiedAccounts": "Never-confirmed accounts",
           "inactiveAccounts": "Erasure of inactive accounts",
           "playerActivity": "Player activity days (analytics)",
-          "monitoring": "Monitoring history (in memory)"
+          "monitoring": "Monitoring history (in memory)",
+          "logs": "Logs and traces in the log store"
         },
         "fields": {
           "intervalMinutes": "every",

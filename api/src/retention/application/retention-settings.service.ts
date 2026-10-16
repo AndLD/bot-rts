@@ -15,6 +15,16 @@ import { ValidationError } from '../../shared/domain/errors'
 export const RETENTION_STORE = Symbol('RetentionStore')
 export const RETENTION_POLICY = Symbol('RetentionPolicy')
 
+export const LOG_RETENTION = Symbol('LogRetention')
+
+// Puts the retention of the logs and traces into force where they are kept (the lifecycle policy of the log store)
+export interface LogRetention {
+  apply(days: number): Promise<void>
+}
+
+// For a deployment without a log store to change: the setting is kept and nothing more is done
+export const NO_LOG_RETENTION: LogRetention = { apply: () => Promise.resolve() }
+
 export type RetentionOverrides = Partial<Record<RetentionJob, RetentionValues>>
 
 export interface StoredRetention {
@@ -65,7 +75,8 @@ export class RetentionSettingsService implements RetentionPolicy {
     private readonly defaults: RetentionSettings,
     private readonly clock: Clock,
     private readonly cacheMs: number,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly logRetention: LogRetention = NO_LOG_RETENTION
   ) {
     this.latest = defaults
   }
@@ -137,6 +148,7 @@ export class RetentionSettingsService implements RetentionPolicy {
     ) {
       throw new ValidationError(`Type ${ERASURE_CONFIRMATION} to switch on the erasure of inactive accounts`)
     }
+    await this.applyLogs(before, after)
     await this.store.save(next, this.clock.now())
     this.latest = after
     this.readAt = this.clock.now().getTime()
@@ -144,10 +156,18 @@ export class RetentionSettingsService implements RetentionPolicy {
     return { before, after }
   }
 
+  // The retention of the logs is kept by the log store, so a change goes there first: if it cannot be applied, nothing is saved
+  private async applyLogs(before: RetentionSettings, after: RetentionSettings): Promise<void> {
+    if (before.logs.days !== after.logs.days) {
+      await this.logRetention.apply(after.logs.days as number)
+    }
+  }
+
   // Removes every override: the environment's values are in force again
   async reset(): Promise<{ before: RetentionSettings; after: RetentionSettings }> {
     const before = (await this.load()).settings
 
+    await this.applyLogs(before, this.defaults)
     await this.store.save(null, this.clock.now())
     this.latest = this.defaults
     this.readAt = this.clock.now().getTime()

@@ -99,6 +99,20 @@ older line: the spans from `TRACE_INDEX` (default `botrts-traces`) over the last
 line of that trace from every node, oldest first, up to 500. Each read leaves an audit entry (`logs.read-trace`) with the trace id.
 A trace that sampling left out (`OTEL_TRACES_SAMPLER_ARG`) has its lines but no spans; with `LOG_STORE=memory` no trace has spans.
 
+**Privacy.** Emails, tokens (JWT and `Bearer`/`Basic`), passwords and secrets (`password=…`, `"token":"…"`), and API keys (`botrts_…`) are
+taken out of every log line and every span (name, attributes, failure messages) by the node, with the patterns of `lib/utils/redaction.ts`,
+before the record goes to the console, a file, the memory buffer or the gateway; the gateway applies the same patterns again
+(`transform/redact` in `otel-collector.yaml`), for a node that does not. Ids of players and bots, trace ids and request ids are kept: they
+are how a report is followed. Every search of the log is audited as `logs.search` with the filters that were asked (not the lines found),
+and every read of a trace as `logs.read-trace`.
+
+**Retention.** The Operations page of the console has a `logs` retention (days, 1 to 365, default `LOG_RETENTION_DAYS`) next to the others,
+with a reason on each change and a reset to the default. Saving it first sets the lifecycle policy of the log store
+(`botrts-retention`: roll over daily, delete after the days) with an account of its own, `ELASTICSEARCH_ADMIN_API_KEY` (or
+`ELASTICSEARCH_ADMIN_USERNAME` and `ELASTICSEARCH_ADMIN_PASSWORD`), which needs `manage_ilm` on the policy and nothing else; if the store
+cannot take the change, nothing is saved and the console says so. Without such an account (or with `LOG_STORE=memory`) the value is
+kept but nothing is applied.
+
 **When something is down.**
 
 - *The gateway is down or slow:* the SDK exporters hold at most `OTEL_EXPORT_QUEUE_SIZE` records or spans and drop the rest; the

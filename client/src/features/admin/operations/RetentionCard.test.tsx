@@ -25,7 +25,8 @@ const DEFAULTS: Record<string, Record<string, number | boolean>> = {
   unverifiedAccounts: { isEnabled: true, days: 7 },
   inactiveAccounts: { isEnabled: false, inactiveDays: 365, noticeDays: 30 },
   playerActivity: { isEnabled: true, days: 400 },
-  monitoring: { fineDays: 7, coarseDays: 30 }
+  monitoring: { fineDays: 7, coarseDays: 30 },
+  logs: { days: 14 }
 }
 
 const retention = (overrides: Partial<IRetention> = {}): IRetention => ({
@@ -88,6 +89,7 @@ describe('the retention card', () => {
 
     expect(await screen.findByText('Finished script executions')).toBeInTheDocument()
     expect(screen.getByText('Monitoring history (in memory)')).toBeInTheDocument()
+    expect(screen.getByText('Logs and traces in the log store')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('changed')).toBeInTheDocument()
     expect(screen.getByText(/Last cleanup pass: 6\/1\/26/)).toBeInTheDocument()

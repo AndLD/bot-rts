@@ -43,5 +43,5 @@ AGENTS.md §7.1).
 | `feature/13.1-otel-logs-traces` | 13.1 | [#190](https://github.com/AndLD/bot-rts/pull/190) | ✅ Merged |
 | `feature/13.2-collector-gateway-elasticsearch` | 13.2 | [#191](https://github.com/AndLD/bot-rts/pull/191) | ✅ Merged |
 | `feature/13.3-log-store` | 13.3 | [#193](https://github.com/AndLD/bot-rts/pull/193) | ✅ Merged |
-| `feature/13.4-traces-in-console` | 13.4 | [#194](https://github.com/AndLD/bot-rts/pull/194) | 🟡 In review |
+| `feature/13.4-traces-in-console` | 13.4 | [#194](https://github.com/AndLD/bot-rts/pull/194) | ✅ Merged |
 | `feature/13.5-privacy-access-retention` | 13.5 | [#195](https://github.com/AndLD/bot-rts/pull/195) | 🟡 In review |

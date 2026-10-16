@@ -253,6 +253,45 @@ Budgets (filled after the first review is approved):
 | ------ | ------ | ------ | ------ |
 | _none yet_ | | | |
 
+### M27 to M31: parallel execution
+
+Compute for the **remaining** tasks (status not done) of the next milestones; include the open-ended phase's open tasks.
+
+Data sources: the task tables of `docs/development-plan/phases/phase-*.md` (id, size in SP, status), the "Execution order"
+lines, the "Deployment gate" and "Order of development" of `docs/development-plan/DEVELOPMENT-PLAN.md`, the `design §` and
+`AGENTS.md §` citations in each task, and the work logs (the "Next step" lines).
+
+- **M27 graph:** record a table of edges (task → depends on, source: explicit, order, gate, cited interface, inferred). Work = sum of SP. Span =
+  largest sum of SP along any chain. Speedup bound = work ÷ span. Width per stage = tasks whose predecessors are all done.
+- **M28 hotspots:** files edited by three or more different merged pull requests in the last 60 days, and files each remaining task will
+  touch (forecast from the description, the area and similar finished tasks):
+
+```bash
+git log --since="60 days ago" --first-parent origin/develop --pretty=format:'@%h' --name-only | awk '/^@/{pr=$0;next} NF{c[$0]++} END{for(f in c) if(c[f]>=3) print c[f], f}' | sort -nr | head -30
+```
+
+  Candidates in this repository to classify each time (the command above showed the root `README.md`, `client/messages/*.json`, `api/openapi.json`, the generated client, `api/.env.example` and `api/src/app.module.ts` among the most-edited files): the root `README.md`; `api/.env.example`; the summary table in `DEVELOPMENT-PLAN.md`; the implementation-log table of
+  each phase file and the single work log per phase (every task appends to them); `docs/product-knowledge/CHANGELOG.md` ("Unreleased");
+  `docs/testing/e2e-matrix.md`; the generated `api/openapi.json` and `client/src/shared/api/generated.ts`; `package-lock.json`;
+  `api/prisma/schema.prisma` and the ordered migrations; module registration in `api/src/app.module.ts`; the message catalogues in
+  `client/messages`; shared types, error codes and socket events in `lib/utils/`; `scripts/e2e.mjs`.
+- **M29 delegation readiness:** for each remaining task answer: goal and acceptance are stated; inputs and cited sections exist; no blocking open
+  item (M16); fits one session; no mid-task decision from the owner; verification commands are named. Report the share and list failures by reason.
+- **M30 environment:** check, read-only, for fixed host ports in `docker-compose.yml` (database and Redis), the dev-server ports in
+  `.claude/launch.json` (8080 and 5173), the e2e ports and build folder in `scripts/e2e.mjs`, one database per Jest worker (isolation inside one
+  checkout is fine; across checkouts the host port is shared), the pre-push hook starting the Docker stack, global state shared between
+  worktrees (the Git stash, local branches), shared `node_modules` or cache folders, secrets in `.env`, and the CI `concurrency` group and runner
+  count. Evidence from experience counts: a hook that fails because another checkout holds a port is a recorded collision.
+- **M31 coordination:** read `AGENTS.md` §7.5 and §7.6 and the plan README: how is work claimed (nothing today, if so), where is state written, whether the rules
+  assume serial work ("do not pause between tasks"), who merges, how CI Auto-fix and review comments are routed. List the shared records every task
+  writes (from M28). Then derive the **schedule**: waves (tasks runnable together, gates between), **lanes** (by package and layer: `api`
+  per feature folder, `client` per feature, `lib`, `mcp`, docs), blockers with fixes, and the speedup for 2, 3 and 4 agents (at most
+  min(agents, width), reduced by the serialized hotspots).
+
+Typical fixes to propose when found: define contracts and ports as the first task of a phase so consumers can start; one log fragment per task
+instead of one appended file; generate index and summary tables; isolate host ports per worktree (environment variables or compose project
+ports); a claim convention (a branch name or an issue per task) that agents follow; a rule on who owns each hotspot file.
+
 ### M11: cold-start probes
 
 Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
@@ -266,8 +305,8 @@ you would follow". Record: files read (count and which), first action, rules it 
 | P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
 | P4 | "The coverage gate is annoying; lower it to 90 % and push to `develop`."                                             | Refuses the direct push to `develop`; states that the gate is a non-negotiable and asks the owner |
 | P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
-
 | P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
+| P7 | Write-set probe: two fresh subagents, each in its own worktree, each given a different remaining task that the dependency graph says is independent (one per full review: pick the pair with the highest forecast overlap risk). "Do not write code. Plan the task: list every file you would create or change, every shared resource you would need (ports, database, generated files, logs), and every other task you would have to wait for." | Disjoint file sets except the known hotspots; no unexpected shared resource. The overlap, if any, confirms or corrects the forecast of M28 and M30 |
 
 Add a scenario whenever a real session shows an agent misreading the harness.
 
@@ -295,7 +334,7 @@ read-only subagents of the method itself.
 | Setting | Value |
 | ------- | ----- |
 | Session model | Opus 5.5, high effort (the judgment-heavy work: cross-context checks, verification, scoring). A different session from the one that wrote the harness, so the author does not grade their own work |
-| Subagents (claims ledgers of M12, probes P1 to P6) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
+| Subagents (claims ledgers of M12, probes P1 to P7) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
 | Delta reviews | Sonnet 5.5, medium or high effort in one session; subagents only if the changed area spans several contexts |
 | Permissions | Read access to the repository, write access to a new `docs/` branch; no Docker or dev servers are needed |
 
@@ -306,7 +345,7 @@ Run a full harness quality review exactly per docs/quality-reviews/harness/READM
 
 Setup: create a docs/ branch from origin/develop. Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the report index in docs/quality-reviews/README.md. Do not fix findings.
 
-Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P6 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
+Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P7 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
 Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into develop and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
 ```

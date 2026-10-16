@@ -50,7 +50,7 @@ scorecard, the top findings and the blockers list.
 **Procedure:** exactly the method. The start prompt below defers to the full-review prompt in section 5 of the bindings, which holds the delegation details. Notes:
 
 - Use Opus 5.5 at high effort for the orchestrating session; subagents on Sonnet 5.5 at medium effort.
-- If your usage limit is tight, split it: first steps 1 to 4 for D1 to D10 with the probes, later D11 to D13.
+- If your usage limit is tight, split it: first steps 1 to 4 for D1 to D10 with the probes, later D11 to D14.
 - The report must include the **extraction blockers** list and the **export dry run**; step 3 builds on them.
 
 **After the report:** you triage the findings (step 2 input), see below.
@@ -87,7 +87,8 @@ The agent groups the "fix now" findings by root cause and layer, and orders the 
 4. Fix **truth**: false or contradictory statements (D8, D11), hidden and stale open items (D12).
 5. Add the **missing enforcement**: turn the rule-to-check gaps of D7 into scripts or CI jobs where cheap, or mark the rule as judgment.
 6. Reduce **accidental complexity** (D13): the simplifications listed in the report.
-7. Everything else.
+7. Remove **blockers to parallel execution** (D14): contracts first, split or generate the shared files, isolate ports and databases per working copy, add a claim convention. Doing this before the next plan milestone lets several agents work at once.
+8. Everything else.
 
 ### 2.3 Doing the fixes
 

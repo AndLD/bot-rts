@@ -24,6 +24,7 @@ Scale `1` (poor) to `5` (excellent). Carried scores (delta reviews) are marked `
 | D11 Product integrity              |          |         | 4      |       |
 | D12 Open items and completeness    |          |         | 4      |       |
 | D13 Complexity                     |          |         | 4      |       |
+| D14 Parallel execution             |          |         | 4      |       |
 | **Blueprint readiness**            |          | `%`     | 90 %   |       |
 
 Gate: pass | fail (reason).
@@ -96,7 +97,31 @@ Hotspots per aspect (top ten), each classified essential or accidental, with the
 | Subject | Aspect | Hotspot | Essential or accidental | Why | Simplification |
 | ------- | ------ | ------- | ----------------------- | --- | -------------- |
 
-## 10. Export dry run
+## 10. Parallel execution (D14)
+
+Numbers (remaining tasks of the next milestones):
+
+| Measure | Value | Previous |
+| ------- | ----- | -------- |
+| Work (SP), critical path (SP), speedup bound (M27) | | |
+| Maximum width | | |
+| Delegation-ready tasks % (M29) | | |
+| Environment collisions found (M30) | | |
+| Hotspot files (M28) | | |
+
+Schedule (waves, with the gate between them):
+
+| Wave | Tasks | Lanes (area and agent) | Blocked by |
+| ---- | ----- | ---------------------- | ---------- |
+
+Hotspots and their treatment (remove, serialize with an owner, accept):
+
+| File or record | Written by | Treatment |
+| -------------- | ---------- | --------- |
+
+Blockers to parallelism and the fix for each. Recommended number of agents, expected speedup for 2, 3 and 4 agents, write-set probe result (P7).
+
+## 11. Export dry run
 
 | Bucket                                   | Content |
 | ---------------------------------------- | ------- |
@@ -106,7 +131,7 @@ Hotspots per aspect (top ten), each classified essential or accidental, with the
 | Drop (DOMAIN, STATE)                     |         |
 | Extraction blockers                      |         |
 
-## 11. Follow-up
+## 12. Follow-up
 
 | Finding | Action (task id, pull request or backlog item) | Owner |
 | ------- | ---------------------------------------------- | ----- |

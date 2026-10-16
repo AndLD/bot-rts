@@ -1979,7 +1979,8 @@
         "action1": "Search the log by a part of the text, by level, request id, trace id, player id, bot id and node (admins). The trace id is on every line of a request, a tick or a job, and in the X-Trace-Id header of a response.",
         "action2": "See the slowest ticks of the engine, and open the trace of a log line (or a trace by its id): its spans over the nodes as a timeline and every line written in it, in order. Each read of a trace is audited as logs.read-trace.",
         "action3": "Filter the audit trail by who, what, to what, result and time, and open the before and after of a change.",
-        "action4": "Export the filtered trail as CSV (admins)."
+        "action4": "Export the filtered trail as CSV (admins).",
+        "action5": "Follow one request: paste its trace id (the X-Trace-Id header of a response, or a log line) into the trace id filter, or open the trace of a slow tick or request from its chart on the dashboard."
       },
       "devtools": {
         "title": "Dev tools",

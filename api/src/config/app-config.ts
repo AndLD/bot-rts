@@ -474,7 +474,9 @@ export function loadConfig(env: Env): AppConfig {
           : nodeEnv === 'production'
             ? 'json'
             : 'text',
-      isLogFileEnabled: env.LOG_FILE !== 'false',
+      // Production writes to the console (and the gateway) only; a file is for development, or asked for with LOG_FILE=true
+      isLogFileEnabled:
+        env.LOG_FILE === undefined || env.LOG_FILE === '' ? nodeEnv !== 'production' : env.LOG_FILE === 'true',
       otlpEndpoint: env.OTEL_EXPORTER_OTLP_ENDPOINT || undefined,
       otlpHeaders: headerList(env.OTEL_EXPORTER_OTLP_HEADERS),
       traceSampleRatio: ratio(env.OTEL_TRACES_SAMPLER_ARG, 1),

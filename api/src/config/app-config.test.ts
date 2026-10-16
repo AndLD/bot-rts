@@ -163,6 +163,17 @@ describe('loadConfig', () => {
   })
 
   describe('telemetry settings', () => {
+    it('writes the log file by default in development and not in production, unless LOG_FILE says otherwise', () => {
+      const fileOf = (env: Record<string, string>) =>
+        loadConfig({ ...base, JWT_ACCESS_SECRET: 'a', ...env }).observability.isLogFileEnabled
+
+      expect(fileOf({})).toBe(true)
+      expect(fileOf({ NODE_ENV: 'production' })).toBe(false)
+      expect(fileOf({ NODE_ENV: 'production', LOG_FILE: 'true' })).toBe(true)
+      expect(fileOf({ NODE_ENV: 'development', LOG_FILE: 'false' })).toBe(false)
+      expect(fileOf({ NODE_ENV: 'production', LOG_FILE: '' })).toBe(false)
+    })
+
     it('reads the log format, the file, the gateway, its headers, the sampling and the queue', () => {
       const { observability } = loadConfig({
         ...base,

@@ -1127,7 +1127,8 @@
           "liveWatchers": "Players watching a live area",
           "visionDiffsPerSecond": "Live-view updates per second",
           "eventsPerSecond": "Events per second",
-          "chunkCacheHitRate": "Map cache hit rate"
+          "chunkCacheHitRate": "Map cache hit rate",
+          "onlinePlayers": "Players online"
         },
         "api": {
           "requestsPerSecond": "Requests per second",
@@ -1135,7 +1136,11 @@
           "errorRate4xx": "Client errors (4xx)",
           "latencyP95Ms": "Request latency, 95th percentile",
           "latencyP50Ms": "Request latency, median",
-          "latencyP99Ms": "Request latency, 99th percentile"
+          "latencyP99Ms": "Request latency, 99th percentile",
+          "socketConnections": "Sockets open",
+          "socketConnects": "Sockets opened",
+          "socketReconnects": "Reconnects",
+          "rateLimitHits": "Requests refused by the rate limit"
         },
         "infrastructure": {
           "rssBytes": "Process memory",

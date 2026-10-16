@@ -2,6 +2,7 @@ import { Global, Module, OnApplicationShutdown, Inject } from '@nestjs/common'
 import { isMainThread } from 'worker_threads'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { CLOCK, Clock } from './application/clock'
+import { API_ACTIVITY, ApiActivity } from './application/api-activity'
 import { GAME_CLOCK, GAME_TIME, GameTimeState } from './application/game-clock'
 import { ID_GENERATOR } from './application/id-generator'
 import { LOG_BUFFER, LogBuffer } from './application/log-buffer'
@@ -24,6 +25,7 @@ const serviceNameOf = (config: AppConfig) =>
   providers: [
     { provide: CLOCK, useClass: SystemClock },
     { provide: ID_GENERATOR, useClass: UuidIdGenerator },
+    { provide: API_ACTIVITY, useFactory: () => new ApiActivity() },
     {
       provide: RNG,
       inject: [APP_CONFIG],
@@ -53,7 +55,7 @@ const serviceNameOf = (config: AppConfig) =>
         new RecordingLogger(telemetry.logger('app'), buffer, clock, telemetry.tracing)
     }
   ],
-  exports: [CLOCK, GAME_CLOCK, GAME_TIME, ID_GENERATOR, RNG, LOGGER, LOG_BUFFER, TRACING, TELEMETRY]
+  exports: [CLOCK, GAME_CLOCK, GAME_TIME, ID_GENERATOR, RNG, LOGGER, LOG_BUFFER, TRACING, TELEMETRY, API_ACTIVITY]
 })
 export class SharedModule implements OnApplicationShutdown {
   constructor(@Inject(TELEMETRY) private readonly telemetry: Telemetry) {}

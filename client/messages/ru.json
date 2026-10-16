@@ -1127,7 +1127,8 @@
           "liveWatchers": "Игроки, следящие за живой областью",
           "visionDiffsPerSecond": "Обновлений живого вида в секунду",
           "eventsPerSecond": "Событий в секунду",
-          "chunkCacheHitRate": "Попадания в кэш карты"
+          "chunkCacheHitRate": "Попадания в кэш карты",
+          "onlinePlayers": "Игроки онлайн"
         },
         "api": {
           "requestsPerSecond": "Запросов в секунду",
@@ -1135,7 +1136,11 @@
           "errorRate4xx": "Ошибки клиента (4xx)",
           "latencyP95Ms": "Задержка запросов, 95-й процентиль",
           "latencyP50Ms": "Задержка запросов, медиана",
-          "latencyP99Ms": "Задержка запросов, 99-й перцентиль"
+          "latencyP99Ms": "Задержка запросов, 99-й перцентиль",
+          "socketConnections": "Открытые сокеты",
+          "socketConnects": "Открыто сокетов",
+          "socketReconnects": "Переподключения",
+          "rateLimitHits": "Запросы, отклонённые лимитом"
         },
         "infrastructure": {
           "rssBytes": "Память процесса",

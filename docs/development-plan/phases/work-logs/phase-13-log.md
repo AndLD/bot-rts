@@ -175,3 +175,10 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Not done:** "online players" (a socket matter, with 13.8 (d)); "engine memory" per process is the infrastructure part (g); a suspended-executions count does not exist in the engine.
 - **Next step:** 13.8 (d), the API and socket metrics.
 - **Verify with:** `npm test -w api -- --selectProjects unit --testPathPattern 'engine-derived|engine-core|counting-sink|world|write-behind|live-vision'`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`
+
+### 2026-10-16 — task 13.8 (d) built: API and socket metrics
+- **Tasks:** 13.8 part (d); (e) to (g) are next
+- **Branch:** `feature/13.8b-engine-metrics` (the same pull request as (b) and (c), #197; the three parts share the metric catalog and the port)
+- **Decisions / deviations from the plan:** request latency p50/p99 came with (b). New `ApiActivity` (shared application, provided globally) holds the traffic counters of the API tier: sockets open, the players on them, sockets opened, **reconnects** (a player who comes back within a minute of leaving) and the requests the **rate limit** refused (`RateLimiter` tells it). The socket adapter tells it when a socket opens and closes, with the player of the authenticated handshake. The sampler reads it per node: `api.socketConnections`, `api.socketConnects`, `api.socketReconnects`, `api.rateLimitHits` (per sample) and `world.onlinePlayers`. The counters are per node, like the rest of the history, and add up across nodes in the console's minute sums.
+- **Next step:** 13.8 (e) to (g): database, jobs and notifications, infrastructure.
+- **Verify with:** `npm test -w api -- --selectProjects unit --testPathPattern 'api-activity|rate-limiter|presentation|runtime-metrics'`

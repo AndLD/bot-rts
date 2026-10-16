@@ -2,6 +2,7 @@ import { EnginePort } from '../../engine/application/engine-port'
 import { EngineMetricsSnapshot, SlowestTick } from '../../engine/application/engine-metrics'
 import { HttpMetrics, HttpTotals } from '../../metrics/application/http-metrics'
 import { Clock } from '../../shared/application/clock'
+import { ApiActivitySnapshot } from '../../shared/application/api-activity'
 import { engineDerivedMetrics } from './engine-derived-metrics'
 import { HistogramDefinition, histogramOf, percentileOf } from '../domain/histograms'
 import { GatewayProbe, HistogramSample, MetricSample, MetricsPort } from '../application/ports'
@@ -72,6 +73,7 @@ function tickHistogram(previous: EngineMetricsSnapshot, current: EngineMetricsSn
 export class RuntimeMetricsPort implements MetricsPort {
   private previousHttp: HttpTotals
   private previousEngine: EngineMetricsSnapshot | null = null
+  private previousActivity: ApiActivitySnapshot | null = null
   private previousAt: number
 
   constructor(
@@ -81,7 +83,9 @@ export class RuntimeMetricsPort implements MetricsPort {
     private readonly tickIntervalMs: number,
     private readonly clock: Clock,
     // Absent when the node has no gateway to watch
-    private readonly gateway?: GatewayProbe
+    private readonly gateway?: GatewayProbe,
+    // The traffic counters of this node's API tier
+    private readonly activity?: { snapshot(): ApiActivitySnapshot }
   ) {
     this.previousHttp = http.totals()
     this.previousAt = clock.now().getTime()
@@ -98,9 +102,28 @@ export class RuntimeMetricsPort implements MetricsPort {
     values['infrastructure.rssBytes'] = rssBytes
     values['infrastructure.heapUsedBytes'] = heapUsedBytes
     await this.readGateway(values)
+    this.readActivity(values)
     this.previousAt = at.getTime()
 
     return { at, values, histograms }
+  }
+
+  // Sockets and the rate limit: the open ones as they are, the rest per sample
+  private readActivity(values: Record<string, number>): void {
+    if (!this.activity) {
+      return
+    }
+    const current = this.activity.snapshot()
+    const previous = this.previousActivity
+
+    values['api.socketConnections'] = current.socketsOpen
+    values['world.onlinePlayers'] = current.onlinePlayers
+    if (previous) {
+      values['api.socketConnects'] = current.socketConnects - previous.socketConnects
+      values['api.socketReconnects'] = current.socketReconnects - previous.socketReconnects
+      values['api.rateLimitHits'] = current.rateLimitHits - previous.rateLimitHits
+    }
+    this.previousActivity = current
   }
 
   private async readGateway(values: Record<string, number>): Promise<void> {

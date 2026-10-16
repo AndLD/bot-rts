@@ -2,6 +2,7 @@ import { FakeClock } from '../../../tests/fakes/fakes'
 import { EngineMetricsSnapshot, TICK_BOUNDS_MS } from '../../engine/application/engine-metrics'
 import { EnginePort } from '../../engine/application/engine-port'
 import { HttpMetrics } from '../../metrics/application/http-metrics'
+import { ApiActivity } from '../../shared/application/api-activity'
 import { RuntimeMetricsPort } from './runtime-metrics.port'
 
 const TICKS_NONE = TICK_BOUNDS_MS.map(() => 0).concat(0)
@@ -238,5 +239,45 @@ describe('RuntimeMetricsPort distributions', () => {
     const { histograms } = await port.sample()
 
     expect(histograms?.['engine.tickMs']).toMatchObject({ slowestMs: null, slowestTraceId: null })
+  })
+})
+
+describe('RuntimeMetricsPort sockets and the rate limit', () => {
+  it('reports the sockets open and the players on them, and the rest per sample from the second reading on', async () => {
+    const activity = new ApiActivity()
+    const port = new RuntimeMetricsPort(
+      { metrics: async () => snapshot() } as unknown as EnginePort,
+      new HttpMetrics(),
+      () => ({ rssBytes: 1, heapUsedBytes: 1 }),
+      100,
+      new FakeClock(),
+      undefined,
+      activity
+    )
+    activity.socketOpened('alice', 0)
+    const first = await port.sample()
+    activity.socketOpened('bob', 1)
+    activity.socketClosed('alice', 2)
+    activity.socketOpened('alice', 3)
+    activity.rateLimitHit()
+    activity.rateLimitHit()
+
+    const second = await port.sample()
+
+    expect(first.values).toMatchObject({ 'api.socketConnections': 1, 'world.onlinePlayers': 1 })
+    expect(first.values).not.toHaveProperty('api.socketConnects')
+    expect(second.values).toMatchObject({
+      'api.socketConnections': 2,
+      'world.onlinePlayers': 2,
+      'api.socketConnects': 2,
+      'api.socketReconnects': 1,
+      'api.rateLimitHits': 2
+    })
+  })
+
+  it('reports nothing about sockets for a node without the counters', async () => {
+    const { port } = setup()
+
+    expect((await port.sample()).values).not.toHaveProperty('api.socketConnections')
   })
 })

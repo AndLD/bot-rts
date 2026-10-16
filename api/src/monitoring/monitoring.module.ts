@@ -24,6 +24,7 @@ import {
 import { PrismaMetricHistoryRepository } from './infrastructure/prisma-metric-history.repository'
 import { PRISMA_CLIENT } from '../persistence/infrastructure/prisma-client'
 import { PrismaClient } from '@prisma/client'
+import { API_ACTIVITY, ApiActivity } from '../shared/application/api-activity'
 import { nodeId } from '../shared/infrastructure/node-id'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
@@ -63,15 +64,16 @@ export function createHistoryStore(
     MonitoringGateway,
     {
       provide: METRICS_PORT,
-      inject: [ENGINE_PORT, HttpMetrics, APP_CONFIG, CLOCK],
-      useFactory: (engine: EnginePort, http: HttpMetrics, config: AppConfig, clock: Clock) =>
+      inject: [ENGINE_PORT, HttpMetrics, APP_CONFIG, CLOCK, API_ACTIVITY],
+      useFactory: (engine: EnginePort, http: HttpMetrics, config: AppConfig, clock: Clock, activity: ApiActivity) =>
         new RuntimeMetricsPort(
           engine,
           http,
           () => ({ rssBytes: process.memoryUsage().rss, heapUsedBytes: process.memoryUsage().heapUsed }),
           config.engine.tickIntervalMs,
           clock,
-          gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS)
+          gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS),
+          activity
         )
     },
     {

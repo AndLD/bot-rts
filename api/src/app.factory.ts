@@ -10,6 +10,8 @@ import { AppModule } from './app.module'
 import { REFRESH_COOKIE } from './auth/presentation/refresh-cookie'
 import { AppConfig } from './config/app-config'
 import { LOGGER, Logger } from './shared/application/logger'
+import { API_ACTIVITY, ApiActivity } from './shared/application/api-activity'
+import { CLOCK, Clock } from './shared/application/clock'
 import { TRACING, Tracing } from './shared/application/tracing'
 import { ValidationError } from './shared/domain/errors'
 import { AppExceptionFilter } from './shared/presentation/app-exception.filter'
@@ -78,6 +80,8 @@ export async function configureApp(app: NestExpressApplication, config: AppConfi
       app,
       originMatcher([...config.corsOrigins, config.adminUrl]),
       tracing,
+      app.get<ApiActivity>(API_ACTIVITY),
+      app.get<Clock>(CLOCK),
       connect ? { publisher: connect(), subscriber: connect() } : undefined
     )
   )

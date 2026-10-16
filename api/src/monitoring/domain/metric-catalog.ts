@@ -40,6 +40,7 @@ export const METRIC_CATALOG: readonly MetricDefinition[] = [
   { id: 'scripts.killedBySlice', area: 'scripts', unit: 'count' },
   // The longest wait for a turn of one player less the shortest of another (fairness between players)
   { id: 'scripts.waitSpreadTicks', area: 'scripts', unit: 'ticks' },
+  { id: 'world.onlinePlayers', area: 'world', unit: 'count' },
   { id: 'world.activeBots', area: 'world', unit: 'count' },
   { id: 'world.activePlayers', area: 'world', unit: 'count' },
   { id: 'world.botsPerPlayer', area: 'world', unit: 'number' },
@@ -51,6 +52,11 @@ export const METRIC_CATALOG: readonly MetricDefinition[] = [
   { id: 'api.requestsPerSecond', area: 'api', unit: 'perSecond' },
   { id: 'api.errorRate5xx', area: 'api', unit: 'ratio' },
   { id: 'api.errorRate4xx', area: 'api', unit: 'ratio' },
+  // Sockets open now, sockets opened and players who came back within a minute (per sample), and requests the rate limit refused (per sample)
+  { id: 'api.socketConnections', area: 'api', unit: 'count' },
+  { id: 'api.socketConnects', area: 'api', unit: 'count' },
+  { id: 'api.socketReconnects', area: 'api', unit: 'count' },
+  { id: 'api.rateLimitHits', area: 'api', unit: 'count' },
   { id: 'api.latencyP50Ms', area: 'api', unit: 'ms' },
   { id: 'api.latencyP95Ms', area: 'api', unit: 'ms' },
   { id: 'api.latencyP99Ms', area: 'api', unit: 'ms' },

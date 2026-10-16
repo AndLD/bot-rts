@@ -32,6 +32,33 @@ export interface ILogPage {
   store: LogStoreName
 }
 
+export type SpanStatusName = 'unset' | 'ok' | 'error'
+
+// One span of a trace, as the trace view draws it
+export interface ITraceSpan {
+  spanId: string
+  parentSpanId: string | null
+  name: string
+  kind: 'internal' | 'server' | 'client' | 'producer' | 'consumer'
+  // The service and the process that ran it
+  service: string | null
+  node: string | null
+  // Milliseconds since the epoch, and how long it took
+  startedAt: number
+  durationMs: number
+  status: SpanStatusName
+}
+
+// A trace: its spans, and every log line written in it by every node, oldest first
+export interface ITraceView {
+  traceId: string
+  store: LogStoreName
+  spans: ITraceSpan[]
+  logs: ILogLine[]
+  // The lines of the trace that did not fit in one answer
+  isLogCut: boolean
+}
+
 // A process that wrote to the log, for the node filter
 export interface ILogNode {
   id: string

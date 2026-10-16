@@ -87,12 +87,17 @@ deployment must not.
 
 **Reading the logs.** The admin console reads them through `LOG_STORE=elasticsearch` with `ELASTICSEARCH_URL` and a **read-only**
 account of its own: an API key (`ELASTICSEARCH_API_KEY`) or a user and a password. Create a role that may only `read` and
-`view_index_metadata` on `botrts-logs` (and `botrts-traces` for task 13.4), and a key or user with that role; the gateway uses another
+`view_index_metadata` on `botrts-logs` and `botrts-traces`, and a key or user with that role; the gateway uses another
 account that may only write. A search is bound to a time range of at most `LOG_SEARCH_MAX_WINDOW_DAYS` (default 7; the default
 range is the last 24 hours), a page of at most 500 lines within the first 10,000, and `LOG_SEARCH_TIMEOUT_MS` (default 5 s). Words are
 matched as whole words or ids, not as fragments. With `LOG_STORE=memory` (the default) the page shows the recent lines of the node that
 answers, as before. When Elasticsearch is down the Logs page says that the log store cannot be reached (`503 LOG_STORE_UNAVAILABLE`);
 the rest of the console works.
+
+**Reading a trace.** The Logs page opens a trace (`GET /api/v1/admin/traces/:id`) from a line, or from a trace id or the request id of an
+older line: the spans from `TRACE_INDEX` (default `botrts-traces`) over the last `LOG_SEARCH_MAX_WINDOW_DAYS` days, and every log
+line of that trace from every node, oldest first, up to 500. Each read leaves an audit entry (`logs.read-trace`) with the trace id.
+A trace that sampling left out (`OTEL_TRACES_SAMPLER_ARG`) has its lines but no spans; with `LOG_STORE=memory` no trace has spans.
 
 **When something is down.**
 

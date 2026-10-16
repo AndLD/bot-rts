@@ -1,10 +1,11 @@
 'use client'
 
-import { Alert, Button, Form, Input, Select, Space, Table, Tag } from 'antd'
+import { Alert, Button, Drawer, Form, Input, Select, Space, Table, Tag } from 'antd'
 import { useState } from 'react'
 import { useFormatter, useTranslations } from 'next-intl'
 import { LOG_LEVELS, LOG_PAGE_MAX, LogLevelName } from '@lib/utils/admin-logs'
 import { useLogsNodesQuery, useLogsSearchQuery } from '../../../shared/api'
+import TraceView from './TraceView'
 
 const LEVEL_COLOR: Record<LogLevelName, string> = { info: 'default', warn: 'gold', error: 'red' }
 const PAGE = 100
@@ -19,6 +20,7 @@ interface Filters {
   node?: string
 }
 
+const TRACE_REF = /^[\w.-]{1,64}$/
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // The log of the nodes (design §25.3): by a part of the text, request, trace, player, bot, level and node. With the log store it
@@ -28,6 +30,7 @@ export default function LogSearch() {
   const format = useFormatter()
   const [filters, setFilters] = useState<Filters>({})
   const [results, setResults] = useState(PAGE)
+  const [openTrace, setOpenTrace] = useState<string | null>(null)
   const { data, isFetching, isError, refetch } = useLogsSearchQuery({ ...filters, results })
   const { data: nodes } = useLogsNodesQuery()
 
@@ -78,6 +81,13 @@ export default function LogSearch() {
         </Button>
         <Button onClick={() => refetch()}>{t('refresh')}</Button>
       </Form>
+      <Input.Search
+        allowClear
+        style={{ maxWidth: 560 }}
+        placeholder={t('openTraceById')}
+        enterButton={t('openTrace')}
+        onSearch={(value) => TRACE_REF.test(value.trim()) && setOpenTrace(value.trim())}
+      />
       {isError ? <Alert type="error" message={t('loadFailed')} /> : null}
       {data ? (
         <span>
@@ -114,8 +124,18 @@ export default function LogSearch() {
           {
             title: t('traceId'),
             dataIndex: 'traceId',
-            width: 270,
-            render: (id: string | null) => (id ? <code>{id}</code> : '–')
+            width: 360,
+            render: (id: string | null) =>
+              id ? (
+                <Space size={4} wrap>
+                  <code>{id}</code>
+                  <Button size="small" type="link" onClick={() => setOpenTrace(id)}>
+                    {t('openTrace')}
+                  </Button>
+                </Space>
+              ) : (
+                '–'
+              )
           },
           {
             title: t('message'),
@@ -124,6 +144,15 @@ export default function LogSearch() {
           }
         ]}
       />
+      <Drawer
+        open={openTrace !== null}
+        onClose={() => setOpenTrace(null)}
+        width={1000}
+        title={t('trace.title')}
+        destroyOnClose
+      >
+        {openTrace ? <TraceView id={openTrace} /> : null}
+      </Drawer>
       {data && data.lines.length < data.total && data.lines.length >= results && results < LOG_PAGE_MAX ? (
         <Button onClick={() => setResults(results + PAGE)}>{t('more')}</Button>
       ) : null}

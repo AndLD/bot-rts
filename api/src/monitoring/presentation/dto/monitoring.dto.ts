@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsIn, IsString } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsIn, IsOptional, IsString, Length } from 'class-validator'
 import {
   HEALTH_STATUSES,
   HealthStatus,
@@ -19,6 +19,20 @@ export class SeriesQueryDto {
   @ApiProperty({ example: 'engine.tickP95Ms' })
   metric!: string
 
+  @IsIn(METRIC_RANGES)
+  @ApiProperty({ enum: METRIC_RANGES })
+  range!: MetricRange
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  @ApiPropertyOptional({
+    description: 'One node (host and process id, from the nodes list); the default is every node'
+  })
+  node?: string
+}
+
+export class NodesQueryDto {
   @IsIn(METRIC_RANGES)
   @ApiProperty({ enum: METRIC_RANGES })
   range!: MetricRange

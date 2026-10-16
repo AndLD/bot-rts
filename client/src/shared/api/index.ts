@@ -163,6 +163,7 @@ export const {
   useMonitoringAcknowledgeMutation,
   useMonitoringHealthQuery,
   useMonitoringSeriesQuery,
+  useMonitoringNodesQuery,
   useAdminEnrollMutation,
   useAdminConfirmMutation,
   useAdminVerifyMutation,

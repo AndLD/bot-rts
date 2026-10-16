@@ -159,8 +159,8 @@ model Session {
   viewAsUserId     String?   @map("view_as_user_id") @db.Uuid
   viewAsReason     String?   @map("view_as_reason")
 
-  user                 User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  adminVerification    AdminSessionVerification?
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminVerification AdminSessionVerification?
 
   @@index([userId])
   @@map("sessions")
@@ -671,4 +671,33 @@ model BalanceVersion {
   createdAt DateTime @map("created_at") @db.Timestamptz(3)
 
   @@map("balance_versions")
+}
+
+// One minute of one metric on one node of the admin console's monitoring history (design §25.5): the sum and the number of its
+// samples, so that the minutes of several nodes and several minutes merge into an average. Every node writes its own rows.
+model MetricMinute {
+  node   String
+  minute DateTime @db.Timestamptz(3)
+  metric String
+  sum    Float
+  count  Int
+
+  @@id([node, minute, metric])
+  @@index([minute])
+  @@map("metric_minutes")
+}
+
+// The distribution of a latency or a duration during one minute on one node: how many observations fell into each bucket (the bounds are
+// in the code), and the slowest one with the trace it was in. Percentiles over several nodes come from the merged counts.
+model HistogramMinute {
+  node           String
+  minute         DateTime @db.Timestamptz(3)
+  histogram      String
+  counts         Int[]
+  slowestMs      Float?   @map("slowest_ms")
+  slowestTraceId String?  @map("slowest_trace_id")
+
+  @@id([node, minute, histogram])
+  @@index([minute])
+  @@map("histogram_minutes")
 }

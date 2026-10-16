@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { Alert } from '../domain/alert'
 import { AlertManager } from './alert-manager'
 import { MetricHistory } from './metric-history'
+import { MemoryMetricHistoryStore } from './metric-history-store'
 import { MonitoringService } from './monitoring.service'
 import { AlertNotifier, MetricSample, MetricsPort } from './ports'
 
@@ -29,7 +30,10 @@ function setup(thresholds = {}) {
   const clock = new FakeClock()
   const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() }
   const alerts = new AlertManager(thresholds, notifier, new SequentialIdGenerator(), clock)
-  const history = new MetricHistory([{ stepMs: 10_000, retentionMs: 3_600_000 }])
+  const history = new MemoryMetricHistoryStore(
+    new MetricHistory([{ stepMs: 10_000, retentionMs: 3_600_000 }]),
+    'host:1'
+  )
   const service = new MonitoringService(port, history, alerts, clock, logger as never)
   const sample = (values: Record<string, number>) => {
     port.next = { at: clock.now(), values }
@@ -77,18 +81,29 @@ describe('MonitoringService sampling', () => {
     const { service, sample } = setup()
     await sample({ 'engine.up': 1, 'engine.lastTickMs': 12 })
 
-    expect(service.series('engine.lastTickMs', '1h')).toEqual({
+    expect(await service.series('engine.lastTickMs', '1h')).toEqual({
       metric: 'engine.lastTickMs',
       stepMs: 10_000,
       points: [[new FakeClock().now().getTime(), 12]]
     })
   })
 
-  it('refuses an unknown metric or range', () => {
+  it('refuses an unknown metric or range', async () => {
     const { service } = setup()
 
-    expect(() => service.series('nope', '1h')).toThrow(ValidationError)
-    expect(() => service.series('engine.up', '2h' as never)).toThrow(ValidationError)
+    await expect(service.series('nope', '1h')).rejects.toThrow(ValidationError)
+    await expect(service.series('engine.up', '2h' as never)).rejects.toThrow(ValidationError)
+    expect(() => service.nodes('2h' as never)).toThrow(ValidationError)
+  })
+
+  it('names the nodes of the history, narrows a series to one node, and writes the open minute on request', async () => {
+    const { service, sample } = setup()
+    await sample({ 'engine.up': 1, 'engine.lastTickMs': 12 })
+
+    expect(await service.nodes('1h')).toEqual(['host:1'])
+    expect((await service.series('engine.lastTickMs', '1h', 'host:1')).points).toHaveLength(1)
+    expect((await service.series('engine.lastTickMs', '1h', 'host:2')).points).toEqual([])
+    await expect(service.flushHistory()).resolves.toBeUndefined()
   })
 
   it('logs a failed sample and keeps going', async () => {

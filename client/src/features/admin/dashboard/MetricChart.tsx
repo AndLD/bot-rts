@@ -12,14 +12,17 @@ const POLL_MS = 15_000
 export default function MetricChart({
   metric,
   unit,
-  range
+  range,
+  node
 }: {
   metric: string
   unit: IMetricHealth['unit']
   range: MetricRange
+  // One node, or every node when absent
+  node?: string
 }) {
   const t = useTranslations('admin.dashboard')
-  const { data } = useMonitoringSeriesQuery({ metric, range }, { pollingInterval: POLL_MS })
+  const { data } = useMonitoringSeriesQuery({ metric, range, node }, { pollingInterval: POLL_MS })
   const title = t(`metrics.${metric}`)
 
   return (

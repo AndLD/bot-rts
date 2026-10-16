@@ -148,6 +148,9 @@ export interface MonitoringConfig {
   fineRetentionMs: number
   coarseStepMs: number
   coarseRetentionMs: number
+  // Where the history is kept: `memory` (this process only, as before) or `postgres` (the coarse tier of every node in the database,
+  // so the console sees all nodes). Postgres is the default in production and on a node of a scaled deployment.
+  history: 'memory' | 'postgres'
   // Who is emailed about a red alert
   alertEmails: string[]
   // Overrides of the default alert thresholds, by metric id
@@ -331,6 +334,12 @@ export function loadConfig(env: Env): AppConfig {
     problems
   )
 
+  const monitoringHistory =
+    env.MONITORING_HISTORY ||
+    (env.NODE_ENV === 'production' || (env.APP_ROLE || 'all') !== 'all' ? 'postgres' : 'memory')
+  if (monitoringHistory !== 'memory' && monitoringHistory !== 'postgres') {
+    problems.push('MONITORING_HISTORY must be memory or postgres')
+  }
   const logStore = env.LOG_STORE || 'memory'
   if (logStore !== 'memory' && logStore !== 'elasticsearch') {
     problems.push('LOG_STORE must be memory or elasticsearch')
@@ -447,6 +456,7 @@ export function loadConfig(env: Env): AppConfig {
       fineRetentionMs: fineRetention,
       coarseStepMs: 60_000,
       coarseRetentionMs: coarseRetention,
+      history: monitoringHistory as 'memory' | 'postgres',
       alertEmails: list(env.ADMIN_ALERT_EMAILS),
       thresholds
     },

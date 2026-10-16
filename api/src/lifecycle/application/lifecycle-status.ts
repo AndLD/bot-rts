@@ -10,6 +10,7 @@ export interface LifecycleReport {
   notificationsDeleted: number
   authRowsDeleted: number
   playerActivityDeleted: number
+  monitoringHistoryDeleted: number
 }
 
 export const EMPTY_REPORT: LifecycleReport = {
@@ -21,7 +22,8 @@ export const EMPTY_REPORT: LifecycleReport = {
   executionsDeleted: 0,
   notificationsDeleted: 0,
   authRowsDeleted: 0,
-  playerActivityDeleted: 0
+  playerActivityDeleted: 0,
+  monitoringHistoryDeleted: 0
 }
 
 // What the cleanup job did, for the metrics and the admin console (design §25, "Operations")
@@ -55,7 +57,8 @@ const SERIES: Array<[keyof LifecycleReport, string, string]> = [
   ['executionsDeleted', 'executions', 'Finished script executions dropped'],
   ['notificationsDeleted', 'notifications', 'Player notifications dropped by retention'],
   ['authRowsDeleted', 'auth_rows', 'Expired logins and links dropped'],
-  ['playerActivityDeleted', 'player_activity', 'Days of player activity dropped by retention']
+  ['playerActivityDeleted', 'player_activity', 'Days of player activity dropped by retention'],
+  ['monitoringHistoryDeleted', 'monitoring_history', 'Minutes of the monitoring history dropped by retention']
 ]
 
 // The series of the cleanup job for the metrics endpoint

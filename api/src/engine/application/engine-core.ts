@@ -487,7 +487,8 @@ export class EngineCore {
       isCut: isCut || reached < planned.length,
       queuedExecutions: this.live.size - planned.length,
       deferredExecutions: planned.length - reached,
-      maxWaitTicks
+      maxWaitTicks,
+      traceId: span.context?.traceId ?? null
     })
   }
 

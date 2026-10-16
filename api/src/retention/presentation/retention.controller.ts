@@ -20,7 +20,7 @@ const REPORT_KEYS: Readonly<Record<RetentionJob, readonly string[] | null>> = {
   unverifiedAccounts: ['unverifiedAccountsDeleted'],
   inactiveAccounts: ['inactiveAccountsErased'],
   playerActivity: ['playerActivityDeleted'],
-  monitoring: null,
+  monitoring: ['monitoringHistoryDeleted'],
   logs: null
 }
 

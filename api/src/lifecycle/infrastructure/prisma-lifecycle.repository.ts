@@ -90,4 +90,11 @@ export class PrismaLifecycleRepository implements LifecycleRepository {
   async deletePlayerActivityBefore(before: Date): Promise<number> {
     return (await this.db.playerActivity.deleteMany({ where: { day: { lt: before } } })).count
   }
+
+  async deleteMetricHistoryBefore(before: Date): Promise<number> {
+    const minutes = await this.db.metricMinute.deleteMany({ where: { minute: { lt: before } } })
+    const histograms = await this.db.histogramMinute.deleteMany({ where: { minute: { lt: before } } })
+
+    return minutes.count + histograms.count
+  }
 }

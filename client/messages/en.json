@@ -1064,6 +1064,7 @@
       "alerts": "Alerts",
       "noAlerts": "No open alerts",
       "noData": "No data yet",
+      "allNodes": "All nodes",
       "acknowledge": "Acknowledge",
       "acknowledged": "Acknowledged",
       "status": {
@@ -1822,7 +1823,7 @@
         "title": "Dashboard",
         "intro": "Live health of the game: the engine, scripts, the API and the machine, in numbers and charts, with the alerts that are open.",
         "actionsTitle": "What you can do",
-        "action1": "Pick the time range of the charts.",
+        "action1": "Pick the time range of the charts, and the node they show (every node by default; with MONITORING_HISTORY=postgres the one-minute history of all nodes is in the database).",
         "action2": "See which metrics are yellow or red, and why.",
         "action3": "Acknowledge an alert once someone is on it (admins)."
       },

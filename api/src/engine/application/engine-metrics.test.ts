@@ -1,4 +1,6 @@
-import { EngineMetrics } from './engine-metrics'
+import { EngineMetrics, TICK_BOUNDS_MS } from './engine-metrics'
+
+const EMPTY_BUCKETS = TICK_BOUNDS_MS.map(() => 0).concat(0)
 
 const sample = (tick: number, durationMs: number, isCut = false, scheduler = {}) => ({
   tick,
@@ -22,7 +24,9 @@ describe('EngineMetrics', () => {
       queuedExecutions: 0,
       deferredExecutions: 0,
       maxWaitTicks: 0,
-      slowTicks: []
+      slowTicks: [],
+      tickBuckets: EMPTY_BUCKETS,
+      slowestTicks: []
     })
   })
 
@@ -42,7 +46,10 @@ describe('EngineMetrics', () => {
       maxWaitTicks: 0,
       slowTicks: [
         { tick: 21, durationMs: 150, intervalMs: 100, isCut: true, queuedExecutions: 0, deferredExecutions: 0 }
-      ]
+      ],
+      // ticks of 1 to 20 ms: 1 | 2 | 3-5 (3) | 6-10 (5) | 11-20 (10); 150 ms is in the bucket up to 200
+      tickBuckets: [1, 1, 3, 5, 10, 0, 0, 1, 0, 0, 0],
+      slowestTicks: [{ tick: 21, durationMs: 150, traceId: null }]
     })
   })
 
@@ -70,5 +77,37 @@ describe('EngineMetrics', () => {
     metrics.record(sample(2, 5, false, { queuedExecutions: 1, deferredExecutions: 0, maxWaitTicks: 0 }))
 
     expect(metrics.snapshot()).toMatchObject({ queuedExecutions: 1, deferredExecutions: 0, maxWaitTicks: 0 })
+  })
+
+  it('counts the ticks per duration bucket, with one bucket above the last bound', () => {
+    const metrics = new EngineMetrics()
+    for (const [tick, ms] of [
+      [1, 0.5],
+      [2, 1],
+      [3, 7],
+      [4, 999],
+      [5, 5000]
+    ])
+      metrics.record(sample(tick, ms))
+
+    expect(metrics.snapshot().tickBuckets).toEqual([2, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1])
+  })
+
+  it('keeps the slowest tick of each block of a hundred ticks with its trace, and the newest twelve blocks', () => {
+    const metrics = new EngineMetrics()
+    metrics.record({ ...sample(1, 4), traceId: 'a'.repeat(32) })
+    metrics.record({ ...sample(2, 9), traceId: 'b'.repeat(32) })
+    metrics.record({ ...sample(3, 6), traceId: 'c'.repeat(32) })
+    metrics.record(sample(101, 2))
+    for (let block = 2; block <= 14; block++) metrics.record(sample(block * 100 + 1, block))
+
+    const slowest = metrics.snapshot().slowestTicks
+    expect(slowest).toHaveLength(12)
+    expect(slowest[0]).toEqual({ tick: 301, durationMs: 3, traceId: null })
+    const first = new EngineMetrics()
+    first.record({ ...sample(1, 4), traceId: 'a'.repeat(32) })
+    first.record({ ...sample(2, 9), traceId: 'b'.repeat(32) })
+    first.record({ ...sample(3, 6), traceId: 'c'.repeat(32) })
+    expect(first.snapshot().slowestTicks).toEqual([{ tick: 2, durationMs: 9, traceId: 'b'.repeat(32) }])
   })
 })

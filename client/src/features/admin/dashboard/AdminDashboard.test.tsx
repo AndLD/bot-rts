@@ -117,6 +117,9 @@ function serve(report: IHealthReport | 'broken', onCall: (call: Call) => unknown
             }
           }
     }
+    if (args.url === '/api/v1/admin/monitoring/nodes') {
+      return { data: ['host:1', 'host:2'] }
+    }
     return { data: {} }
   }) as never)
 
@@ -190,6 +193,23 @@ describe('AdminDashboard', () => {
     expect(
       await screen.findByText('Log gateway queue (batches)', { selector: '.ant-card-head-title' })
     ).toBeInTheDocument()
+  })
+
+  it('reads the series of every node, or of the one chosen in the node list', async () => {
+    const calls = serve(health())
+    renderDashboard()
+    await screen.findByText('42.5 ms')
+    await waitFor(() =>
+      expect(calls.some((call) => call.url.endsWith('/series') && call.params?.node === undefined)).toBe(true)
+    )
+
+    fireEvent.mouseDown(screen.getByText('All nodes'))
+    fireEvent.click(await screen.findByText('host:2', { selector: '.ant-select-item-option-content' }))
+
+    await waitFor(() =>
+      expect(calls.some((call) => call.url.endsWith('/series') && call.params?.node === 'host:2')).toBe(true)
+    )
+    expect(calls.some((call) => call.url.endsWith('/nodes') && call.params?.range === '1h')).toBe(true)
   })
 
   it('reads the series again for another time range', async () => {

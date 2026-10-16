@@ -160,6 +160,7 @@ describe('ElasticsearchLogStore nodes', () => {
       { id: 'host:2', services: ['botrts-api'] }
     ])
     expect(calls[0].body.size).toBe(0)
+    expect(calls[0].body.aggs.nodes.terms.order).toEqual({ latest: 'desc' })
   })
 
   it('lists none when there is no data stream yet or no answer carries buckets', async () => {

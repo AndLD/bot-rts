@@ -205,4 +205,21 @@ describe('retention of game data', () => {
     expect(await repository.deletePlayerActivityBefore(new Date('2025-09-01'))).toBe(2)
     expect(await database.client.playerActivity.count()).toBe(1)
   })
+
+  it('drops the minutes of the monitoring history of every node that are older than the cut-off', async () => {
+    await database.client.metricMinute.createMany({
+      data: [
+        { node: 'a', minute: new Date('2025-01-01T00:00:00Z'), metric: 'm', sum: 1, count: 1 },
+        { node: 'b', minute: new Date('2025-01-01T00:00:00Z'), metric: 'm', sum: 1, count: 1 },
+        { node: 'a', minute: new Date('2026-01-01T00:00:00Z'), metric: 'm', sum: 1, count: 1 }
+      ]
+    })
+    await database.client.histogramMinute.create({
+      data: { node: 'a', minute: new Date('2025-01-01T00:00:00Z'), histogram: 'h', counts: [1] }
+    })
+
+    expect(await repository.deleteMetricHistoryBefore(new Date('2025-09-01'))).toBe(3)
+    expect(await database.client.metricMinute.count()).toBe(1)
+    expect(await database.client.histogramMinute.count()).toBe(0)
+  })
 })

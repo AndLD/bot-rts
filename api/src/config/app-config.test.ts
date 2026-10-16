@@ -62,6 +62,7 @@ describe('loadConfig', () => {
         fineRetentionMs: 7 * 24 * 60 * 60 * 1000,
         coarseStepMs: 60_000,
         coarseRetentionMs: 30 * 24 * 60 * 60 * 1000,
+        history: 'memory',
         alertEmails: [],
         thresholds: {}
       },

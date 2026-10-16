@@ -1,7 +1,8 @@
 import { PrometheusText } from './prometheus'
 
 // Seconds; from a cached read to a slow engine round trip
-const BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30]
+export const HTTP_BOUNDS_SECONDS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30]
+const BUCKETS = HTTP_BOUNDS_SECONDS
 
 interface Series {
   count: number
@@ -23,13 +24,25 @@ export interface HttpObservation {
   route: string
   status: number
   durationMs: number
+  // The trace of the request, if it had one: kept for the slowest request of a period
+  traceId?: string
+}
+
+// The slowest request since the last time it was taken, and the trace it was served in
+export interface SlowestRequest {
+  durationMs: number
+  traceId: string | null
 }
 
 // Request counts and a latency histogram per method, route pattern and status class
 export class HttpMetrics {
   private readonly series = new Map<string, Series & { method: string; route: string; statusClass: string }>()
+  private slowest: SlowestRequest | null = null
 
-  observe({ method, route, status, durationMs }: HttpObservation): void {
+  observe({ method, route, status, durationMs, traceId }: HttpObservation): void {
+    if (!this.slowest || durationMs > this.slowest.durationMs) {
+      this.slowest = { durationMs, traceId: traceId ?? null }
+    }
     const statusClass = `${Math.floor(status / 100)}xx`
     const key = `${method} ${route} ${statusClass}`
     const series = this.series.get(key) ?? {
@@ -50,6 +63,14 @@ export class HttpMetrics {
       }
     })
     this.series.set(key, series)
+  }
+
+  // The slowest request since the last call (the sampler of the console takes it once per sample), then starts over
+  takeSlowest(): SlowestRequest | null {
+    const slowest = this.slowest
+    this.slowest = null
+
+    return slowest
   }
 
   totals(): HttpTotals {

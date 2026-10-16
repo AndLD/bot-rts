@@ -48,7 +48,7 @@ export default function AdminKeysPage() {
               scopes: values.scopes as string[],
               reason: values.reason,
               expiresInDays: values.expiresInDays as number,
-              ipAllowList: (values.ipAllowList as string[] | undefined) ?? []
+              ipAllowList: values.ipAllowList as string[]
             }
           })
 

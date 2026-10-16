@@ -115,6 +115,12 @@ describe('AdminKeysPage', () => {
       })
     )
     expect(await screen.findByTestId('admin-key-secret')).toHaveTextContent('botrts_the_secret')
+    const writeText = jest.fn()
+    Object.assign(navigator, { clipboard: { writeText } })
+    fireEvent.click(screen.getByRole('button', { name: 'Copy the key' }))
+    expect(writeText).toHaveBeenCalledWith('botrts_the_secret')
+    fireEvent.click(document.querySelector('.ant-alert-close-icon') as HTMLElement)
+    await waitFor(() => expect(screen.queryByTestId('admin-key-secret')).toBeNull())
     await waitFor(() => expect(document.querySelector('.ant-modal')).toBeNull())
   })
 

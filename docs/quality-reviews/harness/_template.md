@@ -25,6 +25,7 @@ Scale `1` (poor) to `5` (excellent). Carried scores (delta reviews) are marked `
 | D12 Open items and completeness    |          |         | 4      |       |
 | D13 Complexity                     |          |         | 4      |       |
 | D14 Parallel execution             |          |         | 4      |       |
+| D15 Skills and hooks               |          |         | 4      |       |
 | **Blueprint readiness**            |          | `%`     | 90 %   |       |
 
 Gate: pass | fail (reason).
@@ -121,7 +122,21 @@ Hotspots and their treatment (remove, serialize with an owner, accept):
 
 Blockers to parallelism and the fix for each. Recommended number of agents, expected speedup for 2, 3 and 4 agents, write-set probe result (P7).
 
-## 11. Export dry run
+## 11. Skills and hooks (D15)
+
+Carrier inventory (M32):
+
+| Carrier | Name or event | Trigger or matcher | Size or action | Note |
+| ------- | ------------- | ------------------ | -------------- | ---- |
+
+Rule-to-carrier proposals (M33):
+
+| Rule or workflow | Location | Current carrier | Best carrier | Trigger or event | Check that proves it | Gain (words, guarantee, feedback) |
+| ---------------- | -------- | --------------- | ------------ | ---------------- | -------------------- | --------------------------------- |
+
+Defects in existing skills and hooks (stale, overlapping owner, slow, no bypass).
+
+## 12. Export dry run
 
 | Bucket                                   | Content |
 | ---------------------------------------- | ------- |
@@ -131,7 +146,7 @@ Blockers to parallelism and the fix for each. Recommended number of agents, expe
 | Drop (DOMAIN, STATE)                     |         |
 | Extraction blockers                      |         |
 
-## 12. Follow-up
+## 13. Follow-up
 
 | Finding | Action (task id, pull request or backlog item) | Owner |
 | ------- | ---------------------------------------------- | ----- |

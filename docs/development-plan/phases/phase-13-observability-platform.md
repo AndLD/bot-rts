@@ -48,4 +48,4 @@ AGENTS.md §7.1).
 | `feature/13.8a-metrics-history` | 13.8 (a) | [#196](https://github.com/AndLD/bot-rts/pull/196) | ✅ Merged |
 | `feature/13.8b-engine-metrics` | 13.8 (b) to (g) | [#197](https://github.com/AndLD/bot-rts/pull/197) | ✅ Merged |
 | `feature/13.6-open-trace-links` | 13.6 | [#198](https://github.com/AndLD/bot-rts/pull/198) | ✅ Merged |
-| `feature/13.7-cutover-runbook` | 13.7 | pending | 🟡 In review |
+| `feature/13.7-cutover-runbook` | 13.7 | [#199](https://github.com/AndLD/bot-rts/pull/199) | ✅ Merged |

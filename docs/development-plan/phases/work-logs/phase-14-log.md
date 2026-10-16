@@ -37,3 +37,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the plan PR was opened twice by mistake (200 and 201); 201 was closed as a duplicate.
 - **Next step:** merge 14.1, then start 14.2 (opt in the log, trace, metrics, health, engine and audit routes; add `GET /admin/health-check`).
 - **Verify with:** `npm run test:coverage -w api`, `node scripts/check-changed-coverage.mjs origin/develop api client`, `npm run lint -w api`, `npm run check:boundaries`
+
+### 2026-10-16 — 14.2 operations API for the assistant
+- **Tasks:** 14.2
+- **Branch:** `feature/14.2-admin-ops-api` (stacked on `feature/14.1-admin-read-scopes`, PR #202) — WIP until its PR merges
+- **Decisions / deviations from the plan:** scope map: logs (search, nodes, slow queries, slow ticks, traces) → `admin:logs:read`; monitoring series and nodes → `admin:metrics:read`; monitoring health and alerts, `supervision/state` (engine status) and the new `GET /admin/health-check` → `admin:health:read`; audit list → `admin:audit:read` (14.1). A global `AssistantOutputInterceptor` shapes every answer given to an admin key: `shapeForAssistant` redacts every string again with `lib` `redact`, cuts strings at 1000 characters and refuses answers over 200 000 bytes with 413. The summary is composed by `composeHealthCheck` from the last sample; "store status" is the status of the database area plus whether the log gateway answers. Rate limiting is the per-key limit of 14.1.
+- **Problems / blockers / findings:** none.
+- **Next step:** 14.3, the admin tools in `mcp/` (register them only when the key carries admin scopes; wrap results as untrusted data).
+- **Verify with:** `npm run test:coverage -w api`, `node scripts/check-changed-coverage.mjs origin/feature/14.1-admin-read-scopes api client`

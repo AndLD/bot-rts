@@ -25,6 +25,7 @@ import { CryptoRecoveryCodes } from './infrastructure/crypto-recovery-codes'
 import { CryptoTotp } from './infrastructure/crypto-totp'
 import { PrismaAuditLog } from './infrastructure/prisma-audit-log'
 import { PrismaSecondFactorRepository } from './infrastructure/prisma-second-factor.repository'
+import { AssistantOutputInterceptor } from './presentation/assistant-output.interceptor'
 import { AdminAccessGuard } from './presentation/admin-access.guard'
 import { AdminController } from './presentation/admin.controller'
 import { AdminSocketGateway } from './presentation/admin-socket.gateway'
@@ -75,7 +76,8 @@ import { AuditInterceptor } from './presentation/audit.interceptor'
     },
     // After authentication (AuthModule is imported first): the permission, the address and the second factor
     { provide: APP_GUARD, useClass: AdminAccessGuard },
-    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor }
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AssistantOutputInterceptor }
   ],
   exports: [SecondFactorService, AuditService]
 })

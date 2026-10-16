@@ -9120,6 +9120,88 @@
         ]
       }
     },
+    "/api/v1/admin/health-check": {
+      "get": {
+        "operationId": "healthCheckCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                },
+                "example": {
+                  "sampledAt": 1,
+                  "status": "green",
+                  "alerts": [
+                    {
+                      "_id": "00000000-0000-4000-8000-000000000000",
+                      "metric": "string",
+                      "area": "engine",
+                      "severity": "yellow",
+                      "value": 1,
+                      "threshold": 1,
+                      "openedAt": 1,
+                      "clearedAt": 1,
+                      "acknowledgedAt": 1,
+                      "acknowledgedBy": "string"
+                    }
+                  ],
+                  "tick": {
+                    "p95Ms": 1,
+                    "p95Ratio": 1,
+                    "overrunRate": 1,
+                    "cutTicks": 1,
+                    "skippedTicks": 1
+                  },
+                  "scripts": {
+                    "killedBySlice": 1
+                  },
+                  "flush": {
+                    "lastMs": 1,
+                    "lagMs": 1,
+                    "pending": 1
+                  },
+                  "store": {
+                    "databaseStatus": "green",
+                    "isLogGatewayUp": false
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/health-check\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/time": {
       "get": {
         "operationId": "gameTimeCurrent",
@@ -15167,6 +15249,143 @@
           "metric",
           "stepMs",
           "points"
+        ]
+      },
+      "TickHealthModel": {
+        "type": "object",
+        "properties": {
+          "p95Ms": {
+            "type": "number",
+            "nullable": true
+          },
+          "p95Ratio": {
+            "type": "number",
+            "nullable": true,
+            "description": "The 95th percentile tick as a share of the tick interval"
+          },
+          "overrunRate": {
+            "type": "number",
+            "nullable": true,
+            "description": "Ticks over the interval, as a share of the ticks since the previous sample"
+          },
+          "cutTicks": {
+            "type": "number",
+            "nullable": true
+          },
+          "skippedTicks": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "p95Ms",
+          "p95Ratio",
+          "overrunRate",
+          "cutTicks",
+          "skippedTicks"
+        ]
+      },
+      "ScriptsHealthModel": {
+        "type": "object",
+        "properties": {
+          "killedBySlice": {
+            "type": "number",
+            "nullable": true,
+            "description": "Scripts stopped for using more than the slice of a tick"
+          }
+        },
+        "required": [
+          "killedBySlice"
+        ]
+      },
+      "FlushHealthModel": {
+        "type": "object",
+        "properties": {
+          "lastMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "lagMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "pending": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "lastMs",
+          "lagMs",
+          "pending"
+        ]
+      },
+      "StoreHealthModel": {
+        "type": "object",
+        "properties": {
+          "databaseStatus": {
+            "type": "string",
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ]
+          },
+          "isLogGatewayUp": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Null when no gateway is configured"
+          }
+        },
+        "required": [
+          "databaseStatus",
+          "isLogGatewayUp"
+        ]
+      },
+      "HealthCheckResponse": {
+        "type": "object",
+        "properties": {
+          "sampledAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "Milliseconds since the epoch"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "green",
+              "yellow",
+              "red"
+            ]
+          },
+          "alerts": {
+            "description": "The alerts that are open now",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlertResponse"
+            }
+          },
+          "tick": {
+            "$ref": "#/components/schemas/TickHealthModel"
+          },
+          "scripts": {
+            "$ref": "#/components/schemas/ScriptsHealthModel"
+          },
+          "flush": {
+            "$ref": "#/components/schemas/FlushHealthModel"
+          },
+          "store": {
+            "$ref": "#/components/schemas/StoreHealthModel"
+          }
+        },
+        "required": [
+          "sampledAt",
+          "status",
+          "alerts",
+          "tick",
+          "scripts",
+          "flush",
+          "store"
         ]
       },
       "GameTimeResponse": {

@@ -1,3 +1,4 @@
+import { IHealthCheck } from '../../../../../lib/utils/admin-health-check'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsIn, IsOptional, IsString, Length } from 'class-validator'
 import {
@@ -139,4 +140,41 @@ export class MetricSeriesResponse implements IMetricSeries {
     description: 'For the percentiles of a distribution: the slowest sample of each step'
   })
   slowest?: SlowestSampleResponse[]
+}
+
+const nullableNumber = (description?: string) => ApiProperty({ type: Number, nullable: true, description })
+
+class TickHealthModel {
+  @nullableNumber() p95Ms!: number | null
+  @nullableNumber('The 95th percentile tick as a share of the tick interval') p95Ratio!: number | null
+  @nullableNumber('Ticks over the interval, as a share of the ticks since the previous sample') overrunRate!:
+    number | null
+  @nullableNumber() cutTicks!: number | null
+  @nullableNumber() skippedTicks!: number | null
+}
+
+class ScriptsHealthModel {
+  @nullableNumber('Scripts stopped for using more than the slice of a tick') killedBySlice!: number | null
+}
+
+class FlushHealthModel {
+  @nullableNumber() lastMs!: number | null
+  @nullableNumber() lagMs!: number | null
+  @nullableNumber() pending!: number | null
+}
+
+class StoreHealthModel {
+  @ApiProperty({ enum: HEALTH_STATUSES }) databaseStatus!: HealthStatus
+  @ApiProperty({ type: Boolean, nullable: true, description: 'Null when no gateway is configured' })
+  isLogGatewayUp!: boolean | null
+}
+
+export class HealthCheckResponse implements IHealthCheck {
+  @nullableNumber('Milliseconds since the epoch') sampledAt!: number | null
+  @ApiProperty({ enum: HEALTH_STATUSES }) status!: HealthStatus
+  @ApiProperty({ type: [AlertResponse], description: 'The alerts that are open now' }) alerts!: AlertResponse[]
+  @ApiProperty({ type: TickHealthModel }) tick!: TickHealthModel
+  @ApiProperty({ type: ScriptsHealthModel }) scripts!: ScriptsHealthModel
+  @ApiProperty({ type: FlushHealthModel }) flush!: FlushHealthModel
+  @ApiProperty({ type: StoreHealthModel }) store!: StoreHealthModel
 }

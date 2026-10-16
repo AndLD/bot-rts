@@ -25,7 +25,7 @@ export class LogsController {
   constructor(@Inject(LOGS_SERVICE) private readonly logs: LogsService) {}
 
   // Lines can name players, so every search leaves an audit entry with what was asked (not what was found)
-  @RequirePermission('logs.read')
+  @RequirePermission('logs.read', { adminKeyScope: 'admin:logs:read' })
   @Audited({ action: 'logs.search', targetType: 'log' })
   @ApiOkResponse({ type: LogPageResponse })
   @Get()
@@ -38,21 +38,21 @@ export class LogsController {
     return this.logs.search({ text: q, ...filters }, { limit: results, offset })
   }
 
-  @RequirePermission('logs.read')
+  @RequirePermission('logs.read', { adminKeyScope: 'admin:logs:read' })
   @ApiOkResponse({ type: LogNodeResponse, isArray: true })
   @Get('nodes')
   nodes(): Promise<ILogNode[]> {
     return this.logs.nodes()
   }
 
-  @RequirePermission('logs.read')
+  @RequirePermission('logs.read', { adminKeyScope: 'admin:logs:read' })
   @ApiOkResponse({ type: SlowQueryResponse, isArray: true })
   @Get('slow-queries')
   slowQueries(): ISlowQuery[] {
     return this.logs.slowQueries()
   }
 
-  @RequirePermission('logs.read')
+  @RequirePermission('logs.read', { adminKeyScope: 'admin:logs:read' })
   @ApiOkResponse({ type: SlowTickResponse, isArray: true })
   @Get('slow-ticks')
   slowTicks(): Promise<ISlowTick[]> {

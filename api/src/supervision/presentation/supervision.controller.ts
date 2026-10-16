@@ -41,7 +41,7 @@ function record(
 export class SupervisionController {
   constructor(@Inject(SUPERVISION_SERVICE) private readonly supervision: SupervisionService) {}
 
-  @RequirePermission('supervision.read')
+  @RequirePermission('supervision.read', { adminKeyScope: 'admin:health:read' })
   @ApiOkResponse({ type: SupervisionStateResponse })
   @Get('state')
   state(): Promise<ISupervisionState> {

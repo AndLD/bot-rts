@@ -34,7 +34,10 @@ export const ADMIN_API_KEY_LIMITS = {
   defaultRatePerMinute: 60,
   maxRatePerMinute: 600,
   // The ceiling of the setting `ADMIN_API_KEY_MAX_DAYS`
-  maxExpiresInDaysCeiling: 365
+  maxExpiresInDaysCeiling: 365,
+  // What a call made with an admin key may return (design §25.2): text written by players is cut, and an answer over the size is refused
+  responseStringMaxLength: 1000,
+  responseMaxBytes: 200_000
 } as const
 
 export function isAdminApiScope(scope: string): scope is AdminApiScope {

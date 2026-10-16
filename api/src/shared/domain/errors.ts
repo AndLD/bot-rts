@@ -39,3 +39,9 @@ export class RequestTimeoutError extends AppError {
     super(503, ErrorCode.REQUEST_TIMEOUT, message)
   }
 }
+
+export class PayloadTooLargeError extends AppError {
+  constructor(message: string) {
+    super(413, ErrorCode.PAYLOAD_TOO_LARGE, message)
+  }
+}

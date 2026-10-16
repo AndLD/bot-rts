@@ -44,7 +44,7 @@ import { GatewayMetricSource } from './infrastructure/gateway-metric.source'
 import { MetricSource } from './application/ports'
 import { gatewayProbeFor } from './infrastructure/http-gateway.probe'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
-import { MonitoringController } from './presentation/monitoring.controller'
+import { HealthCheckController, MonitoringController } from './presentation/monitoring.controller'
 import { MonitoringGateway } from './presentation/monitoring.gateway'
 
 // Health, performance and load for the admin console (design §25.5). Each process samples itself. Its finest tier is in its memory; with
@@ -101,7 +101,7 @@ export function createHistoryStore(
 
 @Module({
   imports: [NotificationsModule, AdminModule, AuthModule],
-  controllers: [MonitoringController],
+  controllers: [MonitoringController, HealthCheckController],
   providers: [
     MonitoringGateway,
     {

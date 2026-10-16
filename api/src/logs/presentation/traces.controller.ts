@@ -19,7 +19,7 @@ export const TRACES_SERVICE = Symbol('TracesService')
 export class TracesController {
   constructor(@Inject(TRACES_SERVICE) private readonly traces: TracesService) {}
 
-  @RequirePermission('logs.read')
+  @RequirePermission('logs.read', { adminKeyScope: 'admin:logs:read' })
   @Audited({ action: 'logs.read-trace', targetType: 'trace' })
   @ApiOkResponse({ type: TraceViewResponse })
   @Get(':id')

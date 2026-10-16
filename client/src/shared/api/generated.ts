@@ -723,6 +723,9 @@ const injectedRtkApi = api.injectEndpoints({
     monitoringAcknowledge: build.mutation<MonitoringAcknowledgeApiResponse, MonitoringAcknowledgeApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/monitoring/alerts/${queryArg.id}/acknowledge`, method: 'POST' })
     }),
+    healthCheckCheck: build.query<HealthCheckCheckApiResponse, HealthCheckCheckApiArg>({
+      query: () => ({ url: `/api/v1/admin/health-check` })
+    }),
     gameTimeCurrent: build.query<GameTimeCurrentApiResponse, GameTimeCurrentApiArg>({
       query: () => ({ url: `/api/v1/time` })
     }),
@@ -1358,6 +1361,8 @@ export type MonitoringAcknowledgeApiResponse = /** status 200  */ AlertResponse
 export type MonitoringAcknowledgeApiArg = {
   id: string
 }
+export type HealthCheckCheckApiResponse = /** status 200  */ HealthCheckResponse
+export type HealthCheckCheckApiArg = void
 export type GameTimeCurrentApiResponse = /** status 200  */ GameTimeResponse
 export type GameTimeCurrentApiArg = void
 export type GameTimeAdminViewApiResponse = /** status 200  */ GameTimeAdminResponse
@@ -2752,6 +2757,40 @@ export type MetricSeriesResponse = {
   /** For the percentiles of a distribution: the slowest sample of each step */
   slowest?: SlowestSampleResponse[]
 }
+export type TickHealthModel = {
+  p95Ms: number | null
+  /** The 95th percentile tick as a share of the tick interval */
+  p95Ratio: number | null
+  /** Ticks over the interval, as a share of the ticks since the previous sample */
+  overrunRate: number | null
+  cutTicks: number | null
+  skippedTicks: number | null
+}
+export type ScriptsHealthModel = {
+  /** Scripts stopped for using more than the slice of a tick */
+  killedBySlice: number | null
+}
+export type FlushHealthModel = {
+  lastMs: number | null
+  lagMs: number | null
+  pending: number | null
+}
+export type StoreHealthModel = {
+  databaseStatus: 'green' | 'yellow' | 'red'
+  /** Null when no gateway is configured */
+  isLogGatewayUp: boolean | null
+}
+export type HealthCheckResponse = {
+  /** Milliseconds since the epoch */
+  sampledAt: number | null
+  status: 'green' | 'yellow' | 'red'
+  /** The alerts that are open now */
+  alerts: AlertResponse[]
+  tick: TickHealthModel
+  scripts: ScriptsHealthModel
+  flush: FlushHealthModel
+  store: StoreHealthModel
+}
 export type GameTimeResponse = {
   /** The server instant in ms */
   now: number
@@ -3022,6 +3061,7 @@ export const {
   useMonitoringNodesQuery,
   useMonitoringAlertsQuery,
   useMonitoringAcknowledgeMutation,
+  useHealthCheckCheckQuery,
   useGameTimeCurrentQuery,
   useGameTimeAdminViewQuery,
   useGameTimeAdminSetTimeOfDayMutation,

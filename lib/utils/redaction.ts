@@ -18,7 +18,10 @@ const RULES: readonly Rule[] = [
   // An API key of a player
   { pattern: /\bbotrts_[\w-]{8,}/g, replace: '[api-key]' },
   {
-    pattern: new RegExp(`(["']?(?:${SECRET_NAMES})["']?\\s*[:=]\\s*)(?!(?:Bearer|Basic)\\b)("[^"]*"|'[^']*'|[^\\s,;&}"']+)`, 'gi'),
+    pattern: new RegExp(
+      `(["']?(?:${SECRET_NAMES})["']?\\s*[:=]\\s*)(?!(?:Bearer|Basic)\\b)("[^"]*"|'[^']*'|[^\\s,;&}"']+)`,
+      'gi'
+    ),
     replace: (_all, name, value) => {
       const quote = value.startsWith('"') || value.startsWith("'") ? value[0] : ''
 

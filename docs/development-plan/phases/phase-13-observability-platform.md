@@ -49,4 +49,4 @@ AGENTS.md §7.1).
 | `feature/13.4-traces-in-console` | 13.4 | [#194](https://github.com/AndLD/bot-rts/pull/194) | ✅ Merged |
 | `feature/13.3-log-store` | 13.3 | [#193](https://github.com/AndLD/bot-rts/pull/193) | ✅ Merged |
 | `feature/13.8a-metrics-history` | 13.8 (a) | [#196](https://github.com/AndLD/bot-rts/pull/196) | 🟡 In review |
-| `feature/13.8b-engine-metrics` | 13.8 (b), (c) | pending | 🟡 In review |
+| `feature/13.8b-engine-metrics` | 13.8 (b), (c) | [#197](https://github.com/AndLD/bot-rts/pull/197) | 🟡 In review |

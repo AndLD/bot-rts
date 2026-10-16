@@ -80,6 +80,8 @@ describe('loadConfig', () => {
         otlpHeaders: {},
         traceSampleRatio: 1,
         exportQueueSize: 2048,
+        gatewayHealthUrl: undefined,
+        gatewayMetricsUrl: undefined,
         backupStatusFile: undefined
       },
       lifecycle: {
@@ -107,7 +109,9 @@ describe('loadConfig', () => {
         OTEL_EXPORTER_OTLP_ENDPOINT: 'https://gateway.example:4318',
         OTEL_EXPORTER_OTLP_HEADERS: 'authorization=Bearer abc=, x-team = core ,=ignored,',
         OTEL_TRACES_SAMPLER_ARG: '0.25',
-        OTEL_EXPORT_QUEUE_SIZE: '100'
+        OTEL_EXPORT_QUEUE_SIZE: '100',
+        OTEL_GATEWAY_HEALTH_URL: 'http://gateway:13133',
+        OTEL_GATEWAY_METRICS_URL: 'http://gateway:8888/metrics'
       })
 
       expect(observability).toMatchObject({
@@ -116,7 +120,9 @@ describe('loadConfig', () => {
         otlpEndpoint: 'https://gateway.example:4318',
         otlpHeaders: { authorization: 'Bearer abc=', 'x-team': 'core' },
         traceSampleRatio: 0.25,
-        exportQueueSize: 100
+        exportQueueSize: 100,
+        gatewayHealthUrl: 'http://gateway:13133',
+        gatewayMetricsUrl: 'http://gateway:8888/metrics'
       })
     })
 

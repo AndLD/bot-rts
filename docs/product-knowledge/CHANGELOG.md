@@ -83,6 +83,11 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   deployment, the notifications an engine event causes, and from the MCP server into the API. A caller may send a W3C `traceparent`; every
   response carries `X-Trace-Id` and `traceresponse`, and `X-Request-Id` is the trace id unless the caller sent its own. With
   `OTEL_EXPORTER_OTLP_ENDPOINT` set, logs and traces are sent to a collector gateway (`OTEL_TRACES_SAMPLER_ARG` samples new traces).
+- The admin dashboard shows whether the log gateway is up and how full its export queue is, when `OTEL_GATEWAY_HEALTH_URL` and
+  `OTEL_GATEWAY_METRICS_URL` are set (warnings when the gateway is down or its queue is more than half full).
+- `docker compose --profile observability up -d` (or `npm run obs:up`) starts the log gateway (an OpenTelemetry Collector that checks a
+  bearer token and writes to Elasticsearch through a queue on disk) and a single-node Elasticsearch with index templates and a retention
+  policy (`LOG_RETENTION_DAYS`, default 14).
 - Authentication is cached for two seconds between requests (`AUTH_CACHE_TTL_MS`).
 
 ### Removed

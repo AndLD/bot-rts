@@ -19,6 +19,8 @@
     "build": "npm run build --workspaces --if-present",
     "db:up": "docker compose up -d --wait db redis",
     "db:down": "docker compose down",
+    "obs:up": "docker compose --profile observability up -d --wait otel-collector",
+    "obs:down": "docker compose --profile observability stop otel-collector elasticsearch",
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
     "format:check": "prettier --config .prettierrc.json --check .",
     "test:coverage": "npm run test:coverage --workspaces --if-present",

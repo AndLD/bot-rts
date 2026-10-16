@@ -1,0 +1,65 @@
+{
+  "index_patterns": ["botrts-traces"],
+  "data_stream": {},
+  "priority": 200,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "botrts-retention"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "EndTimestamp": {
+          "type": "date"
+        },
+        "TraceId": {
+          "type": "keyword"
+        },
+        "SpanId": {
+          "type": "keyword"
+        },
+        "ParentSpanId": {
+          "type": "keyword"
+        },
+        "Name": {
+          "type": "keyword"
+        },
+        "Kind": {
+          "type": "keyword"
+        },
+        "Link": {
+          "type": "keyword"
+        },
+        "Duration": {
+          "type": "long"
+        },
+        "TraceStatus": {
+          "type": "integer"
+        },
+        "Resource": {
+          "properties": {
+            "service": {
+              "properties": {
+                "name": {
+                  "type": "keyword"
+                },
+                "instance": {
+                  "properties": {
+                    "id": {
+                      "type": "keyword"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

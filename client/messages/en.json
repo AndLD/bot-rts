@@ -1111,7 +1111,9 @@
         },
         "infrastructure": {
           "rssBytes": "Process memory",
-          "heapUsedBytes": "Heap in use"
+          "heapUsedBytes": "Heap in use",
+          "gatewayUp": "Log gateway reachable",
+          "gatewayQueueSize": "Log gateway queue (batches)"
         }
       }
     },

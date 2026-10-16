@@ -167,6 +167,31 @@ describe('AdminDashboard', () => {
     await waitFor(() => expect(screen.getAllByText('No data yet').length).toBeGreaterThan(0))
   })
 
+  it('draws the queue of the log gateway only when the node watches one', async () => {
+    serve(health())
+    const { unmount } = renderDashboard()
+    await screen.findByText('42.5 ms')
+    expect(screen.queryByText('Log gateway queue (batches)')).toBeNull()
+    unmount()
+
+    const watched = health()
+    watched.areas[3].metrics = [
+      {
+        id: 'infrastructure.gatewayQueueSize',
+        area: 'infrastructure',
+        unit: 'count',
+        value: 4,
+        status: 'green'
+      }
+    ]
+    serve(watched)
+    renderDashboard()
+
+    expect(
+      await screen.findByText('Log gateway queue (batches)', { selector: '.ant-card-head-title' })
+    ).toBeInTheDocument()
+  })
+
   it('reads the series again for another time range', async () => {
     const calls = serve(health())
     renderDashboard()

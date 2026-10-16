@@ -39,6 +39,7 @@ reads `CLOCK`, so a new rule of the game cannot slip onto the real clock by acci
 | `featureswitches/featureswitches.module.ts`, `retention/retention.module.ts`, `lifecycle/lifecycle.module.ts` | caches and schedules of the settings and of the cleanup |
 | `logs/logs.module.ts` | the time range of a log search is real time |
 | `monitoring/monitoring.module.ts` | the dashboard's samples are real time |
+| `app.factory.ts` | the time of a socket opening, for the reconnects of the dashboard |
 | `terminal/terminal.module.ts`, `terminal/terminal-core.module.ts` | the lines and sessions of the terminal, and the lockout of a bot's password (security) |
 | `engine/engine-worker.module.ts` | the records of executions and of the control state, and the tick loop |
 | `player-notifications/player-notifications.module.ts` | when a notification was made and read (its due times use the game clock) |

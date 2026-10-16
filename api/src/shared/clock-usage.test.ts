@@ -4,6 +4,7 @@ import { join, relative } from 'path'
 // The files that read the real clock (`CLOCK`), with the reason. Everything that is a rule of the game reads `GAME_CLOCK` instead, so a
 // change of the game's time never moves a login, a ban or the audit trail. The table of the reasons is docs/testing/clock-consumers.md.
 const REAL_CLOCK = [
+  'app.factory.ts',
   'achievements/achievements.module.ts',
   'admin/admin.module.ts',
   'analytics/analytics.module.ts',

@@ -2,7 +2,6 @@ import {
   ELASTICSEARCH,
   emit,
   GATEWAY,
-  HEALTH,
   isObservabilityUp,
   METRICS,
   skipOrFail,

@@ -32,7 +32,7 @@ export class AdminAccessGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<AdminRequest>()
-    const { user, identity } = request.principal
+    const { user, identity, apiKey } = request.principal
 
     // A view of a player's game is for the game's screens only; the console never opens in it, whoever the player is
     if (request.principal.viewAs) {
@@ -44,7 +44,8 @@ export class AdminAccessGuard implements CanActivate {
       if (!isAdminRole(user.status) || (permission && !hasPermission(user.status, permission))) {
         throw new ForbiddenError()
       }
-      if (permission && !(await this.secondFactor.isSessionVerified(identity.sessionId))) {
+      // A key cannot answer a second factor; it was granted after one, in the console, and is held to its owner's role below
+      if (permission && !apiKey && !(await this.secondFactor.isSessionVerified(identity.sessionId))) {
         throw new TwoFactorRequiredError()
       }
     } catch (error) {
@@ -59,7 +60,8 @@ export class AdminAccessGuard implements CanActivate {
         before: null,
         after: null,
         ip: request.ip ?? null,
-        requestId: null
+        requestId: null,
+        apiKeyId: apiKey?.id ?? null
       })
       throw error
     }

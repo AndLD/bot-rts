@@ -17,10 +17,11 @@ interface Route {
 function setup(
   route: Route,
   principal: unknown,
-  consume: jest.Mock = jest.fn(async () => ({ limit: 5, remaining: 4 }))
+  consume: jest.Mock = jest.fn(async () => ({ limit: 5, remaining: 4 })),
+  ip: string | undefined = '9.9.9.9'
 ) {
   const headers: Record<string, unknown> = {}
-  const request = { principal, body: { fn: 'move' } }
+  const request = { principal, body: { fn: 'move' }, ip }
   const context = {
     getHandler: () => 'handler',
     getClass: () => 'class',
@@ -98,6 +99,23 @@ describe('ApiAccessGuard', () => {
       const { guard, context } = setup(route, key(['read', 'files']))
       await expect(guard.canActivate(context)).rejects.toMatchObject({ code: 'SESSION_ONLY' })
     }
+  })
+
+  it('holds an admin key to its addresses, when it has any', async () => {
+    const adminKey = (ipAllowList: string[]) => ({
+      ...session,
+      apiKey: { id: 'k1', scopes: ['admin:logs:read'], ratePerMinute: 5, ipAllowList }
+    })
+    const open = setup({ scope: 'admin:logs:read' }, adminKey([]))
+    const inside = setup({ scope: 'admin:logs:read' }, adminKey(['9.9.9.9']))
+    const outside = setup({ scope: 'admin:logs:read' }, adminKey(['10.0.0.1']))
+    const unknown = setup({ scope: 'admin:logs:read' }, adminKey(['10.0.0.1']), undefined, null as never)
+
+    await expect(open.guard.canActivate(open.context)).resolves.toBe(true)
+    await expect(inside.guard.canActivate(inside.context)).resolves.toBe(true)
+    await expect(outside.guard.canActivate(outside.context)).rejects.toMatchObject({ code: 'API_KEY_IP_NOT_ALLOWED' })
+    await expect(unknown.guard.canActivate(unknown.context)).rejects.toMatchObject({ code: 'API_KEY_IP_NOT_ALLOWED' })
+    expect(outside.consume).not.toHaveBeenCalled()
   })
 
   it('asks a function for the scope when the scope depends on the request', async () => {

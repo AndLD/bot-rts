@@ -18,6 +18,8 @@ export interface AuditEntry {
   readonly after: unknown
   readonly ip: string | null
   readonly requestId: string | null
+  // The API key that made the call (an admin key, design §25.2); null for a signed-in session
+  readonly apiKeyId: string | null
 }
 
 export interface AuditFilter {

@@ -212,7 +212,8 @@ describe('PrismaAuditLog', () => {
       targetId: 'p1',
       reason: 'spam',
       ip: null,
-      requestId: null
+      requestId: null,
+      apiKeyId: null
     }
     await log.append({ ...base, id: randomUUID(), before: { status: 'user' }, after: { status: 'banned' } })
     await log.append({

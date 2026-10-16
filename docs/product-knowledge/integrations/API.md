@@ -16,7 +16,7 @@ clients, scripts and AI assistants. There are no private endpoints for the offic
 A few routes need no key and no session: `GET /api/v1/health` (liveness and readiness), `GET /api/v1/maintenance` (whether the world is paused
 for maintenance, and the banner of a scheduled maintenance while it is shown), and the sign-up and sign-in routes (`GET /api/v1/metrics` has its own
 bearer token). Every other
-route asks for a session or a key. The routes under `/api/v1/admin/*` are for the admin console only: they are never reachable with a key.
+route asks for a session or a key. The routes under `/api/v1/admin/*` are for the admin console and are closed to a key, except the few read-only routes that opt in for the admin keys of the AI assistant (Phase 14); those keys are granted in the console and are not part of this public API: their scopes are not listed here.
 
 ## Signing in
 

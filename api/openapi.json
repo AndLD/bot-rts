@@ -1341,7 +1341,8 @@
                       "before": {},
                       "after": {},
                       "ip": "string",
-                      "requestId": "string"
+                      "requestId": "string",
+                      "apiKeyId": "string"
                     }
                   ],
                   "meta": {
@@ -9757,6 +9758,218 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/api-keys": {
+      "get": {
+        "operationId": "adminApiKeysList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminApiKeyResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "_id": "string",
+                    "name": "string",
+                    "prefix": "botrts_ab12",
+                    "scopes": [
+                      "string"
+                    ],
+                    "ratePerMinute": 1,
+                    "ownerId": "string",
+                    "reason": "string",
+                    "ipAllowList": [
+                      "string"
+                    ],
+                    "createdAt": 1,
+                    "lastUsedAt": 1,
+                    "expiresAt": 1,
+                    "revokedAt": 1
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "apikeys.admin",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/api-keys\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      },
+      "post": {
+        "operationId": "adminApiKeysCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminApiKeyDto"
+              },
+              "example": {
+                "name": "Investigation assistant",
+                "scopes": [
+                  "string"
+                ],
+                "reason": "string",
+                "expiresInDays": 1,
+                "ipAllowList": [
+                  "string"
+                ],
+                "ratePerMinute": 60
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedAdminApiKeyResponse"
+                },
+                "example": {
+                  "_id": "string",
+                  "name": "string",
+                  "prefix": "botrts_ab12",
+                  "scopes": [
+                    "string"
+                  ],
+                  "ratePerMinute": 1,
+                  "ownerId": "string",
+                  "reason": "string",
+                  "ipAllowList": [
+                    "string"
+                  ],
+                  "createdAt": 1,
+                  "lastUsedAt": 1,
+                  "expiresAt": 1,
+                  "revokedAt": 1,
+                  "secret": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "apikeys.admin",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/api-keys\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"Investigation assistant\",\"scopes\":[\"string\"],\"reason\":\"string\",\"expiresInDays\":1,\"ipAllowList\":[\"string\"],\"ratePerMinute\":60}'"
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/api-keys/{id}/revoke": {
+      "post": {
+        "operationId": "adminApiKeysRevoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              },
+              "example": {
+                "reason": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "apikeys.admin",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X POST \"$BOTRTS_URL/api/v1/admin/api-keys/00000000-0000-4000-8000-000000000000/revoke\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"reason\":\"string\"}'"
+          }
+        ]
+      }
     }
   },
   "info": {
@@ -9823,6 +10036,8 @@
               "PAYLOAD_TOO_LARGE",
               "TOO_MANY_API_KEYS",
               "API_KEY_SCOPE",
+              "TOO_MANY_ADMIN_API_KEYS",
+              "API_KEY_IP_NOT_ALLOWED",
               "SESSION_ONLY",
               "TWO_FACTOR_REQUIRED",
               "TWO_FACTOR_INVALID",
@@ -10307,6 +10522,7 @@
                 "ops.game-time",
                 "security.read",
                 "security.revoke-key",
+                "apikeys.admin",
                 "economy.read",
                 "balance.write",
                 "logs.read",
@@ -10426,6 +10642,11 @@
           "requestId": {
             "type": "string",
             "nullable": true
+          },
+          "apiKeyId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The admin API key that made the call, if it was not a session"
           }
         },
         "required": [
@@ -10441,7 +10662,8 @@
           "before",
           "after",
           "ip",
-          "requestId"
+          "requestId",
+          "apiKeyId"
         ]
       },
       "AuditPaginationModel": {
@@ -15197,6 +15419,185 @@
           "prefix",
           "scopes",
           "ratePerMinute",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt",
+          "revokedAt",
+          "secret"
+        ]
+      },
+      "AdminApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string",
+            "example": "botrts_ab12"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ratePerMinute": {
+            "type": "number"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "ipAllowList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "lastUsedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "number"
+          },
+          "revokedAt": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "prefix",
+          "scopes",
+          "ratePerMinute",
+          "ownerId",
+          "reason",
+          "ipAllowList",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt",
+          "revokedAt"
+        ]
+      },
+      "CreateAdminApiKeyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60,
+            "example": "Investigation assistant"
+          },
+          "scopes": {
+            "description": "Read-only admin scopes; see the admin documentation",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          },
+          "expiresInDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 365,
+            "description": "The key stops working after this many days; the server setting ADMIN_API_KEY_MAX_DAYS is the real limit"
+          },
+          "ipAllowList": {
+            "description": "Addresses the key may be used from; empty means any",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ratePerMinute": {
+            "type": "number",
+            "default": 60,
+            "description": "Requests per minute"
+          }
+        },
+        "required": [
+          "name",
+          "scopes",
+          "reason",
+          "expiresInDays"
+        ]
+      },
+      "CreatedAdminApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string",
+            "example": "botrts_ab12"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ratePerMinute": {
+            "type": "number"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "ipAllowList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "lastUsedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "number"
+          },
+          "revokedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "secret": {
+            "type": "string",
+            "description": "The key itself. It is shown only now; only its hash is stored"
+          }
+        },
+        "required": [
+          "_id",
+          "name",
+          "prefix",
+          "scopes",
+          "ratePerMinute",
+          "ownerId",
+          "reason",
+          "ipAllowList",
           "createdAt",
           "lastUsedAt",
           "expiresAt",

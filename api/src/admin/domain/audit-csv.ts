@@ -13,7 +13,8 @@ const COLUMNS = [
   'before',
   'after',
   'ip',
-  'request'
+  'request',
+  'api key'
 ] as const
 
 // The audit trail as CSV for the export of the console
@@ -32,7 +33,8 @@ export function auditCsv(entries: readonly AuditEntry[]): string {
       entry.before,
       entry.after,
       entry.ip,
-      entry.requestId
+      entry.requestId,
+      entry.apiKeyId
     ])
   )
 }

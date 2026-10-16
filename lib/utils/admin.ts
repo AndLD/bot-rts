@@ -30,6 +30,7 @@ export const ADMIN_PERMISSIONS = [
   'ops.game-time',
   'security.read',
   'security.revoke-key',
+  'apikeys.admin',
   'economy.read',
   'balance.write',
   'logs.read',
@@ -124,6 +125,8 @@ export interface IAuditEntry {
   after: unknown
   ip: string | null
   requestId: string | null
+  // The admin API key that made the call, when it was not a session
+  apiKeyId: string | null
 }
 
 export interface IAuditPage {

@@ -15,6 +15,7 @@ const entry = (overrides: Partial<AuditEntry> = {}): AuditEntry => ({
   after: { status: 'banned' },
   ip: '1.2.3.4',
   requestId: 'req-1',
+  apiKeyId: null,
   ...overrides
 })
 
@@ -23,8 +24,8 @@ describe('auditCsv', () => {
     const csv = auditCsv([entry()])
 
     expect(csv.split('\n')).toEqual([
-      'time,actor,role,action,outcome,target type,target,reason,before,after,ip,request',
-      '2026-06-01T12:00:00.000Z,a1,admin,players.ban,success,player,p1,spam,"{""status"":""user""}","{""status"":""banned""}",1.2.3.4,req-1',
+      'time,actor,role,action,outcome,target type,target,reason,before,after,ip,request,api key',
+      '2026-06-01T12:00:00.000Z,a1,admin,players.ban,success,player,p1,spam,"{""status"":""user""}","{""status"":""banned""}",1.2.3.4,req-1,',
       ''
     ])
   })
@@ -35,7 +36,7 @@ describe('auditCsv', () => {
     ])
 
     expect(csv.split('\n')[1]).toBe(
-      '2026-06-01T12:00:00.000Z,a1,admin,players.ban,success,,,"a, b\nc",,,1.2.3.4,req-1'.split('\n')[0]
+      '2026-06-01T12:00:00.000Z,a1,admin,players.ban,success,,,"a, b\nc",,,1.2.3.4,req-1,'.split('\n')[0]
     )
     expect(csv).toContain('"a, b\nc"')
   })
@@ -50,6 +51,10 @@ describe('auditCsv', () => {
     expect(csv).toContain(`"'=HYPERLINK(""http://x"")"`)
     expect(csv).toContain(",'+1,")
     expect(csv).toContain(",'@cmd,")
+  })
+
+  it('names the API key that made the call', () => {
+    expect(auditCsv([entry({ apiKeyId: 'key-1' })]).split('\n')[1]).toMatch(/,req-1,key-1$/)
   })
 
   it('is only the header for an empty trail', () => {

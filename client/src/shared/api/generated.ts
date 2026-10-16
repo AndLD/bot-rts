@@ -764,6 +764,19 @@ const injectedRtkApi = api.injectEndpoints({
     }),
     apiKeysRevoke: build.mutation<ApiKeysRevokeApiResponse, ApiKeysRevokeApiArg>({
       query: (queryArg) => ({ url: `/api/v1/api-keys/${queryArg.id}`, method: 'DELETE' })
+    }),
+    adminApiKeysList: build.query<AdminApiKeysListApiResponse, AdminApiKeysListApiArg>({
+      query: () => ({ url: `/api/v1/admin/api-keys` })
+    }),
+    adminApiKeysCreate: build.mutation<AdminApiKeysCreateApiResponse, AdminApiKeysCreateApiArg>({
+      query: (queryArg) => ({ url: `/api/v1/admin/api-keys`, method: 'POST', body: queryArg.createAdminApiKeyDto })
+    }),
+    adminApiKeysRevoke: build.mutation<AdminApiKeysRevokeApiResponse, AdminApiKeysRevokeApiArg>({
+      query: (queryArg) => ({
+        url: `/api/v1/admin/api-keys/${queryArg.id}/revoke`,
+        method: 'POST',
+        body: queryArg.reasonDto
+      })
     })
   }),
   overrideExisting: false
@@ -1375,6 +1388,17 @@ export type ApiKeysRevokeApiResponse = /** status 200  */ ApiKeyResponse
 export type ApiKeysRevokeApiArg = {
   id: string
 }
+export type AdminApiKeysListApiResponse = /** status 200  */ AdminApiKeyResponse[]
+export type AdminApiKeysListApiArg = void
+export type AdminApiKeysCreateApiResponse = /** status 201  */ CreatedAdminApiKeyResponse
+export type AdminApiKeysCreateApiArg = {
+  createAdminApiKeyDto: CreateAdminApiKeyDto
+}
+export type AdminApiKeysRevokeApiResponse = unknown
+export type AdminApiKeysRevokeApiArg = {
+  id: string
+  reasonDto: ReasonDto
+}
 export type UserInfoResponse = {
   _id: string
   name: string
@@ -1423,6 +1447,8 @@ export type ErrorResponseModel = {
     | 'PAYLOAD_TOO_LARGE'
     | 'TOO_MANY_API_KEYS'
     | 'API_KEY_SCOPE'
+    | 'TOO_MANY_ADMIN_API_KEYS'
+    | 'API_KEY_IP_NOT_ALLOWED'
     | 'SESSION_ONLY'
     | 'TWO_FACTOR_REQUIRED'
     | 'TWO_FACTOR_INVALID'
@@ -1580,6 +1606,7 @@ export type AdminMeResponse = {
     | 'ops.game-time'
     | 'security.read'
     | 'security.revoke-key'
+    | 'apikeys.admin'
     | 'economy.read'
     | 'balance.write'
     | 'logs.read'
@@ -1616,6 +1643,8 @@ export type AuditEntryResponse = {
   after: object | null
   ip: string | null
   requestId: string | null
+  /** The admin API key that made the call, if it was not a session */
+  apiKeyId: string | null
 }
 export type AuditPaginationModel = {
   page: number
@@ -2818,6 +2847,48 @@ export type CreateApiKeyDto = {
   /** The key stops working after this many days; without it the key does not expire */
   expiresInDays?: number
 }
+export type AdminApiKeyResponse = {
+  _id: string
+  name: string
+  prefix: string
+  scopes: string[]
+  ratePerMinute: number
+  ownerId: string
+  reason: string
+  ipAllowList: string[]
+  createdAt: number
+  lastUsedAt: number | null
+  expiresAt: number
+  revokedAt: number | null
+}
+export type CreatedAdminApiKeyResponse = {
+  _id: string
+  name: string
+  prefix: string
+  scopes: string[]
+  ratePerMinute: number
+  ownerId: string
+  reason: string
+  ipAllowList: string[]
+  createdAt: number
+  lastUsedAt: number | null
+  expiresAt: number
+  revokedAt: number | null
+  /** The key itself. It is shown only now; only its hash is stored */
+  secret: string
+}
+export type CreateAdminApiKeyDto = {
+  name: string
+  /** Read-only admin scopes; see the admin documentation */
+  scopes: string[]
+  reason: string
+  /** The key stops working after this many days; the server setting ADMIN_API_KEY_MAX_DAYS is the real limit */
+  expiresInDays: number
+  /** Addresses the key may be used from; empty means any */
+  ipAllowList?: string[]
+  /** Requests per minute */
+  ratePerMinute?: number
+}
 export const {
   useUsersMeQuery,
   useUsersListQuery,
@@ -2959,5 +3030,8 @@ export const {
   useGameTimeAdminLeaveRealWorldMutation,
   useApiKeysListQuery,
   useApiKeysCreateMutation,
-  useApiKeysRevokeMutation
+  useApiKeysRevokeMutation,
+  useAdminApiKeysListQuery,
+  useAdminApiKeysCreateMutation,
+  useAdminApiKeysRevokeMutation
 } = injectedRtkApi

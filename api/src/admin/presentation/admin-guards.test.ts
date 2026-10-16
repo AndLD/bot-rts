@@ -110,6 +110,40 @@ describe('AdminAccessGuard', () => {
   })
 })
 
+describe('AdminAccessGuard with an admin API key', () => {
+  const keyed = (status: 'moderator' | 'user' = 'moderator') => ({
+    user: buildUser({ status }),
+    identity: { provider: 'api-key' },
+    apiKey: { id: 'k1' }
+  })
+  const never = { isSessionVerified: jest.fn(async () => false) } as unknown as SecondFactorService
+
+  it('lets the key of an admin in without the second factor, which a key cannot answer', async () => {
+    const { audit, reflector, config } = setup({ [ADMIN_PERMISSION_KEY]: 'players.read' })
+
+    expect(
+      await new AdminAccessGuard(reflector, never, audit, config).canActivate(contextOf({ principal: keyed() }))
+    ).toBe(true)
+  })
+
+  it('still holds the owner to the role on every call, auditing the denial with the key id', async () => {
+    const { audit, reflector, config, log } = setup({ [ADMIN_PERMISSION_KEY]: 'players.read' })
+    const guard = new AdminAccessGuard(reflector, never, audit, config)
+
+    await expect(guard.canActivate(contextOf({ principal: keyed('user') }))).rejects.toThrow(ForbiddenError)
+    expect(log.entries[0]).toMatchObject({ outcome: 'denied', apiKeyId: 'k1' })
+  })
+
+  it('holds the key to the allow-list of addresses of the console', async () => {
+    const { audit, reflector, config } = setup({ [ADMIN_PERMISSION_KEY]: 'players.read' }, ['10.0.0.1'])
+    const guard = new AdminAccessGuard(reflector, never, audit, config)
+
+    await expect(guard.canActivate(contextOf({ principal: keyed(), ip: '10.0.0.2' }))).rejects.toThrow(
+      'not available from this address'
+    )
+  })
+})
+
 describe('AuditInterceptor', () => {
   const request = (method: string, extra: Record<string, unknown> = {}) => ({
     method,
@@ -133,6 +167,25 @@ describe('AuditInterceptor', () => {
 
     expect(other.log.entries).toEqual([])
     expect(read.log.entries).toEqual([])
+  })
+
+  it('audits every call of an API key, a plain read included, with the key id', async () => {
+    const { reflector, audit, log } = setup({ [ADMIN_PERMISSION_KEY]: 'logs.read' })
+
+    await lastValueFrom(
+      new AuditInterceptor(reflector, audit).intercept(
+        contextOf(request('GET', { principal: { user: buildUser({ status: 'admin' }), apiKey: { id: 'k1' } } })),
+        { handle: () => of(1) }
+      )
+    )
+    await lastValueFrom(
+      new AuditInterceptor(reflector, audit).intercept(contextOf(request('POST')), { handle: () => of(1) })
+    )
+
+    expect(log.entries.map((entry) => [entry.action, entry.apiKeyId])).toEqual([
+      ['GET /api/v1/admin/things/:id', 'k1'],
+      ['POST /api/v1/admin/things/:id', null]
+    ])
   })
 
   it('audits a change that has no detail and no named target with empty fields', async () => {

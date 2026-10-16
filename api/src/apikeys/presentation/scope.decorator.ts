@@ -1,14 +1,14 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common'
 import { ApiExtension } from '@nestjs/swagger'
 import type { Request } from 'express'
-import { ApiScope } from '../../../../lib/utils/interfaces/api-keys'
+import { GrantedScope } from '../../../../lib/utils/admin-api-keys'
 
 export const REQUIRED_SCOPE_KEY = 'apiKeyScope'
 export const SESSION_ONLY_KEY = 'apiKeySessionOnly'
 
 // What a route needs from an API key: one scope, or a function that reads it from the request (a manual action needs the scope of
 // its category). A session (the official client) is not asked for scopes.
-export type ScopeRequirement = ApiScope | ((request: Request) => ApiScope)
+export type ScopeRequirement = GrantedScope | ((request: Request) => GrantedScope)
 
 // A route reachable by an API key with this scope. A route with neither this nor @SessionOnly() is closed to keys.
 export const RequireScope = (scope: ScopeRequirement) =>

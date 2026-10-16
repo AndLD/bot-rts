@@ -31,8 +31,14 @@ template, and the components they refer to were never added. What exists:
 ## 25.2 Access model ✅
 
 - A separate **`(admin)` route group** in the Next.js app, served only to admin roles, backed by `/api/v1/admin/*`. Admin
-  endpoints are **never reachable with API keys** (design §22.1). *Planned change (Phase 14, task 14.1):* routes that opt in with an
-  `admin:*:read` scope become reachable to an API key whose scope was granted from the console; every other admin route stays closed.
+  endpoints are closed to API keys (design §22.1) **except routes that opt in with an `admin:*:read` scope** (Phase 14, task 14.1; delivered).
+  Those scopes (`admin:logs:read`, `admin:metrics:read`, `admin:audit:read`, `admin:health:read`) form a set of their own, outside the player scopes of
+  `API_SCOPES`: the player key form, the generated client, the public OpenAPI spec and the player documentation never list them. A key gets them
+  only from `POST /api/v1/admin/api-keys` (permission `apikeys.admin`: owners and admins, second factor, a reason, a mandatory expiry up to
+  `ADMIN_API_KEY_MAX_DAYS`, an optional address allowlist); the public key endpoint refuses them. The owner of the key must hold an admin role
+  with the matching permission **on every call** (roles come from the database), so demoting or banning them stops the key at once. A key cannot
+  answer a second factor: this is accepted, and the key is read-only, expiring and audited instead. Every call of such a key is written to the
+  audit trail with the key id (`apiKeyId`), reads included. These keys are listed and revoked only in the console, never in the player's key list.
 - **Admin roles** (defaults, tunable): `owner` (everything, including role changes and destructive actions), `admin`
   (everything except owner-only actions), `moderator` (player moderation, read-only inspection, no balance or operations
   controls), `analyst` (read-only dashboards and reports). Permissions are fine-grained (for example `players.ban`,

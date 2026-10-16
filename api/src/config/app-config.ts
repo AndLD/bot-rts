@@ -1,3 +1,4 @@
+import { ADMIN_API_KEY_LIMITS } from '../../../lib/utils/admin-api-keys'
 import { AuthPolicy, DEFAULT_AUTH_POLICY } from '../auth/domain/auth-policy'
 import { WorldConfig } from '../map/domain/world-config'
 import { convertTimeStringToMilliseconds } from '../shared/domain/duration'
@@ -138,6 +139,8 @@ export interface AdminConfig {
   banCheckIntervalMs: number
   // How long a "view as player" session lasts at most (design §25.2)
   viewAsTtlMs: number
+  // The longest an admin API key may live, in days (design §25.2); every admin key has an expiry
+  apiKeyMaxDays: number
 }
 
 export interface MonitoringConfig {
@@ -450,7 +453,8 @@ export function loadConfig(env: Env): AppConfig {
       recoveryCodeCount: positiveInt(env.ADMIN_RECOVERY_CODES, 8),
       secret: env.ADMIN_SECRET || env.JWT_ACCESS_SECRET || DEV_ACCESS_SECRET,
       banCheckIntervalMs: positiveInt(env.ADMIN_BAN_CHECK_MS, 60_000),
-      viewAsTtlMs: duration(env.ADMIN_VIEW_AS_TTL, '30m', 'ADMIN_VIEW_AS_TTL', problems)
+      viewAsTtlMs: duration(env.ADMIN_VIEW_AS_TTL, '30m', 'ADMIN_VIEW_AS_TTL', problems),
+      apiKeyMaxDays: Math.min(positiveInt(env.ADMIN_API_KEY_MAX_DAYS, 30), ADMIN_API_KEY_LIMITS.maxExpiresInDaysCeiling)
     },
     monitoring: {
       isEnabled: env.MONITORING_ENABLED ? env.MONITORING_ENABLED === 'true' : nodeEnv !== 'test',

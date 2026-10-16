@@ -8,7 +8,7 @@ import { RateLimitHits } from '../application/rate-limit-hits'
 import { CLOCK, Clock } from '../../shared/application/clock'
 import { RATE_LIMITER, RateLimiter } from '../../ratelimit/application/rate-limiter'
 import { TooManyRequestsError } from '../../shared/domain/errors'
-import { ApiKeyScopeError, SessionOnlyError } from '../domain/api-key.errors'
+import { ApiKeyIpNotAllowedError, ApiKeyScopeError, SessionOnlyError } from '../domain/api-key.errors'
 import { REQUIRED_SCOPE_KEY, ScopeRequirement, SESSION_ONLY_KEY } from './scope.decorator'
 
 const MINUTE_MS = 60_000
@@ -50,6 +50,10 @@ export class ApiAccessGuard implements CanActivate {
     const scope = typeof requirement === 'string' ? requirement : requirement(request as Request)
     if (!grant.scopes.includes(scope)) {
       throw new ApiKeyScopeError(scope)
+    }
+    // An admin key may be tied to addresses (design §25.2)
+    if (grant.ipAllowList?.length && (!request.ip || !grant.ipAllowList.includes(request.ip))) {
+      throw new ApiKeyIpNotAllowedError()
     }
 
     const response = context.switchToHttp().getResponse<Response>()

@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 12 — Issues and stabilization (5 SP, grows as issues are added)
+# Phase 12 — Issues and stabilization (8 SP, grows as issues are added)
 
 **Status:** ⬜ Not started · **Branches:** none yet (see the [implementation log](#implementation-log)) · **Work log:** [phase-12-log](./work-logs/phase-12-log.md)
 
@@ -17,6 +17,7 @@ decision in the matching `docs/product-knowledge/game-design/` file.
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
 | 12.1 | **A single runaway script keeps the tick time high when few players are online.** Found with the load harness (`npm run load`, see [load testing](../../testing/load-testing.md)): `--players 5 --duration 40` gives a tick p95 of about 115 ms and 13 % of the ticks overran (limits: 80 ms and 5 %); `--players 5 --hogs 0` is healthy (p95 about 11 ms, no overruns), and so is `--players 50` with 10 hogs (p95 about 10 ms, no overruns, the 10 hogs killed). In the 5-player run the one hog (`for (;;) {}`) is the missing execution (9 of 10 alive), so the engine does kill it, yet the tick time stays high for the whole run. Find the cause and fix it, or, if it is only an artifact of the harness with very few scripts, fix the harness and document it. Hypotheses, none confirmed: the cost of killing a hog and rebuilding its QuickJS sandbox (`dispose()` in `quickjs-script-runtime.ts`); a hog that is launched or cut again and again; `ENGINE_SLICE_MS` (5 ms) not honoured; the way the harness assigns hogs in tiny runs; the window of the `botrts_engine_tick_p95_milliseconds` gauge. Deliver a reproduction as an engine test with one runaway script (injected clock and RNG), the fix, the numbers in [load testing](../../testing/load-testing.md) updated if they change, and a `CHANGELOG.md` line | 5 | ⬜ |
+| 12.2 | **Buttons across the client have inconsistent padding and unreadable disabled states.** Found in use: (1) some buttons, such as "Save" and "Cancel", have no horizontal padding, so the label touches the edges and looks cramped; (2) some buttons get a dark background when inactive or disabled while the text stays dark, so the label is unreadable. Audit most buttons across the client (every dialog, form, window and admin page; custom-styled buttons as well as Ant Design ones, including any global CSS that overrides `.ant-btn` padding or disabled colours), find the shared cause, and fix it in one place (theme tokens or a shared button style) instead of per button. Expected: every button has consistent horizontal padding, and every disabled or inactive state keeps a readable contrast (WCAG AA) in both themes. Deliver a component or unit test per fix (padding and disabled colours of the shared style), a Cypress check of a disabled button if a flow covers one, and a `CHANGELOG.md` line | 3 | ⬜ |
 
 ## Exit criteria
 

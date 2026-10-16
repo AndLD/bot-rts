@@ -8,6 +8,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Added
 
+- Operations: production nodes no longer write log files by default (`LOG_FILE=true` brings them back); the logs are the console and the log store. The deployment guide has a runbook for following a request, the index size, and a log store or gateway that is down.
 - Admin console: the charts of the tick duration and of the request latency offer **Open the trace** for the slowest sample of a step, in the same trace view as the logs.
 - The game: a procedurally generated world with fog of war, bases and bots made of modules, energy and day / night, crafting,
   a factory, radio links between bots, and combat.

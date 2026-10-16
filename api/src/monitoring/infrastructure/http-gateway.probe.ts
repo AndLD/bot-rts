@@ -56,3 +56,13 @@ export class HttpGatewayProbe implements GatewayProbe {
     }
   }
 }
+
+// The probe of a node that is told where the gateway is, and none for a node that is not
+export function gatewayProbeFor(
+  addresses: { gatewayHealthUrl: string | undefined; gatewayMetricsUrl: string | undefined },
+  timeoutMs: number
+): GatewayProbe | undefined {
+  return addresses.gatewayHealthUrl || addresses.gatewayMetricsUrl
+    ? new HttpGatewayProbe(addresses.gatewayHealthUrl, addresses.gatewayMetricsUrl, timeoutMs)
+    : undefined
+}

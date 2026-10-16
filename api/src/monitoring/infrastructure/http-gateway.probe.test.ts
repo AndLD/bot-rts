@@ -1,4 +1,4 @@
-import { HttpGatewayProbe } from './http-gateway.probe'
+import { gatewayProbeFor, HttpGatewayProbe } from './http-gateway.probe'
 
 const METRICS = `# HELP otelcol_exporter_queue_size Current size of the retry queue (in batches) [alpha]
 # TYPE otelcol_exporter_queue_size gauge
@@ -74,5 +74,15 @@ describe('HttpGatewayProbe', () => {
 
     expect(await new HttpGatewayProbe(undefined, 'http://g/metrics', 50).read()).toEqual({ isUp: true, queueSize: 7 })
     real.mockRestore()
+  })
+})
+
+describe('gatewayProbeFor', () => {
+  it('watches a gateway when either address is given, and none otherwise', () => {
+    const none = { gatewayHealthUrl: undefined, gatewayMetricsUrl: undefined }
+
+    expect(gatewayProbeFor(none, 50)).toBeUndefined()
+    expect(gatewayProbeFor({ ...none, gatewayHealthUrl: 'http://g/health' }, 50)).toBeInstanceOf(HttpGatewayProbe)
+    expect(gatewayProbeFor({ ...none, gatewayMetricsUrl: 'http://g/metrics' }, 50)).toBeInstanceOf(HttpGatewayProbe)
   })
 })

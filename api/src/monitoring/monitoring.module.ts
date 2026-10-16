@@ -17,7 +17,7 @@ import { MetricHistory } from './application/metric-history'
 import { MONITORING_SERVICE, MonitoringService } from './application/monitoring.service'
 import { ALERT_NOTIFIER, AlertNotifier, METRICS_PORT, MetricsPort } from './application/ports'
 import { EmailAlertNotifier } from './infrastructure/email-alert-notifier'
-import { HttpGatewayProbe } from './infrastructure/http-gateway.probe'
+import { gatewayProbeFor } from './infrastructure/http-gateway.probe'
 import { RuntimeMetricsPort } from './infrastructure/runtime-metrics.port'
 import { MonitoringController } from './presentation/monitoring.controller'
 import { MonitoringGateway } from './presentation/monitoring.gateway'
@@ -42,13 +42,7 @@ const GATEWAY_TIMEOUT_MS = 2000
           () => ({ rssBytes: process.memoryUsage().rss, heapUsedBytes: process.memoryUsage().heapUsed }),
           config.engine.tickIntervalMs,
           clock,
-          config.observability.gatewayHealthUrl || config.observability.gatewayMetricsUrl
-            ? new HttpGatewayProbe(
-                config.observability.gatewayHealthUrl,
-                config.observability.gatewayMetricsUrl,
-                GATEWAY_TIMEOUT_MS
-              )
-            : undefined
+          gatewayProbeFor(config.observability, GATEWAY_TIMEOUT_MS)
         )
     },
     {

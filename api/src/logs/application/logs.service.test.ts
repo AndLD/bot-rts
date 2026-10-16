@@ -1,10 +1,10 @@
 import { EnginePort } from '../../engine/application/engine-port'
-import { LogStore } from './log-store'
+import { LogPageRequest, LogQuery, LogSearchResult, LogStore } from './log-store'
 import { LogsService } from './logs.service'
 
 const store = (): jest.Mocked<LogStore> => ({
   name: 'elasticsearch',
-  search: jest.fn(async () => ({
+  search: jest.fn<Promise<LogSearchResult>, [LogQuery, LogPageRequest]>(async () => ({
     entries: [
       {
         at: new Date(2000),

@@ -183,7 +183,7 @@ describe('LogSearch', () => {
                 requestId: null,
                 traceId: null,
                 node: 'host:2',
-                service: 'botrts-engine'
+                service: n === 0 ? null : 'botrts-engine'
               })),
               total: 1000,
               capacity: null,
@@ -195,6 +195,7 @@ describe('LogSearch', () => {
     renderAs('admin', <LogSearch />)
 
     expect(await screen.findByText('100 of 1000 matching lines from the log store')).toBeInTheDocument()
+    expect(screen.getByText('host:2 ·')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Older lines' }))
 
     expect(await screen.findByText('200 of 1000 matching lines from the log store')).toBeInTheDocument()

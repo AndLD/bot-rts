@@ -15,6 +15,7 @@ const REAL_CLOCK = [
   'engine/engine-worker.module.ts',
   'featureswitches/featureswitches.module.ts',
   'lifecycle/lifecycle.module.ts',
+  'logs/logs.module.ts',
   'monitoring/monitoring.module.ts',
   'operations/operations.module.ts',
   'player-notifications/player-notifications.module.ts',

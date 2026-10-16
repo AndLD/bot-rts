@@ -348,11 +348,19 @@ const injectedRtkApi = api.injectEndpoints({
           q: queryArg.q,
           level: queryArg.level,
           requestId: queryArg.requestId,
+          traceId: queryArg.traceId,
+          userId: queryArg.userId,
+          botId: queryArg.botId,
+          node: queryArg.node,
           from: queryArg['from'],
           to: queryArg.to,
-          results: queryArg.results
+          results: queryArg.results,
+          offset: queryArg.offset
         }
       })
+    }),
+    logsNodes: build.query<LogsNodesApiResponse, LogsNodesApiArg>({
+      query: () => ({ url: `/api/v1/admin/logs/nodes` })
     }),
     logsSlowTicks: build.query<LogsSlowTicksApiResponse, LogsSlowTicksApiArg>({
       query: () => ({ url: `/api/v1/admin/logs/slow-ticks` })
@@ -1026,10 +1034,22 @@ export type LogsSearchApiArg = {
   level?: 'info' | 'warn' | 'error'
   /** The id of a request (the X-Request-Id of its response) */
   requestId?: string
+  /** The trace id of a request, a tick or a job (the X-Trace-Id of a response) */
+  traceId?: string
+  /** The id of a player that the line names */
+  userId?: string
+  /** The id of a bot that the line names */
+  botId?: string
+  /** A process of the node list (host and process id); the default is every node */
+  node?: string
   from?: string
   to?: string
   results?: number
+  /** How many of the newest matching lines to skip */
+  offset?: number
 }
+export type LogsNodesApiResponse = /** status 200  */ LogNodeResponse[]
+export type LogsNodesApiArg = void
 export type LogsSlowTicksApiResponse = /** status 200  */ SlowTickResponse[]
 export type LogsSlowTicksApiArg = void
 export type SecurityOverviewApiResponse = /** status 200  */ SecurityOverviewResponse
@@ -1386,6 +1406,7 @@ export type ErrorResponseModel = {
     | 'MANUAL_CATEGORY_DISABLED'
     | 'VIEW_AS_READ_ONLY'
     | 'FEATURE_DISABLED'
+    | 'LOG_STORE_UNAVAILABLE'
     | 'INTERNAL_ERROR'
     | 'BLOCKED'
     | 'EMPTY'
@@ -1888,11 +1909,22 @@ export type LogLineModel = {
   level: 'info' | 'warn' | 'error'
   message: string
   requestId: string | null
+  traceId: string | null
+  /** The process that wrote the line (host and process id) */
+  node: string | null
+  /** botrts-api or botrts-engine */
+  service: string | null
 }
 export type LogPageResponse = {
   lines: LogLineModel[]
   total: number
-  capacity: number
+  /** How many lines the node keeps; null for the log store */
+  capacity: number | null
+  store: 'memory' | 'elasticsearch'
+}
+export type LogNodeResponse = {
+  id: string
+  services: string[]
 }
 export type SlowTickResponse = {
   tick: number
@@ -2778,6 +2810,7 @@ export const {
   useSupervisionRemoveMutation,
   useSupervisionRestoreMutation,
   useLogsSearchQuery,
+  useLogsNodesQuery,
   useLogsSlowTicksQuery,
   useSecurityOverviewQuery,
   useSecurityRevokeKeyMutation,

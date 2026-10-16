@@ -1,13 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Transform, Type } from 'class-transformer'
-import { IsDate, IsIn, IsInt, IsOptional, IsString, Length, Matches, Max, Min } from 'class-validator'
+import { IsDate, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max, Min } from 'class-validator'
 import {
   ILogLine,
   ILogPage,
   ISlowTick,
   LOG_LEVELS,
+  ILogNode,
   LOG_PAGE_MAX,
-  LogLevelName
+  LOG_STORES,
+  LogLevelName,
+  LogStoreName
 } from '../../../../../lib/utils/admin-logs'
 
 const toDate = ({ value }: { value: unknown }) => new Date(value as string)
@@ -30,6 +33,27 @@ export class SearchLogsQueryDto {
   requestId?: string
 
   @IsOptional()
+  @Matches(/^[0-9a-f]{32}$/)
+  @ApiPropertyOptional({ description: 'The trace id of a request, a tick or a job (the X-Trace-Id of a response)' })
+  traceId?: string
+
+  @IsOptional()
+  @IsUUID()
+  @ApiPropertyOptional({ description: 'The id of a player that the line names' })
+  userId?: string
+
+  @IsOptional()
+  @IsUUID()
+  @ApiPropertyOptional({ description: 'The id of a bot that the line names' })
+  botId?: string
+
+  @IsOptional()
+  @Length(1, 200)
+  @IsString()
+  @ApiPropertyOptional({ description: 'A process of the node list (host and process id); the default is every node' })
+  node?: string
+
+  @IsOptional()
   @Transform(toDate)
   @IsDate()
   @ApiPropertyOptional({ type: String, format: 'date-time' })
@@ -48,6 +72,14 @@ export class SearchLogsQueryDto {
   @Max(LOG_PAGE_MAX)
   @ApiPropertyOptional({ minimum: 1, maximum: LOG_PAGE_MAX, default: 100 })
   results: number = 100
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(10_000)
+  @ApiPropertyOptional({ minimum: 0, default: 0, description: 'How many of the newest matching lines to skip' })
+  offset: number = 0
 }
 
 class LogLineModel implements ILogLine {
@@ -62,6 +94,15 @@ class LogLineModel implements ILogLine {
 
   @ApiProperty({ type: String, nullable: true })
   requestId!: string | null
+
+  @ApiProperty({ type: String, nullable: true })
+  traceId!: string | null
+
+  @ApiProperty({ type: String, nullable: true, description: 'The process that wrote the line (host and process id)' })
+  node!: string | null
+
+  @ApiProperty({ type: String, nullable: true, description: 'botrts-api or botrts-engine' })
+  service!: string | null
 }
 
 export class LogPageResponse implements ILogPage {
@@ -71,8 +112,19 @@ export class LogPageResponse implements ILogPage {
   @ApiProperty()
   total!: number
 
+  @ApiProperty({ type: Number, nullable: true, description: 'How many lines the node keeps; null for the log store' })
+  capacity!: number | null
+
+  @ApiProperty({ enum: LOG_STORES })
+  store!: LogStoreName
+}
+
+export class LogNodeResponse implements ILogNode {
   @ApiProperty()
-  capacity!: number
+  id!: string
+
+  @ApiProperty({ type: [String] })
+  services!: string[]
 }
 
 export class SlowTickResponse implements ISlowTick {

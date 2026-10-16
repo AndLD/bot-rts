@@ -44,6 +44,7 @@ export const ErrorCode = {
   MANUAL_CATEGORY_DISABLED: 'MANUAL_CATEGORY_DISABLED',
   VIEW_AS_READ_ONLY: 'VIEW_AS_READ_ONLY',
   FEATURE_DISABLED: 'FEATURE_DISABLED',
+  LOG_STORE_UNAVAILABLE: 'LOG_STORE_UNAVAILABLE',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   // A game action that failed as an expected outcome keeps the code of its result (design §10.3)
   ...ResultCode

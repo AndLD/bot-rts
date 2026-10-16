@@ -127,6 +127,7 @@ export const {
   useSecurityRevokeKeyMutation,
   useAuditListQuery,
   useLogsSearchQuery,
+  useLogsNodesQuery,
   useLogsSlowTicksQuery,
   useSupervisionStateQuery,
   useSupervisionKillMutation,

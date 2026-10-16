@@ -8,13 +8,18 @@ export interface LogLine {
   message: string
   // The request that was being served when the line was written, if any
   requestId: string | null
+  // The trace the line was written in, if any
+  traceId: string | null
 }
 
 export interface LogFilter {
   // A part of the message: where the id of a player or a bot is looked for
   text?: string
+  // Ids that the line must all contain (a player, a bot)
+  mentions?: readonly string[]
   level?: LogLevel
   requestId?: string
+  traceId?: string
   from?: Date
   to?: Date
 }
@@ -36,9 +41,10 @@ export class LogBuffer {
     this.count = Math.min(this.count + 1, this.capacity)
   }
 
-  // The newest matching lines first, and how many lines match in all
-  search(filter: LogFilter, limit: number): { lines: LogLine[]; total: number } {
+  // The newest matching lines first (after the `offset` newest ones), and how many lines match in all
+  search(filter: LogFilter, limit: number, offset = 0): { lines: LogLine[]; total: number } {
     const text = filter.text?.toLowerCase()
+    const mentions = (filter.mentions ?? []).map((id) => id.toLowerCase())
     const matches: LogLine[] = []
     let total = 0
 
@@ -47,13 +53,15 @@ export class LogBuffer {
       const isMatch =
         (!filter.level || line.level === filter.level) &&
         (!filter.requestId || line.requestId === filter.requestId) &&
+        (!filter.traceId || line.traceId === filter.traceId) &&
         (!filter.from || line.at >= filter.from) &&
         (!filter.to || line.at <= filter.to) &&
-        (!text || line.message.toLowerCase().includes(text))
+        (!text || line.message.toLowerCase().includes(text)) &&
+        mentions.every((id) => line.message.toLowerCase().includes(id))
 
       if (isMatch) {
         total += 1
-        if (matches.length < limit) {
+        if (total > offset && matches.length < limit) {
           matches.push(line)
         }
       }

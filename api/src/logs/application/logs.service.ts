@@ -1,22 +1,27 @@
-import { ILogPage, ISlowTick } from '../../../../lib/utils/admin-logs'
+import { ILogNode, ILogPage, ISlowTick } from '../../../../lib/utils/admin-logs'
 import { EnginePort } from '../../engine/application/engine-port'
-import { LogBuffer, LogFilter } from '../../shared/application/log-buffer'
+import { LogPageRequest, LogQuery, LogStore } from './log-store'
 
-// Looks into the recent log of this node and the slow ticks of the engine (design §25.3, Logs and audit)
+// Looks into the log, wherever it is kept, and the slow ticks of the engine (design §25.3, Logs and audit)
 export class LogsService {
   constructor(
-    private readonly buffer: LogBuffer,
+    private readonly store: LogStore,
     private readonly engine: EnginePort
   ) {}
 
-  search(filter: LogFilter, limit: number): ILogPage {
-    const { lines, total } = this.buffer.search(filter, limit)
+  async search(query: LogQuery, page: LogPageRequest): Promise<ILogPage> {
+    const { entries, total, capacity } = await this.store.search(query, page)
 
     return {
-      lines: lines.map((line) => ({ ...line, at: line.at.getTime() })),
+      lines: entries.map((entry) => ({ ...entry, at: entry.at.getTime() })),
       total,
-      capacity: this.buffer.capacity
+      capacity,
+      store: this.store.name
     }
+  }
+
+  nodes(): Promise<ILogNode[]> {
+    return this.store.nodes()
   }
 
   async slowTicks(): Promise<ISlowTick[]> {

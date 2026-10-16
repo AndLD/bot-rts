@@ -136,6 +136,17 @@ describe('OtelTelemetry', () => {
     expect(lines[1]).toMatch(/^\S+ \[ERROR\] \[[0-9a-f]{8}\] inside$/)
   })
 
+  it('takes the secrets out of what it logs and out of the failures it records', async () => {
+    const { telemetry, lines, spans } = traced()
+
+    telemetry.logger.error('bad key botrts_0123456789abcdef from bob@example.com')
+    telemetry.startApiCall('GET', '/me').finish({ failure: 'Bearer abcdef1234567890 refused' })
+    await expect(telemetry.tool('t', () => Promise.reject(new Error('password=hunter2')))).rejects.toThrow()
+
+    expect(lines[0]).toContain('bad key [api-key] from [email]')
+    expect(spans().map((span) => span.status.message)).toEqual(['Bearer [token] refused', 'Error: password=[redacted]'])
+  })
+
   it('writes to the standard error by default', () => {
     const stderr = jest.spyOn(process.stderr, 'write').mockImplementation(() => true)
 

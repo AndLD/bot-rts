@@ -91,6 +91,33 @@ describe('the log search', () => {
     await api().get('/api/v1/admin/logs?offset=-1').set(bearer(admin)).expect(400)
   })
 
+  it('writes an audit entry for every search, with what was asked and not what was found', async () => {
+    const asked = new Date('2026-01-01T00:00:00Z')
+    await api()
+      .get(
+        `/api/v1/admin/logs?q=secret-topic&level=warn&node=host:1&offset=2&from=${asked.toISOString()}&to=2026-01-02T00:00:00Z`
+      )
+      .set(bearer(admin))
+      .expect(200)
+
+    const trail = await api().get('/api/v1/admin/audit?action=logs.search').set(bearer(admin)).expect(200)
+    expect(trail.body.result[0]).toMatchObject({
+      action: 'logs.search',
+      targetType: 'log',
+      actorId: admin.userId,
+      outcome: 'success',
+      after: {
+        text: 'secret-topic',
+        level: 'warn',
+        node: 'host:1',
+        offset: 2,
+        from: asked.toISOString(),
+        to: '2026-01-02T00:00:00.000Z'
+      }
+    })
+    expect(JSON.stringify(trail.body.result[0])).not.toContain('lines')
+  })
+
   it('is for roles with logs.read only', async () => {
     await api().get('/api/v1/admin/logs').set(bearer(moderator)).expect(403)
     await api().get('/api/v1/admin/logs').set(bearer(analyst)).expect(403)

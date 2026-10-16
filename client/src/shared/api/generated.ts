@@ -1635,6 +1635,7 @@ export type RetentionJobResponse = {
     | 'inactiveAccounts'
     | 'playerActivity'
     | 'monitoring'
+    | 'logs'
   values: {
     [key: string]: number | boolean
   }

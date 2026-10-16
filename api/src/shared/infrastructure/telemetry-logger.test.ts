@@ -52,4 +52,15 @@ describe('TelemetryLogger', () => {
 
     expect(records[0].traceId).toMatch(/^[0-9a-f]{32}$/)
   })
+
+  it('takes the secrets out of a message before any sink sees it', () => {
+    const { telemetry, records } = testTelemetry()
+
+    telemetry.logger('app').info('login of alice@example.com with password=hunter2')
+    telemetry.logger('app').error(new Error('bad key botrts_0123456789abcdef'))
+
+    expect(records[0].message).toBe('login of [email] with password=[redacted]')
+    expect(records[1].message).toContain('bad key [api-key]')
+    expect(records[1].message).not.toContain('botrts_0123')
+  })
 })

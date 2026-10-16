@@ -1,11 +1,12 @@
 import { trace } from '@opentelemetry/api'
+import { redact } from '../../../../lib/utils/redaction'
 import { Logger } from '../application/logger'
 import { currentRequestId } from '../application/request-context'
 import { describe, LogLevel } from './log-format'
 import { LogSink } from './log-sinks'
 
 // The `Logger` port over the sinks of the process. Each record is stamped with the trace id and the span id of the span it is
-// written in.
+// written in, and with the secrets taken out of its message.
 export class TelemetryLogger implements Logger {
   constructor(
     private readonly category: string,
@@ -32,7 +33,7 @@ export class TelemetryLogger implements Logger {
       time: this.now(),
       level,
       category: this.category,
-      message,
+      message: redact(message),
       traceId: span?.traceId,
       spanId: span?.spanId,
       requestId: currentRequestId()

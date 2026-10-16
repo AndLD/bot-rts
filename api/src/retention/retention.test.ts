@@ -6,6 +6,7 @@ import { loadConfig } from '../config/app-config'
 import { liveTerminalRetention } from '../terminal/domain/terminal-retention'
 import { ValidationError } from '../shared/domain/errors'
 import {
+  LogRetention,
   mergeRetention,
   RetentionOverrides,
   RetentionSettingsService,
@@ -30,11 +31,11 @@ class MemoryStore implements RetentionStore {
   }
 }
 
-function setup(cacheMs = 1000) {
+function setup(cacheMs = 1000, logRetention?: LogRetention) {
   const store = new MemoryStore()
   const clock = new FakeClock()
   const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn() }
-  const service = new RetentionSettingsService(store, DEFAULT_RETENTION, clock, cacheMs, logger)
+  const service = new RetentionSettingsService(store, DEFAULT_RETENTION, clock, cacheMs, logger, logRetention)
 
   return { store, clock, logger, service }
 }
@@ -51,7 +52,10 @@ describe('retentionProblems', () => {
     ['executions', { days: '10' }, 'executions.days'],
     ['executions', { isEnabled: 'yes' }, 'executions.isEnabled'],
     ['executions', { nothing: 1 }, 'executions.nothing'],
-    ['monitoring', { isEnabled: false }, 'monitoring.isEnabled']
+    ['monitoring', { isEnabled: false }, 'monitoring.isEnabled'],
+    ['logs', { days: 0 }, 'logs.days'],
+    ['logs', { days: 400 }, 'logs.days'],
+    ['logs', { isEnabled: false }, 'logs.isEnabled']
   ])('refuses %s %j', (job, patch, mention) => {
     const [problem] = retentionProblems(job as never, patch)
 
@@ -68,6 +72,7 @@ describe('the defaults', () => {
     expect(defaults.playerActivity).toEqual({ isEnabled: true, days: 400 })
     expect(defaults.inactiveAccounts).toMatchObject({ isEnabled: false, inactiveDays: 365 })
     expect(defaults.monitoring).toEqual({ fineDays: 7, coarseDays: 30 })
+    expect(defaults.logs).toEqual({ days: 14 })
     expect(Object.keys(defaults)).toEqual([...RETENTION_JOBS])
   })
 
@@ -184,6 +189,63 @@ describe('RetentionSettingsService', () => {
 
   it('exposes its defaults', () => {
     expect(setup().service.getDefaults()).toBe(DEFAULT_RETENTION)
+  })
+})
+
+describe('the retention of the logs', () => {
+  it('starts from the environment, held to the ceiling of its range', () => {
+    const base = { DATABASE_URL: 'postgresql://x', NODE_ENV: 'test' }
+
+    expect(retentionDefaults(loadConfig({ ...base, LOG_RETENTION_DAYS: '30' })).logs).toEqual({ days: 30 })
+    expect(retentionDefaults(loadConfig({ ...base, LOG_RETENTION_DAYS: '9999' })).logs).toEqual({ days: 365 })
+  })
+
+  it('is put into force in the log store before it is saved, and only when it changed', async () => {
+    const order: string[] = []
+    const logs: LogRetention = { apply: jest.fn(async (days: number) => void order.push(`apply ${days}`)) }
+    const { service, store } = setup(1000, logs)
+    const save = store.save.bind(store)
+    store.save = async (...args) => {
+      order.push('save')
+      return save(...args)
+    }
+
+    await service.update({ executions: { days: 10 } }, undefined)
+    expect(logs.apply).not.toHaveBeenCalled()
+    await service.update({ logs: { days: 30 } }, undefined)
+
+    expect(order).toEqual(['save', 'apply 30', 'save'])
+    expect((await service.current()).logs).toEqual({ days: 30 })
+  })
+
+  it('saves nothing when the log store cannot take the change', async () => {
+    const logs: LogRetention = { apply: jest.fn().mockRejectedValue(new Error('refused')) }
+    const { service, store } = setup(1000, logs)
+
+    await expect(service.update({ logs: { days: 30 } }, undefined)).rejects.toThrow('refused')
+
+    expect(store.saves).toEqual([])
+    expect((await service.current()).logs).toEqual({ days: 14 })
+  })
+
+  it('puts the default back into the log store with reset(), when the days were changed', async () => {
+    const logs: LogRetention = { apply: jest.fn(async () => undefined) }
+    const { service } = setup(1000, logs)
+
+    await service.reset()
+    expect(logs.apply).not.toHaveBeenCalled()
+    await service.update({ logs: { days: 30 } }, undefined)
+    await service.reset()
+
+    expect(logs.apply).toHaveBeenLastCalledWith(14)
+  })
+
+  it('is only kept when there is no log store to change', async () => {
+    const { service } = setup()
+
+    await service.update({ logs: { days: 3 } }, undefined)
+
+    expect((await service.current()).logs).toEqual({ days: 3 })
   })
 })
 

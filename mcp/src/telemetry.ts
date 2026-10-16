@@ -14,6 +14,7 @@ import {
   SpanProcessor,
   TraceIdRatioBasedSampler
 } from '@opentelemetry/sdk-trace-base'
+import { redact } from '../../lib/utils/redaction'
 import { formatTraceparent } from '../../lib/utils/trace-context'
 
 // Logs go to the standard error: over stdio the standard output belongs to the protocol
@@ -142,7 +143,7 @@ export class OtelTelemetry implements Telemetry {
         return value
       },
       (error: unknown) => {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: String(error) })
+        span.setStatus({ code: SpanStatusCode.ERROR, message: redact(String(error)) })
         span.end()
         throw error
       }
@@ -163,7 +164,7 @@ export class OtelTelemetry implements Telemetry {
           span.setAttribute('http.response.status_code', status)
         }
         if (failure !== undefined) {
-          span.setStatus({ code: SpanStatusCode.ERROR, message: failure })
+          span.setStatus({ code: SpanStatusCode.ERROR, message: redact(failure) })
         }
         span.end()
       }
@@ -178,8 +179,10 @@ export class OtelTelemetry implements Telemetry {
     const active = trace.getActiveSpan()?.spanContext()
     const traceId = active && trace.isSpanContextValid(active) ? active.traceId : undefined
 
-    write(`${new Date().toISOString()} [${level}]${traceId ? ` [${traceId.slice(0, 8)}]` : ''} ${message}`)
-    this.exported.emit({ severityNumber: severity, severityText: level, body: message, context: context.active() })
+    const clean = redact(message)
+
+    write(`${new Date().toISOString()} [${level}]${traceId ? ` [${traceId.slice(0, 8)}]` : ''} ${clean}`)
+    this.exported.emit({ severityNumber: severity, severityText: level, body: clean, context: context.active() })
   }
 }
 

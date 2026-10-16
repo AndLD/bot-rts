@@ -90,6 +90,10 @@ describe('loadConfig', () => {
         traceIndex: 'botrts-traces',
         logSearchTimeoutMs: 5000,
         logSearchMaxWindowDays: 7,
+        logRetentionDays: 14,
+        elasticsearchAdminApiKey: undefined,
+        elasticsearchAdminUsername: undefined,
+        elasticsearchAdminPassword: undefined,
         gatewayHealthUrl: undefined,
         gatewayMetricsUrl: undefined,
         backupStatusFile: undefined
@@ -121,7 +125,11 @@ describe('loadConfig', () => {
           LOG_INDEX: 'logs-x',
           TRACE_INDEX: 'traces-x',
           LOG_SEARCH_TIMEOUT_MS: '1000',
-          LOG_SEARCH_MAX_WINDOW_DAYS: '3'
+          LOG_SEARCH_MAX_WINDOW_DAYS: '3',
+          LOG_RETENTION_DAYS: '30',
+          ELASTICSEARCH_ADMIN_API_KEY: 'admin-key',
+          ELASTICSEARCH_ADMIN_USERNAME: 'admin',
+          ELASTICSEARCH_ADMIN_PASSWORD: 'admin-secret'
         }).observability
       ).toMatchObject({
         logStore: 'elasticsearch',
@@ -132,7 +140,11 @@ describe('loadConfig', () => {
         logIndex: 'logs-x',
         traceIndex: 'traces-x',
         logSearchTimeoutMs: 1000,
-        logSearchMaxWindowDays: 3
+        logSearchMaxWindowDays: 3,
+        logRetentionDays: 30,
+        elasticsearchAdminApiKey: 'admin-key',
+        elasticsearchAdminUsername: 'admin',
+        elasticsearchAdminPassword: 'admin-secret'
       })
     })
 

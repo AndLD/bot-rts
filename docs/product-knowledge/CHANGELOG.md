@@ -87,6 +87,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   account): by text, level, request id, trace id, player, bot, node and time, with a node filter, the trace id of each line and paging.
   A search is limited in time range (`LOG_SEARCH_MAX_WINDOW_DAYS`) and duration (`LOG_SEARCH_TIMEOUT_MS`); when the store is down the
   console says so (`LOG_STORE_UNAVAILABLE`). The default stays the recent log of the node that answers (`LOG_STORE=memory`).
+- Privacy of the logs and traces: emails, tokens (JWT and Bearer), passwords, secrets and API keys are taken out of every log line and
+  span before it is written anywhere, in every node, and again in the gateway; every search of the log is written to the audit trail
+  (`logs.search`, with what was asked), like each read of a trace; and the retention of the logs and traces is a setting of the
+  Operations page (`logs`, 1 to 365 days, reset to the default with the others), applied to the lifecycle policy of the log store.
 - Traces in the admin console: a line of the log has an **Open trace** action, and a trace can be opened by its trace id or by the
   request id of an older line. It shows the spans of the request over the API node, the engine and the notifications it caused as a
   timeline (name, node, start, duration, status) and every log line of the trace from every node in order (`GET /api/v1/admin/traces/:id`,

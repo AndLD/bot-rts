@@ -65,4 +65,12 @@ describe('RecordingLogger', () => {
     expect(messages[3]).toContain('disk full')
     expect(messages.slice(0, 3)).toEqual(['Error: no stack', '{"code":7}', 'plain text'])
   })
+
+  it('keeps the line without its secrets', () => {
+    const { buffer, logger } = setup()
+
+    logger.warn('reset link ?token=abc123 sent to bob@example.com')
+
+    expect(buffer.search({}, 10).lines[0].message).toBe('reset link ?token=[redacted] sent to [email]')
+  })
 })

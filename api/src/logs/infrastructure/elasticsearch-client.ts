@@ -25,12 +25,21 @@ export class ElasticsearchClient {
   ) {}
 
   // Searches `index`; the answer, or null when there is no such data stream yet (nothing was ever written to it)
-  async search<T>(index: string, body: object): Promise<T | null> {
+  search<T>(index: string, body: object): Promise<T | null> {
+    return this.send<T>('POST', `${index}/_search`, body)
+  }
+
+  // Creates or replaces something by its path (the lifecycle policy of the log store)
+  async put(path: string, body: object): Promise<void> {
+    await this.send('PUT', path, body)
+  }
+
+  private async send<T>(method: string, path: string, body: object): Promise<T | null> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), this.settings.timeoutMs)
     try {
-      const response = await this.fetchImpl(`${this.settings.url.replace(/\/+$/, '')}/${index}/_search`, {
-        method: 'POST',
+      const response = await this.fetchImpl(`${this.settings.url.replace(/\/+$/, '')}/${path}`, {
+        method,
         headers: this.headers(),
         body: JSON.stringify(body),
         signal: controller.signal
@@ -40,7 +49,7 @@ export class ElasticsearchClient {
       }
       if (!response.ok) {
         this.logger.warn(`The log store answered ${response.status}`)
-        throw new LogStoreUnavailableError(`The log store refused the search (${response.status})`)
+        throw new LogStoreUnavailableError(`The log store refused the request (${response.status})`)
       }
 
       return (await response.json()) as T

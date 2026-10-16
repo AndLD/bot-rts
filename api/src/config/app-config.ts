@@ -107,6 +107,13 @@ export interface ObservabilityConfig {
   traceIndex: string
   logSearchTimeoutMs: number
   logSearchMaxWindowDays: number
+  // How long the log store keeps logs and traces (the default of the console's retention setting), in days
+  logRetentionDays: number
+  // An account that may change the lifecycle policy of the log store, used only when an admin changes the retention of the logs; without
+  // one the setting is kept but not applied
+  elasticsearchAdminApiKey: string | undefined
+  elasticsearchAdminUsername: string | undefined
+  elasticsearchAdminPassword: string | undefined
   // Where the console reads the health and the queue size of the gateway collector (its health-check extension and its Prometheus
   // metrics); without them the console shows no gateway metrics
   gatewayHealthUrl: string | undefined
@@ -478,6 +485,10 @@ export function loadConfig(env: Env): AppConfig {
       traceIndex: env.TRACE_INDEX || 'botrts-traces',
       logSearchTimeoutMs: positiveInt(env.LOG_SEARCH_TIMEOUT_MS, 5000),
       logSearchMaxWindowDays: positiveInt(env.LOG_SEARCH_MAX_WINDOW_DAYS, 7),
+      logRetentionDays: positiveInt(env.LOG_RETENTION_DAYS, 14),
+      elasticsearchAdminApiKey: env.ELASTICSEARCH_ADMIN_API_KEY || undefined,
+      elasticsearchAdminUsername: env.ELASTICSEARCH_ADMIN_USERNAME || undefined,
+      elasticsearchAdminPassword: env.ELASTICSEARCH_ADMIN_PASSWORD || undefined,
       gatewayHealthUrl: env.OTEL_GATEWAY_HEALTH_URL || undefined,
       gatewayMetricsUrl: env.OTEL_GATEWAY_METRICS_URL || undefined,
       backupStatusFile: env.BACKUP_STATUS_FILE || undefined

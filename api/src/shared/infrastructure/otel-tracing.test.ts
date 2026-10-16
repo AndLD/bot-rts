@@ -111,4 +111,31 @@ describe('OtelTracing', () => {
     expect(traceparents[0]).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-00$/)
     expect(dropped.spans().map((span) => span.name)).toEqual(['remote'])
   })
+
+  it('takes the secrets out of the name, the attributes and the failure of a span', () => {
+    const { telemetry, spans } = testTelemetry()
+    const span = telemetry.tracing.startSpan('GET /users/alice@example.com', {
+      attributes: { who: 'alice@example.com', count: 3, isOk: true }
+    })
+
+    span.rename('POST /login for bob@example.com')
+    span.setAttribute('header', 'Bearer abcdef1234567890')
+    span.setAttribute('size', 7)
+    span.fail(new Error('wrong password=hunter2'))
+    span.fail('key botrts_0123456789abcdef')
+    span.end()
+
+    const [finished] = spans()
+    expect(finished.name).toBe('POST /login for [email]')
+    expect(finished.attributes).toMatchObject({
+      who: '[email]',
+      count: 3,
+      isOk: true,
+      header: 'Bearer [token]',
+      size: 7
+    })
+    expect(finished.status.message).toBe('key [api-key]')
+    expect(JSON.stringify(finished.events)).not.toContain('hunter2')
+    expect(JSON.stringify([finished.name, finished.attributes, finished.status, finished.events])).not.toContain('@')
+  })
 })

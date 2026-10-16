@@ -56,6 +56,7 @@ describe('MonitoringService health', () => {
       'world',
       'api',
       'database',
+      'jobs',
       'infrastructure'
     ])
     expect(health.areas[0].metrics.every((metric) => metric.value === null)).toBe(true)

@@ -20,6 +20,7 @@ const REAL_CLOCK = [
   'monitoring/monitoring.module.ts',
   'operations/operations.module.ts',
   'player-notifications/player-notifications.module.ts',
+  'persistence/persistence.module.ts',
   'players/players.module.ts',
   'players/presentation/players.controller.ts',
   'ratelimit/ratelimit.module.ts',

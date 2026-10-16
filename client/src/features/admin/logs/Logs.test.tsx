@@ -370,7 +370,7 @@ describe('SlowTicks', () => {
   })
 
   it('says there are none, and when they cannot be loaded', async () => {
-    serve((call) => (call.url.endsWith('/slow-ticks') ? { data: [] } : undefined))
+    serve((call) => (call.url.endsWith('/slow-ticks') || call.url.endsWith('/slow-queries') ? { data: [] } : undefined))
     const { unmount } = renderAs('admin', <SlowTicks />)
     expect(await screen.findByText('No slow ticks')).toBeInTheDocument()
     expect(await screen.findByText('No slow queries')).toBeInTheDocument()

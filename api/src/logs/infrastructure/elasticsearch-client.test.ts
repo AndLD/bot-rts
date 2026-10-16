@@ -9,8 +9,24 @@ describe('ElasticsearchClient', () => {
     const { client, calls } = fakeElasticsearch({ body: { hits: 'found' } })
 
     expect(await client.search('botrts-logs', BODY)).toEqual({ hits: 'found' })
-    expect(calls[0]).toMatchObject({ url: 'https://es.example:9200/botrts-logs/_search', body: BODY })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: 'https://es.example:9200/botrts-logs/_search', body: BODY })
     expect(calls[0].headers['content-type']).toBe('application/json')
+  })
+
+  it('puts something by its path, and says so when it is refused', async () => {
+    const { client, calls } = fakeElasticsearch()
+    const refused = fakeElasticsearch({ status: 403 })
+
+    await client.put('_ilm/policy/botrts-retention', { policy: {} })
+
+    expect(calls[0]).toMatchObject({
+      method: 'PUT',
+      url: 'https://es.example:9200/_ilm/policy/botrts-retention',
+      body: { policy: {} }
+    })
+    await expect(refused.client.put('_ilm/policy/x', {})).rejects.toThrow(
+      new LogStoreUnavailableError('The log store refused the request (403)')
+    )
   })
 
   it('sends the API key, or the user and password, of the read-only account', async () => {
@@ -49,7 +65,7 @@ describe('ElasticsearchClient', () => {
       new LogStoreUnavailableError('The log store cannot be reached')
     )
     await expect(refused.client.search('i', BODY)).rejects.toThrow(
-      new LogStoreUnavailableError('The log store refused the search (503)')
+      new LogStoreUnavailableError('The log store refused the request (503)')
     )
     await expect(slow.search('i', BODY)).rejects.toThrow(
       new LogStoreUnavailableError('The log store did not answer in time')

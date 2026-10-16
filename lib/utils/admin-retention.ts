@@ -11,7 +11,8 @@ export const RETENTION_JOBS = [
   'unverifiedAccounts',
   'inactiveAccounts',
   'playerActivity',
-  'monitoring'
+  'monitoring',
+  'logs'
 ] as const
 
 export type RetentionJob = (typeof RETENTION_JOBS)[number]
@@ -42,11 +43,14 @@ export const RETENTION_RANGES: Readonly<Record<RetentionJob, Readonly<Record<str
     noticeDays: { min: 7, max: 365, unit: 'days' }
   },
   playerActivity: { days: { min: 30, max: 3650, unit: 'days' } },
-  monitoring: { fineDays: { min: 1, max: 30, unit: 'days' }, coarseDays: { min: 7, max: 365, unit: 'days' } }
+  monitoring: { fineDays: { min: 1, max: 30, unit: 'days' }, coarseDays: { min: 7, max: 365, unit: 'days' } },
+  // The logs and traces in the log store (Elasticsearch): applied to its lifecycle policy when it is changed
+  logs: { days: { min: 1, max: 365, unit: 'days' } }
 }
 
-// The monitoring history lives in memory and has no switch: only its two ranges are tunable
-export const JOBS_WITHOUT_SWITCH: readonly RetentionJob[] = ['monitoring']
+// The monitoring history lives in memory and has no switch: only its two ranges are tunable. The logs have no switch either: their one
+// range is what the lifecycle policy of the log store keeps
+export const JOBS_WITHOUT_SWITCH: readonly RetentionJob[] = ['monitoring', 'logs']
 
 export type RetentionValues = Record<string, number | boolean>
 

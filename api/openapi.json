@@ -10368,7 +10368,8 @@
               "unverifiedAccounts",
               "inactiveAccounts",
               "playerActivity",
-              "monitoring"
+              "monitoring",
+              "logs"
             ]
           },
           "values": {

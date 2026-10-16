@@ -11,7 +11,8 @@ export const DEFAULT_RETENTION: RetentionSettings = {
   unverifiedAccounts: { isEnabled: true, days: 7 },
   inactiveAccounts: { isEnabled: true, inactiveDays: 365, noticeDays: 30 },
   playerActivity: { isEnabled: true, days: 400 },
-  monitoring: { fineDays: 7, coarseDays: 30 }
+  monitoring: { fineDays: 7, coarseDays: 30 },
+  logs: { days: 14 }
 }
 
 export function retentionWith(overrides: Partial<Record<RetentionJob, RetentionValues>> = {}): RetentionSettings {

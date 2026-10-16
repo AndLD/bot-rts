@@ -3,9 +3,19 @@ export interface HistoryTier {
   retentionMs: number
 }
 
+// The slowest observation of a step of a distribution, with the trace to open for it (design §25.5)
+export interface SlowestSample {
+  // Start of the step, in ms since the epoch
+  at: number
+  durationMs: number
+  traceId: string
+}
+
 export interface SeriesResult {
   stepMs: number
   points: Array<[number, number]>
+  // For the series that are a percentile of a distribution: the slowest sample of each step that has a trace
+  slowest?: SlowestSample[]
 }
 
 // A fixed-size ring of timestamps plus one ring of values per metric, so memory is bounded by the retention

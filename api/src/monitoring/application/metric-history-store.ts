@@ -1,6 +1,6 @@
 import { Logger } from '../../shared/application/logger'
 import { addCounts, emptyCounts, histogramOf, PERCENTILE_METRICS, percentileOf } from '../domain/histograms'
-import { MetricHistory, SeriesResult } from './metric-history'
+import { MetricHistory, SeriesResult, SlowestSample } from './metric-history'
 import { HistogramRow, MetricHistoryRepository, MinuteRow } from './metric-history.repository'
 import { HistogramSample, MetricSample } from './ports'
 
@@ -107,7 +107,18 @@ export class PersistentMetricHistoryStore implements MetricHistoryStore {
     this.add(this.open, sample)
   }
 
-  async series({ metric, fromMs, toMs, node }: SeriesQuery): Promise<SeriesResult> {
+  async series(query: SeriesQuery): Promise<SeriesResult> {
+    const result = await this.pointsOf(query)
+    const percentile = PERCENTILE_METRICS[query.metric]
+    if (!percentile) {
+      return result
+    }
+    const slowest = await this.slowest(percentile.histogram, query)
+
+    return slowest.length > 0 ? { ...result, slowest } : result
+  }
+
+  private async pointsOf({ metric, fromMs, toMs, node }: SeriesQuery): Promise<SeriesResult> {
     const live = this.fine.series(metric, fromMs, toMs)
     // This node's own series, as long as its memory reaches back: ten-second steps
     if (node === this.nodeId && live.points.length > 0 && live.points[0][0] <= fromMs + live.stepMs) {
@@ -200,6 +211,22 @@ export class PersistentMetricHistoryStore implements MetricHistoryStore {
     } catch (error) {
       this.logger.error(`The monitoring history could not be written: ${(error as Error).message}`)
     }
+  }
+
+  // The slowest sample of each step of the range, over the nodes; the steps are those of the coarse tier whatever tier the points are from
+  private async slowest(histogram: string, { fromMs, toMs, node }: SeriesQuery): Promise<SlowestSample[]> {
+    const stepMs = stepOf(toMs - fromMs)
+    const steps = new Map<number, SlowestSample>()
+
+    for (const point of await this.repository.readHistograms(histogram, fromMs, toMs, node)) {
+      const at = Math.floor(point.minute / stepMs) * stepMs
+      const known = steps.get(at)
+      if (point.slowestTraceId !== null && point.slowestMs !== null && (!known || point.slowestMs > known.durationMs)) {
+        steps.set(at, { at, durationMs: point.slowestMs, traceId: point.slowestTraceId })
+      }
+    }
+
+    return [...steps.values()].sort((a, b) => a.at - b.at)
   }
 
   private async percentiles(

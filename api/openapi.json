@@ -8882,6 +8882,13 @@
                     [
                       1
                     ]
+                  ],
+                  "slowest": [
+                    {
+                      "at": 1,
+                      "durationMs": 1,
+                      "traceId": "string"
+                    }
                   ]
                 }
               }
@@ -14885,6 +14892,27 @@
           "alerts"
         ]
       },
+      "SlowestSampleResponse": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "number",
+            "description": "Start of the step, in milliseconds since the epoch"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "traceId": {
+            "type": "string",
+            "description": "The trace of the slowest observation of the step"
+          }
+        },
+        "required": [
+          "at",
+          "durationMs",
+          "traceId"
+        ]
+      },
       "MetricSeriesResponse": {
         "type": "object",
         "properties": {
@@ -14903,6 +14931,13 @@
               },
               "minItems": 2,
               "maxItems": 2
+            }
+          },
+          "slowest": {
+            "description": "For the percentiles of a distribution: the slowest sample of each step",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlowestSampleResponse"
             }
           }
         },

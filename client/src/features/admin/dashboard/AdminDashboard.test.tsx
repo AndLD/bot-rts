@@ -113,9 +113,15 @@ function serve(report: IHealthReport | 'broken', onCall: (call: Call) => unknown
               points: [
                 [1000, 1],
                 [2000, 3]
-              ]
+              ],
+              ...(args.params?.metric === 'api.latencyP95Ms'
+                ? { slowest: [{ at: 2000, durationMs: 850, traceId: 'f'.repeat(32) }] }
+                : {})
             }
           }
+    }
+    if (args.url.startsWith('/api/v1/admin/traces/')) {
+      return { data: { traceId: args.url.split('/').pop(), spans: [], lines: [], store: 'memory', isLogCut: false } }
     }
     if (args.url === '/api/v1/admin/monitoring/nodes') {
       return { data: ['host:1', 'host:2'] }
@@ -210,6 +216,28 @@ describe('AdminDashboard', () => {
       expect(calls.some((call) => call.url.endsWith('/series') && call.params?.node === 'host:2')).toBe(true)
     )
     expect(calls.some((call) => call.url.endsWith('/nodes') && call.params?.range === '1h')).toBe(true)
+  })
+
+  it('offers to open the trace of the slowest sample on a latency chart, and not on the other charts', async () => {
+    const calls = serve(health())
+    renderDashboard()
+
+    const mark = await screen.findByRole('button', { name: /Open the trace of the slowest sample \(850 ms\)/ })
+    expect(screen.getAllByRole('button', { name: /Open the trace/ })).toHaveLength(1)
+    fireEvent.click(mark)
+
+    await waitFor(() => expect(calls.some((call) => call.url === `/api/v1/admin/traces/${'f'.repeat(32)}`)).toBe(true))
+  })
+
+  it('opens the trace from the keyboard too', async () => {
+    const calls = serve(health())
+    renderDashboard()
+
+    const mark = await screen.findByRole('button', { name: /Open the trace/ })
+    fireEvent.keyDown(mark, { key: 'a' })
+    fireEvent.keyDown(mark, { key: 'Enter' })
+
+    await waitFor(() => expect(calls.some((call) => call.url.startsWith('/api/v1/admin/traces/'))).toBe(true))
   })
 
   it('reads the series again for another time range', async () => {

@@ -1064,6 +1064,8 @@
       "alerts": "Alerts",
       "noAlerts": "No open alerts",
       "noData": "No data yet",
+      "openTrace": "Open the trace of the slowest sample ({duration})",
+      "traceTitle": "Trace",
       "allNodes": "All nodes",
       "acknowledge": "Acknowledge",
       "acknowledged": "Acknowledged",

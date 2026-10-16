@@ -4,6 +4,7 @@ import { IsDate, IsIn, IsInt, IsOptional, IsString, IsUUID, Length, Matches, Max
 import {
   ILogLine,
   ILogPage,
+  ISlowQuery,
   ISlowTick,
   LOG_LEVELS,
   ILogNode,
@@ -125,6 +126,17 @@ export class LogNodeResponse implements ILogNode {
 
   @ApiProperty({ type: [String] })
   services!: string[]
+}
+
+export class SlowQueryResponse implements ISlowQuery {
+  @ApiProperty({ description: 'Milliseconds since the epoch' })
+  at!: number
+
+  @ApiProperty()
+  durationMs!: number
+
+  @ApiProperty({ description: 'The statement of the query, with its parameters left out' })
+  statement!: string
 }
 
 export class SlowTickResponse implements ISlowTick {

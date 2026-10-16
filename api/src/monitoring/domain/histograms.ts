@@ -7,11 +7,12 @@ export interface HistogramDefinition {
   boundsMs: readonly number[]
 }
 
-// The bounds of the API are the buckets of `HttpMetrics`, those of the tick are the buckets of `EngineMetrics` (`TICK_BOUNDS_MS`);
-// a test holds them equal
+// The bounds of the API are the buckets of `HttpMetrics`, those of the tick are the buckets of `EngineMetrics` (`TICK_BOUNDS_MS`), those of
+// the queries are `QUERY_BOUNDS_MS`; a test holds them equal
 export const HISTOGRAMS: readonly HistogramDefinition[] = [
   { id: 'api.latencyMs', boundsMs: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 30000] },
-  { id: 'engine.tickMs', boundsMs: [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000] }
+  { id: 'engine.tickMs', boundsMs: [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000] },
+  { id: 'db.queryMs', boundsMs: [1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500] }
 ]
 
 export const HISTOGRAM_IDS = HISTOGRAMS.map((histogram) => histogram.id)
@@ -23,7 +24,10 @@ export const PERCENTILE_METRICS: Readonly<Record<string, { histogram: string; qu
   'api.latencyP99Ms': { histogram: 'api.latencyMs', quantile: 0.99 },
   'engine.tickP50Ms': { histogram: 'engine.tickMs', quantile: 0.5 },
   'engine.tickP95Ms': { histogram: 'engine.tickMs', quantile: 0.95 },
-  'engine.tickP99Ms': { histogram: 'engine.tickMs', quantile: 0.99 }
+  'engine.tickP99Ms': { histogram: 'engine.tickMs', quantile: 0.99 },
+  'database.queryP50Ms': { histogram: 'db.queryMs', quantile: 0.5 },
+  'database.queryP95Ms': { histogram: 'db.queryMs', quantile: 0.95 },
+  'database.queryP99Ms': { histogram: 'db.queryMs', quantile: 0.99 }
 }
 
 export const histogramOf = (id: string): HistogramDefinition | undefined =>

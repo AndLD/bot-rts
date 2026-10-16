@@ -65,6 +65,14 @@ export interface ILogNode {
   services: string[]
 }
 
+export interface ISlowQuery {
+  // Milliseconds since the epoch
+  at: number
+  durationMs: number
+  // The statement, with its parameters left out
+  statement: string
+}
+
 export interface ISlowTick {
   tick: number
   durationMs: number

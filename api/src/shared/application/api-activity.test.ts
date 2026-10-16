@@ -49,12 +49,13 @@ describe('ApiActivity', () => {
     expect(activity.snapshot().socketReconnects).toBe(0)
   })
 
-  it('counts the requests the rate limit refused', () => {
+  it('counts the requests the rate limit refused and the emails the mail server refused', () => {
     const activity = new ApiActivity()
 
     activity.rateLimitHit()
     activity.rateLimitHit()
+    activity.emailFailed()
 
-    expect(activity.snapshot().rateLimitHits).toBe(2)
+    expect(activity.snapshot()).toMatchObject({ rateLimitHits: 2, emailFailures: 1 })
   })
 })

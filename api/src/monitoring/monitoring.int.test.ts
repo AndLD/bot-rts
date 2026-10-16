@@ -59,6 +59,8 @@ describe('the monitoring endpoints', () => {
       'scripts',
       'world',
       'api',
+      'database',
+      'jobs',
       'infrastructure'
     ])
     const infrastructure = health.body.areas.find((area: { area: string }) => area.area === 'infrastructure')

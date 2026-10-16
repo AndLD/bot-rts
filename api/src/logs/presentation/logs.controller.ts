@@ -1,12 +1,18 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common'
 import { ApiBearerAuth, ApiDefaultResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { ILogNode, ILogPage, ISlowTick } from '../../../../lib/utils/admin-logs'
+import { ILogNode, ILogPage, ISlowQuery, ISlowTick } from '../../../../lib/utils/admin-logs'
 import { AuditDetail } from '../../admin/presentation/admin-request'
 import { AuditDetailParam } from '../../admin/presentation/audit-detail.decorator'
 import { Audited, RequirePermission } from '../../admin/presentation/admin-permission.decorator'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { LogsService } from '../application/logs.service'
-import { LogNodeResponse, LogPageResponse, SearchLogsQueryDto, SlowTickResponse } from './dto/logs.dto'
+import {
+  LogNodeResponse,
+  LogPageResponse,
+  SearchLogsQueryDto,
+  SlowQueryResponse,
+  SlowTickResponse
+} from './dto/logs.dto'
 
 export const LOGS_SERVICE = Symbol('LogsService')
 
@@ -37,6 +43,13 @@ export class LogsController {
   @Get('nodes')
   nodes(): Promise<ILogNode[]> {
     return this.logs.nodes()
+  }
+
+  @RequirePermission('logs.read')
+  @ApiOkResponse({ type: SlowQueryResponse, isArray: true })
+  @Get('slow-queries')
+  slowQueries(): ISlowQuery[] {
+    return this.logs.slowQueries()
   }
 
   @RequirePermission('logs.read')

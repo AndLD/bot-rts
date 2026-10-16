@@ -101,7 +101,7 @@ Prometheus entry in §25.6). The `/metrics` endpoint stays as it is, for externa
 | **Jobs and notifications** | Retention and cleanup jobs (last run, duration, failures; their ranges are set from the console, *planned 9.19*), notification queue depth and delivery lag, email send failures |
 | **Infrastructure** | CPU and memory of each process, disk usage, backup age; *planned (Phase 13):* the health and the queue of the shared collector gateway |
 
-Delivered by task 13.8 (planned): every row above except **Market**, which comes with Phase 10 (10.11 and 10.15).
+Delivered by task 13.8: every row above except **Market**, which comes with Phase 10 (10.11 and 10.15). Notes on what is measured: the database rows come from the timing of every query of the API process (`SLOW_QUERY_MS`) and the statistics views of PostgreSQL (connections, sizes every five minutes; "flush transaction time" is the world-write duration of the Engine row); the jobs row is the data lifecycle job and the notification queue; "engine memory" and the machine are the Infrastructure row of each node; restarts of the engine are seen as its uptime going back; "suspended executions" does not exist in the engine.
 
 Alerts appear in the console and by email to the owner; webhook channels (Slack, Telegram) are in the backlog.
 

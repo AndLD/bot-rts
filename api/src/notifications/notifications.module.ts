@@ -4,12 +4,19 @@ import { Module, OnApplicationShutdown, Inject } from '@nestjs/common'
 import { APP_CONFIG, AppConfig } from '../config/app-config'
 import { EMAIL_SENDER, EmailSender } from './application/email-sender'
 import { LOGGER, Logger } from '../shared/application/logger'
+import { API_ACTIVITY, ApiActivity } from '../shared/application/api-activity'
+import { MeteredEmailSender } from './infrastructure/metered-email-sender'
 import { LoggingEmailSender } from './infrastructure/logging-email-sender'
 import { OutboxEmailSender } from './infrastructure/outbox-email-sender'
 import { SmtpEmailSender } from './infrastructure/smtp-email-sender'
 
 // An outbox directory (end-to-end tests) first, then SMTP when it is configured; otherwise development logs the messages
 // (the links are in the server log) and any other environment sends nothing
+// Counts the emails the mail server refuses, for the console
+export function meter(sender: EmailSender | undefined, activity: ApiActivity): EmailSender | undefined {
+  return sender && new MeteredEmailSender(sender, activity)
+}
+
 export function createEmailSender(
   config: Pick<AppConfig, 'smtp' | 'nodeEnv' | 'emailOutboxDir'>,
   logger: Logger
@@ -31,8 +38,9 @@ export function createEmailSender(
   providers: [
     {
       provide: EMAIL_SENDER,
-      inject: [APP_CONFIG, LOGGER],
-      useFactory: createEmailSender
+      inject: [APP_CONFIG, LOGGER, API_ACTIVITY],
+      useFactory: (config: AppConfig, logger: Logger, activity: ApiActivity) =>
+        meter(createEmailSender(config, logger), activity)
     }
   ],
   exports: [EMAIL_SENDER]

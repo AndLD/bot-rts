@@ -1,4 +1,5 @@
-import { ILogNode, ILogPage, ISlowTick } from '../../../../lib/utils/admin-logs'
+import { ILogNode, ILogPage, ISlowQuery, ISlowTick } from '../../../../lib/utils/admin-logs'
+import { QueryStats } from '../../persistence/application/query-stats'
 import { EnginePort } from '../../engine/application/engine-port'
 import { LogPageRequest, LogQuery, LogStore } from './log-store'
 
@@ -6,7 +7,8 @@ import { LogPageRequest, LogQuery, LogStore } from './log-store'
 export class LogsService {
   constructor(
     private readonly store: LogStore,
-    private readonly engine: EnginePort
+    private readonly engine: EnginePort,
+    private readonly queries: Pick<QueryStats, 'slowQueries'>
   ) {}
 
   async search(query: LogQuery, page: LogPageRequest): Promise<ILogPage> {
@@ -22,6 +24,11 @@ export class LogsService {
 
   nodes(): Promise<ILogNode[]> {
     return this.store.nodes()
+  }
+
+  // The last slow database queries of this node, newest first, without their parameters
+  slowQueries(): ISlowQuery[] {
+    return this.queries.slowQueries().map(({ at, ...query }) => ({ ...query, at: at.getTime() }))
   }
 
   async slowTicks(): Promise<ISlowTick[]> {

@@ -272,7 +272,8 @@ describe('RuntimeMetricsPort sockets and the rate limit', () => {
       'world.onlinePlayers': 2,
       'api.socketConnects': 2,
       'api.socketReconnects': 1,
-      'api.rateLimitHits': 2
+      'api.rateLimitHits': 2,
+      'notifications.emailFailures': 0
     })
   })
 

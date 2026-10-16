@@ -95,6 +95,11 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   request id of an older line. It shows the spans of the request over the API node, the engine and the notifications it caused as a
   timeline (name, node, start, duration, status) and every log line of the trace from every node in order (`GET /api/v1/admin/traces/:id`,
   `logs.read`; every read is audited as `logs.read-trace`). The spans need `LOG_STORE=elasticsearch`; without it the trace is its lines.
+- The dashboard shows the database (query duration percentiles, queries per second, slow queries, connections open of the maximum, the
+  size of the database and of its largest table, growth per day; the last twenty slow queries are listed on the Logs page without their
+  parameters, `SLOW_QUERY_MS`), the background jobs and notifications (time since the cleanup job last ran, how long its pass took, failed
+  steps, notifications waiting and the wait of the oldest, emails the mail server refused) and the machine of each node (CPU used by the
+  process, load, free memory, the disks of the logs and of the data, the age of the last backup), with alert thresholds for the ones that need them.
 - The dashboard shows the traffic of the API tier: sockets open, sockets opened and players who came back within a minute (reconnects) per
   sample, the requests the rate limit refused, and the players online.
 - The dashboard shows more of the engine and the world: the median and 99th percentile of the tick and of request latency, ticks the loop

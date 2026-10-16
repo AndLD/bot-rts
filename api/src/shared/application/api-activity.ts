@@ -11,6 +11,8 @@ export interface ApiActivitySnapshot {
   socketConnects: number
   socketReconnects: number
   rateLimitHits: number
+  // Emails the mail server refused, since the process started
+  emailFailures: number
 }
 
 // What the API tier knows of its own traffic that the console shows (design §25.5): the sockets open on this node, the players on
@@ -23,9 +25,14 @@ export class ApiActivity {
   private socketConnects = 0
   private socketReconnects = 0
   private rateLimitHits = 0
+  private emailFailures = 0
 
   rateLimitHit(): void {
     this.rateLimitHits += 1
+  }
+
+  emailFailed(): void {
+    this.emailFailures += 1
   }
 
   // A socket was opened; `userId` is absent for one that is not a player's
@@ -64,7 +71,8 @@ export class ApiActivity {
       onlinePlayers: this.openByPlayer.size,
       socketConnects: this.socketConnects,
       socketReconnects: this.socketReconnects,
-      rateLimitHits: this.rateLimitHits
+      rateLimitHits: this.rateLimitHits,
+      emailFailures: this.emailFailures
     }
   }
 

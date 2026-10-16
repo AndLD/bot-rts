@@ -151,6 +151,8 @@ export interface MonitoringConfig {
   // Where the history is kept: `memory` (this process only, as before) or `postgres` (the coarse tier of every node in the database,
   // so the console sees all nodes). Postgres is the default in production and on a node of a scaled deployment.
   history: 'memory' | 'postgres'
+  // A database query that takes at least this long (ms) is slow: counted, and the last few are kept for the console
+  slowQueryMs: number
   // Who is emailed about a red alert
   alertEmails: string[]
   // Overrides of the default alert thresholds, by metric id
@@ -457,6 +459,7 @@ export function loadConfig(env: Env): AppConfig {
       coarseStepMs: 60_000,
       coarseRetentionMs: coarseRetention,
       history: monitoringHistory as 'memory' | 'postgres',
+      slowQueryMs: positiveInt(env.SLOW_QUERY_MS, 200),
       alertEmails: list(env.ADMIN_ALERT_EMAILS),
       thresholds
     },

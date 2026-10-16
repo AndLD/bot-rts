@@ -63,6 +63,7 @@ describe('loadConfig', () => {
         coarseStepMs: 60_000,
         coarseRetentionMs: 30 * 24 * 60 * 60 * 1000,
         history: 'memory',
+        slowQueryMs: 200,
         alertEmails: [],
         thresholds: {}
       },
@@ -110,6 +111,11 @@ describe('loadConfig', () => {
       },
       deployment: { role: 'all', redisUrl: undefined, engineRequestTimeoutMs: 15000 }
     })
+  })
+
+  it('reads the slow query threshold', () => {
+    expect(loadConfig({ ...base, SLOW_QUERY_MS: '50' }).monitoring.slowQueryMs).toBe(50)
+    expect(loadConfig({ ...base, SLOW_QUERY_MS: '0' }).monitoring.slowQueryMs).toBe(200)
   })
 
   describe('log store settings', () => {

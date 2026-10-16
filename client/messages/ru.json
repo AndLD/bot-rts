@@ -1081,6 +1081,8 @@
         "scripts": "Скрипты",
         "world": "Мир",
         "api": "API",
+        "database": "База данных",
+        "jobs": "Задачи и уведомления",
         "infrastructure": "Инфраструктура"
       },
       "ranges": {
@@ -1142,11 +1144,39 @@
           "socketReconnects": "Переподключения",
           "rateLimitHits": "Запросы, отклонённые лимитом"
         },
+        "database": {
+          "queryP50Ms": "Длительность запроса, медиана",
+          "queryP95Ms": "Длительность запроса, 95-й перцентиль",
+          "queryP99Ms": "Длительность запроса, 99-й перцентиль",
+          "queriesPerSecond": "Запросов в секунду",
+          "slowQueries": "Медленные запросы",
+          "connections": "Открытые соединения",
+          "connectionsRatio": "Соединений от максимума",
+          "sizeBytes": "Размер базы данных",
+          "largestTableBytes": "Самая большая таблица",
+          "growthBytesPerDay": "Рост за сутки"
+        },
+        "jobs": {
+          "lifecycleAgeSeconds": "Задача очистки, время с последнего запуска",
+          "lifecycleDurationMs": "Задача очистки, длительность последнего прохода",
+          "lifecycleFailures": "Задача очистки, упавшие шаги"
+        },
+        "notifications": {
+          "queueDepth": "Уведомлений ждёт",
+          "deliveryLagMs": "Уведомления, ожидание самого старого",
+          "emailFailures": "Письма, отклонённые почтовым сервером"
+        },
         "infrastructure": {
           "rssBytes": "Память процесса",
           "heapUsedBytes": "Занятая куча",
           "gatewayUp": "Шлюз логов доступен",
-          "gatewayQueueSize": "Очередь шлюза логов (пакеты)"
+          "gatewayQueueSize": "Очередь шлюза логов (пакеты)",
+          "cpuUsage": "Процессор, занятый процессом (ядра)",
+          "loadAverage": "Средняя нагрузка",
+          "memoryFreeRatio": "Свободная память",
+          "logDiskUsedRatio": "Диск журналов, занято",
+          "dataDiskUsedRatio": "Диск данных, занято",
+          "backupAgeSeconds": "Возраст последней резервной копии"
         }
       }
     },
@@ -1402,6 +1432,10 @@
       "time": "Время",
       "message": "Сообщение",
       "slowFailed": "Не удалось загрузить медленные тики",
+      "slowQueries": "Медленные запросы к базе данных",
+      "noSlowQueries": "Медленных запросов нет",
+      "queryDuration": "Длительность",
+      "statement": "Запрос (без параметров)",
       "noSlowTicks": "Медленных тиков нет",
       "tick": "Тик",
       "duration": "Длительность / интервал",

@@ -1081,6 +1081,8 @@
         "scripts": "Scripts",
         "world": "World",
         "api": "API",
+        "database": "Database",
+        "jobs": "Jobs and notifications",
         "infrastructure": "Infrastructure"
       },
       "ranges": {
@@ -1142,11 +1144,39 @@
           "socketReconnects": "Reconnects",
           "rateLimitHits": "Requests refused by the rate limit"
         },
+        "database": {
+          "queryP50Ms": "Query duration, median",
+          "queryP95Ms": "Query duration, 95th percentile",
+          "queryP99Ms": "Query duration, 99th percentile",
+          "queriesPerSecond": "Queries per second",
+          "slowQueries": "Slow queries",
+          "connections": "Connections open",
+          "connectionsRatio": "Connections of the maximum",
+          "sizeBytes": "Database size",
+          "largestTableBytes": "Largest table",
+          "growthBytesPerDay": "Growth per day"
+        },
+        "jobs": {
+          "lifecycleAgeSeconds": "Cleanup job, time since its last run",
+          "lifecycleDurationMs": "Cleanup job, duration of the last pass",
+          "lifecycleFailures": "Cleanup job, failed steps"
+        },
+        "notifications": {
+          "queueDepth": "Notifications waiting",
+          "deliveryLagMs": "Notifications, wait of the oldest",
+          "emailFailures": "Emails the mail server refused"
+        },
         "infrastructure": {
           "rssBytes": "Process memory",
           "heapUsedBytes": "Heap in use",
           "gatewayUp": "Log gateway reachable",
-          "gatewayQueueSize": "Log gateway queue (batches)"
+          "gatewayQueueSize": "Log gateway queue (batches)",
+          "cpuUsage": "CPU used by the process (cores)",
+          "loadAverage": "Load average",
+          "memoryFreeRatio": "Free memory",
+          "logDiskUsedRatio": "Disk of the logs, used",
+          "dataDiskUsedRatio": "Disk of the data, used",
+          "backupAgeSeconds": "Age of the last backup"
         }
       }
     },
@@ -1402,6 +1432,10 @@
       "time": "Time",
       "message": "Message",
       "slowFailed": "Could not load the slow ticks",
+      "slowQueries": "Slow database queries",
+      "noSlowQueries": "No slow queries",
+      "queryDuration": "Duration",
+      "statement": "Statement (without parameters)",
       "noSlowTicks": "No slow ticks",
       "tick": "Tick",
       "duration": "Duration / interval",

@@ -362,6 +362,9 @@ const injectedRtkApi = api.injectEndpoints({
     logsNodes: build.query<LogsNodesApiResponse, LogsNodesApiArg>({
       query: () => ({ url: `/api/v1/admin/logs/nodes` })
     }),
+    logsSlowQueries: build.query<LogsSlowQueriesApiResponse, LogsSlowQueriesApiArg>({
+      query: () => ({ url: `/api/v1/admin/logs/slow-queries` })
+    }),
     logsSlowTicks: build.query<LogsSlowTicksApiResponse, LogsSlowTicksApiArg>({
       query: () => ({ url: `/api/v1/admin/logs/slow-ticks` })
     }),
@@ -1062,6 +1065,8 @@ export type LogsSearchApiArg = {
 }
 export type LogsNodesApiResponse = /** status 200  */ LogNodeResponse[]
 export type LogsNodesApiArg = void
+export type LogsSlowQueriesApiResponse = /** status 200  */ SlowQueryResponse[]
+export type LogsSlowQueriesApiArg = void
 export type LogsSlowTicksApiResponse = /** status 200  */ SlowTickResponse[]
 export type LogsSlowTicksApiArg = void
 export type TracesReadApiResponse = /** status 200  */ TraceViewResponse
@@ -1950,6 +1955,13 @@ export type LogNodeResponse = {
   id: string
   services: string[]
 }
+export type SlowQueryResponse = {
+  /** Milliseconds since the epoch */
+  at: number
+  durationMs: number
+  /** The statement of the query, with its parameters left out */
+  statement: string
+}
 export type SlowTickResponse = {
   tick: number
   durationMs: number
@@ -2667,20 +2679,20 @@ export type HealthResponse = {
 }
 export type MetricHealthModel = {
   id: string
-  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'database' | 'jobs' | 'infrastructure'
   unit: string
   value: number | null
   status: 'green' | 'yellow' | 'red'
 }
 export type AreaHealthModel = {
-  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'database' | 'jobs' | 'infrastructure'
   status: 'green' | 'yellow' | 'red'
   metrics: MetricHealthModel[]
 }
 export type AlertResponse = {
   _id: string
   metric: string
-  area: 'engine' | 'scripts' | 'world' | 'api' | 'infrastructure'
+  area: 'engine' | 'scripts' | 'world' | 'api' | 'database' | 'jobs' | 'infrastructure'
   severity: 'yellow' | 'red'
   value: number
   threshold: number
@@ -2859,6 +2871,7 @@ export const {
   useSupervisionRestoreMutation,
   useLogsSearchQuery,
   useLogsNodesQuery,
+  useLogsSlowQueriesQuery,
   useLogsSlowTicksQuery,
   useTracesReadQuery,
   useSecurityOverviewQuery,

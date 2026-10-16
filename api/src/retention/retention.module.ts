@@ -75,6 +75,6 @@ export function createLogRetention(config: AppConfig, logger: Logger): LogRetent
     },
     { provide: RETENTION_POLICY, useExisting: RetentionSettingsService }
   ],
-  exports: [RetentionSettingsService, RETENTION_POLICY]
+  exports: [RetentionSettingsService, RETENTION_POLICY, JOB_STATUS_STORE]
 })
 export class RetentionModule {}

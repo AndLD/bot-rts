@@ -19,6 +19,7 @@ export class ActivityMetricSource implements MetricSource {
       values['api.socketConnects'] = current.socketConnects - previous.socketConnects
       values['api.socketReconnects'] = current.socketReconnects - previous.socketReconnects
       values['api.rateLimitHits'] = current.rateLimitHits - previous.rateLimitHits
+      values['notifications.emailFailures'] = current.emailFailures - previous.emailFailures
     }
     this.previous = current
 

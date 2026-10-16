@@ -150,6 +150,11 @@ function serve(handler: (call: Call) => unknown = () => undefined) {
     if (args.url === '/api/v1/admin/logs/nodes') {
       return { data: [{ id: 'host:1', services: ['botrts-api', 'botrts-engine'] }] }
     }
+    if (args.url === '/api/v1/admin/logs/slow-queries') {
+      return {
+        data: [{ at: Date.UTC(2026, 5, 1, 12), durationMs: 812.4, statement: 'SELECT * FROM "users" WHERE "id" = $1' }]
+      }
+    }
     if (args.url === '/api/v1/admin/logs/slow-ticks') {
       return {
         data: [
@@ -355,15 +360,20 @@ describe('SlowTicks', () => {
     renderAs('admin', <SlowTicks />)
 
     expect(await screen.findByText('180 / 100 ms')).toBeInTheDocument()
-    const ticks = Array.from(document.querySelectorAll('tbody tr td:first-child')).map((cell) => cell.textContent)
+    const ticks = Array.from(
+      document.querySelectorAll('.ant-table')[0].querySelectorAll('tbody tr td:first-child')
+    ).map((cell) => cell.textContent)
     expect(ticks).toEqual(['9', '5'])
     expect(screen.getByText('yes')).toBeInTheDocument()
+    expect(await screen.findByText('812 ms')).toBeInTheDocument()
+    expect(screen.getByText('SELECT * FROM "users" WHERE "id" = $1')).toBeInTheDocument()
   })
 
   it('says there are none, and when they cannot be loaded', async () => {
     serve((call) => (call.url.endsWith('/slow-ticks') ? { data: [] } : undefined))
     const { unmount } = renderAs('admin', <SlowTicks />)
     expect(await screen.findByText('No slow ticks')).toBeInTheDocument()
+    expect(await screen.findByText('No slow queries')).toBeInTheDocument()
     unmount()
 
     serve((call) => (call.url.endsWith('/slow-ticks') ? { error: { status: 503, data: {} } } : undefined))

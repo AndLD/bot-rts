@@ -31,7 +31,8 @@ template, and the components they refer to were never added. What exists:
 ## 25.2 Access model ✅
 
 - A separate **`(admin)` route group** in the Next.js app, served only to admin roles, backed by `/api/v1/admin/*`. Admin
-  endpoints are **never reachable with API keys** (design §22.1).
+  endpoints are **never reachable with API keys** (design §22.1). *Planned change (Phase 14, task 14.1):* routes that opt in with an
+  `admin:*:read` scope become reachable to an API key whose scope was granted from the console; every other admin route stays closed.
 - **Admin roles** (defaults, tunable): `owner` (everything, including role changes and destructive actions), `admin`
   (everything except owner-only actions), `moderator` (player moderation, read-only inspection, no balance or operations
   controls), `analyst` (read-only dashboards and reports). Permissions are fine-grained (for example `players.ban`,

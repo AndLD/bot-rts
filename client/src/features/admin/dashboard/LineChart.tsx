@@ -12,9 +12,9 @@ interface LineChartProps {
   label: string
   // Formats the extremes drawn at the corners
   format: (value: number) => string
-  // Points that can be opened, as indexes into `points` with the name of the action; clicking one calls `onSelect` with its index
-  marks?: ReadonlyArray<{ index: number; label: string }>
-  onSelect?: (index: number) => void
+  // Points that can be opened, as indexes into `points` with the name of the action and what it opens; clicking one calls `onSelect` with that
+  marks?: ReadonlyArray<{ index: number; label: string; target: string }>
+  onSelect?: (target: string) => void
 }
 
 // A small SVG line chart: time runs left to right, the vertical scale is from zero to the highest value
@@ -45,7 +45,7 @@ export default function LineChart({ points, label, format, marks = [], onSelect 
       {path ? (
         <>
           <path d={path.line} fill="none" stroke="currentColor" strokeWidth={1.5} />
-          {marks.map(({ index, label: markLabel }) => (
+          {marks.map(({ index, label: markLabel, target }) => (
             <circle
               key={index}
               role="button"
@@ -56,10 +56,10 @@ export default function LineChart({ points, label, format, marks = [], onSelect 
               r={3}
               fill="currentColor"
               style={{ cursor: 'pointer' }}
-              onClick={() => onSelect?.(index)}
+              onClick={() => onSelect?.(target)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
-                  onSelect?.(index)
+                  onSelect?.(target)
                 }
               }}
             />

@@ -39,9 +39,10 @@ export default function MetricChart({
           format={(value) => formatMetric(value, unit)}
           marks={slowest.map(({ index, sample }) => ({
             index,
-            label: t('openTrace', { duration: formatMetric(sample.durationMs, 'ms') })
+            label: t('openTrace', { duration: formatMetric(sample.durationMs, 'ms') }),
+            target: sample.traceId
           }))}
-          onSelect={(index) => setOpenTrace(slowest.find((mark) => mark.index === index)?.sample.traceId ?? null)}
+          onSelect={setOpenTrace}
         />
       ) : (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('noData')} />

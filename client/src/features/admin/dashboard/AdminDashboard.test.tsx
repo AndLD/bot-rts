@@ -229,6 +229,16 @@ describe('AdminDashboard', () => {
     await waitFor(() => expect(calls.some((call) => call.url === `/api/v1/admin/traces/${'f'.repeat(32)}`)).toBe(true))
   })
 
+  it('closes the trace again', async () => {
+    serve(health())
+    renderDashboard()
+
+    fireEvent.click(await screen.findByRole('button', { name: /Open the trace/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }))
+
+    await waitFor(() => expect(screen.queryByText('Trace id')).not.toBeInTheDocument())
+  })
+
   it('opens the trace from the keyboard too', async () => {
     const calls = serve(health())
     renderDashboard()

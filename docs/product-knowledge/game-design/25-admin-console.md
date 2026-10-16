@@ -83,6 +83,13 @@ Metrics are collected through a metrics port (engine, API tier, database, socket
 (defaults: 7 days at 10-second resolution, 30 days at 1 minute; tunable), with a Prometheus-compatible `/metrics`
 endpoint for external tools. The dashboard shows status (green / yellow / red) and charts for:
 
+**Storage of the history (decided 2026-10-16, planned).** The history must work with several API nodes and a separate engine node, so it
+cannot live only in process memory. The fine tier (10-second steps) stays in memory per node for the live view; the coarse tier (1 minute)
+is written by **every node to PostgreSQL**, with a `node` column and, for latencies, histogram bucket counts, so that a percentile across
+nodes is computed from buckets and never by averaging per-node percentiles. The console reads all nodes, with a node filter, and the
+retention is a setting (9.19). The console reads the history through a **history port**, so another store can be added later (see the
+Prometheus entry in §25.6). The `/metrics` endpoint stays as it is, for external tools; the console does not use it.
+
 | Area | Metrics (default alert thresholds, tunable) |
 | --- | --- |
 | **Engine** | Tick duration p50 / p95 / p99 (yellow: p95 > 80 % of the tick interval); tick overruns per minute (red: > 1 %); world-flush duration and lag (red: > 5 s); ticks skipped; engine memory; restarts and crash-loop kills |
@@ -102,3 +109,17 @@ Alerts appear in the console and by email to the owner; webhook channels (Slack,
 - Player reports and a support inbox.
 - Scripted admin automation through a separate admin API key type.
 - Not in the plan yet: a retention window for the audit trail itself (it is append-only and never deleted today).
+- **Prometheus as a second store for the metrics history** (decided 2026-10-16: not now; the PostgreSQL history above is used). The
+  console would query Prometheus through its HTTP API behind the history port, without Grafana. What it adds over PostgreSQL: a time-series
+  store with built-in compression and retention; PromQL (`rate()`, `histogram_quantile()`, aggregation by node or label) without writing a
+  query per chart; correct counter handling across restarts; pull-based collection, so a silent node shows as `up == 0`; ready-made exporters
+  for host, PostgreSQL and Redis metrics; alert rules with routing and silences; exemplars. What it costs: another service in development,
+  CI and production (disk, retention, upgrades), a console that depends on it (an in-memory fallback is still needed), real histograms
+  (`prom-client`) instead of the hand-written text writer, and a fixed list of server-side queries (the browser never sends PromQL).
+  Both Prometheus (Apache 2.0) and Grafana OSS (AGPL v3) are free to self-host.
+  **Adopt it when** one of these holds: several API nodes run in production and cross-node percentiles or exploration are needed; infrastructure
+  metrics (host, database, Redis) are wanted without writing collectors; alert routing outgrows the in-app alerts; or the number of series
+  outgrows PostgreSQL. **How:** a Prometheus adapter behind the history port, chosen by an environment variable like `LOG_STORE`; keep
+  the same metric names and units. **Switching without a migration:** run both for one retention window and then switch the reads, or use a
+  composite reader (Prometheus after the switch date, PostgreSQL before it) until the old rows expire; do not backfill, since the stored
+  minute aggregates cannot be turned into histograms. **Avoid in any store:** labels per bot or per player (they multiply series).

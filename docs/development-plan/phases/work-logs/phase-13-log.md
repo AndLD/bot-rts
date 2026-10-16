@@ -50,3 +50,19 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 13.1 when the phase is reached (after Phase 9).
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-16 — decisions for 13.6 and for the metrics history
+- **Tasks:** 13.6 (the decision part); none started
+- **Branch:** `docs/metrics-storage-decision` — the plan and the design only
+- **Decisions / deviations from the plan:** the owner decided on the points of the decision record of 13.6. **(1)** Prometheus and Grafana are **not used now**; the `/metrics` endpoint stays unchanged and is not used by the console (kept for external tools). The question, with the reasons to adopt it later and how to switch, is recorded in the backlog of design §25.6. **(2)** Metrics are **not exported through OpenTelemetry**. **(3)** The metrics history is stored in **PostgreSQL**, multi-node-ready: every node writes its 1-minute tier with a `node` column and histogram buckets, behind a history port (design §25.5). **(4)** Trace links from the charts are made inside the console's own series (the trace id of the slowest tick and request per bucket, opened through 13.4), not with Prometheus exemplars. **Not yet in the plan:** the task that persists the metrics history and the extra metrics of design §25.5 is **proposed** (about 5 SP, in this phase or in Phase 12) and waits for the owner's approval; the phase size and the totals are unchanged until then.
+- **Problems / blockers / findings:** the history of design §25.5 is in process memory today (`api/src/monitoring/application/metric-history.ts`), so with several API nodes the console shows only the node that answers; the log search of 9.10 has the same limit, which 13.3 removes.
+- **Next step:** the owner approves or changes the proposed persistence task; then 13.1 when the phase is reached.
+- **Verify with:** `npm run docs:check`
+
+### 2026-10-16 — task 13.8 added; Phase 13 is 40 SP
+- **Tasks:** 13.8 (new, 5 SP), 13.6 (text changed); none started
+- **Branch:** `docs/metrics-storage-decision` — the plan and the design only
+- **Decisions / deviations from the plan:** the owner approved the persistence task proposed in the entry above. **13.8** persists the metrics history in PostgreSQL, multi-node-ready (design §25.5), with the cheap missing metrics. **13.6** is no longer an open decision: its text now states the decision and its work is the trace links from the dashboard charts, which need 13.4 and 13.8. The phase becomes 40 SP, the total of Phases 0–13 becomes 992 SP. 13.8 does not depend on OpenTelemetry, so it can run in parallel with 13.1 to 13.5.
+- **Problems / blockers / findings:** none.
+- **Next step:** 13.1 when the phase is reached (after Phase 9).
+- **Verify with:** `npm run docs:check`

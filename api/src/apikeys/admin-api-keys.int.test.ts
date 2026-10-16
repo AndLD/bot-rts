@@ -66,6 +66,14 @@ describe('granting an admin key', () => {
     await grant(admin.accessToken, { ipAllowList: ['not an address'] }).expect(400)
   })
 
+  it('refuses a revocation of something that is not a key id', async () => {
+    await request(testApp.url)
+      .post('/api/v1/admin/api-keys/not-an-id/revoke')
+      .set(bearer(admin.accessToken))
+      .send({ reason: 'cleanup' })
+      .expect(400)
+  })
+
   it('cannot be reached by a key at all, even by an admin key', async () => {
     const admin = await freshAdmin()
     const { body } = await grant(admin.accessToken).expect(201)

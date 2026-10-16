@@ -102,6 +102,14 @@ describe('PrismaApiKeyRepository', () => {
       expect((await repository.listAdminKeys()).map((item) => item.id)).toEqual([key.id])
     })
 
+    it('reads an admin key that has no reason or addresses recorded as empty values', async () => {
+      const key = admin()
+      await repository.add(key)
+      await database.client.apiKey.update({ where: { id: key.id }, data: { grantReason: null } })
+
+      expect((await repository.findById(key.id))?.adminGrant).toEqual({ reason: '', ipAllowList: ['10.0.0.1'] })
+    })
+
     it('hides them from the player: list, find and count', async () => {
       const key = admin()
       await repository.add(key)

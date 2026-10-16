@@ -1,39 +1,30 @@
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import {
+  ELASTICSEARCH,
+  emit,
+  GATEWAY,
+  isObservabilityUp,
+  METRICS,
+  skipOrFail,
+  TOKEN,
+  warnSkipped
+} from '../tests/integration/gateway'
 
-const run = promisify(execFile)
-
-// The gateway collector and Elasticsearch of docker-compose.yml (`npm run obs:up`), with the real OpenTelemetry SDK of a node
-// sending to them. CI starts both and sets REQUIRE_OBSERVABILITY, so a missing gateway fails there; on a developer's machine
-// without them the tests say so and pass.
-const GATEWAY = process.env.OTEL_GATEWAY_URL ?? 'http://localhost:4318'
-const HEALTH = process.env.OTEL_GATEWAY_HEALTH_URL ?? 'http://localhost:13133'
-const METRICS = process.env.OTEL_GATEWAY_METRICS_URL ?? 'http://localhost:8888/metrics'
-const ELASTICSEARCH = process.env.ELASTICSEARCH_URL ?? 'http://localhost:9200'
-const TOKEN = process.env.OTEL_GATEWAY_TOKEN ?? 'botrts-dev-gateway-token'
-
+// The gateway collector and Elasticsearch of docker-compose.yml (`npm run obs:up`), with the real OpenTelemetry SDK of a node sending to
+// them.
 let isAvailable = false
 let traceId = ''
 
 beforeAll(async () => {
-  try {
-    isAvailable = (await fetch(HEALTH)).ok && (await fetch(`${ELASTICSEARCH}/_cluster/health`)).ok
-  } catch {
-    isAvailable = false
-  }
-  if (!isAvailable && process.env.REQUIRE_OBSERVABILITY) {
-    throw new Error('The gateway collector and Elasticsearch are required: run `npm run obs:up`')
-  }
+  isAvailable = await isObservabilityUp()
+  skipOrFail(isAvailable)
   if (isAvailable) {
-    traceId = await emit('stored through the gateway')
+    traceId = (await emit('stored through the gateway')).traceId
   }
 }, 60000)
 
 // Returns false, loudly, when the gateway is not running on this machine
 function available(): boolean {
-  if (!isAvailable) {
-    console.warn('Skipped: the gateway collector and Elasticsearch are not running (`npm run obs:up`)')
-  }
+  if (!isAvailable) warnSkipped()
   return isAvailable
 }
 
@@ -56,14 +47,6 @@ async function until<T>(read: () => Promise<T[]>, what: string, timeoutMs = 2000
     if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}`)
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
-}
-
-async function emit(message: string): Promise<string> {
-  const { stderr } = await run('npx', ['ts-node', '--transpile-only', 'tests/integration/emit-telemetry.ts', message], {
-    env: { ...process.env, OTEL_EXPORTER_OTLP_ENDPOINT: GATEWAY, EMIT_AUTHORIZATION: `Bearer ${TOKEN}` }
-  })
-
-  return stderr.trim().split('\n').pop() as string
 }
 
 describe('the collector gateway and Elasticsearch', () => {

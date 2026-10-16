@@ -2,7 +2,7 @@ import { testTelemetry } from '../../tests/fakes/telemetry'
 import { FakeClock } from '../../tests/fakes/fakes'
 import { AppConfig, loadConfig } from '../config/app-config'
 import { LogBuffer } from '../shared/application/log-buffer'
-import { createLogStore } from './logs.module'
+import { createLogStore, createTraceStore } from './logs.module'
 
 const base = { DATABASE_URL: 'postgresql://botrts:botrts@localhost:5432/botrts' }
 const logger = testTelemetry().telemetry.logger('test')
@@ -22,5 +22,17 @@ describe('createLogStore', () => {
     const store = build(loadConfig({ ...base, LOG_STORE: 'elasticsearch', ELASTICSEARCH_URL: 'http://localhost:9200' }))
 
     expect(store.name).toBe('elasticsearch')
+  })
+
+  it('keeps the spans in the same store as the lines: none in memory, Elasticsearch otherwise', async () => {
+    const memory = createTraceStore(loadConfig(base), new FakeClock(), logger)
+    const elasticsearch = createTraceStore(
+      loadConfig({ ...base, LOG_STORE: 'elasticsearch', ELASTICSEARCH_URL: 'http://localhost:9200' }),
+      new FakeClock(),
+      logger
+    )
+
+    expect([memory.name, elasticsearch.name]).toEqual(['memory', 'elasticsearch'])
+    expect(await memory.spans('a'.repeat(32))).toEqual([])
   })
 })

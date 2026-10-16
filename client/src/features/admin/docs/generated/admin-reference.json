@@ -55,6 +55,7 @@
     "game-time.set-real-world",
     "game-time.set-time-of-day",
     "inspector.read-file",
+    "logs.read-trace",
     "operations.announce",
     "operations.clear-banner",
     "operations.restart-runtime",

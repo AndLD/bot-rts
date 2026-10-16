@@ -103,6 +103,8 @@ export interface ObservabilityConfig {
   elasticsearchPassword: string | undefined
   // The data stream the gateway writes the logs to, and the limits of a search: how long it may take, and how wide a time range
   logIndex: string
+  // The data stream the gateway writes the spans to
+  traceIndex: string
   logSearchTimeoutMs: number
   logSearchMaxWindowDays: number
   // Where the console reads the health and the queue size of the gateway collector (its health-check extension and its Prometheus
@@ -473,6 +475,7 @@ export function loadConfig(env: Env): AppConfig {
       elasticsearchUsername: env.ELASTICSEARCH_USERNAME || undefined,
       elasticsearchPassword: env.ELASTICSEARCH_PASSWORD || undefined,
       logIndex: env.LOG_INDEX || 'botrts-logs',
+      traceIndex: env.TRACE_INDEX || 'botrts-traces',
       logSearchTimeoutMs: positiveInt(env.LOG_SEARCH_TIMEOUT_MS, 5000),
       logSearchMaxWindowDays: positiveInt(env.LOG_SEARCH_MAX_WINDOW_DAYS, 7),
       gatewayHealthUrl: env.OTEL_GATEWAY_HEALTH_URL || undefined,

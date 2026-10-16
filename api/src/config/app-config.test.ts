@@ -87,6 +87,7 @@ describe('loadConfig', () => {
         elasticsearchUsername: undefined,
         elasticsearchPassword: undefined,
         logIndex: 'botrts-logs',
+        traceIndex: 'botrts-traces',
         logSearchTimeoutMs: 5000,
         logSearchMaxWindowDays: 7,
         gatewayHealthUrl: undefined,
@@ -118,6 +119,7 @@ describe('loadConfig', () => {
           ELASTICSEARCH_USERNAME: 'reader',
           ELASTICSEARCH_PASSWORD: 'secret',
           LOG_INDEX: 'logs-x',
+          TRACE_INDEX: 'traces-x',
           LOG_SEARCH_TIMEOUT_MS: '1000',
           LOG_SEARCH_MAX_WINDOW_DAYS: '3'
         }).observability
@@ -128,6 +130,7 @@ describe('loadConfig', () => {
         elasticsearchUsername: 'reader',
         elasticsearchPassword: 'secret',
         logIndex: 'logs-x',
+        traceIndex: 'traces-x',
         logSearchTimeoutMs: 1000,
         logSearchMaxWindowDays: 3
       })

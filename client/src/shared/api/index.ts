@@ -128,6 +128,7 @@ export const {
   useAuditListQuery,
   useLogsSearchQuery,
   useLogsNodesQuery,
+  useTracesReadQuery,
   useLogsSlowTicksQuery,
   useSupervisionStateQuery,
   useSupervisionKillMutation,

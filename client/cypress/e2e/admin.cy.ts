@@ -193,6 +193,16 @@ describe('the inspector', () => {
             expect(page.store).to.eq('memory')
             expect(page.lines[0].traceId).to.match(/^[0-9a-f]{32}$/)
             expect(page.lines[0].node).to.be.a('string')
+            // Following a request: its trace opens with the lines written in it, and the read is audited
+            cy.get('input[placeholder="Trace id, or the request id of an older line"]').type(page.lines[0].traceId)
+            cy.get('.ant-input-search-button').click()
+            cy.get('.ant-drawer').within(() => {
+              cy.contains('Trace id')
+              cy.contains(page.lines[0].traceId)
+            })
+            cy.apiRequest({ path: '/api/v1/admin/audit?action=logs.read-trace', headers: bearer(token) })
+              .its('body.result.0.targetId')
+              .should('eq', page.lines[0].traceId)
           })
         })
       })

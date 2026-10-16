@@ -4185,6 +4185,90 @@
         ]
       }
     },
+    "/api/v1/admin/traces/{id}": {
+      "get": {
+        "operationId": "tracesRead",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "The trace id of a request, a tick or a job, or the request id of a request from before trace ids",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceViewResponse"
+                },
+                "example": {
+                  "traceId": "string",
+                  "store": "memory",
+                  "spans": [
+                    {
+                      "spanId": "string",
+                      "parentSpanId": "string",
+                      "name": "string",
+                      "kind": "internal",
+                      "service": "string",
+                      "node": "string",
+                      "startedAt": 1,
+                      "durationMs": 1,
+                      "status": "unset"
+                    }
+                  ],
+                  "logs": [
+                    {
+                      "at": 1,
+                      "level": "info",
+                      "message": "string",
+                      "requestId": "string",
+                      "traceId": "string",
+                      "node": "string",
+                      "service": "string"
+                    }
+                  ],
+                  "isLogCut": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "logs.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/traces/00000000-0000-4000-8000-000000000000\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/security": {
       "get": {
         "operationId": "securityOverview",
@@ -11795,6 +11879,107 @@
           "isCut",
           "queuedExecutions",
           "deferredExecutions"
+        ]
+      },
+      "TraceSpanModel": {
+        "type": "object",
+        "properties": {
+          "spanId": {
+            "type": "string"
+          },
+          "parentSpanId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "server",
+              "client",
+              "producer",
+              "consumer"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "nullable": true,
+            "description": "botrts-api or botrts-engine"
+          },
+          "node": {
+            "type": "string",
+            "nullable": true,
+            "description": "The process that ran it (host and process id)"
+          },
+          "startedAt": {
+            "type": "number",
+            "description": "Milliseconds since the epoch"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unset",
+              "ok",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "spanId",
+          "parentSpanId",
+          "name",
+          "kind",
+          "service",
+          "node",
+          "startedAt",
+          "durationMs",
+          "status"
+        ]
+      },
+      "TraceViewResponse": {
+        "type": "object",
+        "properties": {
+          "traceId": {
+            "type": "string"
+          },
+          "store": {
+            "type": "string",
+            "enum": [
+              "memory",
+              "elasticsearch"
+            ],
+            "description": "Where the spans are kept; with `memory` there are none, only the lines"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TraceSpanModel"
+            }
+          },
+          "logs": {
+            "description": "Every line written in the trace by every node, oldest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogLineModel"
+            }
+          },
+          "isLogCut": {
+            "type": "boolean",
+            "description": "True when the trace has more lines than one answer holds"
+          }
+        },
+        "required": [
+          "traceId",
+          "store",
+          "spans",
+          "logs",
+          "isLogCut"
         ]
       },
       "FailedLoginModel": {

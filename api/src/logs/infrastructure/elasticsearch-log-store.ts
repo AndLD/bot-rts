@@ -1,28 +1,16 @@
 import { LOG_LEVELS, LogLevelName } from '../../../../lib/utils/admin-logs'
 import { Clock } from '../../shared/application/clock'
-import { Logger } from '../../shared/application/logger'
 import { ValidationError } from '../../shared/domain/errors'
 import { LogEntry, LogNodeInfo, LogPageRequest, LogQuery, LogSearchResult, LogStore } from '../application/log-store'
-import { LogStoreUnavailableError } from '../domain/log-store.errors'
+import { ElasticsearchClient } from './elasticsearch-client'
 
 export interface ElasticsearchLogSettings {
-  url: string
-  // A read-only account: an API key, or a user and a password
-  apiKey?: string
-  username?: string
-  password?: string
   // The data stream the gateway writes the logs to
   index: string
-  timeoutMs: number
   // The widest time range of one search, and the one used when the question names none
   maxWindowDays: number
   defaultWindowHours: number
 }
-
-type Fetch = (
-  url: string,
-  init: { method: string; headers: Record<string, string>; body: string; signal: AbortSignal }
-) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>
 
 const HOUR_MS = 60 * 60 * 1000
 const DAY_MS = 24 * HOUR_MS
@@ -71,9 +59,8 @@ export class ElasticsearchLogStore implements LogStore {
 
   constructor(
     private readonly settings: ElasticsearchLogSettings,
-    private readonly clock: Clock,
-    private readonly logger: Logger,
-    private readonly fetchImpl: Fetch = fetch
+    private readonly client: ElasticsearchClient,
+    private readonly clock: Clock
   ) {}
 
   async search(query: LogQuery, { limit, offset }: LogPageRequest): Promise<LogSearchResult> {
@@ -82,7 +69,7 @@ export class ElasticsearchLogStore implements LogStore {
         `A search cannot reach past the first ${MAX_RESULT_WINDOW} lines; narrow the time range`
       )
     }
-    const response = await this.post<SearchResponse>('_search', {
+    const response = await this.client.search<SearchResponse>(this.settings.index, {
       query: { bool: { filter: this.filters(query), must: this.phrases(query) } },
       sort: [{ '@timestamp': 'desc' }],
       from: offset,
@@ -100,7 +87,7 @@ export class ElasticsearchLogStore implements LogStore {
 
   async nodes(): Promise<LogNodeInfo[]> {
     const to = this.clock.now()
-    const response = await this.post<SearchResponse>('_search', {
+    const response = await this.client.search<SearchResponse>(this.settings.index, {
       size: 0,
       query: { range: { '@timestamp': { gte: this.isoBefore(to, this.settings.maxWindowDays * DAY_MS) } } },
       aggs: {
@@ -166,52 +153,6 @@ export class ElasticsearchLogStore implements LogStore {
       traceId: source.trace?.id ?? null,
       node: source.service?.node?.name ?? null,
       service: source.service?.name ?? null
-    }
-  }
-
-  private headers(): Record<string, string> {
-    const { apiKey, username, password } = this.settings
-    const headers: Record<string, string> = { 'content-type': 'application/json' }
-    if (apiKey) {
-      headers.authorization = `ApiKey ${apiKey}`
-    } else if (username !== undefined) {
-      headers.authorization = `Basic ${Buffer.from(`${username}:${password ?? ''}`).toString('base64')}`
-    }
-
-    return headers
-  }
-
-  // The answer, or null when there is no data stream yet (nothing was ever logged)
-  private async post<T>(path: string, body: object): Promise<T | null> {
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), this.settings.timeoutMs)
-    try {
-      const response = await this.fetchImpl(`${this.settings.url.replace(/\/+$/, '')}/${this.settings.index}/${path}`, {
-        method: 'POST',
-        headers: this.headers(),
-        body: JSON.stringify(body),
-        signal: controller.signal
-      })
-      if (response.status === 404) {
-        return null
-      }
-      if (!response.ok) {
-        this.logger.warn(`The log store answered ${response.status}`)
-        throw new LogStoreUnavailableError(`The log store refused the search (${response.status})`)
-      }
-
-      return (await response.json()) as T
-    } catch (error) {
-      if (error instanceof LogStoreUnavailableError) {
-        throw error
-      }
-      const timedOut = controller.signal.aborted
-      this.logger.warn(`The log store did not answer: ${(error as Error).message}`)
-      throw new LogStoreUnavailableError(
-        timedOut ? 'The log store did not answer in time' : 'The log store cannot be reached'
-      )
-    } finally {
-      clearTimeout(timer)
     }
   }
 }

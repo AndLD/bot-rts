@@ -87,6 +87,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   account): by text, level, request id, trace id, player, bot, node and time, with a node filter, the trace id of each line and paging.
   A search is limited in time range (`LOG_SEARCH_MAX_WINDOW_DAYS`) and duration (`LOG_SEARCH_TIMEOUT_MS`); when the store is down the
   console says so (`LOG_STORE_UNAVAILABLE`). The default stays the recent log of the node that answers (`LOG_STORE=memory`).
+- Traces in the admin console: a line of the log has an **Open trace** action, and a trace can be opened by its trace id or by the
+  request id of an older line. It shows the spans of the request over the API node, the engine and the notifications it caused as a
+  timeline (name, node, start, duration, status) and every log line of the trace from every node in order (`GET /api/v1/admin/traces/:id`,
+  `logs.read`; every read is audited as `logs.read-trace`). The spans need `LOG_STORE=elasticsearch`; without it the trace is its lines.
 - The dashboard's history can be kept in the database (`MONITORING_HISTORY=postgres`, the default in production and on a node of a scaled
   deployment): every node, the engine node included, writes a one-minute row per metric (a sum and a count, so that averages merge) and
   per distribution (the API latency and the engine's tick duration as counts per bucket, with the slowest request or tick and its

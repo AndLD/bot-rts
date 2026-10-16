@@ -122,6 +122,20 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the Elasticsearch data survives between runs, so the integration test makes its ids unique per run. Searches are not audited yet (13.5).
 - **Next step:** 13.4 (traces in the console: the `TraceStore`, the trace view and "Open trace").
 - **Verify with:** `npm run obs:up`, then `npm test -w api -- --selectProjects integration --testPathPattern src/logs/`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`
+
+### 2026-10-16 — task 13.4 built: traces in the console
+- **Tasks:** 13.4 (✅ when its pull request is merged; stacked on 13.3, which is stacked on 13.2)
+- **Branch:** `feature/13.4-traces-in-console` — done, pull request open
+- **Decisions / deviations from the plan:**
+  - **Port.** `TraceStore` (`logs/application/trace-store.ts`): the spans of a trace. `ElasticsearchTraceStore` reads `TRACE_INDEX` (default `botrts-traces`) through the same read-only `ElasticsearchClient` as the log store (extracted from the log store in this task, with its tests); `MemoryTraceStore` has no spans, because the process keeps none. `TracesService` joins the spans with `LogStore.search({ traceId })`, looked for from a minute before the first span to a minute after the last, up to 500 lines, oldest first (`isLogCut` when there are more).
+  - **Endpoint.** `GET /api/v1/admin/traces/:id` (`logs.read`, audited as `logs.read-trace` with the trace id as target, on success and on failure). The id is a trace id or, for older lines, a request id, resolved through the log; 404 when there are neither spans nor lines. The authorization matrix reads the route from OpenAPI. The admin reference of the audited actions was regenerated.
+  - **Console.** An **Open trace** link next to the trace id of each line and a box to open a trace by its id; a drawer shows the spans as a tree (parent before children, indented) with node and service, start, duration, status and a timeline bar, and the lines of the trace by every node. A store without spans, a trace that sampling left out and a cut list each say so. English and Russian strings; the layout of the tree is a pure function with its own tests.
+  - **Tests.** Unit: both stores, the service, the module factory, the layout. Integration: `traces.int.test.ts` (memory store: lookup by trace id and by request id, 404, 400, the audit entry, the permission) and `traces.elasticsearch.int.test.ts`, which follows a request over two nodes: two processes with the real SDK (`botrts-api` and `botrts-engine`, the second continuing the first's `traceparent`) send through the gateway into Elasticsearch, and the console reads back four spans (the engine under the API) and the two lines in order. Cypress: `admin.cy.ts` opens the trace of a line and checks the audit entry.
+- **Problems / blockers / findings:**
+  - The tracing integration test of 13.1 follows a request over the real API and the engine thread but reads the spans from memory and from a fake gateway, because the API process of a Jest test cannot export over OTLP (the exporters use a dynamic `import()`); the two-process test above closes the loop through the real gateway and store.
+  - The emitter helper (`tests/integration/emit-telemetry.ts`, `gateway.ts`) is shared by the observability tests.
+- **Next step:** 13.5 (privacy, access and retention: redaction in the SDK and the collector, audit of searches, retention as a console setting).
+- **Verify with:** `npm run obs:up`, then `npm test -w api -- --selectProjects integration --testPathPattern src/logs/`; `npx jest src/features/admin/logs -w client`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`
 ### 2026-10-16 — task 13.8 (a) built: the metrics history in the database
 - **Tasks:** 13.8 part (a); (b) to (d) and (e) to (g) are next (the split the task text suggested)
 - **Branch:** `feature/13.8a-metrics-history` — done, pull request open; branched from `develop` after 13.2, independent of 13.3 to 13.5

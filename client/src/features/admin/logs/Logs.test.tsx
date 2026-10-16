@@ -36,6 +36,79 @@ const entry = (overrides = {}) => ({
   ...overrides
 })
 
+const TRACE_ID = 'a'.repeat(32)
+
+const trace = (overrides = {}) => ({
+  traceId: TRACE_ID,
+  store: 'elasticsearch',
+  isLogCut: false,
+  spans: [
+    {
+      spanId: 'child',
+      parentSpanId: 'root',
+      name: 'engine act',
+      kind: 'server',
+      service: null,
+      node: 'host:2',
+      startedAt: Date.UTC(2026, 5, 1, 12, 0, 0, 10),
+      durationMs: 20,
+      status: 'error'
+    },
+    {
+      spanId: 'root',
+      parentSpanId: null,
+      name: 'POST /api/v1/bots/:id/scan',
+      kind: 'server',
+      service: 'botrts-api',
+      node: 'host:1',
+      startedAt: Date.UTC(2026, 5, 1, 12, 0, 0, 0),
+      durationMs: 150,
+      status: 'ok'
+    },
+    {
+      spanId: 'unknown-node',
+      parentSpanId: 'root',
+      name: 'notify',
+      kind: 'consumer',
+      service: null,
+      node: null,
+      startedAt: Date.UTC(2026, 5, 1, 12, 0, 0, 30),
+      durationMs: 5,
+      status: 'unset'
+    }
+  ],
+  logs: [
+    {
+      at: Date.UTC(2026, 5, 1, 12, 0, 0, 5),
+      level: 'info',
+      message: 'the API handled the scan',
+      requestId: TRACE_ID,
+      traceId: TRACE_ID,
+      node: 'host:1',
+      service: 'botrts-api'
+    },
+    {
+      at: Date.UTC(2026, 5, 1, 12, 0, 0, 15),
+      level: 'error',
+      message: 'the engine failed the scan',
+      requestId: null,
+      traceId: TRACE_ID,
+      node: 'host:3',
+      service: null
+    },
+    {
+      at: Date.UTC(2026, 5, 1, 12, 0, 0, 25),
+      level: 'warn',
+      message: 'a line of an unknown node',
+      requestId: null,
+      traceId: TRACE_ID,
+      node: null,
+      service: null
+    }
+  ],
+  ...overrides
+})
+
 function serve(handler: (call: Call) => unknown = () => undefined) {
   const calls: Call[] = []
   query.mockImplementation((async (args: Call) => {
@@ -70,6 +143,9 @@ function serve(handler: (call: Call) => unknown = () => undefined) {
           store: 'memory'
         }
       }
+    }
+    if (args.url.startsWith('/api/v1/admin/traces/')) {
+      return { data: trace() }
     }
     if (args.url === '/api/v1/admin/logs/nodes') {
       return { data: [{ id: 'host:1', services: ['botrts-api', 'botrts-engine'] }] }
@@ -200,6 +276,69 @@ describe('LogSearch', () => {
 
     expect(await screen.findByText('200 of 1000 matching lines from the log store')).toBeInTheDocument()
     expect(calls.some((call) => call.params?.results === 200)).toBe(true)
+  })
+
+  it('opens the trace of a line: the spans as a tree on a timeline, and every line of the trace', async () => {
+    const calls = serve()
+    renderAs('admin', <LogSearch />)
+    await screen.findByText('slow query for bot b1')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open trace' })[1])
+
+    expect(await screen.findByText('POST /api/v1/bots/:id/scan')).toBeInTheDocument()
+    expect(calls.some((call) => call.url === `/api/v1/admin/traces/${TRACE_ID}`)).toBe(true)
+    const names = Array.from(document.querySelectorAll('.ant-drawer tbody tr td:first-child'))
+      .map((cell) => cell.textContent)
+      .filter((text) => text === 'engine act' || text?.startsWith('POST'))
+    expect(names).toEqual(['POST /api/v1/bots/:id/scan', 'engine act'])
+    expect(screen.getByText('+10.0 ms')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'engine act 20.0 ms' })).toBeInTheDocument()
+    expect(screen.getAllByText('error', { selector: '.ant-drawer .ant-tag' })).toHaveLength(2)
+    expect(screen.getByText('the API handled the scan')).toBeInTheDocument()
+    expect(screen.getByText('the engine failed the scan')).toBeInTheDocument()
+    expect(screen.getByText('150 ms', { selector: '.ant-descriptions-item-content' })).toBeInTheDocument()
+    expect(screen.getAllByText('host:2 ·').length).toBeGreaterThan(0)
+    expect(screen.getByText('host:3 ·')).toBeInTheDocument()
+
+    fireEvent.click(document.querySelector('.ant-drawer-close') as Element)
+    await waitFor(() => expect(screen.queryByText('the API handled the scan')).toBeNull())
+  })
+
+  it('opens a trace by an id typed in, ignores a bad one, and explains a trace without spans or with cut lines', async () => {
+    serve((call) =>
+      call.url === '/api/v1/admin/traces/old-request'
+        ? { data: trace({ store: 'memory', spans: [], isLogCut: true }) }
+        : call.url === '/api/v1/admin/traces/unsampled'
+          ? { data: trace({ spans: [] }) }
+          : undefined
+    )
+    renderAs('admin', <LogSearch />)
+    await screen.findByText('started')
+    const box = screen.getByPlaceholderText('Trace id, or the request id of an older line')
+    const searchButton = () => document.querySelector('.ant-input-search-button') as Element
+
+    fireEvent.change(box, { target: { value: 'not valid!' } })
+    fireEvent.click(searchButton())
+    expect(document.querySelector('.ant-drawer')).toBeNull()
+
+    fireEvent.change(box, { target: { value: 'old-request' } })
+    fireEvent.click(searchButton())
+    expect(await screen.findByText(/keeps the log lines of a trace, not its spans/)).toBeInTheDocument()
+    expect(screen.getByText(/more lines than fit here/)).toBeInTheDocument()
+
+    fireEvent.change(box, { target: { value: 'unsampled' } })
+    fireEvent.click(searchButton())
+    expect(await screen.findByText(/No spans were stored for this trace/)).toBeInTheDocument()
+  })
+
+  it('says so when the trace cannot be loaded', async () => {
+    serve((call) => (call.url.startsWith('/api/v1/admin/traces/') ? { error: { status: 404, data: {} } } : undefined))
+    renderAs('admin', <LogSearch />)
+    await screen.findByText('slow query for bot b1')
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open trace' })[1])
+
+    expect(await screen.findByText('Could not load the trace')).toBeInTheDocument()
   })
 
   it('says so when the log cannot be loaded', async () => {

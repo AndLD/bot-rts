@@ -23,6 +23,7 @@ const buildKey = (overrides: Partial<ApiKey> = {}): ApiKey => ({
   lastUsedAt: null,
   expiresAt: null,
   revokedAt: null,
+  adminGrant: null,
   ...overrides
 })
 
@@ -81,5 +82,53 @@ describe('PrismaApiKeyRepository', () => {
     expect(await repository.countActiveOfUser(userId, at(10))).toBe(2)
     expect((await repository.findOfUser(userId, revoked.id))?.revokedAt).toEqual(at(5))
     expect((await repository.findOfUser(userId, live.id))?.lastUsedAt).toEqual(at(6))
+  })
+
+  describe('admin keys', () => {
+    const admin = (overrides: Partial<ApiKey> = {}) =>
+      buildKey({
+        scopes: ['admin:logs:read'],
+        expiresAt: at(20),
+        adminGrant: { reason: 'investigating', ipAllowList: ['10.0.0.1'] },
+        ...overrides
+      })
+
+    it('keeps the reason and the addresses, and tells an admin key from a player key', async () => {
+      const key = admin()
+      await repository.add(key)
+      await repository.add(buildKey())
+
+      expect(await repository.findById(key.id)).toEqual(key)
+      expect((await repository.listAdminKeys()).map((item) => item.id)).toEqual([key.id])
+    })
+
+    it('reads an admin key that has no reason or addresses recorded as empty values', async () => {
+      const key = admin()
+      await repository.add(key)
+      await database.client.apiKey.update({ where: { id: key.id }, data: { grantReason: null } })
+
+      expect((await repository.findById(key.id))?.adminGrant).toEqual({ reason: '', ipAllowList: ['10.0.0.1'] })
+    })
+
+    it('hides them from the player: list, find and count', async () => {
+      const key = admin()
+      await repository.add(key)
+
+      expect(await repository.listOfUser(userId)).toEqual([])
+      expect(await repository.findOfUser(userId, key.id)).toBeNull()
+      expect(await repository.countActiveOfUser(userId, at(2))).toBe(0)
+      expect(await repository.countActiveAdminKeysOfUser(userId, at(2))).toBe(1)
+      expect(await repository.countActiveAdminKeysOfUser(userId, at(25))).toBe(0)
+    })
+
+    it('lists the newest first, revoked ones included', async () => {
+      const old = admin({ createdAt: at(1) })
+      const recent = admin({ createdAt: at(2), revokedAt: at(3) })
+      await repository.add(old)
+      await repository.add(recent)
+
+      expect((await repository.listAdminKeys()).map((item) => item.id)).toEqual([recent.id, old.id])
+      expect(await repository.countActiveAdminKeysOfUser(userId, at(4))).toBe(1)
+    })
   })
 })

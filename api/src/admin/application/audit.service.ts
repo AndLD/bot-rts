@@ -3,7 +3,7 @@ import { IdGenerator } from '../../shared/application/id-generator'
 import { AuditEntry, AuditFilter } from '../domain/audit-entry'
 import { AuditLog } from './ports'
 
-export type AuditRecord = Omit<AuditEntry, 'id' | 'at'>
+export type AuditRecord = Omit<AuditEntry, 'id' | 'at' | 'apiKeyId'> & { apiKeyId?: string | null }
 
 export class AuditService {
   constructor(
@@ -13,7 +13,12 @@ export class AuditService {
   ) {}
 
   async record(record: AuditRecord): Promise<AuditEntry> {
-    const entry: AuditEntry = { ...record, id: this.ids.next(), at: this.clock.now() }
+    const entry: AuditEntry = {
+      ...record,
+      apiKeyId: record.apiKeyId ?? null,
+      id: this.ids.next(),
+      at: this.clock.now()
+    }
     await this.log.append(entry)
 
     return entry

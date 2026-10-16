@@ -105,13 +105,15 @@ describe('managing API keys', () => {
       request(testApp.url).post('/api/v1/auth/password/change').set(asKey).send({}),
       request(testApp.url).post('/api/v1/auth/account/delete').set(asKey).send({}),
       request(testApp.url).get('/api/v1/users').set(asKey),
-      request(testApp.url).get('/api/v1/admin/audit').set(asKey),
       request(testApp.url).patch('/api/v1/admin/settings').set(asKey).send({})
     ]) {
       const response = await call
       expect(response.status).toBe(403)
       expect(response.body.code).toBe('SESSION_ONLY')
     }
+    // The audit trail is open to admin keys, but a key with every player scope does not hold the admin scope
+    const audit = await request(testApp.url).get('/api/v1/admin/audit').set(asKey)
+    expect([audit.status, audit.body.code]).toEqual([403, 'API_KEY_SCOPE'])
   })
 })
 

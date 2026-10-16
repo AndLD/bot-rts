@@ -160,7 +160,7 @@ describe('the audit export', () => {
     expect(csv.headers['content-type']).toContain('text/csv')
     expect(csv.headers['content-disposition']).toContain('audit-log.csv')
     const lines = csv.text.trim().split('\n')
-    expect(lines[0]).toBe('time,actor,role,action,outcome,target type,target,reason,before,after,ip,request')
+    expect(lines[0]).toBe('time,actor,role,action,outcome,target type,target,reason,before,after,ip,request,api key')
     expect(lines.length).toBeGreaterThan(1)
     expect(lines.slice(1).every((row) => row.includes('admin.2fa.confirm-enrollment'))).toBe(true)
 

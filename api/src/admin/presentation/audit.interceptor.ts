@@ -27,7 +27,8 @@ export class AuditInterceptor implements NestInterceptor {
     const options = this.reflector.getAllAndOverride<AuditOptions | undefined>(AUDIT_KEY, targets)
     const request = context.switchToHttp().getRequest<AdminRequest>()
 
-    if (!isAdminCall || (READ_METHODS.includes(request.method) && !options)) {
+    // Whatever an API key does is written to the trail, reads included (design §25.2)
+    if (!isAdminCall || (READ_METHODS.includes(request.method) && !options && !request.principal.apiKey)) {
       return next.handle()
     }
 
@@ -38,7 +39,7 @@ export class AuditInterceptor implements NestInterceptor {
   }
 
   private write(request: AdminRequest, options: AuditOptions | undefined, outcome: AuditOutcome) {
-    const { user } = request.principal
+    const { user, apiKey } = request.principal
     const detail = request.auditDetail ?? {}
     const fromParam = options?.targetParam ? (request.params[options.targetParam] as string | undefined) : undefined
 
@@ -53,7 +54,8 @@ export class AuditInterceptor implements NestInterceptor {
       before: detail.before ?? null,
       after: detail.after ?? null,
       ip: request.ip ?? null,
-      requestId: currentRequestId() ?? null
+      requestId: currentRequestId() ?? null,
+      apiKeyId: apiKey?.id ?? null
     })
   }
 }

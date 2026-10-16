@@ -144,6 +144,13 @@ export class AuditEntryResponse implements IAuditEntry {
 
   @ApiProperty({ type: String, nullable: true })
   requestId!: string | null
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    description: 'The admin API key that made the call, if it was not a session'
+  })
+  apiKeyId!: string | null
 }
 
 class AuditPaginationModel {

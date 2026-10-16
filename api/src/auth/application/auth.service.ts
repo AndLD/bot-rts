@@ -1,6 +1,6 @@
 import { hasPermission } from '../../../../lib/utils/admin'
 import type { UserStatus } from '../../../../lib/utils/interfaces/users'
-import type { ApiScope } from '../../../../lib/utils/interfaces/api-keys'
+import type { GrantedScope } from '../../../../lib/utils/admin-api-keys'
 import { assertOutranks } from '../../players/domain/player-moderation'
 import { UnauthorizedError } from '../../shared/domain/errors'
 import { UserRepository } from '../../users/application/user.repository'
@@ -15,8 +15,10 @@ import { UserProvisioner } from './user-provisioner'
 // Who is calling and may they use the API; roles and bans are always read from our store, never from the token
 export interface ApiKeyGrant {
   id: string
-  scopes: readonly ApiScope[]
+  scopes: readonly GrantedScope[]
   ratePerMinute: number
+  // Set on an admin key (design §25.2): the addresses it may be used from; empty means any
+  ipAllowList?: readonly string[]
 }
 
 // Who is really behind a "view as player" session (design §25.2): `Principal.user` is the player being viewed

@@ -16,7 +16,7 @@ const EXPORT_LIMIT = 10_000
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 
-  @RequirePermission('audit.read')
+  @RequirePermission('audit.read', { adminKeyScope: 'admin:audit:read' })
   @ApiOkResponse({ type: AuditPageResponse })
   @Get()
   async list(@Query() { page, results, ...filter }: ListAuditQueryDto): Promise<IAuditPage> {

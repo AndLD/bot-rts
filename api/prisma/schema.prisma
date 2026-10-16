@@ -540,6 +540,10 @@ model ApiKey {
   lastUsedAt    DateTime? @map("last_used_at") @db.Timestamptz(3)
   expiresAt     DateTime? @map("expires_at") @db.Timestamptz(3)
   revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(3)
+  // A read-only key of an admin with admin scopes (design §25.2): granted from the console only, listed there and not in the player's list
+  isAdminKey    Boolean   @default(false) @map("is_admin_key")
+  grantReason   String?   @map("grant_reason")
+  ipAllowList   String[]  @default([]) @map("ip_allow_list")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -588,6 +592,8 @@ model AdminAuditEntry {
   after      Json?
   ip         String?
   requestId  String?  @map("request_id")
+  // The API key that made the call, when it was not a signed-in session
+  apiKeyId   String?  @map("api_key_id") @db.Uuid
 
   @@index([at])
   @@index([actorId, at])

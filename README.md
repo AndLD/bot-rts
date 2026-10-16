@@ -73,7 +73,7 @@ automate them; scripts execute on the server in a fair, sandboxed, tick-based ru
 
 - For the people who run the game; never public or indexed. Roles (`owner`, `admin`, `moderator`, `analyst`) with fine-grained
   permissions checked on the server, **mandatory two-factor sign-in** (TOTP, recovery codes), an optional IP allow-list, and an
-  **append-only audit trail** of every action (reason, before and after values); admin routes are never reachable with API keys.
+  **append-only audit trail** of every action (reason, before and after values); admin routes are closed to API keys, except read-only routes opened to console-granted admin keys for an AI assistant.
 - Pages: a **dashboard** (health, load, alerts, history), **players** (search, profile, ban, notes, role changes, quarantine),
   **inspector** and **world map** (any base or bot, the whole map without fog of war, heatmaps, a live event tail), **supervision**
   (pause the world, script kill-switch, quarantine, support actions), **security** (failed sign-ins, anomalies, API keys,

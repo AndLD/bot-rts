@@ -277,6 +277,8 @@
     "TOO_MANY_REQUESTS": "Too many requests, try again later",
     "TOO_MANY_API_KEYS": "You already have the most API keys allowed, revoke one first",
     "API_KEY_SCOPE": "This API key is not allowed to do that",
+    "TOO_MANY_ADMIN_API_KEYS": "You already hold the most admin API keys allowed, revoke one first",
+    "API_KEY_IP_NOT_ALLOWED": "This API key cannot be used from this address",
     "SESSION_ONLY": "This is only available when you are signed in, not with an API key",
     "TWO_FACTOR_REQUIRED": "Verify your sign-in with the authenticator code first",
     "TWO_FACTOR_INVALID": "The code is not valid or was already used",

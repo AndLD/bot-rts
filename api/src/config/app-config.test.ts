@@ -54,7 +54,8 @@ describe('loadConfig', () => {
         recoveryCodeCount: 8,
         secret: 'development-only-access-secret',
         banCheckIntervalMs: 60_000,
-        viewAsTtlMs: 30 * 60 * 1000
+        viewAsTtlMs: 30 * 60 * 1000,
+        apiKeyMaxDays: 30
       },
       monitoring: {
         isEnabled: true,
@@ -418,6 +419,7 @@ describe('loadConfig', () => {
       ADMIN_SECRET: 'admin-secret',
       ADMIN_BAN_CHECK_MS: '5000',
       ADMIN_VIEW_AS_TTL: '10m',
+      ADMIN_API_KEY_MAX_DAYS: '14',
       JWT_ACCESS_SECRET: 'access'
     }).admin
 
@@ -428,8 +430,10 @@ describe('loadConfig', () => {
       recoveryCodeCount: 5,
       secret: 'admin-secret',
       banCheckIntervalMs: 5000,
-      viewAsTtlMs: 10 * 60 * 1000
+      viewAsTtlMs: 10 * 60 * 1000,
+      apiKeyMaxDays: 14
     })
+    expect(loadConfig({ ...base, ADMIN_API_KEY_MAX_DAYS: '9999' }).admin.apiKeyMaxDays).toBe(365)
     expect(loadConfig({ ...base, JWT_ACCESS_SECRET: 'access' }).admin.secret).toBe('access')
     expect(() => loadConfig({ ...base, ADMIN_2FA_TTL: 'soon' })).toThrow('ADMIN_2FA_TTL')
   })

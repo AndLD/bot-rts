@@ -102,7 +102,9 @@ describe('the authorization matrix', () => {
       expect((await send(operation, 'garbage')).status).toBe(401)
       expect((await send(operation, player.accessToken)).status).toBe(403)
       const withKey = await send(operation, apiKeySecret)
-      expect([withKey.status, withKey.body.code]).toEqual([403, 'SESSION_ONLY'])
+      // A route that opts in to admin keys answers a player key with the missing scope instead
+      expect(withKey.status).toBe(403)
+      expect(['SESSION_ONLY', 'API_KEY_SCOPE']).toContain(withKey.body.code)
       if (operation.permission) {
         expect((await send(operation, unverified.accessToken)).status).toBe(403)
       }

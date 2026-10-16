@@ -12,10 +12,13 @@ interface LineChartProps {
   label: string
   // Formats the extremes drawn at the corners
   format: (value: number) => string
+  // Points that can be opened, as indexes into `points` with the name of the action and what it opens; clicking one calls `onSelect` with that
+  marks?: ReadonlyArray<{ index: number; label: string; target: string }>
+  onSelect?: (target: string) => void
 }
 
 // A small SVG line chart: time runs left to right, the vertical scale is from zero to the highest value
-export default function LineChart({ points, label, format }: LineChartProps) {
+export default function LineChart({ points, label, format, marks = [], onSelect }: LineChartProps) {
   const path = useMemo(() => {
     if (points.length === 0) {
       return null
@@ -29,6 +32,8 @@ export default function LineChart({ points, label, format }: LineChartProps) {
 
     return {
       max,
+      x,
+      y,
       line: points
         .map(([time, value], index) => `${index === 0 ? 'M' : 'L'}${x(time).toFixed(1)},${y(value).toFixed(1)}`)
         .join(' ')
@@ -40,6 +45,25 @@ export default function LineChart({ points, label, format }: LineChartProps) {
       {path ? (
         <>
           <path d={path.line} fill="none" stroke="currentColor" strokeWidth={1.5} />
+          {marks.map(({ index, label: markLabel, target }) => (
+            <circle
+              key={index}
+              role="button"
+              tabIndex={0}
+              aria-label={markLabel}
+              cx={path.x(points[index][0])}
+              cy={path.y(points[index][1])}
+              r={3}
+              fill="currentColor"
+              style={{ cursor: 'pointer' }}
+              onClick={() => onSelect?.(target)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  onSelect?.(target)
+                }
+              }}
+            />
+          ))}
           <text x={WIDTH - PAD} y={10} textAnchor="end" fontSize={10} fill="currentColor">
             {format(path.max)}
           </text>

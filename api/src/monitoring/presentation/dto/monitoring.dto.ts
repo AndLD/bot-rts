@@ -8,6 +8,7 @@ import {
   IHealthReport,
   IMetricHealth,
   IMetricSeries,
+  ISlowestSample,
   METRIC_RANGES,
   MetricRange,
   MONITOR_AREAS,
@@ -112,6 +113,17 @@ export class HealthReportResponse implements IHealthReport {
   alerts!: AlertResponse[]
 }
 
+export class SlowestSampleResponse implements ISlowestSample {
+  @ApiProperty({ description: 'Start of the step, in milliseconds since the epoch' })
+  at!: number
+
+  @ApiProperty()
+  durationMs!: number
+
+  @ApiProperty({ description: 'The trace of the slowest observation of the step' })
+  traceId!: string
+}
+
 export class MetricSeriesResponse implements IMetricSeries {
   @ApiProperty()
   metric!: string
@@ -121,4 +133,10 @@ export class MetricSeriesResponse implements IMetricSeries {
 
   @ApiProperty({ type: 'array', items: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 } })
   points!: Array<[number, number]>
+
+  @ApiPropertyOptional({
+    type: [SlowestSampleResponse],
+    description: 'For the percentiles of a distribution: the slowest sample of each step'
+  })
+  slowest?: SlowestSampleResponse[]
 }

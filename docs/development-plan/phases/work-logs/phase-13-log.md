@@ -196,3 +196,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Not done:** per-table sizes (only the largest table is a metric), CPU of the engine thread apart from the API thread, queries of the engine thread.
 - **Next step:** 13.6 (trace links in the dashboard charts), then 13.7 (cutover and runbook).
 - **Verify with:** `npm run db:up && npm run db:migrate -w api`, `npm test -w api -- --selectProjects integration --testPathPattern 'prisma-database-stats|prisma-job-stats|monitoring.int'`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`
+
+### 2026-10-16 — task 13.6 built: Open-trace links on the dashboard charts
+- **Tasks:** 13.6 (the metrics decision of the owner stands: `/metrics` unchanged, no OpenTelemetry metrics, no Prometheus or Grafana now)
+- **Branch:** `feature/13.6-open-trace-links` — done, pull request open; branched from `develop` after 13.8 (#196, #197) was merged
+- **Decisions / deviations from the plan:**
+  - **The series carries the traces.** `GET /admin/monitoring/series` returns an optional `slowest` list (`at`, `durationMs`, `traceId`) for the percentiles of the tick duration and of the request latency: for each step of the coarse tier (the step of the range, as for the database series) the slowest sample over the nodes that has a trace, read from `histogram_minutes.slowest_trace_id`. It is added to the live series of this node as well, so a short range has the links too. The in-memory store has no traces and returns none.
+  - **Console.** A chart marks the point nearest to each such step with a button; clicking it (or Enter) opens the trace of 13.4 in a drawer, with the spans and the log lines. `slowest-marks.ts` puts the samples on the points and keeps the slowest when several land on one.
+- **Problems / blockers / findings:** none; the #196 `verify` failed once with a Jest worker killed by SIGABRT in `engine.int.test.ts` (all tests passed) and went green on a rerun.
+- **Not done:** a Cypress step (the e2e backend has no sampled traces); the charts of the database query latency have no trace (the query log has none).
+- **Next step:** 13.7, the cutover and the runbook.
+- **Verify with:** `npm test -w api -- --selectProjects unit --testPathPattern metric-history-store`, `npm test -w client -- AdminDashboard slowest-marks`; `npm run lint && npm run typecheck && npm run check:boundaries && npm run i18n:check && npm run docs:check`

@@ -2709,10 +2709,19 @@ export type HealthReportResponse = {
   areas: AreaHealthModel[]
   alerts: AlertResponse[]
 }
+export type SlowestSampleResponse = {
+  /** Start of the step, in milliseconds since the epoch */
+  at: number
+  durationMs: number
+  /** The trace of the slowest observation of the step */
+  traceId: string
+}
 export type MetricSeriesResponse = {
   metric: string
   stepMs: number
   points: number[][]
+  /** For the percentiles of a distribution: the slowest sample of each step */
+  slowest?: SlowestSampleResponse[]
 }
 export type GameTimeResponse = {
   /** The server instant in ms */

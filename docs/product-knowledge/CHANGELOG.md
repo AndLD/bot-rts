@@ -8,6 +8,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Added
 
+- Admin console: the charts of the tick duration and of the request latency offer **Open the trace** for the slowest sample of a step, in the same trace view as the logs.
 - The game: a procedurally generated world with fog of war, bases and bots made of modules, energy and day / night, crafting,
   a factory, radio links between bots, and combat.
 - Scripting: a sandboxed (QuickJS / WebAssembly) TypeScript / JavaScript runtime with a Script API, the BotOS terminal, files on

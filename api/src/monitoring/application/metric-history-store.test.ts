@@ -196,6 +196,42 @@ describe('PersistentMetricHistoryStore', () => {
     expect((await quick.series({ ...range, node: 'host:2' })).points).toEqual([[T0, 500]])
   })
 
+  it('names the trace of the slowest sample of each step of a percentile series, over every node', async () => {
+    const repository = new InMemoryMetricHistoryRepository()
+    const quick = persistent('host:1', repository)
+    const slow = persistent('host:2', repository)
+    const histograms = (slowestMs: number, slowestTraceId: string | null) => ({
+      'api.latencyMs': { counts: counts({ 0: 1 }), slowestMs, slowestTraceId }
+    })
+    await quick.record(sample(T0, { 'api.latencyP95Ms': 5 }, histograms(80, 'a'.repeat(32))))
+    await slow.record(sample(T0 + 20_000, { 'api.latencyP95Ms': 5 }, histograms(900, 'b'.repeat(32))))
+    await quick.record(sample(T0 + MINUTE, { 'api.latencyP95Ms': 5 }, histograms(30, null)))
+    await quick.record(sample(T0 + 2 * MINUTE, { 'api.latencyP95Ms': 5 }, histograms(40, 'c'.repeat(32))))
+    await quick.flush()
+    await slow.flush()
+
+    const { slowest } = await quick.series({
+      metric: 'api.latencyP95Ms',
+      fromMs: T0 - 3_600_000,
+      toMs: T0 + 3_600_000
+    })
+
+    expect(slowest).toEqual([
+      { at: T0, durationMs: 900, traceId: 'b'.repeat(32) },
+      { at: T0 + 2 * MINUTE, durationMs: 40, traceId: 'c'.repeat(32) }
+    ])
+  })
+
+  it('names no trace for a series that is not a percentile', async () => {
+    const store = persistent('host:1', new InMemoryMetricHistoryRepository())
+    await store.record(sample(T0, { 'engine.up': 1 }))
+    await store.flush()
+
+    expect(await store.series({ metric: 'engine.up', fromMs: T0 - 1000, toMs: T0 + 1000 })).not.toHaveProperty(
+      'slowest'
+    )
+  })
+
   it('falls back to the averages of a percentile metric when no distribution was kept, and ignores buckets of another shape', async () => {
     const repository = new InMemoryMetricHistoryRepository()
     const store = persistent('host:1', repository)

@@ -1064,6 +1064,8 @@
       "alerts": "Оповещения",
       "noAlerts": "Открытых оповещений нет",
       "noData": "Данных пока нет",
+      "openTrace": "Открыть трассу самого медленного замера ({duration})",
+      "traceTitle": "Трасса",
       "allNodes": "Все узлы",
       "acknowledge": "Принять",
       "acknowledged": "Принято",

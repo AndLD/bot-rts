@@ -180,11 +180,21 @@ export interface IHealthReport {
   alerts: IAlert[]
 }
 
+// The slowest observation of a step of a distribution: the trace to open for it
+export interface ISlowestSample {
+  // Start of the step, in milliseconds since the epoch
+  at: number
+  durationMs: number
+  traceId: string
+}
+
 export interface IMetricSeries {
   metric: string
   stepMs: number
   // [milliseconds since the epoch, value]
   points: Array<[number, number]>
+  // Only for the percentiles of the tick duration and of the request latency
+  slowest?: ISlowestSample[]
 }
 
 // The admin Socket.IO namespace (`/admin`): the console connects with the same access token as the game, once the second

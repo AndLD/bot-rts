@@ -41,7 +41,7 @@ export class RequestTimeoutError extends AppError {
 }
 
 export class PayloadTooLargeError extends AppError {
-  constructor(message = 'The payload is too large') {
+  constructor(message: string) {
     super(413, ErrorCode.PAYLOAD_TOO_LARGE, message)
   }
 }

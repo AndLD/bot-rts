@@ -44,13 +44,7 @@ export function percentileOf(
   }
   const target = total * quantile
   let seen = 0
+  const index = counts.findIndex((count) => (seen += count) >= target)
 
-  for (let index = 0; index < counts.length; index += 1) {
-    seen += counts[index]
-    if (seen >= target) {
-      return histogram.boundsMs[Math.min(index, histogram.boundsMs.length - 1)]
-    }
-  }
-
-  return histogram.boundsMs[histogram.boundsMs.length - 1]
+  return histogram.boundsMs[Math.min(index === -1 ? counts.length - 1 : index, histogram.boundsMs.length - 1)]
 }

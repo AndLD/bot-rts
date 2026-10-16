@@ -39,7 +39,8 @@ describe('percentileOf', () => {
     expect(percentileOf(api, mixed, 0.99)).toBe(25)
   })
 
-  it('is the last bound for what is above it, and null for nothing', () => {
+  it('is the last bound for what is above it or for a quantile past the end, and null for nothing', () => {
+    expect(percentileOf(api, counts({ 0: 4 }), 2)).toBe(30000)
     expect(percentileOf(api, counts({ 12: 4 }), 0.95)).toBe(30000)
     expect(percentileOf(api, emptyCounts(api), 0.95)).toBeNull()
   })

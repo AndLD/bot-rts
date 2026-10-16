@@ -26,16 +26,14 @@ function bucketCounts(previous: HttpTotals, current: HttpTotals): number[] {
   const cumulative = current.buckets.map((bucket, index) => bucket.count - previous.buckets[index].count)
   const inBucket = cumulative.map((count, index) => count - (cumulative[index - 1] ?? 0))
 
-  return [...inBucket, current.count - previous.count - (cumulative[cumulative.length - 1] ?? 0)]
+  return [...inBucket, current.count - previous.count - cumulative[cumulative.length - 1]]
 }
 
 // The ticks of a period per duration bucket, and the slowest of them with its trace. An engine that restarted between the two readings
 // starts its counts again, so its new counts are all of the period.
 function tickHistogram(previous: EngineMetricsSnapshot, current: EngineMetricsSnapshot): HistogramSample | null {
   const isRestart = current.tick < previous.tick
-  const counts = current.tickBuckets.map((count, index) =>
-    isRestart ? count : count - (previous.tickBuckets[index] ?? 0)
-  )
+  const counts = current.tickBuckets.map((count, index) => (isRestart ? count : count - previous.tickBuckets[index]))
   if (counts.every((count) => count <= 0)) {
     return null
   }

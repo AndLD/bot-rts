@@ -206,4 +206,35 @@ describe('RuntimeMetricsPort distributions', () => {
     })
     expect(idle.histograms).not.toHaveProperty('engine.tickMs')
   })
+
+  it('keeps the slowest tick of the period when a later block was quicker, and reports requests whose slowest was already taken', async () => {
+    const { port, http, clock, state } = setup()
+    await port.sample()
+    clock.current = new Date(clock.current.getTime() + 10_000)
+    state.engine = snapshot({
+      tick: 300,
+      tickBuckets: [0, 0, 0, 200, 0, 0, 0, 0, 0, 0, 0],
+      slowestTicks: [
+        { tick: 150, durationMs: 80, traceId: 'a'.repeat(32) },
+        { tick: 250, durationMs: 30, traceId: 'b'.repeat(32) }
+      ]
+    })
+    http.observe({ method: 'GET', route: '/a', status: 200, durationMs: 9 })
+    http.takeSlowest()
+
+    const { histograms } = await port.sample()
+
+    expect(histograms?.['engine.tickMs']).toMatchObject({ slowestMs: 80, slowestTraceId: 'a'.repeat(32) })
+    expect(histograms?.['api.latencyMs']).toMatchObject({ slowestMs: null, slowestTraceId: null })
+  })
+
+  it('has no slowest tick for a period whose blocks the engine did not report', async () => {
+    const { port, state } = setup()
+    await port.sample()
+    state.engine = snapshot({ tick: 120, tickBuckets: [0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0], slowestTicks: [] })
+
+    const { histograms } = await port.sample()
+
+    expect(histograms?.['engine.tickMs']).toMatchObject({ slowestMs: null, slowestTraceId: null })
+  })
 })

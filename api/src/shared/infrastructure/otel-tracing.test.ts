@@ -39,6 +39,25 @@ describe('OtelTracing', () => {
     expect(handedOn).toBe(`00-4bf92f3577b34da6a3ce929d0e0e4736-${span.spanContext().spanId}-01`)
   })
 
+  it('starts a span without any options', () => {
+    const { telemetry, spans } = testTelemetry()
+
+    telemetry.tracing.startSpan('bare').end()
+
+    expect(spans().map((span) => span.name)).toEqual(['bare'])
+  })
+
+  it('keeps the decision of a caller that did not sample its trace', () => {
+    const { telemetry, spans } = testTelemetry()
+
+    telemetry.tracing.withSpan('server', { parent: PARENT.replace(/01$/, '00') }, (span) => {
+      expect(span.context?.isSampled).toBe(false)
+      expect(span.context?.traceId).toBe('4bf92f3577b34da6a3ce929d0e0e4736')
+    })
+
+    expect(spans()).toHaveLength(0)
+  })
+
   it('starts a new trace when asked to, even inside a span, and links the spans it is related to', () => {
     const { telemetry, spans } = testTelemetry()
     const { tracing } = telemetry

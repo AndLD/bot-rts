@@ -82,7 +82,7 @@ describe('HostMetricSource', () => {
   })
 
   it('reports no disk share for a volume with no blocks', async () => {
-    ;(statfs as jest.Mock).mockResolvedValueOnce({ blocks: 0, bavail: 0 })
+    jest.mocked(statfs).mockResolvedValueOnce({ blocks: 0, bavail: 0 } as never)
 
     expect(await SYSTEM_HOST.diskUsedRatio('.')).toBeNull()
   })

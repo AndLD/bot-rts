@@ -8,7 +8,7 @@ The player economy and social layer, specified in design [§26](../../product-kn
 [§27](../../product-knowledge/game-design/27-chat-and-transfers.md): in-game credits, a remote market (resource exchange and auctions) behind a
 single-class market terminal module, chat, and transfers between players. The phase depends on storage and modules
 (Phase 4), the engine commands and event bus (Phase 5), the window manager (Phase 6), notifications and achievements
-(Phase 7), API-key scopes (8.9) and the admin foundations (9.1).
+(Phase 7), API-key scopes (8.9) and the admin foundations (9.1). **Order:** it is developed after Phase 13 (owner decision 2026-10-16, see "Order of development" in the [plan index](../DEVELOPMENT-PLAN.md)), so the market is built with the tracing, the logs of every node and the metrics history of Phase 13 in place; the market metrics of design §25.5 are delivered here (10.11 and 10.15).
 
 **Execution order:** 10.1 → 10.2 → 10.3 → 10.4 → 10.5 → 10.12 → 10.6 → 10.7 → 10.9 → 10.8 → 10.10 → 10.13 → 10.11 → 10.15 → 10.14.
 

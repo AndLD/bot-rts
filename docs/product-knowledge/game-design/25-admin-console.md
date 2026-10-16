@@ -101,6 +101,8 @@ Prometheus entry in §25.6). The `/metrics` endpoint stays as it is, for externa
 | **Jobs and notifications** | Retention and cleanup jobs (last run, duration, failures; their ranges are set from the console, *planned 9.19*), notification queue depth and delivery lag, email send failures |
 | **Infrastructure** | CPU and memory of each process, disk usage, backup age; *planned (Phase 13):* the health and the queue of the shared collector gateway |
 
+Delivered by task 13.8 (planned): every row above except **Market**, which comes with Phase 10 (10.11 and 10.15).
+
 Alerts appear in the console and by email to the owner; webhook channels (Slack, Telegram) are in the backlog.
 
 ## 25.6 Backlog

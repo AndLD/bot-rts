@@ -66,3 +66,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 13.1 when the phase is reached (after Phase 9).
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-16 — 13.8 covers all missing metrics; the phase is 48 SP; Phase 13 comes before Phase 10
+- **Tasks:** 13.8 (extended, 5 → 13 SP); none started
+- **Branch:** `docs/phase-13-before-10` — the plan and the design only
+- **Decisions / deviations from the plan:** the owner asked that **all** metrics of design §25.5 that are still missing are collected by 13.8, except the Market row, which comes with Phase 10. So 13.8 now covers the engine and world, scripts, API and sockets, database, jobs and notifications, and infrastructure metrics, besides the persistence. It is re-estimated at **13 SP** (the largest task; the task text suggests how to split it when it starts). Phase 13 is **48 SP** and the total of Phases 0–13 is **1000 SP**. The owner also decided that Phase 13 is **developed before Phase 10**; the plan index (order of development) and the Phase 10 file say so.
+- **Problems / blockers / findings:** the estimate of 13.8 is the largest uncertainty of the phase; it is re-estimated when the task starts.
+- **Next step:** 13.1 when the phase is reached (after Phase 9, before Phase 10).
+- **Verify with:** `npm run docs:check`

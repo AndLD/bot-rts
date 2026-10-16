@@ -95,6 +95,11 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   request id of an older line. It shows the spans of the request over the API node, the engine and the notifications it caused as a
   timeline (name, node, start, duration, status) and every log line of the trace from every node in order (`GET /api/v1/admin/traces/:id`,
   `logs.read`; every read is audited as `logs.read-trace`). The spans need `LOG_STORE=elasticsearch`; without it the trace is its lines.
+- The dashboard shows more of the engine and the world: the median and 99th percentile of the tick and of request latency, ticks the loop
+  skipped, the duration, size and lag of the world write (red above 5 s), crash-loop kills and engine restarts, game calls per tick and the
+  share the world refused (blocked or empty), the operations used of the budget, scripts stopped for using too much of a tick, the spread of
+  waits between players, and a new World area: bots and players with a script running, live scan areas and their watchers, live-view updates
+  and events per second, and the map cache hit rate.
 - The dashboard's history can be kept in the database (`MONITORING_HISTORY=postgres`, the default in production and on a node of a scaled
   deployment): every node, the engine node included, writes a one-minute row per metric (a sum and a count, so that averages merge) and
   per distribution (the API latency and the engine's tick duration as counts per bucket, with the slowest request or tick and its

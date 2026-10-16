@@ -57,6 +57,7 @@ describe('the monitoring endpoints', () => {
     expect(health.body.areas.map((area: { area: string }) => area.area)).toEqual([
       'engine',
       'scripts',
+      'world',
       'api',
       'infrastructure'
     ])

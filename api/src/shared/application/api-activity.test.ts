@@ -58,4 +58,22 @@ describe('ApiActivity', () => {
 
     expect(activity.snapshot()).toMatchObject({ rateLimitHits: 2, emailFailures: 1 })
   })
+
+  it('closes a socket of a player it never saw open without going below zero', () => {
+    const activity = new ApiActivity()
+
+    activity.socketClosed('ghost', 1_000)
+
+    expect(activity.snapshot()).toMatchObject({ socketsOpen: 0, onlinePlayers: 0 })
+  })
+
+  it('keeps a player online while another socket of theirs is open', () => {
+    const activity = new ApiActivity()
+    activity.socketOpened('alice', 0)
+    activity.socketOpened('alice', 1)
+
+    activity.socketClosed('alice', 2)
+
+    expect(activity.snapshot()).toMatchObject({ socketsOpen: 1, onlinePlayers: 1 })
+  })
 })

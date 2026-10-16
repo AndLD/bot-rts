@@ -1,4 +1,10 @@
+import { statfs } from 'fs/promises'
 import { FakeClock } from '../../../tests/fakes/fakes'
+jest.mock('fs/promises', () => {
+  const actual = jest.requireActual('fs/promises')
+  return { ...actual, statfs: jest.fn(actual.statfs) }
+})
+
 import { HostMetricSource, HostReaders, SYSTEM_HOST } from './host-metric.source'
 
 function setup(backup = { isConfigured: true, finishedAt: null as number | null, sizeBytes: null, location: null }) {
@@ -73,5 +79,20 @@ describe('HostMetricSource', () => {
     expect(SYSTEM_HOST.cores()).toBeGreaterThan(0)
     expect(await SYSTEM_HOST.diskUsedRatio('.')).toBeGreaterThan(0)
     expect(await SYSTEM_HOST.diskUsedRatio('/definitely/not/here')).toBeNull()
+  })
+
+  it('reports no disk share for a volume with no blocks', async () => {
+    ;(statfs as jest.Mock).mockResolvedValueOnce({ blocks: 0, bavail: 0 })
+
+    expect(await SYSTEM_HOST.diskUsedRatio('.')).toBeNull()
+  })
+
+  it('reports no CPU use when the clock has not moved between two readings', async () => {
+    const { source } = setup()
+
+    await source.read()
+    const { values } = await source.read()
+
+    expect(values).not.toHaveProperty('infrastructure.cpuUsage')
   })
 })

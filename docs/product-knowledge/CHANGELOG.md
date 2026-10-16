@@ -83,6 +83,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
   deployment, the notifications an engine event causes, and from the MCP server into the API. A caller may send a W3C `traceparent`; every
   response carries `X-Trace-Id` and `traceresponse`, and `X-Request-Id` is the trace id unless the caller sent its own. With
   `OTEL_EXPORTER_OTLP_ENDPOINT` set, logs and traces are sent to a collector gateway (`OTEL_TRACES_SAMPLER_ARG` samples new traces).
+- The Logs page of the admin console can search the log of every node (`LOG_STORE=elasticsearch`, with a read-only Elasticsearch
+  account): by text, level, request id, trace id, player, bot, node and time, with a node filter, the trace id of each line and paging.
+  A search is limited in time range (`LOG_SEARCH_MAX_WINDOW_DAYS`) and duration (`LOG_SEARCH_TIMEOUT_MS`); when the store is down the
+  console says so (`LOG_STORE_UNAVAILABLE`). The default stays the recent log of the node that answers (`LOG_STORE=memory`).
 - The admin dashboard shows whether the log gateway is up and how full its export queue is, when `OTEL_GATEWAY_HEALTH_URL` and
   `OTEL_GATEWAY_METRICS_URL` are set (warnings when the gateway is down or its queue is more than half full).
 - `docker compose --profile observability up -d` (or `npm run obs:up`) starts the log gateway (an OpenTelemetry Collector that checks a

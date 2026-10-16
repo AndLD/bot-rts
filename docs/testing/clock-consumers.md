@@ -37,6 +37,7 @@ reads `CLOCK`, so a new rule of the game cannot slip onto the real clock by acci
 | `admin/admin.module.ts`, `players/players.module.ts`, `players/presentation/players.controller.ts`, `supervision/supervision.module.ts`, `viewas/viewas.module.ts`, `devtools/devtools.module.ts`, `operations/operations.module.ts`, `balance/balance.module.ts`, `security/security.module.ts`, `analytics/analytics.module.ts` | the audit trail, bans, sessions, the console |
 | `apikeys/apikeys.module.ts`, `apikeys/presentation/api-access.guard.ts`, `ratelimit/ratelimit.module.ts`, `auth/auth.module.ts` | keys, rate limits, logins and tokens |
 | `featureswitches/featureswitches.module.ts`, `retention/retention.module.ts`, `lifecycle/lifecycle.module.ts` | caches and schedules of the settings and of the cleanup |
+| `logs/logs.module.ts` | the time range of a log search is real time |
 | `monitoring/monitoring.module.ts` | the dashboard's samples are real time |
 | `terminal/terminal.module.ts`, `terminal/terminal-core.module.ts` | the lines and sessions of the terminal, and the lockout of a bot's password (security) |
 | `engine/engine-worker.module.ts` | the records of executions and of the control state, and the tick loop |

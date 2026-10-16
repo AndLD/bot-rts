@@ -58,6 +58,26 @@ describe('the log search', () => {
     expect(none.body).toMatchObject({ lines: [], total: 0 })
   })
 
+  it('finds the lines of a trace, pages through the newest first, and lists the node', async () => {
+    const served = await api().get('/api/v1/users/me').set(bearer(player)).expect(200)
+    const traceId = served.headers['x-trace-id'] as string
+
+    const byTrace = await api().get(`/api/v1/admin/logs?traceId=${traceId}`).set(bearer(admin)).expect(200)
+    expect(byTrace.body.store).toBe('memory')
+    expect(byTrace.body.lines).toEqual([
+      expect.objectContaining({ traceId, requestId: traceId, node: expect.any(String), service: 'botrts-api' })
+    ])
+    // The searches log themselves, so the page is pinned to the lines written before it
+    const before = new Date().toISOString()
+    const all = await api().get(`/api/v1/admin/logs?results=2&to=${before}`).set(bearer(admin)).expect(200)
+    const rest = await api().get(`/api/v1/admin/logs?results=2&offset=1&to=${before}`).set(bearer(admin)).expect(200)
+    expect(rest.body.lines[0]).toEqual(all.body.lines[1])
+    const nodes = await api().get('/api/v1/admin/logs/nodes').set(bearer(admin)).expect(200)
+    expect(nodes.body).toEqual([{ id: byTrace.body.lines[0].node, services: ['botrts-api'] }])
+    const elsewhere = await api().get('/api/v1/admin/logs?node=elsewhere:1').set(bearer(admin)).expect(200)
+    expect(elsewhere.body.lines).toEqual([])
+  })
+
   it('filters by time and level, and validates the query', async () => {
     const future = await api().get('/api/v1/admin/logs?from=2999-01-01T00:00:00Z').set(bearer(admin)).expect(200)
     expect(future.body.lines).toEqual([])
@@ -66,12 +86,16 @@ describe('the log search', () => {
     await api().get('/api/v1/admin/logs?level=debug').set(bearer(admin)).expect(400)
     await api().get('/api/v1/admin/logs?results=1000').set(bearer(admin)).expect(400)
     await api().get('/api/v1/admin/logs?requestId=bad id!').set(bearer(admin)).expect(400)
+    await api().get('/api/v1/admin/logs?traceId=not-a-trace').set(bearer(admin)).expect(400)
+    await api().get('/api/v1/admin/logs?userId=not-a-uuid').set(bearer(admin)).expect(400)
+    await api().get('/api/v1/admin/logs?offset=-1').set(bearer(admin)).expect(400)
   })
 
   it('is for roles with logs.read only', async () => {
     await api().get('/api/v1/admin/logs').set(bearer(moderator)).expect(403)
     await api().get('/api/v1/admin/logs').set(bearer(analyst)).expect(403)
     await api().get('/api/v1/admin/logs').set(bearer(player)).expect(403)
+    await api().get('/api/v1/admin/logs/nodes').set(bearer(moderator)).expect(403)
     await api().get('/api/v1/admin/logs/slow-ticks').set(bearer(moderator)).expect(403)
   })
 })

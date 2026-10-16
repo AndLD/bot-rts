@@ -50,7 +50,7 @@ const serviceNameOf = (config: AppConfig) =>
       provide: LOGGER,
       inject: [TELEMETRY, LOG_BUFFER, CLOCK],
       useFactory: (telemetry: Telemetry, buffer: LogBuffer, clock: Clock) =>
-        new RecordingLogger(telemetry.logger('app'), buffer, clock)
+        new RecordingLogger(telemetry.logger('app'), buffer, clock, telemetry.tracing)
     }
   ],
   exports: [CLOCK, GAME_CLOCK, GAME_TIME, ID_GENERATOR, RNG, LOGGER, LOG_BUFFER, TRACING, TELEMETRY]

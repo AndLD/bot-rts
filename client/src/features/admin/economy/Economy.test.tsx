@@ -306,8 +306,9 @@ describe('the feature switches', () => {
     renderAs('admin')
     await openTab('Features')
 
+    // The switches appear (disabled, on) before the saved state arrives: wait for the state, not for the element
     const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
-    expect(keys).not.toBeChecked()
+    await waitFor(() => expect(keys).not.toBeChecked(), { timeout: 15000 })
     expect(screen.getByRole('switch', { name: 'Sign-ups' })).toBeChecked()
 
     fireEvent.click(screen.getByRole('switch', { name: 'Sign-ups' }))

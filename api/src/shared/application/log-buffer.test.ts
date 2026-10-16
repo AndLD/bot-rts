@@ -5,6 +5,7 @@ const line = (n: number, overrides: Partial<LogLine> = {}): LogLine => ({
   level: 'info',
   message: `line ${n}`,
   requestId: null,
+  traceId: null,
   ...overrides
 })
 
@@ -17,6 +18,25 @@ describe('LogBuffer', () => {
 
     expect(lines.map((found) => found.message)).toEqual(['line 5', 'line 4', 'line 3'])
     expect(total).toBe(5)
+  })
+
+  it('skips the newest lines of a page that was already read, and filters by trace', () => {
+    const buffer = new LogBuffer(10)
+    for (let n = 1; n <= 5; n++) buffer.add(line(n, { traceId: n % 2 ? 'odd' : 'even' }))
+
+    expect(buffer.search({}, 2, 2).lines.map((found) => found.message)).toEqual(['line 3', 'line 2'])
+    expect(buffer.search({ traceId: 'odd' }, 10)).toMatchObject({ total: 3 })
+  })
+
+  it('finds the lines that name every id asked for', () => {
+    const buffer = new LogBuffer(10)
+    buffer.add(line(1, { message: 'player U1 moved bot B1' }))
+    buffer.add(line(2, { message: 'player U1 moved bot B2' }))
+
+    expect(buffer.search({ mentions: ['u1', 'B1'] }, 10).lines.map((found) => found.message)).toEqual([
+      'player U1 moved bot B1'
+    ])
+    expect(buffer.search({ mentions: ['u1'] }, 10).total).toBe(2)
   })
 
   it('forgets the oldest lines once it is full', () => {

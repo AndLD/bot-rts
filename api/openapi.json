@@ -3938,6 +3938,42 @@
             }
           },
           {
+            "name": "traceId",
+            "required": false,
+            "in": "query",
+            "description": "The trace id of a request, a tick or a job (the X-Trace-Id of a response)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "The id of a player that the line names",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "botId",
+            "required": false,
+            "in": "query",
+            "description": "The id of a bot that the line names",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "node",
+            "required": false,
+            "in": "query",
+            "description": "A process of the node list (host and process id); the default is every node",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "from",
             "required": false,
             "in": "query",
@@ -3965,6 +4001,17 @@
               "default": 100,
               "type": "number"
             }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "How many of the newest matching lines to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3981,11 +4028,15 @@
                       "at": 1,
                       "level": "info",
                       "message": "string",
-                      "requestId": "string"
+                      "requestId": "string",
+                      "traceId": "string",
+                      "node": "string",
+                      "service": "string"
                     }
                   ],
                   "total": 1,
-                  "capacity": 1
+                  "capacity": 1,
+                  "store": "memory"
                 }
               }
             }
@@ -4016,6 +4067,62 @@
             "lang": "Shell",
             "label": "curl",
             "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/logs\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/logs/nodes": {
+      "get": {
+        "operationId": "logsNodes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LogNodeResponse"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "string",
+                    "services": [
+                      "string"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "logs.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/logs/nodes\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
           }
         ]
       }
@@ -9505,6 +9612,7 @@
               "MANUAL_CATEGORY_DISABLED",
               "VIEW_AS_READ_ONLY",
               "FEATURE_DISABLED",
+              "LOG_STORE_UNAVAILABLE",
               "INTERNAL_ERROR",
               "BLOCKED",
               "EMPTY",
@@ -11506,13 +11614,30 @@
           "requestId": {
             "type": "string",
             "nullable": true
+          },
+          "traceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "node": {
+            "type": "string",
+            "nullable": true,
+            "description": "The process that wrote the line (host and process id)"
+          },
+          "service": {
+            "type": "string",
+            "nullable": true,
+            "description": "botrts-api or botrts-engine"
           }
         },
         "required": [
           "at",
           "level",
           "message",
-          "requestId"
+          "requestId",
+          "traceId",
+          "node",
+          "service"
         ]
       },
       "LogPageResponse": {
@@ -11528,13 +11653,41 @@
             "type": "number"
           },
           "capacity": {
-            "type": "number"
+            "type": "number",
+            "nullable": true,
+            "description": "How many lines the node keeps; null for the log store"
+          },
+          "store": {
+            "type": "string",
+            "enum": [
+              "memory",
+              "elasticsearch"
+            ]
           }
         },
         "required": [
           "lines",
           "total",
-          "capacity"
+          "capacity",
+          "store"
+        ]
+      },
+      "LogNodeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "services"
         ]
       },
       "SlowTickResponse": {

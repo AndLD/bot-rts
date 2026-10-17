@@ -14,7 +14,7 @@ import { AuditDetailParam } from '../../admin/presentation/audit-detail.decorato
 import { Principal } from '../../auth/application/auth.service'
 import { CurrentPrincipal } from '../../auth/presentation/current-principal.decorator'
 import { ReasonDto } from '../../players/presentation/dto/players.dto'
-import { ValidationError } from '../../shared/domain/errors'
+import { NotFoundError, ValidationError } from '../../shared/domain/errors'
 import { ErrorResponseModel } from '../../shared/presentation/error-response.model'
 import { ApiKeyService } from '../application/api-key.service'
 import { toAdminApiKeyDto } from './admin-api-keys.mapper'
@@ -37,6 +37,18 @@ export class AdminApiKeysController {
   @Get()
   async list(): Promise<IAdminApiKey[]> {
     return (await this.keys.listAdminKeys()).map(toAdminApiKeyDto)
+  }
+
+  // What the key of this very call may do: an MCP client reads it to offer only the tools the key can use
+  @RequirePermission('dashboard.read', { adminKeyScope: 'any' })
+  @ApiOkResponse({ type: AdminApiKeyResponse })
+  @Get('current')
+  async current(@CurrentPrincipal() { apiKey }: Principal): Promise<IAdminApiKey> {
+    if (!apiKey) {
+      throw new NotFoundError('This call was not made with an API key')
+    }
+
+    return toAdminApiKeyDto(await this.keys.getAdminKey(apiKey.id))
   }
 
   // The response carries the secret; it cannot be read again

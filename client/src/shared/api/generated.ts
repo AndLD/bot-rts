@@ -774,6 +774,9 @@ const injectedRtkApi = api.injectEndpoints({
     adminApiKeysCreate: build.mutation<AdminApiKeysCreateApiResponse, AdminApiKeysCreateApiArg>({
       query: (queryArg) => ({ url: `/api/v1/admin/api-keys`, method: 'POST', body: queryArg.createAdminApiKeyDto })
     }),
+    adminApiKeysCurrent: build.query<AdminApiKeysCurrentApiResponse, AdminApiKeysCurrentApiArg>({
+      query: () => ({ url: `/api/v1/admin/api-keys/current` })
+    }),
     adminApiKeysRevoke: build.mutation<AdminApiKeysRevokeApiResponse, AdminApiKeysRevokeApiArg>({
       query: (queryArg) => ({
         url: `/api/v1/admin/api-keys/${queryArg.id}/revoke`,
@@ -1399,6 +1402,8 @@ export type AdminApiKeysCreateApiResponse = /** status 201  */ CreatedAdminApiKe
 export type AdminApiKeysCreateApiArg = {
   createAdminApiKeyDto: CreateAdminApiKeyDto
 }
+export type AdminApiKeysCurrentApiResponse = /** status 200  */ AdminApiKeyResponse
+export type AdminApiKeysCurrentApiArg = void
 export type AdminApiKeysRevokeApiResponse = unknown
 export type AdminApiKeysRevokeApiArg = {
   id: string
@@ -3073,5 +3078,6 @@ export const {
   useApiKeysRevokeMutation,
   useAdminApiKeysListQuery,
   useAdminApiKeysCreateMutation,
+  useAdminApiKeysCurrentQuery,
   useAdminApiKeysRevokeMutation
 } = injectedRtkApi

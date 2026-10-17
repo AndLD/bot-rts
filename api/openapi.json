@@ -9993,6 +9993,69 @@
         ]
       }
     },
+    "/api/v1/admin/api-keys/current": {
+      "get": {
+        "operationId": "adminApiKeysCurrent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiKeyResponse"
+                },
+                "example": {
+                  "_id": "string",
+                  "name": "string",
+                  "prefix": "botrts_ab12",
+                  "scopes": [
+                    "string"
+                  ],
+                  "ratePerMinute": 1,
+                  "ownerId": "string",
+                  "reason": "string",
+                  "ipAllowList": [
+                    "string"
+                  ],
+                  "createdAt": 1,
+                  "lastUsedAt": 1,
+                  "expiresAt": 1,
+                  "revokedAt": 1
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "x-admin-permission": "dashboard.read",
+        "x-api-key-scope": "none (session only)",
+        "x-codeSamples": [
+          {
+            "lang": "Shell",
+            "label": "curl",
+            "source": "curl -X GET \"$BOTRTS_URL/api/v1/admin/api-keys/current\" \\\n  -H \"Authorization: Bearer $BOTRTS_KEY\""
+          }
+        ]
+      }
+    },
     "/api/v1/admin/api-keys/{id}/revoke": {
       "post": {
         "operationId": "adminApiKeysRevoke",

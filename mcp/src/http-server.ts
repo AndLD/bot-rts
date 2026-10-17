@@ -1,9 +1,12 @@
+import { createHash } from 'node:crypto'
 import { createServer as createHttpServer, IncomingMessage, Server, ServerResponse } from 'node:http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { ApiClient, Fetch } from './api-client'
 import { McpConfig } from './config'
 import { createServer } from './server'
 import { NO_TELEMETRY, Telemetry } from './telemetry'
+import { selectTools } from './tools/select'
+import { ToolDefinition } from './tools/types'
 
 const MAX_BODY_BYTES = 1024 * 1024
 
@@ -34,8 +37,35 @@ function keyOf(request: IncomingMessage, fallback: string | undefined): string |
   return bearer || fallback
 }
 
+// What a key may use does not change from one message to the next, so the answer of the API is kept for a while instead of asking
+// (and auditing) on every message of a conversation
+const TOOLS_TTL_MS = 5 * 60_000
+const MAX_KEYS_KEPT = 1000
+
+export function toolsCache(now: () => number = Date.now) {
+  const kept = new Map<string, { tools: ToolDefinition[]; at: number }>()
+
+  return async (key: string, client: ApiClient): Promise<ToolDefinition[]> => {
+    const id = createHash('sha256').update(key).digest('hex')
+    const hit = kept.get(id)
+    if (hit && now() - hit.at < TOOLS_TTL_MS) {
+      return hit.tools
+    }
+
+    const tools = await selectTools(client)
+    if (kept.size >= MAX_KEYS_KEPT) {
+      kept.clear()
+    }
+    kept.set(id, { tools, at: now() })
+
+    return tools
+  }
+}
+
 // Streamable HTTP (stateless): POST /mcp carries each JSON-RPC message; GET /health is for the load balancer
 export function createMcpHttpServer(config: McpConfig, fetchImpl?: Fetch, telemetry: Telemetry = NO_TELEMETRY): Server {
+  const toolsOf = toolsCache()
+
   return createHttpServer(async (request, response) => {
     const path = new URL(request.url as string, 'http://localhost').pathname
 
@@ -66,7 +96,8 @@ export function createMcpHttpServer(config: McpConfig, fetchImpl?: Fetch, teleme
       )
     }
 
-    const server = createServer(new ApiClient(config.apiUrl, key, fetchImpl, telemetry), undefined, telemetry)
+    const client = new ApiClient(config.apiUrl, key, fetchImpl, telemetry)
+    const server = createServer(client, await toolsOf(key, client), telemetry)
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
     response.on('close', () => {
       void transport.close()

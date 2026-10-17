@@ -45,3 +45,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 14.3, the admin tools in `mcp/` (register them only when the key carries admin scopes; wrap results as untrusted data).
 - **Verify with:** `npm run test:coverage -w api`, `node scripts/check-changed-coverage.mjs origin/feature/14.1-admin-read-scopes api client`
+
+### 2026-10-16 — 14.3 admin tools in the MCP server
+- **Tasks:** 14.3
+- **Branch:** `feature/14.3-admin-mcp-tools` (stacked on 14.2, PR #203) — WIP until its PR merges
+- **Decisions / deviations from the plan:** "registered only when the key carries admin scopes" needed a way for the server to know the scopes, so a small call was added to the API: `GET /admin/api-keys/current` (opens to a key with any admin scope; `adminKeyScope: 'any'`), which `selectTools` calls at start (stdio) or once per key in five minutes (HTTP, cached by key hash). A key with admin scopes gets only the admin tools its scopes allow; any other key or an unreachable API gets the player tools. Results are wrapped by `asUntrusted` and the instructions of the server differ for admin tools. The tool list is documented in `integrations/MCP.md` (English only: the repository's developer docs are not translated); the Russian text is the admin documentation page of 14.4. `slowest_traces` reads the `slowest` samples of the metric series.
+- **Problems / blockers / findings:** none.
+- **Next step:** 14.4, the console page for admin keys, admin documentation (English and Russian), runbook section, Cypress spec and e2e matrix row.
+- **Verify with:** `npm run test:coverage -w mcp`, `npm run test:coverage -w api`

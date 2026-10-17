@@ -367,4 +367,14 @@ describe('ApiKeyService: admin keys (design §25.2)', () => {
     await world.users.update({ ...world.admin, status: 'banned' })
     await expect(world.service.authenticate(secret)).rejects.toBeInstanceOf(UserBannedError)
   })
+
+  it('hands an admin key back by its id, and does not know a player key or a missing one', async () => {
+    const world = await setup()
+    const { key } = await create(world)
+    const player = await world.service.create(world.alice.id, { name: 'k', scopes: ['read'] })
+
+    await expect(world.service.getAdminKey(key.id)).resolves.toMatchObject({ id: key.id })
+    await expect(world.service.getAdminKey(player.key.id)).rejects.toMatchObject({ statusCode: 404 })
+    await expect(world.service.getAdminKey('missing')).rejects.toMatchObject({ statusCode: 404 })
+  })
 })

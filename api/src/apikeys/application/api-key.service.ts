@@ -142,6 +142,17 @@ export class ApiKeyService implements ApiKeyAuthenticator {
     return { key, secret }
   }
 
+  // The admin key a call was made with, to tell it what it may do
+  async getAdminKey(id: string): Promise<ApiKey> {
+    const key = await this.keys.findById(id)
+
+    if (!key?.adminGrant) {
+      throw new NotFoundError('This is not an admin API key')
+    }
+
+    return key
+  }
+
   listAdminKeys(): Promise<ApiKey[]> {
     return this.keys.listAdminKeys()
   }

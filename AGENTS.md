@@ -313,9 +313,9 @@ A feature is done only when **all** of these hold:
 - **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected (`scripts/protect-branches.sh`): no direct commits, no force-push, required PR and the required CI
-  jobs `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, build), `pr-title`,
-  `e2e` and `lighthouse` (`.github/workflows/ci.yml`).
+- `main` and `develop` are protected (`scripts/protect-branches.sh`), for administrators too: no direct commits, no force-push,
+  required PR and the required CI jobs `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with
+  the coverage gate, build), `pr-title`, `e2e` and `lighthouse` (`.github/workflows/ci.yml`).
 
 ### 7.4 Commit & PR rules
 

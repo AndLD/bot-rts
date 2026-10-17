@@ -285,8 +285,8 @@ A feature is done only when **all** of these hold:
 
 | Branch                | Purpose                                                              | Branched from | Merges into          |
 | --------------------- | -------------------------------------------------------------------- | ------------- | -------------------- |
-| `main`                | Always releasable; every release is tagged `vX.Y.Z`                  | —             | —                    |
-| `develop`             | Integration branch; all work starts here                             | `main`        | —                    |
+| `main`                | Production; always releasable; every release is tagged `vX.Y.Z`      | —             | —                    |
+| `develop`             | Integration branch and GitHub default branch; all work starts here   | `main`        | —                    |
 | `feature/<id>-<slug>` | New work                                                             | `develop`     | `develop`            |
 | `bugfix/<id>-<slug>`  | Non-release fixes                                                    | `develop`     | `develop`            |
 | `docs/<slug>`         | Documentation-only changes                                           | `develop`     | `develop`            |
@@ -313,8 +313,9 @@ A feature is done only when **all** of these hold:
 - **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected: no direct commits, no force-push, required PR and required CI checks (`.github/workflows/ci.yml`:
-  lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, build, e2e, Lighthouse).
+- `main` and `develop` are protected (`scripts/protect-branches.sh`): no direct commits, no force-push, required PR and the required CI
+  jobs `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, build), `pr-title`,
+  `e2e` and `lighthouse` (`.github/workflows/ci.yml`).
 
 ### 7.4 Commit & PR rules
 

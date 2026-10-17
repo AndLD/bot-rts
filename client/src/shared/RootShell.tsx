@@ -1,5 +1,7 @@
 import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { ConfigProvider } from 'antd'
 import type { ReactNode } from 'react'
+import { buttonTheme } from './buttonTheme'
 import '../app/global.scss'
 
 // The <html> document of a route group (every group is a root layout): the language is in the markup, so the public pages
@@ -8,7 +10,9 @@ export function RootShell({ lang, children }: { lang: string; children: ReactNod
   return (
     <html lang={lang}>
       <body>
-        <AntdRegistry>{children}</AntdRegistry>
+        <AntdRegistry>
+          <ConfigProvider theme={buttonTheme}>{children}</ConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   )

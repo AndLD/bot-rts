@@ -10,3 +10,13 @@
   `docs/quality-reviews/harness/2026-10-17.md`.
 - **Open decisions:** none yet (budgets are proposed in the report for the owner's approval).
 - **Verify with:** `git log --oneline origin/develop..HEAD`, `npm run docs:check`
+
+### 2026-10-17 — step 1, report written
+- **Done:** all measurements M1 to M33, the seven claims ledgers (100 % coverage), probes P1 to P7, the cross-context checks, the
+  verification of every finding, and the report `docs/quality-reviews/harness/2026-10-17.md` (32 findings, scorecard, budgets
+  proposed, export dry run with blockers B1 to B8). The report index `docs/quality-reviews/README.md` links it.
+- **Next step:** the owner reads the scorecard, the top findings and the blockers, triages the follow-up table (section 13) and merges
+  the pull request; this file is removed in that pull request before the merge. Then step 2 of the plan.
+- **Open decisions:** H-01 (required checks), H-07 (release `develop` to `main` or change the default branch), H-13 and H-14 (Phase 10
+  specification questions O1 to O11), H-15 (first source of iron), the budgets of section 9, the triage of every finding.
+- **Verify with:** `npm run docs:check`, `npx prettier --check docs/quality-reviews/harness/2026-10-17.md`

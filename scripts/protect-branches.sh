@@ -1,24 +1,62 @@
 #!/usr/bin/env bash
-# Protects `main` and `develop` (AGENTS.md §7.3) and keeps merged branches. Needs repository admin rights, and a public
-# repository or a paid GitHub plan (branch protection is unavailable for private repositories on the free plan).
+# Protects `main` and `develop` (AGENTS.md §7.3) with a repository ruleset and keeps merged branches. Needs repository admin
+# rights, and a public repository or a paid GitHub plan.
+# Rules: no deletion, no force-push, every change through a pull request, required jobs green. Repository admins may bypass the
+# rules only when merging a pull request (for example past a red check), never with a direct push.
 # Usage: scripts/protect-branches.sh [owner/repo]
 set -euo pipefail
 
 repo="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
+name="protected-branches"
 
 gh api -X PATCH "repos/${repo}" -F delete_branch_on_merge=false >/dev/null
 
-for branch in main develop; do
-  gh api -X PUT "repos/${repo}/branches/${branch}/protection" --input - >/dev/null <<'JSON'
+ruleset=$(cat <<'JSON'
 {
-  "required_status_checks": { "strict": true, "contexts": ["verify", "pr-title", "e2e", "lighthouse"] },
-  "enforce_admins": true,
-  "required_pull_request_reviews": { "required_approving_review_count": 0 },
-  "restrictions": null,
-  "allow_force_pushes": false,
-  "allow_deletions": false,
-  "required_linear_history": false
+  "name": "protected-branches",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": { "ref_name": { "include": ["refs/heads/main", "refs/heads/develop"], "exclude": [] } },
+  "bypass_actors": [{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }],
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "verify" },
+          { "context": "pr-title" },
+          { "context": "e2e" },
+          { "context": "lighthouse" }
+        ]
+      }
+    }
+  ]
 }
 JSON
-  echo "Protected ${branch} in ${repo}"
+)
+
+id=$(gh api "repos/${repo}/rulesets" --jq ".[] | select(.name == \"${name}\") | .id")
+if [ -n "$id" ]; then
+  echo "$ruleset" | gh api -X PUT "repos/${repo}/rulesets/${id}" --input - >/dev/null
+else
+  echo "$ruleset" | gh api -X POST "repos/${repo}/rulesets" --input - >/dev/null
+fi
+echo "Ruleset ${name} applied to main and develop in ${repo}"
+
+# The ruleset replaces the classic branch protection, which cannot exempt admins from the checks without also letting them push
+for branch in main develop; do
+  gh api -X DELETE "repos/${repo}/branches/${branch}/protection" >/dev/null 2>&1 && echo "Removed the classic protection of ${branch}" || true
 done

@@ -32,4 +32,4 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `bugfix/12.2-button-styling` | 12.2 | [#206](https://github.com/AndLD/bot-rts/pull/206) | merged |
-| `bugfix/12.1-runaway-script-tick` | 12.1 | pending | open |
+| `bugfix/12.1-runaway-script-tick` | 12.1 | [#207](https://github.com/AndLD/bot-rts/pull/207) | merged |

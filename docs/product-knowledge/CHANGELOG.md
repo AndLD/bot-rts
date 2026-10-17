@@ -6,6 +6,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ## [Unreleased]
 
+### Fixed
+
+- Client buttons: plain buttons (such as Save and Cancel in the terminal editor) keep horizontal padding that the global reset removed, Ant Design buttons get one shared padding per size, and a disabled button has an opaque surface with a readable label (contrast above 4.5:1) on the dark game windows too.
+
 ### Added
 
 - Admin console: the **Admin API keys** page (create, list and revoke read-only keys for an AI assistant, with a reason, an expiry and optional addresses), an admin documentation page "Investigate with an AI assistant" and a runbook section, in English and Russian.

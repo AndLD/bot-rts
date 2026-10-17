@@ -15,6 +15,12 @@
   padding: 0;
 }
 
+// A plain <button> keeps room around its label, which the reset above removed. :where() adds no specificity, so a button
+// with its own class (a close icon, a link-like switch) still sets its own padding
+:where(button) {
+  padding: 4px 16px;
+}
+
 .game-toolbar {
   position: absolute;
   top: 12px;

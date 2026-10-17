@@ -2,7 +2,7 @@
 
 # Phase 14 — Admin MCP: AI-assisted investigation (19 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-14-log](./work-logs/phase-14-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-14-log](./work-logs/phase-14-log.md)
 
 **Proposed and decided with the owner 2026-10-16.** Lets an AI assistant investigate the running project through the MCP server (`mcp/`): search the logs,
 follow traces, read the health and the metrics, check the audit trail and run a health check. It adds no new data access: it exposes
@@ -32,7 +32,7 @@ script, restart) are out of scope; adding them later needs a separate scope and 
 | 14.1 | **Admin read scopes on API keys.** The scope set above; the key-creation endpoint rejects any `admin:*` scope; a console-only grant endpoint (admin role, two-factor, a reason) with a mandatory expiry and an optional IP allowlist; the composite guard checks the owner\'s admin role and ban state on every call; per-route opt-in so every other `/admin/*` route stays closed to keys; admin keys excluded from the player's key list; the admin scopes kept in a separate admin-only set so the player key form, the generated client, the public OpenAPI spec and the player documentation list player scopes only (a test over each surface proves no `admin:` scope appears); audit entries carry the key id. A test proves that a player cannot obtain or escalate to an admin scope by any route, and that demoting the owner stops the key at once. AGENTS.md §9, design §25.2, `integrations/API.md` and the README are amended in the same PR | 6 | ✅ |
 | 14.2 | **Read-only operations API for the assistant.** The endpoints of the log search, trace, metrics history, health, engine status and audit viewer opt in with their scopes; one new `GET /api/v1/admin/health-check` composes the current alerts, tick and overrun figures, the script-kill count, the flush time and the store status into one summary; size caps, truncation of player-controlled fields, redaction check over a corpus, OpenAPI and the generated client updated | 4 | ✅ |
 | 14.3 | **Admin tools in the MCP server.** `search_logs`, `get_trace`, `slowest_traces`, `get_health`, `get_metrics`, `list_audit_events`, `get_engine_status`, `run_health_check`; registered only when the key carries admin scopes; every result is wrapped as untrusted data; tests with a fake API, including an injection corpus in log text; the tool list in the MCP documentation (English and Russian) | 6 | ✅ |
-| 14.4 | **Console page for admin keys, documentation and e2e.** A page in the console to create, list and revoke admin keys (reason, expiry, IP allowlist, two-factor step), English and Russian strings, an admin documentation page and a runbook section ("investigate with an AI assistant"), a Cypress spec in the e2e matrix, a `CHANGELOG.md` line | 3 | ⬜ |
+| 14.4 | **Console page for admin keys, documentation and e2e.** A page in the console to create, list and revoke admin keys (reason, expiry, IP allowlist, two-factor step), English and Russian strings, an admin documentation page and a runbook section ("investigate with an AI assistant"), a Cypress spec in the e2e matrix, a `CHANGELOG.md` line | 3 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
@@ -48,5 +48,6 @@ AGENTS.md §7.1).
 | Branch | Tasks | PR | Status |
 | --- | --- | --- | --- |
 | `feature/14.1-admin-read-scopes` | 14.1 | [#202](https://github.com/AndLD/bot-rts/pull/202) | ✅ merged |
-| `feature/14.2-admin-ops-api` | 14.2 | [#203](https://github.com/AndLD/bot-rts/pull/203) | 🟡 |
-| `feature/14.3-admin-mcp-tools` | 14.3 | _PR number added at merge_ | 🟡 |
+| `feature/14.2-admin-ops-api` | 14.2 | [#203](https://github.com/AndLD/bot-rts/pull/203) | ✅ merged |
+| `feature/14.3-admin-mcp-tools` | 14.3 | [#204](https://github.com/AndLD/bot-rts/pull/204) | ✅ merged |
+| `feature/14.4-admin-keys-console` | 14.4 | [#205](https://github.com/AndLD/bot-rts/pull/205) | ✅ merged |

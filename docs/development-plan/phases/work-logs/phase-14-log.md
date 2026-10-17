@@ -61,3 +61,11 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** merge the stack (#203, #204, then this PR) after green CI, record the PR numbers, then close the phase: check the exit criteria and run the local database steps of AGENTS.md §7.6.
 - **Verify with:** `npm run test:coverage -w client`, `E2E_API_PORT=18080 E2E_CLIENT_PORT=15173 node scripts/e2e.mjs -- --spec client/cypress/e2e/admin-keys.cy.ts`
+
+### 2026-10-17 — phase 14 done
+- **Tasks:** 14.1 to 14.4 (all ✅)
+- **Branch:** `feature/14.4-admin-keys-console` — last PR of the phase (#205); 14.1 to 14.3 merged as #202, #203, #204
+- **Decisions / deviations from the plan:** exit criteria checked: an admin creates a key in the console (e2e), the MCP tools cover logs, traces, health, metrics, audit and the health check (`admin-ops-api.int.test.ts`, `tools/admin.test.ts`), a player key reaches none of it, demoting or banning the owner stops the key (integration and e2e), every call is audited with the key id, results are marked as untrusted data, coverage gates are green.
+- **Problems / blockers / findings:** none.
+- **Next step:** bring the local database up to date from `develop` (`npm run db:up`, `npm run db:migrate -w api`; migration `admin_api_keys`), then Phase 10 or whatever the owner picks.
+- **Verify with:** `npm run test:coverage -w api`, `npm run test:coverage -w mcp`, `npm run test:coverage -w client`

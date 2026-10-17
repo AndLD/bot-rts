@@ -2,7 +2,7 @@
 
 # Phase 14 — Admin MCP: AI-assisted investigation (19 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-14-log](./work-logs/phase-14-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-14-log](./work-logs/phase-14-log.md)
 
 **Proposed and decided with the owner 2026-10-16.** Lets an AI assistant investigate the running project through the MCP server (`mcp/`): search the logs,
 follow traces, read the health and the metrics, check the audit trail and run a health check. It adds no new data access: it exposes
@@ -49,5 +49,5 @@ AGENTS.md §7.1).
 | --- | --- | --- | --- |
 | `feature/14.1-admin-read-scopes` | 14.1 | [#202](https://github.com/AndLD/bot-rts/pull/202) | ✅ merged |
 | `feature/14.2-admin-ops-api` | 14.2 | [#203](https://github.com/AndLD/bot-rts/pull/203) | ✅ merged |
-| `feature/14.3-admin-mcp-tools` | 14.3 | [#204](https://github.com/AndLD/bot-rts/pull/204) | 🟡 |
-| `feature/14.4-admin-keys-console` | 14.4 | [#205](https://github.com/AndLD/bot-rts/pull/205) | 🟡 |
+| `feature/14.3-admin-mcp-tools` | 14.3 | [#204](https://github.com/AndLD/bot-rts/pull/204) | ✅ merged |
+| `feature/14.4-admin-keys-console` | 14.4 | [#205](https://github.com/AndLD/bot-rts/pull/205) | ✅ merged |

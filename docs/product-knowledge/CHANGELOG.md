@@ -8,6 +8,7 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ### Fixed
 
+- Engine: a script that calls the scanner, the factory or a repair every cycle no longer makes the engine read every player's bots and radio network from the database again on each tick. Only the caller's own bots are forgotten, so the tick stays short when a few players are online (the load harness with 5 players: tick p95 from about 102 ms to about 59 ms, no overruns).
 - Client buttons: plain buttons (such as Save and Cancel in the terminal editor) keep horizontal padding that the global reset removed, Ant Design buttons get one shared padding per size, and a disabled button has an opaque surface with a readable label (contrast above 4.5:1) on the dark game windows too.
 
 ### Added

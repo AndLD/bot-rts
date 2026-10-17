@@ -47,6 +47,12 @@ one script per player, `ts-node` API. The numbers are a reference for comparing 
 | 600, `ENGINE_TICK_CAP_RATIO=0.6` | 40 s | 97.9 / 99.5 ms | 1.7 % | 24.4 % | 1 tick | 1117 MB RSS |
 | 150 (150), soak | 200 s | 25.9 / 27.4 ms | 0 % | 0 % | 0 ticks | heap flat at about 400 MB, RSS 873 MB |
 
+A very small run is a different case: with 5 players (10 scripts, 1 hog) the second script of a bot starts only when the first ends, so
+killing the hog frees its player's `scan` script, and that one script ran a database use case every tick. Each such call used to
+forget the bots of **all** players, so the next tick read every player's bots again for the radio network and the tick p95 stayed at
+the interval (about 102 ms, 6.5 % of the ticks overran). The call forgets only the caller's bots now: p95 is about 59 ms (the
+scan itself, one database round trip chain per tick), with no overruns (`--players 5 --duration 40`).
+
 In every run the hogs (10 % of the scripts) were cut by the sandbox and the other executions stayed alive; the engine ticked at
 10 per second.
 

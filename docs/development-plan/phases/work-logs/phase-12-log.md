@@ -41,3 +41,17 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** no Cypress flow covers a disabled button, so none was added.
 - **Next step:** merge the PR; pick the next 12.x task when the user asks.
 - **Verify with:** `npm test -w client -- buttonTheme`, `npm run lint -w client`, `npm run typecheck -w client`
+
+### 2026-10-17 — task 12.1 (tick time with few players)
+- **Tasks:** 12.1
+- **Branch:** `bugfix/12.1-runaway-script-tick` — done
+- **Decisions / deviations from the plan:** the cause was not the hog or its sandbox. A bot runs one script at a time, so the hog
+  held its player's `scan` script back; killing the hog freed it, and `scan` runs through `SyncedHandler`, which forgot the whole
+  world (`World.evict()`) after each call. That marked every player's radio network dirty and reloaded every bot from the database
+  on each tick (3 to 15 ms per player). `hogs=0` was healthy only because no scan script ran. Fix: `World.evict(ownerId)` forgets
+  the cells and only that owner's bots, and tells the radio network whose bots they were; `SyncedHandler` passes the caller's owner.
+  An eviction without an owner (after a failed flush, or an engine action) still forgets everything. Design §14 notes it.
+- **Problems / blockers / findings:** p95 is about 59 ms (was about 102 ms) with 5 players, no overruns; the rest is the scan use
+  case itself (a sync flush and several queries per tick). Not 11 ms as in the `--hogs 0` run, which never scans.
+- **Next step:** merge the PR; 12.1 and 12.2 are done, so the phase waits for new issues (the user closes it).
+- **Verify with:** `npx jest src/engine -w api`, `npm run load -- --players 5 --duration 40`

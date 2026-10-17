@@ -63,8 +63,8 @@ export class RadioNetwork {
     private readonly clock: Clock
   ) {
     world.onBotChange((userId) => this.dirty.add(userId))
-    world.onEvict(() => {
-      for (const userId of this.networks.keys()) {
+    world.onEvict((ownerId) => {
+      for (const userId of ownerId ? [ownerId] : this.networks.keys()) {
         this.dirty.add(userId)
       }
     })

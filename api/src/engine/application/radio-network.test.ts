@@ -1,4 +1,5 @@
 import { BOT_TYPE } from '../../../../lib/utils/interfaces/bots'
+import { ok } from '../../../../lib/utils/result'
 import { MapPointType } from '../../../../lib/utils/interfaces/map'
 import { RecordingSink } from '../../../tests/fakes/engine'
 import { FakeClock } from '../../../tests/fakes/fakes'
@@ -6,6 +7,7 @@ import { createEngineWorld } from '../../../tests/fakes/world-engine'
 import { GameEvent } from '../domain/game-event'
 import { KnownPoint } from '../../map/domain/map-point.entity'
 import { DEFAULT_RADIO_BALANCE } from '../domain/radio'
+import { SyncedHandler } from './handlers/synced-handler'
 import { EventOutbox } from './event-outbox'
 import { RadioBuffers } from './radio-buffers'
 import { NoSignalError, RadioNetwork } from './radio-network'
@@ -243,5 +245,45 @@ describe('RadioNetwork', () => {
     expect(t.sink.events).toEqual([])
     expect(t.games()).toEqual([])
     expect((await t.radio.statusOf(OWNER, 'rover')).isConnected).toBe(true)
+  })
+
+  it('computes again only the network of the owner whose bots were forgotten', async () => {
+    const t = await setup()
+    t.worker('mine', 5)
+    t.worker('theirs-base', 0, 'bob', 'none')
+    await t.radio.statusOf(OWNER, 'mine')
+    await t.radio.statusOf('bob', 'theirs-base')
+    // A bot that was just loaded is a change, which the next tick settles
+    await t.tick()
+    const reads = jest.spyOn(t.source, 'botIdsOfUser')
+
+    t.world.evict(OWNER)
+    await t.tick()
+    expect(reads.mock.calls).toEqual([[OWNER]])
+
+    reads.mockClear()
+    t.world.evict()
+    await t.tick()
+    expect(reads.mock.calls.map(([owner]) => owner).sort()).toEqual([OWNER, 'bob'])
+  })
+
+  // Plan task 12.1: one script that calls the scanner every cycle (the one a runaway script's player gets to run once the
+  // runaway is killed) made the engine read every player's bots again each tick, and the tick took as long as the interval
+  it('does not read the bots of the other players again when one player scans every tick', async () => {
+    const t = await setup()
+    const others = Array.from({ length: 20 }, (_, i) => `player-${i}`)
+    others.forEach((owner) => t.worker(`base-of-${owner}`, 0, owner, 'none'))
+    await Promise.all([OWNER, ...others].map((owner) => t.radio.statusOf(owner, 'base')))
+    await t.tick()
+    const reads = jest.spyOn(t.source, 'botIdsOfUser')
+    const scan = new SyncedHandler(t.world, { functions: ['scan'], handle: async () => ok(1) })
+    const state = (await t.world.bot('base'))!.state
+
+    for (let tick = 0; tick < 5; tick++) {
+      await scan.handle(state, 'scan', [])
+      await t.tick()
+    }
+
+    expect(reads).toHaveBeenCalledTimes(5)
   })
 })

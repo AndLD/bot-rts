@@ -40,7 +40,7 @@ export class World {
   private readonly dirtyChunks = new Set<string>()
   // The cells that changed since the live views last asked, newest content per cell
   private changed = new Map<string, MapPoint>()
-  private readonly evictionListeners: Array<() => void> = []
+  private readonly evictionListeners: Array<(ownerId?: string) => void> = []
   private readonly botChangeListeners: Array<(ownerId: string) => void> = []
   // Bots that are still moving, by the tick they are free again; kept across evictions
   private readonly busyUntil = new Map<string, number>()
@@ -275,20 +275,24 @@ export class World {
     await this.writeBehind.flush(this.currentTick)
   }
 
-  // Forgets everything loaded, after something else changed the database; call `sync` first
-  evict(): void {
-    this.bots = new Map()
+  // Forgets what was loaded, after something else changed the database; call `sync` first. With an owner, only that player's
+  // bots are forgotten (a use case run for a player changes their bots and the map, nobody else's); the cells always are, since
+  // a use case may roll or change any of them.
+  evict(ownerId?: string): void {
+    const kept = ownerId ? [...this.bots].filter(([, bot]) => bot.state.ownerId !== ownerId) : []
+    this.bots = new Map(kept)
+    this.items = new Map(kept.flatMap(([, bot]) => bot.carried.map((item) => [item.id, item] as const)))
     this.cells = new Map()
-    this.items = new Map()
     this.loadedChunks = new Set()
     this.chunkCells = new Map()
     this.chunkUse.clear()
     this.dirtyChunks.clear()
-    this.evictionListeners.forEach((listener) => listener())
+    this.evictionListeners.forEach((listener) => listener(ownerId))
   }
 
-  // Told when everything loaded is forgotten, so that a cache built on it can start afresh too
-  onEvict(listener: () => void): void {
+  // Told when what was loaded is forgotten (of one owner's bots, or of everyone's when no owner is given), so that a cache built
+  // on it can start afresh too
+  onEvict(listener: (ownerId?: string) => void): void {
     this.evictionListeners.push(listener)
   }
 

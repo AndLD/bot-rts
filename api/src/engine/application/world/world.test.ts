@@ -176,6 +176,24 @@ describe('World', () => {
     expect(world.hardnessOf('gold' as never)).toBe(3)
   })
 
+  it('forgets only the bots of one owner when that owner is named, and says whose they were', async () => {
+    const { world, addBot } = createEngineWorld()
+    addBot('mine', { x: 1, y: 1, z: 0 }, undefined, { ownerId: 'alice' })
+    addBot('theirs', { x: 2, y: 2, z: 0 }, undefined, { ownerId: 'bob' })
+    const [mine, theirs] = [(await world.bot('mine'))!, (await world.bot('theirs'))!]
+    const evicted = jest.fn()
+    world.onEvict(evicted)
+
+    world.evict('alice')
+
+    expect(await world.bot('theirs')).toBe(theirs)
+    expect(await world.bot('mine')).not.toBe(mine)
+    expect(evicted).toHaveBeenCalledWith('alice')
+    world.evict()
+    expect(evicted).toHaveBeenLastCalledWith(undefined)
+    expect(await world.bot('theirs')).not.toBe(theirs)
+  })
+
   it('does not overwrite a change made in memory with the row read afterwards', async () => {
     const { world, placeCell, source } = createEngineWorld()
     placeCell({ x: 1, y: 1, z: 0 }, { type: MapPointType.RESOURCE })

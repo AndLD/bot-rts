@@ -791,4 +791,17 @@ describe('SyncedHandler', () => {
     await expect(synced.handle(bot.state, 'scan', [])).rejects.toThrow('boom')
     expect(await t.world.bot('b1')).not.toBe(loaded)
   })
+
+  it('leaves the bots of the other players in memory', async () => {
+    const t = await setup()
+    t.addBot('b1', at(1, 1))
+    t.addBot('other', at(9, 9), undefined, { ownerId: 'someone-else' })
+    const [bot, other] = [await t.worldBot('b1'), await t.worldBot('other')]
+    const synced = new SyncedHandler(t.world, { functions: ['scan'], handle: jest.fn(async () => ok(1)) })
+
+    await synced.handle(bot.state, 'scan', [])
+
+    expect(await t.world.bot('other')).toBe(other)
+    expect(await t.world.bot('b1')).not.toBe(bot)
+  })
 })

@@ -34,7 +34,7 @@ database transactions, row locks, versioned writes or per-cell queues are needed
   and the loser gets `BLOCKED` / `EMPTY` / `GONE`. The order of a tick's commands does not depend on how they were collected:
   the bots take turns in a shuffle of their sorted ids seeded by `worldSeed` and the tick, and the commands of one bot go in
   the order of their execution and call numbers. Use cases that work on the database (scan, the factory, repairs) are called
-  between a flush of the memory and an eviction of it.
+  between a flush of the memory and an eviction of it; the eviction forgets the cells and the bots of the player the call ran for, not the bots of other players (Plan 12.1: otherwise every scan made every player's radio network be read from the database again).
 - ✅ **The single writer for API requests (Plan 5.5):** with the engine switched on, the use cases that change the world — deploy
   a base, scan, craft / research / learn, assemble, repair / disassemble and the writes of files — are not run in the API
   process: the services the controllers, gateways and terminal commands get send them to the engine (`EnginePort.act`), which

@@ -46,3 +46,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 
 | Branch | Tasks | PR | Status |
 | ------ | ----- | -- | ------ |
+| `chore/16.1-ci-timings` | 16.1 | [#221](https://github.com/AndLD/bot-rts/pull/221) | 🟡 open |

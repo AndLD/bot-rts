@@ -37,7 +37,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ### 2026-10-18 — 16.1 CI timing baseline and tool done
 - **Tasks:** 16.1 ✅
-- **Branch:** `chore/16.1-ci-timings` — done
+- **Branch:** `chore/16.1-ci-timings` — done, PR #221
 - **Decisions / deviations from the plan:**
   - The owner started Phase 16 for tasks 16.1, 16.2, 16.4 and 16.5 only, in this order, and stops after 16.5. Tasks 16.3, 16.6,
     16.7, 16.8 and 16.9 wait until Phase 15 is done (owner decision 2026-10-18), because they change files that the remaining

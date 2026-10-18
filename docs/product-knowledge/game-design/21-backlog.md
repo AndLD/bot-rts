@@ -18,3 +18,6 @@
 - **Group chat channels and alliances** (§27.1).
 - **Trading modules and bots**, and physical delivery of goods (§26.3).
 - **Bot-script access to transfers** (§27.2).
+- **Script catalog extras** (§26.6.1): hosted video uploads (today only a link to an allowed host), demo recordings of a
+  script made by the deterministic engine (§12.4) instead of a video, new versions of a sold script delivered to earlier buyers,
+  seller replies to ratings, and catalog pages readable without signing in.

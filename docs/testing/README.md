@@ -35,9 +35,50 @@ works in practice.
 | `npm run docs:check` | Markdown links |
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
+| `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings) |
+| `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
 The pre-push hook (`.githooks/pre-push`) runs the typecheck and the coverage gate before code leaves the machine; pushes that
 change only Markdown skip it.
+
+## CI performance
+
+Every task pull request waits for the required checks, so their duration is measured and kept short (Phase 16). Measure a run
+with the tool, which needs the GitHub CLI (`gh`) signed in to the repository:
+
+```bash
+node scripts/ci-timings.mjs 39158838242 --top 10
+```
+
+It prints the wall time of the run, the duration of each job, the steps of 5 s or more (`--all-steps` for every step), the
+`Time:` line of each Jest run of the `verify` log and the slowest test files. The test files come from Jest's
+`PASS … (N s)` lines, which Jest prints only for files above its slow-test threshold of 5 s. `--job <name>` picks another job's
+log and `--log <file>` reads a saved one. The parsing is tested on a saved excerpt (`scripts/fixtures/verify-log-excerpt.txt`) by
+`npm run test:scripts`.
+
+**Baseline** (push run of #216 to `develop`, run 39158838242, 2026-10-18):
+
+| Job | Wall time | Largest steps |
+| --- | --------- | ------------- |
+| `verify` | 21 min | tests with the coverage gate 16 min 51 s; `npm ci` 1 min 09 s; start of the log gateway and Elasticsearch 50 s; build 32 s; typecheck 25 s; lint 20 s |
+| `e2e` | 11 min | Cypress run 9 min 02 s; `npm ci` 1 min 27 s |
+| `lighthouse` | 3 min 42 s | Lighthouse 1 min 32 s; `npm ci` 1 min 27 s; client build 29 s |
+| `docker` | 1 min 33 s | image build 1 min 30 s |
+
+The whole run took 21 min 02 s, bound by `verify`. The tests of `verify` run one package after another (Jest `Time:` line:
+`client` 821 s, `api` 168 s, `mcp` 10 s). The slowest client files:
+
+| Test file | Time |
+| --------- | ---- |
+| `src/features/admin/economy/Economy.test.tsx` | 495 s |
+| `src/features/admin/logs/Logs.test.tsx` | 215 s |
+| `src/features/admin/supervision/Supervision.test.tsx` | 175 s |
+| `src/features/admin/docs/AdminDocsPage.test.tsx` | 173 s |
+| `src/features/admin/inspector/Inspector.test.tsx` | 148 s |
+| `src/features/admin/operations/RetentionCard.test.tsx` | 146 s |
+
+Jest cannot finish before its slowest file, so `Economy.test.tsx` alone sets a floor of eight minutes for `client`. The
+measurements after each Phase 16 task are added below this table.
 
 ## Coverage
 

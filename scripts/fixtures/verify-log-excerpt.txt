@@ -1,0 +1,35 @@
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:30:56.1567701Z > @bot-rts/api@0.0.0 test:coverage
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:30:56.1568028Z > jest --coverage
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:30:56.1568144Z 
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:31:11.5187128Z PASS unit src/engine/application/handlers/world-handlers.test.ts (9.606 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:31:15.9311801Z PASS unit src/terminal/application/shell/terminal-shell.service.test.ts
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:31:16.6261642Z PASS unit src/modules/domain/energy-model.test.ts
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:31:19.1441728Z PASS unit src/engine/application/engine-core.test.ts (17.309 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:31:21.0066956Z PASS unit src/auth/application/local-auth.service.test.ts
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:49.8081583Z Test Suites: 309 passed, 309 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:49.8082070Z Tests:       2519 passed, 2519 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:49.8082426Z Snapshots:   0 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:49.8082721Z Time:        168.346 s
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:49.8083067Z Ran all test suites in 2 projects.
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:50.6306365Z > @bot-rts/client@0.0.0 test:coverage
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:50.6306732Z > jest --coverage
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:50.6306858Z 
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:33:57.7871835Z PASS src/features/terminal/useTerminal.test.tsx
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:36:27.9467230Z PASS src/docs/docs.test.tsx
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:37:29.8451902Z PASS src/features/admin/logs/Logs.test.tsx (215.022 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:38:57.6492244Z PASS src/features/admin/dashboard/AdminDashboard.test.tsx (87.723 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:39:09.7137472Z PASS src/features/notifications/notifications.test.tsx (12.037 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:39:22.5407306Z PASS src/features/admin/supervision/Supervision.test.tsx (174.567 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:44:04.2829765Z PASS src/features/admin/economy/Economy.test.tsx (494.765 s)
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6519541Z Test Suites: 113 passed, 113 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6520038Z Tests:       883 passed, 883 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6520568Z Snapshots:   0 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6520881Z Time:        821.308 s
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6521174Z Ran all test suites.
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6858045Z 
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:34.6858545Z > @bot-rts/mcp@0.0.0 test:coverage
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:46.2226073Z Test Suites: 8 passed, 8 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:46.2226520Z Tests:       74 passed, 74 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:46.2226906Z Snapshots:   0 total
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:46.2227204Z Time:        10.061 s
+verify	Unit and integration tests with the coverage gate	2026-10-18T19:47:46.2227497Z Ran all test suites.

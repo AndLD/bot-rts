@@ -34,3 +34,19 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   once `verify` is fast, so 16.9 shards it as well; the agent waits for the slowest required check, not for `verify` alone.
 - **Next step:** start 16.1 when the owner asks ("Start Phase 16").
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — 16.1 CI timing baseline and tool done
+- **Tasks:** 16.1 ✅
+- **Branch:** `chore/16.1-ci-timings` — done, PR #221
+- **Decisions / deviations from the plan:**
+  - The owner started Phase 16 for tasks 16.1, 16.2, 16.4 and 16.5 only, in this order, and stops after 16.5. Tasks 16.3, 16.6,
+    16.7, 16.8 and 16.9 wait until Phase 15 is done (owner decision 2026-10-18), because they change files that the remaining
+    Phase 15 tasks rewrite (`.githooks/pre-push`, `scripts/e2e.mjs`, the `verify` job, the stacked-branch rules).
+  - `scripts/ci-timings.mjs <run-id>` calls `gh api`; the parsing and formatting are in `scripts/ci-timings-lib.mjs`, tested on
+    the saved excerpt `scripts/fixtures/verify-log-excerpt.txt`. `npm run test:scripts` now runs every `scripts/*.test.mjs`.
+  - Jest prints a file's duration only above its 5 s slow-test threshold, so the tool lists the slow files, not every file.
+- **Problems / blockers / findings:** the baseline numbers of the introduction are confirmed by the tool: `verify` 20 min 59 s
+  (tests 16 min 51 s: `api` 168 s, `client` 821 s, `mcp` 10 s), `e2e` 11 min 01 s, `lighthouse` 3 min 42 s, `docker` 1 min 33 s;
+  `npm ci` 69 to 87 s per job.
+- **Next step:** 16.2 (slow client tests), then 16.4, then 16.5.
+- **Verify with:** `npm run test:scripts`; `node scripts/ci-timings.mjs 39158838242`; `npm run docs:check`

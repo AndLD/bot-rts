@@ -31,7 +31,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "e2e": "node scripts/e2e.mjs",
     "load": "node scripts/load-test.mjs",
-    "test:scripts": "node --test scripts/release-lib.test.mjs",
+    "test:scripts": "node --test scripts/*.test.mjs",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "docs:generate": "npm run docs:generate -w api"
   },

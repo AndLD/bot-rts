@@ -124,3 +124,26 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** start 15.3 (architecture out of the rule file, duplicates removed).
 - **Verify with:** `npm run docs:check`; `wc -w AGENTS.md CLAUDE.md`; the leak scan of the profile's section 9 on
   `docs/engineering/method.md`
+
+### 2026-10-18 — 15.3 architecture document done
+- **Tasks:** 15.3 ✅ (H-20261017-09 remainder, export blocker B4, complexity hotspots "§8 restates §1–§7" and "merge gates
+  spread over four places"); 15.2 merged as #217
+- **Branch:** `docs/15.3-architecture-doc` — done, PR_15_3
+- **Decisions / deviations from the plan:**
+  - `docs/engineering/architecture.md`: §1 identity provider abstraction and §2 persistence isolation (the old `AGENTS.md`
+    §3.3 and §3.4, word for word), and §3 the engine as the single owner of world state (the scalability exception, moved out of
+    the stack file). The layering of the code (stack §2.0–§2.2) stays in the stack file, because it is a coding rule; stack §2.3
+    and §2.4 are stubs. Code comments, the Prisma schema, the dependency-cruiser rule and the risk register cite the new place;
+    the onboarding design (§5) no longer names the rule file.
+  - `AGENTS.md` §8 is removed (one line says where its rules live); every item was a restatement of §1, §7, the method or the
+    stack file.
+  - Merge gates are stated once: the profile row "Required checks" lists the four status contexts with what each job runs,
+    next to the script that sets them (`scripts/protect-branches.sh`); `AGENTS.md` §7.3 and §7.4 cite it. Answering "which checks
+    gate a merge?" takes one hop from the always-loaded file.
+  - `guiding-principles.md` is project-neutral now; how Phases 0–1 applied principles 1–2 and the scope decision (endless
+    sandbox, design §1) moved to the plan's `bindings.md`. `definition-of-done.md` already cited the method and the profile only.
+- **Problems / blockers / findings:** none.
+- **Measurements:** always-loaded set 1,936 words (`AGENTS.md` 1,837); normative words in `AGENTS.md` 30 (budget ≤ 70);
+  exception words 6 (≤ 10); hops to "which checks gate a merge?" 1 (budget ≤ 2; baseline 4).
+- **Next step:** start 15.8 (serial order of the phase file).
+- **Verify with:** `npm run docs:check`; `wc -w AGENTS.md`; `grep -n 'Required checks' docs/profile.md`

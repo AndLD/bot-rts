@@ -1,6 +1,6 @@
 // What the app needs from an authentication provider. Components talk to this interface (through the hooks of this
 // feature) and never to a provider's SDK or HTTP endpoints, so a hosted provider can replace the custom one by adding
-// another implementation (AGENTS.md §3.3).
+// another implementation (docs/engineering/architecture.md §1).
 
 // Why an operation failed: the stable API error code when there is one, and the provider's own text
 export interface AuthFailure {

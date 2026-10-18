@@ -3,7 +3,7 @@ import type { Principal } from './auth.service'
 
 export const API_KEY_AUTHENTICATOR = Symbol('ApiKeyAuthenticator')
 
-// Turns an API key into the player it acts as (the second way to authenticate, next to a session token; AGENTS.md §3.3)
+// Turns an API key into the player it acts as (the second way to authenticate, next to a session token; docs/engineering/architecture.md §1)
 export interface ApiKeyAuthenticator {
   authenticate(secret: string): Promise<Principal>
 }

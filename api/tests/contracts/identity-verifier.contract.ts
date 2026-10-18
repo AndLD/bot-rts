@@ -8,7 +8,7 @@ export interface VerifierFixture {
   expected: Omit<Identity, 'sessionId'>
 }
 
-// Every IdentityVerifier adapter (custom, hosted, fake) has to pass these (AGENTS.md §3.3)
+// Every IdentityVerifier adapter (custom, hosted, fake) has to pass these (docs/engineering/architecture.md §1)
 export function identityVerifierContract(name: string, createFixture: () => Promise<VerifierFixture>) {
   describe(`${name} fulfils the IdentityVerifier contract`, () => {
     it('turns a valid token into the identity of its owner', async () => {

@@ -14,7 +14,7 @@ Read this file before writing or changing code.
 - **Language:** TypeScript (version in the [profile](../profile.md#7-runtime-versions)). `api` is CommonJS + `strict: true`;
   `client` (Next.js) is ESM + `strict: true`.
 - **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and **PostgreSQL** accessed through
-  **Prisma**, with the ORM confined to the infrastructure layer (§2.4). Nest's DI container is the composition root; OpenAPI
+  **Prisma**, with the ORM confined to the infrastructure layer ([architecture §2](./architecture.md#2-persistence-isolation-postgresql--prisma)). Nest's DI container is the composition root; OpenAPI
   comes from `@nestjs/swagger`.
 - **Frontend:** **Next.js** (App Router) with React, Redux Toolkit + RTK Query, Ant Design 5, CodeMirror 6, and `next-intl` for
   the user-facing languages. One Next.js app contains both the public marketing pages (statically rendered for SEO) and the
@@ -68,9 +68,7 @@ lib
 Each feature is a **Nest module** (`auth`, `users`, `bots`, `map`, `modules`, `files`, `terminal`, …) that contains its own
 slice of the four layers and exports only its use cases.
 
-The scalability exception is by design: the **engine** is the single authoritative in-memory owner of world state (persisted
-to PostgreSQL by write-behind) and is reached only through a port (see
-`docs/product-knowledge/game-design/12-real-time-execution-model.md` §12.2.2 and §14.2).
+The engine is the single owner of world state by design ([architecture §3](./architecture.md#3-the-engine-as-the-single-owner-of-world-state)).
 
 ### 2.0 One API for every client
 
@@ -113,49 +111,11 @@ HTTP errors (it returns a value or throws a typed `AppError`), and a controller 
 
 ### 2.3 Identity provider abstraction
 
-Authentication sits behind ports so the implementation can change (the current custom auth today; Clerk or another
-provider later) without touching game code.
-
-- **`IdentityVerifier` (application port, always required):** turns a bearer token into an `Identity`
-  (`{ provider, subject, email, emailVerified }`). It is used by the HTTP guard, the WebSocket guard and the MCP/API
-  layers. Nothing outside the identity adapters reads provider-specific tokens or claims.
-- **`CredentialAuthService` (application port, only for providers whose credentials we manage):** register, login,
-  refresh, logout, verify email, resend verification, request/perform password reset, change password, change email,
-  delete account. The custom adapter implements it and exposes the `/api/v1/auth/*`
-  endpoints. A hosted provider such as Clerk does these steps in the browser, so its adapter does not implement this
-  port and those endpoints are not mounted.
-- **Own user model:** the domain `User` (internal `userId`, name, roles, `active`/ban state) is separate from login
-  credentials. Provider links live in an `identities` mapping `(provider, subject) → userId`. Custom-auth secrets
-  (password hash, verification tokens) live only in the custom adapter's own table. Roles and bans are always
-  checked against our database, never taken from the token.
-- **Provisioning:** on the first verified identity, a `UserProvisioner` creates the `User` and the identity link (lazy
-  creation); webhooks, if a provider has them, are only a backup.
-- **Selection:** `AUTH_PROVIDER` (`local` by default) chooses the adapter in the auth Nest module's provider factory.
-- **API keys** (third-party clients, MCP) are a separate authenticator that also resolves to an internal `userId`; a
-  composite guard accepts a session token or an API key.
-- **Client side:** the web client talks to an `AuthClient` interface (sign in, sign up, current token, sign out) with a
-  `localAuthClient` implementation over the `/api/v1/auth/*` endpoints; a hosted provider would add its own
-  implementation. Components use hooks only, never the provider SDK directly.
-- **Tests:** a `FakeIdentityVerifier` for Jest, and a shared contract test suite that every adapter must pass.
+Moved to [architecture §1](./architecture.md#1-identity-provider-abstraction).
 
 ### 2.4 Persistence isolation (PostgreSQL + Prisma)
 
-The database is an implementation detail that must stay replaceable (clean architecture / DDD):
-
-- **Prisma stays in `infrastructure`.** The Prisma schema, migrations, `PrismaClient` and the generated types live only in
-  the persistence part of the infrastructure layer. They are never imported by `domain`, `application`, `presentation`,
-  `engine` or `lib`; the import-boundary check (§2.1) enforces it.
-- **Repositories map, ports are persistence-agnostic.** A repository takes and returns **domain entities**; the mapping
-  between Prisma rows and entities happens inside the adapter. Port methods express domain intent (`findByEmail`,
-  `listBotsOfBase`), not SQL or Prisma query shapes.
-- **Ids are domain-owned strings (UUIDs).** No database-generated ids or Prisma types leak into entities or DTOs.
-- **Transactions through a port.** Use cases that need atomicity use a `UnitOfWork` port implemented with Prisma's
-  `$transaction`.
-- **The engine persists through a `WorldStateStore` port** (batched upserts, one database transaction per flush). The
-  adapter may use `createMany` or raw SQL for performance; that stays inside the adapter.
-- **Migrations are code:** `prisma migrate` files are committed, applied migrations are never edited, and destructive
-  changes follow an expand/contract plan.
-- Replacing the database must mean rewriting the infrastructure adapters only.
+Moved to [architecture §2](./architecture.md#2-persistence-isolation-postgresql--prisma).
 
 ---
 
@@ -202,7 +162,7 @@ are injected.
 - **Unit tests:** Jest with `jest.fn` or small hand-written fakes of a port.
 - **Integration tests:** Jest + PostgreSQL in Docker (`npm run db:up`), files `*.int.test.ts`; Nest testing module +
   `supertest` for full controller → use case → repository slices; each Jest worker uses its own database/schema created by
-  `prisma migrate deploy`; auth guards with real JWT signing where relevant, or the `FakeIdentityVerifier` (§2.3).
+  `prisma migrate deploy`; auth guards with real JWT signing where relevant, or the `FakeIdentityVerifier` ([architecture §1](./architecture.md#1-identity-provider-abstraction)).
 - **E2E:** Cypress (`npm run e2e`); the matrix is [`docs/testing/e2e-matrix.md`](../testing/e2e-matrix.md).
 - **Coverage:** Istanbul via Jest `--coverage`; the gate is read from `scripts/coverage-threshold.json` by the three
   `jest.config.ts` files, whose `collectCoverageFrom` lists each exclusion with its reason; the targeted exclusion is

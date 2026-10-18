@@ -1,6 +1,6 @@
 export const LOCAL_PROVIDER = 'local'
 
-// What a token proves about the caller, whichever provider issued it (AGENTS.md §3.3)
+// What a token proves about the caller, whichever provider issued it (docs/engineering/architecture.md §1)
 export interface Identity {
   readonly provider: string
   readonly subject: string

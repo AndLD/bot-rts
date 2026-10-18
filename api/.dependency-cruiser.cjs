@@ -48,7 +48,7 @@ module.exports = {
     },
     {
       name: 'prisma-stays-in-infrastructure',
-      comment: 'AGENTS.md §3.4: Prisma lives only in the persistence adapters (and their modules)',
+      comment: 'docs/engineering/architecture.md §2: Prisma lives only in the persistence adapters (and their modules)',
       severity: 'error',
       from: { path: '^src/', pathNot: [layer('infrastructure'), '\\.module\\.ts$', notTest] },
       to: { path: 'node_modules/(@prisma|\\.prisma)/' }

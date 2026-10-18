@@ -21,7 +21,7 @@ the player may deploy a new base. 🔴
 ## 5.1 Account management ✅
 
 Besides signing up and logging in, a player can manage the account (these flows belong to the custom credential
-provider; a hosted provider would offer its own, AGENTS.md §3.3):
+provider; a hosted provider would offer its own):
 
 - **Forgot / reset password:** a single-use link emailed to the verified address, valid for 1 hour (tunable).
 - **Change password:** requires the current password; other sessions are signed out.

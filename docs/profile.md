@@ -30,7 +30,7 @@ below links to its row instead of copying it.
 | Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI |
 | Coverage exclusions | entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts` | `collectCoverageFrom` |
 | Local gate | the pre-push hook runs typecheck and the tests with the coverage gate when a push changes more than Markdown | `.githooks/pre-push` |
-| Required checks for a merge | the status contexts listed in the ruleset of `scripts/protect-branches.sh` | GitHub repository ruleset `protected-branches` |
+| **Required checks** (the merge gates) | `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, changed-file coverage, build), `pr-title` (Conventional Commit title), `e2e` (end-to-end suite), `lighthouse` (public pages); jobs of `.github/workflows/ci.yml` | set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`); change the script and this row together |
 
 ## 3. Branches and merging
 
@@ -156,7 +156,8 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | ---- | -------- |
 | Agent rules (always loaded) | [`AGENTS.md`](../AGENTS.md) |
 | Engineering method (read on demand) | [`engineering/method.md`](./engineering/method.md) |
-| Stack, architecture, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
+| Stack, layering, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
+| Architecture decisions (read on demand) | [`engineering/architecture.md`](./engineering/architecture.md) |
 | Project profile | this file |
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
 | Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |

@@ -17,6 +17,7 @@ once in the [project profile](../profile.md); the rows below link to it.
 | Quality bar and workflow cited | `AGENTS.md` (§7 Git and merge rules), the [method](../engineering/method.md) (§4 definition of done, §5 Git workflow, §6 session protocol) |
 | Deployment gate | The tasks named in the "Deployment gate" section of the index |
 | Resume request forms | the resume phrases of the [profile](../profile.md#4-plan); the request is the approval for the named phases' pull requests (`AGENTS.md` §7.5) |
+| Guiding principles as applied | Principles 1–2 shaped Phases 0–1: the move from MongoDB to PostgreSQL came before the NestJS migration, and the safety-net tests of task 1.9 before the refactor. Scope: the game is an endless sandbox (design §1), so no match, round or scoring subsystem is planned |
 | Out-of-order phases | Phase 11 is developed after Phase 7; the order is recorded in the index |
 | Open-ended phase | Phase 12 (issues found in use); its size grows |
 | Testing documentation | [`docs/testing/`](../testing/README.md) (current), [by phase](../testing/by-phase.md) (historical) |

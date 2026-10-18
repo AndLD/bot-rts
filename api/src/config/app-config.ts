@@ -27,7 +27,7 @@ export type NodeEnv = 'development' | 'test' | 'production'
 export type CookieSameSite = 'lax' | 'strict' | 'none'
 
 export interface AuthConfig {
-  // Which identity adapter verifies tokens (AGENTS.md §3.3); `local` is the custom email + password provider
+  // Which identity adapter verifies tokens (docs/engineering/architecture.md §1); `local` is the custom email + password provider
   provider: 'local'
   accessSecret: string
   accessTtlSeconds: number

@@ -11,7 +11,7 @@
    verified; the code is then made testable (services free of `req`/`res` and global `db` singletons) before the full
    coverage backfill.
 3. **Every phase ships green.** No phase is "done" without lint + typecheck + unit + integration (+ e2e where a UI flow
-   changed) and ≥ 97 % coverage on the touched code.
+   changed) and the coverage gate ([profile](../../profile.md#2-quality-gates)) on the touched code.
 4. **Behavior-preserving refactors first**, then behavioral changes, in separate PRs.
 5. **Feature work is incremental and behind interfaces**, so the script engine, scheduler, and module system can be
    evolved without rewriting the transport/UI.

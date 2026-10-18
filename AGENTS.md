@@ -1,7 +1,8 @@
 # AGENTS.md — Engineering rules for agents
 
 This file is the source of truth for **any agent or human contributor** working on this repository. Read it fully
-before writing code. If a rule conflicts with existing legacy code, the rule wins for **new and modified** code —
+before writing code. The values it relies on (the coverage gate, branch names and types, merge strategy, the API prefix, the
+player languages, versions, commands) are in the [project profile](./docs/profile.md); rules here cite them by role. If a rule conflicts with existing legacy code, the rule wins for **new and modified** code —
 refactor the touched area to comply rather than perpetuating the anti-pattern.
 
 ---
@@ -17,13 +18,13 @@ The project is developed to align with:
 - **High testability** — dependency injection, pure domain logic, no hidden I/O.
 - **High maintainability** — small cohesive modules, no dead code, self-documenting names, up-to-date docs.
 - **Low coupling** — layers talk through interfaces, not concrete singletons or HTTP objects.
-- **Git Flow** — `main` / `develop` / `feature/*` / `release/*` / `hotfix/*`.
-- **Tests for every feature** with a **coverage gate of ≥ 97 %** (statements, branches, functions, lines).
+- **Git Flow** — the production and integration branches and the branch types of the [profile](./docs/profile.md#3-branches-and-merging).
+- **Tests for every feature**, held to the **coverage gate** ([profile](./docs/profile.md#2-quality-gates)).
 
 Non-negotiables (a PR that violates these is rejected):
 
 1. Every feature ships with **unit + integration tests**, and user-visible flows get **e2e (Cypress)** tests.
-2. Coverage must stay ≥ 97 %; CI fails below the gate.
+2. Coverage must stay at or above the coverage gate; CI fails below it.
 3. No new `any`-typed public API boundaries. No new magic string logic without a typed constant.
 4. No dead code, no commented-out blocks, no `console.log` left in committed code (use the logger).
 5. No secrets in the repo; add values only to `.env.example`, never `.env`.
@@ -32,11 +33,11 @@ Non-negotiables (a PR that violates these is rejected):
 
 ## 2. Tech stack & test tooling (do not substitute)
 
-- **Language:** TypeScript 5.x. `api` is CommonJS + `strict: true`; `client` (Next.js) is ESM + `strict: true`. Node 20 LTS.
+- **Language:** TypeScript (version in the [profile](./docs/profile.md#7-runtime-versions)). `api` is CommonJS + `strict: true`; `client` (Next.js) is ESM + `strict: true`.
 - **Backend:** **NestJS** (Express adapter) with Socket.IO 4 through `@nestjs/websockets`, and **PostgreSQL** accessed through **Prisma**, with the ORM confined to the infrastructure layer (§3.4).
   Nest's DI container is the composition root; OpenAPI comes from `@nestjs/swagger`.
 - **Frontend:** **Next.js** (App Router) with React, Redux Toolkit + RTK Query, Ant Design 5, CodeMirror 6, and `next-intl`
-  for English/Russian. One Next.js app contains both the public marketing pages (statically rendered for SEO) and the
+  for the player languages. One Next.js app contains both the public marketing pages (statically rendered for SEO) and the
   game, whose routes are rendered client-side only (canvas, sockets, CodeMirror, window manager). Next.js is
   **presentation only**: no business logic and no database access in Next route handlers; NestJS stays the single
   backend. The frontend is intended to be hosted on Vercel and the API/engine on a long-running server (Socket.IO and the
@@ -52,7 +53,7 @@ Non-negotiables (a PR that violates these is rejected):
   uses its own database/schema created by `prisma migrate deploy`.
   **No in-memory or embedded database** (PGlite, pg-mem, SQLite, `mongodb-memory-server`) is used in tests.
 - **E2E:** **Cypress**.
-- **Coverage:** Istanbul via Jest `--coverage`; gate 97 % enforced in CI and locally in the pre-push hook.
+- **Coverage:** Istanbul via Jest `--coverage`; the coverage gate is enforced in CI and locally in the pre-push hook.
 
 All of this tooling is installed (see the root `package.json` scripts). To add a capability, extend these tools rather than
 hand-rolling an alternative; the [development plan](./docs/development-plan/DEVELOPMENT-PLAN.md) lists what is still scheduled.
@@ -219,13 +220,13 @@ The database is an implementation detail that must stay replaceable (clean archi
 
 ### 6.1 Coverage gate
 
-- **≥ 97 %** coverage on statements, branches, functions, and lines, enforced **separately per package** (`api` and
-  `client`), so a well-tested package cannot hide an untested one.
+- **The coverage gate** ([profile](./docs/profile.md#2-quality-gates): value, scope, the constant the configs read), enforced
+  **separately per package**, so a well-tested package cannot hide an untested one.
 - Scope: all source code is counted, including the engine, sandbox and React components. Only entry/bootstrap files
   (`index.ts`, `main.tsx`), config files, type-only files and generated code are excluded, and every exclusion is listed
   with its reason in a single coverage config file.
 - The gate is enforced in CI (`npm run test:coverage`) and in the pre-push hook, for `api`, `client` and `mcp`. A PR that drops
-  below 97 %, or whose changed files are below 97 % (`scripts/check-changed-coverage.mjs`), is blocked. How testing works in practice (commands, CI gates, conventions): [`docs/testing/`](./docs/testing/README.md).
+  below the gate, or whose changed files are below it (`scripts/check-changed-coverage.mjs`), is blocked. How testing works in practice (commands, CI gates, conventions): [`docs/testing/`](./docs/testing/README.md).
 - Exclusions are only allowed via targeted `/* istanbul ignore next */` with a comment explaining why, and must be
   justified in the PR.
 
@@ -259,11 +260,11 @@ A feature is done only when **all** of these hold:
 - [ ] Unit tests cover the new code's happy path + error paths.
 - [ ] Integration tests exercise the new data access/use cases against PostgreSQL (Docker).
 - [ ] E2E test added for any new user-visible flow.
-- [ ] Coverage ≥ 97 % (CI green).
+- [ ] The coverage gate holds (CI green).
 - [ ] `npm run lint`, `npm run typecheck` and `npm run check:boundaries` pass (every package).
 - [ ] Generated files are current: after an endpoint or DTO change run `npm run openapi:generate -w api` and
       `npm run api:generate -w client` and commit the result (CI fails on a stale `api/openapi.json` or client).
-- [ ] `npm run i18n:check` (English and Russian catalogues) and `npm run docs:check` (Markdown links) pass.
+- [ ] `npm run i18n:check` (the catalogues of the player languages) and `npm run docs:check` (Markdown links) pass.
 - [ ] No dead code, no commented-out blocks, no `console.log`.
 - [ ] The task is marked ✅ in its phase file and the work log has an entry for it (§7.6).
 - [ ] The development plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit
@@ -273,8 +274,8 @@ A feature is done only when **all** of these hold:
       (`npm run db:migrate -w api`; see §7.6 for the end-of-phase rule).
 - [ ] README/docs updated if the change alters public behavior or env vars; if it changes a design decision, the matching
       file in `docs/product-knowledge/game-design/` and/or `docs/development-plan/` is updated in the same PR.
-- [ ] New or changed endpoints are under `/api/v1` and appear in the OpenAPI spec; UI strings are i18n keys (English +
-      Russian).
+- [ ] New or changed endpoints are under the API prefix and appear in the OpenAPI spec; UI strings are i18n keys in every
+      player language.
 - [ ] Feature branch (named per §7.1), descriptive PR, reviewed, merged by the strategy in §7.2; the branch is kept (§7.3).
 
 ---
@@ -283,30 +284,20 @@ A feature is done only when **all** of these hold:
 
 ### 7.1 Branches
 
-| Branch                | Purpose                                                              | Branched from | Merges into          |
-| --------------------- | -------------------------------------------------------------------- | ------------- | -------------------- |
-| `main`                | Production; always releasable; every release is tagged `vX.Y.Z`      | —             | —                    |
-| `develop`             | Integration branch and GitHub default branch; all work starts here   | `main`        | —                    |
-| `feature/<id>-<slug>` | New work                                                             | `develop`     | `develop`            |
-| `bugfix/<id>-<slug>`  | Non-release fixes                                                    | `develop`     | `develop`            |
-| `docs/<slug>`         | Documentation-only changes                                           | `develop`     | `develop`            |
-| `chore/<slug>`        | Tooling, CI, dependencies, config                                    | `develop`     | `develop`            |
-| `release/<x.y.z>`     | Release stabilization (fixes only, no new features)                  | `develop`     | `main` **and** `develop` |
-| `hotfix/<x.y.z>`      | Urgent production fix                                                | `main`        | `main` **and** `develop` |
+The production branch (`main`), the integration branch (`develop`) and the branch types with their names, origins and targets
+are in the [profile](./docs/profile.md#3-branches-and-merging).
 
 - A branch may cover one task or a few closely related ones; name it after the first task and list all of them in the
   phase's implementation log.
 - **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`,
   `feature/1.18-nextjs-migration`. Use the plan task that the branch implements.
-- A release is finished by merging `release/<x.y.z>` (or `hotfix/<x.y.z>`) into `main`, tagging `main` with `vX.Y.Z`, and
-  **merging the same branch back into `develop`** so fixes are not lost.
+- A release is finished by merging the release (or hotfix) branch into the production branch, tagging it with `vX.Y.Z`, and
+  **merging the same branch back into the integration branch** so fixes are not lost.
 
 ### 7.2 Merge strategy
 
-| Merge                                                       | Strategy                                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `feature/*`, `bugfix/*`, `docs/*`, `chore/*` → `develop`    | **Squash merge** (one Conventional Commit per PR)                         |
-| `release/*`, `hotfix/*` → `main` and `develop`              | **Merge commit** (no squash), so release history stays traceable          |
+The merge strategy per branch type is in the [profile](./docs/profile.md#3-branches-and-merging): squash merge into the
+integration branch, a merge commit (no squash) for release and hotfix branches.
 
 ### 7.3 Branch retention
 
@@ -321,9 +312,8 @@ A feature is done only when **all** of these hold:
 
 ### 7.4 Commit & PR rules
 
-- Commit messages: Conventional Commits — `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, `perf:`, `ci:`, with an
-  optional scope in parentheses (`feat(engine): …`, `fix(auth): …`). Breaking changes use `!` after the type
-  (`feat(api)!: …`) and a `BREAKING CHANGE:` footer. Mention the plan task id in the body (for example `Plan: 3.12`).
+- Commit messages: the commit format of the [profile](./docs/profile.md#3-branches-and-merging) (Conventional Commits, for
+  example `feat(engine): …`), with the plan task id in the body (`Plan: 3.12`).
 - One logical change per commit; PRs should be small and single-purpose.
 - No direct commits to `main` or `develop`; merge via PR with at least one review (while the project is solo, the owner's
   approval to merge counts as the review).
@@ -401,7 +391,7 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - Don't commit secrets, `.env`, `node_modules`, or build output.
 - Don't leave `console.log`, commented-out code, or dead aggregation pipelines.
 - Don't introduce new `any`-typed public signatures.
-- Don't merge without green CI and ≥ 97 % coverage.
+- Don't merge without green CI and the coverage gate.
 - Don't delete remote branches after merging; keep them for history (§7.3).
 - Don't merge a PR unrelated to the phases the user asked for without asking the user first (§7.5); opening PRs needs no approval.
 
@@ -428,10 +418,10 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Events are edges, not levels:** an event is raised when something happens or a state begins, never on every tick or cycle a
   state lasts; keep such a state in persisted data (module properties, not engine memory) so a restart does not repeat the
   event, and cover it with a test that runs many ticks in the unchanged state (design §24.1).
-- **Public API stability:** changes inside `/api/v1` must stay compatible; breaking changes ship as `/api/v2`, and a
-  deprecated route is marked and announced per `docs/product-knowledge/integrations/API.md`. New player-facing endpoints declare their API-key scope,
+- **Public API stability:** the versioning policy of the [profile](./docs/profile.md#5-public-api) holds: changes inside a
+  version stay compatible, and a deprecated route is marked and announced per `docs/product-knowledge/integrations/API.md`. New player-facing endpoints declare their API-key scope,
   and the MCP server (`mcp/`) only calls the public API.
-- **Player-facing text:** every UI string, error code and documentation page exists in English and Russian
+- **Player-facing text:** every UI string, error code and documentation page exists in every player language
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
 - **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/product-knowledge/CHANGELOG.md`.
 - **Admin endpoints** (Phase 9, delivered in tasks 9.1–9.15 and extended by the open tasks; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,

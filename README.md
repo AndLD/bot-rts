@@ -142,7 +142,7 @@ enforces the layer rules.
 
 | Layer       | Technology                                                                                                                              |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Backend     | Node.js 20, NestJS (Express adapter), TypeScript 5 (strict), Socket.IO 4, Prisma + PostgreSQL, Redis (scaled deployments)               |
+| Backend     | Node.js, NestJS (Express adapter), TypeScript (strict), Socket.IO 4, Prisma + PostgreSQL, Redis (scaled deployments); versions in the [profile](./docs/profile.md#7-runtime-versions) |
 | Engine      | Tick loop and fair scheduler in a worker thread (or its own node), **QuickJS compiled to WASM** as the script sandbox                    |
 | Auth        | JWT access + refresh tokens behind an identity-provider port, `bcrypt`, API keys with scopes                                            |
 | Email       | `nodemailer` (SMTP)                                                                                                                     |
@@ -188,7 +188,7 @@ bot-rts/
 
 ### Prerequisites
 
-- Node.js ≥ 20
+- Node.js (the version of the [profile](./docs/profile.md#7-runtime-versions))
 - Docker (for the local PostgreSQL)
 - (optional) SMTP credentials for email verification — without them the email service is a no-op
 
@@ -219,7 +219,7 @@ Without them the app runs on hardcoded development fallbacks.
 
 #### Local PostgreSQL (Docker)
 
-`docker-compose.yml` starts a pinned PostgreSQL 16.4 with a named volume and a healthcheck. Defaults
+`docker-compose.yml` starts the pinned PostgreSQL image of the [profile](./docs/profile.md#7-runtime-versions) with a named volume and a healthcheck. Defaults
 (`botrts` / `botrts` / `botrts`, port 5432) can be overridden with `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` and
 `POSTGRES_PORT` in a root `.env`; keep `DATABASE_URL` in `api/.env.development` in sync.
 
@@ -319,7 +319,7 @@ pm2 start ecosystem.config.json
 | root    | `npm run lint`             | ESLint of every package and a Prettier check                                                                                |
 | root    | `npm run typecheck`        | TypeScript of every package                                                                                                 |
 | root    | `npm test`                 | Jest of `api` (needs `npm run db:up`) and `client`                                                                          |
-| root    | `npm run test:coverage`    | The same with coverage; fails below 97 % per package                                                                        |
+| root    | `npm run test:coverage`    | The same with coverage; fails below the coverage gate per package                                                           |
 | root    | `npm run e2e`              | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
 | root    | `npm run check:boundaries` | Import-boundary rules of the layered `api/src`                                                                              |
 | root    | `npm run docs:check`       | Markdown link check                                                                                                         |
@@ -339,7 +339,7 @@ pm2 start ecosystem.config.json
 
 - **Unit tests:** Jest in `api`, `client` and `mcp`. **Integration tests:** `*.int.test.ts` on a real PostgreSQL in Docker
   (`npm run db:up`), no in-memory database. **E2E:** Cypress (`npm run e2e`).
-- **Coverage gate:** ≥ 97 % per package, enforced in CI and by the pre-push hook. Further gates: import boundaries, OpenAPI drift,
+- **Coverage gate:** per package and per changed file ([value in the profile](./docs/profile.md#2-quality-gates)), enforced in CI and by the pre-push hook. Further gates: import boundaries, OpenAPI drift,
   translations, Markdown links, Lighthouse, and the load and soak harness (`npm run load`).
 
 Commands, conventions, the end-to-end coverage matrix and known issues: [`docs/testing/`](./docs/testing/README.md).
@@ -348,15 +348,9 @@ Commands, conventions, the end-to-end coverage matrix and known issues: [`docs/t
 
 ## Branching / Git Flow
 
-The project uses **Git Flow**:
-
-- `main` — always releasable, tagged with versions.
-- `develop` — integration branch; all work starts here.
-- `feature/<task>-<slug>`, `bugfix/*`, `docs/*`, `chore/*` branch from `develop` and are squash-merged back through a pull request.
-- `release/*` and `hotfix/*` merge into `main` and back into `develop`.
-- Merged branches are kept on GitHub for history.
-
-Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./AGENTS.md) §7.
+The project uses **Git Flow**: work branches from the integration branch (`develop`) and is merged back through a pull request;
+releases go to the production branch (`main`). The branch types, merge strategy and commit format are in the
+[project profile](./docs/profile.md#3-branches-and-merging); the rules for contributors and agents are in [`AGENTS.md`](./AGENTS.md) §7.
 
 ---
 
@@ -373,6 +367,7 @@ Full rules (merge strategy, commit format, agent rules) are in [`AGENTS.md`](./A
 - [`docs/product-knowledge/CHANGELOG.md`](./docs/product-knowledge/CHANGELOG.md) — release notes.
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
 - [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
+- [`docs/profile.md`](./docs/profile.md) — the project profile: every value the rules rely on (coverage gate, branches, merge strategy, API prefix, languages, versions, commands) and the map of the documents.
 - [`docs/quality-reviews/`](./docs/quality-reviews/README.md) — code and docs/harness quality reviews: the project-neutral methods, this repository's bindings, templates and dated reports (the 2026-10-10 code review of the original prototype is historical).
 - [`docs/harness-framework/`](./docs/harness-framework/README.md) — the plan to review, fix and extract this repository's harness into a reusable project-neutral framework (steps, prompts, exit criteria).
 - [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md) — refactoring, test, and feature roadmap with story points (phases 0–13; Phase 11 was developed after Phase 7; Phases 0–8 and 11 are done, Phase 9 is in progress).

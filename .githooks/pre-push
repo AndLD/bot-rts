@@ -1,5 +1,5 @@
 #!/bin/sh
-# Enforces the coverage gate (AGENTS.md §6.1) before code leaves the machine. Skip once with `git push --no-verify`.
+# Enforces the coverage gate (docs/profile.md, value in scripts/coverage-threshold.json) before code leaves the machine. Skip once with `git push --no-verify`.
 # Pushes that change only Markdown need no code checks.
 set -e
 
@@ -12,7 +12,7 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   if ! echo "$files" | grep -qv '\.md$'; then exit 0; fi
 done
 
-echo "pre-push: typecheck, then tests with the 97 % coverage gate (needs Docker for PostgreSQL)"
+echo "pre-push: typecheck, then tests with the coverage gate (needs Docker for PostgreSQL)"
 npm run db:up
 npm run typecheck
 npm run test:coverage

@@ -23,7 +23,7 @@ decision in the matching `docs/product-knowledge/game-design/` file.
 ## Exit criteria
 
 Every issue listed above is fixed with a test that failed before the fix, or is closed with a recorded reason; the coverage
-gate (≥ 97 %) stays green. The phase is closed by the user, not by the list running out.
+gate stays green. The phase is closed by the user, not by the list running out.
 
 ## Implementation log
 

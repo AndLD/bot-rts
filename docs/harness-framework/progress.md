@@ -46,3 +46,21 @@
 - **Next step:** get the open points (5, 6, 8, 9, 12, 14, 15) answered, then write all decisions into the design in one docs PR.
 - **Open decisions:** points 5, 6, 8, 9, 12, 14, 15 above.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — owner clarifications on the Phase 10 answers
+- **Done:** recorded the clarifications:
+  - 2: the "exclusive" mode is removed; a script is sold as an edition of 1 or more copies, and the fee grows with the number of copies.
+  - 5: agreed: a bid that reaches the buy-now price ends the auction at that price.
+  - 8 and 9: agreed with the recommendations (market orders carry a maximum total spend that is locked, IOC; priority = price,
+    then earlier tick, then the engine's seeded per-tick order).
+  - 10: the 5 automatic retries are spread over 24 hours; goods returned to a seller whose inbox is full stay in escrow.
+  - 12: agreed on a system sink. System accounts are created from the admin console (not by sign-up), carry a `system: true`
+    flag visible only on admin pages, have no email or password, and are managed only from the console.
+  - 15: transfers between players: at most 50 (new accounts) and 500 (older accounts) per day; a new account may transfer at most
+    100 credits per day. A wallet that receives many small transfers (each at most the new-account daily cap) is frozen
+    automatically for one week, and the admins get a dedicated notification to decide. Every value is editable in the console.
+- **Next step:** answer the owner's questions on 6 (why a minimum bid step) and 14 (how the treasury drains, inflation, the
+  system bid scaling); confirm the remaining details; then write the design PR.
+- **Open decisions:** 6 (keep a 5 % step or change it), 14 (negative treasury with a limit, or the capped mint), the default system
+  accounts at first start, the threshold of "many small transfers", whether 10 / 50 per day still limits market trades.
+- **Verify with:** `npm run docs:check`

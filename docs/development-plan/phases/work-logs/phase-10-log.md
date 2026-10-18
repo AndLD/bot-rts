@@ -54,3 +54,13 @@ _No entries yet._
 - **Problems / blockers / findings:** none; §20 lists no open question.
 - **Next step:** start Phase 10 with 10.1 when the owner asks.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — task 10.11 also delivers the role and permission table (no task started)
+- **Tasks:** none started; 10.11 changed
+- **Branch:** `docs/harness-review-triage` — plan only
+- **Decisions / deviations from the plan:** the owner moved harness finding H-20261017-18 (the design has no role and permission
+  table for the admin console) into 10.11: the table in design §25.2 is generated from `lib/utils/admin.ts` and covers the
+  permissions of Phase 9 and the new ones of 10.11. The size stays 13 SP (the generator of the admin documentation of 9.15 exists).
+- **Problems / blockers / findings:** none.
+- **Next step:** start Phase 10 with 10.1 when the owner asks.
+- **Verify with:** `npm run docs:check`

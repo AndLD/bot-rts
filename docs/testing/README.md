@@ -120,9 +120,29 @@ saves it, and the numbers of 16.8 show its effect.
 
 - The **coverage gate** of the [profile](../profile.md#2-quality-gates) on statements, branches, functions and lines,
   separately for `api`, `client` and `mcp`; its value is the constant `scripts/coverage-threshold.json`.
+- The coverage provider is Jest's default (Babel instrumentation). Phase 16 measured `coverageProvider: 'v8'` and kept the default:
+  v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
 - CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`).
 - Every task ships its own tests; the story points include them. Exclusions are listed with their reason in the Jest configs, or
   are a targeted `/* istanbul ignore next */` with a comment.
+
+### Coverage provider measurement
+
+Measured on 2026-10-19 (task 16.5, laptop, the default `babel` provider against `--coverageProvider=v8`, same tree and tests):
+
+| Package | Run time, babel | Run time, v8 | Statements, babel | Statements, v8 | Files that cross the 97 % gate |
+| ------- | --------------- | ------------ | ----------------- | -------------- | ------------------------------ |
+| `api` | 52 s | 184 s (one timing test of `quickjs-sandbox.test.ts` failed under the slower run) | 99.96 % (13008 / 13013) | 98.88 % (35921 / 36326) | 4 files, 6 metrics |
+| `client` | 17 s | 28 s (with the fix of 16.2) | 99.93 % (4390 / 4393) | 99.66 % (12903 / 12947) | 1 file |
+| `mcp` | 4 s | 11 s | 100 % | 100 % | none |
+
+v8 counts source differently (about three times as many statements), reports 19 more `api` files than Babel, and lowers files whose branches Babel counted as covered. The files that fall below the gate in
+v8, which pass with Babel: `api/src/engine/application/handlers/maintenance-handler.ts` (branches 66.7 %, statements and lines
+87.5 %), `api/src/engine/application/handlers/factory-handler.ts` (branches 81.8 %), `api/src/logs/infrastructure/elasticsearch-client.ts`
+(branches 95.7 %), `api/src/monitoring/infrastructure/http-gateway.probe.ts` (branches 96.2 %) and
+`client/src/features/viewas/view-as-storage.ts` (branches 96.7 %). Decision (owner, 2026-10-18): a provider that changes which
+file passes the gate is not adopted, so the default stays. Run the comparison again with
+`npx jest --coverage --coverageProvider=v8` in a package and compare the two `coverage/coverage-summary.json` files.
 
 ## Conventions
 

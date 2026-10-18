@@ -57,7 +57,7 @@ const button = (label: string) =>
   waitFor(() => expect(buttonsOf(label).length).toBeGreaterThan(0)).then(() => buttonsOf(label)[0])
 const dialog = () => document.querySelector('.ant-modal') as HTMLElement
 const confirmWith = async (reason: string) => {
-  await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+  await waitFor(() => expect(dialog()).not.toBeNull())
   fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: reason } })
   fireEvent.click(await button('Confirm'))
 }
@@ -189,7 +189,7 @@ describe('the Game time page', () => {
     const calls = serve(shown())
     renderAs('admin')
     fireEvent.click(await button('48 min'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
 
     fireEvent.click(await button('Cancel'))
 

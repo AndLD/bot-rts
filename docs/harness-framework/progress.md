@@ -84,3 +84,22 @@
   accounts, freeze trigger, market-trade limits).
 - **Open decisions:** as in "Next step".
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — owner answers on refunds, minting and the remaining Phase 10 points
+- **Done:**
+  - Freezing a wallet refunds only the fees of the open trades it cancels; finished trades are never undone.
+  - Admin compensation refunds are manual; they may take the main treasury below zero only when a dedicated checkbox is
+    ticked after a warning.
+  - Credits: only the starter grant (first base deploy) is minted automatically. Admins can mint manually in the console into the
+    main treasury or a custom admin wallet. Admins can create any number of custom wallets and move credits between main and custom
+    wallets. Nothing is deposited manually into the pending-trades wallet. The initial endowment is a manual mint.
+  - Fees are editable in the console per kind and per resource. The initial fee per script-edition copy is 1 %.
+  - On first deployment the treasury (main, pending) and the system sink are created as system accounts, then managed from the
+    console.
+  - The freeze trigger is 10 or more small incoming transfers in 24 hours from at least 3 senders (editable).
+  - The 10 / 50 daily limit also applies to market trades (owner: "why not").
+  - Point 3 (system seller: backlog or Phase 10) was answered with "s": unclear.
+- **Next step:** write all Phase 10 decisions into the design (§26, §27, §24, §25, §20, glossary) and the Phase 10 task texts in one
+  docs PR; ask about point 3 and list the assumptions in the PR.
+- **Open decisions:** point 3; the assumptions listed in that PR.
+- **Verify with:** `npm run docs:check`

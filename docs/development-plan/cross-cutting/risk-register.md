@@ -17,4 +17,4 @@
 | Third-party clients / AI players abuse the public API | Medium | Medium | Same game rules and budgets for every client, scoped and revocable API keys, per-key rate limits, hashed key storage |
 | UI scope (Phases 6–7: map, animations, landing, achievements, notifications, i18n) overruns | Medium | Medium | Phase 6 / 7 split, animations and ambient scene are cosmetic and can ship last, tasks sized individually |
 | Frontend on Vercel, API/engine elsewhere (cookies, CORS, WebSockets) | Low | Medium | Shared registrable domain, cookie-domain and CORS test in task 8.12, Socket.IO direct to the API domain |
-| PostgreSQL + Prisma switch: schema design, and the engine's batched flush through Prisma | Medium | Medium | Persistence behind ports (AGENTS.md §3.4); `createMany`/raw SQL inside the adapter for the flush; load test in 8.6; expand/contract migrations |
+| PostgreSQL + Prisma switch: schema design, and the engine's batched flush through Prisma | Medium | Medium | Persistence behind ports (`docs/engineering/architecture.md` §2); `createMany`/raw SQL inside the adapter for the flush; load test in 8.6; expand/contract migrations |

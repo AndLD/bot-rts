@@ -15,9 +15,12 @@ the profile, the split of `AGENTS.md`, and closing the export blockers.
 what a product rule or an `AGENTS.md` rule **means** asks the owner before merging. Moves, splits and corrections that keep the
 meaning merge like any other task.
 
-**Execution order:** the ids, which follow the order of groups in the harness-framework plan (§2.2): the values first (15.1), then the
-split of `AGENTS.md` (15.2, 15.3), and only then everything that edits the moved text. The product-knowledge tasks 15.4 to 15.8 touch
-only `docs/product-knowledge/`, so they can run in parallel with 15.1 to 15.3. The re-review 15.14 comes last.
+**Execution order:** one serial line, one task at a time (owner decision 2026-10-18): the tasks are too tightly coupled for
+parallel agents, and the fixes that make parallel work safe (15.11, 15.12) are part of this phase.
+15.1 → 15.2 → 15.3 → 15.8 → 15.5 → 15.6 → 15.7 → 15.4 → 15.9 → 15.11 → 15.12 → 15.13 → 15.10 → 15.14.
+The values come first (15.1). The split of `AGENTS.md` comes next (15.2, 15.3), because later tasks edit the moved text.
+The status-marker model (15.8) comes before the tasks that write markers (15.5, 15.4). The split of §12.5 (15.10) is last before
+the re-review, because it renumbers a section that many documents cite.
 
 | #   | Task | SP  | Status |
 | --- | ---- | --- | ------ |

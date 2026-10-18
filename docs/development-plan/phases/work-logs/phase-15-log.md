@@ -31,3 +31,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** start 15.1 (the profile) when the owner asks ("Start Phase 15").
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — serial execution order
+- **Tasks:** none started; the execution order changed
+- **Branch:** `docs/15-serial-order` — the plan only
+- **Decisions / deviations from the plan:** the owner decided to run Phase 15 as one serial line instead of parallel agents.
+  The tasks share `AGENTS.md`, the hooks, the design files and the docs check, and depend on conventions set by earlier tasks
+  (the role names of 15.1, the rule locations of 15.2, the status-marker model of 15.8). The order puts 15.8 before 15.5 and 15.4,
+  and 15.10 (which renumbers §12.5) last before the re-review.
+- **Problems / blockers / findings:** none.
+- **Next step:** start 15.1 when the owner asks ("Start Phase 15"). Ask the owner the two questions of 15.6 before that task:
+  a seeded `random()` in the script API, and a password parameter of `connect` for another player's bot.
+- **Verify with:** `npm run docs:check`

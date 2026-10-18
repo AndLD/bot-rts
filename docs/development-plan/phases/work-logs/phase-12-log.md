@@ -55,3 +55,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   case itself (a sync flush and several queries per tick). Not 11 ms as in the `--hogs 0` run, which never scans.
 - **Next step:** merge the PR; 12.1 and 12.2 are done, so the phase waits for new issues (the user closes it).
 - **Verify with:** `npx jest src/engine -w api`, `npm run load -- --players 5 --duration 40`
+
+### 2026-10-18 — task 12.3 added (starter resources for the first craft), not started
+- **Tasks:** 12.3 (new, 3 SP, **not started**)
+- **Branch:** `docs/plan-12.3-starter-resources` — adds the task to the plan only
+- **Decisions / deviations from the plan:** the harness quality review of 2026-10-17 (H-20261017-15) found that a new base starts
+  with 50 oil only and cannot craft anything. The owner decided that the resources needed for a first craft, iron included, are
+  deposited in the base storage when the base is deployed, and asked to add the task now and start it later. The plan index also
+  shows Phase 12 as 🟡 now (it said ⬜ although 12.1 and 12.2 were done; H-20261017-23).
+- **Problems / blockers / findings:** the amounts are not decided; the task proposes them and asks the owner first.
+- **Next step:** start 12.3 when the owner asks: propose the amounts, get them confirmed, then a failing test.
+- **Verify with:** `npm run docs:check`

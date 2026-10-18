@@ -24,14 +24,15 @@ From a private conversation a player can send another player:
 
 | Thing | Rules |
 | --- | --- |
-| **Credits** | Instant. Minimum 1 credit. Daily send cap depends on account age (§26.9). No refund. |
+| **Credits** | Instant. Minimum 1 credit. Daily caps depend on account age (§27.4). No refund. |
 | **Resources** | From the sender's base storage. The recipient must **accept**. |
 | **Blueprint items** | The recipient must **accept**. |
 | **Scripts** | The sender chooses **copy** (keeps the original) or **move**. The recipient must **accept**. |
 
 - The sender uses the `/send` command or the **Send** dialog; the transfer appears in the conversation as a system card with
-  **Accept** and **Decline** buttons. Offers expire after 7 days (tunable) or when declined, and the goods return to the
-  sender.
+  **Accept** and **Decline** buttons. The offered goods move into **escrow** when the offer is made, so they cannot be spent twice.
+  Offers expire after 7 days (tunable) or when declined, and the goods return from escrow to the sender (to the sender's inbox,
+  §27.3).
 - Items of an accepted offer land in the recipient's **inbox** (§26.7) and are withdrawn like market purchases.
 - No bot or module is needed. Transfers are not available to bot scripts, only through the GUI and the public API
   (scope `trade`), which keeps scripted spam and accidental transfers out.
@@ -43,5 +44,12 @@ source (market listing or sender) and can be withdrawn into a base storage or a 
 
 ## 27.4 Anti-abuse ✅
 
-New-account limits, per-day transfer caps, rate limits, the block list, reports, and the same ledger and audit trail as the
-market (§26.9). Receiving an unsolicited script never runs it.
+All numbers are defaults that admins change in the console (§25).
+
+- **Daily limits per player:** at most 50 transfers per day for a new account (younger than 24 hours) and 500 for an older one;
+  a new account can send at most 100 credits per day.
+- **Automatic freeze:** a wallet that receives 10 or more small transfers (each at most the new-account daily credit cap) within
+  24 hours, from at least 3 different senders, is frozen for one week (§26.9), and the admins get a dedicated notification to
+  decide what happens to the wallet and the player (§25).
+- Rate limits, the block list, reports, and the same ledger and audit trail as the market (§26.9). Receiving an unsolicited
+  script never runs it.

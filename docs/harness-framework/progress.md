@@ -118,3 +118,11 @@
 - **Next step:** the owner reviews and merges #209 to #212, and triages the remaining findings; then step 2.
 - **Open decisions:** the triage of the findings not yet decided.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — system trader made configurable
+- **Done:** the owner asked for a fully configurable system buyer and seller and chose every proposed extra. #212 adds design
+  §26.10: rules per item and side, prices, caps, eligibility, schedules, campaigns and a pause. Task 10.16 grows to 8 SP; Phase 10
+  is 141 SP, and the plan total conflict between #211 and #212 now resolves to 1,051.
+- **Next step:** the owner reviews and merges #209 to #212, and triages the remaining findings; then step 2.
+- **Open decisions:** the triage of the findings not yet decided.
+- **Verify with:** `npm run docs:check`

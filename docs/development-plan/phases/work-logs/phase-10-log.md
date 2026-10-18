@@ -30,7 +30,7 @@ _No entries yet._
 - **Verify with:** `npm run docs:check`
 
 ### 2026-10-18 — Phase 10 design decided before the start (no task started)
-- **Tasks:** none started; the texts and sizes of 10.1, 10.2, 10.4, 10.5, 10.9, 10.10, 10.11, 10.12, 10.13 and 10.15 changed
+- **Tasks:** none started; the texts and sizes of 10.1, 10.2, 10.4, 10.5, 10.9, 10.10, 10.11, 10.12, 10.13 and 10.15 changed; 10.16 is new
 - **Branch:** `docs/phase-10-design-decisions` — design and plan only
 - **Decisions / deviations from the plan:** the harness quality review of 2026-10-17 (H-20261017-13 and -14) found that 8 of the 15
   tasks depended on undecided rules. The owner decided them on 2026-10-17 and 2026-10-18; they are written into design §26, §27,
@@ -45,9 +45,11 @@ _No entries yet._
   - priority by price, then tick, then the seeded order;
   - delivery retries to a full inbox;
   - wallet freezes, automatic or manual;
-  - daily limits, and new events.
+  - daily limits, and new events;
+  - a system seller of the goods in the system sink: the new task 10.16, 3 SP, placed after 10.4.
 
-  Sizes: 10.1 8 → 13, 10.2 5 → 8, 10.10 5 → 8, 10.11 8 → 13, 10.12 3 → 5; the phase is 133 SP (was 115).
-- **Problems / blockers / findings:** one question stays open in §20: whether the system also sells (it blocks no task).
+  Sizes: 10.1 8 → 13, 10.2 5 → 8, 10.10 5 → 8, 10.11 8 → 13, 10.12 3 → 5, plus the new 10.16 (3 SP); the phase is 136 SP
+  (was 115).
+- **Problems / blockers / findings:** none; §20 lists no open question.
 - **Next step:** start Phase 10 with 10.1 when the owner asks.
 - **Verify with:** `npm run docs:check`

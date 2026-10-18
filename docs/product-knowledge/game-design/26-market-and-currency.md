@@ -33,8 +33,12 @@ _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-
   placeholder defaults per unit: iron 1, stone 1, wood 1, oil 3, crystal 5, gold 12). It pays only from main and **buys only
   while main can pay**: when main is not positive it stops bidding, and it resumes when fees arrive. Its bid is the floor price
   times `clamp(main / target, minFactor, 1)` (both tunable), so it fades as the treasury runs low instead of stopping abruptly.
-  The goods it buys go to the **system sink**, a goods account of the ledger, so goods are conserved (below). Whether the system
-  also sells, from the goods in the sink, is an open question (§20).
+  The goods it buys go to the **system sink**, a goods account of the ledger, so goods are conserved (below).
+- **The system seller** stands on the exchange as a seller of the goods in the system sink, and only of those: it never creates
+  goods. Its price is the floor price times a markup (default 3, per resource, tunable), so nobody can buy from it and sell straight
+  back to the system buyer at a profit, and each player can buy at most a daily quantity per resource from it (tunable). What it
+  earns goes to main once the goods are delivered (§26.7), so it brings credits back into the treasury and brakes inflation. When
+  the sink holds none of a resource, the system seller has no offer for it.
 - **Admin compensation refunds** (for example after a bug) are manual, paid from main, and refused when main cannot cover them,
   unless the admin ticks an explicit override after a warning; only such a refund can take main below zero. While main is
   negative the system buyer does not buy.
@@ -80,7 +84,8 @@ market and by transfers (§27).
   Orders expire after 7 days (tunable).
 - **Fees:** the seller pays the exchange fee on the value of each trade (§26.1); it waits in pending trades until the bought
   resources are delivered (§26.7), then moves to main.
-- The **system buyer** (§26.1) acts as a standing bid at its current price for each resource while the treasury can pay.
+- The **system buyer** (§26.1) acts as a standing bid at its current price for each resource while the treasury can pay, and the
+  **system seller** (§26.1) as a standing offer at its price for each resource the system sink holds.
 
 ## 26.5 Auctions ✅
 

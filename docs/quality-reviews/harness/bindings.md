@@ -248,11 +248,28 @@ Essential versus accidental: the economy, the script runtime and the market are 
 they are written, not that they exist. Typical accidental signs here: the same rule restated in `AGENTS.md`, a design section and
 a phase file; a rule with an exception list in a different file; a process step performed by hand that a script could check.
 
-Budgets (filled after the first review is approved):
+Budgets (approved by the owner on 2026-10-17, from the baseline of the [2026-10-17 report](./2026-10-17.md#9-complexity-d13)):
 
 | Aspect | Number | Budget | Set on |
 | ------ | ------ | ------ | ------ |
-| _none yet_ | | | |
+| Harness: rule load | Words in the always-loaded set (`CLAUDE.md` → `AGENTS.md`, plus the user-memory index) | ≤ 3,000 (baseline 4,826) | 2026-10-17 |
+| Harness: rule load | Normative words in the always-loaded set (M20) | ≤ 70 (baseline 94) | 2026-10-17 |
+| Harness: rule load | Exception words in the always-loaded set | ≤ 10 (baseline 7) | 2026-10-17 |
+| Harness: rule load | Definition-of-done items checked by hand | ≤ 6 (baseline 14, 7 automated) | 2026-10-17 |
+| Harness: reference structure | Highest fan-out of one document | ≤ 40 (baseline 39) | 2026-10-17 |
+| Harness: reference structure | Hops to answer "which checks gate a merge?" | ≤ 2 (baseline 4) | 2026-10-17 |
+| Harness: process | Manual steps in the task workflow (start → done → pull request → merge → log) | ≤ 15 (baseline 21) | 2026-10-17 |
+| Harness: process | Branch types and document types | no growth without a recorded reason (baseline 8 and 12) | 2026-10-17 |
+| Harness: time to first action | Words read before the first correct action (M26) | routine probes ≤ 6,000; export probe ≤ 10,000 (baseline P1 4,826 … P5 23,680) | 2026-10-17 |
+| Product: concept load | Domain terms used in two or more files and missing from the glossary | 0 (baseline ≈ 15) | 2026-10-17 |
+| Product: concept load | New concepts per onboarding step | ≤ 5 (baseline peak 5) | 2026-10-17 |
+| Product: rule interaction | Rules per entity | ≤ 25 | 2026-10-17 |
+| Product: rule interaction | Longest chain of dependent rules | ≤ 7 (baseline 7) | 2026-10-17 |
+| Product: rule interaction | Share of rules phrased as exceptions, per context | ≤ 25 % (baseline: economy 32 %) | 2026-10-17 |
+| Product: state space | Lifecycles with four or more states written as a state table | all (baseline 0 of ≈ 15) | 2026-10-17 |
+| Product: cross-context coupling | Inbound references to one design section | ≤ 45 (baseline §12: 41) | 2026-10-17 |
+| Product: size | Words in one design file | ≤ 3,000 (baseline §12: 3,010) | 2026-10-17 |
+| Both: consistency | Features with two different status markers | 0 (baseline ≈ 12) | 2026-10-17 |
 
 ### M27 to M31: parallel execution
 
@@ -352,7 +369,7 @@ Add a scenario whenever a real session shows an agent misreading the harness.
 
 | Date | Type | Report | Reviewer |
 | ---- | ---- | ------ | -------- |
-| _none yet_ | | | |
+| 2026-10-17 | full | [2026-10-17.md](./2026-10-17.md) | Claude Code session (Opus 5.5, high); subagents on Sonnet 5.5, medium |
 
 ## 5. How to start a review
 

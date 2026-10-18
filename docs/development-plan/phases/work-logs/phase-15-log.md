@@ -178,7 +178,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ### 2026-10-19 — 15.8 status markers and the open-items register done
 - **Tasks:** 15.8 ✅ (H-20261017-11, -12)
-- **Branch:** `docs/15.8-status-markers` — done, PR pending (see the implementation log)
+- **Branch:** `docs/15.8-status-markers` — done, merged as #227
 - **Decisions / deviations from the plan:**
   - The design shows decisions only (owner decision of 2026-10-18): every ✅/🟡/🔴 marker is removed from `docs/product-knowledge/game-design/`
     (about 220), together with the three "Status" table columns (§7.1 modules, §11.1 commands, §15 screens). A rule in the design is
@@ -201,3 +201,39 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   "Plan 5.4", "task 11.6") remain for 15.4.
 - **Next step:** start 15.5 (contradictions in core product rules and scenarios), branch `fix/15.5-core-rule-contradictions`.
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `grep -rE '[✅🟡🔴]' docs/product-knowledge/game-design` (no hit)
+
+### 2026-10-19 — 15.5 contradictions in core rules and scenarios done
+- **Tasks:** 15.5 ✅ (H-20261017-02, -03, -04, -05, -06, -16); 15.8 merged as #227
+- **Branch:** `fix/15.5-core-rule-contradictions` — done, PR pending (see the implementation log)
+- **Decisions / deviations from the plan:**
+  - Repair (owner decision of 2026-10-18, a change in the code): `RepairModule.repair` no longer exempts condition 0; a module below
+    the repair threshold (20 % by default), a broken one included, answers `TOO_LOW` and can only be disassembled. A living base's modules
+    at or above the threshold stay repairable. Tests: `repair-module.test.ts`, `maintenance.service.test.ts` (the old "gives a corpse
+    base back" test now asserts the refusal and that the map point stays a corpse base), `base-lifecycle.test.ts` (the derived
+    state), `api.int.test.ts` (HTTP 409 `TOO_LOW`, the old base stays `corpse_base`), and the Cypress case of `gameplay.cy.ts`
+    (run locally: 8 passing). The script-API description of `repair` (both languages) says that a module below the threshold can only
+    be taken apart; a CHANGELOG line records the change.
+  - Design: §6.3 no longer restores a corpse (the one-living-base conflict of H-03 disappears; the former owner may take all of the
+    corpse apart); §7.1 "broken" instead of "destroyed"; §8.4.1/§8.4.2 state the rule once, a broken memory module stays unreadable
+    and disassembling it deletes its files (the database cascades the files with the module); glossary, §11.2.2 and the Fixer
+    achievement text no longer promise a restore.
+  - Empty battery: the rule is stated only in §12.5.2 as the implemented behaviour (calls answer `NO_ENERGY` and continue after the
+    resume, queued factory jobs finish on their timers, a dark bot has no idle drain); §12.5 and §8.5 link to it.
+  - Local imports: the sandbox row of §13 says "no `require`, no host or network imports; local imports only through the engine
+    loader (§10.1.1)".
+  - Admin-route rule for keys: stated once in `integrations/API.md` ("Administration routes"); §22.1, §25.2, the scopes paragraph
+    and `MCP.md` link to it.
+  - World generation (§4.2, §9.1): the seeded world RNG and `WORLD_RESOURCE_CHANCE`, no `Math.random()`; the blueprint chance and the
+    spawn weights are named.
+  - Scenarios of §17: B (no `scan` command: `shell` and `await bot.scan()`), F (`list` shows the player's own bots, so the actor is
+    Carol; reconnecting opens a new stored session), G/H/I/J/K lettered once (the duplicate H is gone), `top` has no operations
+    column, a deposit is solid so only the free cell next to it is contested, and the energy crisis follows §12.5.2. Each corrected
+    step names its rule.
+  - The open-items register lost Q18 (restoring a corpse), which this task closed.
+- **Problems / blockers / findings:**
+  - The local pre-push hook needs the Docker ports 5432/6379 and `api/.env.test`, which a new worktree does not have. For this
+    session `COMPOSE_PROJECT_NAME=bot-rts git push` reused the running database containers and `api/.env.test` and
+    `api/.env.development` were copied from the main checkout (untracked). Task 15.12 is about exactly this.
+  - Scenario C still sends a message to the base (`sendMessage`), which no code builds: 15.6 changes it and registers the gap.
+- **Next step:** start 15.6 (script API gaps; the branch `feat/15.6-script-api-gaps` already holds the work and is rebased on this one).
+- **Verify with:** `npm run docs:check`; `cd api && npx jest src/modules/domain/repair-module.test.ts src/bots`

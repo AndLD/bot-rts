@@ -34,23 +34,26 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 12    | Issues and stabilization (open-ended; issues found in use are added as tasks, so its points grow) | 11 (grows) | 🟡 In progress |
 | 13    | Observability platform (OpenTelemetry logs and traces, a shared collector gateway, Elasticsearch, the admin log search and trace view on it; **approved 2026-10-15, developed after Phase 9 and before Phase 10**) | 48 | ✅ Done |
 | 14    | Admin MCP: AI-assisted investigation (API keys with admin read scopes granted from the console, read-only admin tools in the MCP server; **proposed 2026-10-16, developed after Phase 13**) | 19 | ✅ Done |
-|        | **Total of Phases 0–14**             | **1051** (Phase 12 grows as issues are added) | |
+| 15    | Harness fixes (the fix-now findings of the harness quality review of 2026-10-17; step 2 of the [harness-framework plan](../harness-framework/README.md); **planned 2026-10-18, developed before Phase 10**) | 54 | ⬜ Not started |
+|        | **Total of Phases 0–15**             | **1105** (Phase 12 grows as issues are added) | |
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
 Phases 8–10 (referenced from the design, the testing strategy and the deployment gate) did not change. The order actually followed is:
 
-**0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 11 → 8 → 9 → 13 → 10 → 14**
+**0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 11 → 8 → 9 → 13 → 14 → 15 → 10**
 
 Phase 13 (observability) was added on 2026-10-15 and is **developed after Phase 9 and before Phase 10** (owner decision 2026-10-16): its tracing and
 its logs of every node help to build and debug the market, the escrow and the ledger of Phase 10, and replacing the logger before Phase 10 adds its
-code is cheaper than after. Phase 12 is open-ended and its tasks are done whenever they are found; it has no fixed place in the order.
+code is cheaper than after. Phase 14 was developed right after Phase 13. Phase 15 (harness fixes) was added on 2026-10-18 and is **developed before Phase 10**
+(owner decision 2026-10-18): it makes the rules true and enforced and lets several agents work at once, which Phase 10 can use.
+Phase 12 is open-ended and its tasks are done whenever they are found; it has no fixed place in the order.
 
 ---
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: every phase that exists, Phases 0–14 (1051 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: every phase that exists, Phases 0–15 (1105 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./cross-cutting/guiding-principles.md)).
 
@@ -96,7 +99,8 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 12 — Issues and stabilization (11 SP, grows as issues are added)](./phases/phase-12-issues.md)
 - [Phase 13 — Observability platform (48 SP)](./phases/phase-13-observability-platform.md)
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
+- [Phase 15 — Harness fixes (54 SP)](./phases/phase-15-harness-fixes.md)
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
 - [Definition of Done](./cross-cutting/definition-of-done.md)
-- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md)
+- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md)

@@ -22,8 +22,8 @@ of section 2.1 of that method (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY).
 ## How to run this plan
 
 - **One prompt per step, not one prompt for the whole plan.** There are decisions only you can make between the steps (which findings to fix, how the framework is consumed, when to publish), a very long session loses detail when its context is compacted, and a usage limit hit halfway loses work. The prompts below are written so that each step is one self-contained run.
-- **Every step is resumable.** Each prompt tells the agent to commit its progress to the branch and to keep a checkpoint file (section "Checkpoint file"). A new session continues from the last checkpoint.
-- **Pull requests follow the repository rules** (`AGENTS.md` §7): a branch of type `docs/` or `chore/` from `develop`, a pull request opened by the agent, and merged only after you say so.
+- **Every step is resumable.** Each prompt tells the agent to commit its progress to the branch and to keep a checkpoint file (section "Checkpoint file"). A new session continues from the last checkpoint. Step 2 uses the work log of Phase 15 instead.
+- **Pull requests follow the repository rules** (`AGENTS.md` §7): a branch of type `docs/` or `chore/` from `develop`, a pull request opened by the agent, and merged only after you say so. Step 2 is the exception: it is Phase 15, so its task pull requests merge as in any phase you started (`AGENTS.md` §7.5), except a task that changes the meaning of a rule.
 - **Order matters.** Step 2 needs the report of step 1; step 3 needs the blockers list of step 1 and the fixes of step 2.
 
 ### Checkpoint file
@@ -71,46 +71,62 @@ Follow the "Full review prompt" in section 5 of docs/quality-reviews/harness/bin
 the extraction blockers of the report are closed, every 🔴 finding is closed, and a targeted re-review (below) shows D1, D3
 and D7 at the target and no dimension at 1 or 2.
 
+**The work is planned as [Phase 15 — Harness fixes](../development-plan/phases/phase-15-harness-fixes.md)** (owner decision
+2026-10-18). It is a phase of the development plan, so it has task ids, sizes, statuses, an implementation log and a work log. It is
+started like any phase ("Start Phase 15"). This section keeps the reasons, the rules and the exit criteria; the phase file holds the
+tasks.
+
 ### 2.1 Triage (you)
 
 Mark each finding in the report's follow-up table with one of: **fix now** (all 🔴, all export blockers), **fix in the framework**
 (better done when extracting), **backlog**, **reject** (with a reason). The agent does not start before this is done. This is the
 only manual part of the step.
 
+_Done for the report of 2026-10-17 on 2026-10-18 (its section 13, merged in #213)._
+
 ### 2.2 Grouping and order
 
-The agent groups the "fix now" findings by root cause and layer, and orders the groups by dependency:
+The "fix now" findings are grouped by root cause and layer, and the groups are ordered by dependency. The values come first: the
+**PROFILE**, a single file that holds the injectable values (thresholds, branch names, tool names, paths, the documents' map), because
+nothing else can be made neutral before the values have a home. Then, in order:
+- separating CORE from ADAPTER;
+- removing leaks;
+- fixing truth;
+- adding the missing enforcement;
+- reducing accidental complexity (D13);
+- removing blockers to parallel execution (D14);
+- everything else.
 
-1. Create the **PROFILE** (a single file that holds the injectable values: thresholds, branch names, tool names, paths, the documents' map) and make the rules read roles from it. Nothing else can be made neutral before the values have a home.
-2. Separate **CORE** from **ADAPTER**: split the entry file into method (project-neutral rules and workflow), stack-specific parts and routing; move each rule to its one owner; leave links behind.
-3. Remove **leaks** (stack terms in CORE and DOMAIN, product terms in CORE).
-4. Fix **truth**: false or contradictory statements (D8, D11), hidden and stale open items (D12).
-5. Add the **missing enforcement**: turn the rule-to-check gaps of D7 into scripts or CI jobs where cheap, or mark the rule as judgment.
-6. Reduce **accidental complexity** (D13): the simplifications listed in the report.
-7. Remove **blockers to parallel execution** (D14): contracts first, split or generate the shared files, isolate ports and databases per working copy, add a claim convention. Doing this before the next plan milestone lets several agents work at once.
-8. Everything else.
+Each group is a task of Phase 15, in this order (15.1 to 15.13), and the targeted re-review is its last task (15.14).
 
 ### 2.3 Doing the fixes
 
-One pull request per group (a few related findings at most). Each pull request: cites the finding ids it closes, changes only what the
-finding requires, keeps `npm run docs:check` green, and updates the plan, work logs and indexes when it moves or renames
-documents. Moves use `git mv` plus a reference rewrite that resolves every link from the old location (as done in the earlier
-folder moves); never leave a broken link. No pull request changes the meaning of a product rule without your approval.
+One pull request per group (a few related findings at most). Each pull request:
+- cites the finding ids it closes;
+- changes only what the finding requires;
+- keeps `npm run docs:check` green;
+- updates the plan, work logs and indexes when it moves or renames documents.
+
+Moves use `git mv` plus a reference rewrite that resolves every link from the old location (as done in the earlier folder moves);
+never leave a broken link.
+
+No pull request changes the meaning of a product rule or of an `AGENTS.md` rule without your approval. Inside Phase 15, such a task
+asks before merging; moves, splits and corrections that keep the meaning merge like any other task of the phase.
 
 ### 2.4 Verify
 
-Run a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the findings
-and reports the new blueprint readiness. Step 3 starts when the exit criteria hold.
+Task 15.14 runs a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the
+findings and reports the new blueprint readiness. Step 3 starts when the exit criteria hold.
 
 ### Start prompt (step 2)
 
 ```text
-Execute step 2 of docs/harness-framework/README.md: fix the harness according to the latest report in docs/quality-reviews/harness/.
-
-Read the report, its follow-up table (my triage) and the method. Work only on findings marked "fix now". Group them by root cause and order the groups as in section 2.2 of the plan. For each group: create a docs/ or chore/ branch from origin/develop, make the smallest change that closes the findings, cite the finding ids, run npm run docs:check, commit, push, open a pull request into develop, and stop to ask me before merging. Do not change the meaning of any product rule without asking me.
-
-Keep docs/harness-framework/progress.md on the branch as in the plan so a new session can resume. Use git mv with a link rewrite for moves. When all groups are merged, run a targeted harness quality review of the touched dimensions, add its report, and summarise: closed findings, remaining findings, new scores and the blueprint readiness percentage.
+Start Phase 15.
 ```
+
+The session protocol of `AGENTS.md` §7.6 and the phase file do the rest: the agent reads the phase file and its work log, works
+through the tasks in order, opens a pull request per task, and merges it once the checks pass. A task that changes the meaning of a
+rule waits for your approval.
 
 ---
 

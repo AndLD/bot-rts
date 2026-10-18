@@ -6,7 +6,7 @@ Chat and transfers are **player-level** features: they need no bot and no module
 any change of wallets or inventories still goes through the engine as a command (single-writer rule, §14.2) and the ledger
 (§26.1).
 
-## 27.1 Chat ✅
+## 27.1 Chat
 
 - **Channels:** two **global channels** by language (`global-en`, `global-ru`; the player's UI language selects the default)
   and **private messages** between two players. Group channels and alliances are in the backlog (§21).
@@ -18,7 +18,7 @@ any change of wallets or inventories still goes through the engine as a command 
 - Chat is available in the web client (as a window of the window manager), through the public API (scope `chat`, §22.1)
   and therefore to the MCP server. It is not available to bot scripts.
 
-## 27.2 Transfers ✅
+## 27.2 Transfers
 
 From a private conversation a player can send another player:
 
@@ -37,12 +37,12 @@ From a private conversation a player can send another player:
 - No bot or module is needed. Transfers are not available to bot scripts, only through the GUI and the public API
   (scope `trade`), which keeps scripted spam and accidental transfers out.
 
-## 27.3 The inbox ✅
+## 27.3 The inbox
 
 One inbox per player holds everything awaiting withdrawal: market purchases and accepted transfers. Entries show their
 source (market listing or sender) and can be withdrawn into a base storage or a drive when there is space.
 
-## 27.4 Anti-abuse ✅
+## 27.4 Anti-abuse
 
 All numbers are defaults that admins change in the console (§25).
 

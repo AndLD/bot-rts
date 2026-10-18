@@ -146,8 +146,10 @@ changes stay compatible within a version.
 Resource economy: for each resource list its sources, sinks and conversions; flag a resource that can only grow or only
 shrink, and any prerequisite or unlock cycle.
 
-Status markers: `✅` decided or implemented, `🟡` partial, `🔴` planned. Check them against
-`docs/product-knowledge/game-design/20-open-questions.md`, `21-backlog.md` and the phase tables of `docs/development-plan/DEVELOPMENT-PLAN.md`.
+Status: the design shows decisions only. A rule is decided; an open point carries its id (`Q3`) and has a row in
+`docs/product-knowledge/game-design/20-open-questions.md`; deferred work is in `21-backlog.md`. What is built is tracked only by the
+task statuses of `docs/development-plan/`. Check the register against the text and the plan; `scripts/check-open-items.mjs` (run by
+`npm run docs:check`) enforces that the design has no build marker and no marker word without an id.
 
 M15, mechanical checks. A "design §12.4" reference resolves in `docs/product-knowledge/game-design/12-*.md` as the heading `## 12.4`:
 
@@ -173,7 +175,7 @@ Forms in which this repository records open items (search all of them):
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
 | Official open-questions list | `docs/product-knowledge/game-design/20-open-questions.md` (currently declares "none")                             |
 | Backlog (deferred by design) | `docs/product-knowledge/game-design/21-backlog.md`                                                                |
-| Planned and partial markers  | `🔴` and `🟡` in `docs/product-knowledge/game-design/*.md` and `docs/product-knowledge/game-design/GAME-DESIGN.md`                              |
+| Open-item ids and marker words | `Q<n>` ids in `docs/product-knowledge/game-design/*.md`, their rows in `20-open-questions.md`, and the marker-word scan of `scripts/open-items-lib.mjs` |
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
 | Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phases/phase-*.md`; open tasks named in work logs ("next step") |
 | Risks                        | `docs/development-plan/cross-cutting/risk-register.md`                                                        |
@@ -182,20 +184,20 @@ Forms in which this repository records open items (search all of them):
 
 ```bash
 grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
-grep -rcE '🔴' docs/product-knowledge/game-design docs/product-knowledge/game-design/GAME-DESIGN.md | grep -v ':0'
-grep -rcE '🟡' docs/product-knowledge/game-design docs/product-knowledge/game-design/GAME-DESIGN.md | grep -v ':0'
+grep -rcE '[✅🟡🔴]' docs/product-knowledge/game-design | grep -v ':0'   # build markers: none are allowed
+grep -rcE '\bQ[0-9]+\b' docs/product-knowledge/game-design | grep -v ':0'   # open-item ids
 grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phases/phase-*.md
 ```
 
 Formulas (record the variant used; keep it fixed between reviews so the trend is comparable):
 
 - **M17 Documented %** = decided claims ÷ (decided claims + open claims), taken from the claims ledger of M12 over the whole
-  product specification, where an open claim is one inside an open item, a 🔴 section without a decided design, or a gap found by
+  product specification, where an open claim is one inside an open item (a `Q<n>` row of design §20), or a gap found by
   D11. A section marked planned but fully specified counts as decided: planned is about building, not about writing.
   Report the per-context split and a simple section-based variant (sections with no open item ÷ all sections).
-- **M18 Delivered %** = two figures: story points of ✅ tasks ÷ total story points of `docs/development-plan/DEVELOPMENT-PLAN.md` (the
-  summary table, counting the growing open-ended phase at its current size); and the weighted status markers of the
-  specification (`✅` = 1, `🟡` = 0.5, `🔴` = 0). Delivered counts only items whose definition of done holds (merged, tested).
+- **M18 Delivered %** = story points of ✅ tasks ÷ total story points of `docs/development-plan/DEVELOPMENT-PLAN.md` (the summary
+  table, counting the growing open-ended phase at its current size). The design carries no build markers (task 15.8), so the plan is
+  the only source. Delivered counts only items whose definition of done holds (merged, tested).
 - **M19 Ready to build next %** = for the next not-started or in-progress phase, tasks whose cited specification sections and
   contexts contain no blocking open item ÷ all tasks of that phase.
 
@@ -255,7 +257,7 @@ Budgets (approved by the owner on 2026-10-17, from the baseline of the [2026-10-
 | Product: state space | Lifecycles with four or more states written as a state table | all (baseline 0 of ≈ 15) | 2026-10-17 |
 | Product: cross-context coupling | Inbound references to one design section | ≤ 45 (baseline §12: 41) | 2026-10-17 |
 | Product: size | Words in one design file | ≤ 3,000 (baseline §12: 3,010) | 2026-10-17 |
-| Both: consistency | Features with two different status markers | 0 (baseline ≈ 12) | 2026-10-17 |
+| Both: consistency | Features with two different status markers | 0 (baseline ≈ 12; the design has no build markers since task 15.8) | 2026-10-17 |
 
 ### M27 to M31: parallel execution
 

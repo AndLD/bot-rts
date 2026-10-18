@@ -7,7 +7,7 @@ factory bot with a simple gun to defend itself with a simple scanner to track ne
 
 ## 6.1 Starting loadout
 
-Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/domain/module-catalog.ts`, built by the `ModuleFactory` from the module catalog). ✅
+Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/domain/module-catalog.ts`, built by the `ModuleFactory` from the module catalog).
 
 | Module | Type | Key stats | Role |
 | --- | --- | --- | --- |
@@ -22,30 +22,31 @@ Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/dom
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |
 
-✅ **Phase 11, task 11.4:** the starter kit has `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
+**Phase 11, task 11.4:** the starter kit has `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
 base keeps itself alive under a light duty: with the oil generator only, the first hands-on run showed that the idle drain
 (about 2.6 energy per second for the starter modules) and the 50 oil of the starter storage run out within minutes and the base
 goes dark. The oil generator stays craftable (§9) as the strong but manual option. Existing bases are not migrated; during
 development the local database is simply reset.
 
-✅ The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
+The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
-notes remains undefined. The kit is implemented this way (task 3.9).
+notes remains undefined (Q7). The kit is implemented this way (task 3.9). Whether the loadout is enough to craft the first module,
+that is, where the first iron comes from, is open (Q15).
 
 ## 6.2 Base capabilities
 
-- **Crafting** — with the factory module and the right blueprint, turn resources into modules. 🔴
-- **Assembly** — combine modules into a new bot. 🔴
+- **Crafting** — with the factory module and the right blueprint, turn resources into modules.
+- **Assembly** — combine modules into a new bot.
 - **Bot registry** — the base's bots are the bots whose `baseId` is this base (§8.1); the player sees them as a list. Stale
-  bots (§6.3) are in no registry. 🟡
+  bots (§6.3) are in no registry.
 - **Root terminal** — the base's own terminal, from which the player `connect`s to any bot whose control block is
-  reachable. ✅ (partial)
-- **Defense** — the base's gun engages threats automatically per its script/AI. 🔴
-- **Storage** — the base's storage module is the primary depot for mined resources. 🟡
+  reachable.
+- **Defense** — the base's gun engages threats automatically per its script/AI.
+- **Storage** — the base's storage module is the primary depot for mined resources.
 
 ## 6.3 Base destruction: corpse base
 
-✅ A **corpse base** is a base **the owner has lost control over**. It is a derived state, not a hit-point threshold:
+A **corpse base** is a base **the owner has lost control over**. It is a derived state, not a hit-point threshold:
 the owner has control only while the base has a working **wireless adapter** (the link used to `connect`). When that
 adapter is broken or missing (or the base has no modules left) the base is a corpse for its owner; repairing the adapter restores control. A broken processor alone makes the base *crippled*
 (no scripts) but not a corpse. A corpse base is **not removed** from the map; its cell shows it as a corpse base:
@@ -60,5 +61,5 @@ adapter is broken or missing (or the base has no modules left) the base is a cor
 - **Re-adopting stale bots:** *anyone* — including the former owner — who gets access to a stale bot (reaching it with
   a wireless link and bypassing or knowing its password, §11.2.2) can run `adopt` and assign it to **their own base**.
 - **Restoring a corpse:** a player who reaches the corpse of **their own** base can **repair it using bot(s) equipped
-  with a repair ("fixing") module**, returning it to operation (§8.4.2). ✅ The corpse shows as a base on the map again
+  with a repair ("fixing") module**, returning it to operation (§8.4.2). The corpse shows as a base on the map again
   once control is regained; having deployed a new base in the meantime does not prevent it.

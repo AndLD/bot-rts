@@ -24,7 +24,7 @@
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
     "format:check": "prettier --config .prettierrc.json --check .",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
-    "docs:check": "node scripts/check-markdown-links.mjs",
+    "docs:check": "node scripts/check-markdown-links.mjs && node scripts/check-open-items.mjs",
     "check:boundaries": "npm run check:boundaries --workspaces --if-present",
     "postinstall": "npm run prisma:generate -w api",
     "i18n:check": "node scripts/check-i18n.mjs",

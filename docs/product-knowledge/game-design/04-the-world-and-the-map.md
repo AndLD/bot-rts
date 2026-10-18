@@ -5,9 +5,9 @@
 ## 4.1 Grid
 
 - The world is a 2D grid of **cells**, addressed by integer `Location { x, y }` (an optional `z` exists in the data
-  model for future layering). ✅ The world is **2D**: `z` is **reserved** in the type but has no gameplay meaning, is
+  model for future layering). The world is **2D**: `z` is **reserved** in the type but has no gameplay meaning, is
   never set by the game, and is ignored by movement, scanning and the map.
-- ✅ **The world is unbounded.** There is no border: coordinates may be negative and cells are generated lazily on
+- **The world is unbounded.** There is no border: coordinates may be negative and cells are generated lazily on
   first scan. Storage must therefore be sparse (only materialized cells are stored) and indexed by location. The map is addressed in **chunks** (square blocks of `chunkSize` cells, default 16, `WORLD_CHUNK_SIZE`) in the domain model, so generation and later sharding work chunk by chunk; negative cells belong to negative chunks.
 - Each cell has a **type** and an optional content reference. Implemented point types (`MapPointType`):
 
@@ -20,15 +20,15 @@
   | `null` | Empty passable cell |
   | *unknown* | Never scanned by this player → rendered black |
 
-- ✅ **One solid entity per cell.** Bots, bases (including corpse bases) and resource deposits are solid and block
+- **One solid entity per cell.** Bots, bases (including corpse bases) and resource deposits are solid and block
   movement; ground **items** do not block. `move()` into an occupied cell fails with `BLOCKED` — there is no pushing
   or ramming. Resource cells are worked from an adjacent cell. Blockers can only be removed by destroying them
   (combat) or, for deposits, by depleting them.
-- ✅ **Base spawn:** a new base is placed on a **free cell** (not occupied, not a deposit) that is at least
+- **Base spawn:** a new base is placed on a **free cell** (not occupied, not a deposit) that is at least
   `minBaseDistance` cells (default 30, tunable) from every living base and every corpse base. Candidates are drawn at
   random inside a ring around the world origin whose radius grows with the number of bases; on conflict the search
-  retries. This replaced the prototype behavior (a random cell in `[0,10]²` with no occupancy check). The numbers are configuration (`WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_RADIUS`, `WORLD_SPAWN_RADIUS_PER_BASE`, `WORLD_SPAWN_ATTEMPTS`); the ring is a square of half-width `radius + radiusPerBase × bases` around the origin. A redeploy after base
-  destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds-) to start near
+  retries; what a deploy answers when the attempts run out is open (Q11). This replaced the prototype behavior (a random cell in `[0,10]²` with no occupancy check). The numbers are configuration (`WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_RADIUS`, `WORLD_SPAWN_RADIUS_PER_BASE`, `WORLD_SPAWN_ATTEMPTS`); the ring is a square of half-width `radius + radiusPerBase × bases` around the origin. A redeploy after base
+  destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds) to start near
   friends.
 
 ## 4.2 Two layers: real points and user points
@@ -43,22 +43,22 @@ The map is stored in two logical layers:
 Rules:
 
 - When a player scans, cells they have never seen are **generated** by the server. Generation is probabilistic —
-  currently each new cell has a **20 %** chance to be a `resource` (`Math.random() < 0.2`). 🟡
+  currently each new cell has a **20 %** chance to be a `resource` (`Math.random() < 0.2`).
 - If the cell already exists as a real point, its **current contents are read from the game database** — not re-rolled.
-  This keeps the world consistent for every player. ✅
+  This keeps the world consistent for every player.
 - The player's user-point layer is synced from the real layer: when the real cell's `contentId` or `type` differs from
-  the player's cached copy, the cache is updated. ✅
-- ✅ Map knowledge is **private per player**. There are no teams or alliances in the initial release; players may only
+  the player's cached copy, the cache is updated.
+- Map knowledge is **private per player**. There are no teams or alliances in the initial release; players may only
   cooperate by exchanging messages (`sendMessage`). Alliances / shared fog are a possible future extension.
-- ✅ **Knowledge is a snapshot, except inside a live area.** Every known cell stores the contents it had when it was last
+- **Knowledge is a snapshot, except inside a live area.** Every known cell stores the contents it had when it was last
   seen and a **`seenAt` timestamp** (the game tick). A cell's **age** is the current tick minus `seenAt` (shown in seconds
   through `tickIntervalMs`).
-- ✅ **What refreshes a cell:** a `scan()` that covers it; the direct result of an action of the player's own bot on it (the
+- **What refreshes a cell:** a `scan()` that covers it; the direct result of an action of the player's own bot on it (the
   cell it moved into, dug, shot at or dropped an item on); and **continuous scanning** (§4.4), which keeps the cells inside a
   scanner's radius live. There is **no passive sight**: a bot without a running scanner sees nothing of its surroundings.
-- ✅ **A disconnected bot does not feed the player's map** (§11.2.1): its scans are buffered and applied with their original
+- **A disconnected bot does not feed the player's map** (§11.2.1): its scans are buffered and applied with their original
   `seenAt` when the link returns.
-- ✅ **Stale data is expected, not an error.** Other bots, dropped items and deposits can change after `seenAt`. Actions are
+- **Stale data is expected, not an error.** Other bots, dropped items and deposits can change after `seenAt`. Actions are
   always checked against the **real** world, so acting on a stale cell returns an ordinary error value (`BLOCKED`,
   `EMPTY`, `GONE`); a script that cares about freshness re-scans and compares `seenAt`. A one-shot `scan()` is not
   meant to be repeated every tick: it costs ops and energy and waits for the scanner's cooldown (§7.2). To keep an area
@@ -66,7 +66,7 @@ Rules:
 - Rendering a map view is therefore a *merge* of: real points in the viewport + the player's knowledge + black unknown
   cells (fog of war).
 
-## 4.4 Live vision: continuous scanning ✅
+## 4.4 Live vision: continuous scanning
 
 - **A scanner works in one of two modes, and both stay in the game.** In **one-time mode** (the default) it does a
   snapshot `scan()` (§7.2). In **live mode** it keeps an area live. A scanner is in exactly one mode at a time: **while it is
@@ -84,7 +84,7 @@ Rules:
   last moment it was live.
 - **Energy during live scanning:** the scanner drains its `idleCost` every tick in either mode, and while live it pays
   the refresh cost (above) from the bot's battery in the tick's apply phase, in the deterministic order (§12.4). Live
-  scanning never uses script ops; `view()` costs 1 op and no energy. ✅ **If the battery cannot pay for a refresh, the scanner
+  scanning never uses script ops; `view()` costs 1 op and no energy. **If the battery cannot pay for a refresh, the scanner
   switches itself off** and returns to one-time mode (the area becomes ordinary snapshots, `view()` then fails with
   `NOT_LIVE`); it must be enabled again, and the owner gets a `LiveScanStopped` event (§24.1).
 - Events inside the live area are delivered to the player and animated (§24.1), including those caused by other players.
@@ -95,7 +95,7 @@ Rules:
   scanner's bot moves, only the cells at the edge of its area are updated. The engine keeps the map in chunks with an LRU
   cache and loads cold chunks from the database on demand.
 
-✅ **Implementation (Plan 5.12):** `LiveVision` in the engine keeps an index of the live areas by chunk; the cells that change in
+**Implementation (Plan 5.12):** `LiveVision` in the engine keeps an index of the live areas by chunk; the cells that change in
 a tick (`World.drainChanged`) are handed to the areas that cover them, the player's knowledge of those cells is updated at once,
 and each area sends its changes as one `vision` event every scanner `delay` (rounded up to ticks). A new area looks at all its
 cells, a moved one only at the cells that entered; a cell that leaves the live area, or whose scanner stops, is written as a
@@ -105,7 +105,7 @@ snapshot stamped with that moment, and another area of the same player that stil
 restart the bots with `isLive` scanners resume their vision. The map is held in memory in chunks, at most `ENGINE_MAX_CHUNKS`;
 the least recently used chunk without unwritten changes is dropped first.
 
-## 4.5 Day and night ✅
+## 4.5 Day and night
 
 _The clock: §12.5.1; the filter and the HUD clock: §15.6 (tasks 11.2 and 11.6)._ The world has a day/night cycle on a shared clock (§12.5.1). It does not change
 the map or the rules of movement and vision; it changes how much energy solar panels make (§7.2.1) and how the map looks: a
@@ -114,7 +114,7 @@ filter is purely visual and lets pointer events through, so clicking and inspect
 
 ## 4.3 Map rendering (monitor / canvas)
 
-✅ The map is drawn on a canvas with **sprites**, one per cell, not flat coloured squares.
+The map is drawn on a canvas with **sprites**, one per cell, not flat coloured squares.
 
 **Assets and rendering**
 
@@ -149,4 +149,4 @@ filter is purely visual and lets pointer events through, so clicking and inspect
   grey, other resources per-resource colour, item cyan, own bot green, enemy bot red, own base blue, enemy base purple.
 
 Interaction: pan and zoom the viewport; clicking a cell shows its stored content; clicking one of your bots opens its
-control panel (§15.1). 🔴
+control panel (§15.1).

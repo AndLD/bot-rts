@@ -2,7 +2,7 @@
 
 # 22. Public API & integrations
 
-## 22.1 Public API ✅
+## 22.1 Public API
 
 - **Goal:** developers can build their own game interface (alternative clients, dashboards, tools) against the backend.
 - A documented, **versioned `/api/v1`** REST + WebSocket surface exposes everything the official client uses: read state
@@ -11,10 +11,10 @@
   endpoints, so every feature of the official client is available to third-party clients. The surface has **two
   authentication methods**: the user's login session (JWT) for the official client, and API keys for third-party
   clients and the MCP server. All new endpoints are created under `/api/v1` from the start, never retrofitted.
-- **API keys:** ✅ (Plan 8.9) a player creates keys in their profile. A key is shown **once** and stored **hashed**. Each key has
+- **API keys:** (Plan 8.9) a player creates keys in their profile. A key is shown **once** and stored **hashed**. Each key has
   **scopes** (for example read, one scope per control category from §15.1, files, scripts, `chat`, `trade`) that can only **narrow** the
   player's own rights, plus its own rate limit, and can be **revoked** at any time.
-- ✅ **Implementation (Plan 8.9):** a key is `botrts_` plus 256 random bits; only its SHA-256 hash is stored, and the list shows the first
+- **Implementation (Plan 8.9):** a key is `botrts_` plus 256 random bits; only its SHA-256 hash is stored, and the list shows the first
   characters. It goes in the same `Authorization: Bearer` header as a session token and is resolved to the player (bans and deleted
   accounts apply) with the key's grant. The scopes are `read`, `base`, `files`, `scripts`, `terminal` and one per category of manual
   control (`movement`, `combat`, `extraction`, `logistics`, `fabrication`, `maintenance`, `communication`, `trade`). **Every route and
@@ -26,14 +26,14 @@
   switches (§15.1), and the single-writer engine (§14.2). An API client never gets an advantage over the official one.
 - Notifications (§24) and achievements (§23) are available through the API (scope `read`), so custom clients and the MCP
   server can show and react to them.
-- An **OpenAPI specification** is published and kept in sync with the code. ✅ (Plan 8.10) It carries a request example, a response
+- An **OpenAPI specification** is published and kept in sync with the code. (Plan 8.10) It carries a request example, a response
   example and a `curl` sample for every operation and the scope each needs. The stability and deprecation policy is in
   [`docs/product-knowledge/integrations/API.md`](../integrations/API.md): changes inside `/api/v1` are compatible, breaking ones ship as `/api/v2`, and a deprecated route announces
   itself with `Deprecation` and `Sunset` headers at least six months before it goes. Contract tests require that a key with enough
   scopes and a session get identical answers over HTTP and Socket.IO.
 - Account and admin operations (settings, user management, API key creation itself) are **not** available through API keys.
 
-## 22.2 MCP server ✅
+## 22.2 MCP server
 
 - A **separate `mcp/` package** (a workspace in the monorepo) provides an MCP server that lets an AI play as a regular
   player. It is a thin layer over the public API (§22.1) and uses the player's **API key**; it has **no direct access** to
@@ -44,12 +44,12 @@
   cooldowns, category switches and the key's scopes. A player can give the AI a restricted key (for example read +
   movement only). The AI has no special rules and is not labelled in the game.
 - **Transport:** stdio for local use and streamable HTTP for hosted use.
-- ✅ **Implementation (Plan 8.11):** `mcp/` registers about 50 tools ([`docs/product-knowledge/integrations/MCP.md`](../integrations/MCP.md)); the manual-control tools are generated from
+- **Implementation (Plan 8.11):** `mcp/` registers about 50 tools ([`docs/product-knowledge/integrations/MCP.md`](../integrations/MCP.md)); the manual-control tools are generated from
   the list of script functions the engine enforces, one `bot_<function>` each, with the scope of the function's category. Over HTTP the
   server is stateless and every client brings its own key, so each plays as its own player. Tool failures are results with the game's
   error code, so the AI can react to `BLOCKED`, `NO_ENERGY` or a missing scope.
 
-## 22.3 Spawn seeds ✅
+## 22.3 Spawn seeds
 
 Spawn seeds let several players start near each other (also described in §4.1).
 

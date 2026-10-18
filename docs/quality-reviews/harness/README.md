@@ -158,7 +158,7 @@ D2 judges how the knowledge is *organized*; D11 judges whether it is *true to it
 | duplication        | Is one rule stated in two places that can diverge?                                                                    |
 | invariant          | Does every section respect the cross-cutting invariants (authority over state, determinism, conservation of resources, permissions, ordering)? |
 | terminology        | Does one word mean two things, or do two words mean one thing?                                                        |
-| status             | Do decided, planned, implemented and open markers agree with each other, with the plan and with the open-questions list? |
+| status             | Do the decided and open points of the design agree with each other, with the plan and with the open-questions list, and does the design carry no build status? |
 | traceability       | Does every requirement reach a plan item and a test, and does every plan item and test point back to a requirement?   |
 | feasibility        | Are values within the stated bounds, prerequisite chains free of cycles, sources and sinks of every resource balanced, and stated limits consistent with the stated capacity? |
 

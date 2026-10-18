@@ -103,3 +103,11 @@
   docs PR; ask about point 3 and list the assumptions in the PR.
 - **Open decisions:** point 3; the assumptions listed in that PR.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — Phase 10 decisions written into the design
+- **Done:** PR #212 writes every Phase 10 decision into design §26, §27, §24, §25, §10, the glossary and §20, and updates the
+  Phase 10 tasks (115 → 133 SP). The review report marks H-13 and H-14 as decided.
+- **Next step:** the owner reviews and merges #209 to #212 (the plan total conflicts between #211 and #212: the second one merged
+  sets 1,043), answers the system-seller question (§20) and triages the remaining findings; then step 2.
+- **Open decisions:** the system seller; the triage of the findings not yet decided.
+- **Verify with:** `npm run docs:check`

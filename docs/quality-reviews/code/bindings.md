@@ -21,7 +21,7 @@ admin, ledger). Targets for the scorecard come from it:
 | C1 | 5 | §3.1–3.4: zero boundary violations, persistence confined to infrastructure |
 | C2 | 4 | §4 |
 | C3 | 5 | §6.1: the coverage gate of the [profile](../../profile.md#2-quality-gates) on statements, branches, functions and lines, per package; §6.2–6.4 test types |
-| C4 | 5 | §1 testability, §8: injected clock, random generator, logger; no module-level singletons |
+| C4 | 5 | §1 testability, method §2 (dependency inversion): injected clock, random generator, logger; no module-level singletons |
 | C5 | 4 | §1 scalability: stateless API tier, indexed access; the engine is the single in-memory owner of world state by design |
 | C6 | 4 | §1 maintainability, §5, non-negotiable 4 (no dead code, no `console.log`) |
 | C7 | 4 | §3.3 identity, §9 admin and API-key rules, non-negotiable 5 (no secrets in the repository) |

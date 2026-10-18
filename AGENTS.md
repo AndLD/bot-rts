@@ -8,8 +8,10 @@ reading map. The rest is read on demand:
   strategy, the API prefix, the user-facing languages, versions, commands) and the map of the documents;
 - the [engineering method](./docs/engineering/method.md): principles, SOLID checklist, testing rules, definition of done, Git
   workflow, session protocol;
-- the [stack file](./docs/engineering/stack.md): tools, architecture and layering, conventions, test tooling, the stack items of
-  the definition of done, the agent-runtime tools.
+- the [stack file](./docs/engineering/stack.md): tools, layering, conventions, test tooling, the stack items of the definition of
+  done, the agent-runtime tools;
+- the [architecture](./docs/engineering/architecture.md): identity providers, persistence, the engine as the single owner of
+  world state.
 
 ## Reading map
 
@@ -18,7 +20,7 @@ reading map. The rest is read on demand:
 | start or continue a phase, or end a session | [method §6](./docs/engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase) (session protocol), then the phase file and its work log ([plan index](./docs/development-plan/DEVELOPMENT-PLAN.md)) |
 | write or change code in any package | [stack.md](./docs/engineering/stack.md) (stack, layering, conventions) and [method §2–§3](./docs/engineering/method.md#2-solid-checklist-apply-per-file) (SOLID, testing) |
 | add or change an endpoint | [stack §2.0](./docs/engineering/stack.md#20-one-api-for-every-client), [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (generated files), [`API.md`](./docs/product-knowledge/integrations/API.md) |
-| change the database schema | [stack §2.4](./docs/engineering/stack.md#24-persistence-isolation-postgresql--prisma) (persistence, migrations) |
+| change the database schema or authentication | [architecture](./docs/engineering/architecture.md) (persistence and migrations §2, identity providers §1) |
 | add or change a user-visible flow | [method §3.4](./docs/engineering/method.md#34-end-to-end-tests) and the [e2e matrix](./docs/testing/e2e-matrix.md) |
 | change a game rule or add a game feature | [`GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and the [glossary](./docs/product-knowledge/game-design/02-glossary.md), then section 9 below |
 | finish a task | [method §4](./docs/engineering/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (definition of done) |
@@ -47,7 +49,7 @@ Non-negotiables (a PR that violates these is rejected):
 The former sections keep their numbers here so that older references resolve:
 
 - §2 Tech stack & test tooling → [stack §1](./docs/engineering/stack.md#1-tech-stack-and-test-tooling-do-not-substitute).
-- §3 Architecture & layering (§3.0–§3.4) → [stack §2](./docs/engineering/stack.md#2-architecture-and-layering) (§2.0–§2.4, same order).
+- §3 Architecture & layering: §3.0–§3.2 → [stack §2](./docs/engineering/stack.md#2-architecture-and-layering) (§2.0–§2.2); §3.3 identity providers → [architecture §1](./docs/engineering/architecture.md#1-identity-provider-abstraction); §3.4 persistence → [architecture §2](./docs/engineering/architecture.md#2-persistence-isolation-postgresql--prisma).
 - §4 SOLID checklist → [method §2](./docs/engineering/method.md#2-solid-checklist-apply-per-file) (its application to this code: [stack §3.4](./docs/engineering/stack.md#34-solid-in-this-code-base)).
 - §5 Conventions → [stack §3](./docs/engineering/stack.md#3-conventions).
 - §6.1–§6.4 Testing → [method §3](./docs/engineering/method.md#3-testing) (rules) and [stack §4](./docs/engineering/stack.md#4-test-tooling) (tools).
@@ -73,8 +75,9 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
 - `main` and `develop` are protected by the repository ruleset of `scripts/protect-branches.sh`: no direct pushes (for administrators
-  too), no force-push, no deletion, every change through a PR, and the required CI jobs `verify` (lint, import boundaries, typecheck,
-  message catalogues, Markdown links, tests with the coverage gate, build), `pr-title`, `e2e` and `lighthouse` (`.github/workflows/ci.yml`).
+  too), no force-push, no deletion, every change through a PR, and the **required checks** green. The required checks are the
+  status contexts that script sets, listed with what each job runs in the [profile](./docs/profile.md#2-quality-gates); that
+  list is the only statement of the merge gates.
   An administrator may bypass the rules only when merging a PR, for example past a red check. That bypass is the owner's: an agent
   never uses it unless the owner asks for that specific merge.
 
@@ -85,7 +88,7 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 - One logical change per commit; PRs should be small and single-purpose.
 - No direct commits to `main` or `develop`; merge via PR with at least one review (while the project is solo, the owner's
   approval to merge counts as the review).
-- CI must be green (lint, typecheck, unit/integration, e2e, coverage gate) before merge.
+- The required checks (§7.3) must be green before merge.
 
 ### 7.5 Rules for agents
 
@@ -120,28 +123,10 @@ Moved to [method §6](./docs/engineering/method.md#6-session-protocol-resuming-a
 
 ---
 
-## 8. Do's & Don'ts quick reference
+## 8. Do's & Don'ts
 
-### ✅ Do
-
-- Inject dependencies (including the clock and RNG); use interfaces from `lib`.
-- Keep controllers thin; use cases depend on repository ports and never touch the database directly.
-- Add integration tests against PostgreSQL (Docker) with every repository.
-- Add a Cypress spec with every user-visible flow.
-- Add/update `.env.example` for new env vars.
-- Run formatter, linter, typecheck, and tests before pushing.
-
-### ❌ Don't
-
-- Don't pass `req`/`res`/`Socket` into services or models.
-- Don't use Prisma (`PrismaClient`, generated types) outside the infrastructure layer.
-- Don't use module-level mutable singletons as test state.
-- Don't commit secrets, `.env`, `node_modules`, or build output.
-- Don't leave `console.log`, commented-out code, or dead aggregation pipelines.
-- Don't introduce new `any`-typed public signatures.
-- Don't merge without green CI and the coverage gate.
-- Don't delete remote branches after merging; keep them for history (§7.3).
-- Don't merge a PR unrelated to the phases the user asked for without asking the user first (§7.5); opening PRs needs no approval.
+Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, the [method](./docs/engineering/method.md) and the
+[stack file](./docs/engineering/stack.md).
 
 ---
 

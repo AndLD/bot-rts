@@ -1,4 +1,4 @@
-// Persistence model. Prisma is confined to the infrastructure layer (AGENTS.md §3.4): this schema, the migrations and the
+// Persistence model. Prisma is confined to the infrastructure layer (docs/engineering/architecture.md §2): this schema, the migrations and the
 // generated client are imported only by the Prisma* adapters. Ids are UUIDs owned by the domain, never generated here.
 
 generator client {
@@ -78,7 +78,7 @@ enum AuthTokenKind {
 }
 
 // Who the player is in the game. Logins live elsewhere: `identities` links an external or custom login to a user, and
-// the secrets of the custom provider are in `local_credentials` (AGENTS.md §3.3). Roles and bans are only read here.
+// the secrets of the custom provider are in `local_credentials` (docs/engineering/architecture.md §1). Roles and bans are only read here.
 model User {
   id                     String       @id @db.Uuid
   name                   String

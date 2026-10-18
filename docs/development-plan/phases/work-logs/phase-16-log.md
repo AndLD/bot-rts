@@ -68,3 +68,18 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     this); the local gate was run by hand and the branch pushed with `--no-verify`.
 - **Next step:** 16.4 (caches, PR #223 open), then 16.5.
 - **Verify with:** `npm run test:coverage -w client`; `node scripts/ci-timings.mjs 39167610141`; `npm run docs:check`
+
+### 2026-10-19 — 16.4 dependency and test caches done
+- **Tasks:** 16.4 ✅
+- **Branch:** `chore/16.4-ci-caches` — done, PR #223
+- **Decisions / deviations from the plan:**
+  - A composite action `.github/actions/install` replaces `npm ci` in `verify`, `e2e` and `lighthouse`: it caches `node_modules` of
+    all workspaces (key: lock file and `.nvmrc`), runs `npm ci` on a miss and regenerates the Prisma client on a hit. The setup-node
+    npm cache stays as the fallback of a miss.
+  - Jest's cache lives in `/tmp/jest_*`; `verify` restores it and only a push (to `develop` or `main`) saves it, so pull requests do
+    not each store a copy. Its effect cannot be seen before the first push to `develop` after the merge.
+- **Problems / blockers / findings:** the install step falls from 72 to 87 s to 8 to 9 s on a hit (run 39170938431), so `lighthouse`
+  takes 1 min 56 s instead of 3 min 45 s. A cache saved by a pull request is visible only to that pull request, so the first run of
+  each new pull request after a lock file change is a miss.
+- **Next step:** 16.5 (PR #225)
+- **Verify with:** `node scripts/ci-timings.mjs <run-id> --all-steps`; `npm run docs:check`

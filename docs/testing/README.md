@@ -78,7 +78,23 @@ The whole run took 21 min 02 s, bound by `verify`. The tests of `verify` run one
 | `src/features/admin/operations/RetentionCard.test.tsx` | 146 s |
 
 Jest cannot finish before its slowest file, so `Economy.test.tsx` alone sets a floor of eight minutes for `client`. The
-measurements after each Phase 16 task are added below this table.
+measurements after each Phase 16 task are added below.
+
+**After 16.4** (caches). `.github/actions/install` restores `node_modules` of every workspace from a cache keyed on
+`package-lock.json` and `.nvmrc`, and runs `npm ci` only on a miss; `verify`, `e2e` and `lighthouse` use it. `verify` also restores
+Jest's transform cache (`/tmp/jest_*`), which a push to `develop` or `main` saves and pull requests read. The numbers are from the
+pull request that added them (run 39167692779 was the first run, a cache miss; run 39170938431 the second, a hit):
+
+| Install step | Cache miss | Cache hit |
+| ------------ | ---------- | --------- |
+| `verify` | 1 min 12 s | 8 s |
+| `e2e` | 1 min 26 s | 9 s |
+| `lighthouse` | 1 min 27 s | 9 s |
+
+A miss costs the same as before plus 4 to 14 s to save the cache, once per change of the lock file. A change of `package-lock.json`
+or of the Node version (`.nvmrc`) starts a new cache; the old one is evicted by GitHub when the repository passes its cache quota.
+The Jest cache cannot be measured on a pull request: no push to `develop` has saved one yet. The first push after this change
+saves it, and the numbers of 16.8 show its effect.
 
 ## Coverage
 

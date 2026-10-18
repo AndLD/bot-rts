@@ -2,7 +2,7 @@
 
 # Phase 16 — CI speed and agent throughput (26 SP)
 
-**Status:** ⬜ Not started · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-16-log](./work-logs/phase-16-log.md)
+**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-16-log](./work-logs/phase-16-log.md)
 
 Every task pull request waits for the required checks before it merges (`AGENTS.md` §7.5), and the `verify` job is the longest of
 them: about 21 minutes on the push run of #216 to `develop` (run 39158838242, 2026-10-18). Of those, 17 minutes are the tests with
@@ -20,7 +20,7 @@ one file. The caches (16.4) come before the job splits (16.3, 16.9), because eac
 
 | #   | Task | SP  | Status |
 | --- | ---- | --- | ------ |
-| 16.1 | **CI timing baseline and tool**: `scripts/ci-timings.mjs <run-id>` prints the duration of each job and step of a GitHub Actions run and the slowest test files of the `verify` log (from Jest's `PASS … (N s)` lines). A new section on CI performance in `docs/testing/README.md` records the baseline of run 39158838242 (the numbers in the introduction above). Verified by a `node --test` test of the parsing on a saved log excerpt, run by `npm run test:scripts` | 2 | ⬜ |
+| 16.1 | **CI timing baseline and tool**: `scripts/ci-timings.mjs <run-id>` prints the duration of each job and step of a GitHub Actions run and the slowest test files of the `verify` log (from Jest's `PASS … (N s)` lines). A new section on CI performance in `docs/testing/README.md` records the baseline of run 39158838242 (the numbers in the introduction above). Verified by a `node --test` test of the parsing on a saved log excerpt, run by `npm run test:scripts` | 2 | ✅ |
 | 16.2 | **Slow client tests**: find why the admin page tests are slow (profile `Economy.test.tsx` first: Ant Design motion and animations, `getByRole` queries on large trees, `waitFor` calls that run to their 15 s timeout) and fix the cause in the shared test wrapper or the tests, then split the files that are still large. Lower the client `testTimeout` (180 s today) to what the fixed tests need. No test is removed and no coverage is lost. Verified by the tool of 16.1 on a CI run: no client test file above 60 s, and the per-package coverage unchanged | 5 | ⬜ |
 | 16.3 | **Parallel CI jobs**: `verify` is split into jobs that run at the same time: the static checks (generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, release scripts, build); the `api` tests; the `client` tests in shards (`jest --shard=i/N`); the `mcp` tests. A final job named `verify` needs them all, merges each package's coverage from its shards, and runs the coverage gate and `scripts/check-changed-coverage.mjs` on the merged data, so the required check names of `scripts/protect-branches.sh` and the coverage gate of the profile do not change. A Markdown-only change still skips the code jobs and reports green. Verified by a pull request whose coverage drops below the gate in one shard failing `verify`, and by the ruleset needing no change | 5 | ⬜ |
 | 16.4 | **Dependency and test caches**: `node_modules` (or the npm cache with `npm ci --prefer-offline`) and Jest's cache directory are cached across runs, keyed on `package-lock.json` and the Jest configs, in every job that installs (`verify` and its new jobs, `e2e`, `lighthouse`). Verified by the tool of 16.1: the install step of a run with a cache hit under 20 s | 2 | ⬜ |
@@ -46,3 +46,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 
 | Branch | Tasks | PR | Status |
 | ------ | ----- | -- | ------ |
+| `chore/16.1-ci-timings` | 16.1 | [#221](https://github.com/AndLD/bot-rts/pull/221) | 🟡 open |

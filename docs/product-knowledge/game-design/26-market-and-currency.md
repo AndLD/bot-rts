@@ -29,16 +29,12 @@ _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-
 - **Fees** (editable in the console per kind and, for the exchange, per resource): the exchange fee (default 2 % of each trade),
   the auction listing fee (default 1 % of the starting price, at least 1 credit), the auction sales fee (default 5 % of the final
   price) and the edition fee (default 1 % of the price per copy offered, §26.6). Fees are **moved**, never destroyed.
-- **The system buyer** stands on the exchange as a buyer of every resource at its **floor price** (the balance configuration;
-  placeholder defaults per unit: iron 1, stone 1, wood 1, oil 3, crystal 5, gold 12). It pays only from main and **buys only
-  while main can pay**: when main is not positive it stops bidding, and it resumes when fees arrive. Its bid is the floor price
-  times `clamp(main / target, minFactor, 1)` (both tunable), so it fades as the treasury runs low instead of stopping abruptly.
-  The goods it buys go to the **system sink**, a goods account of the ledger, so goods are conserved (below).
-- **The system seller** stands on the exchange as a seller of the goods in the system sink, and only of those: it never creates
-  goods. Its price is the floor price times a markup (default 3, per resource, tunable), so nobody can buy from it and sell straight
-  back to the system buyer at a profit, and each player can buy at most a daily quantity per resource from it (tunable). What it
-  earns goes to main once the goods are delivered (§26.7), so it brings credits back into the treasury and brakes inflation. When
-  the sink holds none of a resource, the system seller has no offer for it.
+- **The system buyer** buys from players. It pays only from main and **buys only while main can pay**: when main is not positive
+  it stops, and it resumes when fees arrive. The goods it buys go to the **system sink**, a goods account of the ledger, so goods
+  are conserved (below).
+- **The system seller** sells the goods in the system sink, and only those: it never creates goods. What it earns goes to main once
+  the goods are delivered (§26.7), so it brings credits back into the treasury and brakes inflation.
+- What the two trade, when, at which price and in which quantities is configured by admins (the **system trader**, §26.10).
 - **Admin compensation refunds** (for example after a bug) are manual, paid from main, and refused when main cannot cover them,
   unless the admin ticks an explicit override after a warning; only such a refund can take main below zero. While main is
   negative the system buyer does not buy.
@@ -84,8 +80,8 @@ market and by transfers (§27).
   Orders expire after 7 days (tunable).
 - **Fees:** the seller pays the exchange fee on the value of each trade (§26.1); it waits in pending trades until the bought
   resources are delivered (§26.7), then moves to main.
-- The **system buyer** (§26.1) acts as a standing bid at its current price for each resource while the treasury can pay, and the
-  **system seller** (§26.1) as a standing offer at its price for each resource the system sink holds.
+- The **system buyer** and the **system seller** (§26.1) act as a standing bid and a standing offer for the resources their rules
+  cover, at the prices of those rules (§26.10).
 
 ## 26.5 Auctions ✅
 
@@ -151,3 +147,38 @@ All numbers below are defaults that admins change in the console (§25).
   refunds everyone involved, the wallet owner's fees for those open trades included (from pending trades). Finished trades are
   never undone.
 - Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25), and see the market itself (order books, auctions, price history and statistics, the price anomalies these heuristics flag, and market metrics and alerts on the dashboard: tasks 10.11 and 10.15).
+
+## 26.10 The system trader ✅
+
+_Decided by the owner on 2026-10-18._ The system buyer and the system seller (§26.1) follow **rules** that admins edit in the
+console (§25). A change is audited (reason, before and after) and takes effect at the next tick boundary, so the engine applies one
+rule set per tick and stays deterministic.
+
+- **What is traded:** a rule names one tradable item, a resource or a blueprint item, and a side, buy or sell. Further item types
+  (for example modules, once they are tradable, §21) join by adding rules, not by changing the rule model. On the exchange a rule
+  is a standing bid or offer; for a blueprint item it is a fixed-price offer.
+- **Price:** each rule sets its price in one of three ways, always clamped between a minimum and a maximum:
+  - **fixed:** a number of credits per unit;
+  - **floor × factor:** the floor price of the balance configuration (placeholder defaults per unit: iron 1, stone 1, wood 1, oil 3,
+    crystal 5, gold 12) times a factor (by default 1 for buying and 3 for selling, so buying from the system and selling straight
+    back never pays);
+  - **market-following:** the recent average trade price of the item plus or minus a spread.
+
+  A buying rule can also apply the treasury-health scaling, its price times `clamp(main / target, minFactor, 1)`, so the bids fade
+  as the treasury runs low instead of stopping abruptly.
+- **Volume and budget:**
+  - a daily spend cap of the buyer, from main, and a minimum balance of main that the buyer never spends below;
+  - per-player daily quantity caps for buying from players and for selling to them;
+  - a reserve stock that the seller keeps in the sink, and a maximum stock above which the buyer stops buying the item.
+- **Eligibility:** a minimum account age to trade with the system, and players flagged by the anti-abuse heuristics (§26.9)
+  excluded.
+- **Schedules:** each rule is active always, in time windows of the day, on chosen days of the week, or between a start and an end
+  date. Schedules use real time in a time zone that admins choose, because they follow real-world events.
+- **Campaigns:** named sets of rules with their own schedule and a priority, for example "crystal bought at 2× this weekend". For
+  each item and side, the active rule of the highest priority wins; the base rules have the lowest priority. Before saving, the
+  console previews the expected daily spend and income from the recent volume. A campaign can send an announcement to players
+  (§24.2).
+- **Pause:** a global switch stops the system buyer, the system seller, or both, at once.
+- Players see the system's bids and offers in the order books like any other order, marked as the system's. They do not see the
+  rules, the caps or the treasury balance.
+

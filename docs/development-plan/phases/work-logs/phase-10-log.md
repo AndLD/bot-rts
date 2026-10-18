@@ -46,9 +46,10 @@ _No entries yet._
   - delivery retries to a full inbox;
   - wallet freezes, automatic or manual;
   - daily limits, and new events;
-  - a system seller of the goods in the system sink: the new task 10.16, 3 SP, placed after 10.4.
+  - a system seller of the goods in the system sink, and a configurable system trader (rules per item and side, prices, caps,
+    eligibility, schedules, campaigns, a pause, §26.10): the new task 10.16, 8 SP, placed after 10.4.
 
-  Sizes: 10.1 8 → 13, 10.2 5 → 8, 10.10 5 → 8, 10.11 8 → 13, 10.12 3 → 5, plus the new 10.16 (3 SP); the phase is 136 SP
+  Sizes: 10.1 8 → 13, 10.2 5 → 8, 10.10 5 → 8, 10.11 8 → 13, 10.12 3 → 5, plus the new 10.16 (8 SP); the phase is 141 SP
   (was 115).
 - **Problems / blockers / findings:** none; §20 lists no open question.
 - **Next step:** start Phase 10 with 10.1 when the owner asks.

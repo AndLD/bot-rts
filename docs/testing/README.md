@@ -2,7 +2,7 @@
 
 # Testing
 
-The rules (what every feature must ship with) are in [`AGENTS.md` §6](../../AGENTS.md). This folder describes how testing
+The rules (what every feature must ship with) are in [method §3](../engineering/method.md#3-testing); the tools are in [stack §4](../engineering/stack.md#4-test-tooling). This folder describes how testing
 works in practice.
 
 | Page | What it holds |
@@ -31,7 +31,7 @@ works in practice.
 | `npm run test:coverage` | The same with coverage; fails below the coverage gate per package |
 | `npm run e2e` | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
-| `npm run i18n:check` | The message catalogues of every player language are complete |
+| `npm run i18n:check` | The message catalogues of every user-facing language are complete |
 | `npm run docs:check` | Markdown links |
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |

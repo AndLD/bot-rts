@@ -6,7 +6,7 @@ of the current base would compound the existing coupling and zero-test debt.
 
 **Phase status legend:** ⬜ Not started · 🟡 In progress · ✅ Done. A phase's status is kept in the summary table below and
 in the phase file, and is updated in the pull request that starts or finishes it. Each phase file also has an
-**implementation log** listing the branches and pull requests that delivered its tasks (AGENTS.md §6.5).
+**implementation log** listing the branches and pull requests that delivered its tasks ([method §4](../engineering/method.md#4-definition-of-done)).
 
 **Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
 append-only **work log** in `development-plan/phases/work-logs/` so a phase can be resumed in a new session.
@@ -74,7 +74,7 @@ Ask for one phase or a range: *"Start Phase 0"*, *"Start Phases 0-3"*, *"Continu
 phases' tasks in the documented order, creating and squash-merging every task's pull request into `develop` by itself (the
 request is the approval), **without pausing between tasks or between the named phases**. It stops with a summary after the
 last named phase, or earlier when it is blocked or needs a decision; phases you did not name are not started. Promoting
-`develop` to `main` still needs your approval. The agent follows the session protocol in [`AGENTS.md` §7.6](../../AGENTS.md): it reads
+`develop` to `main` still needs your approval. The agent follows the session protocol in [method §6](../engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase): it reads
 the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
 "next step".
 

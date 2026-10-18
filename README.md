@@ -366,7 +366,7 @@ releases go to the production branch (`main`). The branch types, merge strategy 
 - [`docs/operations/RELEASING.md`](./docs/operations/RELEASING.md) — versioning, the changelog, and how to cut a release or a hotfix.
 - [`docs/product-knowledge/CHANGELOG.md`](./docs/product-knowledge/CHANGELOG.md) — release notes.
 - [`docs/operations/DEPLOYMENT.md`](./docs/operations/DEPLOYMENT.md) — how the processes are laid out and scaled (roles, Redis, sticky routing).
-- [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (SOLID, testing, Git Flow, DoD).
+- [`AGENTS.md`](./AGENTS.md) — engineering rules for AI/human contributors (non-negotiables, Git Flow, product rules, a reading map), with the [engineering method](./docs/engineering/method.md) (SOLID, testing, DoD, session protocol) and the [stack file](./docs/engineering/stack.md) (tools, architecture, conventions).
 - [`docs/profile.md`](./docs/profile.md) — the project profile: every value the rules rely on (coverage gate, branches, merge strategy, API prefix, languages, versions, commands) and the map of the documents.
 - [`docs/quality-reviews/`](./docs/quality-reviews/README.md) — code and docs/harness quality reviews: the project-neutral methods, this repository's bindings, templates and dated reports (the 2026-10-10 code review of the original prototype is historical).
 - [`docs/harness-framework/`](./docs/harness-framework/README.md) — the plan to review, fix and extract this repository's harness into a reusable project-neutral framework (steps, prompts, exit criteria).

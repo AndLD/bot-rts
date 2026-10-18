@@ -1,4 +1,4 @@
-// Import-boundary rules of AGENTS.md §3.1–3.2, checked for the layered code in api/src (`npm run check:boundaries`).
+// Import-boundary rules of docs/engineering/stack.md §2.1–2.2, checked for the layered code in api/src (`npm run check:boundaries`).
 // Layers are the folders domain / application / infrastructure / presentation of every feature; `*.module.ts` files,
 // `app.*`, `bootstrap.ts` and `legacy/` are composition code and may import everything.
 const layer = (name) => `^src/[^/]+/${name}/`

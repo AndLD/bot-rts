@@ -124,7 +124,7 @@ findings and reports the new blueprint readiness. Step 3 starts when the exit cr
 Start Phase 15.
 ```
 
-The session protocol of `AGENTS.md` §7.6 and the phase file do the rest: the agent reads the phase file and its work log, works
+The session protocol ([method §6](../engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase)) and the phase file do the rest: the agent reads the phase file and its work log, works
 through the tasks in order, opens a pull request per task, and merges it once the checks pass. A task that changes the meaning of a
 rule waits for your approval.
 

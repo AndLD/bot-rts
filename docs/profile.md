@@ -87,7 +87,7 @@ Branch types:
 
 | Role | Value |
 | ---- | ----- |
-| **Player languages** | English (`en`) and Russian (`ru`): every UI string, error message and player documentation page |
+| **User-facing languages** | English (`en`) and Russian (`ru`): every UI string, error message and player documentation page |
 | Message catalogues | `client/messages/en.json`, `client/messages/ru.json`, checked by `npm run i18n:check` |
 | Language of the harness and the design documents | English |
 
@@ -155,6 +155,8 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | Role | Document |
 | ---- | -------- |
 | Agent rules (always loaded) | [`AGENTS.md`](../AGENTS.md) |
+| Engineering method (read on demand) | [`engineering/method.md`](./engineering/method.md) |
+| Stack, architecture, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
 | Project profile | this file |
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
 | Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |

@@ -13,7 +13,7 @@ import { ScriptMisuseError } from '../domain/script-misuse'
 export type CallOutcome = Result<JsonValue | undefined> & { delayTicks?: number }
 
 // Serves some of the functions of the script API for the bot that called them. One handler per module family, so a new
-// family is a new class and the router stays unchanged (AGENTS.md §4).
+// family is a new class and the router stays unchanged (docs/engineering/method.md §2).
 export interface ScriptFunctionHandler {
   readonly functions: readonly string[]
   handle(bot: BotState, fn: string, args: readonly JsonValue[]): Promise<CallOutcome>

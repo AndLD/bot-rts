@@ -8,7 +8,7 @@ import { Module } from './module.entity'
 export const DEFAULT_DRIVE_QUOTA_BYTES = 64 * 1024
 
 // A module as the game rules see it: the stored record plus the typed meaning of its type-specific properties. Each
-// type is a subclass, so new behaviour of a type goes into its class and nowhere else (AGENTS.md §4).
+// type is a subclass, so new behaviour of a type goes into its class and nowhere else (docs/engineering/method.md §2).
 export abstract class GameModule {
   constructor(readonly record: Module) {}
 

@@ -75,7 +75,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ### 2026-10-18 — 15.1 project profile done
 - **Tasks:** 15.1 ✅ (H-20261017-08, export blockers B1 and B5)
-- **Branch:** `docs/15.1-project-profile` — done, merged through its pull request
+- **Branch:** `docs/15.1-project-profile` — done, PR #216
 - **Decisions / deviations from the plan:**
   - `docs/profile.md` holds the values by role: project, quality gates, branches and merging (branch-type table, merge strategy,
     commit format), plan (task id, status symbols, SP scale, resume phrases), public API (prefix, versioning policy), languages,

@@ -60,4 +60,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 
 | Branch | Tasks | PR | Status |
 | ------ | ----- | -- | ------ |
-| `docs/15.1-project-profile` | 15.1 | PR_15_1 | ✅ merged |
+| `docs/15.1-project-profile` | 15.1 | [#216](https://github.com/AndLD/bot-rts/pull/216) | ✅ merged |

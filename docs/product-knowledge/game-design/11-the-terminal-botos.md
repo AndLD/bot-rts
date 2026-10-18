@@ -85,7 +85,7 @@ The commands `ping` and `reboot` are decided but no task builds them (Q18).
 - **Control stops:** manual control and the terminal are refused with `NO_SIGNAL`; the open terminal shows
   **"Connection interrupted"**.
 - **Live information stops:** the bot's position, status, scan updates and events no longer reach the player. The map shows
-  its **last known state**, drawn **greyed with diagonal hatching** with a "connection lost N s ago" tooltip (§4.3). The
+  its **last known state**, drawn greyed with diagonal hatching with a "connection lost N s ago" tooltip (§4.3). The
   player gets a `LinkLost` notification.
 - **The bot stays autonomous:** its scripts keep running on its own processor. A script can ask `getLinkStatus()` (§10.2) and
   react, for example by returning toward the base; `sendMessage` to the base fails with `NO_SIGNAL`.

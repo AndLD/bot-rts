@@ -116,7 +116,7 @@ metrics.
 | `suspended` | awaiting `sleep()`, or budget exhausted this tick |
 | `awaiting` | blocked on an API operation (e.g. a move in progress) |
 | `finished` | completed normally |
-| `killed` | terminated via `kill`, `reboot`, energy exhaustion, or a fault |
+| `killed` | terminated via `kill`, `reboot` or a fault (an empty battery does not kill, §12.5.2) |
 
 `top` shows the `queued`/`running`/`suspended`/`awaiting` executions; `kill` moves one to `killed`.
 

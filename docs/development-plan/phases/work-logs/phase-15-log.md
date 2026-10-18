@@ -270,7 +270,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Tasks:** 15.7 ✅ (H-20261017-24)
 - **Branch:** `docs/15.7-glossary` — done, PR pending (see the implementation log); stacked on 15.6
 - **Decisions / deviations from the plan:**
-  - `02-glossary.md` has four columns: term, code name, aliases, definition; one row per concept (62 rows, was 50 with duplicates).
+  - `02-glossary.md` has four columns: term, code name, aliases, definition; one row per concept (62 rows, was 39 with duplicates).
     One row each for the wireless adapter (aliases: control block, remote-control block), the drive (aliases: memory, memory module) and
     the inbox (the two rows merged). "Base" says it is created by Deploy; **Deploy** (a base) and **Assemble** (a bot) are separate rows,
     **Spawn** says it is not a player verb, and §3's last step reads "Appear" instead of "Deploy". The recipe table says "Wireless adapter".

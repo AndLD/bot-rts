@@ -63,9 +63,6 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 | `docs/15.1-project-profile` | 15.1 | [#216](https://github.com/AndLD/bot-rts/pull/216) | ✅ merged |
 | `docs/15.2-method-stack-split` | 15.2 | [#217](https://github.com/AndLD/bot-rts/pull/217) | ✅ merged |
 | `docs/15.3-architecture-doc` | 15.3 | [#218](https://github.com/AndLD/bot-rts/pull/218) | ✅ merged |
-| `docs/15.8-status-markers` | 15.8 | [#227](https://github.com/AndLD/bot-rts/pull/227) | ✅ merged |
-| `fix/15.5-core-rule-contradictions` | 15.5 | [#228](https://github.com/AndLD/bot-rts/pull/228) | ✅ merged |
-| `feat/15.6-script-api-gaps` | 15.6 | [#229](https://github.com/AndLD/bot-rts/pull/229) | 🟡 PR open |
 | `fix/15.5-core-rule-contradictions` | 15.5 | pending | 🟡 PR open |
 | `docs/15.8-status-markers` | 15.8 | pending | 🟡 PR open |
 | `feat/15.6-script-api-gaps` | 15.6 | pending | 🟡 PR open |

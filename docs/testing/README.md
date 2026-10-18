@@ -78,7 +78,27 @@ The whole run took 21 min 02 s, bound by `verify`. The tests of `verify` run one
 | `src/features/admin/operations/RetentionCard.test.tsx` | 146 s |
 
 Jest cannot finish before its slowest file, so `Economy.test.tsx` alone sets a floor of eight minutes for `client`. The
-measurements after each Phase 16 task are added below this table.
+measurements after each Phase 16 task are added below.
+
+**After 16.2** (slow client tests). CI, the pull request run 39167610141 (`chore/16.2-slow-client-tests`), against the baseline run:
+
+| | Baseline | After 16.2 |
+| --- | -------- | ---------- |
+| `verify` | 20 min 59 s | 9 min 45 s |
+| tests with the coverage gate (one step) | 16 min 51 s | 4 min 57 s |
+| `client` Jest `Time:` | 821 s | 56 s |
+| `api` Jest `Time:` | 168 s | 215 s (this run's runner; the `api` tests were not changed) |
+| Slowest client test file | `Economy.test.tsx`, 495 s | under 5 s (Jest prints no time) |
+| Client `testTimeout` | 180 s | 30 s |
+
+Locally (`npx jest --coverage` in `client`): the whole run 239 s → 13 s, `Economy.test.tsx` 196 s → 6.8 s, the slowest single test 26 s → 1.0 s,
+and the same coverage (4390 of 4393 statements, 1602 of 1603 branches). All 883 tests are kept. The slowest files of the `verify` run are now
+in `api`: `api.int.test.ts` 58 s and `engine.int.test.ts` 50 s.
+
+The cause was in the shared setup, not in the files: a CPU profile of `Economy.test.tsx` put 96 s of 105 s in jsdom's
+`getComputedStyle`, called by Testing Library's role queries (`findByRole` runs again at every DOM change) and by `rc-util`'s
+scrollbar measurement. Ant Design writes its style rules into the document (1,400 rules after a few components) and jsdom
+matches every rule on each call (80 ms per call).
 
 ## Coverage
 

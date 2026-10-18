@@ -78,7 +78,7 @@ jobs:
           if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
       - name: Install dependencies
         if: steps.changes.outputs.code == 'true'
-        run: npm ci
+        uses: ./.github/actions/install
       - name: Generate the Prisma client
         if: steps.changes.outputs.code == 'true'
         run: npm run prisma:generate -w api
@@ -123,6 +123,16 @@ jobs:
         run: npm run docs:check
       - name: Release scripts
         run: npm run test:scripts
+      - name: Restore the Jest cache
+        if: steps.changes.outputs.code == 'true'
+        id: jest-cache
+        # Jest keeps its transform cache in the temporary directory. Pull requests read the cache that the last push to develop saved
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/jest_*
+          key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts', 'client/jest.config.ts', 'mcp/jest.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            jest-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts', 'client/jest.config.ts', 'mcp/jest.config.ts') }}-
       - name: Start the log gateway and Elasticsearch
         if: steps.changes.outputs.code == 'true'
         # The same containers and configuration as docker-compose.yml: the gateway collector and a single-node Elasticsearch
@@ -132,6 +142,12 @@ jobs:
         env:
           REQUIRE_OBSERVABILITY: 'true'
         run: npm run test:coverage
+      - name: Save the Jest cache
+        if: github.event_name == 'push' && steps.changes.outputs.code == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/jest_*
+          key: ${{ steps.jest-cache.outputs.cache-primary-key }}
       - name: Coverage report
         if: always() && steps.changes.outputs.code == 'true'
         run: |
@@ -199,7 +215,7 @@ jobs:
           if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
       - name: Install dependencies
         if: steps.changes.outputs.code == 'true'
-        run: npm ci
+        uses: ./.github/actions/install
       - name: Cache the Cypress binary
         if: steps.changes.outputs.code == 'true'
         uses: actions/cache@v4
@@ -243,7 +259,7 @@ jobs:
           if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
       - name: Install dependencies
         if: steps.changes.outputs.code == 'true'
-        run: npm ci
+        uses: ./.github/actions/install
       - name: Build the client
         if: steps.changes.outputs.code == 'true'
         run: npm run build -w client

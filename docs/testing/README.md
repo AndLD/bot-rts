@@ -80,6 +80,26 @@ The whole run took 21 min 02 s, bound by `verify`. The tests of `verify` run one
 Jest cannot finish before its slowest file, so `Economy.test.tsx` alone sets a floor of eight minutes for `client`. The
 measurements after each Phase 16 task are added below.
 
+**After 16.2** (slow client tests). CI, the pull request run 39167610141 (`chore/16.2-slow-client-tests`), against the baseline run:
+
+| | Baseline | After 16.2 |
+| --- | -------- | ---------- |
+| `verify` | 20 min 59 s | 9 min 45 s |
+| tests with the coverage gate (one step) | 16 min 51 s | 4 min 57 s |
+| `client` Jest `Time:` | 821 s | 56 s |
+| `api` Jest `Time:` | 168 s | 215 s (this run's runner; the `api` tests were not changed) |
+| Slowest client test file | `Economy.test.tsx`, 495 s | under 5 s (Jest prints no time) |
+| Client `testTimeout` | 180 s | 30 s |
+
+Locally (`npx jest --coverage` in `client`): the whole run 239 s → 13 s, `Economy.test.tsx` 196 s → 6.8 s, the slowest single test 26 s → 1.0 s,
+and the same coverage (4390 of 4393 statements, 1602 of 1603 branches). All 883 tests are kept. The slowest files of the `verify` run are now
+in `api`: `api.int.test.ts` 58 s and `engine.int.test.ts` 50 s.
+
+The cause was in the shared setup, not in the files: a CPU profile of `Economy.test.tsx` put 96 s of 105 s in jsdom's
+`getComputedStyle`, called by Testing Library's role queries (`findByRole` runs again at every DOM change) and by `rc-util`'s
+scrollbar measurement. Ant Design writes its style rules into the document (1,400 rules after a few components) and jsdom
+matches every rule on each call (80 ms per call).
+
 **After 16.4** (caches). `.github/actions/install` restores `node_modules` of every workspace from a cache keyed on
 `package-lock.json` and `.nvmrc`, and runs `npm ci` only on a miss; `verify`, `e2e` and `lighthouse` use it. `verify` also restores
 Jest's transform cache (`/tmp/jest_*`), which a push to `develop` or `main` saves and pull requests read. The numbers are from the
@@ -114,6 +134,9 @@ saves it, and the numbers of 16.8 show its effect.
   (design §24.1).
 - Cypress specs are in `client/cypress/e2e/<flow>.cy.ts`, run against a seeded backend with deterministic data, and are listed
   in the [matrix](./e2e-matrix.md).
+- Client tests render Ant Design without its style rules (`client/jest.setup.ts`): jsdom does no layout, and the rules made every
+  `getComputedStyle` call, and so every role query, slow. Do not assert on layout or on a rule's presence; a test that must read
+  the rules unmocks `rc-util/lib/Dom/dynamicCSS` ([known-issues.md](./known-issues.md)).
 - Test bounds on real time must be generous (a busy machine runs everything in parallel); measure real cost with the load
   harness, not with a unit test ([known-issues.md](./known-issues.md)).
 

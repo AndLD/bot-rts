@@ -64,3 +64,13 @@
 - **Open decisions:** 6 (keep a 5 % step or change it), 14 (negative treasury with a limit, or the capped mint), the default system
   accounts at first start, the threshold of "many small transfers", whether 10 / 50 per day still limits market trades.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — owner decisions on the bid step and the treasury
+- **Done:** 6: the minimum bid step stays 5 % (rounded up, tunable). 14: the system buyer does not buy while the treasury
+  balance is not positive (no limit on a negative balance is needed); only refunds may take the treasury below zero. The owner
+  also proposes a system seller.
+- **Next step:** confirm: no daily mint any more; an initial treasury endowment; the system seller's source of goods and whether
+  it belongs to Phase 10 or the backlog; plus the four earlier points (edition fee per copy, default system accounts, freeze
+  trigger, market-trade limits). Then write the design PR.
+- **Open decisions:** as in "Next step".
+- **Verify with:** `npm run docs:check`

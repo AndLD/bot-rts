@@ -2,6 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { Button, ConfigProvider } from 'antd'
 import { BUTTON_PADDING, DISABLED_BACKGROUND, DISABLED_TEXT, buttonTheme } from './buttonTheme'
 
+// jest.setup.ts keeps the Ant Design style rules out of the document; this test reads them
+jest.unmock('rc-util/lib/Dom/dynamicCSS')
+
 function luminance(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
   const linear = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)

@@ -7,8 +7,8 @@ import coverageGate from '../scripts/coverage-threshold.json'
 const createJestConfig = nextJest({ dir: './' })
 
 const config: Config = {
-  // The Ant Design components are slow to drive under coverage on a busy CI runner
-  testTimeout: 180000,
+  // The slowest client test takes about one second (jest.setup.ts keeps the Ant Design style rules out of jsdom); this leaves room for a busy CI runner
+  testTimeout: 30000,
   testEnvironment: 'jest-environment-jsdom',
   setupFiles: ['<rootDir>/jest.env.ts'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

@@ -57,6 +57,9 @@ change only Markdown skip it.
   (design §24.1).
 - Cypress specs are in `client/cypress/e2e/<flow>.cy.ts`, run against a seeded backend with deterministic data, and are listed
   in the [matrix](./e2e-matrix.md).
+- Client tests render Ant Design without its style rules (`client/jest.setup.ts`): jsdom does no layout, and the rules made every
+  `getComputedStyle` call, and so every role query, slow. Do not assert on layout or on a rule's presence; a test that must read
+  the rules unmocks `rc-util/lib/Dom/dynamicCSS` ([known-issues.md](./known-issues.md)).
 - Test bounds on real time must be generous (a busy machine runs everything in parallel); measure real cost with the load
   harness, not with a unit test ([known-issues.md](./known-issues.md)).
 

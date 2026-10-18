@@ -295,4 +295,72 @@ describe('EngineWorkerModule', () => {
       await database.client.knownPoint.count({ where: { userId: user.id, x: { gte: 27, lte: 29 }, y: { lte: 21 } } })
     ).toBeGreaterThan(0)
   })
+
+  it('lets a script connect to a bot of another player with its password, and locks the bot out after wrong ones', async () => {
+    const [{ db }] = await database.client.$queryRaw<{ db: string }[]>`SELECT current_database() AS db`
+    const config = loadConfig({
+      DATABASE_URL: urlForDatabase(db),
+      NODE_ENV: 'test',
+      ENGINE_TICK_INTERVAL_MS: '10',
+      BOT_LOCKOUT_FAILURES: '3'
+    })
+    const { link, fromEngine, send } = channel()
+    const app = await Test.createTestingModule({ imports: [EngineWorkerModule.register(config, link)] }).compile()
+    running.push(async () => {
+      send({ kind: 'stop' })
+      await until(() => fromEngine.some((m) => m.kind === 'stopped'), 'the stop')
+      await app.close()
+    })
+    const [alice, bob] = [buildUser(), buildUser({ name: 'Bob' })]
+    const users = new PrismaUserRepository(database.client)
+    await users.add(alice)
+    await users.add(bob)
+    const bots = app.get(BotsService)
+    const { bot: mine } = await bots.deployUserBase(alice, { password: 'secret1', location: { x: 20, y: 20, z: 0 } })
+    const { bot: theirs } = await bots.deployUserBase(bob, { password: 'hunter22', location: { x: 25, y: 20, z: 0 } })
+    const files = app.get(FilesService)
+    const [drive] = await files.listDrives(alice.id, mine.id)
+    await files.write(
+      alice.id,
+      mine.id,
+      drive.id,
+      'hack.js',
+      [
+        'export async function main(bot, target) {',
+        '  const say = (r) => bot.log(r.ok ? "ok " + r.data.isForeign : r.code + " " + r.msg)',
+        '  say(await bot.connect(target, "nope"))',
+        '  say(await bot.connect(target))',
+        '  say(await bot.connect(target, "hunter22"))',
+        '  say(await bot.connect(target, "nope"))',
+        '  say(await bot.connect(target, "nope"))',
+        '  say(await bot.connect(target, "nope"))',
+        '  say(await bot.connect(target, "hunter22"))',
+        '  say(await bot.connect(bot.id))',
+        '}'
+      ].join('\n')
+    )
+
+    await app.get(EngineHost).start()
+    send({
+      kind: 'request',
+      id: 1,
+      request: {
+        op: 'start',
+        request: { userId: alice.id, botId: mine.id, file: '/memory-class1/hack.js', args: [theirs.id] }
+      }
+    })
+    await until(() => fromEngine.filter((m) => m.kind === 'event' && m.event.type === 'log').length === 8, 'the logs')
+
+    const lines = fromEngine.flatMap((m) => (m.kind === 'event' && m.event.type === 'log' ? [m.event.text] : []))
+    expect(lines).toEqual([
+      'FORBIDDEN The password is wrong',
+      'FORBIDDEN The password is wrong',
+      'ok true',
+      'FORBIDDEN The password is wrong',
+      'FORBIDDEN The password is wrong',
+      'FORBIDDEN The password is wrong',
+      'FORBIDDEN The bot refuses connections for now: too many wrong passwords',
+      'ok false'
+    ])
+  })
 })

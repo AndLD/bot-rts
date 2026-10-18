@@ -855,6 +855,7 @@
         "disable": "Switches a scanner, generator or battery off.",
         "getLocation": "Where the bot is: x, y and z.",
         "getLinkStatus": "The radio link of the bot to its base: connected or not, signal bars and hops.",
+        "connect": "Opens a link to another bot. A bot of another player needs its password; wrong passwords cost energy and lock the bot out after a few in a row.",
         "craft": "Orders modules from the factory of the base.",
         "assemble": "Assembles a bot from module parts at the factory.",
         "research": "Starts the research of the blueprint of a higher class.",

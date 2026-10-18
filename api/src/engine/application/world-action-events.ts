@@ -1,3 +1,4 @@
+import { BotPasswordWrongError } from '../../terminal/domain/terminal.errors'
 import type { GameEvent } from '../domain/game-event'
 import type { FactoryJob } from '../../modules/domain/game-module'
 import type { WorldActionName } from './world-actions'
@@ -64,4 +65,23 @@ export function worldActionEvents(
     : (controlledBotOf(name, args) as { botId: string }).botId
 
   return [{ ...make(args, result), at, parties: [{ userId, botId }] } as GameEvent]
+}
+
+// A wrong password on a bot is news for the bot's owner (design §24.2), even though the one who tried only gets an error. The
+// event has both parties: the owner of the target and the bot that tried.
+export function failedAttemptEvent(error: unknown, userId: string, fromBotId: string, at: number): GameEvent | null {
+  if (!(error instanceof BotPasswordWrongError) || !error.attempt?.ownerId) {
+    return null
+  }
+  const { targetBotId, ownerId, isLockedOut } = error.attempt
+
+  return {
+    type: 'PasswordAttemptFailed',
+    at,
+    parties: [
+      { userId: ownerId, botId: targetBotId },
+      { userId, botId: fromBotId }
+    ],
+    isLockedOut
+  }
 }

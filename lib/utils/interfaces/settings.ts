@@ -67,6 +67,7 @@ const FUNCTION_CATEGORIES: ReadonlyMap<string, ManualCategory> = new Map([
   ['assemble', ManualCategory.FABRICATION],
   ['research', ManualCategory.FABRICATION],
   ['learn', ManualCategory.FABRICATION],
+  ['connect', ManualCategory.COMMUNICATION],
   ['repair', ManualCategory.MAINTENANCE],
   ['disassemble', ManualCategory.MAINTENANCE],
   ['enable', ManualCategory.MAINTENANCE],

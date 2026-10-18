@@ -44,8 +44,7 @@ import { LiveVision } from './live-vision'
 import { LinkStatus, RadioNetwork } from './radio-network'
 import { WorldActionExecutor } from './world-action-executor'
 import { ACTION_CATEGORIES, controlledBotOf, WorldActionName } from './world-actions'
-import { BotPasswordWrongError } from '../../terminal/domain/terminal.errors'
-import { worldActionEvents } from './world-action-events'
+import { failedAttemptEvent, worldActionEvents } from './world-action-events'
 import { categoryOfFunction, ManualCategory } from '../../../../lib/utils/interfaces/settings'
 import { findScriptFunction, ScriptFunctionSpec, scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { Rng } from '../../shared/application/rng'
@@ -371,18 +370,10 @@ export class EngineCore {
 
   // A wrong password on a bot is news for the bot's owner (design §24.2), even though the one who tried only gets an error
   private publishFailedAttempt(error: unknown, args: readonly unknown[]): void {
-    if (error instanceof BotPasswordWrongError && error.attempt?.ownerId) {
-      const { targetBotId, ownerId, isLockedOut } = error.attempt
+    const event = failedAttemptEvent(error, args[0] as string, args[1] as string, this.deps.outbox.now())
 
-      this.deps.outbox.publish({
-        type: 'PasswordAttemptFailed',
-        at: this.deps.outbox.now(),
-        parties: [
-          { userId: ownerId, botId: targetBotId },
-          { userId: args[0] as string, botId: args[1] as string }
-        ],
-        isLockedOut
-      })
+    if (event) {
+      this.deps.outbox.publish(event)
     }
   }
 

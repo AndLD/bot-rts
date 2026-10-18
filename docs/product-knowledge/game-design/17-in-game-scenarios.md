@@ -28,23 +28,23 @@ Each scenario is a short narrative walkthrough of a mechanic, in the order a pla
 Alice crafts a mobile bot, connects to it, writes `prospector.js`:
 
 ```js
-async function main(bot, baseId) {
+export async function main(bot) {
   while (true) {
     const scan = await bot.scan()
     if (!scan.ok) {
-      await bot.sendMessage(baseId, `Scan failed: ${scan.code}`)
+      bot.log(`Scan failed: ${scan.code}`)
       break
     }
 
-    const gold = scan.data.find((cell) => cell.type === 'RESOURCE.GOLD')
+    const gold = scan.data.find((cell) => cell.type === 'resource' && cell.resource?.resource === 'gold')
     if (gold) {
-      await bot.sendMessage(baseId, `Gold found in location [${gold.location.x}, ${gold.location.y}]`)
+      bot.log(`Gold found in location [${gold.x}, ${gold.y}]`)
       break
     }
 
     const moved = await bot.move(1)
     if (!moved.ok) {
-      await bot.sendMessage(baseId, `I'm stuck: ${moved.code}`)
+      bot.log(`I'm stuck: ${moved.code}`)
       break
     }
 
@@ -55,11 +55,11 @@ async function main(bot, baseId) {
 
 1. Scan → no gold.
 2. `move(1)` → the bot advances one cell.
-3. If the move fails (`BLOCKED`, `NO_ENERGY`, …), the result says why, so the bot is **stuck**: it messages the base and
-   stops. (In the original notes the script compared two `getLocation()` readings to detect this; the result object now
+3. If the move fails (`BLOCKED`, `NO_ENERGY`, …), the result says why, so the bot is **stuck**: it logs the reason and
+   stops (§10.3). (In the original notes the script compared two `getLocation()` readings to detect this; the result object now
    makes that unnecessary.)
 4. Otherwise it sleeps 1 s and loops.
-5. When gold appears in the scan, it reports the coordinates to the base and exits.
+5. When gold appears in the scan (a cell of type `resource` holding gold, §4.2), it logs the coordinates and exits.
 
 **Design intent:** the whole game is legible in ~20 lines of code, and every failure mode is something the player can
 program around.

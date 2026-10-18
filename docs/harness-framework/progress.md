@@ -74,3 +74,13 @@
   trigger, market-trade limits). Then write the design PR.
 - **Open decisions:** as in "Next step".
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — owner proposal: a treasury in two parts
+- **Done:** the owner proposes two treasury accounts. The **main** one pays the system buyer. A **pending** one holds the fees of
+  trades that are not finished (open listings and auctions, deliveries still being retried). Refunds of those fees come only from
+  the pending part; when a trade finishes, its fees move to the main part.
+- **Next step:** confirm that frozen-wallet refunds cover only the fees of open trades; decide where admin compensation refunds
+  come from; then the earlier open points (no mint, initial endowment, system seller scope, edition fee per copy, default system
+  accounts, freeze trigger, market-trade limits).
+- **Open decisions:** as in "Next step".
+- **Verify with:** `npm run docs:check`

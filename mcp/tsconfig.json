@@ -5,6 +5,7 @@
     "moduleResolution": "node16",
     "strict": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "outDir": "./ts-built",
     "sourceMap": true

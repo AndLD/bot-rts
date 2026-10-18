@@ -85,6 +85,6 @@ personal data again, cuts long text and refuses oversized answers before they re
 
 ## Tests
 
-`mcp/` has unit tests (a fake game API, the SDK's own client over an in-memory transport and over HTTP) with the 97 % gate, and
+`mcp/` has unit tests (a fake game API, the SDK's own client over an in-memory transport and over HTTP) with the coverage gate, and
 `api/src/mcp.int.test.ts` runs the server against the real API on a seeded database. The end-to-end spec of Phase 8.13 plays a scan and a
 move through it with the engine running.

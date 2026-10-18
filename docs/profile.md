@@ -1,0 +1,172 @@
+[← README](../README.md) · rules: [`AGENTS.md`](../AGENTS.md)
+
+# Project profile
+
+Every injectable value of this repository's harness, named by its **role**. Rules elsewhere cite the role ("the coverage gate",
+"the integration branch") and link here; they do not repeat the value. To change a value, change it here (and in the one
+mechanism named next to it), never in the rules. A new project built on the same method rewrites this file.
+
+The method documents keep their own `bindings.md` (plan, phases, code review, harness review). A binding that needs a value
+below links to its row instead of copying it.
+
+---
+
+## 1. Project
+
+| Role | Value |
+| ---- | ----- |
+| Project name | `bot-rts` (Bot RTS) |
+| Product | A programmable real-time strategy sandbox: players write scripts that control bots on a shared map |
+| Repository | `AndLD/bot-rts` on GitHub |
+| Packages (npm workspaces) | `api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server) |
+| Agent entry file | `AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`) |
+| Owner | The repository owner; the only person who approves rule changes and merges outside the started phases |
+
+## 2. Quality gates
+
+| Role | Value | Mechanism |
+| ---- | ----- | --------- |
+| **Coverage gate** | **97 %** of statements, branches, functions and lines | the constant [`scripts/coverage-threshold.json`](../scripts/coverage-threshold.json), read by the three `jest.config.ts` files and `scripts/check-changed-coverage.mjs` |
+| Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI |
+| Coverage exclusions | entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts` | `collectCoverageFrom` |
+| Local gate | the pre-push hook runs typecheck and the tests with the coverage gate when a push changes more than Markdown | `.githooks/pre-push` |
+| Required checks for a merge | the status contexts listed in the ruleset of `scripts/protect-branches.sh` | GitHub repository ruleset `protected-branches` |
+
+## 3. Branches and merging
+
+| Role | Value |
+| ---- | ----- |
+| **Production branch** | `main`; every release is tagged `vX.Y.Z` |
+| **Integration branch** | `develop`; also the GitHub default branch; all work starts here |
+| Protected branches | the production and the integration branch |
+| Branch retention | merged branches are kept on GitHub; automatic deletion of head branches is off |
+
+Branch types:
+
+| Type | Name | Purpose | Branched from | Merges into | Merge strategy |
+| ---- | ---- | ------- | ------------- | ----------- | -------------- |
+| feature | `feature/<id>-<slug>` | new work | integration | integration | squash merge |
+| bugfix | `bugfix/<id>-<slug>` | non-release fixes | integration | integration | squash merge |
+| docs | `docs/<slug>` | documentation-only changes | integration | integration | squash merge |
+| chore | `chore/<slug>` | tooling, CI, dependencies, config | integration | integration | squash merge |
+| release | `release/<x.y.z>` | release stabilization (fixes only) | integration | production **and** integration | merge commit |
+| hotfix | `hotfix/<x.y.z>` | urgent production fix | production | production **and** integration | merge commit |
+
+`<id>` is a plan task id (section 4); a docs or chore branch that implements a plan task may carry it too
+(`docs/15.1-project-profile`). A squash merge produces one Conventional Commit per pull request; a merge commit keeps release history traceable.
+
+| Role | Value |
+| ---- | ----- |
+| Commit format | [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `ci`, optional scope in parentheses, `!` and a `BREAKING CHANGE:` footer for breaking changes |
+| Plan reference in a commit | a `Plan: <task id>` line in the body |
+| Pull-request title | the squash commit's message, checked by the CI job `pr-title` |
+
+## 4. Plan
+
+| Role | Value |
+| ---- | ----- |
+| Plan index | [`docs/development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
+| Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
+| Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
+| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only |
+| Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
+| Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
+| Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
+| Open-ended phase | Phase 12 (issues found in use); its size grows |
+| Specification citation | `design §<section>` for the game design (for example `design §12.4`) |
+
+## 5. Public API
+
+| Role | Value |
+| ---- | ----- |
+| **API prefix** | `/api/v1` (REST and WebSocket); the official client, third-party clients and the MCP server use the same surface |
+| Versioning policy | changes inside a version stay compatible; a breaking change ships as the next version (`/api/v2`); deprecation and announcement per [`integrations/API.md`](./product-knowledge/integrations/API.md) |
+| API description | the OpenAPI document `api/openapi.json`, generated from the controllers and DTOs |
+
+## 6. Languages
+
+| Role | Value |
+| ---- | ----- |
+| **Player languages** | English (`en`) and Russian (`ru`): every UI string, error message and player documentation page |
+| Message catalogues | `client/messages/en.json`, `client/messages/ru.json`, checked by `npm run i18n:check` |
+| Language of the harness and the design documents | English |
+
+## 7. Runtime versions
+
+| Role | Value |
+| ---- | ----- |
+| Language | TypeScript 5.x, `strict: true` |
+| Runtime | Node.js 20 LTS |
+| Database | PostgreSQL, the image pinned in `docker-compose.yml` (`postgres:16.4`), the same version locally, in CI and in production |
+
+## 8. Commands
+
+Run from the repository root unless a package is named.
+
+| Role | Command |
+| ---- | ------- |
+| Lint (ESLint of every package and the Prettier check) | `npm run lint` |
+| Format | `npm run format` |
+| Typecheck | `npm run typecheck` |
+| Unit and integration tests | `npm test` (needs `npm run db:up`) |
+| Tests with the coverage gate | `npm run test:coverage` |
+| Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
+| Import boundaries | `npm run check:boundaries` |
+| Message catalogues | `npm run i18n:check` |
+| Markdown links and anchors | `npm run docs:check` |
+| Build | `npm run build` |
+| End-to-end tests | `npm run e2e` |
+| Regenerate the API description | `npm run openapi:generate -w api` |
+| Regenerate the web client's API layer | `npm run api:generate -w client` |
+| Start the local database (and Redis) | `npm run db:up` |
+| Apply migrations to the local database | `npm run db:migrate -w api` |
+| Seed the local database | `npm run db:seed -w api` |
+
+## 9. Review values
+
+The harness review's term lists (M1, M2 of its method) and the bounded contexts of the product knowledge.
+
+Stack terms (case-insensitive), which must not appear in CORE or DOMAIN text:
+
+```bash
+STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
+```
+
+Product terms, which must not appear in CORE sections:
+
+```bash
+PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
+```
+
+Bounded contexts (files of `docs/product-knowledge/game-design/`):
+
+| Context               | Sections                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
+| World and base        | 04 world and map, 06 the base                                                                   |
+| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
+| Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
+| Interface and play    | 15 screens, 17 in-game scenarios                                                                |
+| Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
+| Platform              | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog     |
+
+## 10. Document map
+
+| Role | Document |
+| ---- | -------- |
+| Agent rules (always loaded) | [`AGENTS.md`](../AGENTS.md) |
+| Project profile | this file |
+| Project overview, setup, environment variables | [`README.md`](../README.md) |
+| Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
+| Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
+| Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`MCP.md`](./product-knowledge/integrations/MCP.md) |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md) |
+| Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
+| Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`bindings.md`](./development-plan/bindings.md) |
+| Definition of done | [`development-plan/cross-cutting/definition-of-done.md`](./development-plan/cross-cutting/definition-of-done.md) |
+| Guiding principles | [`development-plan/cross-cutting/guiding-principles.md`](./development-plan/cross-cutting/guiding-principles.md) |
+| Testing guide, e2e matrix | [`testing/README.md`](./testing/README.md), [`testing/e2e-matrix.md`](./testing/e2e-matrix.md) |
+| Deployment and releases | [`operations/DEPLOYMENT.md`](./operations/DEPLOYMENT.md), [`operations/RELEASING.md`](./operations/RELEASING.md) |
+| Code quality reviews | [`quality-reviews/code/README.md`](./quality-reviews/code/README.md) |
+| Harness quality reviews | [`quality-reviews/harness/README.md`](./quality-reviews/harness/README.md), [`bindings.md`](./quality-reviews/harness/bindings.md) |
+| Harness-to-framework plan | [`harness-framework/README.md`](./harness-framework/README.md) |

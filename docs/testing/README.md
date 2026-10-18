@@ -28,10 +28,10 @@ works in practice.
 | Command | What it does |
 | --- | --- |
 | `npm test` | Jest of every package (`npm run db:up` first: integration tests need PostgreSQL) |
-| `npm run test:coverage` | The same with coverage; fails below 97 % per package |
+| `npm run test:coverage` | The same with coverage; fails below the coverage gate per package |
 | `npm run e2e` | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
-| `npm run i18n:check` | English and Russian message catalogues are complete |
+| `npm run i18n:check` | The message catalogues of every player language are complete |
 | `npm run docs:check` | Markdown links |
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
@@ -41,8 +41,9 @@ change only Markdown skip it.
 
 ## Coverage
 
-- **≥ 97 %** statements, branches, functions and lines, separately for `api`, `client` and `mcp`.
-- CI also blocks a PR whose **changed files** are below 97 % (`scripts/check-changed-coverage.mjs`).
+- The **coverage gate** of the [profile](../profile.md#2-quality-gates) on statements, branches, functions and lines,
+  separately for `api`, `client` and `mcp`; its value is the constant `scripts/coverage-threshold.json`.
+- CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`).
 - Every task ships its own tests; the story points include them. Exclusions are listed with their reason in the Jest configs, or
   are a targeted `/* istanbul ignore next */` with a comment.
 

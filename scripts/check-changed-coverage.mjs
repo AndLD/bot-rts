@@ -1,14 +1,13 @@
-// Fails when a source file changed by the pull request has less than 97 % coverage on any metric.
+// Fails when a source file changed by the pull request is below the coverage gate on any metric.
 // Usage: node scripts/check-changed-coverage.mjs <base-ref> [<package-dir>...]
-// Reads <package-dir>/coverage/coverage-summary.json (Jest `json-summary` reporter).
+// Reads <package-dir>/coverage/coverage-summary.json (Jest `json-summary` reporter) and the gate from
+// scripts/coverage-threshold.json, the constant the Jest configs read too (docs/profile.md).
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
-const THRESHOLD = 97
-const METRICS = ['statements', 'branches', 'functions', 'lines']
-
 const root = resolve(import.meta.dirname, '..')
+const gate = JSON.parse(readFileSync(join(root, 'scripts', 'coverage-threshold.json'), 'utf8'))
 const [base, ...packages] = process.argv.slice(2)
 
 if (!base) {
@@ -46,9 +45,9 @@ for (const pkg of packages.length ? packages : ['api']) {
     }
 
     checked += 1
-    const low = METRICS.filter((metric) => data[metric].pct < THRESHOLD).map(
-      (metric) => `${metric} ${data[metric].pct}%`
-    )
+    const low = Object.entries(gate)
+      .filter(([metric, threshold]) => data[metric].pct < threshold)
+      .map(([metric, threshold]) => `${metric} ${data[metric].pct}% (gate ${threshold}%)`)
 
     if (low.length) {
       failures.push(`${file}: ${low.join(', ')}`)
@@ -57,8 +56,8 @@ for (const pkg of packages.length ? packages : ['api']) {
 }
 
 if (failures.length) {
-  console.error(`Changed files below ${THRESHOLD}% coverage:\n${failures.join('\n')}`)
+  console.error(`Changed files below the coverage gate:\n${failures.join('\n')}`)
   process.exit(1)
 }
 
-console.log(`${checked} changed source files meet the ${THRESHOLD}% coverage threshold.`)
+console.log(`${checked} changed source files meet the coverage gate.`)

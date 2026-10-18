@@ -10,20 +10,21 @@ Review step 2 of the method checks the layer map below against the repository an
 
 ---
 
-## 1. Layer map (as of the first review, to be verified by each full review)
+## 1. Layer map (corrected by the review of 2026-10-17, section 2; to be verified by each full review)
 
 Target layer is where the content belongs; "Current" notes where it sits now when that differs.
 
 | Layer       | Files and sections                                                                                                                       |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **CORE**    | Currently embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. No standalone core files yet. |
-| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE) |
-| **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` |
-| **PROFILE** | No single file yet. Values are spread across `AGENTS.md`, `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/cross-cutting/guiding-principles.md` and the scripts. Whether one exists is itself a D3 finding. |
-| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/quality-reviews/code/*`, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/product-knowledge/archived-docs/*` |
-| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md` |
+| **CORE**    | The method documents: `docs/development-plan/README.md`, `_template.md`, `phases/README.md`, `phases/_template.md`; `docs/quality-reviews/README.md`; the method (`README.md`) and template (`_template.md`) of both review kinds (`docs/quality-reviews/code/`, `docs/quality-reviews/harness/`). Currently also embedded in `AGENTS.md`: §1 mission, §4 SOLID checklist, §6.5 definition of done (the generic part), §7 Git Flow (branch types, merge rules, session protocol), §8 do's and don'ts. `docs/development-plan/cross-cutting/definition-of-done.md` and `guiding-principles.md` are CORE by intent; while they carry project values they are **doubly classified** (CORE and PROFILE). |
+| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md` and `MCP.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE). Doubly classified: `25-admin-console.md` (DOMAIN plus operations metrics, prototype history and metric-storage decision records) and `12-real-time-execution-model.md` (DOMAIN plus thread and process deployment, which is ADAPTER) |
+| **ADAPTER** | `AGENTS.md` §2 stack, §3 architecture and layering, §5 conventions, §6.1–6.4 test tooling, §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` (including `clock-consumers.md`, `known-issues.md`, `load-testing.md`) |
+| **PROFILE** | [`docs/profile.md`](../../profile.md): every injectable value of the harness by role and the document map; the coverage-gate constant `scripts/coverage-threshold.json`. The four `bindings.md` files (plan, phases, code review, harness review) are the profiles of their methods and link to `docs/profile.md` for shared values. |
+| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-5.1-execution-model.md` (a decision record), `docs/product-knowledge/CHANGELOG.md`, `docs/quality-reviews/code/*` reports, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/product-knowledge/archived-docs/*` (including `notes.txt`); `docs/harness-framework/README.md` (a plan, STATE for the extraction step) |
+| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/harness-framework/README.md` (as an index of the extraction plan) |
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
+Out of scope: `client/public/atlas/LICENSE.md` (third-party).
 
 Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Review only whether it repeats repository rules.
 
@@ -38,21 +39,15 @@ Replace a layer name by its file list from section 1.
 
 ### M1, M2: term leaks
 
-Stack terms (case-insensitive) that must not appear in CORE or DOMAIN text:
+Set `STACK` (stack terms, case-insensitive, which must not appear in CORE or DOMAIN text) and `PRODUCT` (product terms, which must
+not appear in CORE sections) from the [profile, section 9](../../profile.md#9-review-values), then:
 
 ```bash
-STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
 grep -rniE "$STACK" docs/product-knowledge/game-design/GAME-DESIGN.md docs/product-knowledge/game-design docs/product-knowledge/integrations | wc -l
 grep -rniEc "$STACK" docs/product-knowledge/game-design/*.md | sort -t: -k2 -nr | head
 ```
 
-For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer. Product terms that must not
-appear in CORE sections:
-
-```bash
-PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
-```
-
+For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer; search CORE sections for `$PRODUCT`.
 A hit is a leak only if the term carries project meaning there ("module" in "Nest module" is a stack term; judge by context).
 
 ### M3: reference direction
@@ -138,17 +133,8 @@ for f in docs/development-plan/phases/work-logs/*.md; do printf '%s ' "$f"; grep
 
 ### M12 to M15: product knowledge integrity
 
-Bounded contexts for the partition (files of `docs/product-knowledge/game-design/`; one subagent per row, then a cross-context pass):
-
-| Context               | Sections                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
-| World and base        | 04 world and map, 06 the base                                                                   |
-| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
-| Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
-| Interface and play    | 15 screens, 17 in-game scenarios                                                                |
-| Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
-| Platform              | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog     |
+Bounded contexts for the partition: the table in the [profile, section 9](../../profile.md#9-review-values) (one subagent per
+row, then a cross-context pass).
 
 Cross-cutting invariants to test against every context (source: `AGENTS.md` §9 and the design): a single writer of world
 state (the engine); determinism (injected clock and seeded RNG, fixed ordering); tunable balance (numbers live in config,

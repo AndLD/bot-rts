@@ -1,4 +1,6 @@
 import type { Config } from 'jest'
+// The coverage gate of the project profile (docs/profile.md), shared with scripts/check-changed-coverage.mjs
+import coverageGate from '../scripts/coverage-threshold.json'
 
 const shared: Config = {
   preset: 'ts-jest',
@@ -45,8 +47,7 @@ const config: Config = {
     '!prisma/**', // seed script and migrations
     '!scripts/**' // command line entry points
   ],
-  // The gate of AGENTS.md §6.1, per package
-  coverageThreshold: { global: { statements: 97, branches: 97, functions: 97, lines: 97 } },
+  coverageThreshold: { global: coverageGate },
   coverageReporters: ['text-summary', 'json-summary', 'lcov']
 }
 

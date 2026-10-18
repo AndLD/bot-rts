@@ -127,7 +127,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         # The same containers and configuration as docker-compose.yml: the gateway collector and a single-node Elasticsearch
         run: docker compose --profile observability up -d --wait otel-collector
-      - name: Unit and integration tests with the 97 % coverage gate
+      - name: Unit and integration tests with the coverage gate
         if: steps.changes.outputs.code == 'true'
         env:
           REQUIRE_OBSERVABILITY: 'true'
@@ -144,7 +144,7 @@ jobs:
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           done
-      - name: Coverage of changed files (at least 97 %)
+      - name: Coverage of changed files (the coverage gate)
         if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
         run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client mcp
       - name: Build

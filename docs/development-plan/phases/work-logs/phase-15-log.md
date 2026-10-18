@@ -72,3 +72,29 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   does not render as a table; every row is one line now.
 - **Next step:** start 15.1 when the owner asks ("Start Phase 15"); no open question remains.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — 15.1 project profile done
+- **Tasks:** 15.1 ✅ (H-20261017-08, export blockers B1 and B5)
+- **Branch:** `docs/15.1-project-profile` — done, PR #216
+- **Decisions / deviations from the plan:**
+  - `docs/profile.md` holds the values by role: project, quality gates, branches and merging (branch-type table, merge strategy,
+    commit format), plan (task id, status symbols, SP scale, resume phrases), public API (prefix, versioning policy), languages,
+    runtime versions, commands, the review term lists and bounded contexts, and the document map.
+  - The coverage gate is the constant `scripts/coverage-threshold.json` (`{ statements, branches, functions, lines }`). The three
+    `jest.config.ts` files import it (`mcp/tsconfig.json` gained `resolveJsonModule`); `scripts/check-changed-coverage.mjs` reads
+    it and reports the gate per metric; the CI step names and the pre-push hook name the gate without its value.
+  - The branch-type and merge-strategy tables left `AGENTS.md` §7.1–7.2 and `README.md` for the profile; the rules cite roles
+    ("the coverage gate", "the player languages", "the API prefix", "the versioning policy"). The plan and phases bindings link to
+    the profile for the shared rows; the harness bindings take the term lists and bounded contexts from it.
+  - The corrected layer map of the review (its section 2) is in `docs/quality-reviews/harness/bindings.md` §1.
+  - Scope of the M4 search: the rule and reference documents. Historical STATE (finished phase files, work logs, dated reports,
+    `archived-docs/`) keeps the values it recorded at the time; product facts (the design, the changelog, `API.md` endpoint
+    lists) keep `/api/v1` and the language names, because they describe the product, not the harness.
+- **Problems / blockers / findings:**
+  - `npm run lint` fails locally only on Prettier warnings for two untracked worktrees under `.claude/worktrees/`
+    (their `api/openapi.json`); ESLint is clean, and CI does not see those folders.
+  - `npm run test:coverage` was not run in full locally (it needs the Docker database); the gate was verified with
+    `npx jest --showConfig` in all three packages (97 on each metric) and by `mcp` failing with a raised threshold in the constant.
+- **Next step:** start 15.2 (method and stack split of `AGENTS.md`).
+- **Verify with:** `npm run docs:check`; `git grep -nE '97 ?%' -- AGENTS.md README.md docs/testing docs/development-plan/cross-cutting`
+  (no hit); `(cd mcp && npx jest --showConfig | grep -A5 coverageThreshold)`

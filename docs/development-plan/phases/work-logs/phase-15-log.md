@@ -265,3 +265,25 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   pre-push run of 15.5 under the parallel load and passed on the retry (a known flake of the memory notes).
 - **Next step:** start 15.7 (glossary): the branch `docs/15.7-glossary` already holds the work and is stacked on this one.
 - **Verify with:** `npm run docs:check`; `cd api && npx jest src/engine/application/handlers/connect-handler.test.ts src/engine/infrastructure/design-examples.test.ts`; `cd api && npx jest src/engine/engine-worker.module.int.test.ts -t connect`
+
+### 2026-10-19 — 15.7 glossary done
+- **Tasks:** 15.7 ✅ (H-20261017-24)
+- **Branch:** `docs/15.7-glossary` — done, PR pending (see the implementation log); stacked on 15.6
+- **Decisions / deviations from the plan:**
+  - `02-glossary.md` has four columns: term, code name, aliases, definition; one row per concept (59 rows, was 50 with duplicates).
+    One row each for the wireless adapter (aliases: control block, remote-control block), the drive (aliases: memory, memory module) and
+    the inbox (the two rows merged). "Base" says it is created by Deploy; **Deploy** (a base) and **Assemble** (a bot) are separate rows,
+    **Spawn** says it is not a player verb, and §3's last step reads "Appear" instead of "Deploy". The recipe table says "Wireless adapter".
+  - The terms of the review that were undefined are in: starter kit, monitor, chunk, cell, factory, battery, spawn, class, radio range,
+    link; also live area, adjacent cell, seeded RNG, notification center, landing page, blueprint item, repair threshold, storage,
+    resource, item, script, execution and trade (the check found them).
+  - The check (`scripts/glossary-lib.mjs`, `scripts/check-glossary.mjs`, tests `scripts/glossary-lib.test.mjs`, part of
+    `npm run docs:check`): a name (term or alias) belongs to one row; every row fills the four columns; a term the design emphasises
+    in bold in two or more design files must be defined (singular and plural count as one name; a short list of stress words such as
+    "not" and "real" is ignored). I tried "capitalised mid-sentence words" first: the design writes its domain terms in lower case, so
+    that list held only stack words; the bold terms are what a reader takes for a defined term.
+  - §12.3: the state table said an execution is killed by "energy exhaustion", which contradicts §12.5.2 (settled in 15.5); fixed.
+- **Problems / blockers / findings:** none.
+- **Next step:** start 15.4 (product knowledge without stack, plan and history). Before it, merge 15.5, 15.6 and 15.7 in this order and
+  rebase the next branch on `origin/develop`.
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `grep -c '^| \*\*' docs/product-knowledge/game-design/02-glossary.md`

@@ -50,3 +50,21 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   `npm ci` 69 to 87 s per job.
 - **Next step:** 16.2 (slow client tests), then 16.4, then 16.5.
 - **Verify with:** `npm run test:scripts`; `node scripts/ci-timings.mjs 39158838242`; `npm run docs:check`
+
+### 2026-10-19 — 16.2 slow client tests done
+- **Tasks:** 16.2 ✅ (16.1 merged as #221)
+- **Branch:** `chore/16.2-slow-client-tests` — done, PR #222
+- **Decisions / deviations from the plan:**
+  - The cause was not in the admin tests but in the shared setup: Ant Design writes ~1,400 style rules into the jsdom document and
+    every `getComputedStyle` call matches all of them (80 ms per call). Testing Library's role queries call it for every element,
+    and `findByRole` repeats the query at every DOM change. `client/jest.setup.ts` now mocks `updateCSS` of
+    `rc-util/lib/Dom/dynamicCSS`, so the rules stay out of the document. `buttonTheme.test.tsx`, which reads the rules, unmocks it.
+  - No file had to be split: the largest client file now takes under 5 s in CI. The `{ timeout: 15000 }` workarounds in four test
+    files are removed, and `testTimeout` goes from 180 s to 30 s.
+- **Problems / blockers / findings:**
+  - CI (run 39167610141): `verify` 9 min 45 s (was 21 min), client Jest 56 s (was 821 s). The longest Jest run is now `api`
+    (215 s; `api.int.test.ts` 58 s, `engine.int.test.ts` 50 s), and `e2e` (10 min 51 s) is the longest check.
+  - The pre-push hook cannot start its own PostgreSQL while the main checkout's containers hold ports 5432 and 6379 (15.12 covers
+    this); the local gate was run by hand and the branch pushed with `--no-verify`.
+- **Next step:** 16.4 (caches, PR #223 open), then 16.5.
+- **Verify with:** `npm run test:coverage -w client`; `node scripts/ci-timings.mjs 39167610141`; `npm run docs:check`

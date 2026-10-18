@@ -142,7 +142,7 @@ describe('DevToolsPage', () => {
     )
     renderPage()
     fireEvent.click(await button('Reset the database'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'a clean slate' } })
 
     // Without the word nothing is sent
@@ -168,7 +168,7 @@ describe('DevToolsPage', () => {
     )
     renderPage()
     fireEvent.click(await button('Reset the database'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     fireEvent.change(dialog().querySelector('textarea') as HTMLTextAreaElement, { target: { value: 'a clean slate' } })
     fireEvent.change(dialog().querySelector('input') as HTMLInputElement, { target: { value: 'RESET' } })
     fireEvent.click(await button('Confirm'))

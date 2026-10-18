@@ -118,7 +118,7 @@ describe('the retention card', () => {
     fireEvent.change(days, { target: { value: '10' } })
 
     fireEvent.click(await button('Save changes'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     fireEvent.change(reasonField(), { target: { value: 'less to keep' } })
     fireEvent.click(await button('Confirm'))
 
@@ -135,7 +135,7 @@ describe('the retention card', () => {
     renderAs('owner')
     await toggle('Erasure of inactive accounts')
     fireEvent.click(await button('Save changes'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
 
     fireEvent.change(reasonField(), { target: { value: 'policy' } })
     fireEvent.change(dialog().querySelector('input') as HTMLInputElement, { target: { value: 'ERASE' } })
@@ -175,7 +175,7 @@ describe('the retention card', () => {
     const calls = serve(retention())
     renderAs('admin')
     fireEvent.click(await button('Reset all to the defaults'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     fireEvent.change(reasonField(), { target: { value: 'back to normal' } })
     fireEvent.click(await button('Confirm'))
 
@@ -190,7 +190,7 @@ describe('the retention card', () => {
     const calls = serve(retention())
     renderAs('admin')
     fireEvent.click(await button('Reset all to the defaults'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
 
     fireEvent.click(await button('Cancel'))
 
@@ -204,7 +204,7 @@ describe('the retention card', () => {
     )
     renderAs('admin')
     fireEvent.click(await button('Reset all to the defaults'))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     fireEvent.change(reasonField(), { target: { value: 'back to normal' } })
     fireEvent.click(await button('Confirm'))
 

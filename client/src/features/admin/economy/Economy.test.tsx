@@ -308,11 +308,11 @@ describe('the feature switches', () => {
 
     // The switches appear (disabled, on) before the saved state arrives: wait for the state, not for the element
     const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
-    await waitFor(() => expect(keys).not.toBeChecked(), { timeout: 15000 })
+    await waitFor(() => expect(keys).not.toBeChecked())
     expect(screen.getByRole('switch', { name: 'Sign-ups' })).toBeChecked()
 
     fireEvent.click(screen.getByRole('switch', { name: 'Sign-ups' }))
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     await confirmWith('incident 7')
 
     await waitFor(() =>
@@ -330,7 +330,7 @@ describe('the feature switches', () => {
     const keys = await screen.findByRole('switch', { name: 'Creating API keys' })
     await waitFor(() => expect(keys).toBeEnabled())
     fireEvent.click(keys)
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
 
     expect(screen.getByText('Switch on: Creating API keys')).toBeInTheDocument()
     await confirmWith('the incident is over')
@@ -354,10 +354,10 @@ describe('the feature switches', () => {
     const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
     await waitFor(() => expect(signUps).toBeEnabled())
     fireEvent.click(signUps)
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
     await confirmWith('incident 7')
 
-    await waitFor(() => expect(calls.some((call) => call.method === 'PATCH')).toBe(true), { timeout: 15000 })
+    await waitFor(() => expect(calls.some((call) => call.method === 'PATCH')).toBe(true))
     expect(dialog()).not.toBeNull()
   })
 
@@ -368,7 +368,7 @@ describe('the feature switches', () => {
     const signUps = await screen.findByRole('switch', { name: 'Sign-ups' })
     await waitFor(() => expect(signUps).toBeEnabled())
     fireEvent.click(signUps)
-    await waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 15000 })
+    await waitFor(() => expect(dialog()).not.toBeNull())
 
     fireEvent.click(await button('Cancel'))
 

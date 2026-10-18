@@ -237,3 +237,31 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - Scenario C still sends a message to the base (`sendMessage`), which no code builds: 15.6 changes it and registers the gap.
 - **Next step:** start 15.6 (script API gaps; the branch `feat/15.6-script-api-gaps` already holds the work and is rebased on this one).
 - **Verify with:** `npm run docs:check`; `cd api && npx jest src/modules/domain/repair-module.test.ts src/bots`
+### 2026-10-19 — 15.6 script API gaps done
+- **Tasks:** 15.6 ✅ (H-20261017-17)
+- **Branch:** `feat/15.6-script-api-gaps` — done, PR pending (see the implementation log); stacked on 15.5 (#228)
+- **Decisions / deviations from the plan:**
+  - `connect(botId, password?)` is a **new** script function. The decision of 2026-10-18 says it "gets the password parameter", but the
+    code had no script `connect` at all: `SCRIPT_FUNCTIONS` held only `getLinkStatus` of the wireless-adapter functions (the design
+    listed `connect`, `sendMessage`, `store`, `execute` and `disconnect` that no task built). I built `connect` as the decision describes
+    it: `lib/utils/script-api.ts` (module `wirelessAdapter`, optional `password`), `ConnectHandler` in the engine (`BotAccessService.connect`,
+    so the player's own bots need no password, a foreign bot needs range and the right password, an attempt costs energy, the lockout is
+    the terminal's), `['connect', COMMUNICATION]` for the manual action and the key scope, and the MCP tool `bot_connect` that is
+    generated from the catalogue. A wrong password and a lockout answer `FORBIDDEN` (the message tells which); the owner of the target
+    gets `PasswordAttemptFailed` as with the terminal (`failedAttemptEvent` is shared with the engine core).
+  - The other functions are not built and no task builds them: registered as open item Q18 (also `ping` and `reboot` of the terminal)
+    instead of being built, since the owner's decision names `connect` only.
+  - `Math.random()`: as implemented (the sandbox replaces it with the seeded function); §10.2 and §12.4 say so; no new function.
+  - §10.3 no longer repeats the list of error codes: it points to `ResultCode` (`lib/utils/result.ts`), which `lib/utils/error-codes.ts`
+    extends with the API codes (the owner's text named the second file only). `CANNOT_ADOPT_BASE`, `SCRIPT_LOAD_FAILED` and
+    `SANDBOX_FAULT` are API or runtime codes, not result codes.
+  - The scripts of §17 (scenario C) and §18 use the real scanned cell (`x`, `y`, `type: 'resource'`, `cell.resource.resource`,
+    `contentId`) and `export async function main`; `sendMessage` is gone from them. `design-examples.test.ts` runs every `js`
+    block of §17 and §18 in the sandbox against canned cells of the real shape (including an empty cell with `type: null`, which broke
+    the old `startsWith` example) and checks the prospector's output; the runner moved to `api/tests/fakes/script-example-runner.ts`
+    and `doc-examples.test.ts` uses it.
+  - Open items Q19 and Q20 (decided 2026-10-18) are closed; Q8 lost the stale `BotAdopted` event (the event exists).
+- **Problems / blockers / findings:** the `quickjs-sandbox` test "deeply nested values … default stack limit" failed once in the local
+  pre-push run of 15.5 under the parallel load and passed on the retry (a known flake of the memory notes).
+- **Next step:** start 15.7 (glossary): the branch `docs/15.7-glossary` already holds the work and is stacked on this one.
+- **Verify with:** `npm run docs:check`; `cd api && npx jest src/engine/application/handlers/connect-handler.test.ts src/engine/infrastructure/design-examples.test.ts`; `cd api && npx jest src/engine/engine-worker.module.int.test.ts -t connect`

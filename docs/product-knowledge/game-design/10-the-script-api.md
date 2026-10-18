@@ -21,7 +21,7 @@ async function main(bot, arg1, arg2, /* … */ argN) { /* … */ }
 > In the 2024 notes the base id is passed explicitly (`run abc TERMINAL_ID`); in the 2026 notes the first `main`
 > argument is the `bot` object. Both are supported: the `bot` object carries identity, and extra args are free-form.
 
-## 10.1.1 Languages and imports ✅
+## 10.1.1 Languages and imports
 
 - **Languages:** players may write **JavaScript (`.js`)** and **TypeScript (`.ts`)**. TypeScript is transpiled to
   JavaScript by the engine (transpile only; there is no type-check gate that blocks running a script).
@@ -50,13 +50,13 @@ modules kept; as in TypeScript, an import used only as a type is dropped), cache
 oldest entry goes first). QuickJS serves modules from the loaded set only, so a dynamic `import()` of anything else fails.
 Limits: `ENGINE_MODULE_MAX_FILE_BYTES`, `_MAX_FILES`, `_MAX_DEPTH`, `_CACHE_ENTRIES`. The editor typings are generated from
 the function catalog (`scriptTypings()` in `lib`); the in-game code editor does not use them yet because it is still a plain
-text area, so wiring them into CodeMirror 6 is left to the client work.
+text area, so wiring them into CodeMirror 6 is left to the client work (Q10).
 
 ## 10.2 Available functions
 
 Every function is gated by the module that provides it — **no module, no function**.
 
-✅ **How functions are reached:** each function is a method of the `bot` object passed to `main` (`bot.scan()`), and is
+**How functions are reached:** each function is a method of the `bot` object passed to `main` (`bot.scan()`), and is
 also available as a same-named global bound to the executing bot (`scan()`), so scripts written in the style of the
 original notes work unchanged. The examples below use the `bot.` form.
 
@@ -86,13 +86,13 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `log(...args)` | processor (always on) | `log(...args): void` | Write to the terminal session log. |
 | `sleep(ms)` | processor (always on) | `sleep(ms): Promise<void>` | Yield for `ms` of game time. |
 
-✅ **Details fixed by the implementation (Plan 5.3):** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
+**Details fixed by the implementation (Plan 5.3):** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
 (the drive is named as in the terminal's `cd`, §11.4); `bot.time()` (also a global `time()`) returns the game time in ms
 and is free; calling a function the bot has no module for, with invalid arguments, or an unknown function throws and ends
 the execution (§10.3), while a module that is broken or a use case that refuses (no energy, cooldown, not found) returns a
 `Result` failure.
 
-✅ **World functions (Plan 5.5):** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
+**World functions (Plan 5.5):** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
 3 west); `turn('left' | 'right')` rotates it by a quarter. `move(n)` goes `n` cells (1–64) the way it faces, paying the
 engine's `operationCost` for each cell, and its promise resolves after `n × ticksPerCell` ticks (§8.5); it stops at the first
 occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` with the cells it managed in the message.
@@ -100,15 +100,15 @@ occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` w
 on the cell ahead, `drop()` puts the last carried item on the free cell ahead and `drop(x, y)` on a free neighbouring cell. Mined
 resources go to the first storage module with room, a carried item counts against the manipulator's `loadCapacity`. `aim`,
 `shoot` and `reload` follow §12.6 (a shot hits the first bot on its line unless the weapon is artillery; `reload` consumes
-carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator (🔴 or a solar panel, §7.2.1) or connect a battery.
+carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator (or a solar panel, §7.2.1) or connect a battery.
 A bot that is moving answers `BUSY` to every action that needs its body. The `bot` object lists the bot's modules
 (`bot.modules`: `id`, `type`, `name`) so that `enable(moduleId)` / `disable(moduleId)` can name the module to switch; a scanner
 that is switched on keeps its area live (§4.4) and `view(since?)` reads the live view (`{ tick, cells }`).
 
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
-`enable()`/`disable()` (battery, generator, 🔴 solar panel, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
+`enable()`/`disable()` (battery, generator, solar panel, scanner), `reload()` (weapon), `disconnect()` (wireless adapter).
 
-## 10.3 Return values & error handling ✅
+## 10.3 Return values & error handling
 
 Every API call returns a **result object**; expected failures are **values**, never exceptions:
 

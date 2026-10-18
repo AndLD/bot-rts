@@ -2,7 +2,7 @@
 
 # 24. Game events and realtime notifications
 
-## 24.1 Game event bus ✅
+## 24.1 Game event bus
 
 - The engine emits **typed game events** each tick: `BotMoved`, `ShotFired`, `ShotHit`, `ModuleDamaged`,
   `ModuleBroken`, `ResourceMined`, `DepositDepleted`, `ModuleRepaired`, `ModuleDisassembled`, `ItemCrafted`,
@@ -38,12 +38,12 @@ substitute. Three kinds of events exist:
 | Edge (a state begins or ends) | once per change of state, state persisted | `OutOfFuel`, `EnergyLow` (flags in the generator and battery properties), `LiveScanStopped` (the scanner switches itself off, so it cannot repeat), `ModuleBroken` (only when the condition falls from above 0 to 0), `DepositDepleted`, `LinkLost` / `LinkWeak` / `LinkRestored` (raised on a change of the link compared with the previous refresh; nothing is told on the first look after a restart), `ExecutionFinished` / `ExecutionFailed` (once, when the execution ends) |
 | Level (a state that lasts) | never an event; shown as state in the UI | the energy level, the link bars |
 
-✅ _Audited (Phase 11, task 11.1):_ every event type above is classified. The contract tests
+_Audited (Phase 11, task 11.1):_ every event type above is classified. The contract tests
 (`energy-events.contract.test.ts`, and the lasting-link test in `radio-network.test.ts`) run a bot through hundreds of ticks in
 an unchanged bad state (no oil, low battery, a live scanner without energy, an empty battery, a weak or lost link) and fail if any
 event type fires more than once. A flapping link caused by the energy edge is removed by the power-on hysteresis (§12.5, task 11.5).
 
-## 24.2 Notifications ✅
+## 24.2 Notifications
 
 - **Realtime:** notifications are pushed over the player's Socket.IO connection as they happen.
 - **Persistent:** every notification is also stored (30-day retention, tunable), so the player sees what happened while
@@ -57,9 +57,9 @@ event type fires more than once. A flapping link caused by the energy edge is re
   A coalesced repeat updates the count in the notification center and does not raise a new toast.
 - Notifications are also available through the public API (§22.1) and therefore to the MCP server.
 
-**Implementation (Phase 7).** `NotificationService` is a game-event consumer in the API process. Rules (`candidatesOf`) map an event to a notification for the player whose entity it concerns: *Attacks* `underAttack` (a shot that hit their bot, coalesced), *Damage and energy* (`moduleBroken`, `energyLow`, `outOfFuel` and `energyLow` (told when the state begins, not on every tick: the generator and the batteries keep `isOutOfFuel` / `isLowReported` in their properties, so a restart does not tell again; they are cleared when the generator runs on oil again and when the energy is not low), `liveScanStopped`, `linkLost`, `linkRestored`, `linkWeak`), *Scripts* (`scriptFinished`, `scriptFailed`), *Security* (`passwordFailed`: the engine publishes `PasswordAttemptFailed` for the owner of the bot when `connect` fails with a wrong password), *Fabrication* (`botAssembled`, and `craftDone` / `researchDone`, which are stored when the order is given and told when the factory's `readyAt` has come: a stored notification waits with `deliveredAt` empty and a timer delivers it), and *Achievements* (`achievementUnlocked`). The API sends the `kind` and its `params`, never a text. Repeated events of one kind about one bot within `NOTIFICATION_COALESCE_MS` (30 s) are one notification with a `count`, until the player reads it; each category is capped at `NOTIFICATION_CAP_PER_MINUTE` (30) per player; the preferences are per category in `user_settings.notification_categories` (all on by default). Notifications are stored for `NOTIFICATION_RETENTION_DAYS` (30) and are pushed as the socket event `notification` (also when one is coalesced: the same id comes again with the new count). `/api/v1/notifications` lists (newest first, `limit`, `before`, `unread`), `/summary` gives the unread count by category (the "while you were away" line of §24.3), `/read` marks some or all as read, `/preferences` reads and changes the categories. *Trade* and *System* have no rules yet (Phase 10 and announcements).
+**Implementation (Phase 7).** `NotificationService` is a game-event consumer in the API process. Rules (`candidatesOf`) map an event to a notification for the player whose entity it concerns: *Attacks* `underAttack` (a shot that hit their bot, coalesced), *Damage and energy* (`moduleBroken`, `energyLow`, `outOfFuel` and `energyLow` (told when the state begins, not on every tick: the generator and the batteries keep `isOutOfFuel` / `isLowReported` in their properties, so a restart does not tell again; they are cleared when the generator runs on oil again and when the energy is not low), `liveScanStopped`, `linkLost`, `linkRestored`, `linkWeak`), *Scripts* (`scriptFinished`, `scriptFailed`), *Security* (`passwordFailed`: the engine publishes `PasswordAttemptFailed` for the owner of the bot when `connect` fails with a wrong password), *Fabrication* (`botAssembled`, and `craftDone` / `researchDone`, which are stored when the order is given and told when the factory's `readyAt` has come: a stored notification waits with `deliveredAt` empty and a timer delivers it), and *Achievements* (`achievementUnlocked`). The API sends the `kind` and its `params`, never a text. Repeated events of one kind about one bot within `NOTIFICATION_COALESCE_MS` (30 s) are one notification with a `count`, until the player reads it; each category is capped at `NOTIFICATION_CAP_PER_MINUTE` (30) per player; the preferences are per category in `user_settings.notification_categories` (all on by default). Notifications are stored for `NOTIFICATION_RETENTION_DAYS` (30) and are pushed as the socket event `notification` (also when one is coalesced: the same id comes again with the new count). `/api/v1/notifications` lists (newest first, `limit`, `before`, `unread`), `/summary` gives the unread count by category (the "while you were away" line of §24.3), `/read` marks some or all as read, `/preferences` reads and changes the categories. *Trade* and *System* have no rules yet (Q16: Phase 10 and announcements).
 
-## 24.3 Offline delivery ✅
+## 24.3 Offline delivery
 
 Notifications created while the player is offline wait in the notification center and are summarised on the next
 login (for example "While you were away: 12 events, 2 attacks, 1 achievement"). Email digests and browser push

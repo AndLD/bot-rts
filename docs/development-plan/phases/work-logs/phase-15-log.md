@@ -175,3 +175,29 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - 15.4 moves implementation notes out of the product knowledge; `docs/engineering/architecture.md` is one of its targets.
 - **Next step:** start 15.8 (serial order of the phase file)
 - **Verify with:** `npm run docs:check`; `wc -w AGENTS.md CLAUDE.md`; `gh pr list --state open`
+
+### 2026-10-19 — 15.8 status markers and the open-items register done
+- **Tasks:** 15.8 ✅ (H-20261017-11, -12)
+- **Branch:** `docs/15.8-status-markers` — done, PR pending (see the implementation log)
+- **Decisions / deviations from the plan:**
+  - The design shows decisions only (owner decision of 2026-10-18): every ✅/🟡/🔴 marker is removed from `docs/product-knowledge/game-design/`
+    (about 220), together with the three "Status" table columns (§7.1 modules, §11.1 commands, §15 screens). A rule in the design is
+    decided; what is built is tracked by the task statuses of the plan. "Features with two different statuses" is 0 by construction.
+  - Design §20 is the register of open points: 20 rows `Q1`–`Q20` (id, question, kind, section, blocks, owner). Q1–Q17 are the
+    hidden items of the review's section 8 that are still open (O13–O23, O25–O28, O31, O32; the owner decisions O24, O29 and O30 are Q18–Q20); Q18 (restoring a corpse base),
+    Q19 (seeded random in scripts) and Q20 (`connect` password) are the owner's decisions of 2026-10-18, kind "decided, to be
+    written", which close when 15.5 and 15.6 merge. The text of each open point carries its id. Closed as stale: O33 (history
+    storage marked "planned"), O34 (Game time), O35 (redeploy). O36–O39 were already declared (backlog §21, risk register); O37 (the
+    admin console's backlog list) is now pointed to from §21. O40 and O41 (a stale pull request, the release of `develop` to `main`)
+    are process items, not design points: they do not belong in §20.
+  - `scripts/check-open-items.mjs` (library `scripts/open-items-lib.mjs`, tests `scripts/open-items-lib.test.mjs`, part of
+    `npm run docs:check`) fails on a build marker in the design, on a marker word (`TODO`, `TBD`, "to be decided", "not yet", "for
+    now", "to be revisited", "to be validated", "still to come", "not in the plan", "known gap", "left to the") in a design file
+    without an id of §20 or a reference to the backlog (§21), on an id that is not registered, and on a register row with an
+    empty column or a repeated id. Fenced code blocks are not scanned.
+  - The harness bindings (status check, M17, M18, the budget on status markers) and the profile's `docs:check` row describe the new model.
+- **Problems / blockers / findings:** the tasks that follow still show old statements in the text (the empty-battery rule, the repair
+  clarification at §8.4.1, the corpse-restore bullet of §6.3): 15.5 rewrites them. Plan task ids in the design text (for example
+  "Plan 5.4", "task 11.6") remain for 15.4.
+- **Next step:** start 15.5 (contradictions in core product rules and scenarios), branch `fix/15.5-core-rule-contradictions`.
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `grep -rE '[✅🟡🔴]' docs/product-knowledge/game-design` (no hit)

@@ -2,7 +2,7 @@
 
 # 26. Market and currency
 
-## 26.1 Currency, accounts and the treasury ✅
+## 26.1 Currency, accounts and the treasury
 
 _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-13 and -14)._
 
@@ -46,7 +46,7 @@ _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-
   - **goods:** trading moves a good between a player's storage, escrow, an inbox and the system sink and never creates or
     destroys one; the only goods a trade creates are the copies of a script edition, each recorded as a copy issued (§26.6).
 
-## 26.2 The market terminal module ✅
+## 26.2 The market terminal module
 
 - A new module type, **`marketTerminal`**, with a **single class**: no upgrades. It is crafted like any other module (default
   recipe: 40 iron, 20 crystal, 15 gold, 20 s — tunable) and is **not** in the base starter kit.
@@ -55,7 +55,7 @@ _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-
 - The module grants the `market` script functions (§10.2) and the **Trade** manual-control category (§15.1). The market
   screen of the web client is available to a player who has at least one bot with a working market terminal.
 
-## 26.3 What can be traded ✅
+## 26.3 What can be traded
 
 | Thing | Venue |
 | --- | --- |
@@ -66,7 +66,7 @@ _Decisions of the owner of 2026-10-17 and 2026-10-18 (harness review H-20261017-
 Modules and bots are not tradable for now (backlog, §21). Credits are not an item: they are moved between wallets by the
 market and by transfers (§27).
 
-## 26.4 Resource exchange (order book) ✅
+## 26.4 Resource exchange (order book)
 
 - One **order book per resource**, quoted in credits per unit. Players place **limit orders** to buy or sell, or **market orders**.
 - **Market orders** are filled at once and never rest in the book: a market buy states a **maximum total spend**, which is
@@ -83,7 +83,7 @@ market and by transfers (§27).
 - The **system buyer** and the **system seller** (§26.1) act as a standing bid and a standing offer for the resources their rules
   cover, at the prices of those rules (§26.10).
 
-## 26.5 Auctions ✅
+## 26.5 Auctions
 
 - **What is auctioned:** a blueprint item, or a script sold as a single copy (§26.6). A seller lists it with a starting price, a
   duration (1 hour to 7 days, tunable) and an optional **buy-now** price, which must be greater than the starting price.
@@ -102,7 +102,7 @@ market and by transfers (§27).
 - **Fees:** the listing fee (paid at listing, kept in pending trades until the auction ends, not refunded except by an admin
   cancel) and the sales fee (§26.1).
 
-## 26.6 Selling scripts ✅
+## 26.6 Selling scripts
 
 A script is sold as an **edition of N copies** (N ≥ 1). **The seller keeps the original file**: the buyer gets a copy, the full,
 editable source, in the inbox. An edition of one copy can be auctioned (§26.5); an edition of more copies is sold at a
@@ -111,7 +111,7 @@ edition fee is charged per copy offered (§26.1), so a larger edition costs more
 There is no copy protection: scarcity comes from limited editions and the seller's reputation. A purchased script must be
 accepted into a drive before it can run (a script never runs by itself).
 
-## 26.7 Escrow, inbox and delivery ✅
+## 26.7 Escrow, inbox and delivery
 
 - The market holds items and bids in **escrow**, so a sale can never fail for lack of goods or funds.
 - Bought items arrive in the buyer's **inbox** (shared with transfers, §27.3) and stay there until the buyer withdraws them to a
@@ -124,7 +124,7 @@ accepted into a drive before it can run (a script never runs by itself).
   them.
 - Seller proceeds go straight to the wallet once the goods are delivered.
 
-## 26.8 Script API, events and notifications ✅
+## 26.8 Script API, events and notifications
 
 - The `market` functions (§10.2) cover order books, orders, auctions, bids, buy-now, editions, the wallet and claiming the inbox,
   and return the error codes `NO_FUNDS`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED` and `INBOX_FULL` (§10.3) among others.
@@ -134,7 +134,7 @@ accepted into a drive before it can run (a script never runs by itself).
   the **Trade** notification category (§24.2) and feed achievements (§23).
 - Public order books, active auctions and editions are visible to everyone who can use the market.
 
-## 26.9 Anti-abuse ✅
+## 26.9 Anti-abuse
 
 All numbers below are defaults that admins change in the console (§25).
 
@@ -148,7 +148,7 @@ All numbers below are defaults that admins change in the console (§25).
   never undone.
 - Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25), and see the market itself (order books, auctions, price history and statistics, the price anomalies these heuristics flag, and market metrics and alerts on the dashboard: tasks 10.11 and 10.15).
 
-## 26.10 The system trader ✅
+## 26.10 The system trader
 
 _Decided by the owner on 2026-10-18._ The system buyer and the system seller (§26.1) follow **rules** that admins edit in the
 console (§25). A change is audited (reason, before and after) and takes effect at the next tick boundary, so the engine applies one

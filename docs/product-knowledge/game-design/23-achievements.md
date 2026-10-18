@@ -2,7 +2,7 @@
 
 # 23. Achievements
 
-## 23.1 Model ✅
+## 23.1 Model
 
 - **Achievements are data-driven**: each one is a record in a config file with an id, a localized title and
   description (§15.4), the game event(s) that advance it (§24), a threshold, an optional tier (for example 1 / 100 /

@@ -128,7 +128,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 ### 2026-10-18 — 15.3 architecture document done
 - **Tasks:** 15.3 ✅ (H-20261017-09 remainder, export blocker B4, complexity hotspots "§8 restates §1–§7" and "merge gates
   spread over four places"); 15.2 merged as #217
-- **Branch:** `docs/15.3-architecture-doc` — done, PR_15_3
+- **Branch:** `docs/15.3-architecture-doc` — done, PR #218
 - **Decisions / deviations from the plan:**
   - `docs/engineering/architecture.md`: §1 identity provider abstraction and §2 persistence isolation (the old `AGENTS.md`
     §3.3 and §3.4, word for word), and §3 the engine as the single owner of world state (the scalability exception, moved out of

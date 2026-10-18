@@ -10,7 +10,7 @@ they are found, each with a reproduction, and the phase is closed when the user 
 and can be developed at any time; its points count in the total of the plan index and grow as issues are added.
 
 **How an issue becomes a task.** Add a row to the table with the symptom and how to reproduce it, the expected result, and a
-story-point estimate; fix it on its own branch (`bugfix/12.N-slug`) with a test that reproduces it first (AGENTS.md §6.5), and
+story-point estimate; fix it on its own branch (`bugfix/12.N-slug`) with a test that reproduces it first (method §4, `docs/engineering/method.md`), and
 update this file, the work log and the plan index in the same PR. If the cause turns out to be a design problem, record the
 decision in the matching `docs/product-knowledge/game-design/` file.
 

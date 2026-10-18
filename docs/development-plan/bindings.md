@@ -9,12 +9,12 @@ once in the [project profile](../profile.md); the rows below link to it.
 | ------------------ | ---------- |
 | Index document | [`DEVELOPMENT-PLAN.md`](./DEVELOPMENT-PLAN.md) |
 | Phase files | `phases/phase-<n>-<slug>.md`, rules in [`phases/README.md`](./phases/README.md) |
-| Cross-cutting documents | [`guiding-principles`](./cross-cutting/guiding-principles.md), [`definition-of-done`](./cross-cutting/definition-of-done.md) (points to `AGENTS.md` §6.5), [`risk-register`](./cross-cutting/risk-register.md), [`rfc-5.1-execution-model`](./cross-cutting/rfc-5.1-execution-model.md) (the design record required by task 5.1) |
+| Cross-cutting documents | [`guiding-principles`](./cross-cutting/guiding-principles.md), [`definition-of-done`](./cross-cutting/definition-of-done.md) (points to the [method §4](../engineering/method.md#4-definition-of-done)), [`risk-register`](./cross-cutting/risk-register.md), [`rfc-5.1-execution-model`](./cross-cutting/rfc-5.1-execution-model.md) (the design record required by task 5.1) |
 | Work logs | `phases/work-logs/phase-<n>-log.md` |
 | Phase and task status symbols | the status symbols of the [profile](../profile.md#4-plan) |
 | Estimation scale | the estimation scale of the [profile](../profile.md#4-plan) |
 | Product knowledge cited | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/` (section ids written as `design §12.4`) |
-| Quality bar and workflow cited | `AGENTS.md` (§6.5 definition of done, §7 Git Flow and session protocol) |
+| Quality bar and workflow cited | `AGENTS.md` (§7 Git and merge rules), the [method](../engineering/method.md) (§4 definition of done, §5 Git workflow, §6 session protocol) |
 | Deployment gate | The tasks named in the "Deployment gate" section of the index |
 | Resume request forms | the resume phrases of the [profile](../profile.md#4-plan); the request is the approval for the named phases' pull requests (`AGENTS.md` §7.5) |
 | Out-of-order phases | Phase 11 is developed after Phase 7; the order is recorded in the index |

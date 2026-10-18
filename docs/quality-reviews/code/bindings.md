@@ -9,7 +9,9 @@ layers, commands, thresholds and exclusions. A new project copies the method and
 
 ## 1. The bar
 
-The declared quality bar is [`AGENTS.md`](../../../AGENTS.md): §1 mission and non-negotiables, §3 layering and its forbidden
+The declared quality bar is [`AGENTS.md`](../../../AGENTS.md) with the [method](../../engineering/method.md) and the
+[stack file](../../engineering/stack.md); the § numbers below are those of `AGENTS.md`, whose moved sections point to their new
+place (§2–§5 to the stack file and the method, §6 to method §3–§4 and stack §4–§5): §1 mission and non-negotiables, §3 layering and its forbidden
 imports, §4 SOLID checklist, §5 conventions, §6 testing and the definition of done, §7 Git Flow, §9 project rules (single writer
 of world state, determinism, tunable balance, result values, events as edges, public API stability, two languages, operations,
 admin, ledger). Targets for the scorecard come from it:

@@ -98,3 +98,29 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** start 15.2 (method and stack split of `AGENTS.md`).
 - **Verify with:** `npm run docs:check`; `git grep -nE '97 ?%' -- AGENTS.md README.md docs/testing docs/development-plan/cross-cutting`
   (no hit); `(cd mcp && npx jest --showConfig | grep -A5 coverageThreshold)`
+
+### 2026-10-18 — 15.2 method and stack split done
+- **Tasks:** 15.2 ✅ (H-20261017-09, export blockers B2 and B3); 15.1 merged as #216
+- **Branch:** `docs/15.2-method-stack-split` — done, PR #217
+- **Decisions / deviations from the plan:**
+  - `docs/engineering/method.md` (project-neutral, roles only): principles, SOLID checklist, testing rules, definition-of-done
+    skeleton, Git workflow, session protocol. `docs/engineering/stack.md`: the stack and test tooling, architecture and layering
+    (old §3.0–§3.4 as §2.0–§2.4, same order), conventions, how SOLID applies to this code (the product examples), test tooling,
+    the stack items of the definition of done, and the agent-runtime tools (`bind_pr`, `set_monitor` with `auto_fix`).
+  - `AGENTS.md` keeps the non-negotiables (§1), the Git and merge rules (§7.1–§7.5), §8 (until 15.3) and the product rules (§9),
+    plus a reading map per task type. The moved sections keep their numbers as one-line stubs with links, so older references
+    (`AGENTS.md §3.3`, `§6.5`, `§7.6`, in code comments and historical logs) still resolve. Living references to §3.0–§3.2,
+    §4, §6 and §7.6 now point to the new files; §3.3 and §3.4 references wait for 15.3, which moves them again.
+  - §7.5 names the agent-runtime steps by role ("attach the PR to the session", "CI monitoring with automatic fixes"); the tool
+    names are in stack §6. The resume phrases are cited from the profile.
+  - The profile role "player languages" is now "user-facing languages", so the method carries no product term.
+  - No rule changed its meaning: the texts moved as they were, apart from roles replacing values and product examples moving
+    to the stack file.
+- **Problems / blockers / findings:** none.
+- **Measurements (M1, M2, M6, M20):** always-loaded set (`CLAUDE.md` 1 + `AGENTS.md` 1,954 + user-memory index 98) =
+  **2,053 words** (budget ≤ 3,000; baseline 4,826). Normative words in `AGENTS.md`: 40 (budget ≤ 70); exception words: 6
+  (≤ 10). Leak scan of `docs/engineering/method.md` with the profile's `STACK` and `PRODUCT` lists (plus `engine`, `game`,
+  `wallet`, `player`): **0 hits**. `bind_pr` and `set_monitor` appear only in `stack.md`.
+- **Next step:** start 15.3 (architecture out of the rule file, duplicates removed).
+- **Verify with:** `npm run docs:check`; `wc -w AGENTS.md CLAUDE.md`; the leak scan of the profile's section 9 on
+  `docs/engineering/method.md`

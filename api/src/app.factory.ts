@@ -33,7 +33,7 @@ export async function createApp(config: AppConfig): Promise<NestExpressApplicati
   return configureApp(app, config)
 }
 
-// The OpenAPI document of the public API (AGENTS.md §3.0). The operation ids are `<controller><Method>`, for example
+// The OpenAPI document of the public API (docs/engineering/stack.md §2.0). The operation ids are `<controller><Method>`, for example
 // `authLogin`, which is what the generated web client names its endpoints after.
 export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
   const builder = new DocumentBuilder()

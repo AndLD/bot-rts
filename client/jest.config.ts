@@ -17,7 +17,7 @@ const config: Config = {
     '\\.(css|scss)$': '<rootDir>/tests/style-mock.ts'
   },
   testPathIgnorePatterns: ['/node_modules/', '/.next/', '/cypress/'],
-  // The single list of coverage exclusions (AGENTS.md §6.1); every entry has a reason
+  // The single list of coverage exclusions (docs/engineering/stack.md §4); every entry has a reason
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.test.{ts,tsx}', // tests themselves

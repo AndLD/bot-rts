@@ -31,7 +31,7 @@ const config: Config = {
       globalTeardown: '<rootDir>/tests/integration/global-teardown.ts'
     }
   ],
-  // The single list of coverage exclusions (AGENTS.md §6.1); every entry has a reason
+  // The single list of coverage exclusions (docs/engineering/stack.md §4); every entry has a reason
   collectCoverageFrom: [
     '**/*.ts',
     '!**/*.test.ts', // tests themselves

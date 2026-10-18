@@ -31,6 +31,15 @@
 | **Game event** | A typed fact emitted by the engine each tick (moved, shot, mined, …) that feeds animations, achievements and notifications (§24.1). |
 | **Spawn seed** | A shareable code that lets several players deploy their bases near each other (§22.3). |
 | **Credits** | The in-game currency, held in a per-player wallet (§26.1). |
+| **Wallet** | An account of credits: one per player, plus the treasury and the custom wallets of the admins (§26.1). |
+| **Treasury** | The game's own credits, in two parts: **main** (receives final fees, pays the system buyer and compensation refunds) and **pending trades** (fees of unfinished trades, the only source of fee refunds) (§26.1). |
+| **System account** | An account of the game rather than of a player (`system: true`, no email or password), created and managed only in the admin console: the treasury, the pending-trades wallet, the system sink (§26.1). |
+| **System sink** | The goods account that receives what the system buyer buys and from which the system seller sells, so goods are conserved (§26.1). |
+| **Escrow** | Credits or goods locked by an open order, bid, listing or transfer offer until it settles or is cancelled (§26.7, §27.2). |
+| **Inbox** | Per-player list of bought or received items awaiting withdrawal into a storage or a drive (§26.7, §27.3). |
+| **Ledger** | The append-only double-entry record of every move of credits and traded goods (§26.1). |
+| **Edition** | A script listed for sale as N copies; the seller keeps the original (§26.6). |
+| **System trader** | The system buyer and the system seller, and the admin-edited rules and campaigns that decide what they trade, when, at which price and how much (§26.10). |
 | **Market terminal** | The single-class module that gives remote access to the market (§26.2). |
 | **Inbox** | A player's holding area for market purchases and accepted transfers (§26.7, §27.3). |
 | **Achievement** | A recognition badge unlocked by in-game progress; no gameplay rewards (§23). |

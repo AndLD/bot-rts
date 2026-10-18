@@ -28,3 +28,26 @@ _No entries yet._
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged; Phase 10 is not started.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — Phase 10 design decided before the start (no task started)
+- **Tasks:** none started; the texts and sizes of 10.1, 10.2, 10.4, 10.5, 10.9, 10.10, 10.11, 10.12, 10.13 and 10.15 changed
+- **Branch:** `docs/phase-10-design-decisions` — design and plan only
+- **Decisions / deviations from the plan:** the harness quality review of 2026-10-17 (H-20261017-13 and -14) found that 8 of the 15
+  tasks depended on undecided rules. The owner decided them on 2026-10-17 and 2026-10-18; they are written into design §26, §27,
+  §24, §25, the glossary and §20. In short:
+  - a treasury in two parts (main and pending trades);
+  - system accounts and custom admin wallets;
+  - manual minting only (no daily mint), and a starter grant on the first deploy only;
+  - a system buyer that buys only while main can pay, its goods going to a system sink;
+  - fixed-price script editions, and the seller keeps the file;
+  - the auction rules (first bid, 5 % step, buy-now, capped anti-sniping, cancels, unsold items);
+  - market orders with a maximum spend;
+  - priority by price, then tick, then the seeded order;
+  - delivery retries to a full inbox;
+  - wallet freezes, automatic or manual;
+  - daily limits, and new events.
+
+  Sizes: 10.1 8 → 13, 10.2 5 → 8, 10.10 5 → 8, 10.11 8 → 13, 10.12 3 → 5; the phase is 133 SP (was 115).
+- **Problems / blockers / findings:** one question stays open in §20: whether the system also sells (it blocks no task).
+- **Next step:** start Phase 10 with 10.1 when the owner asks.
+- **Verify with:** `npm run docs:check`

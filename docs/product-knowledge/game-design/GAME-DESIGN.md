@@ -9,7 +9,7 @@ shared, persistent world.
 
 > This document describes the **intended game design** gathered from the original [`notes.txt`](../archived-docs/notes.txt) (15 Jun 2024 and 21 Jan 2026),
 > the codebase, and the decisions made while planning. Every point in these documents is decided (✅) or marked as
-> planned (🔴); there are no open design questions (§20).
+> planned (🔴); the design questions that are still open are listed in §20.
 >
 > **Status legend**
 > ✅ Decided / implemented · 🟡 Partially implemented · 🔴 Not implemented (planned)

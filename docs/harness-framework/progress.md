@@ -20,3 +20,29 @@
 - **Open decisions:** H-01 (required checks), H-07 (release `develop` to `main` or change the default branch), H-13 and H-14 (Phase 10
   specification questions O1 to O11), H-15 (first source of iron), the budgets of section 9, the triage of every finding.
 - **Verify with:** `npm run docs:check`, `npx prettier --check docs/quality-reviews/harness/2026-10-17.md`
+
+### 2026-10-18 — owner answers to the Phase 10 questions (H-13, H-14; open items O1 to O11)
+- **Done:** the owner answered the questions; they are recorded here until they are written into design §26, §27, §24 and §20:
+  1. Editions of N copies are sold at a fixed price (buy-now only), not by auction.
+  2. Selling a script never removes the seller's file: the buyer gets a copy.
+  3. An admin may cancel a listing with bids; all bidders are refunded; refunding the seller's listing fee is a checkbox, on by default.
+  4. Anti-sniping extensions are capped at a maximum number.
+  5. Buy-now disappears once a bid above the buy-now price exists (wording to confirm); a buy-now refunds all bidders.
+  6. The first bid may equal the starting price; the buy-now price must be greater than the starting price.
+  7. An unsold item stays in escrow / the seller's inbox; the seller can list it again (with a new price) or take it back to storage.
+  8. Market buy order lock: open, the owner asked for the factors.
+  9. Order priority within one tick: open, the owner suggested bigger orders first and asked for a recommendation.
+  10. Buyer's inbox full at settlement: both parties are notified; up to 5 automatic retries a few hours apart and 3 manual
+      retries by the buyer (not counted in the 5); when the automatic retries are used up, the buyer is refunded and the goods go
+      back to the seller.
+  11. Only the first base deploy pays the starter grant.
+  12. Goods bought are kept in escrow / the inbox until the buyer accepts them (the system-buyer part is to be clarified).
+  13. Admin refunds are paid by the treasury (for now). Freezing a wallet closes all its orders, listings and bids and refunds
+      everyone, including the fees the wallet owner paid.
+  14. Open: the owner proposes letting the treasury go negative instead of minting, and asked about the risks.
+  15. Transfer goods go to escrow when the offer is made. Daily limits: 10 (new accounts) and 50 (older accounts) sales or
+      purchases per user; 1,000,000 (new) and 50,000,000 (older) credits per day. Tunable; scope to be confirmed.
+  16. Add the missing events (transfer accepted, edition sold out, and the others the achievements need).
+- **Next step:** get the open points (5, 6, 8, 9, 12, 14, 15) answered, then write all decisions into the design in one docs PR.
+- **Open decisions:** points 5, 6, 8, 9, 12, 14, 15 above.
+- **Verify with:** `npm run docs:check`

@@ -124,7 +124,7 @@ settings.
   the **base the connection came from** (`baseId` changes; the bot keeps its modules and its scripts; the previous owner
   loses control). Stale bots (§6.3) keep their last password, so unprotected stale bots can be adopted freely.
 - **Bases cannot be adopted.** `adopt` works on ordinary bots only. A base's owner never changes; a base only changes
-  through damage and repair (corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
+  through damage (it becomes a corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
   sabotage) but cannot take it. Every base gets a **mandatory owner-set password at deploy**.
 
 **Implementation (Phase 5).** `BotAccessService` holds the rules; `connect` and `adopt` run in the engine as world actions

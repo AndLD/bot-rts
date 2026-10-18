@@ -281,7 +281,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
     })
   })
 
-  it('restores a corpse base: a repair bot of the player mends its wireless adapter', () => {
+  it('cannot restore a corpse base: its broken wireless adapter is below the repair threshold', () => {
     // The adapter of the first base breaks, and the base is lost to the player, who deploys a second one
     cy.task<string>('damageModule', { botId: baseId, type: 'wirelessAdapter', condition: 0 }).then((adapterId) => {
       cy.deployBaseViaApi(token).then(({ id: newBaseId }) => {
@@ -329,16 +329,13 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
             failOnStatusCode: false
           })
 
-          cy.contains('repaired', { timeout: 15000 })
-          eventually(
-            () => cy.task<{ type: string; condition: number }[]>('moduleStates', { botId: baseId }),
-            (modules) => modules.find((module) => module.type === 'wirelessAdapter')!.condition > 0
-          ).then((modules) =>
-            expect(modules.find((module) => module.type === 'wirelessAdapter')!.condition).to.be.greaterThan(0)
+          cy.contains('failed TOO_LOW', { timeout: 15000 })
+          cy.task<{ type: string; condition: number }[]>('moduleStates', { botId: baseId }).then((modules) =>
+            expect(modules.find((module) => module.type === 'wirelessAdapter')!.condition).to.equal(0)
           )
           cy.apiRequest({ path: '/api/v1/bots?type=base', headers: { Authorization: `Bearer ${token}` } })
             .its('body')
-            .should('have.length', 2)
+            .should('have.length', 1)
         })
       })
     })

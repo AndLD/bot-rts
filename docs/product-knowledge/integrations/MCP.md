@@ -62,7 +62,7 @@ the game gets a tool without new code. A typical session: `list_bots` → `bot_s
 
 ## Admin tools: investigating a running server
 
-An **admin API key** (read-only `admin:*:read` scopes, created by an owner or admin in the admin console after two-factor authentication, always
+An **admin API key** (the rule for keys on administration routes is in [`API.md`](./API.md#administration-routes); read-only `admin:*:read` scopes, created by an owner or admin in the admin console after two-factor authentication, always
 with an expiry) turns the same server into an investigation assistant. At start the server asks the API what the key holds
 (`GET /api/v1/admin/api-keys/current`): a key with admin scopes gets **only** the admin tools its scopes allow (no game tools); any other
 key gets the player tools. Nothing here writes: banning, killing a script or restarting stay in the console.

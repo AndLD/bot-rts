@@ -31,7 +31,8 @@ template, and the components they refer to were never added. What exists:
 ## 25.2 Access model
 
 - A separate **`(admin)` route group** in the Next.js app, served only to admin roles, backed by `/api/v1/admin/*`. Admin
-  endpoints are closed to API keys (design §22.1) **except routes that opt in with an `admin:*:read` scope** (Phase 14, task 14.1; delivered).
+  endpoints are closed to API keys except routes that opt in with an `admin:*:read` scope (the rule is stated once in
+  [`API.md`](../integrations/API.md#administration-routes)).
   Those scopes (`admin:logs:read`, `admin:metrics:read`, `admin:audit:read`, `admin:health:read`) form a set of their own, outside the player scopes of
   `API_SCOPES`: the player key form, the generated client, the public OpenAPI spec and the player documentation never list them. A key gets them
   only from `POST /api/v1/admin/api-keys` (permission `apikeys.admin`: owners and admins, second factor, a reason, a mandatory expiry up to

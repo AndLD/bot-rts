@@ -31,8 +31,9 @@ export class RepairModule extends GameModule {
     return this.number('readyAt', 0)
   }
 
-  // One repair operation on `target` (whose recipe is given), or why it cannot be done. A module can be repaired while
-  // it is broken or still healthy enough; one that is damaged below the threshold is too far gone.
+  // One repair operation on `target` (whose recipe is given), or why it cannot be done. A module can be repaired only
+  // while its condition is at or above the threshold; below it, a broken module (condition 0) included, it is too far
+  // gone and can only be disassembled.
   repair(
     target: GameModule,
     recipe: IRecipe,
@@ -50,7 +51,7 @@ export class RepairModule extends GameModule {
     if (condition >= maxCondition) {
       return fail(ResultCode.EMPTY, 'The module is not damaged')
     }
-    if (condition > 0 && condition < maxCondition * balance.repairThreshold) {
+    if (condition < maxCondition * balance.repairThreshold) {
       return fail(ResultCode.TOO_LOW, 'The module is too damaged to repair: disassemble it')
     }
 

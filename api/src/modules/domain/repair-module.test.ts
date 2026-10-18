@@ -26,13 +26,18 @@ describe('RepairModule.repair', () => {
     })
   })
 
-  it('repairs a broken module, and a damaged one that is healthy enough', () => {
-    expect(repairer().repair(target(0), recipe, 0, balance)).toMatchObject({ ok: true, data: { condition: 25 } })
-    expect(repairer().repair(target(20), recipe, 0, balance)).toMatchObject({ ok: true })
+  it('repairs a module at or above the repair threshold', () => {
+    expect(repairer().repair(target(20), recipe, 0, balance)).toMatchObject({ ok: true, data: { condition: 45 } })
+    expect(repairer().repair(target(50, 200), recipe, 0, balance)).toMatchObject({ ok: true })
   })
 
-  it('refuses a module that is damaged beyond repair, one that is intact and a repairer that cannot', () => {
+  it('refuses a module below the threshold, a broken one (condition 0) included: it can only be disassembled', () => {
     expect(repairer().repair(target(19), recipe, 0, balance)).toMatchObject({ code: 'TOO_LOW' })
+    expect(repairer().repair(target(0), recipe, 0, balance)).toMatchObject({ ok: false, code: 'TOO_LOW' })
+    expect(repairer().repair(target(39, 200), recipe, 0, balance)).toMatchObject({ code: 'TOO_LOW' })
+  })
+
+  it('refuses a module that is intact and a repairer that cannot', () => {
     expect(repairer().repair(target(100), recipe, 0, balance)).toMatchObject({ code: 'EMPTY' })
     expect(repairer({}, { condition: 0 }).repair(target(50), recipe, 0, balance)).toMatchObject({
       code: 'BROKEN_MODULE'

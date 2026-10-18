@@ -36,10 +36,9 @@ A row is removed when its answer is written into the section. The columns:
 | Q15 | The first source of iron on a fresh base: the starter kit is too small to craft the first module (finding H-20261017-15). | needs a decision | §6.1, §16.1 | none (task 12.3) | owner |
 | Q16 | Notification rules for the Trade and System categories. | planned | §24.2 | 10.12 | owner |
 | Q17 | Map animations for craft, assemble, repair, disassemble and adopt. | deferred | §15.2 | none | owner |
-| Q18 | Restoring a corpse base is removed from the design (decided 2026-10-18): below the repair threshold, condition 0 included, a module can only be disassembled, so a corpse base cannot be restored. §6.3, §8.4.1 and the scenarios of §17 still show the old rule. | decided, to be written | §6.3, §8.4.1 | none | task 15.5 |
 | Q19 | The script `Math.random()` is the engine's seeded random function (decided 2026-10-18); §10.2 does not say so yet. | decided, to be written | §10.2, §12.4 | none | task 15.6 |
 | Q20 | The script function `connect(botId, password?)` takes the password, with the lockout of the terminal (decided 2026-10-18); §10.2 shows `connect(botId)`. | decided, to be written | §10.2, §11.2.2 | none | task 15.6 |
 
-Rows Q18 to Q20 close when their tasks merge. The questions of the Phase 10 market of the harness quality review of 2026-10-17
+Rows Q19 and Q20 close when their task merges. The questions of the Phase 10 market of the harness quality review of 2026-10-17
 (H-20261017-13 and -14) were decided by the owner on 2026-10-17 and 2026-10-18 and are written into §26, §27, §24 and §25,
 including the system seller (§26.10).

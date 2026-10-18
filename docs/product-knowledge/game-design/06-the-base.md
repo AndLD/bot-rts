@@ -48,7 +48,7 @@ that is, where the first iron comes from, is open (Q15).
 
 A **corpse base** is a base **the owner has lost control over**. It is a derived state, not a hit-point threshold:
 the owner has control only while the base has a working **wireless adapter** (the link used to `connect`). When that
-adapter is broken or missing (or the base has no modules left) the base is a corpse for its owner; repairing the adapter restores control. A broken processor alone makes the base *crippled*
+adapter is broken or missing (or the base has no modules left) the base is a corpse for its owner. A corpse base is never restored: a broken adapter is below the repair threshold, so it can only be disassembled (§8.4.1). A broken processor alone makes the base *crippled*
 (no scripts) but not a corpse. A corpse base is **not removed** from the map; its cell shows it as a corpse base:
 
 - The corpse keeps the **owner's name** (it stays visible to everyone who has scanned it).
@@ -60,6 +60,7 @@ adapter is broken or missing (or the base has no modules left) the base is a cor
   base registry, so they do not appear in `list`. There is no time-based decay.
 - **Re-adopting stale bots:** *anyone* — including the former owner — who gets access to a stale bot (reaching it with
   a wireless link and bypassing or knowing its password, §11.2.2) can run `adopt` and assign it to **their own base**.
-- **Restoring a corpse:** a player who reaches the corpse of **their own** base can **repair it using bot(s) equipped
-  with a repair ("fixing") module**, returning it to operation (§8.4.2). The corpse shows as a base on the map again
-  once control is regained; having deployed a new base in the meantime does not prevent it.
+- **A corpse is not restored.** The wireless adapter of a corpse base is broken (condition 0), and a module below the repair
+  threshold can only be disassembled (§8.4.1, §8.4.2). Only a base whose adapter still works is the owner's, so the one-living-base
+  rule (§5) never meets a second, restored base. What is left of a corpse is its loot: any bot with a repair module may take
+  its broken modules apart, and the former owner may take all of it apart (§8.4.2).

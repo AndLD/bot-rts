@@ -16,7 +16,7 @@ Every module has these fields (`IModuleProps`):
 | `botId` | owning bot |
 | `type` | module type (see catalog) |
 | `name` | blueprint name, e.g. `scanner-class1` |
-| `condition` / `maxCondition` | current / maximum HP. At 0 the module is destroyed |
+| `condition` / `maxCondition` | current / maximum HP. At 0 the module is **broken**: it stays attached and stops working (§8.4.1) |
 | `weight` | mass in kg — contributes to movement/chassis load |
 | `operationCost` | energy/fuel consumed per operation |
 | `idleCost` | energy/fuel consumed per tick while idle |
@@ -49,7 +49,7 @@ mention `memory` and `circute`.
 | **Factory** | `factory` | crafting | Present on the base and in the kit. |
 | **GPS** | `gps` | `getLocation()` | Absolute position readout. |
 | **Market terminal** | `marketTerminal` | `market.*` | Single class, no upgrades; remote access to the market from anywhere (§26.2). |
-| **Repair ("fixing") module** | `repair` | `repair(target)`, `disassemble(target)` | Used on a module of a bot on an **adjacent cell**; see §8.4.2. Required to restore a corpse base. |
+| **Repair ("fixing") module** | `repair` | `repair(target)`, `disassemble(target)` | Used on a module of a bot on an **adjacent cell**; see §8.4.2. |
 
 \* The codebase models the chassis as `IMovementModuleProps`; the notes call this "колёса/гусеницы". (`drive` in the
 code is the **disk**, not the chassis.)

@@ -176,12 +176,11 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
   (tunable, in the catalogue): 12 energy per 250 ms cycle (48 per second) for 0.02 oil per cycle, about 600 energy per oil.
 - **Solar panel:** class 1 makes 2 energy per 250 ms cycle at full sun (8 per second at its peak), 0.8 per second at night; the oil generator is 6× the panel's peak. A simulation test over game days (`energy-balance.test.ts`) pins the balance: the starter base (idle 2.6 per second) lives on its panel alone under a light duty and runs dry in minutes under a continuous heavy one.
 - **Live scanner:** a scanner in live mode pays its area-scaled energy cost on every tick; if the battery cannot pay, it switches itself off and a `LiveScanStopped` event is raised.
-- **Empty battery:** the bot cannot perform operations and its executions suspend until energy returns (generator
-  refill or a player intervention). Charging happens inside the tick, after commands are applied.
+- **Empty battery:** the bot is unpowered; what that means is stated once, in §12.5.2. Charging happens inside the tick,
+  after commands are applied.
 
 - `sleep(ms)` costs no operations but consumes the bot's idle energy (`idleCost` per tick).
 - Every executed operation consumes `operationCost` energy from the battery.
-- If the battery empties, executions **suspend** until a generator refills it (or a player intervenes).
 
 **States are told once.** A state that lasts (a generator without oil, a battery that is low) raises its event **when it
 begins**, not on every tick or cycle it stays true. The state is kept in the module properties (`isOutOfFuel` on the generator,
@@ -213,14 +212,19 @@ The world has one shared clock derived from the engine's injected clock (never
 
 ### 12.5.2 Power-on hysteresis
 
-A bot whose battery reaches **0** becomes *unpowered*: it cannot spend energy, its radio
-link is down and its executions and factory / maintenance jobs wait. It powers on again only when the stored energy has grown
-to a **resume threshold (10 energy, one config value for every bot)**, not at the first unit above 0, so a bot at the edge does
-not flap between working and out of energy (and the radio link does not flap between lost and restored). A bot with 20 energy
-works until 0; the state is persisted in the batteries like the other states of this section, and the suspended work continues
-by itself after the resume.
+A bot whose battery reaches **0** becomes *unpowered*. This section is the only statement of what that means:
 
-**Implementation.** `isUnpowered` is a property of the battery (like `isLowReported`), set by the energy tick when the stored energy is 0 (also when an operation emptied it and a generator refilled it within the same tick) and cleared when the stored energy reaches `resumeThreshold` (`EnergyBalance`, default 10, never above the capacity). While it is set, `EnergyModel.isDepleted` is true and `available` is 0, so `spend` (every operation, factory and maintenance order, the live scanner), the weapon's energy check and the radio adapter's node all refuse; a dark bot also drains no idle cost, so it can recover. Executions are not killed: their calls get `NO_ENERGY` and continue after the resume, and factory jobs already queued finish on their own timers.
+- It **cannot spend energy**, so every call that costs energy returns `NO_ENERGY` (§10.3). Its executions are **not suspended and
+  not killed**: the script goes on, and the same calls work again after the resume.
+- Its **radio link is down** (§11.2.1).
+- A factory or maintenance job that was **already queued finishes on its own timer**; a new order is refused with `NO_ENERGY`.
+- A dark bot **drains no idle cost**, so a generator or a solar panel can bring it back.
+- It powers on again only when the stored energy has grown to a **resume threshold (10 energy, one config value for every bot)**,
+  not at the first unit above 0, so a bot at the edge does not flap between working and out of energy (and the radio link does not
+  flap between lost and restored). A bot with 20 energy works until 0. The state is persisted in the batteries like the other
+  states of this section.
+
+**Implementation.** `isUnpowered` is a property of the battery (like `isLowReported`), set by the energy tick when the stored energy is 0 (also when an operation emptied it and a generator refilled it within the same tick) and cleared when the stored energy reaches `resumeThreshold` (`EnergyBalance`, default 10, never above the capacity). While it is set, `EnergyModel.isDepleted` is true and `available` is 0, so `spend` (every operation, factory and maintenance order, the live scanner), the weapon's energy check and the radio adapter's node all refuse.
 
 ## 12.6 Combat model
 

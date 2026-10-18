@@ -14,14 +14,14 @@ about 15 minutes it is sharded and run in parallel.
 | Terminal: `list`, `modules` | 2.7 |
 | Terminal: filesystem (`ls`, `cd`, `mkdir`, `cat`, `edit`, `rm`), `help`, stored session lines | 3.13 (`terminal-files.cy.ts`) |
 | Craft, assemble, research, `learn`; repair, disassemble; battery exhaustion | 4.7 (`factory.cy.ts`) |
-| Restore a corpse base by repairing its wireless adapter | 4.7 (HTTP integration test `api.int.test.ts`: driving a repairer to a lost base from the UI needs the movement of phase 5) |
+| A corpse base cannot be restored: repairing its broken wireless adapter is refused | 4.7, 15.5 (HTTP integration test `api.int.test.ts`; the UI case is in `gameplay.cy.ts`) |
 | Script lifecycle: edit, run, log, `top`, `kill`, shell mode, failing script | 5.11 (`scripts.cy.ts`); restart relaunch with the "rebooted" note: `engine.int.test.ts` (an e2e stack cannot kill the engine thread) |
 | Map: fog of war, pan/zoom, cell inspection, opening a bot; animation smoke test | 6.6 (`map.cy.ts`) |
 | Storage GUI; factory GUI; windows | 6.6 (`storage-factory.cy.ts`, `windows.cy.ts`) |
 | `connect` (range, relay, password, lockout, "Connection interrupted"); `adopt` a bot of another player | 6.6 (`connect.cy.ts`); adopting a stale bot of a lost base: unit tests of `BotAccessService` (the stale bots themselves are Phase 8) |
 | Manual control panel and the global / personal category switches | 6.6 (`control.cy.ts`) |
 | Tutorial: complete, skip, reopen | 6.9 (`tutorial.cy.ts`) |
-| Core gameplay: mining loop, combat to a broken module, energy exhaustion, corpse-base restoration | 6.12 (`gameplay.cy.ts`) |
+| Core gameplay: mining loop, combat to a broken module, energy exhaustion, a corpse base that cannot be restored | 6.12 (`gameplay.cy.ts`) |
 | Landing page, language switch, auth page scene | 7.9 |
 | Privacy policy page, footer and sign-up links, acceptance required at sign-up | 7.9 |
 | Achievements (including offline), notifications, notification center, offline summary | 7.9 |

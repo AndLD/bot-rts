@@ -6,6 +6,10 @@ changes behaviour adds a line under "Unreleased"; a release moves them under its
 
 ## [Unreleased]
 
+### Changed
+
+- Repair: a module below the repair threshold (20 % by default), one that is broken (condition 0) included, can no longer be repaired and can only be disassembled. A corpse base therefore cannot be restored (its wireless adapter is broken); a broken memory module stays unreadable and its files are deleted when it is disassembled. Modules of a living base at or above the threshold stay repairable.
+
 ### Fixed
 
 - Engine: a script that calls the scanner, the factory or a repair every cycle no longer makes the engine read every player's bots and radio network from the database again on each tick. Only the caller's own bots are forgotten, so the tick stays short when a few players are online (the load harness with 5 players: tick p95 from about 102 ms to about 59 ms, no overruns).

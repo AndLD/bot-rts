@@ -19,7 +19,7 @@
 | **User map point** | A per-player cached copy of a real point, used for fog of war. |
 | **Terminal session** | One connection session between a player and a bot terminal, including all logs. Persisted to the database. |
 | **BotOS** | The bot's operating system; provides the terminal and script runtime. |
-| **Corpse base** | A base whose owner has lost control (no working wireless adapter). It stays on the map and can be repaired (§6.3). |
+| **Corpse base** | A base whose owner has lost control (no working wireless adapter). It stays on the map and cannot be restored: its wireless adapter is broken, and a broken module can only be disassembled (§6.3, §8.4.1). |
 | **Stale bot** | A bot whose base is a corpse base; it has no active owner, keeps running, and can be adopted by anyone with access (§6.3, §11.2.2). |
 | **Adopt** | Re-assign a bot to the base the connection came from, after authenticating on it (§11.2.2). Bases cannot be adopted. |
 | **Power source** | A module that makes energy: the oil **generator** (burns oil, strong, manual) or the **solar panel** (no fuel, weak, follows the sun). §7.2.1. |

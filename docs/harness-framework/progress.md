@@ -111,3 +111,10 @@
   sets 1,043), answers the system-seller question (§20) and triages the remaining findings; then step 2.
 - **Open decisions:** the system seller; the triage of the findings not yet decided.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-18 — system seller decided
+- **Done:** the owner decided that the system also sells, in Phase 10. #212 adds it (design §26.1, §26.4; task 10.16, 3 SP).
+  Phase 10 is 136 SP; the plan total conflict between #211 and #212 now resolves to 1,046.
+- **Next step:** the owner reviews and merges #209 to #212, and triages the remaining findings; then step 2.
+- **Open decisions:** the triage of the findings not yet decided.
+- **Verify with:** `npm run docs:check`

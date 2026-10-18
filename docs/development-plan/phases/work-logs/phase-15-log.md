@@ -101,7 +101,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 
 ### 2026-10-18 — 15.2 method and stack split done
 - **Tasks:** 15.2 ✅ (H-20261017-09, export blockers B2 and B3); 15.1 merged as #216
-- **Branch:** `docs/15.2-method-stack-split` — done, PR_15_2
+- **Branch:** `docs/15.2-method-stack-split` — done, PR #217
 - **Decisions / deviations from the plan:**
   - `docs/engineering/method.md` (project-neutral, roles only): principles, SOLID checklist, testing rules, definition-of-done
     skeleton, Git workflow, session protocol. `docs/engineering/stack.md`: the stack and test tooling, architecture and layering

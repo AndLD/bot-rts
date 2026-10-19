@@ -107,6 +107,10 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
   status updates in the phase file and the development plan, the work log, the matching `docs/product-knowledge/game-design/` updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
+- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title
+  `chore(plan): claim task <id>`, `Plan: <id>` in the body); a task with an open pull request belongs to the session that opened it.
+  With several agents the orchestrator or the owner merges, and the CI events and review comments of a pull request go to the session
+  that owns it ([method §7](./docs/engineering/method.md#7-several-agents)).
 - **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
   `release/*` and `hotfix/*` into `main`) without asking.
 - **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything
@@ -157,7 +161,7 @@ Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, t
   and the MCP server (`mcp/`) only calls the public API.
 - **Player-facing text:** every UI string, error code and documentation page exists in every user-facing language
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
-- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/product-knowledge/CHANGELOG.md`.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a changelog fragment in `docs/product-knowledge/changelog.d/`.
 - **Admin endpoints** (Phase 9, delivered in tasks 9.1–9.15 and extended by the open tasks; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are closed to API keys **except routes that opt in with an `admin:*:read` scope** (Phase 14: read-only keys
   granted from the console only; the owner must still hold the admin role on every call; such keys never appear in a player-facing list, spec or documentation).

@@ -64,3 +64,14 @@ _No entries yet._
 - **Problems / blockers / findings:** none.
 - **Next step:** start Phase 10 with 10.1 when the owner asks.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-19 — coordination for several agents (task 15.11)
+- **Tasks:** none started; the execution order of the phase file is now a dependency list with waves
+- **Branch:** `docs/15.11-multi-agent-coordination` — the plan only
+- **Decisions / deviations from the plan:** the single chain of the written execution order is replaced by the dependencies and the five
+  waves of the harness review of 2026-10-17 (10.16, added later, depends on 10.1, 10.2 and 10.4). The tasks of this phase write a log fragment
+  each in `work-logs/phase-10/` and a changelog fragment each, claim themselves with a draft pull request, and are merged by the orchestrator
+  or the owner (method §7). The implementation-log table is gone: `npm run plan:log -- 10` prints it from the merged pull requests.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged; Phase 10 is not started. Decide the open questions that block a task, then write wave 0 (the contracts).
+- **Verify with:** `npm run docs:check`; `npm run plan:log -- 10`

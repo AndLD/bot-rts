@@ -2,17 +2,9 @@
 
 All notable changes to Bot RTS are recorded here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [Semantic Versioning](https://semver.org/) (see [docs/operations/RELEASING.md](../operations/RELEASING.md)). Every pull request that
-changes behaviour adds a line under "Unreleased"; a release moves them under its version.
+changes behaviour adds a fragment to [`changelog.d/`](./changelog.d/README.md); a release moves the fragments under its version.
 
 ## [Unreleased]
-
-### Added
-
-- Script API: `connect(botId, password?)` opens a link to another bot with the rules of the terminal command: a bot of another player needs its password, every attempt costs energy, and wrong passwords lock the bot out. A wrong password or a lockout answers `FORBIDDEN`. The manual action and the MCP tool `bot_connect` come with it.
-
-### Changed
-
-- Repair: a module below the repair threshold (20 % by default), one that is broken (condition 0) included, can no longer be repaired and can only be disassembled. A corpse base therefore cannot be restored (its wireless adapter is broken); a broken memory module stays unreadable and its files are deleted when it is disassembled. Modules of a living base at or above the threshold stay repairable.
 
 ### Fixed
 

@@ -24,7 +24,7 @@
     "db:reset": "docker compose down -v && docker compose up -d --wait db",
     "format:check": "prettier --config .prettierrc.json --check .",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
-    "docs:check": "node scripts/check-markdown-links.mjs && node scripts/check-open-items.mjs && node scripts/check-glossary.mjs && node scripts/check-product-knowledge.mjs",
+    "docs:check": "node scripts/check-markdown-links.mjs && node scripts/check-open-items.mjs && node scripts/check-glossary.mjs && node scripts/check-product-knowledge.mjs && node scripts/check-changelog-fragments.mjs",
     "check:boundaries": "npm run check:boundaries --workspaces --if-present",
     "postinstall": "npm run prisma:generate -w api",
     "i18n:check": "node scripts/check-i18n.mjs",
@@ -33,7 +33,8 @@
     "load": "node scripts/load-test.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
-    "docs:generate": "npm run docs:generate -w api"
+    "docs:generate": "npm run docs:generate -w api",
+    "plan:log": "node scripts/plan-log.mjs"
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",

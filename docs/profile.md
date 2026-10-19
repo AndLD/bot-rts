@@ -68,7 +68,10 @@ Branch types:
 | Plan index | [`docs/development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
 | Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
-| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only |
+| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
+| Task log | from Phase 10 on, one fragment per task: `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`); the older phases keep their one log |
+| Implementation log | printed from the merged pull requests by `npm run plan:log -- <n>` (the `Plan: <task id>` lines of the squash commits); phases before Phase 10 keep the table written in the phase file |
+| Task claim | a draft pull request titled `chore(plan): claim task <task id>`, opened before any other work on the task |
 | Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
@@ -164,7 +167,7 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
 | Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
 | Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`MCP.md`](./product-knowledge/integrations/MCP.md) |
-| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md) |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`product-knowledge/changelog.d/`](./product-knowledge/changelog.d/README.md), collected by the release script |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
 | Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`bindings.md`](./development-plan/bindings.md) |
 | Definition of done | [`development-plan/cross-cutting/definition-of-done.md`](./development-plan/cross-cutting/definition-of-done.md) |

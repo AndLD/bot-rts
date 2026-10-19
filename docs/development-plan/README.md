@@ -75,7 +75,7 @@ decision supersedes it with a new record and a link.
 
 ## 5. Work logs
 
-One append-only log per phase, kept in `phases/work-logs/` next to the phase files; newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
+One append-only log per phase, kept in `phases/work-logs/` next to the phase files (from Phase 10 on, plus one fragment per task in `phases/work-logs/phase-<n>/`, see the phases README); newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
 template lives inside each log. The log is the resume point: it states what is done, the exact next step and the commands that
 verify the current state. The log is part of the change that it describes.
 
@@ -84,7 +84,7 @@ verify the current state. The log is part of the change that it describes.
 | Event | Update |
 | ----- | ------ |
 | A phase starts | Phase file status, index summary |
-| A task starts or finishes | Task status in the phase file, implementation log row, work-log entry |
+| A task starts or finishes | Task status in the phase file, the task's log fragment (the implementation log is printed from the merged pull requests; the older phases keep their table) |
 | A phase finishes | Exit criteria checked, phase file and index status, work log, risk review |
 | The scope changes | Phase file tasks or a new phase, index summary and total, gates if affected, the product knowledge if a decision changed |
 | A decision changes the order | The "Order of development" section, with the date and the reason |

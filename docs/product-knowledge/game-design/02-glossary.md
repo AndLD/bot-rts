@@ -40,6 +40,8 @@ One row per concept: the **term** is the name the design uses, the **code name**
 | **Inbox** | – | – | A player's holding area for market purchases and accepted transfers; items wait there for withdrawal into a storage or a drive (§26.7, §27.3). |
 | **Ledger** | – | – | The append-only double-entry record of every move of credits and traded goods (§26.1). |
 | **Edition** | – | – | A script listed for sale as N copies; the seller keeps the original (§26.6). |
+| **Script catalog** | – | script store, script marketplace | The one place where scripts are sold: product pages that every signed-in player can browse (§26.6.1). |
+| **Product page** | – | script page | A script's page in the script catalog (description, images, a video link, ratings); its editions and auctions are sold from it (§26.6.1). |
 | **System trader** | – | – | The system buyer and the system seller, and the admin-edited rules and campaigns that decide what they trade, when, at which price and how much (§26.10). |
 | **Market terminal** | `marketTerminal` | – | The single-class module that gives remote access to the market (§26.2). |
 | **Achievement** | – | badge | A recognition badge unlocked by in-game progress; no gameplay rewards (§23). |

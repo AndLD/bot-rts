@@ -21,3 +21,6 @@
 - **Admin console extras** (webhook alert channels and an on-call schedule, player reports and a support inbox, scripted admin
   automation through a separate admin API key type, a second store for the metrics history): kept in their own
   list in §25.6.
+- **Script catalog extras** (§26.6.1): hosted video uploads (today only a link to an allowed host), demo recordings of a
+  script made by the deterministic engine (§12.4) instead of a video, new versions of a sold script delivered to earlier buyers,
+  seller replies to ratings, and catalog pages readable without signing in.

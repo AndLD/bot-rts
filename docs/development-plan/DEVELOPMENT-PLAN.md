@@ -30,14 +30,14 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 7 | Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation | 66 | ✅ Done |
 | 8 | Multiplayer, public API & production hardening | 71 | ✅ Done |
 | 9 | Admin console | 135 | ✅ Done |
-| 10 | Market, currency, chat & transfers | 141 | ⬜ Not started |
+| 10 | Market, currency, chat & transfers | 154 | ⬜ Not started |
 | 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | ✅ Done |
 | 12 | Issues and stabilization | 11 (grows) | 🟡 In progress |
 | 13 | Observability platform | 48 | ✅ Done |
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
 | 15 | Harness fixes | 58 | 🟡 In progress |
 | 16 | CI speed and agent throughput | 26 | 🟡 In progress |
-|  | **Total of Phases 0–16** | **1135** (Phase 12 grows as issues are added) | |
+|  | **Total of Phases 0–16** | **1148** (Phase 12 grows as issues are added) | |
 <!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
@@ -58,7 +58,7 @@ Phase 12 is open-ended and its tasks are done whenever they are found; it has no
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: every phase that exists, Phases 0–16 (1135 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: every phase that exists, Phases 0–16 (1148 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./cross-cutting/guiding-principles.md)).
 
@@ -100,7 +100,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)](./phases/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./phases/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (135 SP)](./phases/phase-9-admin-console.md)
-- [Phase 10 — Market, currency, chat & transfers (141 SP)](./phases/phase-10-market-chat.md)
+- [Phase 10 — Market, currency, chat & transfers (154 SP)](./phases/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./phases/phase-11-energy-time-ux.md)
 - [Phase 12 — Issues and stabilization (11 SP, grows as issues are added)](./phases/phase-12-issues.md)
 - [Phase 13 — Observability platform (48 SP)](./phases/phase-13-observability-platform.md)

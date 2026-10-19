@@ -488,3 +488,29 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   every function of the §10.2 table is in the code catalogue would catch it; the owner postponed it. The re-review (15.14) may reconsider.
 - **Next step:** 15.14: targeted re-review in a fresh session
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-19 — 15.14 targeted re-review done; exit criteria not met, 15.15 to 15.18 added
+- **Tasks:** 15.14 ✅ (report [`2026-10-19.md`](../../../quality-reviews/harness/2026-10-19.md)); 15.15, 15.16, 15.17 and 15.18 added (⬜, 13 SP; the phase is 71 SP)
+- **Branch:** `docs/15.14-harness-review` — done, PR #239 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - The review ran in a fresh session that did not write the fixes; probes P1–P5 and P7 ran as fresh subagents on Sonnet 5.5, medium effort
+    (bindings §5). P6 and the claims-based documented share were carried, because the full claims ledger was not rebuilt.
+  - The task listed D1–D9 and D11–D14. I re-scored D10 and D15 as well, because 15.9, 15.11 and 15.13 changed their evidence and the
+    method requires a delta after a change to the hooks (its section 6).
+  - Scores (previous → now): D1 2→4, D2 3→4, D3 2→4, D4 2→4, D5 3→4, D6 3→4, D7 3→4, D8 2→4, D9 3→4, D10 4→4, D11 2→4, D12 2→4,
+    D13 3→3, D14 2→4, D15 2→3. Blueprint readiness 82 % → 94 % (`AGENTS.md` §1 and §7: 5 % → 39 %). The method's gate passes.
+  - **Exit criteria of the phase: not met.** Every 🔴 finding is closed and no dimension scores 1 or 2, but D1, D3 and D7 score 4, not 5,
+    and B2 is closed only in part. `npm run docs:check`, `npm run lint` and the coverage gate pass (in CI; locally lint fails only on
+    agent worktrees, H-20261019-05). The missing work is planned as 15.15 (CORE without values, with a check), 15.16 (adapter values from
+    one file), 15.17 (a complete rule-to-check map, `new Date()`, the hook and lint defects) and 15.18 (re-review of D1, D3 and D7).
+    The phase stays 🟡.
+  - The follow-up table of the 2026-10-17 report has a status column now; the review log of the bindings and the reviews index list
+    the new report.
+- **Problems / blockers / findings:**
+  - 15 new findings (H-20261019-01 to -15). Those outside the new tasks wait for the owner's triage in the report's section 13:
+    the D13 budgets (§26 is 3,447 words since #224), wave 0 of Phase 10 as a task, the chat questions of §27.1 before 10.7, the Q18 references.
+  - `engine-worker.module.int.test.ts` "moves a bot in memory…" failed once in the full local coverage run (`BLOCKED`) and passed alone 3/3
+    and in the next full run; it is not in the known issues yet (H-20261019-14).
+  - The Bash guard hook refused two read-only commands of the review that only held a protected pattern as text (H-20261019-04).
+- **Next step:** start 15.15 (CORE without project values, with a check) when the owner asks; step 3 of the harness-framework plan waits for 15.18.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); the readiness scan described in the report's section 3 (M1/M2)

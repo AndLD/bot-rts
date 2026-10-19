@@ -116,7 +116,7 @@ asks before merging; moves, splits and corrections that keep the meaning merge l
 
 ### 2.4 Verify
 
-Task 15.14 (and, after the fixes it added, task 15.18) runs a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the
+Task 15.14 (and, after the fixes each re-review added, tasks 15.18 and 15.21) runs a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the
 findings and reports the new blueprint readiness. Step 3 starts when the exit criteria hold.
 
 ### Start prompt (step 2)

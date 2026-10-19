@@ -600,3 +600,26 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - Out of scope here and still open: H-06, H-09 to H-15 of the report (budgets, wave 0 of Phase 10, the Q18 references, routing, chat rules, `control block`, the flaky test, the database assumption).
 - **Next step:** 15.18: targeted re-review of D1, D3 and D7 in a fresh session
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`; `npm run plan:log -- 15`
+
+### 2026-10-19 — 15.18 second targeted re-review done; exit criteria not met, 15.19 to 15.21 added
+- **Tasks:** 15.18 ✅ (report [`2026-10-19-2.md`](../../../quality-reviews/harness/2026-10-19-2.md)); 15.19, 15.20 and 15.21 added (⬜, 6 SP; the phase is 77 SP)
+- **Branch:** `docs/15.18-harness-review` — done, PR #244 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - The review ran in a fresh session that did not write 15.15 to 15.17. Probes P4 and P5 ran as fresh read-only subagents on Sonnet 5.5, medium effort.
+    Besides D1, D3 and D7 it re-checked D6, D8, D10 and D15, whose evidence the three tasks changed; the other scores are carried.
+  - Scores (previous → now): D1 4→4, D3 4→4, D6 4→4, D7 4→**5**, D8 4→4, D10 4→4, D15 3→3; the rest carried. Blueprint readiness 94 % → 97.2 %
+    (100 % on the declared lists of the CORE scan). The method's gate passes.
+  - H-20261019-01 to -05, -07 and -08 are closed and verified; the follow-up table of the 2026-10-19 report has a status column.
+  - **Exit criteria of the phase: not met.** B1 to B5 and B8 are closed (B2 now too), D7 scores 5, lint, `docs:check` and the coverage gate pass. D1 stays at 4:
+    the scan's lists miss an example branch with a plan task id in `AGENTS.md` §7.1, the dated reports listed in the CORE file `docs/quality-reviews/README.md`,
+    and "player" twice (H-20261019-16). D3 stays at 4: `release.yml` spells out the changelog path, the required checks live in two places, and seven adapter
+    documents restate the branch names (H-20261019-17). The missing work is 15.19 and 15.20, with the re-review 15.21. The phase stays 🟡, and the local-database
+    step of method §6 does not apply yet.
+  - The second report of the day is named `2026-10-19-2.md` (method §4 step 7); its finding ids continue at H-20261019-16.
+- **Problems / blockers / findings:**
+  - The pre-push hook runs the full code checks when a push changes no file, which every claim push does: the claim of this review ran 3,489 tests
+    (H-20261019-18, for the owner's triage).
+  - Smaller: rule-map row 27 claims "enforced" for "no secrets" (H-19); `performance.now()` is neither banned nor classified (H-20); a stale budget line in the
+    bindings (H-21).
+- **Next step:** 15.19 (CORE leaks outside the scan's lists) when the owner asks; step 3 of the harness-framework plan waits for 15.21 (its design session 3.1 can run earlier).
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); the paragraph scan described in section 3 of the report (M1/M2)

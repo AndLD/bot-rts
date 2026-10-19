@@ -1,4 +1,4 @@
-// The summary table and the contents list of docs/development-plan/DEVELOPMENT-PLAN.md, written from the phase files, so that a size or a
+// The summary table and the contents list of the plan index, written from the phase files, so that a size or a
 // status is kept in one place (the phase file) and the index cannot disagree with it.
 export const SUMMARY_START = '<!-- plan-summary:start -->'
 export const SUMMARY_END = '<!-- plan-summary:end -->'

@@ -76,7 +76,7 @@ them and avoids a second checkout's run:
   when you run `npm test` yourself, export `DATABASE_URL` (and `REDIS_URL` for the two Redis tests), and pass `POSTGRES_PORT` to
   `npm run e2e` so that it finds the same server.
 - **Integration tests** create their own databases on the server (one per test file), so two runs on one server do not meet.
-- **New working copies and sessions** start from `origin/develop` (fetch first).
+- **New working copies and sessions** start from the integration branch as it is on the remote (fetch first).
 
 Verified on 2026-10-19 (task 15.12): with listeners holding 8080 and 5173 as development servers would, and the other checkout's database
 up on 5432 and 6379, one worktree ran the integration tests of `api` against its own PostgreSQL and Redis (project name, ports 15432 and 16379)
@@ -98,7 +98,7 @@ It prints the wall time of the run, the duration of each job, the steps of 5 s o
 log and `--log <file>` reads a saved one. The parsing is tested on a saved excerpt (`scripts/fixtures/verify-log-excerpt.txt`) by
 `npm run test:scripts`.
 
-**Baseline** (push run of #216 to `develop`, run 39158838242, 2026-10-18):
+**Baseline** (push run of #216 to the integration branch, run 39158838242, 2026-10-18):
 
 | Job | Wall time | Largest steps |
 | --- | --------- | ------------- |
@@ -144,7 +144,7 @@ matches every rule on each call (80 ms per call).
 
 **After 16.4** (caches). `.github/actions/install` restores `node_modules` of every workspace from a cache keyed on
 `package-lock.json` and `.nvmrc`, and runs `npm ci` only on a miss; `verify`, `e2e` and `lighthouse` use it. `verify` also restores
-Jest's transform cache (`/tmp/jest_*`), which a push to `develop` or `main` saves and pull requests read. The numbers are from the
+Jest's transform cache (`/tmp/jest_*`), which a push to a protected branch saves and pull requests read. The numbers are from the
 pull request that added them (run 39167692779 was the first run, a cache miss; run 39170938431 the second, a hit):
 
 | Install step | Cache miss | Cache hit |
@@ -155,7 +155,7 @@ pull request that added them (run 39167692779 was the first run, a cache miss; r
 
 A miss costs the same as before plus 4 to 14 s to save the cache, once per change of the lock file. A change of `package-lock.json`
 or of the Node version (`.nvmrc`) starts a new cache; the old one is evicted by GitHub when the repository passes its cache quota.
-The Jest cache cannot be measured on a pull request: no push to `develop` has saved one yet. The first push after this change
+The Jest cache cannot be measured on a pull request: no push to a protected branch has saved one yet. The first push after this change
 saves it, and the numbers of 16.8 show its effect.
 
 ## Coverage
@@ -166,7 +166,7 @@ saves it, and the numbers of 16.8 show its effect.
   v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
 - CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`); the pre-push hook runs the same
   check after the coverage run, and you can run it yourself:
-  `node scripts/check-changed-coverage.mjs origin/develop api client mcp` after `npm run test:coverage`. A package can pass its total
+  `node scripts/check-changed-coverage.mjs origin/<integration> api client mcp` after `npm run test:coverage` (`<integration>` is the integration branch of the [profile](../profile.md#3-branches-and-merging)). A package can pass its total
   and still fail here, because every changed file is held to the gate on its own. Causes: a mocked-away module (a mocked file shows 0 %),
   an unused helper (dead code shows 0 %), and an untested side of `??` or a ternary (cover it with an input that takes each side).
 - Read `Test Suites:` in the Jest summary, not only `Tests:`: a suite that fails to compile (a type error in a fixture after a shared

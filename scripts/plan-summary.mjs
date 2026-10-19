@@ -1,4 +1,4 @@
-// Writes (or, with --check, verifies) the summary table and the contents of the phases in docs/development-plan/DEVELOPMENT-PLAN.md from
+// Writes (or, with --check, verifies) the summary table and the contents of the phases in the plan index from
 // the phase files. `npm run docs:check` runs the check; `npm run plan:summary` writes.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'

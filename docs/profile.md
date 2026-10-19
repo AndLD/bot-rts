@@ -7,10 +7,12 @@ Every injectable value of this repository's harness, named by its **role**. Rule
 mechanism named next to it), never in the rules. A new project built on the same method rewrites this file.
 
 **The machine-readable part** is [`scripts/harness-profile.json`](../scripts/harness-profile.json): the repository, the production and the
-integration branch, the packages with a coverage gate and the paths of the plan and the changelog, read by the hooks and scripts
+integration branch, the packages with a coverage gate, the required checks and the paths of the plan and the changelog, read by the hooks and scripts
 through `scripts/harness-profile.mjs` (and, with the coverage-gate constant, by the pre-push hook and the protection script). The
-branch triggers of `.github/workflows/ci.yml` cannot read it; a script test compares them with it. Change a value in the file and in
-the table below together.
+branch triggers of `.github/workflows/ci.yml` cannot read it; a script test compares them with it, and another compares the required
+checks with the table below. Change a value in the file and in the table below together. Documents under `docs/engineering`,
+`docs/operations` and `docs/testing` name the branches by role, or by a placeholder with a line that says where its value is; a test refuses a
+branch name there outside the fenced command blocks.
 
 The method documents keep their own `bindings.md` (plan, phases, code review, harness review). A binding that needs a value
 below links to its row instead of copying it.
@@ -36,7 +38,7 @@ below links to its row instead of copying it.
 | Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI |
 | Coverage exclusions | entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts` | `collectCoverageFrom` |
 | Local gate | the pre-push hook runs typecheck and the tests with the coverage gate when a push changes more than Markdown | `.githooks/pre-push` |
-| **Required checks** (the merge gates) | `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, changed-file coverage, build), `pr-title` (Conventional Commit title), `e2e` (end-to-end suite), `lighthouse` (public pages); jobs of `.github/workflows/ci.yml` | set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`); change the script and this row together |
+| **Required checks** (the merge gates) | `verify` (lint, import boundaries, typecheck, message catalogues, Markdown links, tests with the coverage gate, changed-file coverage, build), `pr-title` (Conventional Commit title), `e2e` (end-to-end suite), `lighthouse` (public pages); jobs of `.github/workflows/ci.yml` | set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`) from the `requiredChecks` list of `scripts/harness-profile.json`; a test compares that list with the job names of this row, so change both together |
 
 ## 3. Branches and merging
 

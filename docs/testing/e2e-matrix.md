@@ -3,7 +3,7 @@
 # End-to-end coverage matrix
 
 Every core user and game flow has a Cypress spec. A pull request that adds or changes a user-visible flow adds or
-updates its spec and this matrix. The full suite runs in CI on every PR into `develop` (from Phase 2); if it grows past
+updates its spec and this matrix. The full suite runs in CI on every PR into the integration branch (from Phase 2); if it grows past
 about 15 minutes it is sharded and run in parallel.
 
 | Flow | Spec owned by |

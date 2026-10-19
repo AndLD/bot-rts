@@ -641,3 +641,24 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the auto-mode classifier refused the first attempt to merge #244 without the owner's word; the owner then allowed it.
 - **Next step:** 15.20 (values out of the adapter documents and the release workflow); 15.21 (re-review) in a fresh session.
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:summary` (no diff)
+
+### 2026-10-19 — 15.20 adapter values out of the documents and the release workflow
+- **Tasks:** 15.20 ✅ (H-20261019-17); 15.19 was merged first as PR #245
+- **Branch:** `chore/15.20-adapter-values` — done, PR #246 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - `release.yml` reads the changelog path with `node scripts/harness-profile.mjs get paths.changelog`; the test of "no value spelled out" now covers every workflow,
+    and a second test refuses a branch name in a workflow outside a `branches: [...]` trigger (this caught a comment of `ci.yml`, reworded).
+  - The required checks are the `requiredChecks` list of `scripts/harness-profile.json`. `protect-branches.sh` builds the ruleset's check list from it.
+    One test compares the list with the job names of the "Required checks" row of profile section 2; another runs the script against a stand-in `gh` and compares
+    the ruleset it sends (checks and branch refs) with the profile file.
+  - Rows 11 and 13 of the rule map, `DEPLOYMENT.md`, `testing/README.md` and `e2e-matrix.md` say "the integration branch" and "the production branch" (no rule changed).
+    `RELEASING.md` and the one command of `testing/README.md` use `<production>` and `<integration>`, each with one line that names the profile and the command that prints it.
+  - A test scans the top-level documents of `docs/engineering`, `docs/operations` and `docs/testing` outside fenced blocks for a branch name in backticks, after `origin/`
+    or after a Git verb. The reports and `by-phase.md` (STATE) are not scanned. Branch names inside fenced command blocks are not scanned either; the fences of
+    `RELEASING.md` now hold placeholders anyway.
+  - Script comments that named a branch or the plan index path were reworded so that the M4 search finds nothing in `scripts/` but the profile file.
+  - M4 re-run: the branch names, the slug and the paths appear only in `harness-profile.json`, the CI triggers (tested) and the tests; the documents outside
+    STATE, the PROFILE bindings and the ENTRY glosses (`README.md:351-352`, `DEVELOPMENT-PLAN.md:79,82`, which the report does not count) hold the rest.
+- **Problems / blockers / findings:** none.
+- **Next step:** 15.21, the targeted re-review of D1 and D3, in a fresh session.
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`; `npm run plan:summary` (no diff)

@@ -308,7 +308,7 @@ https://api.example.com       host     the API (HTTP and Socket.IO), behind TLS
   | `NEXT_PUBLIC_CONTACT_EMAIL` | the privacy contact | the same |
 
   They are read at build time, so a change needs a new deployment.
-- The `main` and `develop` branches deploy (production and a stable staging); every pull request gets a preview deployment.
+- The production and the integration branch deploy (production and a stable staging); every pull request gets a preview deployment.
 
 ### Domains, cookies and CORS
 
@@ -329,7 +329,7 @@ https://api.example.com       host     the API (HTTP and Socket.IO), behind TLS
 
 1. API deployed with `NODE_ENV=production`, `JWT_ACCESS_SECRET`, `FRONTEND_URL`, `WHITELIST_URLS`, `COOKIE_*`, HTTPS.
 2. `GET https://api.example.com/api/v1/health` answers `{"status":"ok", …}`.
-3. Vercel variables set, production deployed from `main`.
+3. Vercel variables set, production deployed from the production branch.
 4. Sign in on the client, deploy a base, open the terminal (the socket connects to the API host), reload (the refresh cookie works).
 5. Open a preview deployment of a pull request and repeat step 4 against the staging API.
 

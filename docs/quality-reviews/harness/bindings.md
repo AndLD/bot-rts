@@ -365,6 +365,7 @@ Add a scenario whenever a real session shows an agent misreading the harness.
 | Date | Type | Report | Reviewer |
 | ---- | ---- | ------ | -------- |
 | 2026-10-17 | full | [2026-10-17.md](./2026-10-17.md) | Claude Code session (Opus 5.5, high); subagents on Sonnet 5.5, medium |
+| 2026-10-19 | targeted (task 15.14: D1–D15, D11 on the changed sections) | [2026-10-19.md](./2026-10-19.md) | Claude Code session (Opus 5.5) that did not write the Phase 15 fixes; probes P1–P5 and P7 on Sonnet 5.5, medium |
 
 ## 5. How to start a review
 

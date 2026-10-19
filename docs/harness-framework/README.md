@@ -97,7 +97,8 @@ nothing else can be made neutral before the values have a home. Then, in order:
 - removing blockers to parallel execution (D14);
 - everything else.
 
-Each group is a task of Phase 15, in this order (15.1 to 15.13), and the targeted re-review is its last task (15.14).
+Each group is a task of Phase 15 (15.1 to 15.13), and the targeted re-review is task 15.14. Its report of 2026-10-19 found the exit
+criteria not met and added 15.15 to 15.17, with a second re-review as 15.18.
 
 ### 2.3 Doing the fixes
 
@@ -115,7 +116,7 @@ asks before merging; moves, splits and corrections that keep the meaning merge l
 
 ### 2.4 Verify
 
-Task 15.14 runs a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the
+Task 15.14 (and, after the fixes it added, task 15.18) runs a **targeted** harness review (method, section 6) on the dimensions the fixes touched. It re-scores them, closes the
 findings and reports the new blueprint readiness. Step 3 starts when the exit criteria hold.
 
 ### Start prompt (step 2)

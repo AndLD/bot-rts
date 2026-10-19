@@ -1,4 +1,4 @@
-[← Phase <n>](../../phase-<n>-<slug>.md)
+← Phase <n>: link to its phase file here (`[← Phase <n> — <theme>](../../phase-<n>-<slug>.md)`).
 
 # <task id> — <task name> — work log
 

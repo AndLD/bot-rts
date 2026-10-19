@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { coreFiles, coreLeakProblems, profilePattern } from './core-leaks-lib.mjs'
 
@@ -58,4 +59,29 @@ test('a missing CORE file and a missing or repeated binding line are problems', 
   assert.match(coreLeakProblems(none, PROFILE, BINDINGS)[0], /expected one "\*\*Role binding\.\*\*" line.*found 0/)
   const twice = { 'AGENTS.md': AGENTS(BINDING_LINE), 'docs/method.md': '' }
   assert.match(coreLeakProblems(twice, PROFILE, BINDINGS)[0], /found 2/)
+})
+
+// The lists of the real profile (section 9), for the values that the lists must catch
+const REAL_PROFILE = readFileSync(new URL('../docs/profile.md', import.meta.url), 'utf8')
+const REAL_FILES = (text) => ({ 'AGENTS.md': AGENTS('ok'), 'docs/method.md': text })
+
+test('the profile lists catch a game noun, a task-id branch example and a link to a dated file', () => {
+  const cases = [
+    ['The soak test sustains N players.', 'the product term "players"'],
+    ['A player must learn it.', 'the product term "player"'],
+    ['For example `feature/3.12-some-task`.', 'the project value "feature/3"'],
+    ['See `bugfix/12.1-fix`.', 'the project value "bugfix/1"'],
+    ['The report [2026-10-19](./harness/2026-10-19.md).', 'the project value "2026-10-19.md"'],
+    ['The report [second](./2026-10-19-2.md).', 'the project value "2026-10-19-2.md"']
+  ]
+  for (const [text, expected] of cases) {
+    const problems = coreLeakProblems(REAL_FILES(text), REAL_PROFILE, BINDINGS)
+    assert.equal(problems.length, 1, text)
+    assert.ok(problems[0].includes(expected), `${text}: ${problems[0]}`)
+  }
+})
+
+test('the profile lists let a placeholder branch example and a template date pattern pass', () => {
+  const text = 'Branch `feature/<id>-<slug>`; reports are named `YYYY-MM-DD.md`.'
+  assert.deepEqual(coreLeakProblems(REAL_FILES(text), REAL_PROFILE, BINDINGS), [])
 })

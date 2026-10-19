@@ -146,7 +146,7 @@ STACK='nestjs|prisma|postgres|\bjest\b|cypress|quickjs|socket\.io|next\.js|verce
 Product terms, which must not appear in CORE sections (the CORE scan skips the generic words below):
 
 ```bash
-PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
+PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b|\bplayers?\b'
 ```
 
 Generic words of the product list, judged in context and not scanned in CORE text:
@@ -159,7 +159,7 @@ Project values, which must not appear in CORE text except on the **Role binding*
 `npm run docs:check` reads this list; the CORE files are listed in the [harness bindings](./quality-reviews/harness/bindings.md#1-layer-map-corrected-by-the-review-of-2026-10-17-section-2-to-be-verified-by-each-full-review)):
 
 ```bash
-PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks'
+PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\.md'
 ```
 
 Bounded contexts (files of `docs/product-knowledge/game-design/`):

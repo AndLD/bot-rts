@@ -67,7 +67,7 @@ The former sections keep their numbers here so that older references resolve:
 
 Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow
 (one branch per task, finishing a release) is in [method §5](./docs/engineering/method.md#5-git-workflow).
-**`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`.
+**`<id>` is the task number from the development plan**, as in `feature/<id>-<slug>`.
 Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a task of the open-ended phase (a bugfix branch named by its task id).
 Documentation or tooling work that no task covers uses a branch slug only (the docs and chore branch types).
 

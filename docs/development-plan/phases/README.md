@@ -44,7 +44,7 @@ it. One phase is one file in this folder.
 ## 4. Exit criteria
 
 Write them so a person who did not do the work can check them: observable behavior, commands that pass, documents that exist.
-Not "improve performance" but "the soak test sustains N players for M hours within the budget in <document>".
+Not "improve performance" but "the soak test sustains N users for M hours within the budget in <document>".
 
 ## 5. Implementation log
 

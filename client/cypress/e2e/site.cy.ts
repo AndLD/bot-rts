@@ -21,7 +21,7 @@ describe('the landing page', () => {
     cy.contains('h1', 'Программируй ботов. Захвати карту.')
     cy.get('link[rel=alternate][hreflang=en]')
       .should('have.attr', 'href')
-      .and('match', /^http:\/\/localhost:5173\/?$/)
+      .and('match', /^http:\/\/localhost:\d+\/?$/)
     cy.get('script[type="application/ld+json"]').should('exist')
 
     cy.contains('.site-languages a', 'English').click()

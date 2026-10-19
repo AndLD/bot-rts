@@ -18,8 +18,9 @@ interface ApiLaunch {
   env: Record<string, string>
 }
 const API_LAUNCH: ApiLaunch | null = process.env.E2E_API_LAUNCH ? JSON.parse(process.env.E2E_API_LAUNCH) : null
-const API_PORT = Number(process.env.E2E_API_PORT ?? 8080)
-const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 5173)
+// The same defaults as scripts/e2e.mjs: other than the development servers' 8080 and 5173
+const API_PORT = Number(process.env.E2E_API_PORT ?? 18080)
+const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 15173)
 
 function apiProcesses(): number[] {
   try {

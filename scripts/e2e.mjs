@@ -1,29 +1,37 @@
 // Runs the Cypress suite against a throwaway stack: a fresh PostgreSQL database, the API (ts-node) and the built client.
 // Usage: node scripts/e2e.mjs [--open] [--skip-build] [-- <cypress run arguments>]
 // Needs the PostgreSQL of docker-compose.yml (`npm run db:up`) or a service container with the same credentials.
+// It uses ports other than the development servers' (E2E_API_PORT, E2E_CLIENT_PORT), refuses to start when one is taken, and stops only
+// what it started. Two checkouts: give each its own database port (POSTGRES_PORT) and e2e ports (docs/testing/README.md).
 import { spawn, spawnSync } from 'node:child_process'
 import { mkdirSync, rmSync, createWriteStream } from 'node:fs'
 import { resolve } from 'node:path'
 import pg from 'pg'
+import { portsInUse } from './e2e-lib.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const workDir = resolve(root, '.e2e')
 const outbox = resolve(workDir, 'outbox')
-const adminUrl = process.env.E2E_ADMIN_DATABASE_URL ?? 'postgresql://botrts:botrts@localhost:5432/postgres'
-const databaseName = 'botrts_e2e'
-const databaseUrl = new URL(adminUrl)
-databaseUrl.pathname = `/${databaseName}`
+const adminUrl =
+  process.env.E2E_ADMIN_DATABASE_URL ??
+  `postgresql://botrts:botrts@localhost:${process.env.POSTGRES_PORT ?? 5432}/postgres`
 
 const args = process.argv.slice(2)
 const isOpen = args.includes('--open')
 const shouldBuild = !args.includes('--skip-build')
 const cypressArgs = args.includes('--') ? args.slice(args.indexOf('--') + 1) : []
 
-// The ports and the build folder can be changed, so that a run does not collide with a development server
-const API_PORT = Number(process.env.E2E_API_PORT ?? 8080)
-const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 5173)
+// The ports and the build folder can be changed, so that a run does not collide with a development server or another checkout: the
+// defaults are not the development servers' 8080 and 5173
+const API_PORT = Number(process.env.E2E_API_PORT ?? 18080)
+const CLIENT_PORT = Number(process.env.E2E_CLIENT_PORT ?? 15173)
+// One database per API port, so that two runs against the same PostgreSQL do not drop each other's
+const databaseName = `botrts_e2e_${API_PORT}`
+const databaseUrl = new URL(adminUrl)
+databaseUrl.pathname = `/${databaseName}`
 const DIST_DIR = '.next-e2e'
 const children = []
+let hasStarted = false
 
 function run(command, commandArgs, options) {
   const result = spawnSync(command, commandArgs, { stdio: 'inherit', cwd: root, ...options })
@@ -73,11 +81,15 @@ function listeningOn(port) {
   return (found.stdout ?? '').split('\n').filter(Boolean).map(Number)
 }
 
+// Stops what this run started. The ports were free when it began (checked below), so whatever listens on the API port now is the API
+// it started, or one a spec started again after stopping it; a process that was there before is never touched.
 function stopAll() {
   for (const child of children) {
     child.kill('SIGTERM')
   }
-  listeningOn(API_PORT).forEach((pid) => process.kill(pid, 'SIGTERM'))
+  if (hasStarted) {
+    listeningOn(API_PORT).forEach((pid) => process.kill(pid, 'SIGTERM'))
+  }
 }
 
 process.on('SIGINT', () => {
@@ -88,6 +100,14 @@ process.on('SIGINT', () => {
 let exitCode = 1
 
 try {
+  const taken = portsInUse([API_PORT, CLIENT_PORT], listeningOn)
+  if (taken.length) {
+    throw new Error(
+      `Port ${taken.join(' and ')} is in use by another process, which this script will not stop. Choose other ports with E2E_API_PORT and E2E_CLIENT_PORT.`
+    )
+  }
+
+  hasStarted = true
   rmSync(workDir, { recursive: true, force: true })
   mkdirSync(outbox, { recursive: true })
 

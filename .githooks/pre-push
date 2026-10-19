@@ -13,6 +13,10 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   if ! echo "$files" | grep -qv '\.md$'; then exit 0; fi
 done
 
+# A checkout with a database port of its own (POSTGRES_PORT in .env, docs/testing/README.md) tests against that database
+if [ -f .env ]; then set -a; . ./.env; set +a; fi
+export DATABASE_URL="${DATABASE_URL:-postgresql://botrts:botrts@localhost:${POSTGRES_PORT:-5432}/botrts}"
+
 echo "pre-push: typecheck, then tests with the coverage gate (needs Docker for PostgreSQL)"
 npm run db:up
 npm run typecheck

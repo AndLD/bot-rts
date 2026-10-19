@@ -47,7 +47,7 @@ for each tick:
   player's bots in a stable order, so no player systematically runs first.
 - Each execution has a **wall-clock slice** per tick, and the tick has a **global time cap**. If the cap is hit,
   unprocessed work resumes next tick from a **round-robin resume point**, so nobody is starved.
-- **How it is scheduled (Plan 5.4):** the players with a live execution take turns **one execution each per round** (not
+- **How it is scheduled:** the players with a live execution take turns **one execution each per round** (not
   all of one player first), in a seeded shuffle drawn per tick, so a tick cut short by the global cap has served every player
   alike; the executions the cap kept from running go first next tick. A bot runs at most `parallelExecutions` of its
   executions; the others stay `queued`. A bot's game calls are let through up to its `opsPerTick` per tick, oldest first
@@ -74,36 +74,17 @@ A processor module defines two numbers:
 
 ## 12.2.2 Threading topology
 
-**MVP:** two threads.
+There is **one authoritative engine process** for the whole world: it alone runs scripts, owns the world state and writes to the
+database (in batches, not one query per command). The player-facing API scales horizontally, the engine vertically; if the engine
+process dies, the game pauses until it restarts and reloads the world from the database.
 
-- **API thread** — the NestJS app (HTTP + Socket.IO) only; never runs game logic or scripts.
-- **Engine thread** — runs the tick loop, owns the world state, runs all QuickJS contexts, applies commands, and is the
-  only writer to the database (batched write-behind, not one query per command).
+Scripts never touch the world directly: an API call such as `move()` spends ops and **queues a command**, and the engine applies all
+commands for the tick in the deterministic order (§12.4); results resolve the script's pending promises at the start of the next
+tick. Sharding the world by region across several engines remains possible later (backlog, §21), but it is not built.
 
-Scripts never touch the world directly: an API call such as `move()` spends ops and **queues a command**, and the engine
-applies all commands for the tick in the deterministic order (§12.4); results resolve the script's pending promises at
-the start of the next tick.
-
-**Pool-ready boundary:** command/result messages and a `ScriptRuntime` interface separate "run scripts" from "apply
-commands", so QuickJS execution can later move to a worker pool (sharded by `botId`) or other processes without
-changing game logic.
-
-**Scaling:** there is **one authoritative engine process** for the whole world. The API tier scales horizontally;
-the engine scales vertically. **Implementation (Plan 8.1):** a process runs with `APP_ROLE` `all` (API and engine
-thread together, the default), `api` (HTTP and sockets only) or `engine` (owns the engine thread and answers the API nodes).
-`api` nodes send the engine's requests over Redis (the same request/reply protocol as between the two threads) and the
-engine node pushes events to the players' sockets through the Socket.IO Redis adapter, so a player's room spans every node.
-Sockets hold no state beyond the player identified at the handshake, and the client uses the WebSocket transport only, so no
-sticky routing is needed. There must be exactly one `engine` node (see `docs/operations/DEPLOYMENT.md`). The map is addressed in **chunks** so that sharding the world by region across several
-engines remains possible later (backlog, §21), but it is not built now. If the engine process dies, the game pauses
-until it restarts and reloads the world from the database.
-
-**Live vision and map cache:** continuous scanning (design §4.4) is implemented as a subscription index of live areas by
-chunk with batched diffs, and the world map lives in chunks with an LRU cache over the database.
-
-**Capacity guard-rails** (rough estimates to be validated by a benchmark spike, not promises; Q3): an engine thread should
+**Capacity guard-rails** (rough estimates to be validated by a benchmark spike, not promises; Q3): an engine should
 handle a few hundred up to about 1,000 *actively running* bots at 10 ticks/s; idle bots are almost free. Per-bot limits
-(`opsPerTick`, wall-clock slice, QuickJS memory limit) cap the cost of any single bot, a tick that overruns its time
+(`opsPerTick`, wall-clock slice, script memory limit) cap the cost of any single bot, a tick that overruns its time
 cap is cut and resumed next tick (§12.2), and tick duration / active executions / context memory are exported as
 metrics.
 
@@ -129,20 +110,13 @@ metrics.
 - **After a restart, executions that were running are automatically relaunched from the beginning of `main`** with their
   original arguments. Script variables and the point where the script was paused are **not** preserved, so scripts
   should be restartable (read the world, then decide again). The relaunched script's log shows a "rebooted" note.
-- **Implementation (Plan 5.4a):** the database stores an execution as `active`, `finished` or `killed` with a restart
-  counter; the finer states of §12.3 live only in the engine. A deliberate stop (`stop` message, graceful shutdown) resets
-  the counters, an unclean one increments them when the execution is relaunched, and an execution that ran
-  `ENGINE_HEALTHY_TICKS` ticks since its relaunch forgets them.
 - **Crash-loop guard:** an execution that was running during several consecutive engine crashes is marked `killed`
   instead of being relaunched again (threshold: tunable config; the default value is open, Q4).
 
-**Watchdog (Phase 5).** The engine thread writes the id of the execution it is about to step into a shared buffer and clears it
-afterwards. The thread that supervises it looks at the buffer every `ENGINE_WATCHDOG_POLL_MS`; a step that has not moved for
-`ENGINE_WATCHDOG_STALL_MS` (default 2 s, against a 5 ms slice) means the sandbox is stuck inside a builtin it cannot interrupt. The supervisor ends
-the engine thread, marks that execution `killed` with the reason `stalled the engine` (the record is written while no engine is
-alive, so the single-writer rule holds), tells the player in the script's log, and starts the next engine, which relaunches
-the other executions as after any crash (§12.3.1). Load tests (`engine-load.test.ts`) keep ticks within their budget and serve
-150 bots about equally, also with 20 scripts that never stop among 60 honest ones.
+**Watchdog.** A step that does not finish within `ENGINE_WATCHDOG_STALL_MS` (default 2 s, against a 5 ms slice) means the sandbox is stuck
+inside a builtin it cannot interrupt. The execution is killed with the reason `stalled the engine`, the player is told in the
+script's log, and the engine restarts and relaunches the other executions as after any crash (§12.3.1). Ticks keep their budget and
+bots are served about equally even with scripts that never stop among honest ones.
 
 ## 12.4 Determinism & ordering
 
@@ -156,12 +130,11 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
   is preempted by the wall-clock slice (§12.2.1) depends on machine speed, so script preemption under overload may
   differ between runs; this is accepted.
 
-- **Two clocks (delivered, task 9.17):** the rules of the game (timers of crafting, research and the factory, the energy of the bots,
+- **Two clocks:** the rules of the game (timers of crafting, research and the factory, the energy of the bots,
   radio and combat, the times on the map, the due times of notifications) read the **game clock** (`GAME_CLOCK`); sessions, logins,
   rate limits, bans, the audit trail and database timestamps read the **real clock** (`CLOCK`). The game clock is the real one plus an
   offset that is always 0 in production, and the day cycle (length, anchor, mode) is a runtime setting in the game settings that the
-  engine thread, the API nodes and the clients follow; the tick loop stays on real time. Which code reads which clock is classified in
-  [docs/testing/clock-consumers.md](../../testing/clock-consumers.md) and enforced by a test.
+  engine, the API nodes and the clients follow; the tick loop stays on real time.
 
 ## 12.5 Time, energy and sleep
 
@@ -174,7 +147,7 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
   and adds `energyPerCycle` to the battery, capped at `capacity`. Without oil it produces nothing (an `OutOfFuel` event is
   raised once, when it runs dry, see "States are told once" below). It is a module like any other and pays its own `idleCost`. Class-1 defaults
   (tunable, in the catalogue): 12 energy per 250 ms cycle (48 per second) for 0.02 oil per cycle, about 600 energy per oil.
-- **Solar panel:** class 1 makes 2 energy per 250 ms cycle at full sun (8 per second at its peak), 0.8 per second at night; the oil generator is 6× the panel's peak. A simulation test over game days (`energy-balance.test.ts`) pins the balance: the starter base (idle 2.6 per second) lives on its panel alone under a light duty and runs dry in minutes under a continuous heavy one.
+- **Solar panel:** class 1 makes 2 energy per 250 ms cycle at full sun (8 per second at its peak), 0.8 per second at night; the oil generator is 6× the panel's peak. A simulation test over game days pins the balance: the starter base (idle 2.6 per second) lives on its panel alone under a light duty and runs dry in minutes under a continuous heavy one.
 - **Live scanner:** a scanner in live mode pays its area-scaled energy cost on every tick; if the battery cannot pay, it switches itself off and a `LiveScanStopped` event is raised.
 - **Empty battery:** the bot is unpowered; what that means is stated once, in §12.5.2. Charging happens inside the tick,
   after commands are applied.
@@ -198,15 +171,15 @@ The world has one shared clock derived from the engine's injected clock (never
 `Date.now()` in game logic, §12.4); every player sees the same time.
 
 - **Scale (tunable config):** one in-game hour is one real minute, so a **day lasts 24 real minutes**; the world clock counts
-  from the Unix epoch. *Planned (tasks 9.17 and 9.17a):* the scale becomes a runtime setting that the engine, the API nodes and the
+  from the Unix epoch. The scale is a runtime setting that the engine, the API nodes and the
   clients all follow, changed from the admin console: the day length from 1 minute to 24 hours (48 minutes, 6 h 30 min or a
   24-hour day), the time of day set to a chosen hour, or the clock synced to the real-world time of a chosen time zone. A change
   re-anchors the cycle so the time of day does not jump, and connected players are told by a `game-time-changed` socket event. The
   rules of the game read a separate `GAME_CLOCK`, so a change of the game's time never touches sessions, logins or the audit trail.
 - **Phases and sunlight factor:** night 21:00–05:00 → **0.1**; morning 05:00–09:00 and evening 17:00–21:00 → **0.6**; day
   09:00–17:00 → **1.0** (a day averages about 0.57). The factor multiplies the output of solar panels (§7.2.1) and nothing else.
-- **Shared code:** the time of day, the phase and the factor are pure functions in `lib` (`game-time`); the API serves the time config and the
-  current instant at `GET /api/v1/time`, and the client derives the same time from its server-synced clock (§15.1).
+- **One computation:** the time of day, the phase and the factor are computed by the same code on the server and in the client; the API serves the time
+  configuration and the current instant, and the client derives the same time from its server-synced clock (§15.1).
 - **Presentation:** an in-game clock in the HUD and a night filter over the map (§15.6); both are cosmetic and never touch the
   simulation.
 
@@ -223,8 +196,6 @@ A bot whose battery reaches **0** becomes *unpowered*. This section is the only 
   not at the first unit above 0, so a bot at the edge does not flap between working and out of energy (and the radio link does not
   flap between lost and restored). A bot with 20 energy works until 0. The state is persisted in the batteries like the other
   states of this section.
-
-**Implementation.** `isUnpowered` is a property of the battery (like `isLowReported`), set by the energy tick when the stored energy is 0 (also when an operation emptied it and a generator refilled it within the same tick) and cleared when the stored energy reaches `resumeThreshold` (`EnergyBalance`, default 10, never above the capacity). While it is set, `EnergyModel.isDepleted` is true and `available` is 0, so `spend` (every operation, factory and maintenance order, the live scanner), the weapon's energy check and the radio adapter's node all refuse.
 
 ## 12.6 Combat model
 

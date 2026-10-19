@@ -287,3 +287,32 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Next step:** start 15.4 (product knowledge without stack, plan and history). Before it, merge 15.5, 15.6 and 15.7 in this order and
   rebase the next branch on `origin/develop`.
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `grep -c '^| \*\*' docs/product-knowledge/game-design/02-glossary.md`
+
+### 2026-10-19 — 15.4 product knowledge without stack, plan and history done
+- **Tasks:** 15.4 ✅ (H-20261017-10)
+- **Branch:** `docs/15.4-product-knowledge-clean` — done, PR pending (see the implementation log); stacked on 15.7
+- **Decisions / deviations from the plan:**
+  - Stack terms, plan task ids and implementation paths are out of `docs/product-knowledge/`: the scan found 58 stack hits, 56 plan
+    references and 13 paths; now it finds 0 (exceptions below). Implementation paragraphs moved to the new
+    `docs/engineering/architecture.md` §4 "Implementation notes of the game design" (one subsection per design section: live vision,
+    map rendering, starting loadout, module classes, damage and repair, script loading and the transpiler, the radio network, the
+    threading topology and scaling, restart bookkeeping, the hysteresis, the world and the single writer, window behaviour, achievements
+    and the event bus). The notes of the metrics history and the Prometheus decision moved to `docs/operations/DEPLOYMENT.md` ("Metrics
+    history: measured values and the Prometheus decision"); the tests of the public API and the MCP server, and the test of the design
+    scripts, to `docs/testing/README.md`; the history of §25.1 ("no admin UI today", the pre-console security findings) to
+    `archived-docs/admin-console-starting-point.md` (§25.1 stays as a stub, so the numbering holds).
+  - Binding constraints stay, stated without the product that satisfies them: the sandbox table of §13, the single writer of §14.2, the
+    starter-kit reason of §6.1, the watchdog of §12.3.1. Status words ("delivered", "planned", "Implemented") are gone with the plan ids.
+  - The profile's `STACK` list (section 9) was refined, because it matched English words (`express` in "expressed", `react` in "react to",
+    `node ` in "nodes", `npm ` in the name of a check). It now matches `expressjs`, `reactjs`, `\bnpm\b`, `node.js` and so on; the
+    leak scan of `method.md` still returns 0.
+  - Allowed exceptions (listed in the harness bindings and in `scripts/product-knowledge-lib.mjs`): TypeScript in §10 (players write
+    scripts in it), Socket.IO in `API.md` (the realtime transport of the public API), `npm` in `MCP.md` (the commands that start the
+    server). The register (§20) and the backlog (§21) name plan tasks in their "Blocks" column; `CHANGELOG.md` and `archived-docs/`
+    are not scanned.
+  - New check `scripts/check-product-knowledge.mjs` (library, tests, part of `npm run docs:check`): stack terms from the profile, plan
+    references, `api/src` and `client/src` paths, test file names, and `module-catalog`.
+- **Problems / blockers / findings:** the design still names configuration keys (`WORLD_*`, `ENGINE_*`, `BOT_*`) and `lib` files in
+  two links (`result.ts`, `map.ts`); these are the contract, not implementation, and the check does not flag them.
+- **Next step:** start 15.9 (enforcement: lint rules and hooks). Merge 15.5, 15.6, 15.7 and this one first, in this order.
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; the M1 scan of the harness bindings on `docs/product-knowledge`

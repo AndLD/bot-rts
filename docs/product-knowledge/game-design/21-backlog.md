@@ -19,5 +19,5 @@
 - **Trading modules and bots**, and physical delivery of goods (§26.3).
 - **Bot-script access to transfers** (§27.2).
 - **Admin console extras** (webhook alert channels and an on-call schedule, player reports and a support inbox, scripted admin
-  automation through a separate admin API key type, Prometheus as a second store for the metrics history): kept in their own
+  automation through a separate admin API key type, a second store for the metrics history): kept in their own
   list in §25.6.

@@ -100,18 +100,6 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 
 **Display.** Connected bots show their signal bars (map, bot list, terminal header and control panel, with a tooltip giving the bars, hops and the weakest link); disconnected bots are hatched (above); an optional overlay draws the links, so a weak or broken relay is easy to find.
 
-**Implementation (Plan 5.13):** `RadioNetwork` in the engine computes, per player, which bots of the living base reach it
-(widest path: the chain whose weakest link is strongest, then the fewest hops) from the bots in memory — adapter online
-(`isConnected`) and working, battery not empty, position, range. It is recomputed only for players whose bots moved or changed
-their adapter or whether they have energy, on the next tick. A bot out of reach has a `lostSince` time; manual control of it
-(terminal `open`, and every world-changing API action that names it) fails with `NO_SIGNAL`, and `getLinkStatus()` returns
-`{ isConnected, signal, hops, weakestLink?, lostSince? }`. The engine emits `radio` events with only the bots whose bars or
-connection changed and the game events `LinkLost`, `LinkRestored` (with a summary `missed: { scans, events, byType }`) and
-`LinkWeak`. While a bot is out of reach the cells its `scan()` returns are kept in a buffer (newest 1,000, per cell the newest
-sighting) instead of the player's map, and the events about it in another (newest 200); on `LinkRestored` the cells reach the
-map with their original `seenAt` if newer than what the player knows. The bar margins and buffer sizes are `ENGINE_RADIO_*`
-settings.
-
 ## 11.2.2 Bot security and takeover
 
 - **Access password:** a bot may have an access password, set by its owner from the bot's terminal (`passwd`). By
@@ -131,14 +119,14 @@ settings.
   through damage (it becomes a corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
   sabotage) but cannot take it. Every base gets a **mandatory owner-set password at deploy**.
 
-**Implementation (Phase 5).** `BotAccessService` holds the rules; `connect` and `adopt` run in the engine as world actions
-(`access.connect`, `access.adopt`), because a try costs the source bot energy and a takeover changes who owns a bot. An own bot
+**Rules.** `connect` and `adopt` are engine actions (§14.2), because a try costs the source bot energy and a takeover changes
+who owns a bot. An own bot
 needs only a working adapter. A foreign bot must have a working adapter within radio range of the source bot (the link rule of
 §11.2.1: the smaller of the two ranges), must not be locked out, and the password must match (a bot without a password lets
 anyone in). Every try on a foreign bot costs the source bot `BOT_ATTEMPT_ENERGY`, the answer comes after `BOT_ATTEMPT_DELAY_MS`,
 a wrong password is written to the target's log as a security line (kept 90 days, §11.2.3) and counts toward the lockout:
 `BOT_LOCKOUT_FAILURES` wrong passwords in a row lock the bot for `BOT_LOCKOUT_MS` (a right password and the end of a lockout
-start the count again). The session opened by `connect` remembers the bot it came from (`fromBotId`); `adopt` moves the
+start the count again). The session opened by `connect` remembers the bot it came from; `adopt` moves the
 target to the base of that bot, kills the scripts the previous owner had running on it, and leaves a security line. A base is
 refused (`CANNOT_ADOPT_BASE`). Not done yet (Q8): a 4-attempts-per-minute style rate limit above the
 energy cost.
@@ -152,14 +140,14 @@ energy cost.
 ## 11.3 UI behavior
 
 - Terminals are **draggable** windows layered over the game view.
-- `edit` opens a **draggable code editor** with syntax highlighting (CodeMirror) and a format shortcut.
+- `edit` opens a **draggable code editor** with syntax highlighting and a format shortcut.
 - Multiple terminals can be open simultaneously (base + several bots).
 
 ---
 
 ## 11.4 Storage: memory modules as drives
 
-- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) are stored as records in the database; the in-game editor is a view over them.
+- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) live on drives; the in-game editor is a view over them.
 - **Each memory module is a separate drive** with its own byte **quota**. `cd <drive>` selects a drive; `ls`, `cat`,
   `edit`, `rm` and `mkdir` act on the selected drive.
 - Writing past a drive's quota fails with an error value; reading/writing takes the module's `readDelay` / `writeDelay`.

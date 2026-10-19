@@ -101,10 +101,6 @@ The API is versioned in the path. Within `/api/v1`:
 - **What is covered:** the routes and events of the reference, the scopes, the error codes, and the script API. Not covered: the
   `x-` extensions, the order of fields, the text of messages, the exact ids of generated content.
 
-Contract tests keep the official client and key clients on the same API: `api/src/apikeys/contract.int.test.ts` asks the same questions
-with a session and with a key and requires identical answers, and `api/src/apikeys/api-keys.int.test.ts` requires every route to
-name its scope.
-
 ## Scripts over HTTP
 
 `POST /api/v1/bots/{botId}/executions` starts `main(bot, ...args)` of a file (`/<drive>/<path>`), `GET /api/v1/executions` lists what

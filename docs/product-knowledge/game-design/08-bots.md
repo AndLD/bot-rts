@@ -49,7 +49,7 @@ The terminal already exposes a `list` command backed by a socket event.
 
 ## 8.4.1 Module damage, disassembly and bot lifecycle
 
-*Implemented: a broken processor/adapter is checked by `canRunScripts` / `canConnect` (`bots/domain/capabilities.ts`; a terminal cannot be opened on a bot without a working adapter, `NO_SIGNAL`), a broken drive hides its files (`DRIVE_BROKEN`), the other modules refuse their actions with `BROKEN_MODULE`. A bot whose last module is taken apart keeps its record with `lastPosition`, its map cell becomes empty.*
+A broken processor or wireless adapter stops scripts and connections (a terminal cannot be opened on a bot without a working adapter: `NO_SIGNAL`), a broken drive hides its files (`DRIVE_BROKEN`), and the other modules refuse their actions with `BROKEN_MODULE`.
 
 **A bot is never "dead".** Damage affects individual modules; the bot record persists.
 
@@ -72,7 +72,7 @@ The terminal already exposes a `list` command backed by a socket event.
 
 ## 8.4.2 Repair module: repair and disassembly
 
-*Implemented (`RepairModule`, `MaintenanceService`, `POST /api/v1/bots/:botId/maintenance/repair | disassemble`, terminal `repair` / `disassemble`).* One operation per call with a cooldown (`delay`); a repair costs a share (`repairCostFactor`, default 50 % for a complete repair) of the module's recipe resources from the repairer's storage plus the repair module's energy; disassembly yields a random 30–50 % of the recipe resources into the repairer's storage and is refused (`NO_SPACE`) when they do not fit.
+One operation per call with a cooldown (`delay`); a repair costs a share (`repairCostFactor`, default 50 % for a complete repair) of the module's recipe resources from the repairer's storage plus the repair module's energy; disassembly yields a random 30–50 % of the recipe resources into the repairer's storage and is refused (`NO_SPACE`) when they do not fit.
 
 
 One **repair ("fixing") module** provides both `repair(...)` and `disassemble(...)`. Both act on a module of a bot on an

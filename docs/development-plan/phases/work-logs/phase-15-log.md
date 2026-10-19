@@ -584,3 +584,19 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - The hook does not look into a command substitution inside double quotes (`echo "$(git push origin main)"`); it is a safety net, not a security boundary.
 - **Next step:** 15.18 (targeted re-review of D1, D3 and D7) in a fresh session
 - **Verify with:** `npm run lint`; `npm run test:scripts`; `npm run docs:check`; `node --test scripts/hook-guard-bash.test.mjs`
+
+### 2026-10-19 — 15.15 to 15.17 done; 15.18 waits for a fresh session
+- **Tasks:** 15.15 ✅ (#240), 15.16 ✅ (#241), 15.17 ✅ (#242); each was claimed with a draft pull request and merged by squash once the four required checks passed. 15.18 (⬜) was not started, by the owner's instruction.
+- **Branch:** `docs/15.15-15.17-closing-entry` — this entry only
+- **Decisions / deviations from the plan:**
+  - No rule changed in meaning: the diff of `AGENTS.md` §1 and §7 replaces values with roles and adds the one Role binding line; nothing was asked of the owner.
+  - The new CORE scan (`scripts/check-core-leaks.mjs`) returns 0 on the 14 CORE files; before the fix it found 10 leaking lines in 5 files plus 13 value hits in `AGENTS.md` §1 and §7. A value outside the Role binding line now fails `npm run docs:check`.
+  - Rebases after each squash merge duplicated rows of the phase file's task table twice (the rows are long lines edited by two branches); I rebuilt the file from `origin/develop` each time. The generated plan summary check caught it ("71 SP but 79").
+- **Problems / blockers / findings:** none open. The checks that stay green: `npm run docs:check`, `npm run lint` (also with agent worktrees present), `npm run test:scripts` (81 tests), the pre-push coverage gate, CI `verify`, `e2e`, `lighthouse`, `pr-title`.
+- **Left for 15.18 (the re-review):**
+  - Re-score D1, D3 and D7, run the readiness scan of the 2026-10-19 report (M1/M2) again, and close H-01 to H-05, H-07 and H-08 in its follow-up table.
+  - M4: two documents still spell out `origin/develop` or the release commands (`docs/testing/README.md` in two commands, `docs/operations/RELEASING.md`); the reviewer decides whether the criterion allows them.
+  - Six Cypress specs are not named in the e2e matrix (`account`, `docs`, `engagement`, `session`, `site`, `terminal`), which keeps row 22 of the rule map a judgment.
+  - Out of scope here and still open: H-06, H-09 to H-15 of the report (budgets, wave 0 of Phase 10, the Q18 references, routing, chat rules, `control block`, the flaky test, the database assumption).
+- **Next step:** 15.18: targeted re-review of D1, D3 and D7 in a fresh session
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`; `npm run plan:log -- 15`

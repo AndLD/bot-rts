@@ -63,9 +63,9 @@ export class MaintenanceService {
     private readonly ids: IdGenerator
   ) {}
 
-  // Restores some condition of the module, using up resources of the repairer's storage and energy. Repairing the
-  // wireless adapter of a corpse base gives its owner control of it again; the one-living-base rule limits deploying,
-  // not recovering a base.
+  // Restores some condition of the module, using up resources of the repairer's storage and energy. A module below the
+  // repair threshold, a broken one included, cannot be repaired (design §8.4.2): the wireless adapter of a corpse base is
+  // broken, so a corpse base is never restored.
   async repair(userId: string, order: MaintenanceOrder): Promise<Module> {
     const repairerBot = await this.bots.getControlledBot(userId, order.repairerId)
 

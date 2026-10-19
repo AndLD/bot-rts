@@ -29,7 +29,7 @@
 | Mine! | Mine N units of any resource (tiers) |
 | Fabricator | Craft a first module; assemble a first bot |
 | Automator | Have N scripts running at once |
-| Fixer | Repair N modules; restore a corpse base |
+| Fixer | Repair N modules |
 | Scavenger | Disassemble N modules; adopt a stale bot |
 | Marksman | Hit N shots; destroy a first module of another player's bot |
 | Cartographer | Know N cells of the map |

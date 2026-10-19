@@ -859,7 +859,7 @@
         "assemble": "Assembles a bot from module parts at the factory.",
         "research": "Starts the research of the blueprint of a higher class.",
         "learn": "Learns the blueprint of an item the factory holds.",
-        "repair": "Repairs a module of a bot on an adjacent cell.",
+        "repair": "Repairs a module of a bot on an adjacent cell. A module below the repair threshold, a broken one included, can only be taken apart.",
         "disassemble": "Takes a module of a bot on an adjacent cell apart for its parts.",
         "read": "Reads a file, addressed as /drive/path.",
         "write": "Writes a file, addressed as /drive/path."

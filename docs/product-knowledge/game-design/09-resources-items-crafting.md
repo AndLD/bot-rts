@@ -25,7 +25,7 @@
   | crystal | uncommon | 9 |
   | gold | rare | 4 |
 
-  The overall chance that a newly generated cell is a resource cell stays a single configurable value (currently 20 %).
+  The overall chance that a newly generated cell is a resource cell stays a single configurable value (`WORLD_RESOURCE_CHANCE`, default 20 %); the draw uses the seeded world RNG (§4.2, §12.4).
 - **Oil is also the generator fuel** (§12.5; the starter base runs on a solar panel instead, §7.2.1, so oil becomes a deliberate upgrade): bots burn it from their storage to make energy, so moving oil to where bots
   work is part of logistics.
 

@@ -16,7 +16,8 @@ clients, scripts and AI assistants. There are no private endpoints for the offic
 A few routes need no key and no session: `GET /api/v1/health` (liveness and readiness), `GET /api/v1/maintenance` (whether the world is paused
 for maintenance, and the banner of a scheduled maintenance while it is shown), and the sign-up and sign-in routes (`GET /api/v1/metrics` has its own
 bearer token). Every other
-route asks for a session or a key. The routes under `/api/v1/admin/*` are for the admin console and are closed to a key, except the few read-only routes that opt in for the admin keys of the AI assistant (Phase 14); those keys are granted in the console and are not part of this public API: their scopes are not listed here.
+route asks for a session or a key. The routes under `/api/v1/admin/*` are for the admin console; what a key may do there is the
+rule of [Administration routes](#administration-routes).
 
 ## Signing in
 
@@ -42,7 +43,8 @@ For Socket.IO pass the key as `auth: { token }` in the handshake; the events are
 ### Scopes
 
 A scope can only **narrow** what you may do. Every route and socket event names the scope it needs; one that names none is closed to
-keys. Account, settings, key-management and administration routes are **session-only**: a key cannot reach them whatever its scopes.
+keys. Account, settings and key-management routes are **session-only**: a key cannot reach them whatever its scopes. Administration
+routes follow [their own rule](#administration-routes).
 
 | Scope | Allows |
 | --- | --- |
@@ -52,6 +54,20 @@ keys. Account, settings, key-management and administration routes are **session-
 | `scripts` | starting and stopping scripts (`POST /bots/{botId}/executions`, `DELETE /executions/{id}`) |
 | `terminal` | opening BotOS terminal sessions and running commands (what the commands can do, so grant it with care) |
 | `movement` `combat` `extraction` `logistics` `fabrication` `maintenance` `communication` `trade` | the manual actions of that category (`POST /bots/{botId}/actions`), and for `fabrication` and `maintenance` their endpoints |
+
+### Administration routes
+
+This is the one statement of the rule; the design (`game-design/22-public-api-integrations.md` §22.1, `25-admin-console.md` §25.2) and
+the MCP guide link here.
+
+- The routes under `/api/v1/admin/*` serve the admin console and are **session-only**: an API key cannot reach them, whatever its
+  scopes.
+- **The exception:** a route may opt in with an `admin:*:read` scope (`admin:logs:read`, `admin:metrics:read`, `admin:audit:read`,
+  `admin:health:read`). Such a route is read-only. Only an owner or an admin can create a key with these scopes, from the console, after
+  two-factor authentication and with an expiry, and the owner of the key must still hold the admin role with the matching permission on
+  every call. These keys are not part of this public API: they never appear in a player's key list, in the OpenAPI document that is
+  published to players, or in the player documentation, and their scopes are not listed in the table above. Their details are in
+  the access model of the admin console (design §25.2).
 
 ### Limits
 

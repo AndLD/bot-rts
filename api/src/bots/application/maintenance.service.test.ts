@@ -181,7 +181,7 @@ describe('MaintenanceService.repair', () => {
     })
   })
 
-  it('gives a corpse base back to its owner and shows it on the map again', async () => {
+  it('does not restore a corpse base: its broken adapter is below the repair threshold', async () => {
     const world = await setup()
     const { maintenanceService, botsService, base, find, replace, repositories } = world
     const adapter = find(base.id, 'wirelessAdapter')
@@ -211,14 +211,13 @@ describe('MaintenanceService.repair', () => {
       }
     )
 
-    for (let step = 0; step < 4; step++) {
-      world.advance(1000)
-      await maintenanceService.repair(alice.id, { repairerId: helper.id, targetBotId: base.id, moduleId: adapter.id })
-    }
+    world.advance(1000)
+    await expect(
+      maintenanceService.repair(alice.id, { repairerId: helper.id, targetBotId: base.id, moduleId: adapter.id })
+    ).rejects.toMatchObject({ code: 'TOO_LOW' })
 
-    expect(find(base.id, 'wirelessAdapter').condition).toBe(100)
-    expect(await repositories.map.findPointByContentId(base.id)).toMatchObject({ type: MapPointType.BASE })
-    expect(await botsService.listUserBots(alice.id)).toHaveLength(4)
+    expect(find(base.id, 'wirelessAdapter').condition).toBe(0)
+    expect(await repositories.map.findPointByContentId(base.id)).toMatchObject({ type: MapPointType.CORPSE_BASE })
   })
 })
 

@@ -18,8 +18,8 @@
   characters. It goes in the same `Authorization: Bearer` header as a session token and is resolved to the player (bans and deleted
   accounts apply) with the key's grant. The scopes are `read`, `base`, `files`, `scripts`, `terminal` and one per category of manual
   control (`movement`, `combat`, `extraction`, `logistics`, `fabrication`, `maintenance`, `communication`, `trade`). **Every route and
-  socket event names the scope it needs; one that names nothing is closed to keys** (a test lists the routes), and account, settings,
-  key and administration routes are session-only. A manual action needs the scope of its category (`read` for observation). Each key has
+  socket event names the scope it needs; one that names nothing is closed to keys** (a test lists the routes), and account, settings
+  and key routes are session-only (the administration routes follow [their own rule](../integrations/API.md#administration-routes)). A manual action needs the scope of its category (`read` for observation). Each key has
   its own rate limit per minute (default 120, counted across API nodes), an optional expiry, and can be revoked at once; a player holds
   at most 10 active keys. Keys are managed in the account page of the web client.
 - A key acts **as that player** and obeys exactly the same game rules: processor budget, energy, cooldowns, category
@@ -31,7 +31,7 @@
   [`docs/product-knowledge/integrations/API.md`](../integrations/API.md): changes inside `/api/v1` are compatible, breaking ones ship as `/api/v2`, and a deprecated route announces
   itself with `Deprecation` and `Sunset` headers at least six months before it goes. Contract tests require that a key with enough
   scopes and a session get identical answers over HTTP and Socket.IO.
-- Account and admin operations (settings, user management, API key creation itself) are **not** available through API keys.
+- Account operations (settings, key creation itself) are **not** available through API keys, and neither are admin operations, except the read-only routes that opt in with an `admin:*:read` scope: the rule is stated once in [`API.md`](../integrations/API.md#administration-routes).
 
 ## 22.2 MCP server
 

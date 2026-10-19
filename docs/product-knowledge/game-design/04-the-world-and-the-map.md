@@ -42,8 +42,10 @@ The map is stored in two logical layers:
 
 Rules:
 
-- When a player scans, cells they have never seen are **generated** by the server. Generation is probabilistic —
-  currently each new cell has a **20 %** chance to be a `resource` (`Math.random() < 0.2`).
+- When a player scans, cells they have never seen are **generated** by the server. Generation is probabilistic and
+  deterministic for a world seed: it draws from the world's **seeded RNG** (§12.4), never from `Math.random()`. Each new cell
+  is a `resource` with the chance `WORLD_RESOURCE_CHANCE` (default 20 %); which resource it holds follows the spawn weights of
+  §9.1, and a new empty cell may hold a blueprint item with the chance `worldBlueprintChance` (§9.3).
 - If the cell already exists as a real point, its **current contents are read from the game database** — not re-rolled.
   This keeps the world consistent for every player.
 - The player's user-point layer is synced from the real layer: when the real cell's `contentId` or `type` differs from

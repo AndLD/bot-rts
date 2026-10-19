@@ -66,7 +66,7 @@ describe('a base that is lost', () => {
     await expect(world.botsService.getControlledBot(bob.id, world.base.id)).rejects.toThrow(ForbiddenError)
   })
 
-  it('comes back to life when the adapter is repaired', async () => {
+  it('is a living base again whenever its adapter works: the state is derived, not stored', async () => {
     const world = await setup()
     lose(world, world.base.id)
     const items = world.repositories.modules.items

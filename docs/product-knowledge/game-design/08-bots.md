@@ -49,20 +49,19 @@ The terminal already exposes a `list` command backed by a socket event.
 
 ## 8.4.1 Module damage, disassembly and bot lifecycle
 
-*Implemented: a broken processor/adapter is checked by `canRunScripts` / `canConnect` (`bots/domain/capabilities.ts`; a terminal cannot be opened on a bot without a working adapter, `NO_SIGNAL`), a broken drive hides its files until it is repaired (`DRIVE_BROKEN`), the other modules refuse their actions with `BROKEN_MODULE`. A bot whose last module is taken apart keeps its record with `lastPosition`, its map cell becomes empty.*
+*Implemented: a broken processor/adapter is checked by `canRunScripts` / `canConnect` (`bots/domain/capabilities.ts`; a terminal cannot be opened on a bot without a working adapter, `NO_SIGNAL`), a broken drive hides its files (`DRIVE_BROKEN`), the other modules refuse their actions with `BROKEN_MODULE`. A bot whose last module is taken apart keeps its record with `lastPosition`, its map cell becomes empty.*
 
 **A bot is never "dead".** Damage affects individual modules; the bot record persists.
 
 - **Module at `condition` 0 is broken, not deleted.** It stays attached but stops working. Effects by type:
   - **processor** broken → the bot can no longer launch or run scripts;
-  - **memory (drive)** broken → every script and file on it becomes inaccessible ("soft-deleted", not wiped);
+  - **memory (drive)** broken → every script and file on it becomes inaccessible ("soft-deleted", not wiped). A broken drive is never repaired (below), so its files stay unreadable until the module is **disassembled, which deletes its files for good**;
   - **wireless adapter** broken → the bot can no longer accept or send connections;
   - other modules lose their own function (a broken weapon cannot shoot, a broken engine cannot move, …).
-- **Repair:** a broken or damaged module can be repaired by **another bot's repair ("fixing") module** as long as its
-  `condition` is not below a **repair threshold** (tunable). Below the threshold it can no longer be repaired.
-  *Clarification:* a **broken** module (condition 0) is always repairable (otherwise a corpse base could never get its
-  wireless adapter back, §6.3); the threshold protects the range in between: a module with some condition left but below
-  the threshold is too far gone and can only be disassembled.
+- **Repair:** a damaged module can be repaired by **another bot's repair ("fixing") module** only while its `condition` is at
+  or above the **repair threshold** (default 20 % of `maxCondition`, tunable). Below the threshold, **condition 0 (broken)
+  included**, it can no longer be repaired and can only be disassembled. So a broken module is lost, and a broken wireless
+  adapter makes a base a corpse for good (§6.3). The modules of a living base at or above the threshold stay repairable.
 - **Disassembly:** a module can be **disassembled** (by another bot's repair module, §8.4.2) into scrap metal /
   resources, if it is broken or belongs to the actor's own user. A disassembled module **disappears from the database**.
 - **Bot without modules:** if all of a bot's modules are disassembled, the bot record is **kept** in the database, but
@@ -73,7 +72,7 @@ The terminal already exposes a `list` command backed by a socket event.
 
 ## 8.4.2 Repair module: repair and disassembly
 
-*Implemented (`RepairModule`, `MaintenanceService`, `POST /api/v1/bots/:botId/maintenance/repair | disassemble`, terminal `repair` / `disassemble`).* One operation per call with a cooldown (`delay`); a repair costs a share (`repairCostFactor`, default 50 % for a complete repair) of the module's recipe resources from the repairer's storage plus the repair module's energy; disassembly yields a random 30–50 % of the recipe resources into the repairer's storage and is refused (`NO_SPACE`) when they do not fit. The one-living-base rule limits *deploying* a base; restoring a corpse base is allowed even if the owner has deployed another one.
+*Implemented (`RepairModule`, `MaintenanceService`, `POST /api/v1/bots/:botId/maintenance/repair | disassemble`, terminal `repair` / `disassemble`).* One operation per call with a cooldown (`delay`); a repair costs a share (`repairCostFactor`, default 50 % for a complete repair) of the module's recipe resources from the repairer's storage plus the repair module's energy; disassembly yields a random 30–50 % of the recipe resources into the repairer's storage and is refused (`NO_SPACE`) when they do not fit.
 
 
 One **repair ("fixing") module** provides both `repair(...)` and `disassemble(...)`. Both act on a module of a bot on an
@@ -81,8 +80,8 @@ One **repair ("fixing") module** provides both `repair(...)` and `disassemble(..
 
 - **Repair** restores `repairPerOp` condition per operation and consumes scrap/resources from the repairer's storage.
   It works only while the target module's `condition` is at least `repairThreshold` (default 20 % of `maxCondition`,
-  tunable); below that the module can only be disassembled. Repairing a broken **memory** module makes its files
-  accessible again (§8.4.1). A corpse base regains control when its wireless adapter is repaired (§6.3).
+  tunable); below that, a broken module (condition 0) included, the module can only be disassembled. A broken **memory**
+  module stays unreadable, and disassembling it deletes its files (§8.4.1).
 - **Disassembly** removes the module from the database and puts **30–50 % of its recipe resources** (tunable) into the
   repairer's storage as scrap. By default a module may be disassembled only if it is **broken (condition 0)** or it
   belongs to a bot of the actor's own user, so attackers cannot strip healthy modules from a bot that still works.
@@ -102,5 +101,4 @@ One **repair ("fixing") module** provides both `repair(...)` and `disassemble(..
 - Terrain has no effect on movement for now (terrain types are in the backlog, §21).
 
 **Energy:** see §12.5 (idle drain per tick, operation drain per action, generator refill). A bot that runs out of
-energy stops performing operations until recharged; it resumes only after the stored energy has grown by a margin, not at
-the first unit (§12.5.2, Phase 11).
+energy is unpowered; what that means, and when it resumes, is stated in §12.5.2.

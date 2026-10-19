@@ -23,6 +23,18 @@ export function phasesInProgress(readText, list) {
     })
 }
 
+// The work-log fragments of the tasks of a phase (`work-logs/phase-<n>/<n>.<m>.md`) that are in progress, as { file, step }
+export function fragmentsInProgress(logPath, readText, list) {
+  const directory = logPath.replace(/-log\.md$/, '')
+  return list(directory)
+    .filter((name) => /^\d+\.\d+[a-z]?\.md$/.test(name))
+    .sort()
+    .flatMap((name) => {
+      const text = readText(`${directory}/${name}`)
+      return /\*\*Status:\*\*\s*🟡/.test(text) ? [{ file: `${directory}/${name}`, step: lastNextStep(text) }] : []
+    })
+}
+
 // The text of the last "Next step" line of a work log, or null
 export function lastNextStep(logText) {
   const steps = [...logText.matchAll(/^- \*\*Next step:\*\*\s*(.+)$/gm)]
@@ -41,6 +53,9 @@ export function sessionStartMessage(branch, readText, list) {
     lines.push(`Phase in progress: ${phase.title} (${phase.file})`)
     const step = phase.log ? lastNextStep(readText(phase.log)) : null
     lines.push(step ? `Last next step (${phase.log}): ${step}` : 'No next step is recorded in the work log.')
+    for (const fragment of phase.log ? fragmentsInProgress(phase.log, readText, list) : []) {
+      lines.push(`Task in progress (${fragment.file}): ${fragment.step ?? 'no next step recorded'}`)
+    }
   }
   lines.push('Read the method, section "Session protocol", before you start or resume a phase.')
   return lines.join('\n')

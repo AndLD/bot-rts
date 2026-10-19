@@ -342,3 +342,32 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the hooks take effect in sessions that start after this merge; this session ran without them.
 - **Next step:** start 15.11 (coordination for several agents).
 - **Verify with:** `npm run lint`; `npm run test:scripts`; `echo '{"tool_input":{"command":"git push origin main"}}' | node scripts/hook-guard-bash.mjs; echo $?` (2)
+
+### 2026-10-19 — 15.11 coordination for several agents done
+- **Tasks:** 15.11 ✅ (H-20261017-21; review section 10)
+- **Branch:** `docs/15.11-multi-agent-coordination` — done, PR pending (see the implementation log); stacked on 15.9
+- **Decisions / deviations from the plan:**
+  - Work logs: one fragment per task, `work-logs/phase-<n>/<task id>.md`, from Phase 10 on (template `work-logs/_task-template.md`; the old logs
+    stay). The phase's own log keeps the phase-wide entries. The session-start hook prints the "Next step" of every fragment whose status is 🟡.
+  - Changelog: fragments in `docs/product-knowledge/changelog.d/` (`<Kind>: <entry>`, a README states the format), collected by
+    `scripts/release.mjs` into the section of the version and deleted; `scripts/release-lib.mjs` has `parseFragment` and `addFragments`
+    (tests added), and `npm run docs:check` fails on a fragment without a kind. The two entries of 15.5 and 15.6 became fragments; the legacy
+    list under "Unreleased" stays and is released with them.
+  - Implementation log: `npm run plan:log -- <phase>` (`scripts/plan-log.mjs`, library and tests) prints the table from the squash commits'
+    `Plan: <task id>` lines and PR numbers. Phase 10 and later phase files carry no table (the template says so); Phases 0–9 and 11–16 keep theirs
+    (Phase 15 keeps its own, which the next tasks fill).
+  - Claim: a draft pull request titled `chore(plan): claim task <id>`, opened before any other work (AGENTS §7.5, method §6 and §7, profile §4).
+  - Several agents: method §7 (roles, working copy, claim, integration by the orchestrator or the owner one pull request at a time, routing of
+    CI events and review comments to the owning session, hotspot owners per wave, per-task records, separated environments). It is neutral
+    (the leak scan returns 0). `AGENTS.md` §7.5 gained one bullet that links it.
+  - Phase 10: the execution order is now a dependency table, the five waves with lanes, and the hotspot owners (10.16 is added to the review's
+    graph, depending on 10.1, 10.2 and 10.4); its implementation log is the generated one.
+  - Probe P7 on the independent pair 10.1 (wallet and ledger) and 10.7 (chat backend), by their planned write sets: the shared records of
+    the review (CHANGELOG, the phase file, the phase log, the plan summary) no longer overlap, because each task writes its own fragments and the
+    integrator edits the task table and the index. What still overlaps is the accepted hotspots: `schema.prisma` and the ordered migrations,
+    the balance configuration and `api/.env.example` (one owner per wave), `app.module.ts` (one line each), the regenerated OpenAPI document and
+    client, and `integrations/API.md` (a section per feature). This is a paper probe: no real pair of tasks has run yet.
+- **Problems / blockers / findings:** the rule "agents do not merge their own pull requests while others work" overrides the single-agent
+  approval of §7.5 only when several agents work; this session is a single agent and keeps merging its own.
+- **Next step:** start 15.12 (isolated working copies).
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:log -- 15`

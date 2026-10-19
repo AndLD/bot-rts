@@ -36,8 +36,8 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 20 | Tunable balance lives in config (AGENTS §9) | review | judgment |
 | 21 | Every UI string, error code and page exists in every user-facing language (AGENTS §9) | `npm run i18n:check`; CI | enforced |
 | 22 | A user-visible flow has an end-to-end spec and a row in the e2e matrix (method §3.4) | none | unenforced |
-| 23 | A behaviour change adds a line under "Unreleased" in the changelog (AGENTS §9) | none | unenforced |
-| 24 | The phase file, the status table and the work log are updated in the task's pull request (method §6) | none; the Hook `hook-session-start` prints the phase in progress and the last "Next step" at the start of a session | unenforced |
+| 23 | A behaviour change adds a changelog fragment (AGENTS §9) | `scripts/check-changelog-fragments.mjs` in `npm run docs:check` checks the format of each fragment; whether a change needs one is review | partly |
+| 24 | The task status, the task log and the phase file are updated in the task's pull request (method §6) | none; the Hook `hook-session-start` prints the phase in progress and the last "Next step" at the start of a session | unenforced |
 | 25 | The local database is migrated after a phase (method §6) | none | unenforced |
 | 26 | Ask the owner before merging a pull request that is not plan work (AGENTS §7.5) | agent judgment | judgment |
 | 27 | No secrets in the repository, `.env` never committed (AGENTS §1) | `.gitignore`; the Hook `hook-guard-edit` refuses edits of `.env` files except `.env.example` | enforced |

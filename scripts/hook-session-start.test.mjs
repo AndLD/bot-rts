@@ -16,10 +16,17 @@ const FILES = {
     '# Phase 10 — Market\n\n**Status:** ⬜ Not started · **Work log:** [phase-10-log](./work-logs/phase-10-log.md)\n',
   'docs/development-plan/phases/work-logs/phase-9-log.md':
     '### a\n- **Next step:** first\n- **Verify with:** x\n\n### b\n- **Next step:** start 9.4 (the console)\n- **Verify with:** y\n',
+  'docs/development-plan/phases/work-logs/phase-9/9.4.md':
+    '# 9.4\n\n**Status:** 🟡 in progress\n\n### a\n- **Next step:** write the page\n',
+  'docs/development-plan/phases/work-logs/phase-9/9.3.md': '# 9.3\n\n**Status:** ✅ done\n\n- **Next step:** none\n',
+  'docs/development-plan/phases/work-logs/phase-9/README.md': '**Status:** 🟡',
   'docs/development-plan/phases/README.md': '# not a phase\n**Status:** 🟡'
 }
 const readText = (path) => FILES[path]
-const list = () => Object.keys(FILES).map((path) => path.split('/').pop())
+const list = (directory) =>
+  Object.keys(FILES)
+    .filter((path) => path.startsWith(`${directory}/`) && !path.slice(directory.length + 1).includes('/'))
+    .map((path) => path.split('/').pop())
 
 test('lastNextStep returns the newest "Next step" line, or null', () => {
   assert.equal(lastNextStep(FILES['docs/development-plan/phases/work-logs/phase-9-log.md']), 'start 9.4 (the console)')
@@ -34,7 +41,11 @@ test('the message names the branch, the phase in progress and its last next step
     message,
     /Last next step \(docs\/development-plan\/phases\/work-logs\/phase-9-log\.md\): start 9\.4 \(the console\)/
   )
-  assert.doesNotMatch(message, /Phase 3|Phase 10/)
+  assert.match(
+    message,
+    /Task in progress \(docs\/development-plan\/phases\/work-logs\/phase-9\/9\.4\.md\): write the page/
+  )
+  assert.doesNotMatch(message, /Phase 3|Phase 10|9\.3\.md|README/)
 })
 
 test('the message says so when no phase is in progress, the branch is unknown or the log has no next step', () => {

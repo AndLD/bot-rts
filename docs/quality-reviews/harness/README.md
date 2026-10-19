@@ -56,7 +56,7 @@ basis of every score below.
 | Application layer        | **Method**: how work is done regardless of tools (principles, workflow, definition of done, session protocol, templates). |
 | Infrastructure           | **Stack adapters**: the concrete tools that realize the method (frameworks, test runners, CI, hooks, scripts, hosting). |
 | Port (interface)         | A **role the method needs**, named abstractly ("coverage gate", "integration database", "release branch").  |
-| Adapter                  | The stack-specific statement that fills a role ("Jest, 97 %, Postgres in Docker").                          |
+| Adapter                  | The stack-specific statement that fills a role ("the test runner, the threshold, the database of the project").                          |
 | Dependency injection     | **Project profile**: one place holding the values that fill the roles. Rules read the role, not the value. |
 | Composition root         | **Entry points** that assemble method + adapter + profile into what an agent loads. They route; they do not own facts. |
 | Persistent state/data    | **Project state**: plan status, session logs, changelog, review reports. Records that change every session. |
@@ -211,7 +211,7 @@ accidental:
 | Harness  | Time to first action | Words an agent must read before its first correct action, per scenario (from the cold-start probes)        |
 | Product  | Concept load        | Entities, terms, attributes and mechanics per context; mechanics a player must learn per onboarding step    |
 | Product  | Rule interaction   | Rules per entity; rules whose condition depends on another rule; longest dependency chain; special cases and exceptions as a share of rules; cycles |
-| Product  | State space         | States and transitions of each lifecycle (machines, modules, base, orders, sessions) and combinations that must be specified |
+| Product  | State space         | States and transitions of each lifecycle (machines, orders, sessions) and combinations that must be specified |
 | Product  | Cross-context coupling | References between contexts (in and out per context); contexts that everything depends on or that depend on everything |
 | Both     | Growth              | Change of each number since the previous review, against the growth of delivered value                       |
 

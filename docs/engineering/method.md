@@ -113,7 +113,7 @@ A task is done only when **all** of these hold. The stack items (generated files
   with one `git push --force-with-lease origin <b1> <b2> …` (a pre-push hook then runs once). Keep the records that every task edits (the
   phase file, the work log) in as few branches as possible, and prefer fewer, larger pull requests over a deep stack when the tasks
   touch the same documents.
-- Commits, pull requests, branch protection and merge approvals are rules of [`AGENTS.md`](../../AGENTS.md) §7.3–7.5.
+- Commits, pull requests, branch protection and merge approvals are CORE rules. They are stated once, by role, in [`AGENTS.md`](../../AGENTS.md) §7.3–7.5, which the agent runtime loads; one line there binds the roles to this repository's values, and the CORE scan of the documentation check keeps every other value out of them.
 
 ## 6. Session protocol (resuming and pausing a phase)
 

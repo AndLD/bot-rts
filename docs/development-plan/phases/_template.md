@@ -10,7 +10,7 @@
 
 | #   | Task                                                          | SP  | Status |
 | --- | ------------------------------------------------------------- | --- | ------ |
-| n.1 | <What is delivered and how it is verified. Cites `design §x.y`.> | 3   | ⬜     |
+| n.1 | <What is delivered and how it is verified. Cites the specification section (profile, section 4).> | 3   | ⬜     |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
@@ -18,5 +18,5 @@ Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) 
 
 ## Implementation log
 
-Printed from the merged pull requests: `npm run plan:log -- <n>` (every squash commit carries a `Plan: <task id>` line). Each task writes
+Printed from the merged pull requests: the plan-log command of the profile (every squash commit carries a `Plan: <task id>` line). Each task writes
 its own log fragment in `work-logs/phase-<n>/`.

@@ -49,4 +49,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 | `chore/16.1-ci-timings` | 16.1 | [#221](https://github.com/AndLD/bot-rts/pull/221) | ✅ merged |
 | `chore/16.2-slow-client-tests` | 16.2 | [#222](https://github.com/AndLD/bot-rts/pull/222) | ✅ merged |
 | `chore/16.4-ci-caches` | 16.4 | [#223](https://github.com/AndLD/bot-rts/pull/223) | ✅ merged |
-| `chore/16.5-coverage-provider` | 16.5 | [#225](https://github.com/AndLD/bot-rts/pull/225) | 🟡 open |
+| `chore/16.5-coverage-provider` | 16.5 | [#225](https://github.com/AndLD/bot-rts/pull/225) | ✅ merged |

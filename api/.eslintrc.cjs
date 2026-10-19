@@ -13,9 +13,21 @@ module.exports = {
       // Game logic reads the injected clock and the seeded generator, never the system's (design §12.4). The adapters that
       // wrap the system clock and the generator live in src/shared/infrastructure, outside this scope.
       files: ['src/**/domain/**/*.ts', 'src/engine/**/*.ts'],
-      // The supervisor of the engine thread times stalls on the real clock, by design: it supervises a thread, not the game
-      excludedFiles: ['**/*.test.ts', 'src/engine/infrastructure/engine-process.ts'],
+      // The supervisor of the engine thread times stalls and stamps the kill of a stalled script on the real clock, by design: it
+      // supervises a thread, not the game
+      excludedFiles: [
+        '**/*.test.ts',
+        'src/engine/infrastructure/engine-process.ts',
+        'src/engine/infrastructure/kill-stalled.ts'
+      ],
       rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "NewExpression[callee.name='Date'][arguments.length=0]",
+            message: 'Game logic reads the injected clock (Clock, GAME_CLOCK), not new Date().'
+          }
+        ],
         'no-restricted-properties': [
           'error',
           {

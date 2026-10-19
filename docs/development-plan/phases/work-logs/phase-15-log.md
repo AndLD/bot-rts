@@ -678,9 +678,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     (the pre-push of the claim) pass. The phase is marked ✅ in the phase file and the plan index.
   - Local database (method §6): `npm run db:up` and `npm run db:migrate -w api` against the local database, from this branch, which differs from
     `origin/develop` (`b47c721`) only in Markdown. 31 migrations, none pending. No seed: Phase 15 changed neither the migrations nor the seed.
-  - Two new findings, both small and not part of the exit criteria: the review bindings copy the branch names that the profile says to link, and
+  - Marking the phase done broke `scripts/hook-session-start.test.mjs`: its run against the real repository expected "Phase 15" to be in progress. It
+    now checks only the shape of the line (a phase in progress, or "No phase is in progress."), so a change of plan status cannot break it.
+  - Three new findings, all small and not part of the exit criteria: the review bindings copy the branch names that the profile says to link, and
     the profile's branch rows are not tested against the profile file (H-20261019-22, 🟡); the layer map has no entry for `scripts/harness-profile.json`
-    (H-20261019-23, 🔵).
+    (H-20261019-23, 🔵). The third: the CI push run on `b47c721` failed once on a timeout in `engine.int.test.ts` ("relaunches a running script…"),
+    which passed on a re-run of the failed job and is not in the known issues (H-20261019-24, 🔵; it failed the same way in #229).
 - **Problems / blockers / findings:** none blocking. Open for the owner's triage: H-18 to H-23 of the reports of 2026-10-19 (second and third), and
   H-06, H-09 to H-15 of the first.
 - **Next step:** step 3 of the harness-framework plan can start with its section 3.1 (the owner's decisions), in a fresh session with the start

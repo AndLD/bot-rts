@@ -15,10 +15,11 @@ Each scenario is a short narrative walkthrough of a mechanic, in the order a pla
 
 ## Scenario B — "First light" (scanning)
 
-1. Alice opens the base terminal and runs `scan`.
-2. The `scanner-class1` (radius 1) reveals the 8 neighbours around the base.
-3. The server stores any newly discovered cells as **real** map points with a 20 % resource chance, and caches them in
-   Alice's **user** layer.
+1. Alice opens the base terminal, enters `shell` and runs `await bot.scan()` (§11.1: there is no `scan` command; the call is
+   the script function of §10.2).
+2. The `scanner-class1` (radius 1) reveals the 8 neighbours around the base (§7.2).
+3. The server stores any newly discovered cells as **real** map points, each a resource with the chance `WORLD_RESOURCE_CHANCE`
+   drawn from the seeded world RNG (§4.2), and caches them in Alice's **user** layer.
 4. Her monitor updates: black cells turn into known colours (yellow for gold, grey for iron, dark grey for empty).
 5. Scanning again returns the **stored** contents — the world does not re-roll.
 
@@ -27,23 +28,23 @@ Each scenario is a short narrative walkthrough of a mechanic, in the order a pla
 Alice crafts a mobile bot, connects to it, writes `prospector.js`:
 
 ```js
-async function main(bot, baseId) {
+export async function main(bot) {
   while (true) {
     const scan = await bot.scan()
     if (!scan.ok) {
-      await bot.sendMessage(baseId, `Scan failed: ${scan.code}`)
+      bot.log(`Scan failed: ${scan.code}`)
       break
     }
 
-    const gold = scan.data.find((cell) => cell.type === 'RESOURCE.GOLD')
+    const gold = scan.data.find((cell) => cell.type === 'resource' && cell.resource?.resource === 'gold')
     if (gold) {
-      await bot.sendMessage(baseId, `Gold found in location [${gold.location.x}, ${gold.location.y}]`)
+      bot.log(`Gold found in location [${gold.x}, ${gold.y}]`)
       break
     }
 
     const moved = await bot.move(1)
     if (!moved.ok) {
-      await bot.sendMessage(baseId, `I'm stuck: ${moved.code}`)
+      bot.log(`I'm stuck: ${moved.code}`)
       break
     }
 
@@ -54,11 +55,11 @@ async function main(bot, baseId) {
 
 1. Scan → no gold.
 2. `move(1)` → the bot advances one cell.
-3. If the move fails (`BLOCKED`, `NO_ENERGY`, …), the result says why, so the bot is **stuck**: it messages the base and
-   stops. (In the original notes the script compared two `getLocation()` readings to detect this; the result object now
+3. If the move fails (`BLOCKED`, `NO_ENERGY`, …), the result says why, so the bot is **stuck**: it logs the reason and
+   stops (§10.3). (In the original notes the script compared two `getLocation()` readings to detect this; the result object now
    makes that unnecessary.)
 4. Otherwise it sleeps 1 s and loops.
-5. When gold appears in the scan, it reports the coordinates to the base and exits.
+5. When gold appears in the scan (a cell of type `resource` holding gold, §4.2), it logs the coordinates and exits.
 
 **Design intent:** the whole game is legible in ~20 lines of code, and every failure mode is something the player can
 program around.
@@ -83,16 +84,17 @@ and travel time force trade-offs.
 
 ## Scenario F — "Remote control" (connect)
 
-1. Dave runs `list` in the base terminal and sees `Carol-1`.
-2. He runs `connect <botId>`.
-3. The server checks the target bot has an **enabled wireless adapter**; it does, so a draggable terminal opens for
-   that bot.
-4. He writes a script with `edit miner.js`, then `run miner.js`.
-5. His own internet connection drops (this is the player's client, not the bot's radio link): the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
-   running on the server**.
-6. On reconnect, the session (with all logs so far) is still there — it was persisted to the database.
+1. Carol runs `list` in the base terminal and sees her own bot `Carol-1` (`list` shows the player's bots only, §11.1).
+2. She runs `connect <botId>`; her own bot needs no password (§11.2.2).
+3. The server checks the target bot has an **enabled wireless adapter** and is connected to the base (§11.2.1); it is, so a
+   draggable terminal opens for that bot.
+4. She writes a script with `edit miner.js`, then `run miner.js` (§11.1).
+5. Her own internet connection drops (this is the player's client, not the bot's radio link): the bot terminal shows **"Connection interrupted"** in the centre, while the script **keeps
+   running on the server** (§12.3).
+6. On reconnect, the client opens a **new stored session** on the bot and says so (§15.6); the lines of the earlier session and
+   of the script stay in the bot's stored history (§11.2.3).
 
-## Scenario H — "Out of range"
+## Scenario G — "Out of range"
 
 1. Frank's scout walks away from the base and leaves the range of its wireless adapter.
 2. On the map the scout turns grey with diagonal hatching at its last known position; its terminal shows "Connection
@@ -102,24 +104,26 @@ and travel time force trade-offs.
 5. Frank refuels the tower; the link returns by itself, the terminals resume, the scout's buffered scans appear on the map
    with their real times, and a summary of the missed events arrives.
 
-## Scenario G — "Debugging in the field"
+## Scenario H — "Debugging in the field"
 
 1. Eve's hauler keeps getting stuck.
-2. She runs `top` and sees three executions: `miner.js` (running), `hauler.js` (suspended), `scout.js` (awaiting).
-3. She notices `hauler.js` is consuming far more operations per tick than expected.
-4. She runs `kill <execId>` on the runaway execution, edits the script, and `run`s it again.
-5. Because her processor's ops/tick is the limit, the other scripts were never starved.
+2. She runs `top` and sees three executions with their id, bot, file and state: `miner.js` (running), `hauler.js`
+   (suspended), `scout.js` (awaiting), and a restart count for each (§11.1; `top` shows no operations count).
+3. She notices `hauler.js` has restarted many times, so it keeps failing and being started again (§12.3.1).
+4. She runs `kill <execId>` on that execution (the id may be shortened to 8 characters), edits the script, and `run`s it again.
+5. Because her processor's ops/tick is the limit (§12.2.1), the other scripts were never starved.
 
-## Scenario H — "Two players, one deposit"
+## Scenario I — "Two players, one deposit"
 
-1. Frank's and Gina's prospectors both detect the same gold cell in the same tick.
-2. Both issue `move()` toward it.
-3. The scheduler applies the tick's commands in deterministic order: Frank's bot enters the cell, Gina's gets
+1. Frank's and Gina's prospectors both detect the same gold deposit in the same tick. A deposit is solid: nobody can enter it,
+   it is mined from the next cell (§4.1, §9.2).
+2. Both issue `move()` toward the same free cell next to it.
+3. The scheduler applies the tick's commands in deterministic order (§12.4, §14.2): Frank's bot enters the cell, Gina's gets
    `BLOCKED`.
-4. Gina's script handles the value (`if (!result.ok) …`), turning toward a different deposit instead of crashing.
+4. Gina's script handles the value (`if (!result.ok) …`), turning toward a different deposit instead of crashing (§10.3).
 5. **Design intent:** competition is resolved by rules, not by luck of arrival order — and well-written scripts adapt.
 
-## Scenario I — "Defend the base"
+## Scenario J — "Defend the base"
 
 1. An enemy bot approaches the base.
 2. The base's `gun-class1` (range 5, damage 50, cooldown 2 s) is driven by its defensive script: `scan` → detect enemy
@@ -127,12 +131,12 @@ and travel time force trade-offs.
 3. Because the base is armored and immobile, its job is to out-sustain attackers until they run out of energy or ammo.
 4. Late game, the player adds dedicated defender bots with weapons + armor to intercept further out.
 
-## Scenario J — "Energy crisis"
+## Scenario K — "Energy crisis"
 
-1. A heavy bot (lots of armor + storage) runs out of energy mid-haul.
-2. All its operations suspend; the battery drains only `idleCost` now.
-3. Its power source slowly refills the battery: a solar panel (🔴 Phase 11; its output follows the time of day, so the night is the
-   dangerous time, §12.5.1) or an oil generator (strong, but it needs oil in a storage, §7.2.1). The bot powers on again only
-   when the stored energy has grown to the resume threshold (§12.5.2), so it does not flap at the edge, and the haul resumes.
+1. A heavy bot (lots of armor + storage) runs out of energy mid-haul and becomes unpowered (§28.3).
+2. Its script is not suspended: every call that costs energy returns `NO_ENERGY`, and the bot pays no idle cost, so it can recover (§28.3).
+3. Its power source slowly refills the battery: a solar panel (its output follows the time of day, so the night is the
+   dangerous time, §28.2) or an oil generator (strong, but it needs oil in a storage, §7.2.1). The bot powers on again only
+   when the stored energy has grown to the resume threshold (§28.3), so it does not flap at the edge, and the haul resumes.
 4. The player responds by adding a bigger battery to carry the bot through the night, a second power source, or an oil
    generator fed by a logistics bot — a hardware fix to a software problem.

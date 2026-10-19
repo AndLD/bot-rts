@@ -190,3 +190,13 @@ The agent runtime of this repository is Claude Code in the Claude desktop app. I
 | ----------------- | ---- |
 | Attach a pull request to the session | `bind_pr` |
 | CI monitoring with automatic fixes ("CI Auto-fix") | `set_monitor` with `auto_fix`: wakes the session on CI failures, merge conflicts and review comments |
+
+Waiting and stale events:
+
+- Never wait with `until ! pgrep -f "git push"`: the pattern matches the waiting command itself. Write a done-file at the end of the
+  background command and wait for it.
+- `gh pr checks` right after a push can show no checks or old ones: wait until the `verify` job exists, then until it is not pending.
+  The logs of a run are readable only when the whole run has finished, and `gh run rerun <id> --failed` works only then too.
+- A CI Auto-fix event can be stale (about a head that a rebase just replaced, or a pull request that is already merged): check
+  `gh pr view <n> --json state,mergeable,headRefOid` before acting, and do not merge the integration branch in.
+- Read `npm run lint` to the end: the packages print one after the other and the first failure hides the rest.

@@ -15,28 +15,30 @@ append-only **work log** in `development-plan/phases/work-logs/` so a phase can 
 single engineer (or one agent working serially). Totals are additive per phase; they include implementation **and**
 the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 
-**Summary**
+**Summary** (written from the phase files by `npm run plan:summary`, checked by `npm run docs:check`; edit a phase file, not this table)
 
-| Phase | Theme                                | Story points | Status |
-| ----- | ------------------------------------ | ------------ | ------ |
-| 0     | Stabilize & CI foundation            | 24           | ✅ Done |
-| 1     | Architecture refactor & NestJS migration | 100       | ✅ Done |
-| 2     | Test infrastructure & coverage backfill | 43        | ✅ Done |
-| 3     | Core gameplay foundations            | 76           | ✅ Done |
-| 4     | Module system & crafting             | 70           | ✅ Done |
-| 5     | Script runtime, scheduler & sandbox  | 104           | ✅ Done |
-| 6     | Core game GUI & map animations       | 96           | ✅ Done |
-| 7     | Presentation & engagement (landing, achievements, notifications, i18n, privacy policy, player documentation) | 66 | ✅ Done |
-| 8     | Multiplayer, public API & hardening  | 71           | ✅ Done |
-| 9     | Admin console (supervision, monitoring, moderation, operations) | 135          | ✅ Done |
-| 10    | Market, currency, chat & transfers   | 154          | ⬜ Not started |
-| 11    | Energy balance, day/night, connection resilience & play-feel polish (**developed after Phase 7**) | 47 | ✅ Done |
-| 12    | Issues and stabilization (open-ended; issues found in use are added as tasks, so its points grow) | 11 (grows) | 🟡 In progress |
-| 13    | Observability platform (OpenTelemetry logs and traces, a shared collector gateway, Elasticsearch, the admin log search and trace view on it; **approved 2026-10-15, developed after Phase 9 and before Phase 10**) | 48 | ✅ Done |
-| 14    | Admin MCP: AI-assisted investigation (API keys with admin read scopes granted from the console, read-only admin tools in the MCP server; **proposed 2026-10-16, developed after Phase 13**) | 19 | ✅ Done |
-| 15    | Harness fixes (the fix-now findings of the harness quality review of 2026-10-17; step 2 of the [harness-framework plan](../harness-framework/README.md); **planned 2026-10-18, developed before Phase 10**) | 58 | 🟡 In progress |
-| 16    | CI speed and agent throughput (faster tests, parallel CI jobs and caches, a fast local gate, work while CI runs; **planned 2026-10-18, developed after Phase 15 and before Phase 10**) | 26 | ⬜ Not started |
-|        | **Total of Phases 0–16**             | **1148** (Phase 12 grows as issues are added) | |
+<!-- plan-summary:start -->
+| Phase | Theme | Story points | Status |
+| ----- | ----- | ------------ | ------ |
+| 0 | Stabilize & CI foundation | 24 | ✅ Done |
+| 1 | Architecture refactor, clean architecture & NestJS migration | 100 | ✅ Done |
+| 2 | Test infrastructure & coverage backfill | 43 | ✅ Done |
+| 3 | Core gameplay foundations | 76 | ✅ Done |
+| 4 | Module system & crafting | 70 | ✅ Done |
+| 5 | Script runtime, scheduler & sandbox | 104 | ✅ Done |
+| 6 | Core game GUI & map animations | 96 | ✅ Done |
+| 7 | Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation | 66 | ✅ Done |
+| 8 | Multiplayer, public API & production hardening | 71 | ✅ Done |
+| 9 | Admin console | 135 | ✅ Done |
+| 10 | Market, currency, chat & transfers | 154 | ⬜ Not started |
+| 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | ✅ Done |
+| 12 | Issues and stabilization | 11 (grows) | 🟡 In progress |
+| 13 | Observability platform | 48 | ✅ Done |
+| 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
+| 15 | Harness fixes | 58 | 🟡 In progress |
+| 16 | CI speed and agent throughput | 26 | 🟡 In progress |
+|  | **Total of Phases 0–16** | **1148** (Phase 12 grows as issues are added) | |
+<!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
@@ -87,6 +89,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 
 - How this plan is structured and maintained: [README](./README.md) (method), [bindings](./bindings.md), [phase file rules](./phases/README.md)
 - [Guiding principles](./cross-cutting/guiding-principles.md)
+<!-- plan-contents:start -->
 - [Phase 0 — Stabilize & CI foundation (24 SP)](./phases/phase-0-stabilize-ci.md)
 - [Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)](./phases/phase-1-architecture-refactor.md)
 - [Phase 2 — Test infrastructure & coverage backfill (43 SP)](./phases/phase-2-test-infrastructure.md)
@@ -94,7 +97,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 4 — Module system & crafting (70 SP)](./phases/phase-4-modules-crafting.md)
 - [Phase 5 — Script runtime, scheduler & sandbox (104 SP)](./phases/phase-5-script-runtime.md)
 - [Phase 6 — Core game GUI & map animations (96 SP)](./phases/phase-6-gui.md)
-- [Phase 7 — Presentation & engagement (66 SP)](./phases/phase-7-presentation-engagement.md)
+- [Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)](./phases/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./phases/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (135 SP)](./phases/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (154 SP)](./phases/phase-10-market-chat.md)
@@ -104,6 +107,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
 - [Phase 15 — Harness fixes (58 SP)](./phases/phase-15-harness-fixes.md)
 - [Phase 16 — CI speed and agent throughput (26 SP)](./phases/phase-16-ci-speed.md)
+<!-- plan-contents:end -->
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
 - [Definition of Done](./cross-cutting/definition-of-done.md)

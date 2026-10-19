@@ -10,7 +10,41 @@ single-class market terminal module, chat, and transfers between players. The ph
 (Phase 4), the engine commands and event bus (Phase 5), the window manager (Phase 6), notifications and achievements
 (Phase 7), API-key scopes (8.9) and the admin foundations (9.1). **Order:** it is developed after Phase 13 (owner decision 2026-10-16, see "Order of development" in the [plan index](../DEVELOPMENT-PLAN.md)), so the market is built with the tracing, the logs of every node and the metrics history of Phase 13 in place; the market metrics of design §25.5 are delivered here (10.11 and 10.15).
 
-**Execution order:** 10.1 → 10.2 → 10.3 → 10.4 → 10.16 → 10.5 → 10.17 → 10.12 → 10.6 → 10.7 → 10.9 → 10.8 → 10.10 → 10.13 → 10.11 → 10.15 → 10.14.
+**Dependencies, waves and ownership** (replaces the single chain of the earlier execution order, owner decision 2026-10-18; derived by the
+harness review of 2026-10-17, section 10, with 10.16 added). One agent may still work the tasks in the id order that satisfies the
+dependencies (10.1, 10.2, 10.3, 10.4, 10.16, 10.5, …); several agents follow the waves ([method §7](../../engineering/method.md#7-several-agents)).
+Each edge is *e* (stated in a task text) or *i* (inferred from the interfaces the task cites); the agent that starts a task confirms its edges.
+
+| Task | Depends on |
+| ---- | ---------- |
+| 10.1, 10.3, 10.7 | none |
+| 10.2 | 10.1 (*i*: escrow accounts in the ledger) |
+| 10.4 | 10.1, 10.2, 10.3 (*i*) |
+| 10.16 | 10.1, 10.2, 10.4 (*i*: the system buyer is part of the exchange) |
+| 10.5 | 10.1, 10.2, 10.3 (*i*) |
+| 10.6 | 10.4, 10.5 (*i*) |
+| 10.17 | 10.1, 10.2, 10.3, 10.5 (*i*: editions and auctions are sold from the product page) |
+| 10.8 | 10.7 (*i*) |
+| 10.9 | 10.1, 10.2, 10.7 (*i*: system cards in the conversation) |
+| 10.10, 10.12, 10.13 | 10.4, 10.5, 10.9 (*i*) |
+| 10.11 | 10.1, 10.4, 10.5, 10.7 (*i*) |
+| 10.15 | 10.10, 10.11 (*e*: "the flags that 10.10 raises") |
+| 10.14 | 10.6, 10.8, 10.9, 10.11 (*i*) |
+
+| Wave | Tasks | Lanes (area) | Starts when |
+| ---- | ----- | ------------ | ----------- |
+| 0 | the contracts: ledger account kinds, the escrow port, the market error codes, the events of design §26.8, the `chat` scope | the orchestrator | the open questions of design §26 and §27 that block a task are decided |
+| 1 | 10.1, 10.3, 10.7 | A: wallet and ledger · C: the market terminal module · B: chat backend | wave 0 is merged |
+| 2 | 10.2, 10.8 | A: escrow and inbox · B: chat window | 10.1 and 10.7 are merged |
+| 3 | 10.4, 10.16, 10.5, 10.9 | A: exchange and system trader · C: auctions · B: transfers | 10.2 and 10.3 are merged |
+| 4 | 10.6, 10.17, 10.10, 10.11, 10.12, 10.13 | C: market UI and the script catalog · A: anti-abuse and integrity tests · B: admin moderation and notifications | wave 3 is merged |
+| 5 | 10.15, 10.14 | B: analytics · A or C: end-to-end specs | 10.10 and 10.11, and all UI, are merged |
+
+Hotspots (files that several tasks of a wave write): `api/prisma/schema.prisma` and the ordered migrations, the balance configuration and
+`api/.env.example` have one owner per wave, lane A, and the others rebase on that owner's change; `api/src/app.module.ts` takes one line
+per module (a trivial conflict, accepted); `api/openapi.json` and the generated client are regenerated after a rebase, never merged by hand;
+the `lib` contracts (`error-codes.ts`, `interfaces/api-keys.ts`, `socket-events.ts`) are written in wave 0. Records are per task: a log
+fragment in `work-logs/phase-10/` and a changelog fragment, so no shared list is edited. Recommended: three agents after wave 0.
 
 | # | Task | SP | Status |
 | --- | --- | --- | --- |
@@ -40,9 +74,5 @@ money and goods; admins can moderate trades and chat — covered by unit, integr
 
 ## Implementation log
 
-Branches and pull requests that implemented this phase's tasks, added when each one is merged (branch names follow
-AGENTS.md §7.1).
-
-| Branch | Tasks | PR | Status |
-| --- | --- | --- | --- |
-| _none yet_ | | | |
+Printed from the merged pull requests: `npm run plan:log -- 10` (every squash commit carries a `Plan: <task id>` line). Each task writes its
+own log fragment in `work-logs/phase-10/` (template: `work-logs/_task-template.md`); this file holds no table to edit.

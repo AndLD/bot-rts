@@ -21,7 +21,7 @@ async function main(bot, arg1, arg2, /* … */ argN) { /* … */ }
 > In the 2024 notes the base id is passed explicitly (`run abc TERMINAL_ID`); in the 2026 notes the first `main`
 > argument is the `bot` object. Both are supported: the `bot` object carries identity, and extra args are free-form.
 
-## 10.1.1 Languages and imports ✅
+## 10.1.1 Languages and imports
 
 - **Languages:** players may write **JavaScript (`.js`)** and **TypeScript (`.ts`)**. TypeScript is transpiled to
   JavaScript by the engine (transpile only; there is no type-check gate that blocks running a script).
@@ -31,32 +31,20 @@ async function main(bot, arg1, arg2, /* … */ argN) { /* … */ }
   execution starts and has limits on depth and total size (tunable config); cyclic imports are rejected.
 - **Contract unchanged:** the entry file exports `async function main(bot, ...args)`.
 - Code reuse by `execute(file)` still starts a separate execution (§10.2).
-- **Transpiler:** a type-stripping transpiler behind a `Transpiler` interface (sucrase preferred, esbuild-wasm as the
-  alternative; final choice in Plan 5.8). No type-check; transpile happens in the engine, outside the QuickJS context.
+- **Transpiler:** TypeScript has its types stripped before it runs; nothing is type-checked.
 - **Imports stay on the same drive:** relative paths only, no cross-drive imports, so a removed or broken drive can
   only break scripts that live on it.
 - **Loading:** the module graph is resolved and loaded when the execution starts; transpiled output is cached by file
   content hash.
-- **Editor:** the CodeMirror editor offers TypeScript typings and autocomplete for the `bot` API and the functions its
-  modules grant (a `.d.ts` shipped from `lib`).
+- **Editor:** the code editor offers TypeScript typings and autocomplete for the `bot` API and the functions its
+  modules grant; wiring them into the in-game editor is open (Q10).
 - **Limits (tunable config):** 32 KB per file, 20 files and import depth 5 per execution.
-
-**Implementation (Phase 5).** `ModuleLoader` (engine) reads the entry file and, depth first, every file its compiled code
-imports from the bot's drives (`ScriptSource`), before the execution starts; a failure is a `SCRIPT_LOAD_FAILED` error that
-names the file, so the execution is never recorded. An import is a relative path (`./` or `../`) that stays on the drive;
-without an extension the loader tries `.js`, `.ts`, `.json` in this order. A `.json` file becomes a module whose default export
-is the parsed value. TypeScript goes through the `Transpiler` port, implemented by `SucraseTranspiler` (types stripped, ES
-modules kept; as in TypeScript, an import used only as a type is dropped), cached by the hash of path and content (the
-oldest entry goes first). QuickJS serves modules from the loaded set only, so a dynamic `import()` of anything else fails.
-Limits: `ENGINE_MODULE_MAX_FILE_BYTES`, `_MAX_FILES`, `_MAX_DEPTH`, `_CACHE_ENTRIES`. The editor typings are generated from
-the function catalog (`scriptTypings()` in `lib`); the in-game code editor does not use them yet because it is still a plain
-text area, so wiring them into CodeMirror 6 is left to the client work.
 
 ## 10.2 Available functions
 
 Every function is gated by the module that provides it — **no module, no function**.
 
-✅ **How functions are reached:** each function is a method of the `bot` object passed to `main` (`bot.scan()`), and is
+**How functions are reached:** each function is a method of the `bot` object passed to `main` (`bot.scan()`), and is
 also available as a same-named global bound to the executing bot (`scan()`), so scripts written in the style of the
 original notes work unchanged. The examples below use the `bot.` form.
 
@@ -79,20 +67,24 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 | `disassemble(bot, moduleId)` | repair | `disassemble(...): Promise<Result<Scrap>>` | Strip a module into scrap (§8.4.2). |
 | `craft(module, count?)`, `assemble(label, moduleIds)`, `research(module)`, `learn(itemId)` | factory | `Promise<Result<…>>` | Factory operations, available to scripts on a bot with a factory module (the base). Same rules as the terminal commands and the Factory GUI. |
 | `market.getWallet()`, `market.getOrderBook(resource)`, `market.placeOrder(...)`, `market.cancelOrder(id)`, `market.listAuctions(filter)`, `market.createAuction(...)`, `market.bid(id, amount)`, `market.buyNow(id)`, `market.createEdition(...)`, `market.buyCopy(id)`, `market.claimInbox(...)` | marketTerminal | `Promise<Result<…>>` | The remote market (§26); each call costs ops and energy. |
-| `connect(botId)` | wireless adapter | `connect(botId): Promise<Result<Connection>>` | Open a link to another bot. |
+| `connect(botId, password?)` | wireless adapter | `connect(botId: string, password?: string): Promise<Result<Connection>>` | Open a link to another bot; `Connection` is `{ botId: string; isForeign: boolean }`. The rules are those of the terminal's `connect` (§11.2.2): a bot of the same player needs no password; a bot of another player must be in radio range and its `password` must be right, every attempt costs energy, and after too many wrong ones in a row the bot locks out new attempts for a while. A wrong password and a lockout both answer `FORBIDDEN` (the message tells which); a target without a working adapter answers `NO_SIGNAL`. |
 | `getLinkStatus()` | wireless adapter | `getLinkStatus(): Promise<Result<{ connected: boolean; signal: 0 | 1 | 2 | 3 | 4; hops: number; weakestLink?: { botId: string; margin: number }; lostSince?: number }>>` | Whether the bot is connected to its base through the radio network, its signal bars (0–4), the number of hops, the weakest link on the path, and since when it is not connected (§11.2.1). |
 | `sendMessage(botId, msg)` | wireless adapter | `sendMessage(botId, msg): Promise<Result>` | Send a message to another bot/base. |
 | `execute(file)` | processor | `execute(file): Promise<Result<{ executionId: string }>>` | Run a stored script (spawns a parallel execution). |
 | `log(...args)` | processor (always on) | `log(...args): void` | Write to the terminal session log. |
 | `sleep(ms)` | processor (always on) | `sleep(ms): Promise<void>` | Yield for `ms` of game time. |
 
-✅ **Details fixed by the implementation (Plan 5.3):** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
+**Random numbers.** `Math.random()` in a script is the engine's **seeded random function**: it returns a float in [0, 1) drawn from
+the engine's seeded generator (§12.4), so a replay of the same world draws the same numbers. There is no other random function and
+no clock: `Date` does not exist, and `bot.time()` is the game time.
+
+**Details:** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
 (the drive is named as in the terminal's `cd`, §11.4); `bot.time()` (also a global `time()`) returns the game time in ms
 and is free; calling a function the bot has no module for, with invalid arguments, or an unknown function throws and ends
 the execution (§10.3), while a module that is broken or a use case that refuses (no energy, cooldown, not found) returns a
 `Result` failure.
 
-✅ **World functions (Plan 5.5):** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
+**World functions:** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
 3 west); `turn('left' | 'right')` rotates it by a quarter. `move(n)` goes `n` cells (1–64) the way it faces, paying the
 engine's `operationCost` for each cell, and its promise resolves after `n × ticksPerCell` ticks (§8.5); it stops at the first
 occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` with the cells it managed in the message.
@@ -100,15 +92,17 @@ occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` w
 on the cell ahead, `drop()` puts the last carried item on the free cell ahead and `drop(x, y)` on a free neighbouring cell. Mined
 resources go to the first storage module with room, a carried item counts against the manipulator's `loadCapacity`. `aim`,
 `shoot` and `reload` follow §12.6 (a shot hits the first bot on its line unless the weapon is artillery; `reload` consumes
-carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator (🔴 or a solar panel, §7.2.1) or connect a battery.
+carried `ammunition` items, one per round). `enable(moduleId)` / `disable(moduleId)` switch a generator (or a solar panel, §7.2.1) or connect a battery.
 A bot that is moving answers `BUSY` to every action that needs its body. The `bot` object lists the bot's modules
 (`bot.modules`: `id`, `type`, `name`) so that `enable(moduleId)` / `disable(moduleId)` can name the module to switch; a scanner
 that is switched on keeps its area live (§4.4) and `view(since?)` reads the live view (`{ tick, cells }`).
 
-Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
-`enable()`/`disable()` (battery, generator, 🔴 solar panel, scanner), `reload()` (weapon), `disconnect()` (wireless adapter). ✅
+The functions `sendMessage`, `store`, `execute` and `disconnect` of this table are decided but no task builds them (Q18). In particular a script cannot start another execution: a player starts one with `run` in the terminal (§11.1), the API or the MCP tool.
 
-## 10.3 Return values & error handling ✅
+Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
+`enable()`/`disable()` (battery, generator, solar panel, scanner), `reload()` (weapon), `disconnect()` (wireless adapter).
+
+## 10.3 Return values & error handling
 
 Every API call returns a **result object**; expected failures are **values**, never exceptions:
 
@@ -117,11 +111,12 @@ Every API call returns a **result object**; expected failures are **values**, ne
 { ok: false, code: 'BLOCKED', msg: 'Cell occupied' }     // expected failure
 ```
 
-- **Error codes** are a closed, typed set in `lib` (initial set): `BLOCKED`, `EMPTY`, `GONE`, `NO_ENERGY`, `NO_MODULE`,
-  `BROKEN_MODULE`, `NO_FUNDS`, `NOT_LIVE`, `BUSY`, `NOT_FOUND`, `TOO_LOW`, `EXPIRED`, `INBOX_FULL`, `OUT_OF_RANGE`, `COOLDOWN`, `NO_AMMO`, `NO_SIGNAL`, `NO_SPACE`, `FORBIDDEN`.
+- **Error codes** are a closed, typed set: `ResultCode` in [`lib/utils/result.ts`](../../../lib/utils/result.ts), which
+  [`lib/utils/error-codes.ts`](../../../lib/utils/error-codes.ts) extends with the codes of the HTTP API. A script's `code` is always a
+  `ResultCode`; a use case that fails with an API code a script should know maps to one of them (a wrong bot password or a lockout is
+  `FORBIDDEN`). The list is not repeated here, so it cannot drift from the code.
 - **Only misuse throws**: invalid arguments, calling an API the bot has no module for at the language level, or sandbox
   violations. A throw ends the execution (`killed`, with the error in its log).
 - Scripts branch with `if (!r.ok)`; no `try/catch` is needed for routine events such as a blocked cell.
-- The set of functions and their module gating are as in §10.2; each function's return type is `Result<T>` (the
-  existing callback-style signatures in `lib` module interfaces are migrated).
+- The set of functions and their module gating are as in §10.2; each function's return type is `Result<T>`.
 - Calls may be `await`-ed and are subject to the processor budget (§12.2.1).

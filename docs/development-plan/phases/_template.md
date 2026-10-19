@@ -2,7 +2,7 @@
 
 # Phase <n> — <Theme> (<size>)
 
-**Status:** ⬜ Not started · **Branches:** see the [implementation log](#implementation-log) · **Work log:** `phase-<n>-log` in `work-logs/`
+**Status:** ⬜ Not started · **Branches:** see the [implementation log](#implementation-log) · **Work log:** `phase-<n>-log` in `work-logs/`, and one fragment per task in `work-logs/phase-<n>/`
 
 <Goal of the phase in one paragraph. Why it exists and what it unlocks.>
 
@@ -18,7 +18,5 @@ Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) 
 
 ## Implementation log
 
-Branches and pull requests that implemented this phase's tasks, added when each one is merged.
-
-| Branch | Tasks | PR | Status |
-| ------ | ----- | -- | ------ |
+Printed from the merged pull requests: `npm run plan:log -- <n>` (every squash commit carries a `Plan: <task id>` line). Each task writes
+its own log fragment in `work-logs/phase-<n>/`.

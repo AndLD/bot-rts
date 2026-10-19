@@ -23,6 +23,7 @@ reading map. The rest is read on demand:
 | change the database schema or authentication | [architecture](./docs/engineering/architecture.md) (persistence and migrations §2, identity providers §1) |
 | add or change a user-visible flow | [method §3.4](./docs/engineering/method.md#34-end-to-end-tests) and the [e2e matrix](./docs/testing/e2e-matrix.md) |
 | change a game rule or add a game feature | [`GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and the [glossary](./docs/product-knowledge/game-design/02-glossary.md), then section 9 below |
+| see which tool holds a rule | the [rule-to-check map](./docs/engineering/rule-checks.md) |
 | finish a task | [method §4](./docs/engineering/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (definition of done) |
 | cut a release or a hotfix | [`RELEASING.md`](./docs/operations/RELEASING.md) |
 | run tests, find a command | [`docs/testing/`](./docs/testing/README.md), [profile §8](./docs/profile.md#8-commands) |
@@ -36,7 +37,8 @@ The principles (SOLID, scalability, testability, maintainability, low coupling, 
 [method §1](./docs/engineering/method.md#1-principles). If a rule conflicts with existing legacy code, the rule wins for **new
 and modified** code — refactor the touched area to comply rather than perpetuating the anti-pattern.
 
-Non-negotiables (a PR that violates these is rejected):
+Non-negotiables (a PR that violates these is rejected). **Changing one needs the owner's explicit confirmation of that change**, recorded
+in the pull request; a mention in passing ("the gate is annoying") is not a confirmation, so ask.
 
 1. Every feature ships with **unit + integration tests**, and user-visible flows get **e2e** tests.
 2. Coverage must stay at or above the coverage gate ([profile](./docs/profile.md#2-quality-gates)); CI fails below it.
@@ -64,6 +66,8 @@ The former sections keep their numbers here so that older references resolve:
 Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow
 (one branch per task, finishing a release) is in [method §5](./docs/engineering/method.md#5-git-workflow).
 **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`.
+Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a Phase 12 task (`bugfix/12.<n>-slug`).
+Documentation or tooling work that no task covers uses a branch slug only (`docs/<slug>`, `chore/<slug>`).
 
 ### 7.2 Merge strategy
 
@@ -92,7 +96,7 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 
 ### 7.5 Rules for agents
 
-- If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files.
+- If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from `origin/develop` (fetch first).
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
   push directly to `main` or `develop`.
 - **Plan work (approval given by the request):** when the user asks to start or continue one or more phases (the resume phrases
@@ -106,6 +110,10 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
   status updates in the phase file and the development plan, the work log, the matching `docs/product-knowledge/game-design/` updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
+- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title
+  `chore(plan): claim task <id>`, `Plan: <id>` in the body); a task with an open pull request belongs to the session that opened it.
+  With several agents the orchestrator or the owner merges, and the CI events and review comments of a pull request go to the session
+  that owns it ([method §7](./docs/engineering/method.md#7-several-agents)).
 - **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
   `release/*` and `hotfix/*` into `main`) without asking.
 - **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything
@@ -156,7 +164,7 @@ Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, t
   and the MCP server (`mcp/`) only calls the public API.
 - **Player-facing text:** every UI string, error code and documentation page exists in every user-facing language
   (`client/messages`, `npm run i18n:check`); player documentation is generated from `lib` and the balance config where possible.
-- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a line under "Unreleased" in `docs/product-knowledge/CHANGELOG.md`.
+- **Operations:** processes, scaling and releases follow `docs/operations/` (`DEPLOYMENT.md`, `RELEASING.md`); a pull request that changes behaviour adds a changelog fragment in `docs/product-knowledge/changelog.d/`.
 - **Admin endpoints** (Phase 9, delivered in tasks 9.1–9.15 and extended by the open tasks; `/api/v1/admin/*`, design §25) are guarded by role-based permissions and two-factor authentication,
   every call is written to the audit log, and they are closed to API keys **except routes that opt in with an `admin:*:read` scope** (Phase 14: read-only keys
   granted from the console only; the owner must still hold the admin role on every call; such keys never appear in a player-facing list, spec or documentation).

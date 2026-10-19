@@ -942,7 +942,7 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
     expect(await database.client.module.count({ where: { botId: baseId } })).toBe(10)
   })
 
-  it('gives a lost base back to its owner when a bot repairs its wireless adapter', async () => {
+  it('does not restore a lost base: its broken wireless adapter is below the repair threshold', async () => {
     const { accessToken } = await signUp('alice@example.com')
     const deploy = async () =>
       (await api().post('/api/v1/bots/base').set(bearer(accessToken)).send({ password: 'secret1' }).expect(201)).body
@@ -960,7 +960,7 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       where: { contentId: freshId },
       data: { x: at.x + 1, y: at.y, z: at.z }
     })
-    const repair = await database.client.module.create({
+    await database.client.module.create({
       data: {
         id: randomUUID(),
         botId: freshId,
@@ -988,22 +988,17 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       }
     })
 
-    for (let step = 0; step < 4; step++) {
-      await database.client.module.update({
-        where: { id: repair.id },
-        data: { props: { repairPerOp: 25, delay: 1000 } }
-      })
-      await api()
-        .post(`/api/v1/bots/${freshId}/maintenance/repair`)
-        .set(bearer(accessToken))
-        .send({ targetBotId: oldId, moduleId: adapter.id })
-        .expect(200)
-    }
+    const refused = await api()
+      .post(`/api/v1/bots/${freshId}/maintenance/repair`)
+      .set(bearer(accessToken))
+      .send({ targetBotId: oldId, moduleId: adapter.id })
+      .expect(409)
+    expect(refused.body.code).toBe('TOO_LOW')
 
-    expect((await database.client.module.findUniqueOrThrow({ where: { id: adapter.id } })).condition).toBe(100)
-    expect((await database.client.mapPoint.findFirstOrThrow({ where: { contentId: oldId } })).type).toBe('base')
-    await api().get(`/api/v1/bots/${oldId}/bots`).set(bearer(accessToken)).expect(200)
-    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(2)
+    expect((await database.client.module.findUniqueOrThrow({ where: { id: adapter.id } })).condition).toBe(0)
+    expect((await database.client.mapPoint.findFirstOrThrow({ where: { contentId: oldId } })).type).toBe('corpse_base')
+    await api().get(`/api/v1/bots/${oldId}/bots`).set(bearer(accessToken)).expect(403)
+    expect((await api().get('/api/v1/bots?type=base').set(bearer(accessToken)).expect(200)).body).toHaveLength(1)
   })
 
   it("serves the player's own map with fog of war over HTTP", async () => {

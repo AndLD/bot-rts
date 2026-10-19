@@ -3,60 +3,62 @@
 # 11. The terminal (BotOS)
 
 Each bot — including the base — runs **BotOS**, a Unix-like command environment. The player interacts through a
-terminal window; **every connection session, with all its logs, is stored in the database**. 🟡
+terminal window; **every connection session, with all its logs, is stored in the database**.
 
 ## 11.1 Command reference
 
 The 2024 notes list: `ls`/`dir`, `edit`, `rm`, `clear`, `shell`, `connect`, `<filename>`, `reboot`, `help`.
 The 2026 notes list: `cd`, `ls`, `mkdir`, `cat`, `edit`, `run`, `shell`, `top`, `kill`, `ping`.
-✅ The final command set is the unified set below (including `passwd`, `adopt`, `learn`, and the factory commands `craft`,
+The final command set is the unified set below (including `passwd`, `adopt`, `learn`, and the factory commands `craft`,
 `assemble`, `research`, which mirror the Factory GUI and the script API). **MVP core subset** (delivered first): `help`,
 `ls`, `cd`, `cat`, `edit`, `rm`, `run`, `shell`, `top`, `kill`, `connect`, `list`, `modules`, `clear`, `exit`; the rest
 follow with their features.
 
 The unified command set:
 
-| Command | Syntax | Description | Status |
-| --- | --- | --- | --- |
-| `help` | `help` | List available commands. | ✅ |
-| `ls` / `dir` | `ls` | List the drives, or the files of the current drive/directory. | ✅ |
-| `cd` | `cd <path>` / `cd ..` | Change directory / select a drive (`cd` alone or `cd /` goes to the top). | ✅ |
-| `mkdir` | `mkdir <name>` | Create a directory. | ✅ |
-| `cat` | `cat <file>` | Print a file's contents. | ✅ |
-| `edit` | `edit <file>` | Open a **draggable code editor**. New files are validated to `*.js`, `*.ts`, `*.json`, `*.txt` only. | 🟡 |
-| `rm` | `rm <file>` | Delete a file or an empty directory. | ✅ |
-| `run` | `run <file> [args…]` | Run a script file; its exported `main(bot, …args)` is invoked. Arguments become numbers or booleans when they look like them. A file name typed alone (`<file> [args…]`) runs it too. The command answers `started <id>` at once; the output arrives as the script writes it (a `script-log` socket event) and is kept in the bot's terminal log as `[<id>] <text>`, also when no terminal is open. | ✅ |
-| `shell` | `shell` | Enter shell mode: each input line is executed as code with `bot` in scope. `exit` leaves shell mode. In shell mode the client sends each line as `eval <code>`; every line is an execution of its own (variables do not persist between lines), an expression's value is printed, and a line starting with a statement keyword (`const`, `if`, `for`, …) is run as statements. | ✅ |
-| `eval` | `eval <code>` | Run one line of code with `bot` in scope (what the shell mode sends). | ✅ |
-| `top` | `top` | List the running script executions of the player: id, bot, file, state (`queued`, `running`, `suspended`, `awaiting`) and restarts. | ✅ |
-| `kill` | `kill <execId>` | Stop a running execution; the id may be shortened to the 8 characters the terminal shows. | ✅ |
-| `connect` | `connect <botId> [password]` | Open a terminal on another bot — **only if that bot has an enabled wireless adapter** (and, for a bot of another player, is within radio range of the one you connect from); a foreign bot asks for its password (§11.2.2). The client works in the new terminal until `exit`, which goes back. Terminals as separate draggable windows are still to do. | ✅ |
-| `list` | `list` | List the player's bots. | ✅ |
-| `modules` | `modules` | List the current bot's modules. | ✅ |
-| `ping` | `ping <botId>` | Check link latency/reachability to another bot. | 🔴 |
-| `reboot` | `reboot` | Restart the bot's OS, terminating scripts. | 🔴 |
-| `craft` | `craft <module> [count]` | At the base factory: craft a module from a known blueprint (§9.3). | 🔴 |
-| `assemble` | `assemble <label> <moduleId…>` | At the base factory: assemble a new bot from modules; spawns adjacent to the base (§8.3). | 🔴 |
-| `research` | `research <module>` | At the base factory: research a higher class (§9.3). | 🔴 |
-| `learn` | `learn <itemId>` | Consume a blueprint item and learn its blueprint permanently. | 🔴 |
-| `passwd` | `passwd` | Set or change the bot's access password (§11.2.2); 6–64 characters. | ✅ |
-| `adopt` | `adopt` | After authenticating on a foreign or stale bot: assign it to the base the connection came from (§11.2.2). Only in a terminal opened by `connect` on an ordinary bot of another player. | ✅ |
-| `clear` | `clear` | Clear the terminal. | ✅ |
-| `exit` | `exit` | Leave shell mode, or log out of the base terminal. | ✅ |
-| `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. | ✅ |
+| Command | Syntax | Description |
+| --- | --- | --- |
+| `help` | `help` | List available commands. |
+| `ls` / `dir` | `ls` | List the drives, or the files of the current drive/directory. |
+| `cd` | `cd <path>` / `cd ..` | Change directory / select a drive (`cd` alone or `cd /` goes to the top). |
+| `mkdir` | `mkdir <name>` | Create a directory. |
+| `cat` | `cat <file>` | Print a file's contents. |
+| `edit` | `edit <file>` | Open a **draggable code editor**. New files are validated to `*.js`, `*.ts`, `*.json`, `*.txt` only. |
+| `rm` | `rm <file>` | Delete a file or an empty directory. |
+| `run` | `run <file> [args…]` | Run a script file; its exported `main(bot, …args)` is invoked. Arguments become numbers or booleans when they look like them. A file name typed alone (`<file> [args…]`) runs it too. The command answers `started <id>` at once; the output arrives as the script writes it (a `script-log` socket event) and is kept in the bot's terminal log as `[<id>] <text>`, also when no terminal is open. |
+| `shell` | `shell` | Enter shell mode: each input line is executed as code with `bot` in scope. `exit` leaves shell mode. In shell mode the client sends each line as `eval <code>`; every line is an execution of its own (variables do not persist between lines), an expression's value is printed, and a line starting with a statement keyword (`const`, `if`, `for`, …) is run as statements. |
+| `eval` | `eval <code>` | Run one line of code with `bot` in scope (what the shell mode sends). |
+| `top` | `top` | List the running script executions of the player: id, bot, file, state (`queued`, `running`, `suspended`, `awaiting`) and restarts. |
+| `kill` | `kill <execId>` | Stop a running execution; the id may be shortened to the 8 characters the terminal shows. |
+| `connect` | `connect <botId> [password]` | Open a terminal on another bot — **only if that bot has an enabled wireless adapter** (and, for a bot of another player, is within radio range of the one you connect from); a foreign bot asks for its password (§11.2.2). The client works in the new terminal until `exit`, which goes back. Terminals as separate draggable windows are still to do. |
+| `list` | `list` | List the player's bots. |
+| `modules` | `modules` | List the current bot's modules. |
+| `ping` | `ping <botId>` | Check link latency/reachability to another bot. |
+| `reboot` | `reboot` | Restart the bot's OS, terminating scripts. |
+| `craft` | `craft <module> [count]` | At the base factory: craft a module from a known blueprint (§9.3). |
+| `assemble` | `assemble <label> <moduleId…>` | At the base factory: assemble a new bot from modules; spawns adjacent to the base (§8.3). |
+| `research` | `research <module>` | At the base factory: research a higher class (§9.3). |
+| `learn` | `learn <itemId>` | Consume a blueprint item and learn its blueprint permanently. |
+| `passwd` | `passwd` | Set or change the bot's access password (§11.2.2); 6–64 characters. |
+| `adopt` | `adopt` | After authenticating on a foreign or stale bot: assign it to the base the connection came from (§11.2.2). Only in a terminal opened by `connect` on an ordinary bot of another player. |
+| `clear` | `clear` | Clear the terminal. |
+| `exit` | `exit` | Leave shell mode, or log out of the base terminal. |
+| `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. |
+
+The commands `ping` and `reboot` are decided but no task builds them (Q18); a reboot exists only as an action of the admin console.
 
 ## 11.2 Connection lifecycle
 
-1. Player opens the base terminal (from the base UI). ✅
+1. Player opens the base terminal (from the base UI).
 2. `connect <botId>`:
    - the target must have a working **wireless adapter** within communication range, directly or through a relay chain
      (§11.2.1), and for a foreign bot with a password the correct password must be supplied (§11.2.2);
-   - if so → a new draggable bot terminal opens; 🟡
-   - otherwise → an error value is shown. 🟡
-3. If the link drops **for any reason**, the terminal displays **"Connection interrupted"** centered in the window, and it **resumes by itself** when the link returns (§11.2.1). 🔴
-4. The whole session — commands, outputs, script logs, and errors — is **persisted to the database**. 🟡
+   - if so → a new draggable bot terminal opens;
+   - otherwise → an error value is shown.
+3. If the link drops **for any reason**, the terminal displays **"Connection interrupted"** centered in the window, and it **resumes by itself** when the link returns (§11.2.1).
+4. The whole session — commands, outputs, script logs, and errors — is **persisted to the database**.
 
-## 11.2.1 The radio network: range, relays, link loss and recovery ✅
+## 11.2.1 The radio network: range, relays, link loss and recovery
 
 **The link rule**
 - Each wireless adapter has a **range in cells** (Chebyshev distance; class 1: **20 cells**, tunable). Two adapters are
@@ -66,7 +68,7 @@ The unified command set:
   links leads from the base to it through the player's own bots (bots of bases owned by the same user; stale bots are
   excluded). `connect`, `ping`, `sendMessage` and manual control work only for connected bots.
 - Any bot can be a **relay**. A **signal tower** is simply a static bot with a long-range adapter plus a battery and a
-  generator (burning oil, §12.5); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
+  generator (burning oil, §28.1); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
 - The market terminal (§26.2), chat and transfers (§27) do not use the radio network.
 
 **Signal strength (the indicator).** Every connected bot shows a live **signal strength** from 0 to 4 bars, like a phone:
@@ -83,7 +85,7 @@ The unified command set:
 - **Control stops:** manual control and the terminal are refused with `NO_SIGNAL`; the open terminal shows
   **"Connection interrupted"**.
 - **Live information stops:** the bot's position, status, scan updates and events no longer reach the player. The map shows
-  its **last known state**, drawn **greyed with diagonal hatching** with a "connection lost N s ago" tooltip (§4.3). The
+  its **last known state**, drawn greyed with diagonal hatching with a "connection lost N s ago" tooltip (§4.3). The
   player gets a `LinkLost` notification.
 - **The bot stays autonomous:** its scripts keep running on its own processor. A script can ask `getLinkStatus()` (§10.2) and
   react, for example by returning toward the base; `sendMessage` to the base fails with `NO_SIGNAL`.
@@ -98,48 +100,38 @@ relay was destroyed, lost power or was repaired, an adapter was switched). As so
 
 **Display.** Connected bots show their signal bars (map, bot list, terminal header and control panel, with a tooltip giving the bars, hops and the weakest link); disconnected bots are hatched (above); an optional overlay draws the links, so a weak or broken relay is easy to find.
 
-✅ **Implementation (Plan 5.13):** `RadioNetwork` in the engine computes, per player, which bots of the living base reach it
-(widest path: the chain whose weakest link is strongest, then the fewest hops) from the bots in memory — adapter online
-(`isConnected`) and working, battery not empty, position, range. It is recomputed only for players whose bots moved or changed
-their adapter or whether they have energy, on the next tick. A bot out of reach has a `lostSince` time; manual control of it
-(terminal `open`, and every world-changing API action that names it) fails with `NO_SIGNAL`, and `getLinkStatus()` returns
-`{ isConnected, signal, hops, weakestLink?, lostSince? }`. The engine emits `radio` events with only the bots whose bars or
-connection changed and the game events `LinkLost`, `LinkRestored` (with a summary `missed: { scans, events, byType }`) and
-`LinkWeak`. While a bot is out of reach the cells its `scan()` returns are kept in a buffer (newest 1,000, per cell the newest
-sighting) instead of the player's map, and the events about it in another (newest 200); on `LinkRestored` the cells reach the
-map with their original `seenAt` if newer than what the player knows. The bar margins and buffer sizes are `ENGINE_RADIO_*`
-settings.
-
-## 11.2.2 Bot security and takeover ✅
+## 11.2.2 Bot security and takeover
 
 - **Access password:** a bot may have an access password, set by its owner from the bot's terminal (`passwd`). By
   default a bot has **no password** and is open to anyone in range. The owner's own bots connect to each other
   without a password.
 - **Foreign `connect`:** connecting to another player's bot requires its password (if one is set) and the target's
   wireless adapter within range (§11.2.1).
+- **From a script**, `connect(botId, password?)` (§10.2) follows the same rules and the same lockout; it answers a result
+  instead of opening a terminal.
 - **Brute force:** an attacker can try passwords through the API. Each attempt costs ops and energy and is slow; failed
   attempts are logged on the target bot, and after a tunable number of failures the bot **locks out** new foreign
-  connection attempts for a tunable time. There are no special hacking modules for now.
+  connection attempts for a tunable time. There are no special hacking modules for now (Q9).
 - **Takeover:** successful authentication gives a terminal on the bot; the `adopt` command then re-assigns the bot to
   the **base the connection came from** (`baseId` changes; the bot keeps its modules and its scripts; the previous owner
   loses control). Stale bots (§6.3) keep their last password, so unprotected stale bots can be adopted freely.
 - **Bases cannot be adopted.** `adopt` works on ordinary bots only. A base's owner never changes; a base only changes
-  through damage and repair (corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
+  through damage (it becomes a corpse base, §6.3). A foreign player who authenticates on a base gets a terminal there (read,
   sabotage) but cannot take it. Every base gets a **mandatory owner-set password at deploy**.
 
-**Implementation (Phase 5).** `BotAccessService` holds the rules; `connect` and `adopt` run in the engine as world actions
-(`access.connect`, `access.adopt`), because a try costs the source bot energy and a takeover changes who owns a bot. An own bot
+**Rules.** `connect` and `adopt` are engine actions (§14.2), because a try costs the source bot energy and a takeover changes
+who owns a bot. An own bot
 needs only a working adapter. A foreign bot must have a working adapter within radio range of the source bot (the link rule of
 §11.2.1: the smaller of the two ranges), must not be locked out, and the password must match (a bot without a password lets
 anyone in). Every try on a foreign bot costs the source bot `BOT_ATTEMPT_ENERGY`, the answer comes after `BOT_ATTEMPT_DELAY_MS`,
 a wrong password is written to the target's log as a security line (kept 90 days, §11.2.3) and counts toward the lockout:
 `BOT_LOCKOUT_FAILURES` wrong passwords in a row lock the bot for `BOT_LOCKOUT_MS` (a right password and the end of a lockout
-start the count again). The session opened by `connect` remembers the bot it came from (`fromBotId`); `adopt` moves the
+start the count again). The session opened by `connect` remembers the bot it came from; `adopt` moves the
 target to the base of that bot, kills the scripts the previous owner had running on it, and leaves a security line. A base is
-refused (`CANNOT_ADOPT_BASE`). Not done yet: the `BotAdopted` game event, and a 4-attempts-per-minute style rate limit above the
+refused (`CANNOT_ADOPT_BASE`). Not done yet (Q8): a 4-attempts-per-minute style rate limit above the
 energy cost.
 
-## 11.2.3 Session log retention ✅
+## 11.2.3 Session log retention
 
 - Session logs are kept for **30 days**, capped at **5,000 lines per bot** (oldest dropped first). The cap is enforced when a line is recorded and age expiry when a session opens (no scheduler needed); a scheduled job may take over at scale.
 - **Security events** (failed password attempts, lockouts, `adopt`, `reboot`) are kept for **90 days**.
@@ -147,15 +139,15 @@ energy cost.
 
 ## 11.3 UI behavior
 
-- Terminals are **draggable** windows layered over the game view. ✅ (editor draggable; terminal windows 🔴)
-- `edit` opens a **draggable code editor** with syntax highlighting (CodeMirror) and a format shortcut. 🟡
-- Multiple terminals can be open simultaneously (base + several bots). 🔴
+- Terminals are **draggable** windows layered over the game view.
+- `edit` opens a **draggable code editor** with syntax highlighting and a format shortcut.
+- Multiple terminals can be open simultaneously (base + several bots).
 
 ---
 
-## 11.4 Storage: memory modules as drives ✅
+## 11.4 Storage: memory modules as drives
 
-- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) are stored as records in the database; the in-game editor is a view over them.
+- Files (`*.js`, `*.ts`, `*.json`, `*.txt`) live on drives; the in-game editor is a view over them.
 - **Each memory module is a separate drive** with its own byte **quota**. `cd <drive>` selects a drive; `ls`, `cat`,
   `edit`, `rm` and `mkdir` act on the selected drive.
 - Writing past a drive's quota fails with an error value; reading/writing takes the module's `readDelay` / `writeDelay`.

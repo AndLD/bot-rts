@@ -8,11 +8,9 @@ Strategy is expressed as design and code: you design the machine, you write its 
 shared, persistent world.
 
 > This document describes the **intended game design** gathered from the original [`notes.txt`](../archived-docs/notes.txt) (15 Jun 2024 and 21 Jan 2026),
-> the codebase, and the decisions made while planning. Every point in these documents is decided (✅) or marked as
-> planned (🔴); the design questions that are still open are listed in §20.
->
-> **Status legend**
-> ✅ Decided / implemented · 🟡 Partially implemented · 🔴 Not implemented (planned)
+> the codebase, and the decisions made while planning. Every rule in these documents is **decided**; a point that is not
+> decided is registered in [§20 Open questions](./20-open-questions.md) and carries its id there (`Q3`). What is built is not
+> marked in the design: the status of each task is kept in the [development plan](../../development-plan/DEVELOPMENT-PLAN.md).
 >
 > This is a design document, not an engineering spec. For architecture, quality rules, and roadmap see
 > [`README.md`](../../../README.md), [`AGENTS.md`](../../../AGENTS.md), [`2026-10-10.md`](../../quality-reviews/code/2026-10-10.md),
@@ -43,7 +41,7 @@ throughout the docs match the file numbers.
 16. [Economy & progression](./16-economy-progression.md)
 17. [In-game scenarios](./17-in-game-scenarios.md)
 18. [Example scripts](./18-example-scripts.md)
-19. *(removed — status is tracked by the ✅/🟡/🔴 markers in each section and the README; the numbering is kept stable)*
+19. *(removed — the build status is tracked by the development plan; the numbering is kept stable)*
 20. [Open questions](./20-open-questions.md)
 21. [Backlog (deliberately out of scope for now)](./21-backlog.md)
 22. [Public API & integrations](./22-public-api-integrations.md)
@@ -52,3 +50,4 @@ throughout the docs match the file numbers.
 25. [Admin console](./25-admin-console.md)
 26. [Market and currency](./26-market-and-currency.md)
 27. [Chat and transfers](./27-chat-and-transfers.md)
+28. [Energy, power and the day cycle](./28-energy-power-day-cycle.md)

@@ -1,5 +1,6 @@
 #!/bin/sh
-# Enforces the coverage gate (docs/profile.md, value in scripts/coverage-threshold.json) before code leaves the machine. Skip once with `git push --no-verify`.
+# Enforces the coverage gate (docs/profile.md, value in scripts/coverage-threshold.json), the coverage of the changed files and the
+# generated files before code leaves the machine. Skip once with `git push --no-verify`.
 # Pushes that change only Markdown need no code checks.
 set -e
 
@@ -12,7 +13,24 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   if ! echo "$files" | grep -qv '\.md$'; then exit 0; fi
 done
 
+# A checkout with a database port of its own (POSTGRES_PORT in .env, docs/testing/README.md) tests against that database
+if [ -f .env ]; then set -a; . ./.env; set +a; fi
+export DATABASE_URL="${DATABASE_URL:-postgresql://botrts:botrts@localhost:${POSTGRES_PORT:-5432}/botrts}"
+
 echo "pre-push: typecheck, then tests with the coverage gate (needs Docker for PostgreSQL)"
 npm run db:up
 npm run typecheck
 npm run test:coverage
+
+# What CI checks on every pull request that changes code, run here first so that a push never fails there on it (docs/profile.md)
+echo "pre-push: coverage of the changed files"
+node scripts/check-changed-coverage.mjs origin/develop api client mcp
+
+echo "pre-push: generated files are up to date"
+npm run openapi:generate -w api
+npm run api:generate -w client
+npm run docs:generate
+git diff --exit-code -- api/openapi.json client/src/shared/api/generated.ts client/src/docs/generated client/src/features/admin/docs/generated || {
+  echo "Commit the regenerated files first (npm run openapi:generate -w api; npm run api:generate -w client; npm run docs:generate)"
+  exit 1
+}

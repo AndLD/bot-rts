@@ -21,8 +21,10 @@ Database migrations are part of the release; applied migrations are never edited
 ## The changelog
 
 [CHANGELOG.md](../product-knowledge/CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
-`Security`). A pull request that changes what a player, an API client or an operator sees adds a line under `## [Unreleased]` in the
-same pull request. Pull requests that only touch tests, docs or tooling need none.
+`Security`). A pull request that changes what a player, an API client or an operator sees adds a **fragment** in
+[`changelog.d/`](../product-knowledge/changelog.d/README.md) in the same pull request (a file of its own, so that two pull requests never edit
+the same lines). Pull requests that only touch tests, docs or tooling need none. `scripts/release.mjs` moves the fragments, and what
+older entries still stand under `## [Unreleased]`, into the section of the version and deletes the fragments.
 
 ## A release
 
@@ -52,7 +54,7 @@ same pull request. Pull requests that only touch tests, docs or tooling need non
 
 ## A hotfix
 
-Same steps, from `main`: `git checkout main && git checkout -b hotfix/1.2.1`, fix, add the changelog line under Unreleased,
+Same steps, from `main`: `git checkout main && git checkout -b hotfix/1.2.1`, fix, add a changelog fragment,
 `node scripts/release.mjs`, pull request into `main`, tag `v1.2.1`, then merge the hotfix branch into `develop` as well.
 
 ## Deploying a release

@@ -27,7 +27,9 @@ const RESULT_CODE_OF_ERROR: Readonly<Record<string, ResultCode>> = {
   [ErrorCode.DRIVE_BROKEN]: ResultCode.BROKEN_MODULE,
   [ErrorCode.NO_FREE_LOCATION]: ResultCode.NO_SPACE,
   [ErrorCode.ALREADY_EXISTS]: ResultCode.BLOCKED,
-  [ErrorCode.BASE_LOST]: ResultCode.FORBIDDEN
+  [ErrorCode.BASE_LOST]: ResultCode.FORBIDDEN,
+  [ErrorCode.BOT_PASSWORD_WRONG]: ResultCode.FORBIDDEN,
+  [ErrorCode.BOT_LOCKED]: ResultCode.FORBIDDEN
 }
 
 // The predefined functions are the only door out of the sandbox (design §13): every call is checked against the bot's

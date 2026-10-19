@@ -2,11 +2,11 @@
 
 # 16. Economy & progression
 
-✅ There is **no prescribed progression**: no stages, quests or campaign. Progress comes only from blueprints,
+There is **no prescribed progression**: no stages, quests or campaign. Progress comes only from blueprints,
 resources, hardware and the quality of players' scripts. The game is an endless sandbox (see §1). The only guidance is
-the optional, skippable [tutorial](#161-tutorial-) below.
+the optional, skippable [tutorial](#161-tutorial) below.
 
-## 16.1 Tutorial ✅
+## 16.1 Tutorial
 
 - A **guided in-game checklist** overlay appears after the player deploys a base. It walks through real game actions:
   open the terminal, run `modules`, scan, edit and run a first script, craft a module, assemble a bot. Each step

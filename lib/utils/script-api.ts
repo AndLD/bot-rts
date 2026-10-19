@@ -86,6 +86,15 @@ export const SCRIPT_FUNCTIONS: readonly ScriptFunctionSpec[] = [
   { name: 'getLocation', modules: ['gps'], args: [], ops: 1 },
   { name: 'getLinkStatus', modules: ['wirelessAdapter'], args: [], ops: 1 },
   {
+    name: 'connect',
+    modules: ['wirelessAdapter'],
+    args: [
+      { name: 'botId', kind: 'string' },
+      { name: 'password', kind: 'string', isOptional: true }
+    ],
+    ops: 1
+  },
+  {
     name: 'craft',
     modules: ['factory'],
     args: [

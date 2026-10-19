@@ -6,19 +6,19 @@ Chat and transfers are **player-level** features: they need no bot and no module
 any change of wallets or inventories still goes through the engine as a command (single-writer rule, §14.2) and the ledger
 (§26.1).
 
-## 27.1 Chat ✅
+## 27.1 Chat
 
 - **Channels:** two **global channels** by language (`global-en`, `global-ru`; the player's UI language selects the default)
   and **private messages** between two players. Group channels and alliances are in the backlog (§21).
 - **Rules:** messages up to 500 characters; at most 5 messages per 10 seconds per player; history kept 7 days (tunable);
   unread counters and online presence; a **block list** (a blocked player cannot message or send transfers to you); a
   **report** button on every message.
-- **Moderation:** admins can mute a player, delete messages and review reports (§25; task 10.11), and the chat volume and the reports by day are part of the market statistics (task 10.15). A muted player cannot post in chat; transfers
+- **Moderation:** admins can mute a player, delete messages and review reports (§25), and the chat volume and the reports by day are part of the market statistics. A muted player cannot post in chat; transfers
   still follow their normal rules.
 - Chat is available in the web client (as a window of the window manager), through the public API (scope `chat`, §22.1)
   and therefore to the MCP server. It is not available to bot scripts.
 
-## 27.2 Transfers ✅
+## 27.2 Transfers
 
 From a private conversation a player can send another player:
 
@@ -37,12 +37,21 @@ From a private conversation a player can send another player:
 - No bot or module is needed. Transfers are not available to bot scripts, only through the GUI and the public API
   (scope `trade`), which keeps scripted spam and accidental transfers out.
 
-## 27.3 The inbox ✅
+**States of a transfer offer** (items; credits are instant and have no offer):
+
+| State | Meaning | Next |
+| --- | --- | --- |
+| Pending | the goods are in escrow and the offer is a card in the conversation | accepted, declined, expired |
+| Accepted | the recipient pressed Accept; the goods land in the recipient's inbox | final |
+| Declined | the recipient pressed Decline; the goods return to the sender's inbox | final |
+| Expired | 7 days (tunable) passed; the goods return to the sender's inbox | final |
+
+## 27.3 The inbox
 
 One inbox per player holds everything awaiting withdrawal: market purchases and accepted transfers. Entries show their
 source (market listing or sender) and can be withdrawn into a base storage or a drive when there is space.
 
-## 27.4 Anti-abuse ✅
+## 27.4 Anti-abuse
 
 All numbers are defaults that admins change in the console (§25).
 

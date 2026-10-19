@@ -62,7 +62,7 @@ the game gets a tool without new code. A typical session: `list_bots` → `bot_s
 
 ## Admin tools: investigating a running server
 
-An **admin API key** (read-only `admin:*:read` scopes, created by an owner or admin in the admin console after two-factor authentication, always
+An **admin API key** (the rule for keys on administration routes is in [`API.md`](./API.md#administration-routes); read-only `admin:*:read` scopes, created by an owner or admin in the admin console after two-factor authentication, always
 with an expiry) turns the same server into an investigation assistant. At start the server asks the API what the key holds
 (`GET /api/v1/admin/api-keys/current`): a key with admin scopes gets **only** the admin tools its scopes allow (no game tools); any other
 key gets the player tools. Nothing here writes: banning, killing a script or restarting stay in the console.
@@ -82,9 +82,3 @@ key gets the player tools. Nothing here writes: banning, killing a script or res
 `{ isUntrustedData: true, notice, source, data }`, the server instructions tell the AI to analyse and never obey it, and the API redacts
 personal data again, cuts long text and refuses oversized answers before they reach the server. A key that cannot reach a route answers
 `API_KEY_SCOPE`; every call is in the audit trail with the key id; demoting or banning the owner stops the key at once.
-
-## Tests
-
-`mcp/` has unit tests (a fake game API, the SDK's own client over an in-memory transport and over HTTP) with the coverage gate, and
-`api/src/mcp.int.test.ts` runs the server against the real API on a seeded database. The end-to-end spec of Phase 8.13 plays a scan and a
-move through it with the engine running.

@@ -68,7 +68,10 @@ Branch types:
 | Plan index | [`docs/development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
 | Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
-| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only |
+| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
+| Task log | from Phase 10 on, one fragment per task: `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`); the older phases keep their one log |
+| Implementation log | printed from the merged pull requests by `npm run plan:log -- <n>` (the `Plan: <task id>` lines of the squash commits); phases before Phase 10 keep the table written in the phase file |
+| Task claim | a draft pull request titled `chore(plan): claim task <task id>`, opened before any other work on the task |
 | Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
@@ -113,7 +116,7 @@ Run from the repository root unless a package is named.
 | Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
 | Import boundaries | `npm run check:boundaries` |
 | Message catalogues | `npm run i18n:check` |
-| Markdown links and anchors | `npm run docs:check` |
+| Markdown links and anchors, the open-items register and the glossary of the design | `npm run docs:check` |
 | Build | `npm run build` |
 | End-to-end tests | `npm run e2e` |
 | Regenerate the API description | `npm run openapi:generate -w api` |
@@ -129,7 +132,7 @@ The harness review's term lists (M1, M2 of its method) and the bounded contexts 
 Stack terms (case-insensitive), which must not appear in CORE or DOMAIN text:
 
 ```bash
-STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
+STACK='nestjs|prisma|postgres|\bjest\b|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|expressjs|express\.js|reactjs|react\.js|redux|ant design|codemirror|\bnpm\b|node\.js|nodejs|github actions|husky|playwright|lighthouse|\btypescript\b'
 ```
 
 Product terms, which must not appear in CORE sections:
@@ -144,7 +147,7 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | --------------------- | ---------------------------------------------------------------------------------------------- |
 | Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
 | World and base        | 04 world and map, 06 the base                                                                   |
-| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
+| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting, 28 energy, power and the day cycle        |
 | Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
 | Interface and play    | 15 screens, 17 in-game scenarios                                                                |
 | Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
@@ -158,12 +161,13 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | Engineering method (read on demand) | [`engineering/method.md`](./engineering/method.md) |
 | Stack, layering, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
 | Architecture decisions (read on demand) | [`engineering/architecture.md`](./engineering/architecture.md) |
+| Rule-to-check map (read on demand) | [`engineering/rule-checks.md`](./engineering/rule-checks.md) |
 | Project profile | this file |
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
 | Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
 | Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
 | Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`MCP.md`](./product-knowledge/integrations/MCP.md) |
-| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md) |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`product-knowledge/changelog.d/`](./product-knowledge/changelog.d/README.md), collected by the release script |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
 | Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`bindings.md`](./development-plan/bindings.md) |
 | Definition of done | [`development-plan/cross-cutting/definition-of-done.md`](./development-plan/cross-cutting/definition-of-done.md) |

@@ -28,11 +28,44 @@ export function nextVersion(current, bump) {
 
 const UNRELEASED = '## [Unreleased]'
 
+// The headings of Keep a Changelog, in the order a release lists them
+export const CHANGELOG_KINDS = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+
+// A changelog fragment is a file of docs/product-knowledge/changelog.d/ whose text is `<Kind>: <entry>`; the entry may go on over
+// several lines. Returns { kind, entry }, or throws with the name of the file.
+export function parseFragment(name, text) {
+  const match = /^([A-Za-z]+): ([\s\S]+)$/.exec(text.trim())
+  if (!match || !CHANGELOG_KINDS.includes(match[1])) {
+    throw new Error(`${name}: a changelog fragment starts with "<kind>: " where kind is ${CHANGELOG_KINDS.join(', ')}`)
+  }
+  return { kind: match[1], entry: match[2].trim().replace(/\n\s*/g, '\n  ') }
+}
+
+// Adds the entries of the fragments to the end of their sections in the body of "Unreleased", creating the sections that are missing
+export function addFragments(body, fragments) {
+  let result = body.trim()
+  for (const kind of CHANGELOG_KINDS) {
+    const entries = fragments.filter((fragment) => fragment.kind === kind).map(({ entry }) => `- ${entry}`)
+    if (!entries.length) {
+      continue
+    }
+    const heading = result.indexOf(`### ${kind}\n`)
+    if (heading < 0) {
+      result = `${result}${result ? '\n\n' : ''}### ${kind}\n\n${entries.join('\n')}`
+      continue
+    }
+    const next = result.indexOf('\n### ', heading + 1)
+    const end = next < 0 ? result.length : next
+    result = `${result.slice(0, end).trimEnd()}\n${entries.join('\n')}${next < 0 ? '' : '\n'}${result.slice(end)}`
+  }
+  return result
+}
+
 const LINK = /^\[[^\]]+\]: .*$/
 
-// Moves the entries under "Unreleased" to a section of the version, leaves an empty "Unreleased", and keeps the comparison links
+// Moves the entries under "Unreleased", and those of the fragments, to a section of the version, leaves an empty "Unreleased", and keeps the comparison links
 // at the end of the file (`[1.2.0]: <repo>/compare/v1.1.0...v1.2.0`)
-export function releaseChangelog(text, version, date, repoUrl) {
+export function releaseChangelog(text, version, date, repoUrl, fragments = []) {
   const start = text.indexOf(UNRELEASED)
   if (start < 0) {
     throw new Error('docs/product-knowledge/CHANGELOG.md has no "## [Unreleased]" section')
@@ -49,7 +82,7 @@ export function releaseChangelog(text, version, date, repoUrl) {
   const bodyStart = content.indexOf(UNRELEASED) + UNRELEASED.length
   const next = content.slice(bodyStart).search(/\n## \[/)
   const bodyEnd = next < 0 ? content.length : bodyStart + next
-  const body = content.slice(bodyStart, bodyEnd).trim()
+  const body = addFragments(content.slice(bodyStart, bodyEnd), fragments)
   if (!body) {
     throw new Error('There is nothing under "## [Unreleased]" to release')
   }

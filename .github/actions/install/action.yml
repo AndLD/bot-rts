@@ -1,0 +1,28 @@
+name: Install dependencies
+description: >-
+  Restores node_modules from a cache keyed on package-lock.json and the Node version, and runs `npm ci` only on a cache miss.
+  A cache hit costs seconds instead of the 70 s of `npm ci` (docs/testing/README.md, CI performance).
+
+runs:
+  using: composite
+  steps:
+    - name: Restore node_modules
+      id: modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          lib/node_modules
+          api/node_modules
+          client/node_modules
+          mcp/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json') }}
+    - name: npm ci
+      if: steps.modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci
+    - name: Generate the Prisma client
+      # `npm ci` does it in its postinstall script; the cache holds the generated client too, this keeps it in step with the schema
+      if: steps.modules.outputs.cache-hit == 'true'
+      shell: bash
+      run: npm run prisma:generate -w api

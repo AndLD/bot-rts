@@ -9,11 +9,22 @@ parallel with coverage (the pre-push hook and CI). Their bounds are set for a bu
 
 - The real-time tick bound of `engine-load.test.ts` and the time a memory bomb may take in `quickjs-sandbox.test.ts` only catch a
   runaway. What a tick really costs is measured by the load harness ([load-testing.md](./load-testing.md)), not by a unit test.
-- React Testing Library waits up to 5 s (`client/jest.setup.ts`).
+- React Testing Library waits up to 5 s (`client/jest.setup.ts`), and a client test may take 30 s (`testTimeout`). The Ant Design
+  tests were slow because Ant Design writes its style rules into the jsdom document and every `getComputedStyle` call (one per
+  element in a role query such as `findByRole`) matches all of them; `client/jest.setup.ts` keeps the rules out, so the slowest
+  client test takes about one second. A test that reads the rules must call `jest.unmock('rc-util/lib/Dom/dynamicCSS')`
+  (`buttonTheme.test.tsx` does).
 - The follow-the-end behaviour of the terminal does not depend on the order of a scroll event.
 - The Cypress notification spec waits for the script's finished notification before it marks everything read.
 
 If a new test fails only under load, fix its bound or its waiting, do not retry it.
+
+Failures that have passed on a plain retry and are not caused by a change (do not hide a new one behind this list):
+
+- Local pre-push: `engine-load`, `quickjs-sandbox` (the deep-stack test under parallel load), `scale-out.int`, and the slow Ant Design client
+  tests. Push again; never `--no-verify`.
+- CI: a Jest worker `SIGABRT` in `engine.int.test.ts`, the Cypress `achievements` "First steps", the Cypress `gameplay` case "shoots a bot
+  of its own until a module breaks", and Cypress download failures. Re-run the failed jobs once the whole run has finished.
 
 ## Expected output that looks like an error
 

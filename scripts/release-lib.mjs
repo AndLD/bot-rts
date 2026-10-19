@@ -31,7 +31,7 @@ const UNRELEASED = '## [Unreleased]'
 // The headings of Keep a Changelog, in the order a release lists them
 export const CHANGELOG_KINDS = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
 
-// A changelog fragment is a file of docs/product-knowledge/changelog.d/ whose text is `<Kind>: <entry>`; the entry may go on over
+// A changelog fragment is a file of the changelog fragments folder whose text is `<Kind>: <entry>`; the entry may go on over
 // several lines. Returns { kind, entry }, or throws with the name of the file.
 export function parseFragment(name, text) {
   const match = /^([A-Za-z]+): ([\s\S]+)$/.exec(text.trim())
@@ -68,7 +68,7 @@ const LINK = /^\[[^\]]+\]: .*$/
 export function releaseChangelog(text, version, date, repoUrl, fragments = []) {
   const start = text.indexOf(UNRELEASED)
   if (start < 0) {
-    throw new Error('docs/product-knowledge/CHANGELOG.md has no "## [Unreleased]" section')
+    throw new Error('The changelog has no "## [Unreleased]" section')
   }
 
   const lines = text.trimEnd().split('\n')
@@ -102,7 +102,7 @@ export function releaseNotes(text, version) {
   const heading = new RegExp(`^## \\[${version.replace(/\./g, '\\.')}\\].*$`, 'm')
   const match = heading.exec(text)
   if (!match) {
-    throw new Error(`docs/product-knowledge/CHANGELOG.md has no section for ${version}`)
+    throw new Error(`The changelog has no section for ${version}`)
   }
   const rest = text.slice(match.index + match[0].length)
   const end = rest.search(/\n## \[|\n\[[^\]]+\]: /)

@@ -6,6 +6,12 @@ Every injectable value of this repository's harness, named by its **role**. Rule
 "the integration branch") and link here; they do not repeat the value. To change a value, change it here (and in the one
 mechanism named next to it), never in the rules. A new project built on the same method rewrites this file.
 
+**The machine-readable part** is [`scripts/harness-profile.json`](../scripts/harness-profile.json): the repository, the production and the
+integration branch, the packages with a coverage gate and the paths of the plan and the changelog, read by the hooks and scripts
+through `scripts/harness-profile.mjs` (and, with the coverage-gate constant, by the pre-push hook and the protection script). The
+branch triggers of `.github/workflows/ci.yml` cannot read it; a script test compares them with it. Change a value in the file and in
+the table below together.
+
 The method documents keep their own `bindings.md` (plan, phases, code review, harness review). A binding that needs a value
 below links to its row instead of copying it.
 

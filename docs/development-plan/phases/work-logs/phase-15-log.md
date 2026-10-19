@@ -537,3 +537,23 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none. Left for 15.18: the readiness scan (M1/M2) should now return no value outside the binding line.
 - **Next step:** 15.16 (adapter values from one file)
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`
+### 2026-10-19 — 15.16 adapter values from one file
+- **Tasks:** 15.16 ✅ (H-20261019-02)
+- **Branch:** `chore/15.16-harness-profile-file` — done, PR #241 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - `scripts/harness-profile.json` holds the repository (slug and URL), the production and the integration branch, the packages with a coverage
+    gate (`coveragePackages`) and the plan and changelog paths. `scripts/harness-profile.mjs` reads it (`profile`, `protectedBranches`, `lookup`) and
+    has a command line, `node scripts/harness-profile.mjs get <dotted.path>`, for the shell scripts.
+  - Read from it now: `hook-guard-bash.mjs`, `hook-session-start.mjs`, `plan-log.mjs`, `plan-summary.mjs`, `release.mjs`,
+    `check-changelog-fragments.mjs`, `check-changed-coverage.mjs` (its default package list), `.githooks/pre-push` and `scripts/protect-branches.sh`
+    (the ruleset is built from the names; the repository defaults to the profile's slug instead of the current checkout's). The error messages of
+    `release-lib.mjs` no longer name the changelog path.
+  - The branch triggers of `.github/workflows/ci.yml` cannot read the file: `scripts/harness-profile.test.mjs` compares them with it, and the same test
+    fails when a script or hook spells out a branch name, `origin/<branch>`, the slug or a plan or changelog path.
+  - `docs/profile.md` names the file as the machine-readable part of the profile; `docs/testing/README.md` cites the coverage gate by role.
+  - M4 search after the change: in `scripts`, `.githooks`, `.github` and `.claude/settings.json` the branch names, the slug and the paths appear only in the
+    profile file, the CI triggers (compared by the test) and the tests. Left as they are, for 15.18 to judge: `docs/operations/RELEASING.md`, which
+    spells out the release commands, and `docs/testing/README.md`, which spells out `origin/develop` in two commands.
+- **Problems / blockers / findings:** none.
+- **Next step:** 15.17 (a complete rule-to-check map, and the lint and hook defects)
+- **Verify with:** `npm run test:scripts`; `npm run docs:check`; `node scripts/harness-profile.mjs get branches.integration`

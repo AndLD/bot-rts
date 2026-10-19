@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
-# Protects `main` and `develop` (AGENTS.md §7.3) with a repository ruleset and keeps merged branches. Needs repository admin
-# rights, and a public repository or a paid GitHub plan.
+# Protects the production and the integration branch (AGENTS.md §7.3; their names and the repository are in scripts/harness-profile.json)
+# with a repository ruleset and keeps merged branches. Needs repository admin rights, and a public repository or a paid GitHub plan.
 # Rules: no deletion, no force-push, every change through a pull request, required jobs green. Repository admins may bypass the
 # rules only when merging a pull request (for example past a red check), never with a direct push.
 # Usage: scripts/protect-branches.sh [owner/repo]
 set -euo pipefail
 
-repo="${1:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
+repo="${1:-$(node "$(dirname "$0")/harness-profile.mjs" get repository.slug)}"
+production=$(node "$(dirname "$0")/harness-profile.mjs" get branches.production)
+integration=$(node "$(dirname "$0")/harness-profile.mjs" get branches.integration)
 name="protected-branches"
 
 gh api -X PATCH "repos/${repo}" -F delete_branch_on_merge=false >/dev/null
 
-ruleset=$(cat <<'JSON'
+ruleset=$(cat <<JSON
 {
   "name": "protected-branches",
   "target": "branch",
   "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["refs/heads/main", "refs/heads/develop"], "exclude": [] } },
+  "conditions": { "ref_name": { "include": ["refs/heads/${production}", "refs/heads/${integration}"], "exclude": [] } },
   "bypass_actors": [{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "pull_request" }],
   "rules": [
     { "type": "deletion" },
@@ -54,9 +56,9 @@ if [ -n "$id" ]; then
 else
   echo "$ruleset" | gh api -X POST "repos/${repo}/rulesets" --input - >/dev/null
 fi
-echo "Ruleset ${name} applied to main and develop in ${repo}"
+echo "Ruleset ${name} applied to ${production} and ${integration} in ${repo}"
 
 # The ruleset replaces the classic branch protection, which cannot exempt admins from the checks without also letting them push
-for branch in main develop; do
+for branch in "$production" "$integration"; do
   gh api -X DELETE "repos/${repo}/branches/${branch}/protection" >/dev/null 2>&1 && echo "Removed the classic protection of ${branch}" || true
 done

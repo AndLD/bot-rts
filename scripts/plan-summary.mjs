@@ -2,10 +2,11 @@
 // the phase files. `npm run docs:check` runs the check; `npm run plan:summary` writes.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { profile } from './harness-profile.mjs'
 import { parsePhase, phaseProblems, renderIndex } from './plan-summary-lib.mjs'
 
 const root = resolve(import.meta.dirname, '..')
-const plan = join(root, 'docs/development-plan')
+const plan = join(root, profile.paths.plan)
 const indexPath = join(plan, 'DEVELOPMENT-PLAN.md')
 const isCheck = process.argv.includes('--check')
 
@@ -20,7 +21,7 @@ const expected = renderIndex(current, phases)
 if (isCheck) {
   if (expected !== current) {
     problems.push(
-      'docs/development-plan/DEVELOPMENT-PLAN.md: the summary or the contents disagree with the phase files; run `npm run plan:summary`'
+      `${profile.paths.plan}/DEVELOPMENT-PLAN.md: the summary or the contents disagree with the phase files; run \`npm run plan:summary\``
     )
   }
   if (problems.length) {

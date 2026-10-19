@@ -1,11 +1,11 @@
 // Prints the implementation log of a phase from the merged pull requests of the integration branch.
-// Usage: node scripts/plan-log.mjs <phase number> [ref]   (ref defaults to origin/develop)
+// Usage: node scripts/plan-log.mjs <phase number> [ref]   (ref defaults to origin/<the integration branch>)
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
+import { profile } from './harness-profile.mjs'
 import { implementationLog, implementationRows } from './plan-log-lib.mjs'
 
-const REPO_URL = 'https://github.com/AndLD/bot-rts'
-const [phase, ref = 'origin/develop'] = process.argv.slice(2)
+const [phase, ref = `origin/${profile.branches.integration}`] = process.argv.slice(2)
 
 if (!/^\d+$/.test(phase ?? '')) {
   console.error('Usage: node scripts/plan-log.mjs <phase number> [ref]')
@@ -31,4 +31,4 @@ const commits = output
     return { subject, body, date }
   })
 
-console.log(implementationLog(implementationRows(commits, phase), REPO_URL))
+console.log(implementationLog(implementationRows(commits, phase), profile.repository.url))

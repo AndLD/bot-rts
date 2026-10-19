@@ -178,7 +178,7 @@ saves it, and the numbers of 16.8 show its effect.
 
 Measured on 2026-10-19 (task 16.5, laptop, the default `babel` provider against `--coverageProvider=v8`, same tree and tests):
 
-| Package | Run time, babel | Run time, v8 | Statements, babel | Statements, v8 | Files that cross the 97 % gate |
+| Package | Run time, babel | Run time, v8 | Statements, babel | Statements, v8 | Files that cross the coverage gate |
 | ------- | --------------- | ------------ | ----------------- | -------------- | ------------------------------ |
 | `api` | 52 s | 184 s (one timing test of `quickjs-sandbox.test.ts` failed under the slower run) | 99.96 % (13008 / 13013) | 98.88 % (35921 / 36326) | 4 files, 6 metrics |
 | `client` | 17 s | 28 s (with the fix of 16.2) | 99.93 % (4390 / 4393) | 99.66 % (12903 / 12947) | 1 file |

@@ -91,7 +91,7 @@ function gitCommand(words) {
   return words[index] ? { subcommand: words[index], args: words.slice(index + 1) } : null
 }
 
-// The branch a refspec writes to: `HEAD:refs/heads/main` -> main, `feature` -> feature, `:old` -> old (a deletion)
+// The branch a refspec writes to: `HEAD:refs/heads/topic` -> topic, `feature` -> feature, `:old` -> old (a deletion)
 function destination(refspec) {
   return refspec
     .replace(/^\+/, '')

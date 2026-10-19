@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { lookup, profile, protectedBranches, root } from './harness-profile.mjs'
 
 const CLI = join(root, 'scripts', 'harness-profile.mjs')
+const read = (path) => readFileSync(join(root, path), 'utf8')
 
 test('lookup returns the value at a dotted path and fails on an unknown path', () => {
   const sample = { branches: { integration: 'dev' }, list: ['a', 'b'] }
@@ -26,7 +28,7 @@ test('the command line prints a value, a list one item per line, and fails on an
 })
 
 test('the branch triggers of the CI workflow are the protected branches', () => {
-  const workflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8')
+  const workflow = read('.github/workflows/ci.yml')
   const triggers = [...workflow.matchAll(/^\s+(pull_request|push):\n\s+branches: \[(.+)\]$/gm)]
   assert.deepEqual(triggers.map((match) => match[1]).sort(), ['pull_request', 'push'])
   for (const [, , branches] of triggers) {
@@ -44,7 +46,8 @@ test('no script or hook spells out a branch name, the repository or a plan path 
   const names = readdirSync(join(root, 'scripts')).filter(
     (name) => /\.(mjs|sh)$/.test(name) && !name.endsWith('.test.mjs')
   )
-  const files = [...names.map((name) => `scripts/${name}`), '.githooks/pre-push']
+  const workflows = readdirSync(join(root, '.github', 'workflows')).map((name) => `.github/workflows/${name}`)
+  const files = [...names.map((name) => `scripts/${name}`), '.githooks/pre-push', ...workflows]
   const literal = new RegExp(
     [
       ...protectedBranches.flatMap((branch) => [
@@ -63,5 +66,75 @@ test('no script or hook spells out a branch name, the repository or a plan path 
       .split('\n')
       .findIndex((line) => literal.test(line) && !line.startsWith('//'))
     assert.equal(hit, -1, `${file}:${hit + 1} spells out a value of scripts/harness-profile.json`)
+  }
+})
+
+test('no workflow names a branch outside its branch triggers', () => {
+  const workflows = readdirSync(join(root, '.github', 'workflows')).map((name) => `.github/workflows/${name}`)
+  const branch = new RegExp(`\\b(${protectedBranches.join('|')})\\b`)
+  for (const file of workflows) {
+    const hit = read(file)
+      .split('\n')
+      .findIndex((line) => branch.test(line) && !/^\s+branches: \[/.test(line))
+    assert.equal(hit, -1, `${file}:${hit + 1} names a protected branch outside a branches trigger`)
+  }
+})
+
+// The job names that the Required checks row of the profile (section 2) lists, each in backticks before its parenthesis
+function profileRequiredChecks() {
+  const row = read('docs/profile.md')
+    .split('\n')
+    .find((line) => line.startsWith('| **Required checks**'))
+  return [...row.split('|')[2].matchAll(/`([\w-]+)` \(/g)].map((match) => match[1])
+}
+
+test('the required checks of the profile file are the job names of the profile table', () => {
+  assert.deepEqual(profile.requiredChecks, profileRequiredChecks())
+})
+
+test('the protection script sends the required checks and the branches of the profile file to the ruleset', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'protect-branches-'))
+  const sent = join(dir, 'ruleset.json')
+  // A stand-in for `gh`: it keeps the body that the script pipes to a POST or a PUT and prints nothing
+  writeFileSync(join(dir, 'gh'), `#!/usr/bin/env bash\nif [[ "$*" == *--input* ]]; then cat > '${sent}'; fi\n`)
+  chmodSync(join(dir, 'gh'), 0o755)
+  execFileSync('bash', [join(root, 'scripts', 'protect-branches.sh')], {
+    env: { ...process.env, PATH: `${dir}:${process.env.PATH}` },
+    stdio: 'pipe'
+  })
+  const ruleset = JSON.parse(readFileSync(sent, 'utf8'))
+  const checks = ruleset.rules.find((rule) => rule.type === 'required_status_checks').parameters.required_status_checks
+  assert.deepEqual(
+    checks.map((check) => check.context),
+    profile.requiredChecks
+  )
+  assert.deepEqual(
+    ruleset.conditions.ref_name.include,
+    protectedBranches.map((branch) => `refs/heads/${branch}`)
+  )
+})
+
+// The text of a Markdown file without its fenced code blocks, line numbers kept
+function outsideFences(text) {
+  let fenced = false
+  return text.split('\n').map((line) => {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced
+      return ''
+    }
+    return fenced ? '' : line
+  })
+}
+
+test('the engineering, operations and testing documents name the branches by role, not by name', () => {
+  const branch = protectedBranches.join('|')
+  const named = new RegExp(
+    `\`(${branch})\`|origin/(${branch})\\b|\\b(checkout|merge|push|pull|rebase|tag|into|from) (${branch})\\b`
+  )
+  for (const dir of ['docs/engineering', 'docs/operations', 'docs/testing']) {
+    for (const name of readdirSync(join(root, dir)).filter((entry) => entry.endsWith('.md'))) {
+      const hit = outsideFences(read(`${dir}/${name}`)).findIndex((line) => named.test(line))
+      assert.equal(hit, -1, `${dir}/${name}:${hit + 1} names a protected branch; use its role or a placeholder`)
+    }
   }
 })

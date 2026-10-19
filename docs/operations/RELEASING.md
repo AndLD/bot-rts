@@ -3,7 +3,9 @@
 # Releasing
 
 Bot RTS follows [Semantic Versioning](https://semver.org/) and the Git Flow of [AGENTS.md §7](../../AGENTS.md). One version number is
-shared by the root package, `lib`, `api` and `client`; it is tagged as `vX.Y.Z` on `main`.
+shared by the root package, `lib`, `api` and `client`; it is tagged as `vX.Y.Z` on the production branch.
+
+In the commands below `<production>` and `<integration>` are the production and the integration branch of the [profile](../profile.md#3-branches-and-merging); `node scripts/harness-profile.mjs get branches.production` (or `branches.integration`) prints them.
 
 ## What the number means
 
@@ -28,10 +30,10 @@ older entries still stand under `## [Unreleased]`, into the section of the versi
 
 ## A release
 
-1. From `develop` (green CI), create the branch and let the script prepare it:
+1. From the integration branch (green CI), create the branch and let the script prepare it:
 
    ```bash
-   git checkout develop && git pull
+   git checkout <integration> && git pull
    git checkout -b release/1.2.0
    node scripts/release.mjs --dry-run   # shows the version and the date, writes nothing
    node scripts/release.mjs             # versions in every package.json and the lock file, CHANGELOG section
@@ -39,23 +41,23 @@ older entries still stand under `## [Unreleased]`, into the section of the versi
    git push -u origin release/1.2.0
    ```
 
-2. Only fixes go on the release branch (no features). Open a pull request **into `main`**; it needs the owner's approval to merge.
-3. Merge it with a **merge commit** (no squash). Then tag `main` and push the tag; the tag starts
+2. Only fixes go on the release branch (no features). Open a pull request **into the production branch**; it needs the owner's approval to merge.
+3. Merge it with a **merge commit** (no squash). Then tag the production branch and push the tag; the tag starts
    [the release workflow](../../.github/workflows/release.yml), which builds the Docker image, publishes it to GitHub Container Registry and
    creates the GitHub release from the changelog section:
 
    ```bash
-   git checkout main && git pull
+   git checkout <production> && git pull
    git tag -a v1.2.0 -m "Release 1.2.0" && git push origin v1.2.0
    ```
 
-4. Merge the same release branch **back into `develop`** (merge commit), so that the version bump and the fixes are not lost.
+4. Merge the same release branch **back into the integration branch** (merge commit), so that the version bump and the fixes are not lost.
 5. Do not delete the branches (AGENTS.md §7.3).
 
 ## A hotfix
 
-Same steps, from `main`: `git checkout main && git checkout -b hotfix/1.2.1`, fix, add a changelog fragment,
-`node scripts/release.mjs`, pull request into `main`, tag `v1.2.1`, then merge the hotfix branch into `develop` as well.
+Same steps, from the production branch: `git checkout <production> && git checkout -b hotfix/1.2.1`, fix, add a changelog fragment,
+`node scripts/release.mjs`, pull request into the production branch, tag `v1.2.1`, then merge the hotfix branch into the integration branch as well.
 
 ## Deploying a release
 

@@ -30,9 +30,9 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 8 | Migrations match the Prisma schema (architecture §2) | CI step | enforced |
 | 9 | A pull request title is a Conventional Commit (AGENTS §7.4) | CI `pr-title` | enforced |
 | 10 | Branches are kept after merging (AGENTS §7.3) | repository setting "delete head branches" off; the Hook refuses a remote deletion | enforced |
-| 11 | No force-push or deletion of `main` or `develop` (AGENTS §7.3) | Protection | enforced |
+| 11 | No force-push or deletion of the production or the integration branch (AGENTS §7.3) | Protection | enforced |
 | 12 | A pull request needs the required checks green (AGENTS §7.3, §7.4) | Protection lists the required status contexts | enforced; the owner may bypass when merging (profile) |
-| 13 | No commits or pushes directly on `main` or `develop` (AGENTS §7.5) | Protection (administrators bypass it); the Hook `hook-guard-bash` refuses `git commit` and `git push` on them and any push naming them | enforced |
+| 13 | No commits or pushes directly on the production or the integration branch (AGENTS §7.5) | Protection (administrators bypass it); the Hook `hook-guard-bash` refuses `git commit` and `git push` on them and any push naming them | enforced |
 | 14 | Formatting (stack §3) | Prettier check inside Lint; the Hook `hook-format-edited` formats each edited file | enforced |
 | 15 | No `console.log` in committed code (AGENTS §1) | ESLint `no-console` in `api`, `client`, `lib`, `mcp` (tests, command-line scripts and the seed excepted); Lint | enforced |
 | 16 | No `Date.now()`, `new Date()` without arguments or `Math.random()` in game logic (AGENTS §9) | ESLint `no-restricted-properties` (`Date.now`, `Math.random`) and `no-restricted-syntax` (`new Date()`) in `api/src/**/domain`, `api/src/engine` and `lib/utils` (tests and the engine supervisor, `engine-process.ts` and `kill-stalled.ts`, excepted: they time and stamp a thread's stall on the real clock by design; the clock and generator adapters are in `api/src/shared/infrastructure`, outside the scope); `docs/testing/clock-consumers.md` classifies who reads which clock | enforced |

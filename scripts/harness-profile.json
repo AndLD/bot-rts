@@ -2,6 +2,7 @@
   "repository": { "slug": "AndLD/bot-rts", "url": "https://github.com/AndLD/bot-rts" },
   "branches": { "production": "main", "integration": "develop" },
   "coveragePackages": ["api", "client", "mcp"],
+  "requiredChecks": ["verify", "pr-title", "e2e", "lighthouse"],
   "paths": {
     "plan": "docs/development-plan",
     "phases": "docs/development-plan/phases",

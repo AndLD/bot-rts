@@ -126,7 +126,7 @@ jobs:
       - name: Restore the Jest cache
         if: steps.changes.outputs.code == 'true'
         id: jest-cache
-        # Jest keeps its transform cache in the temporary directory. Pull requests read the cache that the last push to develop saved
+        # Jest keeps its transform cache in the temporary directory. Pull requests read the cache that the last push to a protected branch saved
         uses: actions/cache/restore@v4
         with:
           path: /tmp/jest_*

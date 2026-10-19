@@ -57,7 +57,6 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 35 | A change to a non-negotiable needs the owner's explicit confirmation, recorded in the pull request (AGENTS §1) | agent judgment | judgment |
 | 36 | The CORE files name no stack term, product term or project value; the rules of AGENTS §1 and §7 cite roles, and one line binds them (method §5) | `scripts/check-core-leaks.mjs` in `npm run docs:check` | enforced |
 
-| 36 | The CORE files name no stack term, product term or project value; the rules of AGENTS §1 and §7 cite roles, and one line binds them (method §5) | `scripts/check-core-leaks.mjs` in `npm run docs:check` | enforced |
 | 37 | When a rule conflicts with existing code, the rule wins for new and modified code (AGENTS §1, method §1) | whether touched code complies is a question of design; reviewers and the tests the change brings | judgment |
 | 38 | Every feature ships with unit and integration tests (AGENTS §1, method §3.2, §3.3, §4) | rows 1 and 2 fail a changed file whose tests leave it below the coverage gate; whether the tests are the right ones is review | partly |
 | 39 | No new magic-string logic without a typed constant (AGENTS §1) | no lint rule tells a magic string from legitimate text (messages, keys, test data), so it is review | judgment |

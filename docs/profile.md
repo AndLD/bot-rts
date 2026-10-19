@@ -113,7 +113,7 @@ Run from the repository root unless a package is named.
 | Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
 | Import boundaries | `npm run check:boundaries` |
 | Message catalogues | `npm run i18n:check` |
-| Markdown links and anchors, and the open-items register of the design | `npm run docs:check` |
+| Markdown links and anchors, the open-items register and the glossary of the design | `npm run docs:check` |
 | Build | `npm run build` |
 | End-to-end tests | `npm run e2e` |
 | Regenerate the API description | `npm run openapi:generate -w api` |

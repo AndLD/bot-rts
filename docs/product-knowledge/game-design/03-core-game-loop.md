@@ -10,7 +10,7 @@
  (move bots)     (find cells)    (drill, grab)      (base/storage)  │
         ▲                                              │            │
         │                                              ▼            │
- 7. Deploy  ◄──  6. Assemble  ◄──  5. Craft  ◄─────────┘            │
+ 7. Appear  ◄──  6. Assemble  ◄──  5. Craft  ◄─────────┘            │
  (spawn bot)      (combine         (modules from                    │
                    modules)         resources +                      │
                                     blueprints)                     │
@@ -24,7 +24,7 @@
 4. **Store** — carry resources back to the base or into storage modules.
 5. **Craft** — spend resources + blueprints to build modules in the factory.
 6. **Assemble** — combine modules into a new bot.
-7. **Deploy** — the bot spawns next to the base and its control-block id registers in the base.
+7. **Appear** — the assembled bot spawns next to the base and the id of its wireless adapter registers in the base.
 8. **Program** — connect to the bot's terminal, write/refine scripts, `run` them.
 
 Every step can be done by hand from the GUI (§15.1) or by script. The loop is an *automation* loop as much as a resource

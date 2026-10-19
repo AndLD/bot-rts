@@ -161,7 +161,7 @@ done
 grep -oE '^\| \*\*[^*]+\*\*' docs/product-knowledge/game-design/02-glossary.md   # glossary terms; then search each in other files
 ```
 
-Also list capitalised terms used in two or more files but absent from the glossary.
+Also list the terms the design emphasises (bold) in two or more files that the glossary does not define: `scripts/glossary-lib.mjs`, run by `npm run docs:check`, fails on them and on a name that belongs to two glossary rows.
 
 M14, traceability: join design section ids (`docs/product-knowledge/game-design/NN-*.md`) with the "design §" citations in
 `docs/development-plan/phases/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan

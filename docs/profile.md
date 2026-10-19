@@ -69,9 +69,11 @@ Branch types:
 | Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
 | Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
-| Task log | from Phase 10 on, one fragment per task: `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`); the older phases keep their one log |
-| Implementation log | printed from the merged pull requests by `npm run plan:log -- <n>` (the `Plan: <task id>` lines of the squash commits); phases before Phase 10 keep the table written in the phase file |
-| Task claim | a draft pull request titled `chore(plan): claim task <task id>`, opened before any other work on the task |
+| Phases with per-task records | Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`), and the phase file carries no implementation-log table |
+| Phases with one log | Phases 0 to 9 and 11 to 16: the phase's own log only, and the implementation-log table of the phase file |
+| Plan-log command | `npm run plan:log -- <n>` |
+| Implementation log | printed from the merged pull requests by the plan-log command (the `Plan: <task id>` lines of the squash commits); the phases with one log keep the table written in the phase file |
+| Task claim | a draft pull request titled `chore(plan): claim task <task id>` with `Plan: <task id>` in the body, opened before any other work on the task |
 | Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
@@ -135,10 +137,23 @@ Stack terms (case-insensitive), which must not appear in CORE or DOMAIN text:
 STACK='nestjs|prisma|postgres|\bjest\b|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|expressjs|express\.js|reactjs|react\.js|redux|ant design|codemirror|\bnpm\b|node\.js|nodejs|github actions|husky|playwright|lighthouse|\btypescript\b'
 ```
 
-Product terms, which must not appear in CORE sections:
+Product terms, which must not appear in CORE sections (the CORE scan skips the generic words below):
 
 ```bash
 PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|credits|\bbase\b|\bscripts?\b'
+```
+
+Generic words of the product list, judged in context and not scanned in CORE text:
+
+```bash
+PRODUCT_GENERIC='\bmodules?\b|\bscripts?\b'
+```
+
+Project values, which must not appear in CORE text except on the **Role binding** line of `AGENTS.md` (the CORE scan of
+`npm run docs:check` reads this list; the CORE files are listed in the [harness bindings](./quality-reviews/harness/bindings.md#1-layer-map-corrected-by-the-review-of-2026-10-17-section-2-to-be-verified-by-each-full-review)):
+
+```bash
+PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks'
 ```
 
 Bounded contexts (files of `docs/product-knowledge/game-design/`):

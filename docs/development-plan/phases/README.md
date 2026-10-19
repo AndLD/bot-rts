@@ -49,9 +49,9 @@ Not "improve performance" but "the soak test sustains N players for M hours with
 ## 5. Implementation log
 
 The log is the audit trail from the plan to the history of the repository: the pull request that delivered each task, with its
-task ids. **From Phase 10 on it is not written by hand**: every squash commit carries a `Plan: <task id>` line, and
-`npm run plan:log -- <phase>` prints the table from the merged pull requests, so two tasks never edit the same table. A phase file
-of that kind has no implementation-log table and says so under this heading. The phases before it keep the table they have; append a row
+task ids. **In the phases that use per-task records (profile, section 4) it is not written by hand**: every squash commit carries a `Plan: <task id>` line, and
+the plan-log command of the profile prints the table from the merged pull requests, so two tasks never edit the same table. A phase file
+of that kind has no implementation-log table and says so under this heading. The other phases keep the table they have; append a row
 when a change is merged: its branch, the task ids, the pull request link, and its status.
 
 ## 6. Where other content goes
@@ -73,10 +73,10 @@ Each phase has an append-only log in `work-logs/` next to the phase files, with 
 to it from the status line; the log links back to the phase file. The log records sessions, the exact next step and the commands
 that verify the state; the phase file records only the plan and its outcome.
 
-**From Phase 10 on, a task writes its own fragment** `work-logs/phase-<n>/<task id>.md` (start from `work-logs/_task-template.md`), so
+**In the phases that use per-task records, a task writes its own fragment** `work-logs/phase-<n>/<task id>.md` (start from `work-logs/_task-template.md`), so
 that tasks worked on in parallel never edit the same file. The phase's own log keeps only what concerns the whole phase (decisions before
 the start, pauses, the hand-over between waves). The fragment starts with a `**Status:**` line (🟡 while the task is in progress, ✅ when
-it is done); the session-start hook prints the "Next step" of every fragment in progress. The logs of earlier phases stay as they are.
+it is done); the session-start hook prints the "Next step" of every fragment in progress. The logs of the other phases stay as they are.
 
 ## 8. Splitting and merging phases
 

@@ -75,7 +75,7 @@ decision supersedes it with a new record and a link.
 
 ## 5. Work logs
 
-One append-only log per phase, kept in `phases/work-logs/` next to the phase files (from Phase 10 on, plus one fragment per task in `phases/work-logs/phase-<n>/`, see the phases README); newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
+One append-only log per phase, kept in `phases/work-logs/` next to the phase files (the phases that use per-task records add one fragment per task in `phases/work-logs/phase-<n>/`; the profile names them, and the phases README describes the form); newest entry at the bottom, written when a session ends, pauses or finishes a task. The entry
 template lives inside each log. The log is the resume point: it states what is done, the exact next step and the commands that
 verify the current state. The log is part of the change that it describes.
 

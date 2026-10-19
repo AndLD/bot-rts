@@ -514,3 +514,26 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - The Bash guard hook refused two read-only commands of the review that only held a protected pattern as text (H-20261019-04).
 - **Next step:** start 15.15 (CORE without project values, with a check) when the owner asks; step 3 of the harness-framework plan waits for 15.18.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); the readiness scan described in the report's section 3 (M1/M2)
+
+### 2026-10-19 — 15.15 CORE without project values, checked
+- **Tasks:** 15.15 ✅ (H-20261019-01, -07, -08; the rest of export blocker B2)
+- **Branch:** `docs/15.15-core-values-check` — done, PR #240 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - New CORE scan `scripts/check-core-leaks.mjs` (library `core-leaks-lib.mjs`, tests), run by `npm run docs:check`. It reads the CORE files from a
+    `core-files` block in the layer map of the harness bindings (14 files; `AGENTS.md` only in §1 and §7) and the lists `STACK`, `PRODUCT`
+    (minus the new `PRODUCT_GENERIC`, the words `script` and `module`) and the new `PROJECT_VALUES` from the profile, section 9. The only line it allows
+    to name values is the **Role binding** line of `AGENTS.md`; it fails when that line is missing or repeated.
+  - Result: before the fix the scan found 10 lines with a leak in 5 CORE files besides `AGENTS.md` (the leaks of the re-review plus "Phase 15" in the
+    reviews index and "base" in a lifecycle example) and 13 value hits in `AGENTS.md` §1 and §7; now 0 in all 14 files.
+  - `AGENTS.md` §7 states the rules by role (the integration branch, the production branch, the open-ended phase, the repository host, the
+    branch-protection script, "Plan work" example "Start Phase N"). One line, "Role binding", binds the roles to `develop`, `main`, Phase 12, GitHub and
+    `scripts/protect-branches.sh`. No rule changed in meaning; the heading "CI Auto-fix is on for plan work" became "Automatic CI fixes are on for plan work".
+  - Method §5 now says that commits, pull requests, protection and merge approvals are CORE rules stated once in `AGENTS.md` §7.3–7.5 by role.
+  - Plan method and phase method: "From Phase 10 on", the plan-log command and `design §` became profile roles. The profile (section 4) now lists
+    the phases with per-task records (Phase 10 and phases planned after 2026-10-19) and the phases with one log (0 to 9 and 11 to 16), which settles
+    H-08, and names the plan-log command.
+  - Bindings: the corrections of the re-review's section 2 (doubly classified files, ADAPTER and CORE additions, `AGENTS.md` §1 and §7) and the stale
+    lines of H-07 (M9, M16, M28, M32); `phase-16-ci-speed.md` shows #225 as merged. Row 36 of the rule-to-check map covers the new scan.
+- **Problems / blockers / findings:** none. Left for 15.18: the readiness scan (M1/M2) should now return no value outside the binding line.
+- **Next step:** 15.16 (adapter values from one file)
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`

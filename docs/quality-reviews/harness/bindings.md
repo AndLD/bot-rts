@@ -16,12 +16,33 @@ Target layer is where the content belongs; "Current" notes where it sits now whe
 
 | Layer       | Files and sections                                                                                                                       |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **CORE**    | The method documents: `docs/development-plan/README.md`, `_template.md`, `phases/README.md`, `phases/_template.md`; `docs/quality-reviews/README.md`; the method (`README.md`) and template (`_template.md`) of both review kinds (`docs/quality-reviews/code/`, `docs/quality-reviews/harness/`). The engineering method [`docs/engineering/method.md`](../../engineering/method.md) (principles, SOLID checklist, testing rules, definition-of-done skeleton, Git workflow, session protocol). `AGENTS.md` keeps the non-negotiables (§1) and the Git and merge rules (§7) as always-loaded CORE. `docs/development-plan/cross-cutting/definition-of-done.md` and `guiding-principles.md` are CORE by intent; while they carry project values they are **doubly classified** (CORE and PROFILE). |
-| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md` and `MCP.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE). Doubly classified: `25-admin-console.md` (DOMAIN plus operations metrics, prototype history and metric-storage decision records) and `12-real-time-execution-model.md` (DOMAIN plus thread and process deployment, which is ADAPTER) |
-| **ADAPTER** | [`docs/engineering/stack.md`](../../engineering/stack.md) and [`architecture.md`](../../engineering/architecture.md) (stack, layering, architecture decisions, conventions, test tooling, the stack items of the definition of done, the agent-runtime tools); `AGENTS.md` §9 project rules that name tools; `.githooks/`, `.github/workflows/`, `scripts/`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` (including `clock-consumers.md`, `known-issues.md`, `load-testing.md`) |
+| **CORE**    | The method documents: `docs/development-plan/README.md`, `_template.md`, `phases/README.md`, `phases/_template.md`; `docs/quality-reviews/README.md`; the method (`README.md`) and template (`_template.md`) of both review kinds (`docs/quality-reviews/code/`, `docs/quality-reviews/harness/`). The engineering method [`docs/engineering/method.md`](../../engineering/method.md) (principles, SOLID checklist, testing rules, definition-of-done skeleton, Git workflow, session protocol). `docs/development-plan/phases/work-logs/_task-template.md`. `AGENTS.md` §1 (non-negotiables) and §7 (Git and merge rules) are CORE rules stated by role: the only line in them that names this repository's values is the **Role binding** line (task 15.15). `docs/development-plan/cross-cutting/definition-of-done.md` and `guiding-principles.md` are CORE and carry no project values. |
+| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md` and `MCP.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE). `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved their implementation notes and history out; they are DOMAIN only now |
+| **ADAPTER** | [`docs/engineering/stack.md`](../../engineering/stack.md) and [`architecture.md`](../../engineering/architecture.md) (stack, layering, architecture decisions, conventions, test tooling, the stack items of the definition of done, the agent-runtime tools); `AGENTS.md` §9 project rules that name tools; [`docs/engineering/rule-checks.md`](../../engineering/rule-checks.md) (the shape is CORE; the rows are this project's); `.githooks/`, `.github/workflows/`, `scripts/` (including the `scripts/hook-*.mjs` scripts), `.claude/settings.json`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` (including `clock-consumers.md`, `known-issues.md`, `load-testing.md`) |
 | **PROFILE** | [`docs/profile.md`](../../profile.md): every injectable value of the harness by role and the document map; the coverage-gate constant `scripts/coverage-threshold.json`. The four `bindings.md` files (plan, phases, code review, harness review) are the profiles of their methods and link to `docs/profile.md` for shared values. |
 | **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-5.1-execution-model.md` (a decision record), `docs/product-knowledge/CHANGELOG.md`, `docs/quality-reviews/code/*` reports, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/product-knowledge/archived-docs/*` (including `notes.txt`); `docs/harness-framework/README.md` (a plan, STATE for the extraction step) |
 | **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/harness-framework/README.md` (as an index of the extraction plan) |
+
+CORE files that the CORE scan reads (one path per line; `AGENTS.md` is read in the sections named after it). `npm run docs:check` fails when
+one of them is missing or holds a stack term, a product term or a project value (profile, section 9); the only exception is the **Role binding**
+line of `AGENTS.md`:
+
+```core-files
+AGENTS.md sections 1 7
+docs/engineering/method.md
+docs/development-plan/README.md
+docs/development-plan/_template.md
+docs/development-plan/phases/README.md
+docs/development-plan/phases/_template.md
+docs/development-plan/phases/work-logs/_task-template.md
+docs/development-plan/cross-cutting/definition-of-done.md
+docs/development-plan/cross-cutting/guiding-principles.md
+docs/quality-reviews/README.md
+docs/quality-reviews/code/README.md
+docs/quality-reviews/code/_template.md
+docs/quality-reviews/harness/README.md
+docs/quality-reviews/harness/_template.md
+```
 
 `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
 Out of scope: `client/public/atlas/LICENSE.md` (third-party).
@@ -88,7 +109,7 @@ unenforced:
 | Mechanism                              | Where                                      |
 | -------------------------------------- | ------------------------------------------ |
 | Pre-push hook                          | `.githooks/pre-push`                       |
-| Agent-runtime hooks and skills         | `.claude/settings.json` hooks, `.claude/skills/` (none yet; see M32) |
+| Agent-runtime hooks and skills         | `.claude/settings.json` hooks, `.claude/skills/` (see M32) |
 | CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
 | Link and anchor check                  | `npm run docs:check` → `scripts/check-markdown-links.mjs` |
 | Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
@@ -136,7 +157,7 @@ for f in docs/development-plan/phases/work-logs/*.md; do printf '%s ' "$f"; grep
 - Every path in backticks that looks like a repository path exists (`git ls-files` check).
 - Phase and task statuses in `docs/development-plan/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
 - Numbers repeated in several files (story points, phase count, test counts) agree.
-- `CHANGELOG.md` "Unreleased" covers merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
+- The changelog fragments and `CHANGELOG.md` together cover the merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
 
 ### M12 to M15: product knowledge integrity
 
@@ -180,7 +201,7 @@ Forms in which this repository records open items (search all of them):
 
 | Form                         | Where                                                                                          |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| Official open-questions list | `docs/product-knowledge/game-design/20-open-questions.md` (currently declares "none")                             |
+| Official open-questions list | `docs/product-knowledge/game-design/20-open-questions.md` (the register of `Q<n>` items)                       |
 | Backlog (deferred by design) | `docs/product-knowledge/game-design/21-backlog.md`                                                                |
 | Open-item ids and marker words | `Q<n>` ids in `docs/product-knowledge/game-design/*.md`, their rows in `20-open-questions.md`, and the marker-word scan of `scripts/open-items-lib.mjs` |
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
@@ -283,8 +304,7 @@ lines, the "Deployment gate" and "Order of development" of `docs/development-pla
 git log --since="60 days ago" --first-parent origin/develop --pretty=format:'@%h' --name-only | awk '/^@/{pr=$0;next} NF{c[$0]++} END{for(f in c) if(c[f]>=3) print c[f], f}' | sort -nr | head -30
 ```
 
-  Candidates in this repository to classify each time (the command above showed the root `README.md`, `client/messages/*.json`, `api/openapi.json`, the generated client, `api/.env.example` and `api/src/app.module.ts` among the most-edited files): the root `README.md`; `api/.env.example`; the summary table in `DEVELOPMENT-PLAN.md`; the implementation-log table of
-  each phase file and the single work log per phase (every task appends to them); `docs/product-knowledge/CHANGELOG.md` ("Unreleased");
+  Candidates in this repository to classify each time (the command above showed the root `README.md`, `client/messages/*.json`, `api/openapi.json`, the generated client, `api/.env.example` and `api/src/app.module.ts` among the most-edited files): the root `README.md`; `api/.env.example`; the summary table in `DEVELOPMENT-PLAN.md`; the work log of the phases that keep one log (every task appends to it) and the implementation-log table of the phase files that still carry one; the changelog fragments are per change and no longer shared;
   `docs/testing/e2e-matrix.md`; the generated `api/openapi.json` and `client/src/shared/api/generated.ts`; `package-lock.json`;
   `api/prisma/schema.prisma` and the ordered migrations; module registration in `api/src/app.module.ts`; the message catalogues in
   `client/messages`; shared types, error codes and socket events in `lib/utils/`; `scripts/e2e.mjs`.
@@ -312,7 +332,7 @@ Carrier inventory (M32), read-only:
 | Carrier | Where to look |
 | ------- | ------------- |
 | Skills | `.claude/skills/*/SKILL.md` in the repository (none today); user-level skills in `~/.claude/skills` are reviewed only for duplication of repository rules |
-| Agent-runtime hooks | `hooks` in `.claude/settings.json` and `.claude/settings.local.json` (none today) |
+| Agent-runtime hooks | `hooks` in `.claude/settings.json` and `.claude/settings.local.json` (the four hooks of `.claude/settings.json`) |
 | Version-control hooks | `.githooks/` (`pre-push` today), installed through the Git `core.hooksPath` setting |
 | CI jobs | `.github/workflows/ci.yml`, `release.yml` |
 

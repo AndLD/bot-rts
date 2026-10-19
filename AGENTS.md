@@ -61,13 +61,15 @@ The former sections keep their numbers here so that older references resolve:
 
 ## 7. Git Flow
 
+**Role binding.** This repository fills the roles of §1 and §7 as follows, and this line is the only place in these two sections that names the values: the integration branch is `develop`, the production branch is `main`, the open-ended phase is Phase 12, the repository host is GitHub, the branch-protection script is `scripts/protect-branches.sh`; every other value is in the [profile](./docs/profile.md).
+
 ### 7.1 Branches
 
 Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow
 (one branch per task, finishing a release) is in [method §5](./docs/engineering/method.md#5-git-workflow).
 **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`.
-Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a Phase 12 task (`bugfix/12.<n>-slug`).
-Documentation or tooling work that no task covers uses a branch slug only (`docs/<slug>`, `chore/<slug>`).
+Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a task of the open-ended phase (a bugfix branch named by its task id).
+Documentation or tooling work that no task covers uses a branch slug only (the docs and chore branch types).
 
 ### 7.2 Merge strategy
 
@@ -75,10 +77,10 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 
 ### 7.3 Branch retention
 
-- **Branches are never deleted from GitHub after merging; they are kept for history.** Turn off "automatically delete head
+- **Branches are never deleted from the repository host after merging; they are kept for history.** Turn off "automatically delete head
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged.
-- `main` and `develop` are protected by the repository ruleset of `scripts/protect-branches.sh`: no direct pushes (for administrators
+- The production and the integration branch are protected by the repository ruleset of the branch-protection script: no direct pushes (for administrators
   too), no force-push, no deletion, every change through a PR, and the **required checks** green. The required checks are the
   status contexts that script sets, listed with what each job runs in the [profile](./docs/profile.md#2-quality-gates); that
   list is the only statement of the merge gates.
@@ -87,40 +89,40 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 
 ### 7.4 Commit & PR rules
 
-- Commit messages: the commit format of the [profile](./docs/profile.md#3-branches-and-merging) (Conventional Commits, for
-  example `feat(engine): …`), with the plan task id in the body (`Plan: 3.12`).
+- Commit messages: the commit format of the [profile](./docs/profile.md#3-branches-and-merging) (its type and optional scope, for
+  example `feat(<scope>): …`), with the plan task id in the body (the plan-reference line of the profile).
 - One logical change per commit; PRs should be small and single-purpose.
-- No direct commits to `main` or `develop`; merge via PR with at least one review (while the project is solo, the owner's
+- No direct commits to the production or the integration branch; merge via PR with at least one review (while the project is solo, the owner's
   approval to merge counts as the review).
 - The required checks (§7.3) must be green before merge.
 
 ### 7.5 Rules for agents
 
-- If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from `origin/develop` (fetch first).
+- If the current branch is the production or the integration branch, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from the integration branch as it is on the remote (fetch first).
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
-  push directly to `main` or `develop`.
+  push directly to the production or the integration branch.
 - **Plan work (approval given by the request):** when the user asks to start or continue one or more phases (the resume phrases
-  of the [profile](./docs/profile.md#4-plan), for example "Start Phase 0"), that request is the approval for **every task PR of the named phases**. Create each
-  task's pull request into `develop` and squash-merge it **without asking**, once the required checks pass (before CI
+  of the [profile](./docs/profile.md#4-plan), for example "Start Phase N"), that request is the approval for **every task PR of the named phases**. Create each
+  task's pull request into the integration branch and squash-merge it **without asking**, once the required checks pass (before CI
   exists: once lint, typecheck and tests pass locally). Do not pause between tasks, and when a named phase's exit criteria are
   met, record it and start the next named phase. Stop after the last named phase with a summary, and earlier only when
   blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
 - **Plan-related PRs merge the same way.** Every PR that belongs to a named phase is covered by the same approval: its task
   PRs, and also the documentation and chore PRs that exist because of the plan (the phase's implementation log, task and
-  status updates in the phase file and the development plan, the work log, the matching `docs/product-knowledge/game-design/` updates, and
+  status updates in the phase file and the development plan, the work log, the matching specification updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
-- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title
-  `chore(plan): claim task <id>`, `Plan: <id>` in the body); a task with an open pull request belongs to the session that opened it.
+- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title and body as in the claim row of the
+  [profile](./docs/profile.md#4-plan)); a task with an open pull request belongs to the session that opened it.
   With several agents the orchestrator or the owner merges, and the CI events and review comments of a pull request go to the session
   that owns it ([method §7](./docs/engineering/method.md#7-several-agents)).
 - **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
-  `release/*` and `hotfix/*` into `main`) without asking.
+  release and hotfix branches into the production branch) without asking.
 - **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything
-  targeting `main`, and `release/*` / `hotfix/*` branches. Approval for one merge does not carry over to another.
-- Never delete a remote branch, never force-push to `main` or `develop`, never rewrite published history.
+  targeting the production branch, and release and hotfix branches. Approval for one merge does not carry over to another.
+- Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history.
 - Never enable auto-merge unless the user asks.
-- **CI Auto-fix is on for plan work.** After opening a PR for a named phase, attach it to the session and turn on the agent
+- **Automatic CI fixes are on for plan work.** After opening a PR for a named phase, attach it to the session and turn on the agent
   runtime's CI monitoring with automatic fixes (the tools are in [stack §6](./docs/engineering/stack.md#6-agent-runtime)) without
   asking; it wakes the session on CI failures, merge conflicts and review comments. Do not poll CI yourself. When CI is green,
   merge per the rules above and go on to the next task, so work flows across phases.

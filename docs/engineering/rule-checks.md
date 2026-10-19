@@ -49,5 +49,6 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 33 | Never delete a remote branch (AGENTS §7.3, §7.5) | the Hook `hook-guard-bash` refuses `git push --delete`, `git push origin :branch` and the API call that deletes a ref | enforced |
 | 34 | A task, branch, worktree and session start from the integration branch on the remote (method §5, AGENTS §7.5) | agent judgment; the session-start hook prints the branch | judgment |
 | 35 | A change to a non-negotiable needs the owner's explicit confirmation, recorded in the pull request (AGENTS §1) | agent judgment | judgment |
+| 36 | The CORE files name no stack term, product term or project value; the rules of AGENTS §1 and §7 cite roles, and one line binds them (method §5) | `scripts/check-core-leaks.mjs` in `npm run docs:check` | enforced |
 
 Rows 22 to 25 are the open ones. The harness review scores them: they are the next candidates for a check or a skill.

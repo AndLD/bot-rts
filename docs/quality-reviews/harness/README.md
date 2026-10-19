@@ -209,7 +209,7 @@ accidental:
 | Harness  | Reference structure | Fan-in and fan-out per document; longest chain of documents needed to answer one question; cycles; hub documents |
 | Harness  | Process             | Steps, decision points and manual steps in each workflow; number of branch and document types; steps a tool could perform |
 | Harness  | Time to first action | Words an agent must read before its first correct action, per scenario (from the cold-start probes)        |
-| Product  | Concept load        | Entities, terms, attributes and mechanics per context; mechanics a player must learn per onboarding step    |
+| Product  | Concept load        | Entities, terms, attributes and mechanics per context; mechanics a user must learn per onboarding step    |
 | Product  | Rule interaction   | Rules per entity; rules whose condition depends on another rule; longest dependency chain; special cases and exceptions as a share of rules; cycles |
 | Product  | State space         | States and transitions of each lifecycle (machines, orders, sessions) and combinations that must be specified |
 | Product  | Cross-context coupling | References between contexts (in and out per context); contexts that everything depends on or that depend on everything |

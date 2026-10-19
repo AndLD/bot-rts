@@ -623,3 +623,21 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     bindings (H-21).
 - **Next step:** 15.19 (CORE leaks outside the scan's lists) when the owner asks; step 3 of the harness-framework plan waits for 15.21 (its design session 3.1 can run earlier).
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); the paragraph scan described in section 3 of the report (M1/M2)
+
+### 2026-10-19 — 15.19 CORE leaks outside the scan's lists closed
+- **Tasks:** 15.19 ✅ (H-20261019-16)
+- **Branch:** `chore/15.19-core-leaks` — done, PR #245 (claimed as a draft first). The report and the task rows of 15.19 to 15.21 came with PR #244
+  (15.18), which the owner allowed to be squash-merged first, so that the task branch could start from the integration branch.
+- **Decisions / deviations from the plan:**
+  - `AGENTS.md` §7.1 now says "as in `feature/<id>-<slug>`": a made-up numeric id would be caught by the new task-id-shaped branch pattern, so the placeholder
+    is the only neutral example. "players" in `phases/README.md` and "a player must learn" in the harness review method became "users" / "a user".
+  - The report list left `docs/quality-reviews/README.md`: the file stays CORE, its table links the `bindings.md` of each kind (values and review log) instead
+    of dated reports. The row "add the report to the list" was removed from the index tables of both bindings, so a review no longer edits a CORE file; no CORE file links STATE.
+  - Profile section 9 gained `\bplayers?\b` (PRODUCT) and a task-id-shaped branch example and a link to a dated file (PROJECT_VALUES). Two tests of
+    `core-leaks-lib.test.mjs` read the real profile: each of the three values is caught, and `feature/<id>-<slug>` and `YYYY-MM-DD.md` pass.
+  - Paragraph scan of the report (section 3, M1/M2) re-run on the 14 CORE files: no leak outside the Role binding line. Left and not counted, as in the report:
+    `origin/<integration>` in the method (a placeholder), the "SP" column of the phase template, and the dates in the method changelogs.
+  - Meaning-preserving: no rule changed.
+- **Problems / blockers / findings:** the auto-mode classifier refused the first attempt to merge #244 without the owner's word; the owner then allowed it.
+- **Next step:** 15.20 (values out of the adapter documents and the release workflow); 15.21 (re-review) in a fresh session.
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:summary` (no diff)

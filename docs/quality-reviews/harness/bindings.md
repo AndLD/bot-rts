@@ -378,7 +378,6 @@ Add a scenario whenever a real session shows an agent misreading the harness.
 | ------------------------------------- | ------------------------------------------------------- |
 | `README.md` § Documentation           | Add or keep the link to this folder                     |
 | `AGENTS.md` § 9                       | Keep the pointer: harness reviews run per this folder's `README.md` |
-| `docs/quality-reviews/README.md` | Add the report to the list of reports |
 
 ## 4. Review log
 
@@ -405,7 +404,7 @@ Full review prompt:
 ```text
 Run a full harness quality review exactly per docs/quality-reviews/harness/README.md and its bindings.md.
 
-Setup: create a docs/ branch from origin/develop. Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the report index in docs/quality-reviews/README.md. Do not fix findings.
+Setup: create a docs/ branch from origin/develop. Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
 Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P7 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
@@ -415,7 +414,7 @@ Do the whole procedure through step 8 without stopping. On the first review, pro
 Delta review prompt (replace the scope in braces):
 
 ```text
-Run a delta harness quality review per docs/quality-reviews/harness/README.md and its bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the report index change, every finding is re-verified, open the pull request into develop and do not merge it.
+Run a delta harness quality review per docs/quality-reviews/harness/README.md and its bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the review log change, every finding is re-verified, open the pull request into develop and do not merge it.
 ```
 
 After the report is approved, its findings become tasks or backlog items (method step 8); the review session does not fix them.

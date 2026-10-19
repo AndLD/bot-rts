@@ -127,7 +127,6 @@ path and the persistence flush. Read the top 15 in full and at least 5 random fi
 | File | Edit |
 | ---- | ---- |
 | `README.md` § Documentation | Keep the link to `docs/quality-reviews/` |
-| `docs/quality-reviews/README.md` | Add the report to the list of reports |
 
 ## 7. Review log
 

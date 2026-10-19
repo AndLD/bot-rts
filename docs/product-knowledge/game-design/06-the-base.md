@@ -7,7 +7,7 @@ factory bot with a simple gun to defend itself with a simple scanner to track ne
 
 ## 6.1 Starting loadout
 
-Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/domain/module-catalog.ts`, built by the `ModuleFactory` from the module catalog).
+Deploying a base attaches the starter kit.
 
 | Module | Type | Key stats | Role |
 | --- | --- | --- | --- |
@@ -22,15 +22,14 @@ Deploying a base attaches the starter kit (`STARTER_KIT` in `api/src/modules/dom
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |
 
-**Phase 11, task 11.4:** the starter kit has `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
-base keeps itself alive under a light duty: with the oil generator only, the first hands-on run showed that the idle drain
-(about 2.6 energy per second for the starter modules) and the 50 oil of the starter storage run out within minutes and the base
-goes dark. The oil generator stays craftable (§9) as the strong but manual option. Existing bases are not migrated; during
-development the local database is simply reset.
+The starter kit has `solar-panel-class1` (§7.2.1) **instead of** `generator-class1`, so a fresh
+base keeps itself alive under a light duty: with the oil generator only, the idle drain (about 2.6 energy per second for the
+starter modules) would use up the 50 oil of the starter storage within minutes and the base would go dark. The oil generator
+stays craftable (§9) as the strong but manual option.
 
 The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
-notes remains undefined (Q7). The kit is implemented this way (task 3.9). Whether the loadout is enough to craft the first module,
+notes remains undefined (Q7). Whether the loadout is enough to craft the first module,
 that is, where the first iron comes from, is open (Q15).
 
 ## 6.2 Base capabilities

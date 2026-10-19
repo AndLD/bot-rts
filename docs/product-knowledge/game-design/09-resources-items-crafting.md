@@ -14,7 +14,7 @@
   modules, or loaded as ammunition.
 - **Resource set:** **gold**, **iron**, **oil/fuel**, **crystal**, **stone**, **wood**. Each has its own spawn
   weight, deposit amount range, mining hardness and crafting uses. The values live in a data-driven balance config
-  (not hardcoded), so they can be tuned without code changes (`DEFAULT_RESOURCE_BALANCE` in `lib`, overridable per field through the JSON file named in `WORLD_RESOURCE_BALANCE_FILE`). Initial defaults (relative weight among resource cells):
+  (not hardcoded), so they can be tuned without code changes (overridable per field through the file named in `WORLD_RESOURCE_BALANCE_FILE`). Initial defaults (relative weight among resource cells):
 
   | Resource | Rarity | Initial spawn weight |
   | --- | --- | --- |
@@ -46,7 +46,7 @@ Crafting happens at the **factory** and requires:
 
 When the resources are consumed, and what happens to a job when the energy runs out, are open (Q13).
 
-Craft flow: `Factory GUI → Craft table → Assemble` (from the notes). Recipes are **data-driven**: they are `DEFAULT_RECIPES` in `lib`, overridable per module (and the research/loot numbers) through the JSON file named in `CRAFTING_RECIPES_FILE`, and validated at startup (every catalog module has exactly one recipe, a class above 1 has the class below it); a bad file stops the start. Known blueprints are stored per player (`blueprints`: the base set is class 1 and needs no row); blueprint items are rows of `items`, carried by a bot or lying on the map. They are not in game logic, so costs and craft times can be tuned without code changes. The table below
+Craft flow: `Factory GUI → Craft table → Assemble` (from the notes). Recipes are **data-driven**: they can be overridden per module (and the research/loot numbers) through the file named in `CRAFTING_RECIPES_FILE`, and are validated at startup (every catalog module has exactly one recipe, a class above 1 has the class below it); a bad file stops the start. Known blueprints are stored per player (the base set is class 1 and needs no entry); blueprint items are items, carried by a bot or lying on the map. Costs and craft times can be tuned without code changes. The table below
 is the set of **initial defaults** (Q1), to be tuned after playtesting once energy, mining and processor rules
 are settled:
 
@@ -79,5 +79,5 @@ are settled:
     class (reverse engineering). Corpse bases drop none.
   - **Learning:** a blueprint item is **consumed** when used (`learn`) and the knowledge is then permanent. Until used it
     is an ordinary item: it can be carried, stored, dropped and traded between players.
-  Implemented: `MapGenerator` puts a blueprint item (a map point of type item) on `worldBlueprintChance` of new empty cells, for a random module of class 2 or above (class 1 is the base set); `MaintenanceService.disassemble` gives the blueprint of the module with `lootBlueprintChance`, never from a corpse base, into the inventory of the bot that took it apart; `learn` takes a blueprint item carried by the base or by one of its bots (until bots can bring items home with the manipulator, phase 5).
+  A blueprint item appears on `worldBlueprintChance` of new empty cells, for a random module of class 2 or above (class 1 is the base set); disassembling a module gives the blueprint of that module with `lootBlueprintChance`, never from a corpse base, into the inventory of the bot that took it apart; `learn` takes a blueprint item carried by the base or by one of its bots.
 - Crafting, assembly and research are exposed to the Factory GUI, to terminal commands (`craft`, `assemble`, `research`) and to scripts (`craft()`, `assemble()`, `research()`).

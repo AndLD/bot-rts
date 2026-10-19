@@ -9,16 +9,16 @@
 | **Verification** | Landing page for the email-verification link; redirects on success/failure. |
 | **Inactive** | "Check your email. We have sent verification letter." |
 | **Deploy base** | The first screen of a player without a base: set the base password (and an optional spawn seed), confirm, deploy; a centred form with side margins. |
-| **Monitor (map)** | Canvas map with sprites (§4.3), fog of war, pan/zoom, cell inspection, streamed from the server (Plan 6.1–6.2). |
+| **Monitor (map)** | Canvas map with sprites (§4.3), fog of war, pan/zoom, cell inspection, streamed from the server. |
 | **Base terminal** | BotOS terminal + bot list + `connect`. |
-| **Bot terminal** | Draggable terminal window per connected bot (opened by `connect`); "Connection interrupted" on drop, resumed with a summary when the link is back (Plan 6.5). |
-| **Code editor** | Draggable CodeMirror editor, save/close, format; filename validation on create. |
-| **Physical storage GUI** | Resources and carried items of a bot; take/drop by manual actions (Plan 6.3). |
-| **Factory GUI → Craft table → Assemble** | Blueprint list, resource costs, craft button, then module selection and assembly (Plan 6.4). |
+| **Bot terminal** | Draggable terminal window per connected bot (opened by `connect`); "Connection interrupted" on drop, resumed with a summary when the link is back. |
+| **Code editor** | Draggable code editor, save/close, format; filename validation on create. |
+| **Physical storage GUI** | Resources and carried items of a bot; take/drop by manual actions. |
+| **Factory GUI → Craft table → Assemble** | Blueprint list, resource costs, craft button, then module selection and assembly. |
 | **Bot list / fleet view** | Simple list of the player's bots with ids, labels, types. |
-| **Bot control panel (manual control)** | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API (Plan 6.7). One window per bot; every action is a row of three aligned columns (§15.6). |
-| **HUD clock and night filter** | The in-game time of day and the dark-blue night filter over the map (§15.6, Phase 11). |
-| **Connection banner** | Lost / reconnecting / restored, with automatic reconnection (§15.6, Phase 11). |
+| **Bot control panel (manual control)** | Per-bot micromanagement UI split into switchable categories (§15.1); generated from the script API. One window per bot; every action is a row of three aligned columns (§15.6). |
+| **HUD clock and night filter** | The in-game time of day and the dark-blue night filter over the map (§15.6). |
+| **Connection banner** | Lost / reconnecting / restored, with automatic reconnection (§15.6). |
 | **Settings (profile)** | Category switches for manual control per player (§15.1; the game-level switches are set by admins in the console, §25.3); language, notification categories, reduced motion (§15.2–15.4, §24.2). |
 | **Notification center** | Unread count, list with a count on coalesced notifications, load more, mark as read, preferences (§24.2). |
 | **Achievements** | Unlocked and locked achievements with progress (§23). |
@@ -64,7 +64,7 @@
 
 ## 15.2 Map animations
 
-_Implemented (Plan 6.11): move tween, shot, hit, mine, deposit depleted, scan, module damaged / broken, link lost / restored, low energy, with the effect cap, level of detail and reduced motion. Still to come with their events (Q17): craft / assemble, repair, disassemble, adopt._
+_Animated events: move tween, shot, hit, mine, deposit depleted, scan, module damaged / broken, link lost / restored, low energy, with the effect cap, level of detail and reduced motion. Still to come with their events (Q17): craft / assemble, repair, disassemble, adopt._
 
 The map renderer (§4.3) plays short **animations driven by game events** (§24.1), only for events the player can see:
 
@@ -89,8 +89,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 
 ## 15.3 Landing page and authentication page
 
-- **Landing page:** a public page at `/` in the same **Next.js app** as the game (static rendering, `next-intl` routes
-  `/` and `/ru/`), so it has proper SEO. It presents the game: hero with a live animated scene, how it works (build,
+- **Landing page:** a public page at `/` (and `/ru/`), statically rendered so that it has proper SEO. It presents the game: hero with a live animated scene, how it works (build,
   program, compete), key features (modules, scripts, manual control, persistent world), a gameplay showcase, an FAQ,
   links to the documentation (§15.5) and the public API (§22), and sign-up / log-in buttons. It carries proper SEO and
   social-preview metadata. Unlike the game screens, the landing page is **responsive** (it is the one screen expected on
@@ -107,7 +106,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 
 ## 15.4 Languages (i18n)
 
-- The UI is **English by default** and also available in **Russian**, through an i18n framework (`next-intl`).
+- The UI is **English by default** and also available in **Russian**.
 - The language is chosen from the browser on first visit and can be changed in the profile settings and on the
   landing and auth pages.
 - All UI strings (including the tutorial, achievements, notifications and the error-code messages from the API, §10.3)
@@ -119,11 +118,11 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
 
 ## 15.5 Player documentation and in-game help
 
-- **Public docs:** a `/docs` section (and `/ru/docs`) in the same Next.js app, statically rendered with SEO metadata,
+- **Public docs:** a `/docs` section (and `/ru/docs`), statically rendered with SEO metadata,
   a sidebar tree and search. Sections: getting started (first base, bot and script), concepts (map and fog of war,
   ticks, energy, ops budget, weight), the **script API reference**, the **module and recipe catalogue**, the BotOS
   command reference, a gallery of example scripts (§18), and links to the OpenAPI reference and API keys (§22).
-- **Generated, not hand-copied:** the script API reference comes from the `lib` types and doc comments, and the
+- **Generated, not hand-copied:** the script API reference comes from the script API's own definitions, and the
   module and recipe catalogue from the balance config, so numbers cannot drift from the game. CI fails when the
   generated pages are stale. Example scripts in the gallery are executed in the sandbox tests.
 - **In-game Help:** a Help window in the window manager renders the same content (one source, no second copy). The
@@ -139,17 +138,17 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   the front. Windows remember their place and size per window id.
 - **Control panel layout.** Each action is a row of three columns: the action name, the inputs (they share the free width and
   keep a readable minimum), and the button; the result of the action shows under the row.
-- **Wider control panel** (Phase 11, task 11.8): a wider default window and a wider inputs column, so placeholders and values
-  are readable; the saved layout of an old narrow window is migrated. Implementation: the default control window is 640 px wide, its inputs are a grid that shares the free width with at least 7 em each (14 em for the column), and a control window saved narrower than the new default is widened once (the layouts carry a version, `windows-layout-version`).
-- **Terminal follows new output only at the bottom** (task 11.9): when lines arrive, the terminal scrolls down **only if it was
+- **Wider control panel:** a wider default window and a wider inputs column, so placeholders and values
+  are readable; the saved layout of an old narrow window is migrated.
+- **Terminal follows new output only at the bottom:** when lines arrive, the terminal scrolls down **only if it was
   already scrolled to the bottom** just before; a player who scrolled up to read is not pulled down, and scrolling to the bottom
-  again resumes following. Implementation: `useStickyScroll` remembers from the last scroll event whether the reader was within 4 px of the end; a command the player types always follows.
-- **Automatic reconnection** (task 11.7): when the server goes down or the network drops, the client reconnects with backoff
+  again resumes following.
+- **Automatic reconnection:** when the server goes down or the network drops, the client reconnects with backoff
   without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
   the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or
-  windows appear after it. Implementation: the Socket.IO client keeps one `Socket` and reconnects with a 1-5 s growing pause (the server puts it back in its player room on every connection); `SocketProvider` tells `lost` / `reconnecting` / `restored` (shown 4 s) to `ConnectionBanner` and, once back, invalidates every RTK Query tag so what is on screen is read again; a read that never reached the server is retried up to three times (never a request that changes something), and a failed re-read of the bases does not take the game off the screen; the map reloads on `connect`; each terminal opens a new stored session on its bot (the server closes sessions with the connection) and says so; windows live in Redux, so none is duplicated; the toasts listen on the same `Socket`, so they are not registered twice.
-- **In-game clock and night filter** (task 11.6): the HUD shows the in-game time and the day phase (§12.5.1). A
+  windows appear after it.
+- **In-game clock and night filter:** the HUD shows the in-game time and the day phase (§12.5.1). A
   **dark-blue, high-opacity filter** lies over the map canvas, strongest at night (about 0.65), light in the morning and evening
   (about 0.25), none by day, with smooth transitions and reduced motion respected. The filter layer lets pointer events through,
-  so map clicks, hover and the cell inspector work at any hour. Implementation: `useGameTime` derives the time from `GET /api/v1/time` and the server-synced clock; `GameClock` shows `HH:MM · phase` in the top-right corner; `NightFilter` is a layer inside `MapCanvas` (under the cell inspector) with `pointer-events: none`, an opacity per phase and a 20 s linear fade.
+  so map clicks, hover and the cell inspector work at any hour.
 - **Relative times** in the notification center ("5 seconds ago") use the current time and are never shown in the future.

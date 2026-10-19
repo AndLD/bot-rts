@@ -333,3 +333,28 @@ https://api.example.com       host     the API (HTTP and Socket.IO), behind TLS
 4. Sign in on the client, deploy a base, open the terminal (the socket connects to the API host), reload (the refresh cookie works).
 5. Open a preview deployment of a pull request and repeat step 4 against the staging API.
 
+## Metrics history: measured values and the Prometheus decision
+
+Moved from design §25.5 and §25.6 by task 15.4 of the development plan.
+
+### What the dashboard rows measure
+
+Notes on what is measured: the database rows come from the timing of every query of the API process (`SLOW_QUERY_MS`) and the statistics views of PostgreSQL (connections, sizes every five minutes; "flush transaction time" is the world-write duration of the Engine row); the jobs row is the data lifecycle job and the notification queue; "engine memory" and the machine are the Infrastructure row of each node; restarts of the engine are seen as its uptime going back; "suspended executions" does not exist in the engine.
+
+### Prometheus as a second store (decided 2026-10-16: not now)
+
+The PostgreSQL history is used. The
+  console would query Prometheus through its HTTP API behind the history port, without Grafana. What it adds over PostgreSQL: a time-series
+  store with built-in compression and retention; PromQL (`rate()`, `histogram_quantile()`, aggregation by node or label) without writing a
+  query per chart; correct counter handling across restarts; pull-based collection, so a silent node shows as `up == 0`; ready-made exporters
+  for host, PostgreSQL and Redis metrics; alert rules with routing and silences; exemplars. What it costs: another service in development,
+  CI and production (disk, retention, upgrades), a console that depends on it (an in-memory fallback is still needed), real histograms
+  (`prom-client`) instead of the hand-written text writer, and a fixed list of server-side queries (the browser never sends PromQL).
+  Both Prometheus (Apache 2.0) and Grafana OSS (AGPL v3) are free to self-host.
+  **Adopt it when** one of these holds: several API nodes run in production and cross-node percentiles or exploration are needed; infrastructure
+  metrics (host, database, Redis) are wanted without writing collectors; alert routing outgrows the in-app alerts; or the number of series
+  outgrows PostgreSQL. **How:** a Prometheus adapter behind the history port, chosen by an environment variable like `LOG_STORE`; keep
+  the same metric names and units. **Switching without a migration:** run both for one retention window and then switch the reads, or use a
+  composite reader (Prometheus after the switch date, PostgreSQL before it) until the old rows expire; do not backfill, since the stored
+  minute aggregates cannot be turned into histograms. **Avoid in any store:** labels per bot or per player (they multiply series).
+

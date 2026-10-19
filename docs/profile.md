@@ -129,7 +129,7 @@ The harness review's term lists (M1, M2 of its method) and the bounded contexts 
 Stack terms (case-insensitive), which must not appear in CORE or DOMAIN text:
 
 ```bash
-STACK='nestjs|prisma|postgres|jest|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|express|react|redux|ant design|codemirror|npm |node(\.js)? |typescript|github actions|husky|playwright|lighthouse'
+STACK='nestjs|prisma|postgres|\bjest\b|cypress|quickjs|socket\.io|next\.js|vercel|docker|redis|expressjs|express\.js|reactjs|react\.js|redux|ant design|codemirror|\bnpm\b|node\.js|nodejs|github actions|husky|playwright|lighthouse|\btypescript\b'
 ```
 
 Product terms, which must not appear in CORE sections:

@@ -2,7 +2,7 @@
 
 # 18. Example scripts
 
-Every `js` block in §17 and §18 is run by a test (`api/src/engine/infrastructure/design-examples.test.ts`) in the same sandbox as a
+Every `js` block in §17 and §18 is run by a test in the same sandbox as a
 player's script, against canned answers of the game API whose cells have the shape of `IMapCell`
 ([`lib/utils/interfaces/map.ts`](../../../lib/utils/interfaces/map.ts)): `x`, `y`, `type` (`'resource'`, `'bot'`, … or `null`),
 `contentId` and, on a resource cell, `resource: { resource, amount }`. A script that uses a function the bot has no module for, a

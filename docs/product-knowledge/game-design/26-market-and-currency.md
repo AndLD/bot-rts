@@ -146,7 +146,7 @@ All numbers below are defaults that admins change in the console (§25).
 - **Freezing a wallet** (by an admin, or automatically, §27.4) closes all its open orders, listings, auctions and bids at once and
   refunds everyone involved, the wallet owner's fees for those open trades included (from pending trades). Finished trades are
   never undone.
-- Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25), and see the market itself (order books, auctions, price history and statistics, the price anomalies these heuristics flag, and market metrics and alerts on the dashboard: tasks 10.11 and 10.15).
+- Every market action is in the ledger and the audit trail; admins can cancel a listing, freeze a wallet and refund (§25), and see the market itself (order books, auctions, price history and statistics, the price anomalies these heuristics flag, and market metrics and alerts on the dashboard).
 
 ## 26.10 The system trader
 

@@ -40,7 +40,7 @@ mention `memory` and `circute`.
 | **Manipulator** | `manipulator` | `pick()` / `take()`, `drop()` | `loadCapacity`; grabs loose items/cells. |
 | **Battery** | `battery` | power storage | `capacity`, `voltage`, `value`, `isConnected`; drains via `idleCost`/`operationCost`. |
 | **Generator** | `generator` | `enable()`, `disable()` | `energyPerCycle`, `fuelPerCycle`, `delay`; burns oil from the bot's storage (§12.5). A power source (§7.2.1). |
-| **Solar panel** | `solarPanel` | `enable()`, `disable()` | `energyPerCycle`, `delay`; burns nothing, its output follows the sunlight of the time of day (§12.5.1). A power source (§7.2.1). Phase 11. |
+| **Solar panel** | `solarPanel` | `enable()`, `disable()` | `energyPerCycle`, `delay`; burns nothing, its output follows the sunlight of the time of day (§12.5.1). A power source (§7.2.1). |
 | **Storage** | `storage` | `store()` + take/drop actions | Box for ammo, mined resources, or any items. `capacity`, `items[]`. |
 | **Memory (drive)** | `drive` | `read()`, `write()` | The code's `drive` module *is* the memory module: a disk with a byte quota and `readDelay`/`writeDelay`. Holds scripts and data (§11.4). |
 | **Processor** | `processor` | `runCode()` / `execute()` | Defines `opsPerTick` and `parallelExecutions` (§12.2.1). The performance gate for scripts. |
@@ -56,8 +56,8 @@ code is the **disk**, not the chassis.)
 
 ### 7.2.1 Power sources
 
-_The abstraction and both kinds (task 11.3);_ _the balance numbers and the starter kit (task 11.4)._ The modules that make energy are **power sources**: a `PowerSourceModule`
-abstraction (cycle `delay`, `isEnabled`, `lastCycleAt`, `energyPerCycle`, `enable()` / `disable()`) with two kinds, so a new
+The modules that make energy are **power sources**: an
+abstraction with a cycle `delay`, an enabled state, `energyPerCycle` and `enable()` / `disable()`, and two kinds, so a new
 kind can be added without touching the others.
 
 | | Oil generator (`generator`) | Solar panel (`solarPanel`) |
@@ -73,6 +73,4 @@ day, while continuous heavy work (mining, moving, shooting, live scanning) drain
 
 ## 7.3 Module instances & classes
 
-Modules are instances of `Module` subclasses (`ScannerModule`, `WeaponModule`, …), one class per type, registered in the `ModuleRegistry`. Each class types its props and holds the pure rules of its type that answer with a `Result` (§10.3); the calls that touch the world are executed by the engine.
-The base class validates that a `type` is present and assigns props. Modules are persisted in the database
-(a `modules` table) and linked to a bot by `botId`.
+Every module has a `type`, its props and the pure rules of its type, which answer with a `Result` (§10.3); the calls that touch the world are executed by the engine. A module is linked to a bot by `botId`.

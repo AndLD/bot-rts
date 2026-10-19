@@ -50,6 +50,13 @@ grep -rniEc "$STACK" docs/product-knowledge/game-design/*.md | sort -t: -k2 -nr 
 For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer; search CORE sections for `$PRODUCT`.
 A hit is a leak only if the term carries project meaning there ("module" in "Nest module" is a stack term; judge by context).
 
+**Allowed exceptions in `docs/product-knowledge/`** (the term is part of the product there; the list is also in
+`scripts/product-knowledge-lib.mjs`, which `npm run docs:check` runs and which also fails on plan task or phase references, on
+`api/src` and `client/src` paths and on test file names in that folder): `game-design/10-the-script-api.md` names TypeScript, because
+players write scripts in it; `integrations/API.md` names Socket.IO, the realtime transport of the public API; `integrations/MCP.md`
+names `npm`, in the commands that build and start the MCP server. The open-questions register and the backlog name plan tasks in
+their "Blocks" column, and `CHANGELOG.md` and `archived-docs/` are history and are not scanned. After task 15.4 the scan finds no other hit.
+
 ### M3: reference direction
 
 List every relative Markdown link and the layer of its source and target; flag pairs forbidden by README section 2.1.

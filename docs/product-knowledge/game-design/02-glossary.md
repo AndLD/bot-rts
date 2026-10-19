@@ -2,7 +2,7 @@
 
 # 2. Glossary
 
-One row per concept: the **term** is the name the design uses, the **code name** is how the code names it (`–` where the concept has no code name), and the **aliases** are other names a reader may meet; the design uses the term. A name belongs to one concept only (`npm run docs:check` fails on a repeated name).
+One row per concept: the **term** is the name the design uses, the **code name** is how the code names it (`–` where the concept has no code name), and the **aliases** are other names a reader may meet; the design uses the term. A name belongs to one concept only (the documentation check fails on a repeated name).
 
 | Term | Code name | Aliases | Definition |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ One row per concept: the **term** is the name the design uses, the **code name**
 | **Sunlight factor** | – | – | The share of its peak output a solar panel makes at a time of day (night 0.1, morning and evening 0.6, day 1.0). §12.5.1. |
 | **Game time** | `GAME_CLOCK` | – | The shared in-game clock: one in-game hour is one real minute, a day is 24 real minutes by default (an admin can change the day length and the time of day, or sync it to a real-world time zone). §12.5.1. |
 | **Unpowered** | `isUnpowered` | – | The state of a bot whose battery reached 0: it cannot spend energy and its link is down until the stored energy grows to the resume threshold (10). §12.5.2. |
-| **Engine** | `engine` (process) | game engine | The single authoritative game process: tick loop, world state, QuickJS script contexts, and the only writer of world data (§12.2.2, §14.2). |
+| **Engine** | `engine` (process) | game engine | The single authoritative game process: tick loop, world state, script contexts, and the only writer of world data (§12.2.2, §14.2). |
 | **Result** | `Result<T>` | – | The `{ ok, data }` / `{ ok: false, code, msg }` object returned by every script API call (§10.3). |
 | **Game event** | `GameEvent` | event | A typed fact emitted by the engine each tick (moved, shot, mined, …) that feeds animations, achievements and notifications (§24.1). |
 | **Spawn seed** | `spawnSeed` | – | A shareable code that lets several players deploy their bases near each other (§22.3). |

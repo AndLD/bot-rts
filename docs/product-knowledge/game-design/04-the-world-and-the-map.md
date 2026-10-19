@@ -27,7 +27,7 @@
 - **Base spawn:** a new base is placed on a **free cell** (not occupied, not a deposit) that is at least
   `minBaseDistance` cells (default 30, tunable) from every living base and every corpse base. Candidates are drawn at
   random inside a ring around the world origin whose radius grows with the number of bases; on conflict the search
-  retries; what a deploy answers when the attempts run out is open (Q11). This replaced the prototype behavior (a random cell in `[0,10]²` with no occupancy check). The numbers are configuration (`WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_RADIUS`, `WORLD_SPAWN_RADIUS_PER_BASE`, `WORLD_SPAWN_ATTEMPTS`); the ring is a square of half-width `radius + radiusPerBase × bases` around the origin. A redeploy after base
+  retries; what a deploy answers when the attempts run out is open (Q11). The numbers are configuration (`WORLD_MIN_BASE_DISTANCE`, `WORLD_SPAWN_RADIUS`, `WORLD_SPAWN_RADIUS_PER_BASE`, `WORLD_SPAWN_ATTEMPTS`); the ring is a square of half-width `radius + radiusPerBase × bases` around the origin. A redeploy after base
   destruction (§6.3) uses the same rule. Players may also deploy with a [spawn seed](./22-public-api-integrations.md#223-spawn-seeds) to start near
   friends.
 
@@ -90,26 +90,11 @@ Rules:
   switches itself off** and returns to one-time mode (the area becomes ordinary snapshots, `view()` then fails with
   `NOT_LIVE`); it must be enabled again, and the owner gets a `LiveScanStopped` event (§24.1).
 - Events inside the live area are delivered to the player and animated (§24.1), including those caused by other players.
-- **How it stays cheap (engine design, §12.2.2):** the engine already knows every cell that changes each tick, so live
-  vision is a **subscription**, not polling. An index of live areas by map chunk lets the engine hand each changed cell to
-  the players watching it; a quiet world costs nothing. A live cell's `seenAt` is kept in memory and written to the database
-  only when the cell's content changes or the cell leaves the live area. Clients and scripts receive **diffs**. When a
-  scanner's bot moves, only the cells at the edge of its area are updated. The engine keeps the map in chunks with an LRU
-  cache and loads cold chunks from the database on demand.
-
-**Implementation (Plan 5.12):** `LiveVision` in the engine keeps an index of the live areas by chunk; the cells that change in
-a tick (`World.drainChanged`) are handed to the areas that cover them, the player's knowledge of those cells is updated at once,
-and each area sends its changes as one `vision` event every scanner `delay` (rounded up to ticks). A new area looks at all its
-cells, a moved one only at the cells that entered; a cell that leaves the live area, or whose scanner stops, is written as a
-snapshot stamped with that moment, and another area of the same player that still covers it keeps it live. A live cell's
-`seenAt` is the moment of the view, and it is written to the database only when the content changes or when the cell leaves
-(`known_points` are staged in the write-behind buffer). The scanner pays its refresh through the energy tick (§12.5). After a
-restart the bots with `isLive` scanners resume their vision. The map is held in memory in chunks, at most `ENGINE_MAX_CHUNKS`;
-the least recently used chunk without unwritten changes is dropped first.
+- **It stays cheap:** live vision is a subscription, not polling, so a quiet world costs nothing, and clients and scripts receive diffs.
 
 ## 4.5 Day and night
 
-_The clock: §12.5.1; the filter and the HUD clock: §15.6 (tasks 11.2 and 11.6)._ The world has a day/night cycle on a shared clock (§12.5.1). It does not change
+_The clock: §12.5.1; the filter and the HUD clock: §15.6 ._ The world has a day/night cycle on a shared clock (§12.5.1). It does not change
 the map or the rules of movement and vision; it changes how much energy solar panels make (§7.2.1) and how the map looks: a
 **dark-blue, high-opacity filter** lies over the map canvas at night, lighter in the morning and evening, absent by day. The
 filter is purely visual and lets pointer events through, so clicking and inspecting cells works at any hour (§15.6).
@@ -120,10 +105,7 @@ The map is drawn on a canvas with **sprites**, one per cell, not flat coloured s
 
 **Assets and rendering**
 
-- Sprites come from a **free/open-licence top-down tileset** (the licence is recorded in the repo), packed into **one
-  sprite atlas** with a JSON index, so the art can be swapped later without code changes. The atlas lives in the client
-  assets.
-- Rendering uses the plain **Canvas 2D API** with a **32 px** tile size.
+- Sprites come from a free/open-licence top-down tileset, so the art can be swapped later without code changes.
 - If an image is missing, the cell falls back to a solid colour from the fallback palette below, so the map never
   breaks on a missing asset.
 - At low zoom levels the renderer draws simplified solid colours instead of sprites (**level of detail**).

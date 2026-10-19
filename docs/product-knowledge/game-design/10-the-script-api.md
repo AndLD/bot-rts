@@ -31,26 +31,14 @@ async function main(bot, arg1, arg2, /* … */ argN) { /* … */ }
   execution starts and has limits on depth and total size (tunable config); cyclic imports are rejected.
 - **Contract unchanged:** the entry file exports `async function main(bot, ...args)`.
 - Code reuse by `execute(file)` still starts a separate execution (§10.2).
-- **Transpiler:** a type-stripping transpiler behind a `Transpiler` interface (sucrase preferred, esbuild-wasm as the
-  alternative; final choice in Plan 5.8). No type-check; transpile happens in the engine, outside the QuickJS context.
+- **Transpiler:** TypeScript has its types stripped before it runs; nothing is type-checked.
 - **Imports stay on the same drive:** relative paths only, no cross-drive imports, so a removed or broken drive can
   only break scripts that live on it.
 - **Loading:** the module graph is resolved and loaded when the execution starts; transpiled output is cached by file
   content hash.
-- **Editor:** the CodeMirror editor offers TypeScript typings and autocomplete for the `bot` API and the functions its
-  modules grant (a `.d.ts` shipped from `lib`).
+- **Editor:** the code editor offers TypeScript typings and autocomplete for the `bot` API and the functions its
+  modules grant; wiring them into the in-game editor is open (Q10).
 - **Limits (tunable config):** 32 KB per file, 20 files and import depth 5 per execution.
-
-**Implementation (Phase 5).** `ModuleLoader` (engine) reads the entry file and, depth first, every file its compiled code
-imports from the bot's drives (`ScriptSource`), before the execution starts; a failure is a `SCRIPT_LOAD_FAILED` error that
-names the file, so the execution is never recorded. An import is a relative path (`./` or `../`) that stays on the drive;
-without an extension the loader tries `.js`, `.ts`, `.json` in this order. A `.json` file becomes a module whose default export
-is the parsed value. TypeScript goes through the `Transpiler` port, implemented by `SucraseTranspiler` (types stripped, ES
-modules kept; as in TypeScript, an import used only as a type is dropped), cached by the hash of path and content (the
-oldest entry goes first). QuickJS serves modules from the loaded set only, so a dynamic `import()` of anything else fails.
-Limits: `ENGINE_MODULE_MAX_FILE_BYTES`, `_MAX_FILES`, `_MAX_DEPTH`, `_CACHE_ENTRIES`. The editor typings are generated from
-the function catalog (`scriptTypings()` in `lib`); the in-game code editor does not use them yet because it is still a plain
-text area, so wiring them into CodeMirror 6 is left to the client work (Q10).
 
 ## 10.2 Available functions
 
@@ -90,13 +78,13 @@ All functions return `Promise<Result<T>>` (§10.3) except `log` and `sleep`, whi
 the engine's seeded generator (§12.4), so a replay of the same world draws the same numbers. There is no other random function and
 no clock: `Date` does not exist, and `bot.time()` is the game time.
 
-**Details fixed by the implementation (Plan 5.3):** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
+**Details:** `read(path)` / `write(path, content)` address a file as `/<drive>/<path>`
 (the drive is named as in the terminal's `cd`, §11.4); `bot.time()` (also a global `time()`) returns the game time in ms
 and is free; calling a function the bot has no module for, with invalid arguments, or an unknown function throws and ends
 the execution (§10.3), while a module that is broken or a use case that refuses (no energy, cooldown, not found) returns a
 `Result` failure.
 
-**World functions (Plan 5.5):** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
+**World functions:** a bot **faces** one of four ways (`heading`: 0 north = toward smaller `y`, 1 east, 2 south,
 3 west); `turn('left' | 'right')` rotates it by a quarter. `move(n)` goes `n` cells (1–64) the way it faces, paying the
 engine's `operationCost` for each cell, and its promise resolves after `n × ticksPerCell` ticks (§8.5); it stops at the first
 occupied cell or when the battery is empty and answers `BLOCKED` / `NO_ENERGY` with the cells it managed in the message.
@@ -130,6 +118,5 @@ Every API call returns a **result object**; expected failures are **values**, ne
 - **Only misuse throws**: invalid arguments, calling an API the bot has no module for at the language level, or sandbox
   violations. A throw ends the execution (`killed`, with the error in its log).
 - Scripts branch with `if (!r.ok)`; no `try/catch` is needed for routine events such as a blocked cell.
-- The set of functions and their module gating are as in §10.2; each function's return type is `Result<T>` (the
-  existing callback-style signatures in `lib` module interfaces are migrated).
+- The set of functions and their module gating are as in §10.2; each function's return type is `Result<T>`.
 - Calls may be `await`-ed and are subject to the processor budget (§12.2.1).

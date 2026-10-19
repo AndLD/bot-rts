@@ -3,7 +3,7 @@
 # 20. Open questions
 
 This is the **register of every open point of the design**. A rule in the design is decided; a point that is not decided
-carries its id (`Q3`) in the section where it appears, and has one row here. The scan of `npm run docs:check` flags a marker
+carries its id (`Q3`) in the section where it appears, and has one row here. The documentation check flags a marker
 word (`TODO`, `TBD`, "to be decided", "not yet", "for now", "to be revisited" and the like) in a design file that names no id of
 this register and no entry of the backlog (§21), so a new hidden open item cannot appear unnoticed.
 

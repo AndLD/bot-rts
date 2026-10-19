@@ -167,4 +167,22 @@ attacks ([§13](../product-knowledge/game-design/13-security-sandboxing.md)), ra
 ([§14](../product-knowledge/game-design/14-concurrency-race-conditions.md)), events ([§24](../product-knowledge/game-design/24-notifications-and-events.md)), and
 for the planned phases the admin authorization matrix ([§25](../product-knowledge/game-design/25-admin-console.md)) and money conservation
 ([§26](../product-knowledge/game-design/26-market-and-currency.md)). The MCP server's tests are described in
-[MCP.md](../product-knowledge/integrations/MCP.md#tests).
+[The public API and the MCP server](#the-public-api-and-the-mcp-server).
+
+## The public API and the MCP server
+
+Moved from `integrations/API.md` and `integrations/MCP.md` by task 15.4 of the development plan.
+
+Contract tests keep the official client and key clients on the same API: `api/src/apikeys/contract.int.test.ts` asks the same questions
+with a session and with a key and requires identical answers, and `api/src/apikeys/api-keys.int.test.ts` requires every route to
+name its scope.
+
+`mcp/` has unit tests (a fake game API, the SDK's own client over an in-memory transport and over HTTP) with the coverage gate, and
+`api/src/mcp.int.test.ts` runs the server against the real API on a seeded database. The end-to-end spec of Phase 8.13 plays a scan and a
+move through it with the engine running.
+
+## The scripts of the game design
+
+`api/src/engine/infrastructure/design-examples.test.ts` runs every `js` block of design §17 and §18 in the script sandbox against canned
+answers of the game API (cells of the real shape, see `lib/utils/interfaces/map.ts`), so a design script that uses a function a bot does not
+have or a field a cell does not have fails the build. `doc-examples.test.ts` does the same for the gallery of the player documentation.

@@ -45,7 +45,7 @@ The unified command set:
 | `exit` | `exit` | Leave shell mode, or log out of the base terminal. |
 | `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. |
 
-The commands `ping` and `reboot` are decided but no task builds them (Q18).
+The commands `ping` and `reboot` are decided but no task builds them (Q18); a reboot exists only as an action of the admin console.
 
 ## 11.2 Connection lifecycle
 

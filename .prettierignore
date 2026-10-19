@@ -10,3 +10,4 @@ package-lock.json
 docs
 api/openapi.json
 client/src/shared/api/generated.ts
+.claude/worktrees

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { refusal } from './hook-guard-bash.mjs'
+import { refusal, simpleCommands } from './hook-guard-bash.mjs'
 
 const SCRIPT = fileURLToPath(new URL('./hook-guard-bash.mjs', import.meta.url))
 
@@ -44,6 +44,64 @@ test('the deletion of a remote branch is refused', () => {
   ]) {
     assert.match(refusal(command, 'feature/x'), /Never delete a remote branch/, command)
   }
+})
+
+test('a protected pattern that is only text is allowed: quotes, heredocs, echo and printf (the false positives of the review)', () => {
+  for (const command of [
+    // a loop that pipes JSON fixtures holding a deletion into the hook
+    `for c in 'git push origin --delete feature/x' 'git push origin main'; do\n  echo "{\\"tool_input\\":{\\"command\\":\\"$c\\"}}" | node scripts/hook-guard-bash.mjs\ndone`,
+    `printf 'git push origin develop\\n' > /tmp/fixture.txt`,
+    `echo "git push origin --delete old"`,
+    `cat <<'EOF' > notes.txt\ngit push origin main\ngit push origin --delete old\nEOF`,
+    `cat <<-EOF\n\tgit commit -m x\n\tEOF\nls`,
+    `git log --grep="git push origin main"`,
+    `git commit -m "docs: never git push origin main or git push --delete"`,
+    `gh pr create --body "does not run gh api -X DELETE repos/o/r/git/refs/heads/x"`,
+    `grep -rn "push origin develop" docs`
+  ]) {
+    assert.equal(refusal(command, 'feature/x'), null, command)
+  }
+  assert.equal(refusal(`git commit -m "x"`, 'feature/x'), null)
+})
+
+test('a protected pattern that would run is refused wherever it stands in the command line', () => {
+  for (const [command, pattern] of [
+    ['echo start && git push origin main', /Never push to/],
+    ['cd api; git push origin develop', /Never push to/],
+    ['(cd api && git push origin "main")', /Never push to/],
+    ['FOO=1 git push origin main', /Never push to/],
+    ['sudo git push origin develop', /Never push to/],
+    ['git -C /repo push origin HEAD:refs/heads/main', /Never push to/],
+    ['bash -c "git push origin main"', /Never push to/],
+    ['eval "git push origin --delete old"', /Never delete/],
+    ['npm test | git push origin --delete old', /Never delete/],
+    ['git push --delete origin old', /Never delete/],
+    ['echo done\ngit push origin :old', /Never delete/],
+    ['gh api --method DELETE repos/o/r/git/refs/heads/old', /Never delete/],
+    ['gh api -XDELETE repos/o/r/git/refs/heads/old', /Never delete/],
+    ['cat <<EOF\ntext\nEOF\ngit push origin main', /Never push to/]
+  ]) {
+    assert.match(refusal(command, 'feature/x'), pattern, command)
+  }
+  assert.match(refusal('ls && git commit -m x', 'develop'), /You are on develop/)
+})
+
+test('a push whose destination is another branch is allowed, and a new branch made in the same command line is the branch', () => {
+  assert.equal(refusal('git push origin develop:feature/x', 'feature/y'), null)
+  assert.equal(refusal('git checkout -b feature/x origin/develop && git commit -am y', 'develop'), null)
+  assert.equal(refusal('git switch -c docs/x && git push -u origin docs/x', 'main'), null)
+  assert.match(
+    refusal('git checkout -b feature/x && git checkout develop && git push', 'feature/y'),
+    /Never push|You are on/
+  )
+  assert.match(refusal('git checkout feature/x && git commit -am y', 'develop'), /You are on develop/)
+})
+
+test('simpleCommands splits on separators and keeps quoted text inside one word', () => {
+  assert.deepEqual(simpleCommands(`a b && c 'd e' | f; g "h i"\\ j`), [['a', 'b'], ['c', 'd e'], ['f'], ['g', 'h i j']])
+  assert.deepEqual(simpleCommands('x <<EOF\nbody; text\nEOF\ny'), [['x'], ['y']])
+  assert.deepEqual(simpleCommands('a \\\n b'), [['a', 'b']])
+  assert.deepEqual(simpleCommands("echo 'unclosed"), [['echo', 'unclosed']])
 })
 
 test('as a hook: exit code 2 and the reason on stderr for a refused command, 0 otherwise', () => {

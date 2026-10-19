@@ -557,3 +557,30 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 15.17 (a complete rule-to-check map, and the lint and hook defects)
 - **Verify with:** `npm run test:scripts`; `npm run docs:check`; `node scripts/harness-profile.mjs get branches.integration`
+### 2026-10-19 — 15.17 a complete rule-to-check map, and the lint and hook defects
+- **Tasks:** 15.17 ✅ (H-20261019-03, -04, -05)
+- **Branch:** `chore/15.17-rule-map-lint-hooks` — done, PR #242 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - `docs/engineering/rule-checks.md` now has 95 rows (36 before) and a source index that lists, for each section of `AGENTS.md` §1, §7 and §9, the
+    method and the stack file, the rows that hold its bullets. Each row has a mechanism or a reason why none can exist; statuses are
+    enforced, partly, judgment, planned (the ledger reconciliation test belongs to Phase 10) and permission (a rule that allows an action).
+    Rows 22 to 25 are reasoned: 22 and 25 are judgment (the meaning of "user-visible flow"; the developer's own database), 23 and 24 are partly
+    (the fragment format and the generated records are checked, whether a change needs them is review). The rules that the re-review named as
+    missing (`Result<T>`, the admin guard, ledger conservation, the key scope, the MCP server, auto-merge, the claim, self-merge, generated files)
+    have rows 55, 51, 59, 62 to 65, 82 and 83.
+  - ESLint: `no-restricted-syntax` bans `new Date()` without arguments in the scope of `Date.now` (`api` domain and engine, `lib/utils`). The
+    supervisor of the engine thread is exempt with its reason: `engine-process.ts` and `kill-stalled.ts` (which stamps the kill of a stalled
+    script) are the only wall-clock readers there. `npm run lint` is clean in all four packages.
+  - `hook-guard-bash` no longer matches text. `simpleCommands` splits the command line into simple commands (separators, quotes, heredocs,
+    line continuations) and the rules read the git or `gh api` command at command position, through wrappers (`sudo`, `env`, variable
+    assignments), `bash -c` and `eval`. A `git checkout -b` or `git switch -c` earlier in the same line now moves the branch, so
+    `git checkout -b x && git commit` is allowed on the integration branch (the old hook refused it, and refused the Python heredoc that wrote this
+    fix). Tests: each false positive of the re-review (a loop that pipes fixtures, `printf` into a file, a heredoc, an `echo`, a commit message
+    and a `grep` argument), and the commands that must still be refused wherever they stand in the line.
+  - `.prettierignore` lists `.claude/worktrees`, so `npm run lint` passes in a checkout that hosts agent worktrees (checked with six worktrees present).
+- **Problems / blockers / findings:**
+  - Six Cypress specs (`account`, `docs`, `engagement`, `session`, `site`, `terminal`) are not named in the e2e matrix; the matrix names some specs only by
+    task id. Not part of this task; a check of matrix against spec files needs those rows first (a candidate for Phase 12).
+  - The hook does not look into a command substitution inside double quotes (`echo "$(git push origin main)"`); it is a safety net, not a security boundary.
+- **Next step:** 15.18 (targeted re-review of D1, D3 and D7) in a fresh session
+- **Verify with:** `npm run lint`; `npm run test:scripts`; `npm run docs:check`; `node --test scripts/hook-guard-bash.test.mjs`

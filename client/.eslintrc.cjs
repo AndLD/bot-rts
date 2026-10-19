@@ -5,6 +5,8 @@ module.exports = {
   ignorePatterns: ['.next', 'coverage', 'next-env.d.ts', 'next.config.ts', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }]
-  }
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    'no-console': 'error'
+  },
+  overrides: [{ files: ['**/*.test.ts', '**/*.test.tsx', 'cypress/**/*.ts'], rules: { 'no-console': 'off' } }]
 }

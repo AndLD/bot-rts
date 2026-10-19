@@ -23,6 +23,7 @@ reading map. The rest is read on demand:
 | change the database schema or authentication | [architecture](./docs/engineering/architecture.md) (persistence and migrations §2, identity providers §1) |
 | add or change a user-visible flow | [method §3.4](./docs/engineering/method.md#34-end-to-end-tests) and the [e2e matrix](./docs/testing/e2e-matrix.md) |
 | change a game rule or add a game feature | [`GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and the [glossary](./docs/product-knowledge/game-design/02-glossary.md), then section 9 below |
+| see which tool holds a rule | the [rule-to-check map](./docs/engineering/rule-checks.md) |
 | finish a task | [method §4](./docs/engineering/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (definition of done) |
 | cut a release or a hotfix | [`RELEASING.md`](./docs/operations/RELEASING.md) |
 | run tests, find a command | [`docs/testing/`](./docs/testing/README.md), [profile §8](./docs/profile.md#8-commands) |

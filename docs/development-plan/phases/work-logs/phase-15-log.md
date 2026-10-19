@@ -441,3 +441,33 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   implementation log below is rewritten by hand to the final state in this pull request.
 - **Next step:** 15.14: targeted re-review in a fresh session
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `ls docs/product-knowledge/game-design/28-*`
+
+### 2026-10-19 — session paused after 15.10
+- **Tasks:** 15.4 to 15.13 ✅ and merged (#227 to #236); 15.14 ⬜. The owner asked for 15.8, 15.5, 15.6, 15.7, 15.4, 15.9, 15.11, 15.12, 15.13 and 15.10 in that order and for a stop after 15.10; 15.14 was not started.
+- **Branch:** `docs/15-session-pause-after-15.10` — this entry and the last implementation-log row only; no work is uncommitted or unpushed.
+- **Decisions / deviations from the plan:**
+  - All changes of meaning were covered by the owner's decisions before the start, and nothing was asked of the owner. Two points went beyond the
+    letter of those decisions and are recorded in the entries above: `connect(botId, password?)` did not exist as a script function, so 15.6 built
+    it as the decision describes (the other §10.2 functions that no task builds are open item Q18); and the profile's `STACK` term list was
+    made precise because it matched English words (15.4).
+  - The pull requests were merged one at a time as a rebased stack (the memory notes of the owner, now in method §5). Flaky checks that passed on a
+    re-run: the Cypress `gameplay` case "shoots a bot of its own…" (#228), `engine.int.test.ts` "relaunches a running script…" (#229), Lighthouse
+    performance (#234).
+- **Problems / blockers / findings that could not be closed:**
+  - Q1 to Q18 of design §20 are registered, not decided: they need the owner (balance, tick rate, crash-loop threshold, account deletion through the
+    engine, audit retention, the `circute` module, spawn exhaustion, the id after an adapter replacement, the crafting-job lifecycle, sinks for wood
+    and stone, the first source of iron, notification rules for Trade and System, animations, and the unbuilt functions and commands of Q18).
+  - Rows 22 to 25 of the rule-to-check map stay unenforced (an e2e spec per flow, a changelog fragment per behaviour change, the plan records in the
+    task's pull request, the local database after a phase).
+  - The multi-agent rules (method §7, Phase 10's waves) have been checked on paper only (probe P7); no pair of tasks has run in parallel yet.
+  - The re-run of probes P1 and P4 by fresh agents, the new scores and the new blueprint readiness belong to 15.14.
+  - The hooks of `.claude/settings.json` apply from the next session on; this session ran without them.
+- **What the next session must know:**
+  - New places: `docs/engineering/rule-checks.md` (rule-to-check map), `docs/engineering/architecture.md` §4 (implementation notes of the design),
+    design §28 (energy, power, day cycle; §12.5 is a stub), `docs/product-knowledge/changelog.d/` (changelog fragments), `work-logs/phase-<n>/`
+    (task logs from Phase 10), `npm run plan:log -- <phase>` and `npm run plan:summary`.
+  - `npm run docs:check` now also runs the open-items register, the glossary, the product-knowledge scan, the changelog fragments and the plan
+    summary check.
+  - Always-loaded words: `AGENTS.md` about 2,000 (budget 3,000).
+- **Next step:** 15.14: targeted re-review in a fresh session
+- **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:log -- 15`; `gh pr list --state open`

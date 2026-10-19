@@ -97,7 +97,7 @@ A bot that is moving answers `BUSY` to every action that needs its body. The `bo
 (`bot.modules`: `id`, `type`, `name`) so that `enable(moduleId)` / `disable(moduleId)` can name the module to switch; a scanner
 that is switched on keeps its area live (§4.4) and `view(since?)` reads the live view (`{ tick, cells }`).
 
-The functions `sendMessage`, `store`, `execute` and `disconnect` of this table are decided but no task builds them (Q18).
+The functions `sendMessage`, `store`, `execute` and `disconnect` of this table are decided but no task builds them (Q18). In particular a script cannot start another execution: a player starts one with `run` in the terminal (§11.1), the API or the MCP tool.
 
 Additional functions implied by the module interfaces: `read()`/`write()` (drive), `runCode()` (processor),
 `enable()`/`disable()` (battery, generator, solar panel, scanner), `reload()` (weapon), `disconnect()` (wireless adapter).

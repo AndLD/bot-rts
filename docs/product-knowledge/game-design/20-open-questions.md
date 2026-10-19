@@ -32,10 +32,10 @@ A row is removed when its answer is written into the section. The columns:
 | Q12 | What the id of a bot becomes when its wireless adapter (whose id is the bot's id) is replaced. | needs a decision | §8.1 | none | owner |
 | Q13 | The lifecycle of a crafting job: when the resources are consumed, and what happens to the job when the energy runs out. | needs a decision | §9.3 | none (crafting is built) | owner |
 | Q14 | Wood and stone have no sink: nothing in the recipes consumes them. | needs a decision | §9.1 | none | owner |
-| Q15 | The first source of iron on a fresh base: the starter kit is too small to craft the first module (finding H-20261017-15). | needs a decision | §6.1, §16.1 | none (task 12.3) | owner |
+| Q15 | The resources for a first craft, iron included, are deposited in the base storage when the base is deployed (decided by the owner on 2026-10-17); the amounts are not decided: the task proposes them and the owner confirms. | planned | §6.1, §16.1 | none (task 12.3) | owner |
 | Q16 | Notification rules for the Trade and System categories. | planned | §24.2 | 10.12 | owner |
 | Q17 | Map animations for craft, assemble, repair, disassemble and adopt. | deferred | §15.2 | none | owner |
-| Q18 | Functions that §10.2 and §11.1 describe but no task builds: the script functions `sendMessage`, `store`, `execute` and `disconnect`, and the terminal commands `ping` and `reboot` (found while writing the examples of §18). Plan them, or take them out of the design. | needs a decision | §10.2, §11.1 | none | owner |
+| Q18 | Functions that §10.2 and §11.1 describe but no task builds: the script functions `sendMessage`, `store` and `disconnect`; `execute(file)`, a script that starts another execution (a player starts executions with the terminal `run`, the API or the MCP tool, and that works); and the terminal commands `ping` and `reboot` (`reboot` exists only as an admin action). The shared library also declares some of them in interfaces that nothing implements. Plan them, or take them out of the design. | needs a decision | §10.2, §11.1 | none | owner |
 
 The questions of the Phase 10 market of the harness quality review of 2026-10-17
 (H-20261017-13 and -14) were decided by the owner on 2026-10-17 and 2026-10-18 and are written into §26, §27, §24 and §25,

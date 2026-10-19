@@ -471,3 +471,20 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - Always-loaded words: `AGENTS.md` about 2,000 (budget 3,000).
 - **Next step:** 15.14: targeted re-review in a fresh session
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:log -- 15`; `gh pr list --state open`
+
+### 2026-10-19 — Q18 and Q15 corrected after the owner's questions
+- **Tasks:** none; the register of design §20 and three design notes
+- **Branch:** `docs/q18-wording` — done
+- **Decisions / deviations from the plan:**
+  - Q18 said that no task builds `execute`. More exactly: **a script cannot start another execution** (`execute(file)` is not in the script catalogue);
+    players start executions with the terminal `run`, `POST /bots/:id/executions` and the MCP tool `run_script`, all through `EngineCore.start`,
+    and the engine tests, the load test and the Cypress specs run scripts that way. `reboot` exists as an admin action only. The shared library
+    declares `IProcessorModule.execute` and `IWirelessAdapterModule.connect/disconnect` in interfaces that nothing implements or imports.
+  - The owner keeps Q18 open (plan the functions or remove them from the design) and Q1–Q17 open. Q15 is the exception: the owner had
+    already decided on 2026-10-17 that the resources of a first craft, iron included, are deposited at deploy (task 12.3), so Q15 is "planned"
+    and only the amounts are open.
+- **Problems / blockers / findings:** the harness review of 2026-10-17 compared design §10.2 with the design and the terminal command, not
+  with `SCRIPT_FUNCTIONS`, so it did not see the functions that no code provides (it even took script `connect(botId)` for existing). A check that
+  every function of the §10.2 table is in the code catalogue would catch it; the owner postponed it. The re-review (15.14) may reconsider.
+- **Next step:** 15.14: targeted re-review in a fresh session
+- **Verify with:** `npm run docs:check`

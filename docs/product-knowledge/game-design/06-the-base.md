@@ -29,8 +29,7 @@ stays craftable (§9) as the strong but manual option.
 
 The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
-notes remains undefined (Q7). Whether the loadout is enough to craft the first module,
-that is, where the first iron comes from, is open (Q15).
+notes remains undefined (Q7). The resources for a first craft, iron included, are deposited in the base storage when the base is deployed; their amounts are open (Q15).
 
 ## 6.2 Base capabilities
 

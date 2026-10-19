@@ -147,7 +147,7 @@ The map renderer (§4.3) plays short **animations driven by game events** (§24.
   without a page refresh, re-subscribes to what was open (map stream, terminal sessions, notifications, live scan), refetches
   the data it holds, and shows a connection banner (lost, reconnecting, restored) in both languages; no duplicate toasts or
   windows appear after it.
-- **In-game clock and night filter:** the HUD shows the in-game time and the day phase (§12.5.1). A
+- **In-game clock and night filter:** the HUD shows the in-game time and the day phase (§28.2). A
   **dark-blue, high-opacity filter** lies over the map canvas, strongest at night (about 0.65), light in the morning and evening
   (about 0.25), none by day, with smooth transitions and reduced motion respected. The filter layer lets pointer events through,
   so map clicks, hover and the cell inspector work at any hour.

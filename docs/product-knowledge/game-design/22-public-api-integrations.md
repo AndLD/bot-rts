@@ -21,6 +21,15 @@
   and key routes are session-only (the administration routes follow [their own rule](../integrations/API.md#administration-routes)). A manual action needs the scope of its category (`read` for observation). Each key has
   its own rate limit per minute (default 120, counted across API nodes), an optional expiry, and can be revoked at once; a player holds
   at most 10 active keys. Keys are managed in the account page of the web client.
+
+  **States of an API key:**
+
+  | State | Meaning | Next |
+  | --- | --- | --- |
+  | Active | accepted with its scopes, within its rate limit | expired, revoked, suspended |
+  | Suspended | the owner is banned or deleted: every call is refused, the key itself is untouched | active again when the ban ends |
+  | Expired | the optional expiry passed | final |
+  | Revoked | the owner or an admin revoked it | final |
 - A key acts **as that player** and obeys exactly the same game rules: processor budget, energy, cooldowns, category
   switches (§15.1), and the single-writer engine (§14.2). An API client never gets an advantage over the official one.
 - Notifications (§24) and achievements (§23) are available through the API (scope `read`), so custom clients and the MCP

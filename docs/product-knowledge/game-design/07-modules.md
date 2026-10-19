@@ -39,8 +39,8 @@ mention `memory` and `circute`.
 | **Drill** | `mining` | `dig()` / `mine()` | `materialPerOperation`. |
 | **Manipulator** | `manipulator` | `pick()` / `take()`, `drop()` | `loadCapacity`; grabs loose items/cells. |
 | **Battery** | `battery` | power storage | `capacity`, `voltage`, `value`, `isConnected`; drains via `idleCost`/`operationCost`. |
-| **Generator** | `generator` | `enable()`, `disable()` | `energyPerCycle`, `fuelPerCycle`, `delay`; burns oil from the bot's storage (§12.5). A power source (§7.2.1). |
-| **Solar panel** | `solarPanel` | `enable()`, `disable()` | `energyPerCycle`, `delay`; burns nothing, its output follows the sunlight of the time of day (§12.5.1). A power source (§7.2.1). |
+| **Generator** | `generator` | `enable()`, `disable()` | `energyPerCycle`, `fuelPerCycle`, `delay`; burns oil from the bot's storage (§28.1). A power source (§7.2.1). |
+| **Solar panel** | `solarPanel` | `enable()`, `disable()` | `energyPerCycle`, `delay`; burns nothing, its output follows the sunlight of the time of day (§28.2). A power source (§7.2.1). |
 | **Storage** | `storage` | `store()` + take/drop actions | Box for ammo, mined resources, or any items. `capacity`, `items[]`. |
 | **Memory (drive)** | `drive` | `read()`, `write()` | The code's `drive` module *is* the memory module: a disk with a byte quota and `readDelay`/`writeDelay`. Holds scripts and data (§11.4). |
 | **Processor** | `processor` | `runCode()` / `execute()` | Defines `opsPerTick` and `parallelExecutions` (§12.2.1). The performance gate for scripts. |
@@ -63,7 +63,7 @@ kind can be added without touching the others.
 | | Oil generator (`generator`) | Solar panel (`solarPanel`) |
 | --- | --- | --- |
 | Fuel | oil from the bot's storage, delivered by hand or by a logistics bot | none |
-| Output | constant, **much stronger** (class 1: at least 5× the panel's peak) | scaled by the sunlight factor of the time of day (§12.5.1), weak |
+| Output | constant, **much stronger** (class 1: at least 5× the panel's peak) | scaled by the sunlight factor of the time of day (§28.2), weak |
 | Running it | needs oil to be brought and a storage next to it: infrastructure or manual work | automatic and renewable |
 | Role | the strategic upgrade of a growing base | the starter source that keeps a fresh base alive |
 

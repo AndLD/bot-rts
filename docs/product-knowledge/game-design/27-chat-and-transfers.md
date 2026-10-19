@@ -37,6 +37,15 @@ From a private conversation a player can send another player:
 - No bot or module is needed. Transfers are not available to bot scripts, only through the GUI and the public API
   (scope `trade`), which keeps scripted spam and accidental transfers out.
 
+**States of a transfer offer** (items; credits are instant and have no offer):
+
+| State | Meaning | Next |
+| --- | --- | --- |
+| Pending | the goods are in escrow and the offer is a card in the conversation | accepted, declined, expired |
+| Accepted | the recipient pressed Accept; the goods land in the recipient's inbox | final |
+| Declined | the recipient pressed Decline; the goods return to the sender's inbox | final |
+| Expired | 7 days (tunable) passed; the goods return to the sender's inbox | final |
+
 ## 27.3 The inbox
 
 One inbox per player holds everything awaiting withdrawal: market purchases and accepted transfers. Entries show their

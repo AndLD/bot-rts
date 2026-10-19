@@ -83,6 +83,16 @@ market and by transfers (§27).
 - The **system buyer** and the **system seller** (§26.1) act as a standing bid and a standing offer for the resources their rules
   cover, at the prices of those rules (§26.10).
 
+**States of an order:**
+
+| State | Meaning | Next |
+| --- | --- | --- |
+| Open | resting in the book with its goods or credits in escrow; a market order is open only until the next tick | partly filled, filled, cancelled, expired |
+| Partly filled | some of it traded; the rest rests in the book | filled, cancelled, expired |
+| Filled | all of it traded | final |
+| Cancelled | by the player, or the unfilled part of a market order at the next tick; the escrow is released | final |
+| Expired | 7 days (tunable) passed; the escrow is released | final |
+
 ## 26.5 Auctions
 
 - **What is auctioned:** a blueprint item, or a script sold as a single copy (§26.6). A seller lists it with a starting price, a
@@ -101,6 +111,16 @@ market and by transfers (§27).
   bidder is refunded, and a checkbox (on by default) refunds the seller's listing fee from pending trades (§25).
 - **Fees:** the listing fee (paid at listing, kept in pending trades until the auction ends, not refunded except by an admin
   cancel) and the sales fee (§26.1).
+
+**States of an auction:**
+
+| State | Meaning | Next |
+| --- | --- | --- |
+| Open | listed, no bid yet; the item is in escrow | bidding, cancelled by the seller or an admin, unsold when the time is up |
+| Bidding | at least one bid; the high bidder's credits are in escrow; a bid in the last 2 minutes extends the end (at most 10 times) | sold, cancelled by an admin |
+| Sold | the time is up with a winner, or a buy-now (a bid that reaches the buy-now price ends it too); the item goes to the winner's inbox, the credits to the seller minus the fee | final (proceeds stay in pending trades until delivery, §26.7) |
+| Unsold | the time is up with no bid; the item stays in escrow for the seller, who lists it again or withdraws it | final |
+| Cancelled | the seller (only while there is no bid) or an admin (any time, with a reason; every bidder is refunded) | final |
 
 ## 26.6 Selling scripts
 

@@ -50,3 +50,4 @@ throughout the docs match the file numbers.
 25. [Admin console](./25-admin-console.md)
 26. [Market and currency](./26-market-and-currency.md)
 27. [Chat and transfers](./27-chat-and-transfers.md)
+28. [Energy, power and the day cycle](./28-energy-power-day-cycle.md)

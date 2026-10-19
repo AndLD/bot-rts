@@ -418,3 +418,26 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** start 15.10 (accidental complexity: the generated plan summary, design §28, state tables).
 - **Verify with:** `npm run docs:check`; `wc -w AGENTS.md`; `ls ~/.claude/projects/-Users-andrey-Documents-PetProjects-bot-rts/memory`
+
+### 2026-10-19 — 15.10 accidental complexity done
+- **Tasks:** 15.10 ✅ (review section 9, H-20261017-23 remainder)
+- **Branch:** `docs/15.10-complexity` — done, PR pending (see the implementation log); the last task of the requested run
+- **Decisions / deviations from the plan:**
+  - The summary table and the contents of `DEVELOPMENT-PLAN.md` are written from the phase files: `npm run plan:summary` (`scripts/plan-summary.mjs`,
+    library and tests) rewrites the two blocks between `<!-- plan-summary -->` and `<!-- plan-contents -->` markers; `npm run docs:check` runs it
+    with `--check`, so CI fails when an index disagrees with a phase file, and it also fails when the size in a phase title is not the sum of its
+    tasks. The first run corrected the index: Phase 16 was shown "Not started" while its file says "In progress". The editorial notes of the old
+    table cells ("approved …, developed after …") are in the "Order of development" text, not in the table; the themes are the titles of the files.
+  - Design §12.5 became **§28 "Energy, power and the day cycle"** (`28-energy-power-day-cycle.md`: 28.1 energy model, 28.2 game time and
+    day/night, 28.3 power-on hysteresis; 964 words). §12.5, §12.5.1 and §12.5.2 stay as one-line stubs that link to the new places, so every
+    older reference (the plan, the code comments) resolves; the design's own references now point to §28.x; the contents list and the profile's
+    bounded contexts have it.
+  - State tables for the lifecycles of four or more states: the execution (§12.3, existing), the module (§8.4.1), the map cell (§4.3), the
+    order (§26.4), the auction (§26.5), the transfer offer (§27.2) and the API key (§22.1). They restate the rules of their sections as tables
+    and add none; the "Suspended" key state is the existing rule that bans and deleted accounts apply to keys.
+  - Budgets of the harness bindings after the task: largest design file 2,816 words (§26; budget 3,000; §12 went from 3,010 to 1,719);
+    inbound references to §12 from the other design files 31 (budget 45); lifecycles with a state table 7 of 7 named.
+- **Problems / blockers / findings:** the union merge driver I used to rebase the stacked branches duplicated task rows of this phase file; the
+  implementation log below is rewritten by hand to the final state in this pull request.
+- **Next step:** 15.14: targeted re-review in a fresh session
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `ls docs/product-knowledge/game-design/28-*`

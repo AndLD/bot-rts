@@ -68,7 +68,7 @@ The commands `ping` and `reboot` are decided but no task builds them (Q18).
   links leads from the base to it through the player's own bots (bots of bases owned by the same user; stale bots are
   excluded). `connect`, `ping`, `sendMessage` and manual control work only for connected bots.
 - Any bot can be a **relay**. A **signal tower** is simply a static bot with a long-range adapter plus a battery and a
-  generator (burning oil, §12.5); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
+  generator (burning oil, §28.1); if a tower loses power, is destroyed or is disabled, every bot behind it loses the link.
 - The market terminal (§26.2), chat and transfers (§27) do not use the radio network.
 
 **Signal strength (the indicator).** Every connected bot shows a live **signal strength** from 0 to 4 bars, like a phone:

@@ -35,7 +35,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 12 | Issues and stabilization | 11 (grows) | 🟡 In progress |
 | 13 | Observability platform | 48 | ✅ Done |
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
-| 15 | Harness fixes | 77 | 🟡 In progress |
+| 15 | Harness fixes | 77 | ✅ Done |
 | 16 | CI speed and agent throughput | 26 | 🟡 In progress |
 |  | **Total of Phases 0–16** | **1167** (Phase 12 grows as issues are added) | |
 <!-- plan-summary:end -->

@@ -662,3 +662,27 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 15.21, the targeted re-review of D1 and D3, in a fresh session.
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run lint`; `npm run plan:summary` (no diff)
+
+### 2026-10-19 — 15.21 third targeted re-review done; exit criteria met, Phase 15 done
+- **Tasks:** 15.21 ✅ (report [`2026-10-19-3.md`](../../../quality-reviews/harness/2026-10-19-3.md)); Phase 15 ✅ (77 SP)
+- **Branch:** `docs/15.21-harness-review` — done, PR #247 (claimed as a draft first)
+- **Decisions / deviations from the plan:**
+  - The review ran in a fresh session that did not write 15.19 or 15.20. Probe P5 ran as a fresh read-only subagent on Sonnet 5.5, medium effort.
+    Besides D1 and D3 it re-checked D6, D7 and D8, whose evidence the two tasks changed; the other scores are carried.
+  - Scores (previous → now): D1 4→**5**, D3 4→**5**, D6 4→4, D7 5→5, D8 4→4; the rest carried. Blueprint readiness 97.2 % → **100 %** by the paragraph
+    scan (the automated CORE scan: 0 problems in 14 files). The method's gate passes.
+  - H-20261019-16 and -17 are closed and verified; the follow-up table of the 2026-10-19-2 report has a status column. H-18 to H-21 are still open
+    (H-18 reproduced again: the claim push ran 3,489 tests).
+  - **Exit criteria of the phase: met.** Every 🔴 finding of the 2026-10-17 report is closed; B1 to B5 and B8 are closed; D1, D3 and D7 score 5; no
+    dimension scores 1 or 2 (the lowest, D13 and D15, are 3); `npm run docs:check`, `npm run lint` (six agent worktrees present) and the coverage gate
+    (the pre-push of the claim) pass. The phase is marked ✅ in the phase file and the plan index.
+  - Local database (method §6): `npm run db:up` and `npm run db:migrate -w api` against the local database, from this branch, which differs from
+    `origin/develop` (`b47c721`) only in Markdown. 31 migrations, none pending. No seed: Phase 15 changed neither the migrations nor the seed.
+  - Two new findings, both small and not part of the exit criteria: the review bindings copy the branch names that the profile says to link, and
+    the profile's branch rows are not tested against the profile file (H-20261019-22, 🟡); the layer map has no entry for `scripts/harness-profile.json`
+    (H-20261019-23, 🔵).
+- **Problems / blockers / findings:** none blocking. Open for the owner's triage: H-18 to H-23 of the reports of 2026-10-19 (second and third), and
+  H-06, H-09 to H-15 of the first.
+- **Next step:** step 3 of the harness-framework plan can start with its section 3.1 (the owner's decisions), in a fresh session with the start
+  prompt of that section; Phase 16 continues with 16.3.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:scripts`; the paragraph scan described in section 3 of the report (M1/M2)

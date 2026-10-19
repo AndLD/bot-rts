@@ -93,7 +93,7 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 
 ### 7.5 Rules for agents
 
-- If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files.
+- If the current branch is `main` or `develop`, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from `origin/develop` (fetch first).
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
   push directly to `main` or `develop`.
 - **Plan work (approval given by the request):** when the user asks to start or continue one or more phases (the resume phrases

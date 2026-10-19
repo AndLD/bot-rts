@@ -371,3 +371,28 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   approval of §7.5 only when several agents work; this session is a single agent and keeps merging its own.
 - **Next step:** start 15.12 (isolated working copies).
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; `npm run plan:log -- 15`
+
+### 2026-10-19 — 15.12 isolated working copies done
+- **Tasks:** 15.12 ✅ (H-20261017-22)
+- **Branch:** `chore/15.12-isolated-working-copies` — done, PR pending (see the implementation log); stacked on 15.11
+- **Decisions / deviations from the plan:**
+  - `scripts/e2e.mjs`: the defaults are 18080 (API) and 15173 (client) (`client/cypress.config.ts` has the same defaults); it checks that both
+    ports are free before it starts and refuses otherwise (`scripts/e2e-lib.mjs`, tested), stops only what it started (the listener on
+    the API port is stopped only after the run began, when the port was known to be free), reads the database port from `POSTGRES_PORT`,
+    and names its database after the API port (`botrts_e2e_<port>`), so two runs on one server do not drop each other's. `site.cy.ts` no
+    longer expects port 5173 in a link.
+  - Per-worktree ports: Docker Compose already read `POSTGRES_PORT` and `REDIS_PORT`; a root `.env` (new `.env.example`) now carries them with
+    `COMPOSE_PROJECT_NAME`, and the pre-push hook sources `.env` and builds `DATABASE_URL` from `POSTGRES_PORT`. Redis stays an explicit
+    `REDIS_URL` for the two tests that use it, because CI never sets it and setting it for every test would change what they run.
+  - `docs/testing/README.md`, "Two checkouts at once", gives the commands; `method.md` §5 and `AGENTS.md` §7.5 say that a new branch,
+    working copy or session starts from `origin/develop` (fetch first).
+  - Verification as the task asks: with dummy listeners on 8080 and 5173 and the other checkout's database on 5432 and 6379, this worktree ran
+    the integration tests of `api` (118 tests of 12 suites) against its own PostgreSQL and Redis (15432 and 16379) and the `gameplay` spec
+    (8 passing) on 18080 and 15173; the listeners survived, and `E2E_API_PORT=8080` was refused. The extra containers and volume were removed.
+- **Problems / blockers / findings:**
+  - I copied `api/.env.test` and `api/.env.development` of the main checkout into this worktree earlier in the session to get the
+    pre-push hook running; the tests do not read them (they use `DATABASE_URL` or the default), and they hold legacy secrets, so I deleted
+    the copies. The first output of `.env.test` was printed in this session's transcript by mistake.
+  - The hook cannot move the Redis tests by itself, as above.
+- **Next step:** start 15.13 (remaining rules and knowledge).
+- **Verify with:** `npm run test:scripts`; `E2E_API_PORT=8080 node scripts/e2e.mjs` next to a listener on 8080 (refused)

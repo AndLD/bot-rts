@@ -29,7 +29,7 @@ works in practice.
 | --- | --- |
 | `npm test` | Jest of every package (`npm run db:up` first: integration tests need PostgreSQL) |
 | `npm run test:coverage` | The same with coverage; fails below the coverage gate per package |
-| `npm run e2e` | Cypress against a fresh database, the API and the built client (`--open` for the runner, `--skip-build` to reuse the build) |
+| `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
 | `npm run i18n:check` | The message catalogues of every user-facing language are complete |
 | `npm run docs:check` | Markdown links |
@@ -40,6 +40,27 @@ works in practice.
 
 The pre-push hook (`.githooks/pre-push`) runs the typecheck and the coverage gate before code leaves the machine; pushes that
 change only Markdown skip it.
+
+## Two checkouts at once
+
+Development servers use 8080 (API) and 5173 (client), as in `.claude/launch.json`; leave them running. Everything a test run starts avoids
+them and avoids a second checkout's run:
+
+- **End-to-end runs** use the ports **18080** (API) and **15173** (client) and their own database, `botrts_e2e_<API port>`. The script
+  refuses to start when one of its ports is taken, and stops only the processes it started; it never kills a development server.
+  Two runs at once (two checkouts) give each its own pair: `E2E_API_PORT=18081 E2E_CLIENT_PORT=15174 npm run e2e`.
+- **The database and Redis** of Docker Compose listen on 5432 and 6379 by default. A checkout that runs next to another one gets its own
+  containers and ports through a `.env` file in its root (copy `.env.example`): `COMPOSE_PROJECT_NAME`, `POSTGRES_PORT` and `REDIS_PORT`
+  (Compose reads the file; `npm run db:up` and the pre-push hook follow it). The pre-push hook builds `DATABASE_URL` from `POSTGRES_PORT`;
+  when you run `npm test` yourself, export `DATABASE_URL` (and `REDIS_URL` for the two Redis tests), and pass `POSTGRES_PORT` to
+  `npm run e2e` so that it finds the same server.
+- **Integration tests** create their own databases on the server (one per test file), so two runs on one server do not meet.
+- **New working copies and sessions** start from `origin/develop` (fetch first).
+
+Verified on 2026-10-19 (task 15.12): with listeners holding 8080 and 5173 as development servers would, and the other checkout's database
+up on 5432 and 6379, one worktree ran the integration tests of `api` against its own PostgreSQL and Redis (project name, ports 15432 and 16379)
+and the `gameplay` end-to-end spec on the default ports 18080 and 15173; all passed, and the listeners on 8080 and 5173 were still there
+afterwards. `E2E_API_PORT=8080 npm run e2e` was refused without touching the listener.
 
 ## CI performance
 

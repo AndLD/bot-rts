@@ -105,6 +105,8 @@ A task is done only when **all** of these hold. The stack items (generated files
   them in the phase's implementation log.
 - A release is finished by merging the release (or hotfix) branch into the production branch, tagging it with the version, and
   **merging the same branch back into the integration branch** so fixes are not lost.
+- A new branch, working copy or session starts from the integration branch as it is on the remote: fetch first, and never start from the
+  production branch or from a stale local copy.
 - Commits, pull requests, branch protection and merge approvals are rules of [`AGENTS.md`](../../AGENTS.md) §7.3–7.5.
 
 ## 6. Session protocol (resuming and pausing a phase)

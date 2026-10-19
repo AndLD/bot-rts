@@ -58,6 +58,7 @@ import { EngineAudience } from './application/engine-audience'
 import { EventOutbox } from './application/event-outbox'
 import { GameEventBus } from './application/game-event-bus'
 import { LiveVision } from './application/live-vision'
+import { ConnectHandler } from './application/handlers/connect-handler'
 import { LinkHandler } from './application/handlers/link-handler'
 import { RadioBuffers } from './application/radio-buffers'
 import { RadioNetwork } from './application/radio-network'
@@ -299,7 +300,8 @@ export class EngineWorkerModule {
             FactoryService,
             AssemblyService,
             MaintenanceService,
-            FilesService
+            FilesService,
+            BotAccessService
           ],
           useFactory: (
             world: World,
@@ -313,7 +315,8 @@ export class EngineWorkerModule {
             factory: FactoryService,
             assembly: AssemblyService,
             maintenance: MaintenanceService,
-            files: FilesService
+            files: FilesService,
+            access: BotAccessService
           ) =>
             new ScriptApi([
               new GpsHandler(world),
@@ -325,6 +328,7 @@ export class EngineWorkerModule {
               new ViewHandler(world, vision),
               new SyncedHandler(world, new ScannerHandler(scans, radio, buffers, outbox)),
               new LinkHandler(radio),
+              new SyncedHandler(world, new ConnectHandler(access, outbox)),
               new SyncedHandler(world, new FactoryHandler(factory, assembly)),
               new SyncedHandler(world, new MaintenanceHandler(maintenance)),
               new DriveHandler(files)

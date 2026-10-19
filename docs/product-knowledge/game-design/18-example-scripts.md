@@ -2,6 +2,12 @@
 
 # 18. Example scripts
 
+Every `js` block in §17 and §18 is run by a test (`api/src/engine/infrastructure/design-examples.test.ts`) in the same sandbox as a
+player's script, against canned answers of the game API whose cells have the shape of `IMapCell`
+([`lib/utils/interfaces/map.ts`](../../../lib/utils/interfaces/map.ts)): `x`, `y`, `type` (`'resource'`, `'bot'`, … or `null`),
+`contentId` and, on a resource cell, `resource: { resource, amount }`. A script that uses a function the bot has no module for, a
+function that does not exist, or a field a cell does not have, fails the test.
+
 ## 18.1 Prospector (from the notes)
 
 See [Scenario C](./17-in-game-scenarios.md#scenario-c--gold-prospector-the-canonical-script).
@@ -9,14 +15,14 @@ See [Scenario C](./17-in-game-scenarios.md#scenario-c--gold-prospector-the-canon
 ## 18.2 Miner + hauler loop
 
 ```js
-async function main(bot) {
+export async function main(bot) {
   while (true) {
     const scan = await bot.scan()
-    const deposit = scan.ok && scan.data.find((c) => c.type.startsWith('RESOURCE.') && c.amount > 0)
+    const deposit = scan.ok && scan.data.find((cell) => cell.type === 'resource' && cell.resource && cell.resource.amount > 0)
 
     if (deposit) {
       const dug = await bot.dig()
-      if (dug.ok) bot.log(`mined ${dug.data.amount} ${deposit.type}`)
+      if (dug.ok) bot.log(`mined ${dug.data.amount} ${dug.data.resource}`)
     } else {
       await bot.move(1)
     }
@@ -29,14 +35,14 @@ async function main(bot) {
 ## 18.3 Guard duty
 
 ```js
-async function main(bot) {
+export async function main(bot) {
   while (true) {
     const scan = await bot.scan()
-    const enemy = scan.ok && scan.data.find((c) => c.type === 'BOT' && c.baseId !== bot.baseId)
+    const enemy = scan.ok && scan.data.find((cell) => cell.type === 'bot' && cell.contentId !== bot.id)
 
     if (enemy) {
-      await bot.aim(enemy.location.x, enemy.location.y)
-      await bot.shoot(enemy.location.x, enemy.location.y)
+      await bot.aim(enemy.x, enemy.y)
+      await bot.shoot(enemy.x, enemy.y)
     }
 
     await bot.sleep(200)
@@ -50,6 +56,5 @@ async function main(bot) {
 /> shell
 >>> await bot.scan()
 >>> await bot.getLocation()
->>> await bot.sendMessage('<baseId>', 'pong')
 >>> exit
 ```

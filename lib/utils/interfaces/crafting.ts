@@ -63,8 +63,8 @@ export interface ICraftingBalance {
   worldBlueprintChance: number
   // Chance that disassembling a module also yields a blueprint item for its class
   lootBlueprintChance: number
-  // A module can be repaired while its condition is at least this share of its maximum; a broken one (0) can be
-  // repaired as well, anything in between is too far gone and can only be disassembled (design §8.4.2)
+  // A module can be repaired while its condition is at least this share of its maximum; below it, a broken one (0)
+  // included, it can only be disassembled (design §8.4.2)
   repairThreshold: number
   // Repairing a module completely costs this share of its recipe resources; a partial repair costs less in proportion
   repairCostFactor: number

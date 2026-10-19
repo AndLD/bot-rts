@@ -2,11 +2,11 @@ import { DOC_EXAMPLES } from '../../../../lib/utils/doc-examples'
 import { scriptFunctionsFor } from '../../../../lib/utils/script-api'
 import { JsonValue } from '../domain/json-value'
 import { ScriptExecution } from '../application/script-runtime'
+import { driveExample } from '../../../tests/fakes/script-example-runner'
 import { QuickJsScriptRuntime } from './quickjs-script-runtime'
 
 // The scripts of the documentation run in the same sandbox as a player's, against canned answers of the game API: they must
 // load, call only the functions their modules grant, and not fail. A loop that never ends is stopped after a few rounds.
-const ROUNDS = 40
 
 const CELLS = [
   { x: 1, y: 0, z: 0, type: 'resource', contentId: null, resource: 'iron', seenAt: 1 },
@@ -25,25 +25,6 @@ const ANSWERS: Record<string, JsonValue | undefined> = {
   write: { ok: true, data: null },
   read: { ok: true, data: 'written' },
   sleep: undefined
-}
-
-function drive(execution: ScriptExecution): { status: string; called: string[] } {
-  const called: string[] = []
-  let status = 'waiting'
-
-  for (let round = 0; round < ROUNDS && status === 'waiting'; round++) {
-    const outcome = execution.step(50)
-    status = outcome.status
-    if (outcome.status === 'failed') {
-      throw new Error(`${outcome.failure.code}: ${outcome.failure.message}`)
-    }
-    for (const call of execution.takeCalls()) {
-      called.push(call.fn)
-      execution.resolveCall(call.callId, ANSWERS[call.fn])
-    }
-  }
-
-  return { status, called }
 }
 
 describe('the example scripts of the documentation', () => {
@@ -75,7 +56,7 @@ describe('the example scripts of the documentation', () => {
     })
     executions.push(execution)
 
-    const { called } = drive(execution)
+    const { called } = driveExample(execution, ANSWERS)
 
     expect(called.length + logs.length).toBeGreaterThan(0)
     expect(called.every((fn) => allowed.includes(fn))).toBe(true)

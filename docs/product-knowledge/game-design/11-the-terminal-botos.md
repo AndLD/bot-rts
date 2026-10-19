@@ -45,6 +45,8 @@ The unified command set:
 | `exit` | `exit` | Leave shell mode, or log out of the base terminal. |
 | `<file> [args…]` | `abc 1 2` | Shorthand for running a file by name. |
 
+The commands `ping` and `reboot` are decided but no task builds them (Q18).
+
 ## 11.2 Connection lifecycle
 
 1. Player opens the base terminal (from the base UI).
@@ -117,6 +119,8 @@ settings.
   without a password.
 - **Foreign `connect`:** connecting to another player's bot requires its password (if one is set) and the target's
   wireless adapter within range (§11.2.1).
+- **From a script**, `connect(botId, password?)` (§10.2) follows the same rules and the same lockout; it answers a result
+  instead of opening a terminal.
 - **Brute force:** an attacker can try passwords through the API. Each attempt costs ops and energy and is slow; failed
   attempts are logged on the target bot, and after a tunable number of failures the bot **locks out** new foreign
   connection attempts for a tunable time. There are no special hacking modules for now (Q9).
@@ -136,7 +140,7 @@ a wrong password is written to the target's log as a security line (kept 90 days
 `BOT_LOCKOUT_FAILURES` wrong passwords in a row lock the bot for `BOT_LOCKOUT_MS` (a right password and the end of a lockout
 start the count again). The session opened by `connect` remembers the bot it came from (`fromBotId`); `adopt` moves the
 target to the base of that bot, kills the scripts the previous owner had running on it, and leaves a security line. A base is
-refused (`CANNOT_ADOPT_BASE`). Not done yet (Q8): the `BotAdopted` game event, and a 4-attempts-per-minute style rate limit above the
+refused (`CANNOT_ADOPT_BASE`). Not done yet (Q8): a 4-attempts-per-minute style rate limit above the
 energy cost.
 
 ## 11.2.3 Session log retention

@@ -108,6 +108,16 @@
       "ops": 1
     },
     {
+      "name": "connect",
+      "signature": "connect(botId: string, password?: string): Promise<Result<any>>",
+      "modules": ["wirelessAdapter"],
+      "args": [
+        { "name": "botId", "kind": "string", "isOptional": false },
+        { "name": "password", "kind": "string", "isOptional": true }
+      ],
+      "ops": 1
+    },
+    {
       "name": "craft",
       "signature": "craft(module: string, count?: number): Promise<Result<any>>",
       "modules": ["factory"],

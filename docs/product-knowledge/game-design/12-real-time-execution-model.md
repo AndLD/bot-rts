@@ -151,7 +151,7 @@ the other executions as after any crash (§12.3.1). Load tests (`engine-load.tes
 - Conflicting commands are resolved by the rules in §14, not by arrival order.
 - Random outcomes (spawn probabilities, accuracy, mining yields) use a **seeded RNG**, so replays and tests are
   deterministic.
-- Scripts have **no clock and no `Math.random()`**; the sandbox exposes only a seeded random function and game time.
+- Scripts have **no clock**: `Date` does not exist, `Math.random()` is the engine's seeded random function and `bot.time()` is the game time (§10.2).
 - **Scope of the guarantee:** the outcome is deterministic for a given world state and command list. Whether a script
   is preempted by the wall-clock slice (§12.2.1) depends on machine speed, so script preemption under overload may
   differ between runs; this is accepted.

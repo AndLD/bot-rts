@@ -107,6 +107,12 @@ A task is done only when **all** of these hold. The stack items (generated files
   **merging the same branch back into the integration branch** so fixes are not lost.
 - A new branch, working copy or session starts from the integration branch as it is on the remote: fetch first, and never start from the
   production branch or from a stale local copy.
+- **Stacked pull requests** (each branch built on the previous one) conflict after every squash merge of the one below, because the
+  later branches carry the same changes as separate commits. After a merge, move the next branch onto the integration branch with
+  `git rebase --onto origin/<integration> <old tip of the merged branch> <next branch>`, rebase the rest the same way, and push them all
+  with one `git push --force-with-lease origin <b1> <b2> …` (a pre-push hook then runs once). Keep the records that every task edits (the
+  phase file, the work log) in as few branches as possible, and prefer fewer, larger pull requests over a deep stack when the tasks
+  touch the same documents.
 - Commits, pull requests, branch protection and merge approvals are rules of [`AGENTS.md`](../../AGENTS.md) §7.3–7.5.
 
 ## 6. Session protocol (resuming and pausing a phase)

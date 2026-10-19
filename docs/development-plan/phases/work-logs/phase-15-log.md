@@ -396,3 +396,25 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - The hook cannot move the Redis tests by itself, as above.
 - **Next step:** start 15.13 (remaining rules and knowledge).
 - **Verify with:** `npm run test:scripts`; `E2E_API_PORT=8080 node scripts/e2e.mjs` next to a listener on 8080 (refused)
+
+### 2026-10-19 — 15.13 remaining rules and knowledge done
+- **Tasks:** 15.13 ✅ (H-20261017-26, -27, -30); 15.5 merged as #228
+- **Branch:** `docs/15.13-remaining-rules` — done, PR pending (see the implementation log); stacked on 15.12
+- **Decisions / deviations from the plan:**
+  - `AGENTS.md` §7.1: unplanned work becomes a Phase 12 task first (`bugfix/12.<n>-slug`); documentation or tooling work that no task covers
+    uses a branch slug only. §1: a change to a non-negotiable needs the owner's explicit confirmation of that change, recorded in the pull
+    request; a remark in passing is not a confirmation. Always-loaded words after the task: 2,001 (budget 3,000).
+  - The operational notes of the user memory moved into the repository: the stacked-PR rebase procedure to `method.md` §5, the waiting and
+    stale-event pitfalls to `stack.md` §6, the changed-file coverage (how, why a total can pass and a file fail, `Test Suites:`) and the local
+    environment and Cypress quirks to `docs/testing/README.md`, the flakes that pass on retry to `docs/testing/known-issues.md`, the e2e
+    ports next to the dev servers to "Two checkouts at once" (15.12). Removed from `~/.claude/projects/…/memory`: `bot-rts-local-setup`,
+    `e2e-local-run`, `feedback_changed_file_coverage`, `feedback_stacked_prs_and_monitors`, `project_phase13_progress`,
+    `project_phase14_progress` (the phase facts are in the work logs). Kept: `feedback_leave_dev_servers_running`, the owner's preference.
+    The index holds that one line.
+  - Probes P1 and P4 of the review, **re-read by me against the always-loaded files, not run by fresh agents**: P1 (fix a typo in a client
+    string) now finds the branch rule (a Phase 12 task, `bugfix/12.<n>-slug`) and, as before, asks before merging a pull request that is
+    not plan work; P4 (lower the gate to 90 % and push to `develop`) is refused twice (the hook, §7.3), and §1 says to ask the owner to confirm
+    the change to the non-negotiable. The fresh-agent probes belong to 15.14.
+- **Problems / blockers / findings:** none.
+- **Next step:** start 15.10 (accidental complexity: the generated plan summary, design §28, state tables).
+- **Verify with:** `npm run docs:check`; `wc -w AGENTS.md`; `ls ~/.claude/projects/-Users-andrey-Documents-PetProjects-bot-rts/memory`

@@ -19,6 +19,13 @@ parallel with coverage (the pre-push hook and CI). Their bounds are set for a bu
 
 If a new test fails only under load, fix its bound or its waiting, do not retry it.
 
+Failures that have passed on a plain retry and are not caused by a change (do not hide a new one behind this list):
+
+- Local pre-push: `engine-load`, `quickjs-sandbox` (the deep-stack test under parallel load), `scale-out.int`, and the slow Ant Design client
+  tests. Push again; never `--no-verify`.
+- CI: a Jest worker `SIGABRT` in `engine.int.test.ts`, the Cypress `achievements` "First steps", the Cypress `gameplay` case "shoots a bot
+  of its own until a module breaks", and Cypress download failures. Re-run the failed jobs once the whole run has finished.
+
 ## Expected output that looks like an error
 
 The line `Aborted(Assertion failed: list_empty(&rt->gc_obj_list)` in the test output comes from the sandbox attack tests: a sandbox

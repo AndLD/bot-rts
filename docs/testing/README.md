@@ -41,6 +41,27 @@ works in practice.
 The pre-push hook (`.githooks/pre-push`) runs the typecheck and the coverage gate before code leaves the machine; pushes that
 change only Markdown skip it.
 
+## Local environment
+
+- After pulling new phases bring the database up to date: `npm run db:up` and `npm run db:migrate -w api`. An outdated schema makes the
+  engine crash-loop on a missing table. `npm run db:seed -w api` creates the root owner (`ROOT_USER_EMAIL` and `ROOT_USER_PASSWORD` of
+  `api/.env.development`) and is idempotent.
+- `npm run db:up` starts PostgreSQL and Redis; Redis is needed by the integration tests of the scale-out and of the rate-limit store.
+- The pre-push hook needs Docker, runs the typecheck and the API and client tests with the coverage gate, and takes a few minutes.
+- The client typecheck uses `client/tsconfig.typecheck.json`, so a running `next dev` does not break it.
+- The engine ticks a base only while a client is connected: open `/game` when a manual check needs the world running.
+- zsh: quote globs (`--include='*.ts'`), BSD `sed -i` needs `-i ''`, and wait for a condition with a loop on a done-file, not with `sleep`.
+
+## Writing and running Cypress specs locally
+
+- `npm run e2e -- --skip-build -- --spec cypress/e2e/<file>` runs one spec; `--skip-build` reuses the client build when only specs changed
+  (the API and `mcp/` are started and built each run). The ports and the separation from the development servers are in
+  [Two checkouts at once](#two-checkouts-at-once).
+- A spec that needs two players gives both one spawn seed (`deployBaseViaApi(token, { spawnSeed })`) and keeps the bots within radio range
+  of their own base, or the calls answer `NO_SIGNAL` and the events never arrive.
+- The engine keeps module properties and cells in memory: after a task changes the database, make the base scan so that it reads again.
+  A cell that is missing is regenerated from the world seed, so use the `emptyCell` task for a cell that is surely free.
+
 ## Two checkouts at once
 
 Development servers use 8080 (API) and 5173 (client), as in `.claude/launch.json`; leave them running. Everything a test run starts avoids
@@ -143,7 +164,13 @@ saves it, and the numbers of 16.8 show its effect.
   separately for `api`, `client` and `mcp`; its value is the constant `scripts/coverage-threshold.json`.
 - The coverage provider is Jest's default (Babel instrumentation). Phase 16 measured `coverageProvider: 'v8'` and kept the default:
   v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
-- CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`).
+- CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`); the pre-push hook runs the same
+  check after the coverage run, and you can run it yourself:
+  `node scripts/check-changed-coverage.mjs origin/develop api client mcp` after `npm run test:coverage`. A package can pass its total
+  and still fail here, because every changed file is held to the gate on its own. Causes: a mocked-away module (a mocked file shows 0 %),
+  an unused helper (dead code shows 0 %), and an untested side of `??` or a ternary (cover it with an input that takes each side).
+- Read `Test Suites:` in the Jest summary, not only `Tests:`: a suite that fails to compile (a type error in a fixture after a shared
+  interface changed) is not counted in `Tests:`. After changing a shared type run the whole unit project, never only `-t` filtered tests.
 - Every task ships its own tests; the story points include them. Exclusions are listed with their reason in the Jest configs, or
   are a targeted `/* istanbul ignore next */` with a comment.
 

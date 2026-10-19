@@ -47,7 +47,7 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 31 | Documentation links and anchors resolve | `scripts/check-markdown-links.mjs` in `npm run docs:check`; CI | enforced |
 | 32 | The changed-file coverage and the generated files are checked before a push (AGENTS §7.5) | Pre-push | enforced |
 | 33 | Never delete a remote branch (AGENTS §7.3, §7.5) | the Hook `hook-guard-bash` refuses `git push --delete`, `git push origin :branch` and the API call that deletes a ref | enforced |
-| 34 | A task starts from the integration branch (method §5) | none yet | unenforced |
-| 35 | A change to a non-negotiable needs the owner's confirmation (AGENTS §1) | none yet | unenforced |
+| 34 | A task, branch, worktree and session start from the integration branch on the remote (method §5, AGENTS §7.5) | agent judgment; the session-start hook prints the branch | judgment |
+| 35 | A change to a non-negotiable needs the owner's explicit confirmation, recorded in the pull request (AGENTS §1) | agent judgment | judgment |
 
-Rows 22 to 25, 34 and 35 are the open ones. The harness review scores them: they are the next candidates for a check or a skill.
+Rows 22 to 25 are the open ones. The harness review scores them: they are the next candidates for a check or a skill.

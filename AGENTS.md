@@ -37,7 +37,8 @@ The principles (SOLID, scalability, testability, maintainability, low coupling, 
 [method §1](./docs/engineering/method.md#1-principles). If a rule conflicts with existing legacy code, the rule wins for **new
 and modified** code — refactor the touched area to comply rather than perpetuating the anti-pattern.
 
-Non-negotiables (a PR that violates these is rejected):
+Non-negotiables (a PR that violates these is rejected). **Changing one needs the owner's explicit confirmation of that change**, recorded
+in the pull request; a mention in passing ("the gate is annoying") is not a confirmation, so ask.
 
 1. Every feature ships with **unit + integration tests**, and user-visible flows get **e2e** tests.
 2. Coverage must stay at or above the coverage gate ([profile](./docs/profile.md#2-quality-gates)); CI fails below it.
@@ -65,6 +66,8 @@ The former sections keep their numbers here so that older references resolve:
 Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow
 (one branch per task, finishing a release) is in [method §5](./docs/engineering/method.md#5-git-workflow).
 **`<id>` is the task number from the development plan**, for example `feature/3.12-api-v1-foundation`.
+Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a Phase 12 task (`bugfix/12.<n>-slug`).
+Documentation or tooling work that no task covers uses a branch slug only (`docs/<slug>`, `chore/<slug>`).
 
 ### 7.2 Merge strategy
 

@@ -2,7 +2,7 @@
 
 # Phase 15 — Harness fixes (77 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-15-log](./work-logs/phase-15-log.md)
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-15-log](./work-logs/phase-15-log.md)
 
 Fixes the findings of the first harness quality review ([report of 2026-10-17](../../quality-reviews/harness/2026-10-17.md)) that
 the owner triaged as **fix now** (its follow-up table, section 13). This phase is step 2 of the
@@ -46,12 +46,12 @@ the re-review, because it renumbers a section that many documents cite.
 | 15.18 | **Targeted re-review of D1, D3 and D7** (harness review method §6): a dated report that re-scores D1, D3 and D7 (the others carried from the report of 2026-10-19), checks every exit criterion of this phase and closes the findings of 15.15 to 15.17 in the follow-up table of the 2026-10-19 report | 2 | ✅ |
 | 15.19 | **CORE leaks outside the scan's lists** (H-20261019-16 of the [second re-review](../../quality-reviews/harness/2026-10-19-2.md)): the example branch of `AGENTS.md` §7.1 (`feature/3.12-api-v1-foundation`, a task of this plan and the API prefix) becomes a neutral example; the list of dated reports leaves `docs/quality-reviews/README.md` (it points to the review logs of the bindings instead, or the file is classified ENTRY and leaves the `core-files` block; bindings §3 says which), so no CORE file links STATE; "players" in `phases/README.md` and "a player must learn" in the harness review method become neutral words; the profile's lists (section 9) gain `player`, a task-id-shaped branch example and links to dated files, each with a test of `core-leaks-lib.mjs`. Meaning-preserving: no rule changes. Verified by `npm run docs:check` and by the paragraph scan of the re-review (section 3, M1/M2) finding no leak in the CORE files outside the Role binding line | 2 | ✅ |
 | 15.20 | **Values out of the adapter documents and the release workflow** (H-20261019-17): `.github/workflows/release.yml` takes the changelog path from the harness profile file (or the test of `harness-profile.test.mjs` covers every workflow); the required checks move into `scripts/harness-profile.json`, `scripts/protect-branches.sh` reads them and a test compares them with the profile's section 2; rows 11 and 13 of `docs/engineering/rule-checks.md`, `docs/operations/DEPLOYMENT.md`, `docs/testing/README.md` and `docs/testing/e2e-matrix.md` say "the integration branch" and "the production branch"; the commands of `docs/operations/RELEASING.md` and `docs/testing/README.md` take the branch from the profile command or a placeholder with one line naming its source; the harness-profile test also scans `docs/engineering`, `docs/operations` and `docs/testing` outside fenced command blocks. Verified by the M4 search of the re-review finding each value only in the profile, the profile file, the CI triggers (tested) and the tests | 2 | ✅ |
-| 15.21 | **Targeted re-review of D1 and D3** (harness review method §6): a dated report that re-scores D1 and D3 (the others carried from the report of 2026-10-19-2), checks every exit criterion of this phase and closes H-20261019-16 and -17 in the follow-up table of that report | 2 | ⬜ |
+| 15.21 | **Targeted re-review of D1 and D3** (harness review method §6): a dated report that re-scores D1 and D3 (the others carried from the report of 2026-10-19-2), checks every exit criterion of this phase and closes H-20261019-16 and -17 in the follow-up table of that report | 2 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
 **Exit criteria:** the exit criteria of step 2 of the harness-framework plan hold, as shown by the report of 15.14 (not met on 2026-10-19:
-D1, D3 and D7 scored 4 and B2 is partly open, see the [re-review](../../quality-reviews/harness/2026-10-19.md#1-scorecard)), or of 15.18 (not met on 2026-10-19: D1 and D3 scored 4, see the [second re-review](../../quality-reviews/harness/2026-10-19-2.md#1-scorecard)), or of 15.21:
+D1, D3 and D7 scored 4 and B2 is partly open, see the [re-review](../../quality-reviews/harness/2026-10-19.md#1-scorecard)), or of 15.18 (not met on 2026-10-19: D1 and D3 scored 4, see the [second re-review](../../quality-reviews/harness/2026-10-19-2.md#1-scorecard)), or of 15.21 (**met on 2026-10-19**: D1, D3 and D7 score 5, see the [third re-review](../../quality-reviews/harness/2026-10-19-3.md#1-scorecard)):
 - every 🔴 finding of the 2026-10-17 report is closed;
 - the export blockers that step 2 owns (B1 to B5 and B8) are closed;
 - D1, D3 and D7 score 5, and no dimension scores 1 or 2;
@@ -90,3 +90,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 | `docs/15.18-harness-review` | 15.18 | [#244](https://github.com/AndLD/bot-rts/pull/244) | ✅ merged |
 | `chore/15.19-core-leaks` | 15.19 | [#245](https://github.com/AndLD/bot-rts/pull/245) | ✅ merged |
 | `chore/15.20-adapter-values` | 15.20 | [#246](https://github.com/AndLD/bot-rts/pull/246) | ✅ merged |
+| `docs/15.21-harness-review` | 15.21 | [#247](https://github.com/AndLD/bot-rts/pull/247) | ✅ merged |

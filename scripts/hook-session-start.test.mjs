@@ -73,6 +73,7 @@ test('as a hook: prints the state of this repository', () => {
 
   assert.equal(result.status, 0)
   assert.match(result.stdout, /^Branch: .+/m)
-  assert.match(result.stdout, /Phase in progress: .*Phase 15/)
+  // Which phases are in progress changes with the plan, so only the shape of the line is checked
+  assert.match(result.stdout, /^(Phase in progress: .+ \(.+\/phase-\d+-.+\.md\)|No phase is in progress\.)$/m)
   assert.match(result.stdout, /Session protocol/)
 })

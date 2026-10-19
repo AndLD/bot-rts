@@ -1,0 +1,11 @@
+{
+  "repository": { "slug": "AndLD/bot-rts", "url": "https://github.com/AndLD/bot-rts" },
+  "branches": { "production": "main", "integration": "develop" },
+  "coveragePackages": ["api", "client", "mcp"],
+  "paths": {
+    "plan": "docs/development-plan",
+    "phases": "docs/development-plan/phases",
+    "changelog": "docs/product-knowledge/CHANGELOG.md",
+    "changelogFragments": "docs/product-knowledge/changelog.d"
+  }
+}

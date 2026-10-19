@@ -3,8 +3,8 @@
 // blocks the call and sends stderr to the agent.
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { protectedBranches as PROTECTED } from './harness-profile.mjs'
 
-const PROTECTED = ['main', 'develop']
 const GIT_COMMIT = /\bgit\s+(?:-C\s+\S+\s+)?commit\b/
 const GIT_PUSH = /\bgit\s+(?:-C\s+\S+\s+)?push\b/
 const REMOTE_DELETE = /\bgit\s+(?:-C\s+\S+\s+)?push\b[^\n;&|]*(?:--delete\b|\s-d\b|\s\+?:[\w./-]+)/

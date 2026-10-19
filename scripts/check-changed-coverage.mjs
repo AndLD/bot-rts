@@ -5,6 +5,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import { profile } from './harness-profile.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const gate = JSON.parse(readFileSync(join(root, 'scripts', 'coverage-threshold.json'), 'utf8'))
@@ -25,7 +26,7 @@ const changed = execFileSync('git', ['diff', '--name-only', '--diff-filter=AM', 
 const failures = []
 let checked = 0
 
-for (const pkg of packages.length ? packages : ['api']) {
+for (const pkg of packages.length ? packages : profile.coveragePackages) {
   const summaryPath = join(root, pkg, 'coverage', 'coverage-summary.json')
 
   if (!existsSync(summaryPath)) {

@@ -4,8 +4,9 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { profile } from './harness-profile.mjs'
 
-const PHASES = 'docs/development-plan/phases'
+const PHASES = profile.paths.phases
 const IN_PROGRESS = /\*\*Status:\*\*\s*🟡/
 
 // The phase files that say "in progress", as { file, title, log }

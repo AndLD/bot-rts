@@ -72,4 +72,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 | `docs/15.11-multi-agent-coordination` | 15.11 | [#233](https://github.com/AndLD/bot-rts/pull/233) | ✅ merged |
 | `chore/15.12-isolated-working-copies` | 15.12 | [#234](https://github.com/AndLD/bot-rts/pull/234) | ✅ merged |
 | `docs/15.13-remaining-rules` | 15.13 | [#235](https://github.com/AndLD/bot-rts/pull/235) | ✅ merged |
-| `docs/15.10-complexity` | 15.10 | [#236](https://github.com/AndLD/bot-rts/pull/236) | 🟡 PR open |
+| `docs/15.10-complexity` | 15.10 | [#236](https://github.com/AndLD/bot-rts/pull/236) | ✅ merged |

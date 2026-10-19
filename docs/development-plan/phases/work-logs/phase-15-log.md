@@ -316,3 +316,29 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   two links (`result.ts`, `map.ts`); these are the contract, not implementation, and the check does not flag them.
 - **Next step:** start 15.9 (enforcement: lint rules and hooks). Merge 15.5, 15.6, 15.7 and this one first, in this order.
 - **Verify with:** `npm run docs:check`; `npm run test:scripts`; the M1 scan of the harness bindings on `docs/product-knowledge`
+
+### 2026-10-19 — 15.9 enforcement done
+- **Tasks:** 15.9 ✅ (H-20261017-20, the hook part of H-20261017-19, D7)
+- **Branch:** `chore/15.9-enforcement` — done, PR pending (see the implementation log); stacked on 15.4
+- **Decisions / deviations from the plan:**
+  - Lint: `no-console` is an error in `api`, `client`, `lib` and `mcp`; tests, `api/scripts`, `api/prisma/seed.ts` and the Cypress specs may
+    print. `no-restricted-properties` bans `Date.now` and `Math.random` in `api/src/**/domain`, `api/src/engine` and `lib/utils` (tests
+    excepted). The clock and generator adapters (`SystemClock`, `SeededRng`) live in `api/src/shared/infrastructure`, outside the scope,
+    so no override is needed for them; the one exception is `engine-process.ts`, which times a stalled thread on the real clock by design
+    and says so in the config. `engine-worker.ts` wrote its last words with `console.error`; it writes to stderr now.
+  - Agent-runtime hooks in `.claude/settings.json`, each a thin call to a script with a test (`scripts/hook-*.mjs`, `hook-*.test.mjs`):
+    `hook-guard-bash` (PreToolUse on Bash: refuses `git commit` and `git push` on `main` or `develop`, any push naming them, and the
+    deletion of a remote branch, by `--delete`, `-d`, `:branch` or `gh api -X DELETE …/git/refs/`), `hook-guard-edit` (PreToolUse on Edit,
+    Write and NotebookEdit: refuses `.env` files except `.env.example`), `hook-format-edited` (PostToolUse: Prettier on the edited file,
+    never blocks) and `hook-session-start` (SessionStart: the branch, every phase in progress and its last "Next step"). The scripts are
+    directly under `scripts/` so that `npm run test:scripts` (`scripts/*.test.mjs`) runs their tests, which also start each script the
+    way the runtime does (JSON on stdin, exit code 2 to refuse).
+  - Pre-push (code changes only, as before) now also runs the changed-file coverage (`check-changed-coverage.mjs origin/develop`) and
+    the generated-file check (OpenAPI document, generated client, documentation data), the two CI steps that a push used to pass and CI
+    to fail.
+  - `docs/engineering/rule-checks.md` is the rule-to-check map: the 27 rules of the review's sample (M5), then the checks added by this
+    phase, each with its mechanism or "judgment"; six rows stay unenforced and are named at the end. `AGENTS.md`'s reading map and the
+    profile's document map link it.
+- **Problems / blockers / findings:** the hooks take effect in sessions that start after this merge; this session ran without them.
+- **Next step:** start 15.11 (coordination for several agents).
+- **Verify with:** `npm run lint`; `npm run test:scripts`; `echo '{"tool_input":{"command":"git push origin main"}}' | node scripts/hook-guard-bash.mjs; echo $?` (2)

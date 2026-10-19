@@ -28,6 +28,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('The engine failed to start', error)
+  process.stderr.write(
+    `The engine failed to start: ${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`
+  )
   process.exit(1)
 })

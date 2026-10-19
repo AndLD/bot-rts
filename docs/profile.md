@@ -158,6 +158,7 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | Engineering method (read on demand) | [`engineering/method.md`](./engineering/method.md) |
 | Stack, layering, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
 | Architecture decisions (read on demand) | [`engineering/architecture.md`](./engineering/architecture.md) |
+| Rule-to-check map (read on demand) | [`engineering/rule-checks.md`](./engineering/rule-checks.md) |
 | Project profile | this file |
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
 | Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |

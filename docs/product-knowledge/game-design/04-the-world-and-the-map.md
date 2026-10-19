@@ -94,7 +94,7 @@ Rules:
 
 ## 4.5 Day and night
 
-_The clock: §12.5.1; the filter and the HUD clock: §15.6 ._ The world has a day/night cycle on a shared clock (§12.5.1). It does not change
+_The clock: §28.2; the filter and the HUD clock: §15.6._ The world has a day/night cycle on a shared clock (§28.2). It does not change
 the map or the rules of movement and vision; it changes how much energy solar panels make (§7.2.1) and how the map looks: a
 **dark-blue, high-opacity filter** lies over the map canvas at night, lighter in the morning and evening, absent by day. The
 filter is purely visual and lets pointer events through, so clicking and inspecting cells works at any hour (§15.6).
@@ -131,6 +131,15 @@ The map is drawn on a canvas with **sprites**, one per cell, not flat coloured s
   overlay (§8.4.1). Everything is **tinted by ownership**: own = green, enemy = red; bases: own = blue, enemy = purple.
 - **Fallback palette** (used for missing images and at low zoom): fog black, empty dark grey, gold yellow, iron steel
   grey, other resources per-resource colour, item cyan, own bot green, enemy bot red, own base blue, enemy base purple.
+
+**States of a cell as a player knows it** (the lifecycle in one table):
+
+| State | How it begins | What the player has | How it ends |
+| --- | --- | --- | --- |
+| Unknown | nothing has seen the cell yet | nothing: fog of war, drawn black | a scan, or an action of the player's own bot, covers it |
+| Known (a snapshot) | a scan or an action of the player's own bot covered it | the contents it had at `seenAt`, drawn dimmed by age | covered again (the snapshot is replaced), or a live area reaches it |
+| Live | it lies inside the area of a scanner in live mode (§4.4) | its current contents, younger than one scanner `delay` | the scanner is switched off, runs out of energy, breaks, or its bot moves away |
+| Stale | time passes on a snapshot | the same contents drawn at the minimum strength, a remembered bot or item as a last-seen ghost | covered again by a scan, an action or a live area |
 
 Interaction: pan and zoom the viewport; clicking a cell shows its stored content; clicking one of your bots opens its
 control panel (§15.1).

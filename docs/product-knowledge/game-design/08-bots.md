@@ -64,6 +64,18 @@ A broken processor or wireless adapter stops scripts and connections (a terminal
   adapter makes a base a corpse for good (§6.3). The modules of a living base at or above the threshold stay repairable.
 - **Disassembly:** a module can be **disassembled** (by another bot's repair module, §8.4.2) into scrap metal /
   resources, if it is broken or belongs to the actor's own user. A disassembled module **disappears from the database**.
+**States of a module** (the lifecycle in one table; the rules are the bullets above and §8.4.2):
+
+| State | Condition | Works | Can be repaired | Can be disassembled |
+| --- | --- | --- | --- | --- |
+| Intact | at its maximum | yes | no, nothing to restore | by its owner |
+| Damaged | below the maximum, at or above the repair threshold | yes | yes | by its owner |
+| Too damaged | above 0, below the repair threshold | yes | no | by its owner |
+| Broken | 0 | no | no | by anybody with a repair module |
+| Gone | the module no longer exists | – | – | – |
+
+A module goes down a state when it is hit and to _Gone_ when it is disassembled; repair moves it up between _Damaged_ and _Intact_ only.
+
 - **Bot without modules:** if all of a bot's modules are disassembled, the bot record is **kept** in the database, but
   it has only a **`lastPosition`** instead of an actual position, and its map cell no longer references the bot
   (the cell becomes empty).
@@ -100,5 +112,5 @@ One **repair ("fixing") module** provides both `repair(...)` and `disassemble(..
   engine or a lighter bot is faster. `maxTicksPerCell` and the exact curve are tunable config.
 - Terrain has no effect on movement for now (terrain types are in the backlog, §21).
 
-**Energy:** see §12.5 (idle drain per tick, operation drain per action, generator refill). A bot that runs out of
-energy is unpowered; what that means, and when it resumes, is stated in §12.5.2.
+**Energy:** see §28.1 (idle drain per tick, operation drain per action, generator refill). A bot that runs out of
+energy is unpowered; what that means, and when it resumes, is stated in §28.3.

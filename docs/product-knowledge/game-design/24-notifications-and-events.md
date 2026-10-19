@@ -20,7 +20,7 @@
 **Events are edges, not levels.** An event says that something **happened or began**; it is never repeated while a state merely
 goes on. A publisher that sees a lasting state on every tick or cycle (a generator without oil, a low battery, a link that stays
 down) must raise the event only when the state begins, and keep the state where it survives a restart (the module properties,
-§12.5), so a restart does not tell it again; the notification layer's coalescing (§24.2) is a second line of defence, not a
+§28.1), so a restart does not tell it again; the notification layer's coalescing (§24.2) is a second line of defence, not a
 substitute. Three kinds of events exist:
 
 | Kind | Rule | Examples |
@@ -29,7 +29,7 @@ substitute. Three kinds of events exist:
 | Edge (a state begins or ends) | once per change of state, state persisted | `OutOfFuel`, `EnergyLow` (flags in the generator and battery properties), `LiveScanStopped` (the scanner switches itself off, so it cannot repeat), `ModuleBroken` (only when the condition falls from above 0 to 0), `DepositDepleted`, `LinkLost` / `LinkWeak` / `LinkRestored` (raised on a change of the link compared with the previous refresh; nothing is told on the first look after a restart), `ExecutionFinished` / `ExecutionFailed` (once, when the execution ends) |
 | Level (a state that lasts) | never an event; shown as state in the UI | the energy level, the link bars |
 
-_Every event type above is classified as an edge or a level, and a test runs a bot through hundreds of ticks in an unchanged bad state (no oil, low battery, a live scanner without energy, an empty battery, a weak or lost link) and fails if any event type fires more than once._ A flapping link caused by the energy edge is removed by the power-on hysteresis (§12.5.2).
+_Every event type above is classified as an edge or a level, and a test runs a bot through hundreds of ticks in an unchanged bad state (no oil, low battery, a live scanner without energy, an empty battery, a weak or lost link) and fails if any event type fires more than once._ A flapping link caused by the energy edge is removed by the power-on hysteresis (§28.3).
 
 ## 24.2 Notifications
 

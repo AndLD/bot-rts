@@ -147,7 +147,7 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | --------------------- | ---------------------------------------------------------------------------------------------- |
 | Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
 | World and base        | 04 world and map, 06 the base                                                                   |
-| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting                                           |
+| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting, 28 energy, power and the day cycle        |
 | Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
 | Interface and play    | 15 screens, 17 in-game scenarios                                                                |
 | Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |

@@ -24,9 +24,9 @@ One row per concept: the **term** is the name the design uses, the **code name**
 | **Stale bot** | – | – | A bot whose base is a corpse base; it has no active owner, keeps running, and can be adopted by anyone with access (§6.3, §11.2.2). |
 | **Adopt** | `adopt` (command) | – | Re-assign a bot to the base the connection came from, after authenticating on it (§11.2.2). Bases cannot be adopted. |
 | **Power source** | `PowerSourceModule` | – | A module that makes energy: the oil **generator** (burns oil, strong, manual) or the **solar panel** (no fuel, weak, follows the sun). §7.2.1. |
-| **Sunlight factor** | – | – | The share of its peak output a solar panel makes at a time of day (night 0.1, morning and evening 0.6, day 1.0). §12.5.1. |
-| **Game time** | `GAME_CLOCK` | – | The shared in-game clock: one in-game hour is one real minute, a day is 24 real minutes by default (an admin can change the day length and the time of day, or sync it to a real-world time zone). §12.5.1. |
-| **Unpowered** | `isUnpowered` | – | The state of a bot whose battery reached 0: it cannot spend energy and its link is down until the stored energy grows to the resume threshold (10). §12.5.2. |
+| **Sunlight factor** | – | – | The share of its peak output a solar panel makes at a time of day (night 0.1, morning and evening 0.6, day 1.0). §28.2. |
+| **Game time** | `GAME_CLOCK` | – | The shared in-game clock: one in-game hour is one real minute, a day is 24 real minutes by default (an admin can change the day length and the time of day, or sync it to a real-world time zone). §28.2. |
+| **Unpowered** | `isUnpowered` | – | The state of a bot whose battery reached 0: it cannot spend energy and its link is down until the stored energy grows to the resume threshold (10). §28.3. |
 | **Engine** | `engine` (process) | game engine | The single authoritative game process: tick loop, world state, script contexts, and the only writer of world data (§12.2.2, §14.2). |
 | **Result** | `Result<T>` | – | The `{ ok, data }` / `{ ok: false, code, msg }` object returned by every script API call (§10.3). |
 | **Game event** | `GameEvent` | event | A typed fact emitted by the engine each tick (moved, shot, mined, …) that feeds animations, achievements and notifications (§24.1). |
@@ -48,7 +48,7 @@ One row per concept: the **term** is the name the design uses, the **code name**
 | **Spawn** | – | – | Where a new entity first appears: a base on the cell chosen by the base-spawn rule (§4.1), an assembled bot next to its base (§8.3). Not a verb for the player: the player deploys or assembles. |
 | **Starter kit** | `STARTER_KIT` | starting loadout | The class-1 modules a base is deployed with (§6.1). |
 | **Factory** | `factory` | – | The module that crafts modules from resources and a blueprint, researches higher classes and assembles bots (§9.3, §8.3). Present on the base. |
-| **Battery** | `battery` | – | The module that stores a bot's energy up to its capacity; every module pays from it (§12.5). |
+| **Battery** | `battery` | – | The module that stores a bot's energy up to its capacity; every module pays from it (§28.1). |
 | **Class** | `-class1`, `-class2`… (module name) | module class | The tier of a module: class 1 is the base set that needs no blueprint, a higher class needs a blueprint and research (§9.3). |
 | **Cell** | `IMapCell` | map cell | One square of the grid: coordinates, an optional entity or resource, and when the player last saw it (§4.1, §4.3). |
 | **Chunk** | `chunk` | – | A square block of `chunkSize` cells in which the map is stored, cached and indexed (§4.1, §12.2.2). |

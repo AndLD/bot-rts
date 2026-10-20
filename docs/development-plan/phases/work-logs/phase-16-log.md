@@ -159,11 +159,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Proofs** (all on GitHub Actions):
   - *Same tests as before the split.* Last code run on the integration branch (39268504781): `api` 2532, `client` 883, `mcp` 74 tests, 432
     suites. This pull request (run 39435749539): `api tests` 2532, `client tests` 245 + 254 + 384 = 883, `mcp tests` 74; 311 + 113 + 8 = 432
-    suites. No shard ran 0 tests (Jest also fails on an empty shard). Merged coverage of `client`, 3 shards: 99.93 % statements, 99.93 % branches,
-    100 % functions, 99.95 % lines, equal to one unsharded run (checked locally too).
+    suites. No shard ran 0 tests (Jest also fails on an empty shard). The first merge (run 39435749539) used `CoverageMap.merge` of `istanbul-lib-coverage` and was not equal to one unsharded run: it matches
+    entries by source location, so `client/src/site/LazyAmbient.tsx` (two functions at one location) counted 5 functions instead of 6 and the
+    package 1065 instead of 1066, and an uncovered function could be hidden by a covered one (the review of #249 found this; see the entry
+    "16.3 review fix" below, which replaces that claim). The merge now adds the hit counts entry by entry after checking that the maps are equal,
+    which makes the merged counts those of one unsharded run by construction.
   - *Gate, untested code in a package:* temporary commit `c43cf13`/`9d4d943` added 30 untested functions to `mcp`; `verify` failed in the merge step, every test
     job green: `mcp: statements 79.95% (gate 97%), functions 78.72% (gate 97%), lines 78.87% (gate 97%)` (run 39442599281; run 39437974497 was
-    also red but because of the flaky test above). Reverted (`ed6b608`).
+    also red but because of the flaky test above). Reverted (`ed6b608`). Repeated on the new merge in the "16.3 review fix" entry.
   - *Gate, untested file below the changed-file gate:* temporary `701947e` added a four-statement untested client file; the packages stayed above 97 %,
     `verify` failed in the changed-file step: `client/src/shared/ci-proof-untested.ts: statements 0% … lines 0% (gate 97%)` (run 39444096824). Reverted (`f1c8515`).
   - *Gate, failing test:* temporary `a54c7aa` added a test that fails; `client tests 3/3` failed with that one test only (384 passed, 1 failed) and `verify`
@@ -185,3 +188,39 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     `npm run docs:check`, `npm run lint` and the three client shards locally.
 - **Next step:** the owner reviews #249 (not merged by the agent). After the merge: 16.9 (parallel e2e), then 16.6, 16.7, 16.8.
 - **Verify with:** `npm run test:scripts`; `npm run docs:check`; `node scripts/ci-timings.mjs 39447341042`; `node scripts/merge-coverage.mjs <artifacts-dir> --out <scratch-dir> client`
+
+### 2026-10-21 — 16.3 review fix: the coverage merge adds up entry by entry
+- **Tasks:** 16.3 ✅ (the review of #249 did not merge it; this fixes its findings)
+- **Branch:** `chore/16.3-parallel-ci-jobs` — fix `9619f8b`, PR #249 ready, not merged
+- **Decisions / deviations from the plan:**
+  - Finding: `CoverageMap.merge` of `istanbul-lib-coverage` keys statements, functions and branches by source location, so entries at one location
+    collapsed into one and a covered entry hid an uncovered one: the gate could pass with an untested function. `mergeCoverage` in
+    `scripts/merge-coverage-lib.mjs` no longer uses it. The shards are instrumented from the same source, so it adds up `s`, `f` and `b` index by
+    index after asserting that `statementMap`, `fnMap` and `branchMap` of each file are equal across shards (and that the hit counts have exactly
+    the keys of their maps, or a missing count would become `NaN`, which no threshold catches). A file that differs fails the merge with exit
+    code 2 and a message that names the file and the map. `scripts/merge-coverage.mjs` now also prints the absolute counts (covered/total).
+  - Tests (`scripts/merge-coverage.test.mjs`): hit counts of statements, functions and branches summed index by index across three shards; two functions,
+    two statements and two branches at one location, one covered and one not, read 50 % in the single run and 50 % after the merge (with the same
+    totals as the single run; the old merge counted the two functions as one); differing statement, function and branch maps, and hit counts that
+    do not match their maps, fail; the command exits 2 on differing maps.
+- **Proofs** (GitHub Actions):
+  - *Merged counts equal those of one unsharded run.* The run of the fix (39463158716, `9619f8b`, `api tests` rerun after a Jest worker crash): `verify` prints
+    `client: 3 shard(s) merged, 192 files; statements 4390/4393, branches 1602/1603, functions 1066/1066, lines 4106/4108`, the counts of one unsharded
+    run (the baseline `npx jest --coverage` in `client`: the same four pairs). The shard artifacts of that run give `client/src/site/LazyAmbient.tsx`
+    6 functions per shard (`fnMap` size) and 6 merged (`functions: total 6, covered 6`); before the fix 5 merged and 1065 for the package.
+    Locally, three real shards merged and one unsharded run have identical summaries for all 193 entries (the file totals and the 1066 functions); the
+    only difference is `branchesTrue`, which neither reporter fills and which is not gated.
+  - *Gate, untested code in a package, on the new merge.* Temporary `34c156d` (30 untested functions in `mcp`), run 39469163848 finished before the revert:
+    `changes`, `static checks`, `api tests`, the three `client tests` shards and `mcp tests` green, `verify` failed in the step "Merge the coverage and apply
+    the coverage gate" with `mcp: 1 shard(s) merged, 16 files; statements 359/449 (79.95%), … functions 111/141 (78.72%), … lines 336/426 (78.87%)` and
+    `Coverage below the gate: mcp: statements 79.95% (gate 97%), functions 78.72% (gate 97%), lines 78.87% (gate 97%)`; "Coverage of changed files" was
+    skipped. Reverted in `f5b773e`; both commits pushed with `git push --no-verify` (the pre-push hook cannot start its own database, see the entry
+    above). The failing-test proof (run 39446307686) does not depend on the merge and stands.
+- **Problems / blockers / findings:**
+  - The `api tests` job crashed twice with `A jest worker process … was terminated by another process: signal=SIGABRT` (run 39447537566 in
+    `database-reset.int.test.ts`, run 39463158716 in `engine.int.test.ts`) and passed on a rerun. It is not an effect of the split: failed `verify` runs
+    before it show the same message (39010281869, 38715790697, 38651537360). The cause is not known; the quickjs line
+    `Aborted(Assertion failed: list_empty(&rt->gc_obj_list) …)` is in every `api` log, green ones included, so it is not the cause by itself. A task of Phase 12
+    should look at it; for now a rerun of the failed job answers it.
+- **Next step:** the owner reviews #249 again (not merged by the agent). After the merge: 16.9 (parallel e2e), then 16.6, 16.7, 16.8.
+- **Verify with:** `npm run test:scripts`; `gh run download <run-id> -p 'coverage-client-*' -D <dir>` and `node scripts/merge-coverage.mjs <dir> --out <scratch-dir> client`

@@ -52,7 +52,8 @@ export function parseTestLog(text) {
  */
 export function testJobs(jobs, name) {
   const wanted = name ? (job) => job.name === name : (job) => job.name === 'verify' || /\btests\b/.test(job.name)
-  return jobs.filter((job) => wanted(job) && job.conclusion !== null)
+  // A job that is still running has no log to read yet, and a skipped one never had any
+  return jobs.filter((job) => wanted(job) && job.conclusion !== null && job.conclusion !== 'skipped')
 }
 
 /** One test log from several: the files and the package runs of all of them. */

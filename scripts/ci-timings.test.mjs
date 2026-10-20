@@ -142,6 +142,7 @@ test('testJobs picks the test jobs of the parallel workflow, or the one job that
     { name: 'api tests', conclusion: 'success' },
     { name: 'client tests 1/3', conclusion: 'success' },
     { name: 'client tests 2/3', conclusion: null },
+    { name: 'mcp tests', conclusion: 'skipped' },
     { name: 'verify', conclusion: 'success' }
   ]
   assert.deepEqual(

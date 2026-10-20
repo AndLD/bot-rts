@@ -159,6 +159,25 @@ or of the Node version (`.nvmrc`) starts a new cache; the old one is evicted by 
 The Jest cache cannot be measured on a pull request: no push to a protected branch has saved one yet. The first push after this change
 saves it, and the numbers of 16.8 show its effect.
 
+**After 16.3** (parallel jobs, [CI jobs](#ci-jobs)). The time from the start of the workflow to the end of `verify`, from the pull request
+runs of #249: 39435749539 (the first run, caches missed: 6 min 10 s) and 39447341042 (caches hit: 6 min 04 s). Before: `verify` 20 min 59 s
+(baseline) and 8 min 18 s (after 16.2 and 16.4, run 39171650284).
+
+| Job (run 39447341042, caches hit) | Time | Largest steps |
+| --------------------------------- | ---- | ------------- |
+| `api tests` | 5 min 20 s | Jest 3 min 44 s (`api.int.test.ts` 62 s, `engine.int.test.ts` 52 s); the log gateway start 52 s |
+| `static checks` | 2 min 50 s | typecheck, build, lint |
+| `client tests 1/3`, `2/3`, `3/3` | 1 min 02 s, 46 s, 43 s | Jest 24 to 29 s each |
+| `mcp tests` | 40 s | Jest 13 s |
+| `verify` | 32 s | the coverage merge and the changed-file gate |
+
+The longest job is `api tests`, so the `verify` check is now bound by the `api` tests (one Jest run of 2532 tests) and the 52 s start of the log
+gateway; sharding `api` like `client` is the next step if 6 minutes is too long. The `e2e` check (9 min 13 s here) is longer than `verify` and is
+the subject of 16.9. A Markdown-only pull request reports `verify` after 2 min 35 s in all (run 39447519939): `static checks` runs the Markdown
+links and the script tests, the `api`, `client` and `mcp` jobs are skipped. The same tests ran as before the split: 3489 tests in 432 suites
+(`api` 2532, `client` 245 + 254 + 384 = 883, `mcp` 74), and the merged `client` coverage (4390 of 4393 statements, 1602 of 1603 branches)
+is that of one unsharded run.
+
 ## CI jobs
 
 The required check `verify` is the last of several jobs of `.github/workflows/ci.yml` that run at the same time (task 16.3):

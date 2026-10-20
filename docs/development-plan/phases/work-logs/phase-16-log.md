@@ -131,3 +131,57 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     `.githooks/pre-push`, `scripts/e2e.mjs` and the stacked-branch rules first.
 - **Next step:** 16.3, after Phase 15 is done (then 16.9, 16.6, 16.7, 16.8)
 - **Verify with:** `npm run docs:check`; `node scripts/ci-timings.mjs 39171650284`; `gh cache list`
+
+### 2026-10-20 — 16.3 parallel CI jobs done, in review
+- **Tasks:** 16.3 ✅ (the owner reviews the pull request before it merges)
+- **Branch:** `chore/16.3-parallel-ci-jobs` — done, PR #249 (draft until the proofs held, then ready); not merged
+- **Decisions / deviations from the plan:**
+  - `verify` of `.github/workflows/ci.yml` is now the last of the jobs `changes`, `static checks`, `api tests`, `client tests i/3` (three
+    shards of `jest --shard=i/3`) and `mcp tests`, which run at the same time. `verify` needs all of them, downloads the
+    `coverage-<package>-<shard>-of-<count>` artifacts, and `scripts/merge-coverage.mjs` adds the hit counts of the shards, writes the
+    `coverage-final.json` and `coverage-summary.json` that one Jest run writes and applies the coverage gate of the profile to the merged
+    package. `scripts/check-changed-coverage.mjs` then runs on the merged data. The test jobs run Jest with `--coverageThreshold='{}'`
+    so a shard cannot fail the package gate alone; the gate itself (97 %, per package and per changed file) did not change, and neither
+    did the required check names or `scripts/protect-branches.sh`. The merge fails on a missing shard (exit code 2).
+  - `istanbul-lib-coverage` is a new root dev dependency (the merge library Jest already uses); the three Jest configs got the `json`
+    reporter. `scripts/ci-timings.mjs` reads the logs of all test jobs by default (and skips skipped jobs); the profile row of the required checks
+    and `docs/testing/README.md` ("CI jobs", "After 16.3") describe the split.
+  - A Markdown-only change runs `changes` and `static checks` (Markdown links, script tests) and skips the code jobs; `verify` accepts
+    exactly that pattern and fails on any other `skipped`, `failure` or `cancelled`.
+  - **Deviation:** a test fix in this pull request. `SettingsPanel.test.tsx` counted all `switch` roles right after the categories appeared and got
+    16 instead of 8 when the notification switches had loaded already (run 39437974497, client shard 2/3). That was a race, not an effect
+    of the split; the test now counts the category switches only (`71b728b`). It was not one of the expected red runs, so it got a fix
+    and not only a revert.
+  - **Deviation:** the pull request itself cannot show a Markdown-only change (its diff against the integration branch contains the workflow),
+    so the last two proofs ran on scratch pull requests into a scratch base branch `chore/16.3-proof-base` (the same workflow plus the base
+    branch in the `pull_request` trigger, and the profile test told to ignore it). #250 and #251 are closed unmerged; the three scratch
+    branches `chore/16.3-proof-base`, `docs/16.3-proof-docs-only` and `chore/16.3-proof-code-line` are kept (branches are never deleted).
+- **Proofs** (all on GitHub Actions):
+  - *Same tests as before the split.* Last code run on the integration branch (39268504781): `api` 2532, `client` 883, `mcp` 74 tests, 432
+    suites. This pull request (run 39435749539): `api tests` 2532, `client tests` 245 + 254 + 384 = 883, `mcp tests` 74; 311 + 113 + 8 = 432
+    suites. No shard ran 0 tests (Jest also fails on an empty shard). Merged coverage of `client`, 3 shards: 99.93 % statements, 99.93 % branches,
+    100 % functions, 99.95 % lines, equal to one unsharded run (checked locally too).
+  - *Gate, untested code in a package:* temporary commit `c43cf13`/`9d4d943` added 30 untested functions to `mcp`; `verify` failed in the merge step, every test
+    job green: `mcp: statements 79.95% (gate 97%), functions 78.72% (gate 97%), lines 78.87% (gate 97%)` (run 39442599281; run 39437974497 was
+    also red but because of the flaky test above). Reverted (`ed6b608`).
+  - *Gate, untested file below the changed-file gate:* temporary `701947e` added a four-statement untested client file; the packages stayed above 97 %,
+    `verify` failed in the changed-file step: `client/src/shared/ci-proof-untested.ts: statements 0% … lines 0% (gate 97%)` (run 39444096824). Reverted (`f1c8515`).
+  - *Gate, failing test:* temporary `a54c7aa` added a test that fails; `client tests 3/3` failed with that one test only (384 passed, 1 failed) and `verify`
+    failed with `Unexpected result: client failure` (run 39446307686). Reverted (`af73d39`); the run on the reverted head is green (run 39447341042, after
+    a rerun of the `lighthouse` flake).
+  - *Markdown-only change:* #250 (one Markdown line): `api`, `client` and `mcp` jobs skipped, `verify` green after 2 min 35 s (run 39447519939).
+  - *One-line code change:* #251 (one comment line in `mcp/src/start.ts`): all code jobs ran, merge and `1 changed source files meet the coverage gate`, `verify` green
+    (run 39447537566, after a rerun of `api tests`).
+- **Problems / blockers / findings:**
+  - The `verify` check takes 6 min 04 s (caches hit, run 39447341042; 6 min 10 s with misses), against 8 min 18 s after 16.2/16.4 and 21 min at the baseline. It is bound by
+    `api tests` (Jest 3 min 44 s, the log gateway start 52 s); `e2e` (9 min 13 s) is longer, which is 16.9. Sharding `api` like `client` is a possible
+    further step; it is not in the plan.
+  - Two flakes unrelated to the change were answered with a rerun of the failed job: the `lighthouse` performance score (below 0.9 once in six runs) and
+    a Jest worker of `api` killed by `SIGABRT` in `database-reset.int.test.ts` (run 39447537566). Both jobs ran before the split in one runner alongside the rest; watch whether
+    the `api` crash comes again.
+  - All parallel jobs miss the `node_modules` cache on the first run after a lock file change (the lock file changed here: a new dev dependency), each
+    installing for 1 min 35 s once and trying to save the same cache. The title of a skipped matrix job shows the unexpanded `${{ matrix.shard }}`; it is not a required check.
+  - The pre-push hook could not run (the main checkout holds the database ports, see 15.12), so the branch was pushed with `--no-verify` after running `npm run test:scripts`,
+    `npm run docs:check`, `npm run lint` and the three client shards locally.
+- **Next step:** the owner reviews #249 (not merged by the agent). After the merge: 16.9 (parallel e2e), then 16.6, 16.7, 16.8.
+- **Verify with:** `npm run test:scripts`; `npm run docs:check`; `node scripts/ci-timings.mjs 39447341042`; `node scripts/merge-coverage.mjs <artifacts-dir> --out <scratch-dir> client`

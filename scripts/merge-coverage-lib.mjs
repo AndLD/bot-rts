@@ -1,5 +1,6 @@
 // Merging of the Jest coverage of the shards of one package, and the coverage gate on the merged data (docs/profile.md).
 // Used by scripts/merge-coverage.mjs, the last step of the `verify` job of the CI workflow.
+import { isDeepStrictEqual } from 'node:util'
 import libCoverage from 'istanbul-lib-coverage'
 
 const METRICS = ['statements', 'branches', 'functions', 'lines']
@@ -29,19 +30,66 @@ export function shardsOf(pkg, names) {
   return found.map((entry) => `coverage-${pkg}-${entry.index}-of-${entry.count}`)
 }
 
-// Sums the hit counts of the same files from several `coverage-final.json` objects
-export function mergeCoverage(finals) {
-  const map = libCoverage.createCoverageMap({})
+const MAPS = ['statementMap', 'fnMap', 'branchMap']
 
-  for (const final of finals) {
-    map.merge(final)
+// Adds the hit counts of `other` to those of `file`, entry by entry, after checking that both describe the same source
+function addHits(path, file, other) {
+  for (const name of MAPS) {
+    if (!isDeepStrictEqual(file[name], other[name])) {
+      throw new Error(
+        `${path}: the ${name} differs between shards, so their hit counts cannot be added; ` +
+          'the shards must run the same code with the same Jest configuration'
+      )
+    }
   }
 
-  return map
+  // A hit count for every entry of the maps, and no other: a missing count would turn into NaN, which no threshold catches
+  const hits = { s: 'statementMap', f: 'fnMap', b: 'branchMap' }
+
+  for (const [counts, map] of Object.entries(hits)) {
+    if (!isDeepStrictEqual(Object.keys(other[counts]).sort(), Object.keys(other[map]).sort())) {
+      throw new Error(`${path}: the hit counts "${counts}" of a shard do not match its ${map}`)
+    }
+  }
+
+  for (const key of Object.keys(file.s)) {
+    file.s[key] += other.s[key]
+  }
+
+  for (const key of Object.keys(file.f)) {
+    file.f[key] += other.f[key]
+  }
+
+  for (const key of Object.keys(file.b)) {
+    file.b[key] = file.b[key].map((hits, index) => hits + other.b[key][index])
+  }
+}
+
+/**
+ * Adds up the hit counts of the same files from several `coverage-final.json` objects, index by index. Every shard is instrumented from
+ * the same source, so a file has the same statement, function and branch maps in each; a file whose maps differ is an error. This does
+ * not use `CoverageMap.merge` of istanbul-lib-coverage: it matches entries by source location, so two functions or statements at one
+ * location become one and the covered one hides the uncovered one.
+ */
+export function mergeCoverage(finals) {
+  const merged = {}
+
+  for (const final of finals) {
+    for (const [path, file] of Object.entries(final)) {
+      if (merged[path]) {
+        addHits(path, merged[path], file)
+      } else {
+        merged[path] = structuredClone(file)
+      }
+    }
+  }
+
+  return merged
 }
 
 // The shape of Jest's `json-summary` reporter: `total` and one entry per file, which scripts/check-changed-coverage.mjs reads
-export function toSummary(map) {
+export function toSummary(merged) {
+  const map = libCoverage.createCoverageMap(merged)
   const summary = { total: map.getCoverageSummary().toJSON() }
 
   for (const file of map.files()) {

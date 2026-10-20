@@ -35,7 +35,8 @@ works in practice.
 | `npm run docs:check` | Markdown links |
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
-| `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings) |
+| `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
+| `node scripts/merge-coverage.mjs <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
 The pre-push hook (`.githooks/pre-push`) runs the typecheck and the coverage gate before code leaves the machine; pushes that
@@ -93,9 +94,9 @@ node scripts/ci-timings.mjs 39158838242 --top 10
 ```
 
 It prints the wall time of the run, the duration of each job, the steps of 5 s or more (`--all-steps` for every step), the
-`Time:` line of each Jest run of the `verify` log and the slowest test files. The test files come from Jest's
-`PASS … (N s)` lines, which Jest prints only for files above its slow-test threshold of 5 s. `--job <name>` picks another job's
-log and `--log <file>` reads a saved one. The parsing is tested on a saved excerpt (`scripts/fixtures/verify-log-excerpt.txt`) by
+`Time:` line of each Jest run of the test jobs' logs (`verify` for a run before 16.3) and the slowest test files. The test files come from Jest's
+`PASS … (N s)` lines, which Jest prints only for files above its slow-test threshold of 5 s. `--job <name>` picks one job's
+log instead of all the test jobs and `--log <file>` reads a saved one. The parsing is tested on a saved excerpt (`scripts/fixtures/verify-log-excerpt.txt`) by
 `npm run test:scripts`.
 
 **Baseline** (push run of #216 to the integration branch, run 39158838242, 2026-10-18):
@@ -157,6 +158,29 @@ A miss costs the same as before plus 4 to 14 s to save the cache, once per chang
 or of the Node version (`.nvmrc`) starts a new cache; the old one is evicted by GitHub when the repository passes its cache quota.
 The Jest cache cannot be measured on a pull request: no push to a protected branch has saved one yet. The first push after this change
 saves it, and the numbers of 16.8 show its effect.
+
+## CI jobs
+
+The required check `verify` is the last of several jobs of `.github/workflows/ci.yml` that run at the same time (task 16.3):
+
+| Job | What it runs |
+| --- | ------------ |
+| `changes` | decides whether the change is Markdown-only; the code jobs below run only when it is not |
+| `static checks` | generated files up to date, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, the script tests, build; the Markdown links and the script tests run for a Markdown-only change too |
+| `api tests` | Jest of `api` with PostgreSQL, Redis and the log gateway |
+| `client tests i/3` | Jest of `client`, one of three shards (`jest --shard=i/3`) |
+| `mcp tests` | Jest of `mcp` |
+| `verify` | needs all of them (a skipped code job is right only for a Markdown-only change), merges the coverage of each package, applies the coverage gate and, on a pull request, the changed-file coverage |
+
+Every test job runs Jest with `--coverage --coverageThreshold='{}'`, so a shard cannot fail the package gate on its own coverage, and
+uploads `coverage/coverage-final.json` as the artifact `coverage-<package>-<shard>-of-<count>`. `verify` downloads them,
+`scripts/merge-coverage.mjs` adds the hit counts of the shards, writes the `coverage-final.json` and `coverage-summary.json` that one
+Jest run would write, and fails when any metric of a package is below the gate of the profile: the gate is the same value and scope as
+before (separately per package, plus every changed file), measured on the whole package. A missing shard fails the merge (exit code 2), and
+Jest fails on a shard with no test files, so a test cannot be lost. To count the tests across the jobs, add the `Tests:` lines of the
+jobs' logs (`node scripts/ci-timings.mjs <run-id>` lists the jobs). To try the same locally: run a package with `--shard=i/n` and
+`--coverageThreshold='{}'`, copy each `coverage/coverage-final.json` to `<dir>/coverage-<package>-<i>-of-<n>/`, and run
+`node scripts/merge-coverage.mjs <dir> --out <scratch-dir> <package>`.
 
 ## Coverage
 

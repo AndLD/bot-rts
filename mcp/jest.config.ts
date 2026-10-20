@@ -16,7 +16,8 @@ const config: Config = {
     '!src/index.ts' // process entry point: reads the environment and starts the server (the logic is in start.ts)
   ],
   coverageThreshold: { global: coverageGate },
-  coverageReporters: ['text-summary', 'json-summary', 'lcov']
+  // `json` is what scripts/merge-coverage.mjs merges across the CI shards
+  coverageReporters: ['text-summary', 'json-summary', 'json', 'lcov']
 }
 
 export default config

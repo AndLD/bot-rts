@@ -27,7 +27,8 @@ const config: Config = {
     '!src/shared/api/generated.ts' // generated from the OpenAPI document of the API (npm run api:generate)
   ],
   coverageThreshold: { global: coverageGate },
-  coverageReporters: ['text-summary', 'json-summary', 'lcov']
+  // `json` is what scripts/merge-coverage.mjs merges across the CI shards
+  coverageReporters: ['text-summary', 'json-summary', 'json', 'lcov']
 }
 
 // next-intl ships ES modules only, so it has to go through the transformer as well

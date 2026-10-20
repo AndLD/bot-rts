@@ -22,7 +22,7 @@ of section 2.1 of that method (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY).
 ## How to run this plan
 
 - **One prompt per step, not one prompt for the whole plan.** There are decisions only you can make between the steps (which findings to fix, how the framework is consumed, when to publish), a very long session loses detail when its context is compacted, and a usage limit hit halfway loses work. The prompts below are written so that each step is one self-contained run.
-- **Every step is resumable.** Each prompt tells the agent to commit its progress to the branch and to keep a checkpoint file (section "Checkpoint file"). A new session continues from the last checkpoint. Step 2 uses the work log of Phase 15 instead.
+- **Every step is resumable.** Each prompt tells the agent to commit its progress to the branch and to keep a checkpoint file (section "Checkpoint file"). A new session continues from the last checkpoint. Steps 2 and 3 use the work logs of Phases 15 and 17 instead.
 - **Pull requests follow the repository rules** (`AGENTS.md` §7): a branch of type `docs/` or `chore/` from `develop`, a pull request opened by the agent, and merged only after you say so. Step 2 is the exception: it is Phase 15, so its task pull requests merge as in any phase you started (`AGENTS.md` §7.5), except a task that changes the meaning of a rule.
 - **Order matters.** Step 2 needs the report of step 1; step 3 needs the blockers list of step 1 and the fixes of step 2.
 
@@ -136,6 +136,12 @@ rule waits for your approval.
 **Input:** the fixed harness and the blockers list. **Output:** a project-neutral framework in a staging folder of this repository,
 ready to be copied to its own GitHub repository, and a proof that it bootstraps a new project. **Exit criteria:** section 3.5.
 
+**The work is planned as [Phase 17 — Harness framework extraction](../development-plan/phases/phase-17-harness-framework.md)** (owner
+decision 2026-10-20), as step 2 was planned as Phase 15: task ids, sizes, statuses and the work log of the phase replace the checkpoint file.
+The owner made the decisions of 3.1 on 2026-10-20; they are recorded in the
+[Phase 17 work log](../development-plan/phases/work-logs/phase-17-log.md), and its task 17.1 writes the design within them. This section keeps
+the reasons, the layout, the building steps, the proof and the exit criteria; the phase file holds the tasks.
+
 ### 3.1 Decisions (you, before building)
 
 The design session (Opus) proposes an answer to each, with trade-offs; you choose:
@@ -191,16 +197,17 @@ the framework to be fixed there.
 
 ### Start prompts (step 3)
 
-Design session:
+Step 3 is Phase 17, so it starts like any phase; the phase file holds the tasks and the order. Design session (task 17.1, a fresh
+session, Opus 5.5 at high effort):
 
 ```text
-Execute step 3.1 of docs/harness-framework/README.md: the design of the framework extraction. Read the latest harness quality review report (export dry run and blockers), the method and bindings. Propose an answer with trade-offs for each decision in the 3.1 table, the exact target layout for this repository's content (a classification table: every harness file and section to core, adapter, profile, example, or stays), and the order of the build. Write it as docs/harness-framework/design.md on a docs/ branch, open a pull request, and stop for my decisions. Do not build anything yet.
+Start Phase 17, task 17.1 only: the framework design of docs/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
 ```
 
-Build session (after the decisions are recorded in `design.md`):
+Build session (after the owner has accepted `design.md` and its build order is in the phase file as tasks 17.2 onward):
 
 ```text
-Execute steps 3.3 to 3.5 of docs/harness-framework/README.md using the decisions recorded in docs/harness-framework/design.md. Build the framework in docs/harness-framework/framework/ by moving content out of this repository's harness, one pull request per build step (docs/ or chore/ branch from origin/develop), ask me before merging each. Keep docs/harness-framework/progress.md updated on the branch. Finish with the proof of 3.4 in a scratch directory and a summary against the exit criteria in 3.5. Do not create or push to any other repository.
+Continue Phase 17: build the framework in docs/harness-framework/framework/ per the tasks of the phase file and docs/harness-framework/design.md, moving content out of this repository's harness. Finish with the proof of step 3.4 in a scratch directory and a summary against the exit criteria of step 3.5 and of the phase. Do not create or push to any other repository.
 ```
 
 ---

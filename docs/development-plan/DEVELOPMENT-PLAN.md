@@ -37,14 +37,15 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
 | 15 | Harness fixes | 77 | ✅ Done |
 | 16 | CI speed and agent throughput | 26 | 🟡 In progress |
-|  | **Total of Phases 0–16** | **1167** (Phase 12 grows as issues are added) | |
+| 17 | Harness framework extraction | 3 (grows) | ⬜ Not started |
+|  | **Total of Phases 0–17** | **1170** (Phase 12, Phase 17 grows as issues are added) | |
 <!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
 Phases 8–10 (referenced from the design, the testing strategy and the deployment gate) did not change. The order actually followed is:
 
-**0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 11 → 8 → 9 → 13 → 14 → 15 → 16 → 10**
+**0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 11 → 8 → 9 → 13 → 14 → 15 → 16 → 17 → 10**
 
 Phase 13 (observability) was added on 2026-10-15 and is **developed after Phase 9 and before Phase 10** (owner decision 2026-10-16): its tracing and
 its logs of every node help to build and debug the market, the escrow and the ledger of Phase 10, and replacing the logger before Phase 10 adds its
@@ -52,6 +53,8 @@ code is cheaper than after. Phase 14 was developed right after Phase 13. Phase 1
 (owner decision 2026-10-18): it makes the rules true and enforced and lets several agents work at once, which Phase 10 can use.
 Phase 16 (CI speed) was added on 2026-10-18 and is **developed after Phase 15 and before Phase 10**: a task pull request waits about
 21 minutes for the required checks today, and Phase 10 has many tasks.
+Phase 17 (harness framework extraction, step 3 of the [harness-framework plan](../harness-framework/README.md)) was added on 2026-10-20 and is
+**developed after Phase 16 and before Phase 10**; its design task 17.1 may run while Phase 16 is in progress.
 Phase 12 is open-ended and its tasks are done whenever they are found; it has no fixed place in the order.
 
 ---
@@ -107,8 +110,9 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
 - [Phase 15 — Harness fixes (77 SP)](./phases/phase-15-harness-fixes.md)
 - [Phase 16 — CI speed and agent throughput (26 SP)](./phases/phase-16-ci-speed.md)
+- [Phase 17 — Harness framework extraction (3 SP, grows when the design is accepted)](./phases/phase-17-harness-framework.md)
 <!-- plan-contents:end -->
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
 - [Definition of Done](./cross-cutting/definition-of-done.md)
-- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md), [phase 16](./phases/work-logs/phase-16-log.md)
+- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md), [phase 16](./phases/work-logs/phase-16-log.md), [phase 17](./phases/work-logs/phase-17-log.md)

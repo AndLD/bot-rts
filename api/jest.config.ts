@@ -48,7 +48,8 @@ const config: Config = {
     '!scripts/**' // command line entry points
   ],
   coverageThreshold: { global: coverageGate },
-  coverageReporters: ['text-summary', 'json-summary', 'lcov']
+  // `json` is what scripts/merge-coverage.mjs merges across the CI shards
+  coverageReporters: ['text-summary', 'json-summary', 'json', 'lcov']
 }
 
 export default config

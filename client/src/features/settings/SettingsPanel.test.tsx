@@ -69,7 +69,8 @@ describe('SettingsPanel', () => {
     setup({ user: { combat: false }, global: { trade: false } })
 
     expect(await screen.findByText('Movement')).toBeInTheDocument()
-    expect(screen.getAllByRole('switch')).toHaveLength(8)
+    // The notification switches come from their own request, so they may or may not be there yet: count the categories only
+    expect(screen.getAllByRole('switch').filter((element) => element.hasAttribute('data-category'))).toHaveLength(8)
     expect(switchOf('Combat')).not.toBeChecked()
     expect(switchOf('Movement')).toBeChecked()
     expect(screen.getByText('off in the game')).toBeInTheDocument()

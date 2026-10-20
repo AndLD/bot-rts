@@ -6,9 +6,11 @@ import {
   formatDuration,
   formatReport,
   jobDurations,
+  mergeTestLogs,
   parseTestLog,
   runSeconds,
-  slowestFiles
+  slowestFiles,
+  testJobs
 } from './ci-timings-lib.mjs'
 
 // A saved excerpt of the `verify` log of run 39158838242 (the baseline of Phase 16), in the format of `gh run view --log`
@@ -131,4 +133,35 @@ test('formatReport lists the jobs, the major steps, the packages and the slowest
 
 test('formatReport without a test log lists only the jobs', () => {
   assert.doesNotMatch(formatReport({ runId: '1', jobs: JOBS }), /Slowest test files/)
+})
+
+test('testJobs picks the test jobs of the parallel workflow, or the one job that is named', () => {
+  const jobs = [
+    { name: 'changes', conclusion: 'success' },
+    { name: 'static checks', conclusion: 'success' },
+    { name: 'api tests', conclusion: 'success' },
+    { name: 'client tests 1/3', conclusion: 'success' },
+    { name: 'client tests 2/3', conclusion: null },
+    { name: 'mcp tests', conclusion: 'skipped' },
+    { name: 'verify', conclusion: 'success' }
+  ]
+  assert.deepEqual(
+    testJobs(jobs).map((job) => job.name),
+    ['api tests', 'client tests 1/3', 'verify']
+  )
+  assert.deepEqual(
+    testJobs(jobs, 'static checks').map((job) => job.name),
+    ['static checks']
+  )
+})
+
+test('mergeTestLogs joins the files and the package runs of several logs', () => {
+  const merged = mergeTestLogs([
+    { files: [{ file: 'a' }], packages: [{ package: 'api' }] },
+    { files: [{ file: 'b' }], packages: [{ package: 'client' }] }
+  ])
+  assert.deepEqual(merged, {
+    files: [{ file: 'a' }, { file: 'b' }],
+    packages: [{ package: 'api' }, { package: 'client' }]
+  })
 })

@@ -29,7 +29,108 @@ jobs:
             exit 1
           fi
 
-  verify:
+  changes:
+    # The required checks must still report, so a markdown-only change runs the workflow but skips the code jobs
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect markdown-only changes
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
+            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          else
+            files="unknown.ts"
+          fi
+          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+
+  # `verify` (below) is the required check; it waits for the jobs from here to `mcp`, which run at the same time (docs/testing/README.md, CI performance)
+  static:
+    name: static checks
+    needs: changes
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: botrts
+          POSTGRES_PASSWORD: botrts
+          POSTGRES_DB: botrts
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U botrts -d botrts"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://botrts:botrts@localhost:5432/botrts
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # The documentation checks and the script tests also run for a markdown-only change; some scripts import packages
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: API document and generated client are up to date
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          npm run openapi:generate -w api
+          npm run api:generate -w client
+          git diff --exit-code -- api/openapi.json client/src/shared/api/generated.ts || {
+            echo "Run 'npm run openapi:generate -w api && npm run api:generate -w client' and commit the result"
+            exit 1
+          }
+      - name: Documentation data is up to date
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          npm run docs:generate
+          git diff --exit-code -- client/src/docs/generated client/src/features/admin/docs/generated || {
+            echo "Run 'npm run docs:generate' and commit the result"
+            exit 1
+          }
+      - name: Migrations match the Prisma schema
+        if: needs.changes.outputs.code == 'true'
+        env:
+          PGPASSWORD: botrts
+        run: |
+          psql -h localhost -U botrts -d botrts -c 'CREATE DATABASE botrts_shadow'
+          cd api && npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://botrts:botrts@localhost:5432/botrts_shadow --exit-code
+      - name: Lint
+        if: needs.changes.outputs.code == 'true'
+        run: npm run lint
+      - name: Import boundaries
+        if: needs.changes.outputs.code == 'true'
+        run: npm run check:boundaries
+      - name: Typecheck
+        if: needs.changes.outputs.code == 'true'
+        run: npm run typecheck
+      - name: Message catalogues
+        if: needs.changes.outputs.code == 'true'
+        run: npm run i18n:check
+      - name: Markdown links
+        run: npm run docs:check
+      - name: Release scripts
+        run: npm run test:scripts
+      - name: Build
+        if: needs.changes.outputs.code == 'true'
+        run: npm run build
+
+  api:
+    name: api tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -58,98 +159,154 @@ jobs:
       DATABASE_URL: postgresql://botrts:botrts@localhost:5432/botrts
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Detect markdown-only changes
-        id: changes
-        # The required checks must still report, so a markdown-only change runs the job but skips the code checks
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
-            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          else
-            files="unknown.ts"
-          fi
-          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
       - name: Install dependencies
-        if: steps.changes.outputs.code == 'true'
         uses: ./.github/actions/install
-      - name: Generate the Prisma client
-        if: steps.changes.outputs.code == 'true'
-        run: npm run prisma:generate -w api
-      - name: API document and generated client are up to date
-        if: steps.changes.outputs.code == 'true'
-        run: |
-          npm run openapi:generate -w api
-          npm run api:generate -w client
-          git diff --exit-code -- api/openapi.json client/src/shared/api/generated.ts || {
-            echo "Run 'npm run openapi:generate -w api && npm run api:generate -w client' and commit the result"
-            exit 1
-          }
-      - name: Documentation data is up to date
-        if: steps.changes.outputs.code == 'true'
-        run: |
-          npm run docs:generate
-          git diff --exit-code -- client/src/docs/generated client/src/features/admin/docs/generated || {
-            echo "Run 'npm run docs:generate' and commit the result"
-            exit 1
-          }
-      - name: Migrations match the Prisma schema
-        if: steps.changes.outputs.code == 'true'
-        env:
-          PGPASSWORD: botrts
-        run: |
-          psql -h localhost -U botrts -d botrts -c 'CREATE DATABASE botrts_shadow'
-          cd api && npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma \
-            --shadow-database-url postgresql://botrts:botrts@localhost:5432/botrts_shadow --exit-code
-      - name: Lint
-        if: steps.changes.outputs.code == 'true'
-        run: npm run lint
-      - name: Import boundaries
-        if: steps.changes.outputs.code == 'true'
-        run: npm run check:boundaries
-      - name: Typecheck
-        if: steps.changes.outputs.code == 'true'
-        run: npm run typecheck
-      - name: Message catalogues
-        if: steps.changes.outputs.code == 'true'
-        run: npm run i18n:check
-      - name: Markdown links
-        run: npm run docs:check
-      - name: Release scripts
-        run: npm run test:scripts
       - name: Restore the Jest cache
-        if: steps.changes.outputs.code == 'true'
         id: jest-cache
         # Jest keeps its transform cache in the temporary directory. Pull requests read the cache that the last push to a protected branch saved
         uses: actions/cache/restore@v4
         with:
           path: /tmp/jest_*
-          key: jest-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts', 'client/jest.config.ts', 'mcp/jest.config.ts') }}-${{ github.sha }}
+          key: jest-api-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts') }}-${{ github.sha }}
           restore-keys: |
-            jest-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts', 'client/jest.config.ts', 'mcp/jest.config.ts') }}-
+            jest-api-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'api/jest.config.ts') }}-
       - name: Start the log gateway and Elasticsearch
-        if: steps.changes.outputs.code == 'true'
         # The same containers and configuration as docker-compose.yml: the gateway collector and a single-node Elasticsearch
         run: docker compose --profile observability up -d --wait otel-collector
-      - name: Unit and integration tests with the coverage gate
-        if: steps.changes.outputs.code == 'true'
+      - name: Unit and integration tests
+        # The coverage gate is applied by `verify` to the merged coverage, so the package threshold of Jest is switched off here
         env:
           REQUIRE_OBSERVABILITY: 'true'
-        run: npm run test:coverage
+        run: npm run test:coverage -w api -- --coverageThreshold='{}'
       - name: Save the Jest cache
-        if: github.event_name == 'push' && steps.changes.outputs.code == 'true'
+        if: github.event_name == 'push'
         uses: actions/cache/save@v4
         with:
           path: /tmp/jest_*
           key: ${{ steps.jest-cache.outputs.cache-primary-key }}
+      - name: Keep the coverage for the gate
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-api-1-of-1
+          path: api/coverage/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
+
+  client:
+    name: client tests ${{ matrix.shard }}/${{ matrix.count }}
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+        count: [3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Restore the Jest cache
+        id: jest-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/jest_*
+          key: jest-client-${{ matrix.shard }}-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'client/jest.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            jest-client-${{ matrix.shard }}-${{ runner.os }}-${{ hashFiles('package-lock.json', '.nvmrc', 'client/jest.config.ts') }}-
+      - name: Tests of the shard
+        # Jest fails when its shard has no test files, so an empty shard cannot pass unnoticed
+        run: npm run test:coverage -w client -- --shard=${{ matrix.shard }}/${{ matrix.count }} --coverageThreshold='{}'
+      - name: Save the Jest cache
+        if: github.event_name == 'push'
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/jest_*
+          key: ${{ steps.jest-cache.outputs.cache-primary-key }}
+      - name: Keep the coverage for the gate
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-client-${{ matrix.shard }}-of-${{ matrix.count }}
+          path: client/coverage/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
+
+  mcp:
+    name: mcp tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Tests
+        run: npm run test:coverage -w mcp -- --coverageThreshold='{}'
+      - name: Keep the coverage for the gate
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-mcp-1-of-1
+          path: mcp/coverage/coverage-final.json
+          if-no-files-found: error
+          retention-days: 1
+
+  verify:
+    # The required check. It needs every job above, merges the coverage of the shards of each package and applies the coverage
+    # gate (value and scope in docs/profile.md) to the merged data, so the gate is not weaker than one Jest run of the package
+    needs: [changes, static, api, client, mcp]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: The jobs it needs passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          code=$(echo "$NEEDS" | jq -r '.changes.outputs.code')
+          # A markdown-only change skips the code jobs; every other change needs all of them to succeed
+          unexpected=$(echo "$NEEDS" | jq -r --arg code "$code" '
+            to_entries[]
+            | select(.value.result != (if .key == "changes" or .key == "static" or $code == "true" then "success" else "skipped" end))
+            | "\(.key) \(.value.result)"')
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected result: $unexpected"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        if: needs.changes.outputs.code == 'true'
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        if: needs.changes.outputs.code == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        if: needs.changes.outputs.code == 'true'
+        uses: ./.github/actions/install
+      - name: Download the coverage of the shards
+        if: needs.changes.outputs.code == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      - name: Merge the coverage and apply the coverage gate
+        if: needs.changes.outputs.code == 'true'
+        run: node scripts/merge-coverage.mjs coverage-artifacts
       - name: Coverage report
-        if: always() && steps.changes.outputs.code == 'true'
+        if: always() && needs.changes.outputs.code == 'true'
         run: |
           for pkg in api client mcp; do
             [ -f "$pkg/coverage/coverage-summary.json" ] || continue
@@ -161,11 +318,8 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
           done
       - name: Coverage of changed files (the coverage gate)
-        if: steps.changes.outputs.code == 'true' && github.event_name == 'pull_request'
+        if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
         run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client mcp
-      - name: Build
-        if: steps.changes.outputs.code == 'true'
-        run: npm run build
 
   docker:
     # The API image must keep building (the release workflow publishes it)

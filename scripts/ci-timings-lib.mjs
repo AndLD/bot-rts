@@ -46,6 +46,21 @@ export function parseTestLog(text) {
   return { files, packages }
 }
 
+/**
+ * The jobs whose log holds Jest output: the one named `name`, or by default the test jobs of the parallel workflow (`api tests`,
+ * `client tests 1/3`, … ) and `verify`, which held every test before Phase 16 split it.
+ */
+export function testJobs(jobs, name) {
+  const wanted = name ? (job) => job.name === name : (job) => job.name === 'verify' || /\btests\b/.test(job.name)
+  // A job that is still running has no log to read yet, and a skipped one never had any
+  return jobs.filter((job) => wanted(job) && job.conclusion !== null && job.conclusion !== 'skipped')
+}
+
+/** One test log from several: the files and the package runs of all of them. */
+export function mergeTestLogs(logs) {
+  return { files: logs.flatMap((log) => log.files), packages: logs.flatMap((log) => log.packages) }
+}
+
 export function slowestFiles(files, count) {
   return [...files].sort((a, b) => b.seconds - a.seconds).slice(0, count)
 }

@@ -258,3 +258,5 @@ move through it with the engine running.
 `api/src/engine/infrastructure/design-examples.test.ts` runs every `js` block of design §17 and §18 in the script sandbox against canned
 answers of the game API (cells of the real shape, see `lib/utils/interfaces/map.ts`), so a design script that uses a function a bot does not
 have or a field a cell does not have fails the build. `doc-examples.test.ts` does the same for the gallery of the player documentation.
+
+The jobs of CI run at the same time, so a pull request waits for the slowest of them, not for their sum.

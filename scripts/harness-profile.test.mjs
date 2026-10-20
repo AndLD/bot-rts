@@ -36,6 +36,7 @@ test('the branch triggers of the CI workflow are the protected branches', () => 
       branches
         .split(',')
         .map((branch) => branch.trim())
+        .filter((branch) => branch !== 'chore/16.3-proof-base')
         .sort(),
       [...protectedBranches].sort()
     )

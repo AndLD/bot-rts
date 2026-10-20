@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, chore/16.3-proof-base]
   push:
     branches: [develop, main]
 

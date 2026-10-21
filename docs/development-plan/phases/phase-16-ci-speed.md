@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 16 — CI speed and agent throughput (26 SP)
+# Phase 16 — CI speed and agent throughput (23 SP)
 
 **Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-16-log](./work-logs/phase-16-log.md)
 
@@ -10,13 +10,11 @@ the coverage gate, run one package after another: `client` 821 s, `api` 168 s, `
 (Ant Design under jsdom with coverage) take most of the time: `Economy.test.tsx` 495 s, `Logs.test.tsx` 215 s,
 `Supervision.test.tsx` 175 s, `AdminDocsPage.test.tsx` 173 s, `Inspector.test.tsx` 148 s. Jest cannot finish before its slowest
 file, so one file alone sets an eight-minute floor. `npm ci` costs another 70 s in each of the four jobs. The next longest required check, `e2e`, takes 11 minutes, so it becomes the
-bound once `verify` is fast. This phase makes the required checks short without weakening any gate, and lets an agent keep
-working while a pull request waits for CI.
+bound once `verify` is fast. This phase makes the required checks short without weakening any gate.
 
-**Execution order:** 16.1 → 16.2 → 16.4 → 16.3 → 16.9 → 16.5 → 16.6 → 16.7 → 16.8. The baseline comes first, so every later task can show
+**Execution order:** 16.1 → 16.2 → 16.4 → 16.3 → 16.9 → 16.5 → 16.6 → 16.8. The baseline comes first, so every later task can show
 its gain. The slow tests are fixed (16.2) before the client tests are sharded (16.3), so the shards are balanced and not bound by
-one file. The caches (16.4) come before the job splits (16.3, 16.9), because each new job installs the dependencies. 16.7 changes a rule of
-`AGENTS.md` and builds on the coordination rules of 15.11 and the stacked pull request notes that 15.13 moves into the repository.
+one file. The caches (16.4) come before the job splits (16.3, 16.9), because each new job installs the dependencies.
 
 | #   | Task | SP  | Status |
 | --- | ---- | --- | ------ |
@@ -26,14 +24,15 @@ one file. The caches (16.4) come before the job splits (16.3, 16.9), because eac
 | 16.4 | **Dependency and test caches**: `node_modules` (or the npm cache with `npm ci --prefer-offline`) and Jest's cache directory are cached across runs, keyed on `package-lock.json` and the Jest configs, in every job that installs (`verify` and its new jobs, `e2e`, `lighthouse`). Verified by the tool of 16.1: the install step of a run with a cache hit under 20 s | 2 | ✅ |
 | 16.5 | **Coverage provider**: measure `coverageProvider: 'v8'` against the current provider on all three packages: run time and the coverage of every file. Adopt it only if no file crosses the coverage gate in either direction; otherwise record the measurement in the work log and keep the current provider. A change of provider that changes which files pass the gate asks the owner before merging. Verified by the comparison table in the pull request | 2 | ✅ |
 | 16.6 | **Fast local gate**: the pre-push hook (the local gate of the profile, extended by 15.9) runs lint and typecheck of the changed packages, the tests related to the changed files (`jest --findRelatedTests` or `--changedSince=origin/develop`) and `scripts/check-changed-coverage.mjs` on them, instead of every test of every package. The full run stays in CI and is available as `npm run test:coverage`. `docs/testing/README.md` and the profile describe the new local gate. Verified by a test of the script that picks the packages and files, and by a push that changes one client file running only the related tests | 3 | ⬜ |
-| 16.7 | **Work while CI runs**: a rule in `AGENTS.md` §7.5 and the method's Git workflow: after opening a task pull request and turning on the CI monitor, the agent starts the next task of the serial order on a branch stacked on the open one, instead of waiting; when the earlier pull request is squash-merged, the stacked branch is rebased onto `develop` (`git rebase --onto`) and its pull request retargeted. A script (`scripts/restack.sh`) does the rebase and the retarget for a stack of branches. A red check or a review comment on the earlier pull request is fixed first. This changes the meaning of a rule of `AGENTS.md`, so it asks the owner before merging. Verified by a test of the script on a scratch repository with two stacked branches | 3 | ⬜ |
-| 16.8 | **Measured result**: the CI performance section of 16.1 gets the numbers after the phase: the median wall time of `verify`, of `e2e` and of the whole run over three consecutive code pull requests, next to the baseline, and the agent wait per task before and after 16.7 | 1 | ⬜ |
+| 16.8 | **Measured result**: the CI performance section of 16.1 gets the numbers after the phase: the median wall time of `verify`, of `e2e` and of the whole run over three consecutive code CI runs with both job splits in place, next to the baseline (the CI times only, not the agent wait) | 1 | ⬜ |
 | 16.9 | **Parallel e2e**: the Cypress specs of `scripts/e2e.mjs` run in shards across parallel jobs (each with its own PostgreSQL service and stack, the client built once and shared as a workflow artifact, or built per job if that is faster), split by recorded spec durations so the shards are even. A final job named `e2e` needs the shards, so the required check name does not change; the screenshots and server logs of a failed shard are still uploaded. Verified by the tool of 16.1: the `e2e` check under 6 min, and a failing spec in one shard failing `e2e` | 3 | ⬜ |
+
+16.7 (stacked branches while CI runs, 3 SP) was deferred by the owner on 2026-10-21: 16.3 shortened the wait it was meant to use; revisit when CI waits grow again or several agents work at once.
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
 **Exit criteria:**
-- over three consecutive code pull requests into `develop`, the median wall time of `verify` and of `e2e` is at most 8 minutes each
+- over three consecutive code CI runs with both job splits in place (pull request or push runs), the median wall time of `verify` and of `e2e` is at most 8 minutes each
   (21 and 11 minutes before), so no required check keeps an agent waiting longer, as recorded by 16.8;
 - no client test file takes more than 60 s in CI;
 - the required check names in `scripts/protect-branches.sh`, the coverage gate of the profile and its per-package and per-file scope are unchanged;
@@ -50,3 +49,4 @@ Branches and pull requests that implemented this phase's tasks, added when each 
 | `chore/16.2-slow-client-tests` | 16.2 | [#222](https://github.com/AndLD/bot-rts/pull/222) | ✅ merged |
 | `chore/16.4-ci-caches` | 16.4 | [#223](https://github.com/AndLD/bot-rts/pull/223) | ✅ merged |
 | `chore/16.5-coverage-provider` | 16.5 | [#225](https://github.com/AndLD/bot-rts/pull/225) | ✅ merged |
+| `chore/16.3-parallel-ci-jobs` | 16.3 | [#249](https://github.com/AndLD/bot-rts/pull/249) | ✅ merged |

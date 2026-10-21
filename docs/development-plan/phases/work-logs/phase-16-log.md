@@ -224,3 +224,16 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     should look at it; for now a rerun of the failed job answers it.
 - **Next step:** the owner reviews #249 again (not merged by the agent). After the merge: 16.9 (parallel e2e), then 16.6, 16.7, 16.8.
 - **Verify with:** `npm run test:scripts`; `gh run download <run-id> -p 'coverage-client-*' -D <dir>` and `node scripts/merge-coverage.mjs <dir> --out <scratch-dir> client`
+
+### 2026-10-21 — 16.7 deferred by the owner
+- **Tasks:** 16.7 deferred (3 SP out of the phase; 26 SP becomes 23 SP)
+- **Branch:** `docs/16-defer-stacked-branches` — plan change only
+- **Decisions / deviations from the plan:**
+  - The owner decided on 2026-10-21 that 16.7 (work while CI runs, stacked branches) is deferred: 16.3 already shortened the wait it was meant to use. Revisit
+    when CI waits grow again or several agents work at once. Its row is removed from the phase file and a line after the task table records the decision.
+  - 16.8 measures only the CI times, without the agent wait. The first exit criterion now reads "three consecutive code CI runs with both job splits
+    in place (pull request or push runs)" instead of three pull requests.
+  - The implementation log got the missing row of 16.3 (#249, merged).
+- **Problems / blockers / findings:** none.
+- **Next step:** 16.9 (parallel e2e), then 16.6, then 16.8 and the check of the exit criteria.
+- **Verify with:** `npm run plan:summary`; `npm run docs:check`

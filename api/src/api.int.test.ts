@@ -742,9 +742,15 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
       .expect(400)
     await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'laser' }).expect(404)
     await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'scanner-class2' }).expect(409)
+    // far more than the starter resources of the base pay for (design §6.1)
     expect(
-      (await api().post(`${factory}/craft`).set(bearer(accessToken)).send({ module: 'processor-class1' }).expect(409))
-        .body.code
+      (
+        await api()
+          .post(`${factory}/craft`)
+          .set(bearer(accessToken))
+          .send({ module: 'processor-class1', count: 100 })
+          .expect(409)
+      ).body.code
     ).toBe('EMPTY')
 
     const storage = await moduleRow('storage')
@@ -1118,7 +1124,7 @@ describe('game flows (bots over HTTP and Socket.IO)', () => {
         expect(await emit(alice, 'get-factory', baseId)).toEqual([
           expect.objectContaining({ jobs: [], parts: [], blueprintItems: [] })
         ])
-        expect((await emit(alice, 'craft-module', baseId, 'wheels-class1'))[1]).toMatchObject({ code: 409 })
+        expect((await emit(alice, 'craft-module', baseId, 'wheels-class1', 100))[1]).toMatchObject({ code: 409 })
         expect((await emit(bob, 'get-factory', baseId))[1]).toMatchObject({ code: 403 })
         expect((await emit(alice, 'get-factory', 'nope'))[1]).toMatchObject({ code: 400 })
       } finally {

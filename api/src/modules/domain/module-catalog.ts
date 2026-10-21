@@ -160,7 +160,8 @@ export const MODULE_CATALOG: readonly ModuleTemplate[] = [
     idleCost: 0,
     operationCost: 1,
     weight: 50,
-    props: { capacity: 200, items: [{ resource: 'oil', amount: 50 }] }
+    // Empty: a base gets its starter resources at deployment (design §6.1), a crafted storage starts with nothing
+    props: { capacity: 200, items: [] }
   },
   {
     type: 'processor',

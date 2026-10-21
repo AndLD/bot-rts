@@ -17,7 +17,7 @@ Deploying a base attaches the starter kit.
 | `armor-class1` | armor | material iron, weight 45 | Survive attacks |
 | `battery-class1` | battery | 12 V, capacity 3000, value 3000 | Energy buffer |
 | `solar-panel-class1` | solarPanel | 2 energy per 250 ms cycle at full sun (8 per second at its peak), burns nothing (§7.2.1) | Keep the base alive on the sun |
-| `storage-class1` | storage | capacity 200, holds items; starts with 50 oil | Store mined resources and generator fuel (the oil lets the player craft and feed a generator at once) |
+| `storage-class1` | storage | capacity 200, holds items; starts with the starter resources below (195 of 200) | Store mined resources and generator fuel |
 | `processor-class1` | processor | 2 ops/tick, 1 parallel execution (§12.2.1) | Run the base's scripts |
 | `memory-class1` | drive (memory) | 64 KB quota, one drive | Store the base's scripts and data |
 | `wireless-adapter-class1` | wirelessAdapter | range 20 cells (§11.2.1) | Identity (the base id) and terminal link |
@@ -29,7 +29,25 @@ stays craftable (§9) as the strong but manual option.
 
 The starter kit **includes a class-1 processor, memory and wireless adapter**, so the base follows the same rules as
 every other bot (no special-cased "root OS"). Players upgrade or craft better ones later. The `circute` module from the
-notes remains undefined (Q7). The resources for a first craft, iron included, are deposited in the base storage when the base is deployed; their amounts are open (Q15).
+notes remains undefined (Q7). 
+### Starter resources
+
+A new base cannot mine (the starter kit has no drill, and only a drill extracts resources), so its storage is filled when the
+base is deployed. The deposit is part of the engine's deploy-base command (§14.2), never written by the API directly. It covers
+the tutorial path of §16.1, **the first craft and the first assembly**, and a small margin; the amounts are the balance
+configuration `DEFAULT_STARTER_RESOURCES` (`lib/utils/interfaces/crafting.ts`), next to the recipes of §9.3:
+
+| Resource | Amount | What it is for |
+| --- | --- | --- |
+| iron | 50 | the first craft, wheels (25) or an engine (30), and the battery (20) of the first bot; 5 spare |
+| crystal | 60 | the processor (25), the wireless adapter (15) and the battery (15) of the first bot; 5 spare |
+| gold | 35 | the processor (10) and the wireless adapter (20) of the first bot; 5 spare |
+| oil | 50 | generator fuel, and the 10 oil of an engine (§9.3) |
+
+A legal bot needs a processor, a wireless adapter and a battery (§8.2), so the first assembly costs 20 iron, 55 crystal and
+30 gold at the recipes of §9.3. The deposit takes 195 of the 200 places of the starter storage, so the capacity stays as it is.
+Only the storage of a deployed base is filled: a storage module crafted later starts empty. The amounts are tuned together with
+the recipes (Q1).
 
 ## 6.2 Base capabilities
 

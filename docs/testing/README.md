@@ -39,8 +39,22 @@ works in practice.
 | `node scripts/merge-coverage.mjs <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
-The pre-push hook (`.githooks/pre-push`) runs the typecheck and the coverage gate before code leaves the machine; pushes that
-change only Markdown skip it.
+The pre-push hook (`.githooks/pre-push`, which runs `scripts/local-gate.mjs`) is the **local gate**. It runs only what the files of the
+push need, and the full run stays in CI and in `npm run test:coverage`:
+
+| The push changes | The gate runs |
+| ---------------- | ------------- |
+| no file (an empty claim push) or only Markdown | no code check |
+| files of `api`, `client` or `mcp` | typecheck and lint of those packages; Prettier on the changed files; the Jest tests related to the changed files (`jest --findRelatedTests`) with coverage, and `scripts/check-changed-coverage.mjs` on them; with `api`, the database (`npm run db:up`) |
+| a file that cannot be followed to its tests (`package.json`, a Jest or tsconfig file, messages, the Prisma schema, a deleted file) | the whole test run of that package, as `npm run test:coverage -w <package>` |
+| a file outside the packages (`lib/`, the lock file, root configuration, the hooks) | the full run: typecheck, lint, the tests of every package, the coverage gate |
+| `scripts/` | `npm run test:scripts` as well |
+| anything but a change confined to `mcp/` or `scripts/` | also the generated files (API document, client, documentation data) are regenerated and must not differ |
+
+The file selection is `planGate` in `scripts/local-gate-lib.mjs`, tested by `npm run test:scripts`; `node scripts/local-gate.mjs --dry-run`
+(with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
+whole package (its total, and a changed file that no test reaches) is CI's, which runs everything. A push that changes one client file ran
+8 related suites (77 tests) and the whole gate in 22 s (task 16.6).
 
 ## Local environment
 
@@ -48,7 +62,7 @@ change only Markdown skip it.
   engine crash-loop on a missing table. `npm run db:seed -w api` creates the root owner (`ROOT_USER_EMAIL` and `ROOT_USER_PASSWORD` of
   `api/.env.development`) and is idempotent.
 - `npm run db:up` starts PostgreSQL and Redis; Redis is needed by the integration tests of the scale-out and of the rate-limit store.
-- The pre-push hook needs Docker, runs the typecheck and the API and client tests with the coverage gate, and takes a few minutes.
+- The pre-push hook needs Docker only for a push that changes `api` (or something shared); it runs the checks the changed files need ([local gate](#commands)).
 - The client typecheck uses `client/tsconfig.typecheck.json`, so a running `next dev` does not break it.
 - The engine ticks a base only while a client is connected: open `/game` when a manual check needs the world running.
 - zsh: quote globs (`--include='*.ts'`), BSD `sed -i` needs `-i ''`, and wait for a condition with a loop on a done-file, not with `sleep`.
@@ -231,7 +245,7 @@ artifact). The screenshots and server logs of a failed shard are uploaded as `e2
 - The coverage provider is Jest's default (Babel instrumentation). Phase 16 measured `coverageProvider: 'v8'` and kept the default:
   v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
 - CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`); the pre-push hook runs the same
-  check after the coverage run, and you can run it yourself:
+  check on the tests related to the changed files, and you can run it yourself:
   `node scripts/check-changed-coverage.mjs origin/<integration> api client mcp` after `npm run test:coverage` (`<integration>` is the integration branch of the [profile](../profile.md#3-branches-and-merging)). A package can pass its total
   and still fail here, because every changed file is held to the gate on its own. Causes: a mocked-away module (a mocked file shows 0 %),
   an unused helper (dead code shows 0 %), and an untested side of `??` or a ternary (cover it with an input that takes each side).

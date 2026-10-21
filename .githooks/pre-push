@@ -1,41 +1,14 @@
 #!/bin/sh
-# Enforces the coverage gate (docs/profile.md, value in scripts/coverage-threshold.json), the coverage of the changed files and the
-# generated files before code leaves the machine. Skip once with `git push --no-verify`.
-# Pushes that change only Markdown need no code checks.
+# The local gate before code leaves the machine: scripts/local-gate.mjs reads the refs of the push, takes the files they change and runs only
+# the checks those files need (typecheck and lint of the changed packages, the tests related to the changed files, the coverage of the changed
+# files, the generated files). A push that changes no file or only Markdown runs no code check. The full run is CI's, and
+# `npm run test:coverage`. Skip once with `git push --no-verify`. The gate is described in docs/testing/README.md.
 set -e
 
 cd "$(git rev-parse --show-toplevel)"
-
-# The integration branch and the packages with a coverage gate come from the harness profile (scripts/harness-profile.json)
-integration=$(node scripts/harness-profile.mjs get branches.integration)
-coverage_packages=$(node scripts/harness-profile.mjs get coveragePackages)
-
-while read -r _local_ref local_sha _remote_ref remote_sha; do
-  case "$local_sha" in *[!0]*) ;; *) continue ;; esac # deleting a branch
-  case "$remote_sha" in *[!0]*) range="$remote_sha..$local_sha" ;; *) range="origin/$integration..$local_sha" ;; esac
-  files=$(git diff --name-only "$range" 2>/dev/null || echo unknown.ts)
-  if ! echo "$files" | grep -qv '\.md$'; then exit 0; fi
-done
 
 # A checkout with a database port of its own (POSTGRES_PORT in .env, docs/testing/README.md) tests against that database
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 export DATABASE_URL="${DATABASE_URL:-postgresql://botrts:botrts@localhost:${POSTGRES_PORT:-5432}/botrts}"
 
-echo "pre-push: typecheck, then tests with the coverage gate (needs Docker for PostgreSQL)"
-npm run db:up
-npm run typecheck
-npm run test:coverage
-
-# What CI checks on every pull request that changes code, run here first so that a push never fails there on it (docs/profile.md)
-echo "pre-push: coverage of the changed files"
-# shellcheck disable=SC2086 # one word per package
-node scripts/check-changed-coverage.mjs "origin/$integration" $coverage_packages
-
-echo "pre-push: generated files are up to date"
-npm run openapi:generate -w api
-npm run api:generate -w client
-npm run docs:generate
-git diff --exit-code -- api/openapi.json client/src/shared/api/generated.ts client/src/docs/generated client/src/features/admin/docs/generated || {
-  echo "Commit the regenerated files first (npm run openapi:generate -w api; npm run api:generate -w client; npm run docs:generate)"
-  exit 1
-}
+exec node scripts/local-gate.mjs

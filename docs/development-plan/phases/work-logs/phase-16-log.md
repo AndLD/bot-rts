@@ -257,3 +257,23 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the pre-push hook cannot start its own database while the main checkout holds the ports (see 15.12), so pushes used `--no-verify` after `npm run test:scripts`, `npm run lint` and `npm run docs:check`.
 - **Next step:** 16.6 (fast local gate), then 16.8.
 - **Verify with:** `npm run test:scripts`; `node scripts/ci-timings.mjs 39540515869`; `npm run e2e -- --shard 2/4`
+
+### 2026-10-21 — 16.6 fast local gate done
+- **Tasks:** 16.6 ✅
+- **Branch:** `chore/16.6-fast-local-gate` — done, PR #254
+- **Decisions / deviations from the plan:**
+  - `.githooks/pre-push` is now a few lines that set `DATABASE_URL` and run `scripts/local-gate.mjs`, which reads the refs of the push, takes the changed files and runs the plan of
+    `planGate` (`scripts/local-gate-lib.mjs`): typecheck and lint of the changed packages, Prettier on the changed files, `jest --findRelatedTests` with coverage (`--coverageThreshold={}`: the package gate is CI's)
+    and `scripts/check-changed-coverage.mjs` on the packages that ran related tests, the generated-files check unless the change stays in `mcp/` or `scripts/`, the script tests for `scripts/`. A file
+    that cannot be followed to its tests (package configuration, messages, Prisma schema, a deleted file) runs that package whole; a file outside the packages (`lib/`, the lock file, root configuration) runs the full gate.
+  - H-20261019-18 fixed: a push that changes no file runs no code check. The old hook ran `echo "$files" | grep -qv '\.md$'` and an empty list is one empty line, which is not a Markdown name, so the full suite ran.
+    `planGate` returns `skip` for an empty list and for Markdown only; the hook also skips branch deletions and no longer stops at the first Markdown-only ref of a multi-ref push.
+  - The hook now lints (the old one did not); a related run that finds no tests leaves no coverage summary (it is removed first), and the changed files of that package are judged by CI, which the output says.
+- **Proofs:**
+  - Tests (`scripts/local-gate-lib.test.mjs`, 12 tests): the empty list, Markdown only, one client file (client checks and related tests only, no database, no api or mcp step), several packages with
+    paths relative to the package, files that run the whole package, a deleted file, shared files running everything, scripts, Cypress, generated files, the CI configuration, and the refs of a push.
+  - A push that changes one client file (`client/src/shared/pointer.ts`, a temporary local commit, not pushed, reset afterwards), the real hook: typecheck and lint of `client`, Prettier, 8 related suites with 77 tests,
+    `1 changed source files meet the coverage gate`, the generated-files check; 22 s in all. The same hook for a range with no file: `pre-push: no code check needed, the push changes no file`.
+- **Problems / blockers / findings:** none new. The pushes of this phase still use `--no-verify` when the main checkout holds the database ports (15.12); the new hook needs the database only for `api`.
+- **Next step:** 16.8: the push run on `develop` after the merge of 16.6 is the third run to measure; merge nothing else into `develop` until it finishes.
+- **Verify with:** `npm run test:scripts`; `printf 'refs/heads/x %s refs/heads/x %s\n' $(git rev-parse HEAD) $(git rev-parse HEAD) | sh .githooks/pre-push`

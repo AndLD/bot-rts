@@ -20,8 +20,8 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 
 | # | Rule | Mechanism | Status |
 | - | ---- | --------- | ------ |
-| 1 | Coverage stays at or above the coverage gate (AGENTS §1) | Jest thresholds read from `scripts/coverage-threshold.json`; CI `verify`; pre-push | enforced |
-| 2 | Every changed file meets the gate too (AGENTS §1, method §3) | `scripts/check-changed-coverage.mjs`; CI; pre-push | enforced |
+| 1 | Coverage stays at or above the coverage gate (AGENTS §1) | Jest thresholds read from `scripts/coverage-threshold.json`; CI `verify` (the whole package); pre-push holds the changed files only (row 2) | enforced |
+| 2 | Every changed file meets the gate too (AGENTS §1, method §3) | `scripts/check-changed-coverage.mjs`; CI; pre-push (on the tests related to the changed files) | enforced |
 | 3 | No `any` at public boundaries (AGENTS §1) | `@typescript-eslint/no-explicit-any` with `--max-warnings 0`; Lint | enforced |
 | 4 | Import boundaries and layering (stack §2) | `npm run check:boundaries` (dependency-cruiser); CI | enforced |
 | 5 | Prisma only in infrastructure (architecture §2) | dependency-cruiser; CI | enforced |

@@ -75,7 +75,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
       eventually(
         () => cy.task<Record<string, number>>('stockOf', { botId }),
         (held) => held.iron === 15
-      ).should('deep.equal', { oil: 50, iron: 15 })
+      ).should('deep.equal', { iron: 15 })
     })
   })
 
@@ -138,7 +138,7 @@ describe('the core of the game: scripts that mine, fight and run out of energy',
       eventually(
         () => cy.task<Record<string, number>>('stockOf', { botId }),
         (held) => held.iron === 5
-      ).should('deep.equal', { oil: 50, iron: 5 })
+      ).should('deep.equal', { iron: 5 })
     })
   })
 

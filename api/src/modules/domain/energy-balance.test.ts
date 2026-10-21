@@ -1,3 +1,4 @@
+import { DEFAULT_STARTER_RESOURCES } from '../../../../lib/utils/interfaces/crafting'
 import { DEFAULT_GAME_TIME } from '../../../../lib/utils/game-time'
 import { SequentialIdGenerator } from '../../../tests/fakes/fakes'
 import { ModuleFactory } from '../application/module.factory'
@@ -69,7 +70,7 @@ describe('the energy balance of the starter base', () => {
   it('starts on a solar panel and no oil generator, with oil left in the storage', () => {
     expect(STARTER_KIT).toContain('solar-panel-class1')
     expect(STARTER_KIT).not.toContain('generator-class1')
-    expect(template('storage-class1').props.items).toEqual([{ resource: 'oil', amount: 50 }])
+    expect(DEFAULT_STARTER_RESOURCES).toContainEqual({ resource: 'oil', amount: 50 })
   })
 
   it('lives on its solar panel alone through the nights under a light duty, day after day', () => {

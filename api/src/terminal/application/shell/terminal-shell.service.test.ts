@@ -312,7 +312,7 @@ describe('the factory commands', () => {
     expect((await run('research')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
     expect((await run('learn')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
     expect((await run('assemble Scout')).result).toMatchObject({ type: 'error', code: 'COMMAND_USAGE' })
-    expect((await run('craft wheels-class1')).result).toMatchObject({ type: 'error', code: 'EMPTY' })
+    expect((await run('craft wheels-class1 100')).result).toMatchObject({ type: 'error', code: 'EMPTY' })
     expect((await run('craft wheels-class1 x')).result).toMatchObject({ type: 'error', code: 'VALIDATION_FAILED' })
     expect((await run('craft scanner-class2')).result).toMatchObject({ type: 'error', code: 'NO_BLUEPRINT' })
   })

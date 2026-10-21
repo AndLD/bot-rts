@@ -1,4 +1,5 @@
 import request from 'supertest'
+import { DEFAULT_STARTER_RESOURCES } from '../../../lib/utils/interfaces/crafting'
 import { RESOURCE } from '../../../lib/utils/interfaces/resources'
 import { io as connect, Socket } from 'socket.io-client'
 import { createTestDatabase, TestDatabase } from '../../tests/integration/test-database'
@@ -100,8 +101,9 @@ describe('the engine as the single writer (design §14.2)', () => {
     const storage = await request(testApp.url).get(`/api/v1/bots/${botId}/storage`).set(bearer(accessToken)).expect(200)
     expect(storage.body).toMatchObject({
       capacity: 200,
-      used: 50,
-      resources: [{ resource: 'oil', amount: 50 }],
+      // The engine's deploy-base command deposited the starter resources (design §6.1)
+      used: DEFAULT_STARTER_RESOURCES.reduce((sum, stack) => sum + stack.amount, 0),
+      resources: expect.arrayContaining(DEFAULT_STARTER_RESOURCES.map((stack) => expect.objectContaining(stack))),
       items: [],
       carriedWeight: 0
     })
@@ -437,7 +439,7 @@ describe('what the admins control (design §25.3)', () => {
   it('puts resources right as a world action, all or nothing', async () => {
     const { botId } = await deployWithScript('export async function main() {}')
 
-    await port.act('support.grantResources', [botId, [{ resource: RESOURCE.IRON, amount: 10 }]])
+    await port.act('support.grantResources', [botId, [{ resource: RESOURCE.IRON, amount: 5 }]])
     const storage = await database.client.module.findFirstOrThrow({ where: { botId, type: 'storage' } })
     expect(JSON.stringify(storage.props)).toContain('"iron"')
 
@@ -446,7 +448,7 @@ describe('what the admins control (design §25.3)', () => {
     ).rejects.toMatchObject({
       statusCode: 400
     })
-    await port.act('support.removeResources', [botId, [{ resource: RESOURCE.IRON, amount: 10 }]])
+    await port.act('support.removeResources', [botId, [{ resource: RESOURCE.IRON, amount: 5 }]])
     await port.act('support.restoreModule', [botId, storage.id])
   })
 })

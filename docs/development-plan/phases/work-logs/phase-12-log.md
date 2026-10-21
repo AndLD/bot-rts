@@ -66,3 +66,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the amounts are not decided; the task proposes them and asks the owner first.
 - **Next step:** start 12.3 when the owner asks: propose the amounts, get them confirmed, then a failing test.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-21 — 12.3: the owner's decision on the starter amounts
+- **Tasks:** 12.3 (text only, still **not started**)
+- **Branch:** `docs/12.3-starter-amounts-decision` — the plan only
+- **Decisions / deviations from the plan:** the owner does not know the right numbers yet and does not need to confirm them before coding.
+  12.3 chooses just enough of each resource for the basic crafting of the tutorial path (the first module and the first bot, from
+  `DEFAULT_RECIPES`) plus a small margin, records the arithmetic in its log, and keeps the amounts in the balance configuration; they are
+  revisited during balancing. The task text now also names the changelog fragment (the changelog has used fragments since 15.11) and the
+  engine's deploy-base command as the place of the deposit (single writer).
+- **Problems / blockers / findings:** none.
+- **Next step:** start 12.3 when the owner asks; it no longer stops for the amounts.
+- **Verify with:** `npm run docs:check`

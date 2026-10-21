@@ -156,6 +156,10 @@ The design session (Opus) proposes an answer to each, with trade-offs; you choos
 
 ### 3.2 Target layout
 
+The [framework design](./design.md) (task 17.1) confirms this layout with adjustments: adapters on three axes (stack, agent runtime,
+repository host), a `tools/` folder, `BOOTSTRAP.md`, neutral procedures and the adapter contracts in `core/`, and a conformance suite. Its
+section 2 is the layout to build; the tree below is the starting point it adjusted.
+
 The staging folder is `docs/harness-framework/framework/` and mirrors the layers:
 
 ```
@@ -171,6 +175,9 @@ framework/
 ```
 
 ### 3.3 Building (the agent)
+
+The steps below are realized by tasks 17.2 to 17.20 in the order of section 10 of the [design](./design.md), which also adds the
+consumption mechanism (a vendored copy pinned by a lock file), the presets for two stacks and two agent runtimes, and the bootstrap's three front ends.
 
 1. **Classify** every harness file and section (the layer map of the review), using the report's dry run; list what goes to core, adapters, profile, examples, and what stays in `bot-rts` (DOMAIN and STATE).
 2. **Extract by moving, not copying**: for each CORE document, write the neutral version in `framework/core/` (roles instead of values, no project terms) and replace the original in `bot-rts` with the neutral text plus a binding to its profile. The review's term lists (M1, M2) must return **zero** hits on `framework/core/`.

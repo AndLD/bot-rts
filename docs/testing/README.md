@@ -29,7 +29,7 @@ works in practice.
 | --- | --- |
 | `npm test` | Jest of every package (`npm run db:up` first: integration tests need PostgreSQL) |
 | `npm run test:coverage` | The same with coverage; fails below the coverage gate per package |
-| `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
+| `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build, `--shard <i>/<n>` for one slice of the specs; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
 | `npm run i18n:check` | The message catalogues of every user-facing language are complete |
 | `npm run docs:check` | Markdown links |
@@ -180,7 +180,7 @@ links and the script tests, the `api`, `client` and `mcp` jobs are skipped. The 
 
 ## CI jobs
 
-The required check `verify` is the last of several jobs of `.github/workflows/ci.yml` that run at the same time (task 16.3):
+The required checks `verify` and `e2e` are the last jobs of several that of `.github/workflows/ci.yml` that run at the same time (tasks 16.3 and 16.9):
 
 | Job | What it runs |
 | --- | ------------ |
@@ -189,7 +189,9 @@ The required check `verify` is the last of several jobs of `.github/workflows/ci
 | `api tests` | Jest of `api` with PostgreSQL, Redis and the log gateway |
 | `client tests i/3` | Jest of `client`, one of three shards (`jest --shard=i/3`) |
 | `mcp tests` | Jest of `mcp` |
-| `verify` | needs all of them (a skipped code job is right only for a Markdown-only change), merges the coverage of each package, applies the coverage gate and, on a pull request, the changed-file coverage |
+| `e2e tests i/4` | Cypress, one of four shards (`npm run e2e -- --shard i/4`), each with its own PostgreSQL service, API and client build |
+| `e2e` | needs the four shards (skipped shards are right only for a Markdown-only change); fails when one failed |
+| `verify` | needs the jobs above from `static checks` to `mcp tests` (a skipped code job is right only for a Markdown-only change), merges the coverage of each package, applies the coverage gate and, on a pull request, the changed-file coverage |
 
 Every test job runs Jest with `--coverage --coverageThreshold='{}'`, so a shard cannot fail the package gate on its own coverage, and
 uploads `coverage/coverage-final.json` as the artifact `coverage-<package>-<shard>-of-<count>`. `verify` downloads them,
@@ -205,6 +207,11 @@ package, which are those of one unsharded run. To count the tests across the job
 jobs' logs (`node scripts/ci-timings.mjs <run-id>` lists the jobs). To try the same locally: run a package with `--shard=i/n` and
 `--coverageThreshold='{}'`, copy each `coverage/coverage-final.json` to `<dir>/coverage-<package>-<i>-of-<n>/`, and run
 `node scripts/merge-coverage.mjs <dir> --out <scratch-dir> <package>`.
+
+The Cypress specs are split by `scripts/e2e-durations.json` (seconds per spec, taken from the Cypress summary of a CI run): longest spec
+first into the shard with the least time so far (`specsOfShard` in `scripts/e2e-lib.mjs`). A spec that is not recorded counts as the median,
+but a test of the script fails until it is recorded, so the shards stay even. Each shard builds the client itself (13 s, faster than sharing an
+artifact). The screenshots and server logs of a failed shard are uploaded as `e2e-failure-<shard>`. To run one shard locally: `npm run e2e -- --shard 2/4`.
 
 ## Coverage
 

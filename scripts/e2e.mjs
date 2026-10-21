@@ -1,13 +1,14 @@
 // Runs the Cypress suite against a throwaway stack: a fresh PostgreSQL database, the API (ts-node) and the built client.
-// Usage: node scripts/e2e.mjs [--open] [--skip-build] [-- <cypress run arguments>]
+// Usage: node scripts/e2e.mjs [--open] [--skip-build] [--shard <index>/<count>] [-- <cypress run arguments>]
+// --shard runs one slice of the specs, split by the recorded durations (scripts/e2e-durations.json), for the parallel jobs of CI.
 // Needs the PostgreSQL of docker-compose.yml (`npm run db:up`) or a service container with the same credentials.
 // It uses ports other than the development servers' (E2E_API_PORT, E2E_CLIENT_PORT), refuses to start when one is taken, and stops only
 // what it started. Two checkouts: give each its own database port (POSTGRES_PORT) and e2e ports (docs/testing/README.md).
 import { spawn, spawnSync } from 'node:child_process'
-import { mkdirSync, rmSync, createWriteStream } from 'node:fs'
+import { mkdirSync, rmSync, createWriteStream, readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import pg from 'pg'
-import { portsInUse } from './e2e-lib.mjs'
+import { portsInUse, parseShard, specsOfShard } from './e2e-lib.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const workDir = resolve(root, '.e2e')
@@ -19,7 +20,25 @@ const adminUrl =
 const args = process.argv.slice(2)
 const isOpen = args.includes('--open')
 const shouldBuild = !args.includes('--skip-build')
+const ownArgs = args.includes('--') ? args.slice(0, args.indexOf('--')) : args
 const cypressArgs = args.includes('--') ? args.slice(args.indexOf('--') + 1) : []
+const shardOption = ownArgs.indexOf('--shard')
+const shard = shardOption >= 0 ? parseShard(ownArgs[shardOption + 1]) : null
+
+// The Cypress arguments that select the specs of the shard (all specs when there is no shard)
+function shardArgs() {
+  if (!shard) {
+    return []
+  }
+  const specDir = resolve(root, 'client/cypress/e2e')
+  const specs = readdirSync(specDir).filter((name) => name.endsWith('.cy.ts'))
+  const durations = JSON.parse(readFileSync(resolve(import.meta.dirname, 'e2e-durations.json'), 'utf8'))
+  const chosen = specsOfShard(specs, durations, shard)
+
+  console.log(`Shard ${shard.index}/${shard.count}: ${chosen.length} specs: ${chosen.join(', ')}`)
+
+  return ['--spec', chosen.map((name) => `cypress/e2e/${name}`).join(',')]
+}
 
 // The ports and the build folder can be changed, so that a run does not collide with a development server or another checkout: the
 // defaults are not the development servers' 8080 and 5173
@@ -178,7 +197,7 @@ try {
   await waitFor(`${apiUrl}/api/v1/health`, 'The API')
   await waitFor(`http://localhost:${CLIENT_PORT}/`, 'The client')
 
-  const cypress = spawnSync('npx', ['cypress', isOpen ? 'open' : 'run', ...cypressArgs], {
+  const cypress = spawnSync('npx', ['cypress', isOpen ? 'open' : 'run', ...shardArgs(), ...cypressArgs], {
     stdio: 'inherit',
     cwd: resolve(root, 'client'),
     env: {

@@ -172,11 +172,22 @@ runs of #249: 39435749539 (the first run, caches missed: 6 min 10 s) and 3944734
 | `verify` | 32 s | the coverage merge and the changed-file gate |
 
 The longest job is `api tests`, so the `verify` check is now bound by the `api` tests (one Jest run of 2532 tests) and the 52 s start of the log
-gateway; sharding `api` like `client` is the next step if 6 minutes is too long. The `e2e` check (9 min 13 s here) is longer than `verify` and is
-the subject of 16.9. A Markdown-only pull request reports `verify` after 2 min 35 s in all (run 39447519939): `static checks` runs the Markdown
+gateway; sharding `api` like `client` is the next step if 6 minutes is too long. The `e2e` check (9 min 13 s here) was longer than `verify`; 16.9 shards it (below). A Markdown-only pull request reports `verify` after 2 min 35 s in all (run 39447519939): `static checks` runs the Markdown
 links and the script tests, the `api`, `client` and `mcp` jobs are skipped. The same tests ran as before the split: 3489 tests in 432 suites
 (`api` 2532, `client` 245 + 254 + 384 = 883, `mcp` 74). The merge counts exactly the entries of one unsharded run: for `client`
 4390 of 4393 statements, 1602 of 1603 branches, 1066 of 1066 functions and 4106 of 4108 lines ([how the merge guarantees it](#ci-jobs)).
+
+**After 16.9** (parallel e2e). The pull request run 39540515869 (`chore/16.9-parallel-e2e`, caches hit), against the run above (39447341042):
+
+| | Before (run 39447341042) | After 16.9 |
+| --- | ------------------------ | ---------- |
+| `e2e` check (from the start of the shards to the end of `e2e`) | 9 min 13 s | about 4 min 1 s (slowest shard 3 min 57 s, the final job 4 s) |
+| Shards `e2e tests 1/4` to `4/4` | one job | 3 min 44 s, 3 min 27 s, 3 min 57 s, 3 min 57 s (Cypress 2 min 42 s to 3 min 21 s, installation 8 s, containers 12 to 16 s) |
+| Whole run | 12 min 52 s | 5 min 31 s, bound by `api tests` (4 min 57 s) |
+
+A failing spec fails `e2e`: the temporary spec `ci-proof-failing.cy.ts` (`expect(1).to.equal(2)`), run 39541130529, was placed in shard 4/4; that shard failed
+with `1 failing` and `AssertionError: expected 1 to equal 2` in `ci-proof-failing.cy.ts`, the shards 1/4, 2/4 and 3/4 and every other job passed, the final job `e2e` failed with
+`Unexpected result: e2e-shard failure`, and the artifact `e2e-failure-4` held the screenshot. The spec was reverted afterwards.
 
 ## CI jobs
 

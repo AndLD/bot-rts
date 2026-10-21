@@ -3,7 +3,6 @@
   "admin-keys.cy.ts": 6,
   "admin.cy.ts": 23,
   "api-keys.cy.ts": 3,
-  "ci-proof-failing.cy.ts": 5,
   "connect.cy.ts": 12,
   "control.cy.ts": 8,
   "database-reset.cy.ts": 6,

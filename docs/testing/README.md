@@ -203,6 +203,21 @@ A failing spec fails `e2e`: the temporary spec `ci-proof-failing.cy.ts` (`expect
 with `1 failing` and `AssertionError: expected 1 to equal 2` in `ci-proof-failing.cy.ts`, the shards 1/4, 2/4 and 3/4 and every other job passed, the final job `e2e` failed with
 `Unexpected result: e2e-shard failure`, and the artifact `e2e-failure-4` held the screenshot. The spec was reverted afterwards.
 
+**Result of Phase 16** (task 16.8). Three consecutive code CI runs with both job splits (16.3 and 16.9) in place: the pull request run of 16.9 (39541727135, head `889767a`, after the revert of its failing-spec proof), the pull request run of 16.6 (39542600526) and the push run on the integration branch after the merge of 16.6 (39543294571, `aa964ea`). Times are from the start of the first job of the run to the end of the check (`node scripts/ci-timings.mjs <run-id>`), caches hit, every run green at the first attempt:
+
+| Run | `verify` | `e2e` | Whole run | Longest job |
+| --- | -------- | ----- | --------- | ----------- |
+| 39541727135 (pull request, 16.9) | 5 min 52 s | 4 min 00 s | 5 min 52 s | `api tests` 5 min 13 s |
+| 39542600526 (pull request, 16.6) | 5 min 37 s | 4 min 16 s | 5 min 37 s | `api tests` 5 min 06 s |
+| 39543294571 (push to the integration branch) | 5 min 43 s | 3 min 59 s | 5 min 43 s | `api tests` 5 min 03 s |
+| **Median** | **5 min 43 s** | **4 min 00 s** | **5 min 43 s** | |
+| **Baseline** (run 39158838242) | 21 min | 11 min | 21 min 02 s | `verify` |
+
+The median of `verify` fell by 73 %, of `e2e` by 64 % and of the whole run by 73 %. All three runs are bound by `api tests` (about 5 min: Jest 3 min 22 s,
+`engine.int.test.ts` 62 s, `api.int.test.ts` 54 s, the log gateway start about 50 s); `e2e` ends 1 min 40 s earlier. Sharding `api` like `client` is the next step if
+the wait needs to go under 5 minutes; it is not planned. No client test file is above Jest's 5 s threshold in these runs (the slowest listed files are all in `api`).
+The agent wait was not measured (task 16.7 is deferred).
+
 ## CI jobs
 
 The required checks `verify` and `e2e` are the last jobs of several that of `.github/workflows/ci.yml` that run at the same time (tasks 16.3 and 16.9):

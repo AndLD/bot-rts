@@ -277,3 +277,23 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none new. The pushes of this phase still use `--no-verify` when the main checkout holds the database ports (15.12); the new hook needs the database only for `api`.
 - **Next step:** 16.8: the push run on `develop` after the merge of 16.6 is the third run to measure; merge nothing else into `develop` until it finishes.
 - **Verify with:** `npm run test:scripts`; `printf 'refs/heads/x %s refs/heads/x %s\n' $(git rev-parse HEAD) $(git rev-parse HEAD) | sh .githooks/pre-push`
+
+### 2026-10-21 — 16.8 measured result, Phase 16 done
+- **Tasks:** 16.8 ✅; Phase 16 ✅ (23 SP after the deferral of 16.7)
+- **Branch:** `chore/16.8-measured-result` — done, PR #255
+- **Decisions / deviations from the plan:**
+  - Measured as the owner decided: CI times only, no agent wait; three code CI runs with both splits in place (a pull request run of 16.9, a pull request run of 16.6, and the push run on `develop` after the merge of 16.6).
+    Nothing else was merged into `develop` between the merge of 16.6 (`aa964ea`) and the end of the push run 39543294571. Numbers and the baseline comparison are in `docs/testing/README.md`, "Result of Phase 16".
+  - Medians: `verify` 5 min 43 s (21 min before), `e2e` 4 min 00 s (11 min), whole run 5 min 43 s (21 min 02 s). All three runs were green at the first attempt, so the flake of H-20261019-24 (`engine.int.test.ts`) did not appear and no job was re-run.
+- **Exit criteria of Phase 16:**
+  1. Median wall time of `verify` and `e2e` at most 8 minutes each over three consecutive code CI runs with both job splits: **holds** (5 min 43 s and 4 min 00 s).
+  2. No client test file above 60 s in CI: **holds** (no client file is above Jest's 5 s threshold in the three runs; the slowest client Jest run is 24 s per package).
+  3. The required check names, the coverage gate and its scope unchanged: **holds**. `scripts/protect-branches.sh`, `scripts/harness-profile.json` (`requiredChecks`) and `scripts/coverage-threshold.json` were not changed by any Phase 16 pull request
+     (`git log` of these files shows only 15.16 and 15.20 since 16.1); the job `verify` merges the coverage and applies the gate to merged data, the job `e2e` needs the shards.
+  4. `npm run docs:check`, `npm run lint`, `npm run test:scripts` and the coverage gate pass: **holds** (run locally on the head of this branch; the coverage gate is the green `verify` of the push run 39543294571).
+- **Local database (method §6):** from the updated `develop`: `npm run db:up` (database and Redis healthy), `npm run db:migrate -w api` on `botrts` at `localhost:5432`: 31 migrations found, no pending migration. Phase 16 changed no schema and no seed data, so no seed was run.
+- **Problems / blockers / findings:**
+  - `api tests` (about 5 min) now bounds every run; sharding it is possible but not in the plan.
+  - Left over, not part of the phase: the `api` Jest worker crash (`SIGABRT`, see the 16.3 entries) and the `lighthouse` performance flake are still answered by a re-run; the pushes of this phase used `--no-verify` while the main checkout held the database ports (15.12), and the new local gate needs the database only for `api`.
+- **Next step:** none in Phase 16. 16.7 stays deferred (see the phase file). The next phase of the plan order is Phase 17 (harness framework extraction), then Phase 10.
+- **Verify with:** `node scripts/ci-timings.mjs 39543294571`; `npm run plan:summary`; `npm run docs:check`

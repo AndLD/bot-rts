@@ -331,9 +331,18 @@ jobs:
       - name: The compose file is valid
         run: docker compose config -q && docker compose --profile stack config -q
 
-  e2e:
-    # Cypress against a throwaway stack: fresh database, the API and the built client (scripts/e2e.mjs)
+  e2e-shard:
+    # Cypress against a throwaway stack: fresh database, the API and the built client (scripts/e2e.mjs). Each shard has its own
+    # PostgreSQL service and stack and runs one slice of the specs, split by recorded durations (scripts/e2e-durations.json)
+    name: e2e tests ${{ matrix.shard }}/${{ matrix.count }}
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+        count: [4]
     services:
       postgres:
         image: postgres:16.4
@@ -350,44 +359,49 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Detect markdown-only changes
-        id: changes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
-            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          else
-            files="unknown.ts"
-          fi
-          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
       - name: Install dependencies
-        if: steps.changes.outputs.code == 'true'
         uses: ./.github/actions/install
       - name: Cache the Cypress binary
-        if: steps.changes.outputs.code == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: End-to-end tests
-        if: steps.changes.outputs.code == 'true'
-        run: npm run e2e
-      - name: Keep the screenshots and server logs of a failed run
+      - name: End-to-end tests of the shard
+        run: npm run e2e -- --shard ${{ matrix.shard }}/${{ matrix.count }}
+      - name: Keep the screenshots and server logs of a failed shard
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-failure
+          name: e2e-failure-${{ matrix.shard }}
           path: |
             client/cypress/screenshots
             .e2e/*.log
           if-no-files-found: ignore
+
+  e2e:
+    # The required check. It needs every shard and fails when one failed; a markdown-only change skips the shards and reports green
+    needs: [changes, e2e-shard]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: The shards passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          code=$(echo "$NEEDS" | jq -r '.changes.outputs.code')
+          unexpected=$(echo "$NEEDS" | jq -r --arg code "$code" '
+            to_entries[]
+            | select(.value.result != (if .key == "changes" or $code == "true" then "success" else "skipped" end))
+            | "\(.key) \(.value.result)"')
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected result: $unexpected"
+            exit 1
+          fi
 
   lighthouse:
     # The public pages are for search engines and first-time visitors: SEO at least 95 and performance at least 90 (lighthouserc.json)

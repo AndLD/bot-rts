@@ -29,7 +29,7 @@ works in practice.
 | --- | --- |
 | `npm test` | Jest of every package (`npm run db:up` first: integration tests need PostgreSQL) |
 | `npm run test:coverage` | The same with coverage; fails below the coverage gate per package |
-| `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
+| `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build, `--shard <i>/<n>` for one slice of the specs; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
 | `npm run i18n:check` | The message catalogues of every user-facing language are complete |
 | `npm run docs:check` | Markdown links |
@@ -172,15 +172,26 @@ runs of #249: 39435749539 (the first run, caches missed: 6 min 10 s) and 3944734
 | `verify` | 32 s | the coverage merge and the changed-file gate |
 
 The longest job is `api tests`, so the `verify` check is now bound by the `api` tests (one Jest run of 2532 tests) and the 52 s start of the log
-gateway; sharding `api` like `client` is the next step if 6 minutes is too long. The `e2e` check (9 min 13 s here) is longer than `verify` and is
-the subject of 16.9. A Markdown-only pull request reports `verify` after 2 min 35 s in all (run 39447519939): `static checks` runs the Markdown
+gateway; sharding `api` like `client` is the next step if 6 minutes is too long. The `e2e` check (9 min 13 s here) was longer than `verify`; 16.9 shards it (below). A Markdown-only pull request reports `verify` after 2 min 35 s in all (run 39447519939): `static checks` runs the Markdown
 links and the script tests, the `api`, `client` and `mcp` jobs are skipped. The same tests ran as before the split: 3489 tests in 432 suites
 (`api` 2532, `client` 245 + 254 + 384 = 883, `mcp` 74). The merge counts exactly the entries of one unsharded run: for `client`
 4390 of 4393 statements, 1602 of 1603 branches, 1066 of 1066 functions and 4106 of 4108 lines ([how the merge guarantees it](#ci-jobs)).
 
+**After 16.9** (parallel e2e). The pull request run 39540515869 (`chore/16.9-parallel-e2e`, caches hit), against the run above (39447341042):
+
+| | Before (run 39447341042) | After 16.9 |
+| --- | ------------------------ | ---------- |
+| `e2e` check (from the start of the shards to the end of `e2e`) | 9 min 13 s | about 4 min 1 s (slowest shard 3 min 57 s, the final job 4 s) |
+| Shards `e2e tests 1/4` to `4/4` | one job | 3 min 44 s, 3 min 27 s, 3 min 57 s, 3 min 57 s (Cypress 2 min 42 s to 3 min 21 s, installation 8 s, containers 12 to 16 s) |
+| Whole run | 12 min 52 s | 5 min 31 s, bound by `api tests` (4 min 57 s) |
+
+A failing spec fails `e2e`: the temporary spec `ci-proof-failing.cy.ts` (`expect(1).to.equal(2)`), run 39541130529, was placed in shard 4/4; that shard failed
+with `1 failing` and `AssertionError: expected 1 to equal 2` in `ci-proof-failing.cy.ts`, the shards 1/4, 2/4 and 3/4 and every other job passed, the final job `e2e` failed with
+`Unexpected result: e2e-shard failure`, and the artifact `e2e-failure-4` held the screenshot. The spec was reverted afterwards.
+
 ## CI jobs
 
-The required check `verify` is the last of several jobs of `.github/workflows/ci.yml` that run at the same time (task 16.3):
+The required checks `verify` and `e2e` are the last jobs of several that of `.github/workflows/ci.yml` that run at the same time (tasks 16.3 and 16.9):
 
 | Job | What it runs |
 | --- | ------------ |
@@ -189,7 +200,9 @@ The required check `verify` is the last of several jobs of `.github/workflows/ci
 | `api tests` | Jest of `api` with PostgreSQL, Redis and the log gateway |
 | `client tests i/3` | Jest of `client`, one of three shards (`jest --shard=i/3`) |
 | `mcp tests` | Jest of `mcp` |
-| `verify` | needs all of them (a skipped code job is right only for a Markdown-only change), merges the coverage of each package, applies the coverage gate and, on a pull request, the changed-file coverage |
+| `e2e tests i/4` | Cypress, one of four shards (`npm run e2e -- --shard i/4`), each with its own PostgreSQL service, API and client build |
+| `e2e` | needs the four shards (skipped shards are right only for a Markdown-only change); fails when one failed |
+| `verify` | needs the jobs above from `static checks` to `mcp tests` (a skipped code job is right only for a Markdown-only change), merges the coverage of each package, applies the coverage gate and, on a pull request, the changed-file coverage |
 
 Every test job runs Jest with `--coverage --coverageThreshold='{}'`, so a shard cannot fail the package gate on its own coverage, and
 uploads `coverage/coverage-final.json` as the artifact `coverage-<package>-<shard>-of-<count>`. `verify` downloads them,
@@ -205,6 +218,11 @@ package, which are those of one unsharded run. To count the tests across the job
 jobs' logs (`node scripts/ci-timings.mjs <run-id>` lists the jobs). To try the same locally: run a package with `--shard=i/n` and
 `--coverageThreshold='{}'`, copy each `coverage/coverage-final.json` to `<dir>/coverage-<package>-<i>-of-<n>/`, and run
 `node scripts/merge-coverage.mjs <dir> --out <scratch-dir> <package>`.
+
+The Cypress specs are split by `scripts/e2e-durations.json` (seconds per spec, taken from the Cypress summary of a CI run): longest spec
+first into the shard with the least time so far (`specsOfShard` in `scripts/e2e-lib.mjs`). A spec that is not recorded counts as the median,
+but a test of the script fails until it is recorded, so the shards stay even. Each shard builds the client itself (13 s, faster than sharing an
+artifact). The screenshots and server logs of a failed shard are uploaded as `e2e-failure-<shard>`. To run one shard locally: `npm run e2e -- --shard 2/4`.
 
 ## Coverage
 

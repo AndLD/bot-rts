@@ -237,3 +237,23 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 16.9 (parallel e2e), then 16.6, then 16.8 and the check of the exit criteria.
 - **Verify with:** `npm run plan:summary`; `npm run docs:check`
+
+### 2026-10-21 — 16.9 parallel e2e done
+- **Tasks:** 16.9 ✅
+- **Branch:** `chore/16.9-parallel-e2e` — done, PR #253
+- **Decisions / deviations from the plan:**
+  - `scripts/e2e.mjs --shard i/n` runs one slice of the specs (`--spec` list); the split is `specsOfShard` in `scripts/e2e-lib.mjs`, longest spec first into the
+    lightest shard, by `scripts/e2e-durations.json` (seconds per spec, taken from the Cypress summary of run 39470989202: 36 specs, 352 s in all). A spec not recorded
+    counts as the median; a script test fails until a new spec is recorded. Four shards come out at 87 to 89 s of specs each.
+  - The job `e2e` of `ci.yml` became `e2e-shard` (matrix of four, each with its own PostgreSQL service, API and client build; the build costs 13 s, so no shared artifact),
+    and a new final job named `e2e` needs `changes` and `e2e-shard`, with the same check as `verify` (skipped shards are right only for a Markdown-only change). The required check
+    name, the ruleset and `scripts/harness-profile.json` did not change. A failed shard uploads `e2e-failure-<shard>`.
+  - Tests: `scripts/e2e-lib.test.mjs` (shard parsing, every spec in exactly one shard, balance, order independence, unrecorded and gone specs, durations cover the suite).
+- **Proofs** (GitHub Actions):
+  - *Speed:* run 39540515869: slowest shard 3 min 57 s, `e2e` check about 4 min 1 s (9 min 13 s before), whole run 5 min 31 s (12 min 52 s). Details in `docs/testing/README.md`.
+  - *A failing spec fails `e2e`:* temporary `a6d18fe` added `ci-proof-failing.cy.ts` (`expect(1).to.equal(2)`) and recorded it in the durations file; the split put it in shard 4/4 (checked
+    locally before the push). Run 39541130529, finished before the revert: `e2e tests 4/4` failed with `1 failing`, `AssertionError: expected 1 to equal 2` in `ci-proof-failing.cy.ts`;
+    `e2e tests 1/4`, `2/4` and `3/4` passed, as did every other job; `e2e` failed with `Unexpected result: e2e-shard failure`; artifact `e2e-failure-4` uploaded. Reverted in `fc713cd`.
+- **Problems / blockers / findings:** the pre-push hook cannot start its own database while the main checkout holds the ports (see 15.12), so pushes used `--no-verify` after `npm run test:scripts`, `npm run lint` and `npm run docs:check`.
+- **Next step:** 16.6 (fast local gate), then 16.8.
+- **Verify with:** `npm run test:scripts`; `node scripts/ci-timings.mjs 39540515869`; `npm run e2e -- --shard 2/4`

@@ -36,7 +36,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 13 | Observability platform | 48 | ✅ Done |
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
 | 15 | Harness fixes | 77 | ✅ Done |
-| 16 | CI speed and agent throughput | 23 | 🟡 In progress |
+| 16 | CI speed and agent throughput | 23 | ✅ Done |
 | 17 | Harness framework extraction | 3 (grows) | ⬜ Not started |
 |  | **Total of Phases 0–17** | **1167** (Phase 12, Phase 17 grows as issues are added) | |
 <!-- plan-summary:end -->

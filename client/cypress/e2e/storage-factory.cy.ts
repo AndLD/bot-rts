@@ -123,7 +123,8 @@ describe('the storage and the factory windows', () => {
     cy.contains('.game-toolbar button', 'Factory').click()
 
     cy.contains('.game-window', 'Factory').within(() => {
-      cy.contains('.factory-recipe', 'Gun, class 1').contains('button', 'Craft').should('be.disabled')
+      // 60 iron: more than the 50 of the starter resources (design §6.1)
+      cy.contains('.factory-recipe', 'Factory, class 1').contains('button', 'Craft').should('be.disabled')
     })
   })
 })

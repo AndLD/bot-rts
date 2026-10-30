@@ -58,7 +58,8 @@ describe('the energy of a base and of its bots', () => {
     cy.contains('generator-class1').should('not.exist')
 
     cy.wait(3000)
-    cy.task('stockOf', { botId: baseId }).should('deep.equal', { oil: 50 })
+    // The other starter resources are for crafting (design §6.1); only the oil is checked here
+    cy.task<Record<string, number>>('stockOf', { botId: baseId }).its('oil').should('equal', 50)
   })
 
   it('tells that the energy is low once, however long it stays low', () => {

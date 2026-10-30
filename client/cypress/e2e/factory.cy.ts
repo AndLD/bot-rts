@@ -13,6 +13,16 @@ function idsOf(email: string, noun: string): Cypress.Chainable<string[]> {
   })
 }
 
+// The ids of the finished parts with the given module names, in the newest listing of the factory
+function partIdsOf(email: string, modules: string[]): Cypress.Chainable<string[]> {
+  return cy.task<string[]>('terminalLines', { email }).then((lines) => {
+    const listing = [...lines].reverse().find((line) => line.startsWith('output: ') && line.includes('part id="'))
+    const parts = [...(listing ?? '').matchAll(/part id="([^"]+)" module="([^"]+)"/g)]
+
+    return modules.map((module) => parts.find((part) => part[2] === module)?.[1] ?? '')
+  })
+}
+
 const STOCK = [
   { resource: 'iron', amount: 600 },
   { resource: 'crystal', amount: 400 },
@@ -32,10 +42,14 @@ describe('the factory of the base in the terminal', () => {
     cy.contains('# Welcome to BotOS Alpha 0.1.0 #')
   })
 
-  // Crafts the core modules of a bot, lets the factory finish and assembles the bot next to the base
-  function assembleScout() {
-    cy.task('stockBase', { email, items: STOCK })
-    for (const module of ['processor-class1', 'wireless-adapter-class1', 'battery-class1']) {
+  // Crafts the core modules of a bot (after any `first` module), lets the factory finish and assembles the bot next to the
+  // base; the storage is stocked unless the base lives on its starter resources
+  function assembleScout({ isStocked = true, first = [] as string[] } = {}) {
+    if (isStocked) {
+      cy.task('stockBase', { email, items: STOCK })
+    }
+    const core = ['processor-class1', 'wireless-adapter-class1', 'battery-class1']
+    for (const module of [...first, ...core]) {
       command(`craft ${module}`)
       cy.contains(`queued 1 x ${module}`)
     }
@@ -44,20 +58,27 @@ describe('the factory of the base in the terminal', () => {
     command('factory')
     cy.contains('- part id="')
 
-    idsOf(email, 'part').then((ids) => {
-      expect(ids).to.have.length(3)
+    partIdsOf(email, core).then((ids) => {
+      expect(ids).to.have.length(core.length)
+      expect(ids).to.not.include('')
       command(`assemble Scout ${ids.join(' ')}`)
     })
     cy.contains('assembled bot id="')
   }
 
-  it('lists the recipes and refuses to craft without resources', () => {
+  it('lists the recipes and refuses to craft more than the storage holds', () => {
     command('recipes')
     cy.contains('module="scanner-class1" known')
     cy.contains('module="scanner-class2" researchable')
 
-    command('craft wheels-class1')
+    command('craft wheels-class1 100')
     cy.contains('Error: Not enough resources')
+  })
+
+  it('lets a freshly deployed base craft a module and assemble a bot on its starter resources (design §16.1)', () => {
+    assembleScout({ isStocked: false, first: ['wheels-class1'] })
+
+    cy.task<{ id: string }[]>('workersOf', { email }).should('have.length', 1)
   })
 
   it('crafts modules, waits for the factory and assembles a bot next to the base', () => {

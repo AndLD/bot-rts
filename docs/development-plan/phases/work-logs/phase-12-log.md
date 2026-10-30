@@ -66,3 +66,40 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** the amounts are not decided; the task proposes them and asks the owner first.
 - **Next step:** start 12.3 when the owner asks: propose the amounts, get them confirmed, then a failing test.
 - **Verify with:** `npm run docs:check`
+
+### 2026-10-21 — 12.3: the owner's decision on the starter amounts
+- **Tasks:** 12.3 (text only, still **not started**)
+- **Branch:** `docs/12.3-starter-amounts-decision` — the plan only
+- **Decisions / deviations from the plan:** the owner does not know the right numbers yet and does not need to confirm them before coding.
+  12.3 chooses just enough of each resource for the basic crafting of the tutorial path (the first module and the first bot, from
+  `DEFAULT_RECIPES`) plus a small margin, records the arithmetic in its log, and keeps the amounts in the balance configuration; they are
+  revisited during balancing. The task text now also names the changelog fragment (the changelog has used fragments since 15.11) and the
+  engine's deploy-base command as the place of the deposit (single writer).
+- **Problems / blockers / findings:** none.
+- **Next step:** start 12.3 when the owner asks; it no longer stops for the amounts.
+- **Verify with:** `npm run docs:check`
+
+### 2026-10-21 — task 12.3 (starter resources for the first craft)
+- **Tasks:** 12.3
+- **Branch:** `bugfix/12.3-starter-resources` — done
+- **Decisions / deviations from the plan:** the amounts follow the owner's decision of 2026-10-21 (no confirmation, derive from
+  `DEFAULT_RECIPES`, small margin). Arithmetic, at the recipes of design §9.3:
+  - *First craft:* the tutorial hint names wheels or an engine. Wheels cost 25 iron; an engine 30 iron and 10 oil (the oil is already in the
+    storage). The dearer one, the engine, is covered too.
+  - *First assembly:* a legal bot needs a processor, a wireless adapter and a battery (`validateAssembly`, design §8.2), and assembly
+    itself costs no resources: processor 25 crystal + 10 gold, wireless adapter 15 crystal + 20 gold, battery 20 iron + 15 crystal
+    = 20 iron, 55 crystal, 30 gold.
+  - *Minimum for the path:* wheels 25 + 20 = 45 iron (engine: 30 + 20 = 50), 55 crystal, 30 gold. *Margin:* 5 of each.
+  - *Deposit:* **50 iron, 60 crystal, 35 gold** next to the 50 oil that was already there: 195 of the 200 places of the starter storage,
+    so the capacity stays at 200 (5 places free until the first craft makes room).
+  - Where: `DEFAULT_STARTER_RESOURCES` in `lib/utils/interfaces/crafting.ts` (balance configuration, next to the recipes);
+    `ModuleFactory.starterKit` puts it in the storage of the starter kit, which `bots.deployUserBase` creates inside the engine's
+    deploy-base command. The catalog template of `storage-class1` is now empty. That also closes a leak found on the way: a crafted
+    storage module used to carry the template's 50 oil into every assembled bot, and would now have carried 195 resources.
+  - Design §6.1 (new "Starter resources" table) and §16.1 are updated; Q15 is answered and removed from the register (§20).
+- **Problems / blockers / findings:** tests that assumed a base that cannot afford a craft now ask for 100 pieces (more than the storage
+  holds); the energy-model fixture sets its own oil. The Cypress `factory` spec got a case that assembles a bot on the starter
+  resources alone (the `tutorial` spec stops at writing a script, so the craft step has no flow of its own). The `engine.int` grant test
+  now grants 5 iron, the room the storage has left.
+- **Next step:** Phase 12 waits for new issues (the user closes it).
+- **Verify with:** `npx jest src/bots/application/starter-resources.test.ts -w api`, `npm test -w api`, `npm run docs:check`

@@ -121,3 +121,14 @@ export const DEFAULT_RECIPES: readonly IRecipe[] = [
   { module: 'drill-class2', classLevel: 2, resources: [stack(IRON, 80), stack(CRYSTAL, 30)], craftTimeMs: 40_000 },
   { module: 'battery-class2', classLevel: 2, resources: [stack(IRON, 40), stack(CRYSTAL, 40)], craftTimeMs: 30_000 }
 ]
+
+// What the storage of a new base holds when the base is deployed (design §6.1). Enough for the tutorial path of design §16.1,
+// the first craft (wheels, 25 iron; an engine, 30 iron and 10 oil, also fits) and the first assembly (a processor, a wireless
+// adapter and a battery: 20 iron, 55 crystal, 30 gold), plus a small margin. Oil also fuels a generator. Tuned in
+// configuration; the total must stay within the capacity of the starter storage.
+export const DEFAULT_STARTER_RESOURCES: readonly IResourceStack[] = [
+  stack(OIL, 50),
+  stack(IRON, 50),
+  stack(CRYSTAL, 60),
+  stack(GOLD, 35)
+]

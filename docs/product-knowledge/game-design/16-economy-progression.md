@@ -11,6 +11,9 @@ the optional, skippable [tutorial](#161-tutorial) below.
 - A **guided in-game checklist** overlay appears after the player deploys a base. It walks through real game actions:
   open the terminal, run `modules`, scan, edit and run a first script, craft a module, assemble a bot. Each step
   highlights the relevant UI element or command and completes when the player actually does it.
+- The tutorial can be finished with what the game gives: the storage of a new base holds the **starter resources** (§6.1),
+  enough for the first craft (the hint names wheels or an engine) and for assembling the first bot from a processor, a wireless
+  adapter and a battery (§8.2), with a small margin. Mining is the next step, not a precondition.
 - **Skippable at any time** (Skip button), and it can be reopened from the profile settings.
 - There are **no rewards** and no special rules; the tutorial plays in the normal shared world.
 - Progress (current step, skipped or completed) is stored in the user profile.

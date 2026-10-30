@@ -15,7 +15,9 @@ function bot(overrides: Record<string, Record<string, unknown>> = {}, names?: st
   return (names ?? ['battery-class1', 'generator-class1', 'storage-class1', 'scanner-class1', 'processor-class1']).map(
     (name) => {
       const module = factory.create(name, 'bot')
-      return { ...module, props: { ...module.props, ...overrides[name] } }
+      // The catalog storage is empty (a base gets its starter resources at deployment); these tests burn oil from it
+      const oil = name === 'storage-class1' ? { items: [{ resource: 'oil', amount: 50 }] } : {}
+      return { ...module, props: { ...module.props, ...oil, ...overrides[name] } }
     }
   )
 }

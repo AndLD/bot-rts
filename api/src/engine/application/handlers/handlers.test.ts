@@ -129,10 +129,11 @@ describe('script API handlers', () => {
     expect(dataOf<unknown[]>(result)).toHaveLength(2)
   })
 
-  it('craft without resources, or of an unknown module, is a failure value', async () => {
+  it('craft without enough resources, or of an unknown module, is a failure value', async () => {
     const { api, state } = await setup()
 
-    await expect(api.execute(state, 'craft', ['scanner-class1'])).resolves.toMatchObject({ ok: false })
+    // far more scanners than the starter resources pay for
+    await expect(api.execute(state, 'craft', ['scanner-class1', 100])).resolves.toMatchObject({ ok: false })
     await expect(api.execute(state, 'craft', ['no-such-module'])).resolves.toMatchObject({
       ok: false,
       code: 'NOT_FOUND'

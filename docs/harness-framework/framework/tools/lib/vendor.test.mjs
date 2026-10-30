@@ -326,3 +326,38 @@ test('the self mode has nothing to vendor', () => {
   assert.throws(() => diff({ root }), /mode "self"/)
   assert.ok(existsSync(join(root, 'harness.lock.json')))
 })
+
+test('a managed block is generated inside a file the project owns; only the block is locked, so the text around it is free', () => {
+  const root = synced()
+  const generators = [
+    {
+      block: 'map',
+      path: () => 'docs/bindings.md',
+      render: ({ profile }) => `host: ${profile.adapters.host}\n`
+    }
+  ]
+  const text = (inside) =>
+    `# Bindings\nmine\n<!-- harness:begin map -->\n${inside}\n<!-- harness:end map -->\nalso mine\n`
+
+  assert.throws(() => sync({ root, local: true, generators }), /docs\/bindings\.md must exist, with the markers/)
+  write(root, { 'docs/bindings.md': 'no markers\n' })
+  assert.throws(() => sync({ root, local: true, generators }), /docs\/bindings\.md: the markers .* are missing/)
+
+  write(root, { 'docs/bindings.md': text('stale') })
+  sync({ root, local: true, generators })
+  assert.equal(read(root, 'docs/bindings.md'), text('host: github'))
+  assert.deepEqual(checkVendored({ root, generators }).problems, [])
+
+  write(root, { 'docs/bindings.md': text('host: github').replace('mine', 'edited around the block') })
+  assert.deepEqual(checkVendored({ root, generators }).problems, [])
+
+  write(root, { 'docs/bindings.md': text('edited inside the block') })
+  assert.match(checkVendored({ root, generators }).problems.join('\n'), /the managed block docs\/bindings\.md differs/)
+
+  write(root, { 'docs/bindings.md': 'the markers are gone\n' })
+  assert.match(checkVendored({ root, generators }).problems.join('\n'), /the managed block docs\/bindings\.md differs/)
+
+  write(root, { 'docs/bindings.md': text('stale') })
+  sync({ root, local: true, generators })
+  assert.deepEqual(checkVendored({ root, generators }).problems, [])
+})

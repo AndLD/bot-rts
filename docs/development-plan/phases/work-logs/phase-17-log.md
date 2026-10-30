@@ -137,3 +137,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.6 (the layer map from one source), `C2`.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
+
+### 2026-10-30 — 17.6 done: the layer map from one source
+- **Tasks:** 17.6 ✅ (its log: [`phase-17/17.6.md`](./phase-17/17.6.md))
+- **Branch:** `chore/17.6-layer-map` — done, PR #268
+- **Decisions / deviations from the plan:** the `core-files` block is gone, but the project's CORE documents stay a list (`layers.core` in the
+  profile file) until 17.8 moves them into the framework; design §8.2 says so. The map is a managed block inside the harness bindings.
+- **Problems / blockers / findings:** none. H-20261019-21, -22 (second half) and -23 are closed.
+- **Next step:** 17.7 (generic tools into the framework), `C3`: Opus 5.5 at high effort, in a fresh session ("Continue Phase 17").
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`

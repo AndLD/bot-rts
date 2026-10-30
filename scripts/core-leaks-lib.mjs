@@ -1,5 +1,5 @@
 // Keeps the CORE files of the harness (the method, the plan method, the review methods and the rules of AGENTS.md sections 1 and 7) free of
-// stack terms, product terms and project values. The CORE files come from the layer map of the harness bindings; the term lists are the
+// stack terms, product terms and project values. The CORE files are the `layers.core` entries of the profile file; the term lists are the
 // `terms` of the profile file. The one line of AGENTS.md that binds the roles to this repository's values is the only place a project value may stay.
 export const BINDING_MARKER = '**Role binding.**'
 const ENTRY_FILE = 'AGENTS.md'
@@ -11,21 +11,6 @@ function productPattern(terms) {
     .split('|')
     .filter((alternative) => !generic.has(alternative))
     .join('|')
-}
-
-// The `core-files` block of the bindings: one path per line, optionally followed by `sections` and the numbers of the sections to read
-export function coreFiles(bindingsText) {
-  const block = bindingsText.match(/^```core-files\n([\s\S]*?)^```/m)
-  if (!block) {
-    throw new Error('The bindings have no core-files block in the layer map')
-  }
-  return block[1]
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => {
-      const [path, keyword, ...numbers] = line.trim().split(/\s+/)
-      return { path, sections: keyword === 'sections' ? numbers : null }
-    })
 }
 
 // The lines of the numbered sections (`## 7.`), the others blanked so that line numbers stay true
@@ -76,16 +61,17 @@ export function frameworkCoreProblems(files, terms, folder) {
   )
 }
 
-// `files` maps a path of the repository to its text; a path of the core-files block that is missing from it is a problem
-export function coreLeakProblems(files, terms, bindingsText) {
+// `files` maps a path of the repository to its text; `entries` are the CORE entries (`coreEntries` of the framework's layer tools); a path
+// among them that is missing from `files` is a problem
+export function coreLeakProblems(files, terms, entries) {
   const patterns = leakPatterns(terms)
   const problems = []
   let bindings = 0
 
-  for (const { path, sections } of coreFiles(bindingsText)) {
+  for (const { path, sections } of entries) {
     const text = files[path]
     if (text === undefined) {
-      problems.push(`${path}: listed as CORE in the harness bindings but not found`)
+      problems.push(`${path}: listed as CORE in layers.core of the profile file but not found`)
       continue
     }
     const lines = sections ? inSections(text, sections) : text.split('\n')

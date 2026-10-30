@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { coreFiles, coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
+import { coreEntries } from '../harness/tools/lib/layers.mjs'
+import { coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
 
 const PROFILE = {
   stack: 'postgres|\\bnpm\\b',
@@ -10,17 +11,9 @@ const PROFILE = {
   projectValues: '`develop`|\\bphase [0-9]+'
 }
 
-const BINDINGS = '```core-files\nAGENTS.md sections 1 7\ndocs/method.md\n```\n'
+const BINDINGS = coreEntries(['AGENTS.md sections 1 7', 'docs/method.md'])
 const BINDING_LINE = '**Role binding.** The integration branch is `develop`, Phase 12.'
 const AGENTS = (body) => `# Rules\n## 1. A\n${body}\n## 2. Moved\nA bot moves.\n## 7. Git\n${BINDING_LINE}\n`
-
-test('coreFiles reads the paths and the sections of the bindings block', () => {
-  assert.deepEqual(coreFiles(BINDINGS), [
-    { path: 'AGENTS.md', sections: ['1', '7'] },
-    { path: 'docs/method.md', sections: null }
-  ])
-  assert.throws(() => coreFiles('no block'), /no core-files block/)
-})
 
 test('clean CORE files and one binding line have no problems; generic words and other sections are not scanned', () => {
   const files = { 'AGENTS.md': AGENTS('Run the script.'), 'docs/method.md': 'Branch from the integration branch.' }
@@ -48,7 +41,7 @@ test('a value outside the binding line in a scanned section of AGENTS.md is a pr
 
 test('a missing CORE file and a missing or repeated binding line are problems', () => {
   assert.deepEqual(coreLeakProblems({ 'AGENTS.md': AGENTS('ok') }, PROFILE, BINDINGS), [
-    'docs/method.md: listed as CORE in the harness bindings but not found'
+    'docs/method.md: listed as CORE in layers.core of the profile file but not found'
   ])
   const none = { 'AGENTS.md': '## 1. A\nok\n', 'docs/method.md': '' }
   assert.match(coreLeakProblems(none, PROFILE, BINDINGS)[0], /expected one "\*\*Role binding\.\*\*" line.*found 0/)

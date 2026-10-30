@@ -576,6 +576,70 @@
       },
       "additionalProperties": false,
       "required": ["rules", "readme", "harnessBindings"]
+    },
+    "layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope"],
+      "description": "The layer map (design §8.2): globs per layer (`*` inside a folder, `**` across folders, a leading `!` removes). The tools add the vendored copy (CORE), the profile file, the lock, the profile document and the bindings (PROFILE), and the folder of a framework source (outside the map).",
+      "properties": {
+        "scope": {
+          "type": "array",
+          "description": "The tracked files the map covers: each must be in exactly one layer.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excluded": {
+          "type": "array",
+          "description": "Files in the scope that are outside the map (third-party files, for example).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "core": {
+          "type": "array",
+          "description": "CORE files, one per entry: a path, optionally followed by `sections` and the numbers of the sections that are CORE (the rest of the file belongs to another layer). Until the core documents move into the framework (17.8), this list is also what the CORE scan reads.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain": {
+          "type": "array",
+          "description": "DOMAIN: the product knowledge.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "adapter": {
+          "type": "array",
+          "description": "ADAPTER: what is specific to the stack, the runtime or the host.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "profile": {
+          "type": "array",
+          "description": "PROFILE files beyond the ones the tools know.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "state": {
+          "type": "array",
+          "description": "STATE: records that grow or are dated.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entry": {
+          "type": "array",
+          "description": "ENTRY: the files an agent or a person reads first.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

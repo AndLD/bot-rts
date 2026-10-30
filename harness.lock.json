@@ -30,13 +30,17 @@
     "core/rules/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "core/templates/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "framework.json": "89749a632ee1cd22e2bf4bf88487e27acbf198a2e12a2c6ba3d841a149aaaaa2",
-    "profile/harness-profile.schema.json": "72420997db08d51c23a44efb9cdbabb32d60d8962aa7fad5235b09fa8cc1f225",
+    "profile/harness-profile.schema.json": "12fb152c9ba90526fb83681cb731fca793aeb3128ce760591c88202b8f4e2613",
     "profile/roles.md": "138442cb1235e78a7b390c49df803f652f66d41e03ce3367a94cee07c7343948",
     "tools/git-hooks/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "tools/harness.mjs": "26eb7e3d4e52cb35ab3f2cf559877fa0f71c5834e775be47a435ec3d42f40459",
-    "tools/harness.test.mjs": "9dca9819f3752a8a97d719837fc30fb62fbbd11065bf23d2e0be49b234e68c74",
-    "tools/lib/generators.mjs": "9d158a8655387823afa6611380b3430497f67798731e2d09ed27fd2a05979434",
+    "tools/harness.mjs": "b45f2523ba7416ea3380a25d62f1c2f66a22fda444530053ccc75f2ebfba1942",
+    "tools/harness.test.mjs": "aa0b575cf1ebc40b271211571fda34df6763aba8f44c770cc2533f0f6b1f7c71",
+    "tools/lib/generators.mjs": "a8f4d86a5e0ff467a22f84b1257a47fabb92340e8e7d638f70dcb595c2095078",
+    "tools/lib/layers.mjs": "5fc813cd9dfe70a01b5abe93b580c2dd6e51f4e951c8e51de7f934411baf927f",
+    "tools/lib/layers.test.mjs": "7d5193a472ea7efd535b115184b4e3d6a006c5b9d13ef9b5b79c78717870ac29",
     "tools/lib/lock.mjs": "b93658845e49cac8192253544112d3d5dc4d8071f4fa9d06829710422721de43",
+    "tools/lib/managed.mjs": "3f971861c43dbb47f6e302af1d13368f502608fa6cd9198b836e7250c4a95df4",
+    "tools/lib/managed.test.mjs": "7d2a76c9aac9f8de940541ce145ee7cdefb25c83551174367fb9248460e7bc1c",
     "tools/lib/profile-document.mjs": "d7c9bd606c623d2b962ce53853e1a3820ee688ba0c080e3e57310d070e7a71f7",
     "tools/lib/profile-document.test.mjs": "f985b3ea9de844ff00668036d2bf9a2c8f247db933def17bf8594b96cd6376f2",
     "tools/lib/profile.mjs": "60b69d53b81a09a1b93a39b58826733f3935766eb66d610f5f50b2d1b6a95ca8",
@@ -45,13 +49,14 @@
     "tools/lib/render.test.mjs": "e5a29b4c341d62a8817f71beb84babcb29b22d8d6f7f9428dd4415c15892fd54",
     "tools/lib/source.mjs": "99c4354852f4a6948f67963ae4a377a8cc4b24da15dea7f24ef94769d297cde8",
     "tools/lib/tree.mjs": "18e384bb19e71676bd7dc5375247c1bf7dfc304e6fcd5c7a873abb5bb9edfd20",
-    "tools/lib/vendor.mjs": "f88fc365c1d78abab627c2037cd52bf685aae622ad9728af797c83e9fcefd4cc",
-    "tools/lib/vendor.test.mjs": "8d18c20638b4a452b5034f629d876376746e7a67ce3e663ce9fb4cd93e9976c2",
+    "tools/lib/vendor.mjs": "2fbf8ad57eccd13e55c144beb8054ffc1197f1629e74e4d93e1098debc3f3183",
+    "tools/lib/vendor.test.mjs": "252acff84b28b63aacb907381144465ea84160b7fd975b296a7f8b32d88e0757",
     "tools/runtime-hooks/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "managed": {
-    "docs/profile.md": "30fe1cd512b64dbe9e03697a753999c7d3211d740039838067cbb331d11f73f0"
+    "docs/profile.md": "30fe1cd512b64dbe9e03697a753999c7d3211d740039838067cbb331d11f73f0",
+    "docs/quality-reviews/harness/bindings.md": "7162ee95906ee2ef11db78746526dce8d417f4cf5b843ef114cef3e9289c47ad"
   },
-  "profile": "37c15cc810ea495bf8616d014d746a496ebf4a02c215e4d8978adedeb4cf5feb",
+  "profile": "1f4dbc4fe8be51312adedd5361355d41dd3cd4284061ce78977182736ee574ef",
   "overrides": []
 }

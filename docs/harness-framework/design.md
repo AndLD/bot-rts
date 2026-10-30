@@ -10,7 +10,7 @@ tasks 17.2 onward of the phase file in the same pull request.
 design does not reopen. Step 3 of the [harness-framework plan](./README.md#step-3-extract-the-framework). The latest harness review,
 [2026-10-19-3](../quality-reviews/harness/2026-10-19-3.md): its export dry run, blockers B6 and B7, and findings H-20261019-22 to -24. The
 [review method](../quality-reviews/harness/README.md) and its [bindings](../quality-reviews/harness/bindings.md) (layer map and `core-files`
-block). The [profile](../profile.md) and [`scripts/harness-profile.json`](../../scripts/harness-profile.json). The CI jobs and the pre-push hook
+block). The [profile](../profile.md) and [`harness-profile.json`](../../harness-profile.json). The CI jobs and the pre-push hook
 as Phase 16 left them on `develop` at `a53de8b`: `verify` and `e2e` are aggregator jobs over parallel jobs and shards, and
 `.githooks/pre-push` runs `scripts/local-gate.mjs`, which checks only what the pushed files need. Task 16.7 was deferred, so there is no
 stacked-branch rule for CI waits; method §5 keeps its older note on rebasing stacked pull requests.
@@ -243,7 +243,7 @@ or the files handed over; it never pushes to that project.
 | `docs/profile.md` §1–§8, §10 | **profile**: generated from `harness-profile.json` and `profile/roles.md` | The values move into the profile file (section 7.2). §5 (API) and §6 (user-facing languages) become optional role groups. |
 | `docs/profile.md` §9 term lists, bounded contexts | **profile** (`review.terms`, `review.contexts`) | Lists in JSON instead of fenced blocks that a regular expression parses. |
 | `scripts/harness-profile.json` | **profile**, moved to `harness-profile.json` at the root | The schema is in `profile/`. |
-| `scripts/coverage-threshold.json` | **profile**: folded into `harness-profile.json` (`quality.coverageGate`) | The three `jest.config.ts` files and the coverage tools read the profile file. |
+| `scripts/coverage-threshold.json` | **profile**: folded into `harness-profile.json` (`coverageGate`) | The three `jest.config.ts` files and the coverage tools read the profile file. |
 | `.env.example`, `.gitignore` | **stays**; minimal versions → **template** | |
 
 ### 3.2 Method documents (the current `core-files` block)

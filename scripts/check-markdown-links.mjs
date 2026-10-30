@@ -54,7 +54,8 @@ for (const file of markdownFiles) {
   const withoutInlineCode = text.replace(/`[^`\n]*`/g, '')
 
   for (const [, target] of withoutInlineCode.matchAll(/\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
-    if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+    // An external address, or a placeholder of a template (the profile template of the framework fills its links in)
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.includes('{{')) {
       continue
     }
 

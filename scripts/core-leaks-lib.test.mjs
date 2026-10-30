@@ -1,23 +1,18 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { coreFiles, coreLeakProblems, frameworkCoreProblems, profilePattern } from './core-leaks-lib.mjs'
+import { coreFiles, coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
 
-const PROFILE = [
-  "STACK='postgres|\\bnpm\\b'",
-  "PRODUCT='\\bbots?\\b|\\bscripts?\\b|\\bbase\\b'",
-  "PRODUCT_GENERIC='\\bscripts?\\b'",
-  "PROJECT_VALUES='`develop`|\\bphase [0-9]+'"
-].join('\n')
+const PROFILE = {
+  stack: 'postgres|\\bnpm\\b',
+  product: '\\bbots?\\b|\\bscripts?\\b|\\bbase\\b',
+  productGeneric: '\\bscripts?\\b',
+  projectValues: '`develop`|\\bphase [0-9]+'
+}
 
 const BINDINGS = '```core-files\nAGENTS.md sections 1 7\ndocs/method.md\n```\n'
 const BINDING_LINE = '**Role binding.** The integration branch is `develop`, Phase 12.'
 const AGENTS = (body) => `# Rules\n## 1. A\n${body}\n## 2. Moved\nA bot moves.\n## 7. Git\n${BINDING_LINE}\n`
-
-test('profilePattern reads a list of the profile and fails when it is missing', () => {
-  assert.equal(profilePattern(PROFILE, 'STACK'), 'postgres|\\bnpm\\b')
-  assert.throws(() => profilePattern('no list', 'STACK'), /no STACK term list/)
-})
 
 test('coreFiles reads the paths and the sections of the bindings block', () => {
   assert.deepEqual(coreFiles(BINDINGS), [
@@ -61,8 +56,8 @@ test('a missing CORE file and a missing or repeated binding line are problems', 
   assert.match(coreLeakProblems(twice, PROFILE, BINDINGS)[0], /found 2/)
 })
 
-// The lists of the real profile (section 9), for the values that the lists must catch
-const REAL_PROFILE = readFileSync(new URL('../docs/profile.md', import.meta.url), 'utf8')
+// The lists of the real profile file, for the values that the lists must catch
+const REAL_PROFILE = JSON.parse(readFileSync(new URL('../harness-profile.json', import.meta.url), 'utf8')).terms
 const REAL_FILES = (text) => ({ 'AGENTS.md': AGENTS('ok'), 'docs/method.md': text })
 
 test('the profile lists catch a game noun, a task-id branch example and a link to a dated file', () => {

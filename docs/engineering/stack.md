@@ -33,7 +33,7 @@ Read this file before writing or changing code.
   own database/schema created by `prisma migrate deploy`. **No in-memory or embedded database** (PGlite, pg-mem, SQLite,
   `mongodb-memory-server`) is used in tests.
 - **E2E:** **Cypress**.
-- **Coverage:** Istanbul via Jest `--coverage`; the coverage gate (the constant `scripts/coverage-threshold.json`) is enforced in
+- **Coverage:** Istanbul via Jest `--coverage`; the coverage gate (the `coverageGate` of `harness-profile.json`) is enforced in
   CI and locally in the pre-push hook, and `scripts/check-changed-coverage.mjs` checks every changed file.
 
 All of this tooling is installed (see the root `package.json` scripts and the commands of the
@@ -164,7 +164,7 @@ are injected.
   `supertest` for full controller → use case → repository slices; each Jest worker uses its own database/schema created by
   `prisma migrate deploy`; auth guards with real JWT signing where relevant, or the `FakeIdentityVerifier` ([architecture §1](./architecture.md#1-identity-provider-abstraction)).
 - **E2E:** Cypress (`npm run e2e`); the matrix is [`docs/testing/e2e-matrix.md`](../testing/e2e-matrix.md).
-- **Coverage:** Istanbul via Jest `--coverage`; the gate is read from `scripts/coverage-threshold.json` by the three
+- **Coverage:** Istanbul via Jest `--coverage`; the gate is read from the `coverageGate` of `harness-profile.json` by the three
   `jest.config.ts` files, whose `collectCoverageFrom` lists each exclusion with its reason; the targeted exclusion is
   `/* istanbul ignore next */` with a comment. CI (`npm run test:coverage`) and the pre-push hook enforce it for `api`,
   `client` and `mcp`; `scripts/check-changed-coverage.mjs` blocks a PR whose changed files are below the gate.

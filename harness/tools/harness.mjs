@@ -1,20 +1,26 @@
 #!/usr/bin/env node
-// The `harness` command line (design §7.1). This version holds the vendoring commands of task 17.4; the build tasks add the others.
+// The `harness` command line (design §7.1). This version holds the vendoring commands of task 17.4 and the profile commands of 17.5; the
+// build tasks add the others.
 //   harness sync [--from <folder or Git URL>] [--to <version>]   take the framework into harness/ and rewrite harness.lock.json
 //   harness sync --local                                          regenerate the managed files only, without fetching
 //   harness check vendored                                        harness/, the managed files and the profile file against the lock
 //   harness diff                                                  the local change of harness/ against the locked version or the fork point
 //   harness override <path> --reason <why> --issue <link>         accept one edited vendored file until the next sync
 //   harness detach --reason <why>                                 the project takes the copy over; no more versions
+//   harness profile get <role>                                    print a value of the profile file (a list one item per line)
+//   harness check profile                                         the profile file against the schema
 // `--root <dir>` runs on another project (default: the Git top level of the working directory).
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
+import { checkProfile, loadProfile, lookup } from './lib/profile.mjs'
 import { checkVendored, detach, diff, override, sync } from './lib/vendor.mjs'
 
 const USAGE = `usage: harness <command>
   sync [--from <folder or Git URL>] [--to <version>]
   sync --local
   check vendored
+  check profile
+  profile get <role>
   diff
   override <path> --reason <why> --issue <link>
   detach --reason <why>`
@@ -83,6 +89,23 @@ export function run(argv, { out = console.log, err = console.error } = {}) {
         out('Checked the vendored framework, the managed files and the profile file against harness.lock.json.')
       }
       return problems.length ? 1 : 0
+    }
+    if (command === 'check profile') {
+      const problems = checkProfile(root)
+      problems.forEach((line) => err(`harness check profile: ${line}`))
+      if (!problems.length) {
+        out('Checked the profile file against the schema.')
+      }
+      return problems.length ? 1 : 0
+    }
+    if (words[0] === 'profile' && words[1] === 'get' && words.length === 3) {
+      const value = lookup(loadProfile(root), words[2])
+      out(
+        Array.isArray(value)
+          ? value.map((item) => (typeof item === 'string' ? item : JSON.stringify(item))).join('\n')
+          : value
+      )
+      return 0
     }
     if (command === 'diff') {
       out(diff({ root }))

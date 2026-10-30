@@ -1,14 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { productKnowledgeProblems, stackPattern } from './product-knowledge-lib.mjs'
+import { productKnowledgeProblems } from './product-knowledge-lib.mjs'
 
-const PROFILE = "```bash\nSTACK='postgres|socket\\.io|\\bnpm\\b|\\btypescript\\b|quickjs'\n```\n"
-
-test('stackPattern reads the term list of the profile, case-insensitively', () => {
-  assert.ok(stackPattern(PROFILE).test('Runs on PostgreSQL'))
-  assert.ok(!stackPattern(PROFILE).test('A plain sentence'))
-  assert.throws(() => stackPattern('no list here'), /no STACK term list/)
-})
+const PROFILE = { stack: 'postgres|socket\\.io|\\bnpm\\b|\\btypescript\\b|quickjs' }
 
 test('a file with no stack term, plan reference or implementation path has no problems', () => {
   assert.deepEqual(

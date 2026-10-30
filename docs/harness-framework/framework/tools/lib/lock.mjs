@@ -1,14 +1,12 @@
 // The lock (`harness.lock.json`) and the project's profile file as the vendoring reads them (design §1.1, §1.5).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { PROFILE_FILE } from './profile.mjs'
 import { hashFile } from './tree.mjs'
 
 export const LOCK_FILE = 'harness.lock.json'
 export const VENDOR_DIR = 'harness'
 export const MODES = Object.freeze({ pinned: 'pinned', detached: 'detached', self: 'self' })
-
-// The profile file sits at the root; a project that has not moved it yet keeps it under `scripts/` (`bot-rts` until task 17.5)
-const PROFILE_PATHS = ['harness-profile.json', 'scripts/harness-profile.json']
 
 // The order in which the lock's fields are written, so that a rewrite changes only what changed
 const LOCK_FIELDS = [
@@ -40,12 +38,7 @@ export function writeLock(root, lock) {
 
 /** The path of the profile file relative to `root`, or null when the project has none. */
 export function profilePath(root) {
-  return PROFILE_PATHS.find((path) => existsSync(join(root, path))) ?? null
-}
-
-export function readProfile(root) {
-  const path = profilePath(root)
-  return path ? JSON.parse(readFileSync(join(root, path), 'utf8')) : {}
+  return existsSync(join(root, PROFILE_FILE)) ? PROFILE_FILE : null
 }
 
 /** The hash the lock keeps of the profile file the managed files were generated from (null without a profile). */

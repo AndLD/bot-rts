@@ -49,13 +49,45 @@ function inSections(text, numbers) {
   })
 }
 
-// `files` maps a path of the repository to its text; a path of the core-files block that is missing from it is a problem
-export function coreLeakProblems(files, profileText, bindingsText) {
-  const patterns = [
+function leakPatterns(profileText) {
+  return [
     ['stack term', new RegExp(profilePattern(profileText, 'STACK'), 'i')],
     ['product term', new RegExp(productPattern(profileText), 'i')],
     ['project value', new RegExp(profilePattern(profileText, 'PROJECT_VALUES'), 'i')]
   ]
+}
+
+// The problems of one line: every kind of term it holds
+function lineProblems(path, line, index, patterns) {
+  const problems = []
+  for (const [kind, pattern] of patterns) {
+    const term = line.match(pattern)?.[0]
+    if (term) {
+      problems.push(
+        `${path}:${index + 1}: the ${kind} "${term}" does not belong in a CORE file; cite a role of the profile`
+      )
+    }
+  }
+  return problems
+}
+
+// The whole text of every file of the framework's `core/` folder is CORE (no binding line, no sections); `files` maps a path to its text.
+// With no file at all the scan would prove nothing, so an empty `files` is a problem.
+export function frameworkCoreProblems(files, profileText, folder) {
+  const patterns = leakPatterns(profileText)
+  const paths = Object.keys(files).sort()
+
+  if (paths.length === 0) {
+    return [`${folder}: no file found, so the CORE scan of the framework would prove nothing`]
+  }
+  return paths.flatMap((path) =>
+    files[path].split('\n').flatMap((line, index) => lineProblems(path, line, index, patterns))
+  )
+}
+
+// `files` maps a path of the repository to its text; a path of the core-files block that is missing from it is a problem
+export function coreLeakProblems(files, profileText, bindingsText) {
+  const patterns = leakPatterns(profileText)
   const problems = []
   let bindings = 0
 
@@ -72,14 +104,7 @@ export function coreLeakProblems(files, profileText, bindingsText) {
         bindings += 1
         return
       }
-      for (const [kind, pattern] of patterns) {
-        const term = line.match(pattern)?.[0]
-        if (term) {
-          problems.push(
-            `${path}:${index + 1}: the ${kind} "${term}" does not belong in a CORE file; cite a role of the profile`
-          )
-        }
-      }
+      problems.push(...lineProblems(path, line, index, patterns))
     })
   }
 

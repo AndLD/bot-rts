@@ -123,6 +123,8 @@ jobs:
         run: npm run docs:check
       - name: Release scripts
         run: npm run test:scripts
+      - name: Framework tests
+        run: npm run test:framework
       - name: Build
         if: needs.changes.outputs.code == 'true'
         run: npm run build
@@ -370,6 +372,9 @@ jobs:
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # A restored node_modules skips `npm ci`, whose postinstall downloads the binary; this does nothing when the binary is there
+      - name: Install the Cypress binary
+        run: npx cypress install
       - name: End-to-end tests of the shard
         run: npm run e2e -- --shard ${{ matrix.shard }}/${{ matrix.count }}
       - name: Keep the screenshots and server logs of a failed shard

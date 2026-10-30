@@ -36,6 +36,7 @@ works in practice.
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
 | `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
+| `npm run test:framework` | The `node --test` tests of the framework's staging folder `docs/harness-framework/framework/` (`scripts/test-framework.mjs` lists them); fails when the folder has none. Prettier checks the folder's code too |
 | `node scripts/merge-coverage.mjs <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
@@ -49,7 +50,8 @@ push need, and the full run stays in CI and in `npm run test:coverage`:
 | a file that cannot be followed to its tests (`package.json`, a Jest or tsconfig file, messages, the Prisma schema, a deleted file) | the whole test run of that package, as `npm run test:coverage -w <package>` |
 | a file outside the packages (`lib/`, the lock file, root configuration, the hooks) | the full run: typecheck, lint, the tests of every package, the coverage gate |
 | `scripts/` | `npm run test:scripts` as well |
-| anything but a change confined to `mcp/` or `scripts/` | also the generated files (API document, client, documentation data) are regenerated and must not differ |
+| `docs/harness-framework/framework/` (not only Markdown) | `npm run test:framework`; Prettier on the changed files |
+| anything but a change confined to `mcp/`, `scripts/` or the framework's staging folder | also the generated files (API document, client, documentation data) are regenerated and must not differ |
 
 The file selection is `planGate` in `scripts/local-gate-lib.mjs`, tested by `npm run test:scripts`; `node scripts/local-gate.mjs --dry-run`
 (with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
@@ -225,7 +227,7 @@ The required checks `verify` and `e2e` are the last jobs of several that of `.gi
 | Job | What it runs |
 | --- | ------------ |
 | `changes` | decides whether the change is Markdown-only; the code jobs below run only when it is not |
-| `static checks` | generated files up to date, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, the script tests, build; the Markdown links and the script tests run for a Markdown-only change too |
+| `static checks` | generated files up to date, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, the script tests, the framework tests, build; the Markdown links, the script tests and the framework tests run for a Markdown-only change too |
 | `api tests` | Jest of `api` with PostgreSQL, Redis and the log gateway |
 | `client tests i/3` | Jest of `client`, one of three shards (`jest --shard=i/3`) |
 | `mcp tests` | Jest of `mcp` |

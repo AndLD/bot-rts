@@ -32,6 +32,7 @@
     "e2e": "node scripts/e2e.mjs",
     "load": "node scripts/load-test.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
+    "test:framework": "node scripts/test-framework.mjs",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "docs:generate": "npm run docs:generate -w api",
     "plan:log": "node scripts/plan-log.mjs",

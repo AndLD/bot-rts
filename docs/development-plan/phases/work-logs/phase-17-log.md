@@ -110,3 +110,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: 17.3 in a fresh session ("Continue Phase 17"), now on Sonnet 5.5 at high effort; 17.4 and 17.7 on Opus 5.5 at high.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — 17.3 done: the skeleton, and the staging folder inside the code checks
+- **Tasks:** 17.3 ✅ (its log: [`phase-17/17.3.md`](./phase-17/17.3.md))
+- **Branch:** `chore/17.3-framework-skeleton` — done, PR #265
+- **Decisions / deviations from the plan:** none. H-20261030-01 is closed: the staging folder's tests run in CI and in the push gate,
+  Prettier checks its code, and `docs:check` scans `framework/core/`.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.4 in a fresh session ("Continue Phase 17"), `C3`: Opus 5.5 at high effort.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`

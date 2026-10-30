@@ -4,27 +4,12 @@ import { chmodSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
-import { lookup, profile, protectedBranches, root } from './harness-profile.mjs'
+import { profile, protectedBranches, root } from './harness-profile.mjs'
 
-const CLI = join(root, 'scripts', 'harness-profile.mjs')
 const read = (path) => readFileSync(join(root, path), 'utf8')
-
-test('lookup returns the value at a dotted path and fails on an unknown path', () => {
-  const sample = { branches: { integration: 'dev' }, list: ['a', 'b'] }
-  assert.equal(lookup(sample, 'branches.integration'), 'dev')
-  assert.deepEqual(lookup(sample, 'list'), ['a', 'b'])
-  assert.throws(() => lookup(sample, 'branches.missing'), /no value "branches.missing"/)
-})
 
 test('the protected branches are the production and the integration branch', () => {
   assert.deepEqual(protectedBranches, [profile.branches.production, profile.branches.integration])
-})
-
-test('the command line prints a value, a list one item per line, and fails on an unknown path', () => {
-  const get = (path) => execFileSync('node', [CLI, 'get', path], { encoding: 'utf8' })
-  assert.equal(get('branches.integration'), `${profile.branches.integration}\n`)
-  assert.equal(get('coveragePackages'), `${profile.coveragePackages.join('\n')}\n`)
-  assert.throws(() => get('no.such.value'), /Command failed/)
 })
 
 test('the branch triggers of the CI workflow are the protected branches', () => {
@@ -65,7 +50,7 @@ test('no script or hook spells out a branch name, the repository or a plan path 
     const hit = readFileSync(join(root, file), 'utf8')
       .split('\n')
       .findIndex((line) => literal.test(line) && !line.startsWith('//'))
-    assert.equal(hit, -1, `${file}:${hit + 1} spells out a value of scripts/harness-profile.json`)
+    assert.equal(hit, -1, `${file}:${hit + 1} spells out a value of harness-profile.json`)
   }
 })
 
@@ -78,18 +63,6 @@ test('no workflow names a branch outside its branch triggers', () => {
       .findIndex((line) => branch.test(line) && !/^\s+branches: \[/.test(line))
     assert.equal(hit, -1, `${file}:${hit + 1} names a protected branch outside a branches trigger`)
   }
-})
-
-// The job names that the Required checks row of the profile (section 2) lists, each in backticks before its parenthesis
-function profileRequiredChecks() {
-  const row = read('docs/profile.md')
-    .split('\n')
-    .find((line) => line.startsWith('| **Required checks**'))
-  return [...row.split('|')[2].matchAll(/`([\w-]+)` \(/g)].map((match) => match[1])
-}
-
-test('the required checks of the profile file are the job names of the profile table', () => {
-  assert.deepEqual(profile.requiredChecks, profileRequiredChecks())
 })
 
 test('the protection script sends the required checks and the branches of the profile file to the ruleset', () => {

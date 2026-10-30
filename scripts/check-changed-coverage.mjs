@@ -1,14 +1,14 @@
 // Fails when a source file changed by the pull request is below the coverage gate on any metric.
 // Usage: node scripts/check-changed-coverage.mjs <base-ref> [<package-dir>...]
-// Reads <package-dir>/coverage/coverage-summary.json (Jest `json-summary` reporter) and the gate from
-// scripts/coverage-threshold.json, the constant the Jest configs read too (docs/profile.md).
+// Reads <package-dir>/coverage/coverage-summary.json (Jest `json-summary` reporter) and the gate from the profile file
+// (`coverageGate` of harness-profile.json), the constant the Jest configs read too (docs/profile.md).
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { profile } from './harness-profile.mjs'
 
 const root = resolve(import.meta.dirname, '..')
-const gate = JSON.parse(readFileSync(join(root, 'scripts', 'coverage-threshold.json'), 'utf8'))
+const gate = profile.coverageGate
 const [base, ...packages] = process.argv.slice(2)
 
 if (!base) {

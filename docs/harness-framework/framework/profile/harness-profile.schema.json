@@ -1,0 +1,581 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "harness-profile.json",
+  "description": "The one file that holds every value of a project's harness, each named by its role. The tools implement the subset of JSON Schema that this file uses (tools/lib/profile.mjs). A role without a value is left out of the generated profile document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "repository",
+    "branches",
+    "requiredChecks",
+    "paths",
+    "adapters",
+    "coverageGate",
+    "coveragePackages",
+    "terms"
+  ],
+  "properties": {
+    "project": {
+      "type": "object",
+      "description": "What the project is, for the profile document.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The short name of the project."
+        },
+        "title": {
+          "type": "string",
+          "description": "The display name of the project."
+        },
+        "product": {
+          "type": "string",
+          "description": "One sentence on what the project builds."
+        },
+        "packages": {
+          "type": "string",
+          "description": "The packages of the repository, in Markdown."
+        },
+        "entryFile": {
+          "type": "string",
+          "description": "The agent entry file and how it is loaded, in Markdown."
+        },
+        "frameworkSource": {
+          "type": "string",
+          "description": "Where the framework copy comes from, as one phrase for the profile document."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Who owns the project and approves rule changes."
+        }
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "description": "The repository on its host.",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "description": "owner/name on the host.",
+          "pattern": "^[^/\\s]+/[^/\\s]+$"
+        },
+        "url": {
+          "type": "string",
+          "description": "The web address of the repository."
+        },
+        "host": {
+          "type": "string",
+          "description": "The name of the repository host.",
+          "default": "GitHub"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["slug"]
+    },
+    "adapters": {
+      "type": "object",
+      "description": "The adapters the project selected on the three axes (design §4).",
+      "properties": {
+        "stacks": {
+          "type": "array",
+          "minItems": 1,
+          "description": "One or more stack adapters: a name, or an object with the name under \"adapter\" and the adapter's own settings.",
+          "items": {
+            "description": "A stack adapter name, or an object { \"adapter\": <name>, … }."
+          }
+        },
+        "runtimes": {
+          "type": "array",
+          "description": "Zero or more agent-runtime adapters.",
+          "items": {
+            "type": "string",
+            "description": "An adapter name."
+          }
+        },
+        "host": {
+          "type": "string",
+          "description": "The repository host adapter."
+        }
+      },
+      "additionalProperties": false,
+      "required": ["stacks", "host"]
+    },
+    "coverageGate": {
+      "type": "object",
+      "description": "The coverage gate: the minimum, in percent, of each measure.",
+      "properties": {
+        "statements": {
+          "type": "number",
+          "description": "Minimum percent of statements."
+        },
+        "branches": {
+          "type": "number",
+          "description": "Minimum percent of branches."
+        },
+        "functions": {
+          "type": "number",
+          "description": "Minimum percent of functions."
+        },
+        "lines": {
+          "type": "number",
+          "description": "Minimum percent of lines."
+        }
+      },
+      "additionalProperties": false,
+      "required": ["statements", "branches", "functions", "lines"]
+    },
+    "coveragePackages": {
+      "type": "array",
+      "description": "The packages that carry a coverage gate.",
+      "items": {
+        "type": "string",
+        "description": "A package folder."
+      }
+    },
+    "quality": {
+      "type": "object",
+      "description": "Prose roles of the quality gates, for the profile document.",
+      "properties": {
+        "coverageMechanism": {
+          "type": "string",
+          "description": "What holds the coverage gate value and who reads it."
+        },
+        "coverageScope": {
+          "type": "string",
+          "description": "What the gate is applied to."
+        },
+        "coverageScopeMechanism": {
+          "type": "string",
+          "description": "The mechanism that applies the scope."
+        },
+        "coverageExclusions": {
+          "type": "string",
+          "description": "What is excluded from coverage and where each exclusion is justified."
+        },
+        "localGate": {
+          "type": "string",
+          "description": "What the local gate runs."
+        },
+        "localGateMechanism": {
+          "type": "string",
+          "description": "The hook and script of the local gate."
+        },
+        "requiredChecksMechanism": {
+          "type": "string",
+          "description": "What sets the required checks on the host."
+        }
+      },
+      "additionalProperties": false
+    },
+    "requiredChecks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The required checks: the names of the jobs that must pass before a merge.",
+      "items": {
+        "type": "string",
+        "description": "A job name."
+      }
+    },
+    "requiredCheckNotes": {
+      "type": "object",
+      "description": "A note per required check, for the profile document.",
+      "additionalProperties": {
+        "type": "string",
+        "description": "What the check runs."
+      }
+    },
+    "branches": {
+      "type": "object",
+      "description": "The two long-lived branches.",
+      "properties": {
+        "production": {
+          "type": "string",
+          "description": "The production branch."
+        },
+        "integration": {
+          "type": "string",
+          "description": "The integration branch."
+        },
+        "productionNote": {
+          "type": "string",
+          "description": "A note on the production branch, for the profile document."
+        },
+        "integrationNote": {
+          "type": "string",
+          "description": "A note on the integration branch, for the profile document."
+        },
+        "retention": {
+          "type": "string",
+          "description": "The rule on keeping merged branches."
+        }
+      },
+      "additionalProperties": false,
+      "required": ["production", "integration"]
+    },
+    "paths": {
+      "type": "object",
+      "description": "Paths of the repository, relative to its root.",
+      "properties": {
+        "plan": {
+          "type": "string",
+          "description": "The folder of the development plan."
+        },
+        "phases": {
+          "type": "string",
+          "description": "The folder of the phase files."
+        },
+        "planIndex": {
+          "type": "string",
+          "description": "The plan index document."
+        },
+        "changelog": {
+          "type": "string",
+          "description": "The changelog."
+        },
+        "changelogFragments": {
+          "type": "string",
+          "description": "The folder of changelog fragments."
+        },
+        "profileFile": {
+          "type": "string",
+          "description": "The profile file.",
+          "default": "harness-profile.json"
+        },
+        "profileDocument": {
+          "type": "string",
+          "description": "Where the profile document is generated.",
+          "default": "docs/profile.md"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["plan", "phases", "changelog", "changelogFragments"]
+    },
+    "plan": {
+      "type": "object",
+      "description": "Prose roles of the plan conventions, for the profile document.",
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "description": "The form of a task id."
+        },
+        "phasesWithFragments": {
+          "type": "string",
+          "description": "Which phases write a log fragment per task."
+        },
+        "phasesWithOneLog": {
+          "type": "string",
+          "description": "Which phases keep one log."
+        },
+        "logCommand": {
+          "type": "string",
+          "description": "The command that prints the implementation log."
+        },
+        "estimationScale": {
+          "type": "string",
+          "description": "The estimation scale."
+        },
+        "resumePhrases": {
+          "type": "string",
+          "description": "The phrases that resume a phase."
+        },
+        "openEndedPhase": {
+          "type": "string",
+          "description": "The open-ended phase."
+        },
+        "specificationCitation": {
+          "type": "string",
+          "description": "How the product specification is cited."
+        }
+      },
+      "additionalProperties": false
+    },
+    "api": {
+      "type": "object",
+      "description": "The public API, for projects that have one.",
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "description": "The API prefix."
+        },
+        "versioning": {
+          "type": "string",
+          "description": "The versioning policy."
+        },
+        "description": {
+          "type": "string",
+          "description": "The API description document."
+        }
+      },
+      "additionalProperties": false
+    },
+    "languages": {
+      "type": "object",
+      "description": "The languages of the project, for projects that have several.",
+      "properties": {
+        "userFacing": {
+          "type": "string",
+          "description": "The user-facing languages."
+        },
+        "catalogues": {
+          "type": "string",
+          "description": "The message catalogues."
+        },
+        "harness": {
+          "type": "string",
+          "description": "The language of the harness and the design documents."
+        }
+      },
+      "additionalProperties": false
+    },
+    "versions": {
+      "type": "object",
+      "description": "The versions the project pins.",
+      "properties": {
+        "language": {
+          "type": "string",
+          "description": "The language and its mode."
+        },
+        "runtime": {
+          "type": "string",
+          "description": "The runtime."
+        },
+        "database": {
+          "type": "string",
+          "description": "The database."
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "description": "The commands of the project, run from the repository root.",
+      "properties": {
+        "lint": {
+          "type": "string",
+          "description": "Lint."
+        },
+        "format": {
+          "type": "string",
+          "description": "Format."
+        },
+        "typecheck": {
+          "type": "string",
+          "description": "Typecheck."
+        },
+        "test": {
+          "type": "string",
+          "description": "Unit and integration tests."
+        },
+        "testCoverage": {
+          "type": "string",
+          "description": "Tests with the coverage gate."
+        },
+        "changedCoverage": {
+          "type": "string",
+          "description": "The coverage of the changed files."
+        },
+        "boundaries": {
+          "type": "string",
+          "description": "The import-boundary check."
+        },
+        "i18n": {
+          "type": "string",
+          "description": "The message-catalogue check."
+        },
+        "docsCheck": {
+          "type": "string",
+          "description": "The documentation and harness check."
+        },
+        "harnessSync": {
+          "type": "string",
+          "description": "Take the framework again from its source."
+        },
+        "harnessSyncLocal": {
+          "type": "string",
+          "description": "Regenerate the managed files only."
+        },
+        "harnessDiff": {
+          "type": "string",
+          "description": "Show the local change of the vendored copy."
+        },
+        "build": {
+          "type": "string",
+          "description": "Build."
+        },
+        "e2e": {
+          "type": "string",
+          "description": "End-to-end tests."
+        },
+        "openapi": {
+          "type": "string",
+          "description": "Regenerate the API description."
+        },
+        "apiClient": {
+          "type": "string",
+          "description": "Regenerate the client of the API."
+        },
+        "dbUp": {
+          "type": "string",
+          "description": "Start the local database."
+        },
+        "dbMigrate": {
+          "type": "string",
+          "description": "Apply migrations."
+        },
+        "dbSeed": {
+          "type": "string",
+          "description": "Seed the local database."
+        }
+      },
+      "additionalProperties": false
+    },
+    "terms": {
+      "type": "object",
+      "description": "The term lists of the harness review and the CORE scan: regular expressions, case-insensitive.",
+      "properties": {
+        "stack": {
+          "type": "string",
+          "description": "Stack terms, which must not appear in CORE or DOMAIN text."
+        },
+        "product": {
+          "type": "string",
+          "description": "Product terms, which must not appear in CORE text."
+        },
+        "productGeneric": {
+          "type": "string",
+          "description": "Generic words of the product list, judged in context and not scanned."
+        },
+        "projectValues": {
+          "type": "string",
+          "description": "Project values, which must not appear in CORE text."
+        }
+      },
+      "additionalProperties": false,
+      "required": ["stack", "product", "productGeneric", "projectValues"]
+    },
+    "contexts": {
+      "type": "array",
+      "description": "The bounded contexts of the product knowledge.",
+      "items": {
+        "type": "object",
+        "description": "One bounded context.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Its name."
+          },
+          "sections": {
+            "type": "string",
+            "description": "Its sections."
+          }
+        },
+        "additionalProperties": false,
+        "required": ["name", "sections"]
+      }
+    },
+    "documents": {
+      "type": "object",
+      "description": "The document map: the path of each document that the profile document links.",
+      "properties": {
+        "rules": {
+          "type": "string",
+          "description": "The agent rules."
+        },
+        "method": {
+          "type": "string",
+          "description": "The engineering method."
+        },
+        "stack": {
+          "type": "string",
+          "description": "The stack file."
+        },
+        "architecture": {
+          "type": "string",
+          "description": "The architecture decisions."
+        },
+        "ruleChecks": {
+          "type": "string",
+          "description": "The rule-to-check map."
+        },
+        "readme": {
+          "type": "string",
+          "description": "The project overview."
+        },
+        "specification": {
+          "type": "string",
+          "description": "The product specification."
+        },
+        "glossary": {
+          "type": "string",
+          "description": "The glossary."
+        },
+        "apiContract": {
+          "type": "string",
+          "description": "The public API contract."
+        },
+        "mcpContract": {
+          "type": "string",
+          "description": "The MCP contract."
+        },
+        "changelog": {
+          "type": "string",
+          "description": "The changelog."
+        },
+        "changelogFragments": {
+          "type": "string",
+          "description": "The index of changelog fragments."
+        },
+        "planMethod": {
+          "type": "string",
+          "description": "The plan method."
+        },
+        "planBindings": {
+          "type": "string",
+          "description": "The plan bindings."
+        },
+        "definitionOfDone": {
+          "type": "string",
+          "description": "The definition of done."
+        },
+        "guidingPrinciples": {
+          "type": "string",
+          "description": "The guiding principles."
+        },
+        "testing": {
+          "type": "string",
+          "description": "The testing guide."
+        },
+        "e2eMatrix": {
+          "type": "string",
+          "description": "The e2e matrix."
+        },
+        "deployment": {
+          "type": "string",
+          "description": "The deployment guide."
+        },
+        "releasing": {
+          "type": "string",
+          "description": "The releasing guide."
+        },
+        "codeReviews": {
+          "type": "string",
+          "description": "The code quality reviews."
+        },
+        "harnessReviews": {
+          "type": "string",
+          "description": "The harness quality reviews."
+        },
+        "harnessBindings": {
+          "type": "string",
+          "description": "The harness review bindings."
+        },
+        "frameworkPlan": {
+          "type": "string",
+          "description": "The harness-to-framework plan."
+        }
+      },
+      "additionalProperties": false,
+      "required": ["rules", "readme", "harnessBindings"]
+    }
+  }
+}

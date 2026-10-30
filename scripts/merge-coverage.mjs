@@ -20,7 +20,7 @@ if (!artifacts) {
   process.exit(2)
 }
 
-const gate = JSON.parse(readFileSync(join(root, 'scripts', 'coverage-threshold.json'), 'utf8'))
+const gate = profile.coverageGate
 const names = readdirSync(artifacts)
 const failures = []
 

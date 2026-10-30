@@ -2,17 +2,13 @@
 
 # Project profile
 
-Every injectable value of this repository's harness, named by its **role**. Rules elsewhere cite the role ("the coverage gate",
-"the integration branch") and link here; they do not repeat the value. To change a value, change it here (and in the one
-mechanism named next to it), never in the rules. A new project built on the same method rewrites this file.
+Every injectable value of this project's harness, named by its **role**. Rules elsewhere cite the role ("the coverage gate",
+"the integration branch") and link here; they do not repeat the value.
 
-**The machine-readable part** is [`scripts/harness-profile.json`](../scripts/harness-profile.json): the repository, the production and the
-integration branch, the packages with a coverage gate, the required checks, the adapters of the framework and the paths of the plan and the changelog, read by the hooks and scripts
-through `scripts/harness-profile.mjs` (and, with the coverage-gate constant, by the pre-push hook and the protection script). The
-branch triggers of `.github/workflows/ci.yml` cannot read it; a script test compares them with it, and another compares the required
-checks with the table below. Change a value in the file and in the table below together. Documents under `docs/engineering`,
-`docs/operations` and `docs/testing` name the branches by role, or by a placeholder with a line that says where its value is; a test refuses a
-branch name there outside the fenced command blocks.
+**This document is generated** from [`harness-profile.json`](../harness-profile.json) and the template `profile/roles.md` of the
+framework. To change a value, change it in the file and run `npm run harness -- sync --local`; never edit this document by hand.
+`npm run docs:check` fails when the file, this document and `harness.lock.json` disagree. The hooks and scripts read the file through
+`harness profile get <role>`. A role that has no value in the file is left out of this document.
 
 The method documents keep their own `bindings.md` (plan, phases, code review, harness review). A binding that needs a value
 below links to its row instead of copying it.
@@ -26,20 +22,20 @@ below links to its row instead of copying it.
 | Project name | `bot-rts` (Bot RTS) |
 | Product | A programmable real-time strategy sandbox: players write scripts that control bots on a shared map |
 | Repository | `AndLD/bot-rts` on GitHub |
-| Packages (npm workspaces) | `api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server) |
+| Packages | `api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server) |
 | Agent entry file | `AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`) |
-| Framework and its adapters | `harness/`, a copy of `harness-framework` pinned by `harness.lock.json` (source: the staging folder `docs/harness-framework/framework/` until task 17.15); adapters `node-ts` (stack), `claude-code` (agent runtime) and `github` (host), the `adapters` of the profile file |
+| Framework and its adapters | `harness/`, a copy of `harness-framework` pinned by `harness.lock.json` (source: the staging folder `docs/harness-framework/framework/` until task 17.15); adapters `node-ts` (stack), `claude-code` (agent runtime) and `github` (host) |
 | Owner | The repository owner; the only person who approves rule changes and merges outside the started phases |
 
 ## 2. Quality gates
 
 | Role | Value | Mechanism |
 | ---- | ----- | --------- |
-| **Coverage gate** | **97 %** of statements, branches, functions and lines | the constant [`scripts/coverage-threshold.json`](../scripts/coverage-threshold.json), read by the three `jest.config.ts` files and `scripts/check-changed-coverage.mjs` |
+| **Coverage gate** | **97 % of statements, branches, functions and lines** | the `coverageGate` of [`harness-profile.json`](../harness-profile.json), read by the three `jest.config.ts` files, `scripts/check-changed-coverage.mjs` and `scripts/merge-coverage.mjs` |
 | Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI |
 | Coverage exclusions | entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts` | `collectCoverageFrom` |
 | Local gate | the pre-push hook runs, for the files of the push only, typecheck and lint of the changed packages, the tests related to the changed files and the coverage gate on the changed files, and the generated-files check; no code check for a push that changes no file or only Markdown; the full run is CI's and `npm run test:coverage` | `.githooks/pre-push`, `scripts/local-gate.mjs` |
-| **Required checks** (the merge gates) | `verify` (the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests, framework tests and build), `pr-title` (Conventional Commit title), `e2e` (the job that needs the four shards of the end-to-end suite), `lighthouse` (public pages); jobs of `.github/workflows/ci.yml` | set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`) from the `requiredChecks` list of `scripts/harness-profile.json`; a test compares that list with the job names of this row, so change both together |
+| **Required checks** (the merge gates) | `verify` (the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests, framework tests and build), `pr-title` (Conventional Commit title), `e2e` (the job that needs the four shards of the end-to-end suite), `lighthouse` (public pages); jobs of the host's CI workflow | set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`) from the `requiredChecks` list of [`harness-profile.json`](../harness-profile.json); the notes above are the `requiredCheckNotes` of the same file |
 
 ## 3. Branches and merging
 
@@ -74,7 +70,7 @@ Branch types:
 
 | Role | Value |
 | ---- | ----- |
-| Plan index | [`docs/development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
+| Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
 | Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
 | Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
@@ -94,7 +90,7 @@ Branch types:
 | Role | Value |
 | ---- | ----- |
 | **API prefix** | `/api/v1` (REST and WebSocket); the official client, third-party clients and the MCP server use the same surface |
-| Versioning policy | changes inside a version stay compatible; a breaking change ships as the next version (`/api/v2`); deprecation and announcement per [`integrations/API.md`](./product-knowledge/integrations/API.md) |
+| Versioning policy | changes inside a version stay compatible; a breaking change ships as the next version (`/api/v2`); deprecation and announcement per [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md) |
 | API description | the OpenAPI document `api/openapi.json`, generated from the controllers and DTOs |
 
 ## 6. Languages
@@ -160,23 +156,23 @@ PRODUCT_GENERIC='\bmodules?\b|\bscripts?\b'
 ```
 
 Project values, which must not appear in CORE text except on the **Role binding** line of `AGENTS.md` (the CORE scan of
-`npm run docs:check` reads this list; the CORE files are listed in the [harness bindings](./quality-reviews/harness/bindings.md#1-layer-map-corrected-by-the-review-of-2026-10-17-section-2-to-be-verified-by-each-full-review)):
+`npm run docs:check` reads this list from the profile file; the CORE files are listed in the [harness bindings](./quality-reviews/harness/bindings.md)):
 
 ```bash
 PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\.md'
 ```
 
-Bounded contexts (files of `docs/product-knowledge/game-design/`):
+Bounded contexts (files of the product specification):
 
-| Context               | Sections                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| Foundations           | 01 vision, 02 glossary, 03 core loop, 05 onboarding                                             |
-| World and base        | 04 world and map, 06 the base                                                                   |
-| Machines and items    | 07 modules, 08 bots, 09 resources, items and crafting, 28 energy, power and the day cycle        |
+| Context | Sections |
+| ------- | -------- |
+| Foundations | 01 vision, 02 glossary, 03 core loop, 05 onboarding |
+| World and base | 04 world and map, 06 the base |
+| Machines and items | 07 modules, 08 bots, 09 resources, items and crafting, 28 energy, power and the day cycle |
 | Scripting and runtime | 10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts |
-| Interface and play    | 15 screens, 17 in-game scenarios                                                                |
-| Economy and social    | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers     |
-| Platform              | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog     |
+| Interface and play | 15 screens, 17 in-game scenarios |
+| Economy and social | 16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers |
+| Platform | 22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog |
 
 ## 10. Document map
 
@@ -189,16 +185,16 @@ Bounded contexts (files of `docs/product-knowledge/game-design/`):
 | Rule-to-check map (read on demand) | [`engineering/rule-checks.md`](./engineering/rule-checks.md) |
 | Project profile | this file |
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
-| Product specification (game design) | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
+| Product specification | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
 | Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
-| Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`MCP.md`](./product-knowledge/integrations/MCP.md) |
-| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`product-knowledge/changelog.d/`](./product-knowledge/changelog.d/README.md), collected by the release script |
+| Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`product-knowledge/integrations/MCP.md`](./product-knowledge/integrations/MCP.md) |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`product-knowledge/changelog.d/README.md`](./product-knowledge/changelog.d/README.md), collected by the release script |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
-| Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`bindings.md`](./development-plan/bindings.md) |
+| Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`development-plan/bindings.md`](./development-plan/bindings.md) |
 | Definition of done | [`development-plan/cross-cutting/definition-of-done.md`](./development-plan/cross-cutting/definition-of-done.md) |
 | Guiding principles | [`development-plan/cross-cutting/guiding-principles.md`](./development-plan/cross-cutting/guiding-principles.md) |
 | Testing guide, e2e matrix | [`testing/README.md`](./testing/README.md), [`testing/e2e-matrix.md`](./testing/e2e-matrix.md) |
 | Deployment and releases | [`operations/DEPLOYMENT.md`](./operations/DEPLOYMENT.md), [`operations/RELEASING.md`](./operations/RELEASING.md) |
 | Code quality reviews | [`quality-reviews/code/README.md`](./quality-reviews/code/README.md) |
-| Harness quality reviews | [`quality-reviews/harness/README.md`](./quality-reviews/harness/README.md), [`bindings.md`](./quality-reviews/harness/bindings.md) |
+| Harness quality reviews | [`quality-reviews/harness/README.md`](./quality-reviews/harness/README.md), [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
 | Harness-to-framework plan | [`harness-framework/README.md`](./harness-framework/README.md) |

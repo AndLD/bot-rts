@@ -3,11 +3,11 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { coreFiles, coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
 import { FRAMEWORK_SOURCE } from './framework-tests-lib.mjs'
+import { profile } from './harness-profile.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const read = (path) => readFileSync(join(root, path), 'utf8')
 
-const profile = read('docs/profile.md')
 const bindings = read('docs/quality-reviews/harness/bindings.md')
 const files = {}
 for (const { path } of coreFiles(bindings)) {
@@ -29,8 +29,8 @@ for (const entry of readdirSync(join(root, frameworkCore), { recursive: true, wi
 }
 
 const problems = [
-  ...coreLeakProblems(files, profile, bindings),
-  ...frameworkCoreProblems(frameworkFiles, profile, frameworkCore)
+  ...coreLeakProblems(files, profile.terms, bindings),
+  ...frameworkCoreProblems(frameworkFiles, profile.terms, frameworkCore)
 ]
 
 if (problems.length) {

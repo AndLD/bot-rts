@@ -115,3 +115,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** 12.4 and 12.5 whenever the owner asks; 12.4 before 17.11, which adds the guard.
 - **Verify with:** `npm run plan:summary` (no diff); `npm run docs:check`
+
+### 2026-10-30 — 12.4 also covers Docker Desktop being off
+- **Tasks:** 12.4 amended (⬜, still 3 SP)
+- **Branch:** `docs/12.4-docker-off` — the plan only
+- **Decisions / deviations from the plan:** the owner asked on 2026-10-30 that 12.4 cover a second cause of the same failure. `npm run db:up`
+  also fails when Docker Desktop is not running, and the hook then shows only Docker's own error, which invites the same `--no-verify`. The
+  setup now tells apart four cases (a database answers, Docker is off, the port is taken, no database needed), and each gets a test. The size
+  is unchanged: telling the cases apart is one `docker info` call and the port check 12.4 already had.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: 12.4 and 12.5 whenever the owner asks; 12.4 before 17.11.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

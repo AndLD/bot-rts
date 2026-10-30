@@ -26,7 +26,7 @@ Claude Code and Cursor.
 
 | # | Item | Proposal |
 | - | ---- | -------- |
-| 1 | Consumption | A **vendored copy** at `harness/`, pinned by `harness.lock.json` (version, source and a hash per file). `harness sync` updates it and `harness check` fails on a local edit. Improvements go to the framework source and come back by a sync. Subtree, submodule and an npm package are rejected (section 1). |
+| 1 | Consumption | A **vendored copy** at `harness/`, pinned by `harness.lock.json` (version, source and a hash per file). `harness sync` updates it and `harness check` fails on a local edit. Improvements go to the framework source and come back by a sync. Subtree, submodule and an npm package are rejected. A project may instead **detach**: it owns and edits its copy, takes no more updates, and keeps the checks; the lock records the fork point (section 1). |
 | 2 | Layout | §3.2 is confirmed and adjusted: adapters on **three axes** (`stack/`, `runtime/`, `host/`), plus `tools/`, `BOOTSTRAP.md`, `core/procedures/`, `core/contracts/` and a conformance suite. The staging folder stays `docs/harness-framework/framework/` (section 2). |
 | 3 | Classification | Every harness file and section is sorted into core, adapter, profile, example or "stays", with one table per area (section 3). |
 | 4 | Contracts | Three role lists (stack, runtime, host) as machine-readable manifests, and a per-rule table of where each rule is caught (section 4). |
@@ -35,7 +35,7 @@ Claude Code and Cursor.
 | 7 | Mechanisms | The CORE scan, the profile file and its reader, the hooks, the protection script and the profile tests become `harness` commands on Node. `profile.md` is generated from the profile file (section 7). |
 | 8 | B6, B7 | Procedures are neutral Markdown, packaged per runtime into skills (B6). The layer map is generated from the lock and the profile file (B7). H-22 and H-23 are absorbed by these two changes; H-24 is not framework work (section 8). |
 | 9 | Cursor | Checked on 2026-10-21. Cursor reads `AGENTS.md` natively. It has a native `.cursor/hooks.json` and native skills, and custom commands now go through skills. It also loads Claude Code's `.claude/` hooks and skills by default, and its CLI has no opt-out. So the Cursor preset is native when Cursor is the only runtime, and runs in compat mode next to Claude Code (section 9). |
-| 10 | Build order | Nineteen pull requests, 17.2 to 17.20, 61 SP. They start with a targeted review of D3, D7, D8, D14 and D15, and end with a closing review by another session (section 10). |
+| 10 | Build order | Nineteen pull requests, 17.2 to 17.20, 63 SP. They start with a targeted review of D3, D7, D8, D14 and D15, and end with a closing review by another session (section 10). |
 
 ---
 
@@ -72,7 +72,7 @@ Claude Code and Cursor.
 | Git subtree | `git subtree pull` merges the framework's history, and its later pulls find the last import from commit trailers. The integration branch takes squash merges only, and a squash keeps neither the merge nor reliably the trailers, so every pull after the first one is fragile. Sending a change back (`git subtree push`) needs write access to the framework repository from this one, which the agent must not have. |
 | Git submodule | Every worktree and every CI checkout must initialise it, and agents often start in fresh worktrees. Relative links from the project into a submodule do not resolve on the repository host. The copy is invisible to search tools until it is checked out. |
 | npm package | Documents in `node_modules` are not committed, so an agent that has not installed sees no method. A Python project would need npm for its rules. The version is pinned in a second place (the lock file of the package manager). It stays possible later for the tools alone, without changing the layout. |
-| Copy once | It drifts, and the owner chose to consume. |
+| Copy once, without a lock | It drifts unseen, and the owner chose to consume for `bot-rts`. A project that wants its own copy detaches instead (section 1.5), which keeps the checks and the record of where it forked. |
 
 ### 1.3 How an improvement found here reaches the framework
 
@@ -98,6 +98,49 @@ Claude Code and Cursor.
   `1.0.0` comes after the second real project (the trading-bot project of the plan's step 4) has bootstrapped without a core edit.
 - The changelog follows the Keep a Changelog headings. Its "Upgrade notes" list, per version, the changes to scaffolded files that a sync
   cannot make (section 6.3).
+
+### 1.5 A standalone fork
+
+A project may want the framework once and then own it: edit the core freely, never take another update. The lock supports this as a second
+**mode**, so the project keeps the tools and the checks, and keeps the record of where it forked. `bot-rts` stays pinned (the owner's decision).
+
+**The lock, in both modes.** The fields of section 1.1 plus two:
+
+| Field | Pinned (default) | Detached |
+| ----- | ---------------- | -------- |
+| `mode` | `"pinned"` | `"detached"` |
+| `source`, `version` | where the next sync comes from | `null`: there is no upstream |
+| `base` | – | the fork point: the framework name, source, version and the hash of every vendored file at the moment of detaching |
+| `files` | the hashes `check vendored` enforces | not enforced; the managed files keep their hashes, which `check generated` uses |
+| `overrides` | allowed, temporary (section 1.3) | none: every file is the project's |
+
+**What changes when a project detaches.**
+
+| Mechanism | Pinned | Detached |
+| --------- | ------ | -------- |
+| Owner of `harness/` | the framework | **the project**: it is core, but core the project maintains |
+| `harness check vendored` and the edit guard | refuse a local edit | off; the edit guard allows `harness/` |
+| `harness check core` (the CORE scan) | runs upstream, on the framework source | runs **in the project** on `harness/core/`, with the project's term lists, because nobody upstream scans this copy any more |
+| `harness check generated`, `scaffold`, `layers` and the rest | on | on: the managed files are generated from the project's own `harness/`, so an edit to a core rule reaches the entry file's blocks and the skills by the next `harness sync --local` |
+| `harness sync` | takes a version from the source | refuses; `harness sync --local` only regenerates the managed files from `harness/` |
+| `harness diff` | the change against the locked version | the change against `base`: what the fork has done since it left |
+| The framework's changelog and version | the framework's | the project keeps `CHANGELOG.md` and `framework.json` as they were at the fork; its own changes go to its own changelog |
+
+**How to detach.** `harness detach --reason "<why>"` in a pull request of its own: it moves the hashes to `base`, sets the mode, writes the
+reason into the lock and prints the license reminder. The MIT license requires the copyright and permission notice to stay with the copy, so
+`harness/LICENSE` stays, and `check scaffold` keeps checking that it does. A new project can start detached with `harness init --detached`;
+the result equals a pinned bootstrap followed by `harness detach` (the sameness test of section 6.2 covers it).
+
+**Coming back** is deliberately not in the first release. Because the lock keeps `base`, it can be added later as `harness reattach --to
+<version>`: a three-way merge of each file from `base` to the project's copy and from `base` to the new version, with conflicts left in the
+files for a person. Without `base`, a detached copy could never be compared or merged again, which is why detaching keeps the lock instead of
+deleting it.
+
+**A fork of the framework itself** is the other kind of standalone. An organisation that wants its own variant for several projects forks the
+`harness-framework` repository, gives the fork its own `name` and versions in `framework.json` (with `upstream`: the name and version it
+follows), and its projects stay **pinned** to the fork (`harness sync --from <fork URL>`). That needs no new mechanism: the source of the lock
+is any Git URL and tag. The fork takes upstream changes by ordinary Git merges in its own repository. Choose detaching for one project that
+wants to own its method, and a fork of the framework for a variant that several projects share.
 
 ---
 
@@ -151,7 +194,7 @@ In a consuming project:
 
 | Path | Owner | Kind |
 | ---- | ----- | ---- |
-| `harness/` | the framework | vendored, hash-locked |
+| `harness/` | the framework (pinned) or the project (detached, section 1.5) | vendored, hash-locked while pinned |
 | `harness.lock.json` | the tools | written by `sync` and `bootstrap` |
 | `harness-profile.json` | the project | the only place for values (moved from `scripts/` in `bot-rts`) |
 | `docs/profile.md`, the layer-map block, the entry file's managed blocks, packaged skills | the tools | **managed**: generated, checked by regenerating |
@@ -324,7 +367,7 @@ runtime, before the action happens; "local" is a Git hook; "remote" is CI or the
 | No deletion of a remote branch | the same hook refuses `push --delete`, `push :branch` and the API call | the same hook | **new** in `pre-push`: refuses a deleted ref (an all-zero local object); the host refuses it for the protected branches only, so for a work branch only the Git hook and judgment hold |
 | No force-push or deletion of a protected branch | the hook | the hook | the host's ruleset |
 | Never edit an environment file | `PreToolUse` on `Edit|Write` refuses it | `preToolUse` (`Write`) refuses it | nothing refuses the edit; `.gitignore` keeps the file out of commits |
-| Never edit the vendored framework | the same hook | the same hook | `harness check vendored` in `pre-push` and CI |
+| Never edit the vendored framework (pinned mode only) | the same hook | the same hook | `harness check vendored` in `pre-push` and CI |
 | Formatting | `PostToolUse` formats the file | `afterFileEdit` formats the file | the format check of the changed files in `pre-push`; CI |
 | Session start: branch, phase in progress, next step, open claims | `SessionStart` prints it | `sessionStart` `additional_context` (not in Cursor's cloud agents) | the reading map tells the agent to run `harness status` |
 | Coverage gate, changed-file coverage, lint, typecheck, generated files | not a runtime hook | not a runtime hook | `pre-push` for the changed files; CI for everything |
@@ -378,13 +421,13 @@ All three front ends only produce the complete `harness-profile.json`; the engin
 
 | Front end | How it fills the profile file |
 | --------- | ----------------------------- |
-| Script | `node <framework>/tools/harness.mjs init`. **Interactive**: it asks every required role that has no default, in the order of `profile/roles.md`, and shows the default of the others. **With flags**: `--name`, `--repository`, `--stack node-ts`, `--runtime claude-code,cursor`, `--host github`, `--set key=value` for any role, `--non-interactive` (it fails and lists the missing roles). Then it runs `bootstrap`. |
+| Script | `node <framework>/tools/harness.mjs init`. **Interactive**: it asks every required role that has no default, in the order of `profile/roles.md`, and shows the default of the others. **With flags**: `--name`, `--repository`, `--stack node-ts`, `--runtime claude-code,cursor`, `--host github`, `--set key=value` for any role, `--detached` (section 1.5), `--non-interactive` (it fails and lists the missing roles). Then it runs `bootstrap`. |
 | Template repository | The framework's release workflow builds it from the framework tree: `harness/`, a `harness-profile.json` with the defaults and empty required roles, `BOOTSTRAP.md` and a README that says "run `node harness/tools/harness.mjs init`, or ask your agent to follow `BOOTSTRAP.md`". "Use this template" on the host, then one of the two. Creating it on the host is the owner's step. |
 | `BOOTSTRAP.md` | A prompt for any coding agent. Read `profile/roles.md`; ask the user for each required role in one message, offering the defaults; write the answers into `harness-profile.json`; run `harness bootstrap --non-interactive`; run `harness check all`; report what was written and what the user must do by hand (protect the branches with `harness host protect`, turn on the runtime's settings). It uses only reading, writing and running commands, which every agent can do. |
 
 **Proof of sameness:** a framework test runs the engine three ways for the same answers: with the flags, with the answers file that the
 interactive run writes (stdin from a fixture), and on the template repository's profile filled with the same values. It compares the three
-trees byte for byte, apart from the lock's timestamp. The template repository is generated by the engine itself, so it cannot drift.
+trees byte for byte, apart from the lock's timestamp. The template repository is generated by the engine itself, so it cannot drift. A fourth run with `--detached` must equal a pinned bootstrap followed by `harness detach`.
 
 ### 6.3 What the bootstrap writes
 
@@ -541,7 +584,7 @@ the plan's table, and high effort for 17.8 and 17.13, which restructure. Most ta
 | - | ---- | ---------------- | -- |
 | 17.2 | Targeted harness review of the dimensions Phase 16 touched (D3, D7, D8, D14, D15), so the build starts from a fresh baseline. Others carried. | A new report in `docs/quality-reviews/harness/`, its follow-up table triaged. A finding that the framework absorbs names its build task. | 3 |
 | 17.3 | Framework skeleton | `docs/harness-framework/framework/` per section 2, with `README.md`, `LICENSE` (MIT), `CHANGELOG.md` and `framework.json` (`0.1.0-dev`). `docs:check` covers it: links, and the CORE scan on `framework/core/` with the profile's term lists (from 17.9 also the adapters' terms), which returns 0. | 2 |
-| 17.4 | Vendoring: `sync`, the lock, `check vendored` and `diff` | `harness/` and `harness.lock.json` exist, synced from the staging folder. Tests: an edit to a vendored file fails `docs:check` and the pre-push hook; a sync restores it; an override is accepted and reported. | 3 |
+| 17.4 | Vendoring: `sync`, the lock, `check vendored`, `diff`, and the detached mode | `harness/` and `harness.lock.json` exist, synced from the staging folder. Tests: an edit to a vendored file fails `docs:check` and the pre-push hook; a sync restores it; an override is accepted and reported; after `harness detach` on a fixture, the same edit passes, `sync` refuses, `sync --local` regenerates, `diff` shows the edit against `base`, and a removed `LICENSE` fails. | 5 |
 | 17.5 | The profile file holds every value | `harness-profile.json` at the root, with schema, defaults, term lists and the coverage gate folded in. `profile.md` generated. `harness check profile`. The Jest configs, hooks and scripts read the new path. H-22, first half. | 5 |
 | 17.6 | The layer map from the profile and the lock (B7) | `harness layers`, generated into the harness bindings; `harness check layers` fails on an unclassified file (test). The bindings name roles (H-22, second half). H-23 closed. | 2 |
 | 17.7 | Generic tools into the framework | Links, CORE scan, plan summary and log, changelog fragments and release, and the three product-knowledge checks (parameterised) are `harness` commands in the framework, vendored. The old scripts are removed. `npm run docs:check` gives the same result as before on the same tree. | 5 |
@@ -550,16 +593,16 @@ the plan's table, and high effort for 17.8 and 17.13, which restructure. Most ta
 | 17.10 | Stack preset node-ts, consumed by this repository | The gate driver and `gate.mjs`, the neutral coverage summary, and the coverage merge. The pre-push hook and CI of `bot-rts` call them. Gate tests: a Markdown-only push, a failing test, a coverage drop, one package. | 5 |
 | 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; `.claude/settings.json` and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes. The generated rule map rows of section 4.4. | 3 |
 | 17.12 | Procedures and their packaging (B6) | The first set of section 8.1 in `core/procedures/`, packaged as `.claude/skills/`. The reading-map fallback. `harness check generated` covers them. | 3 |
-| 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build. The sameness test of section 6.2. | 5 |
+| 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. The sameness test of section 6.2, including the detached case. | 5 |
 | 17.14 | Conformance suite and the new-adapter procedure | `tests/conformance/` per axis; `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
 | 17.15 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
 | 17.16 | Python preset, written by following the new-adapter procedure | uv, pytest with coverage.py, ruff, mypy; `gate.mjs` and `coverage.mjs`; CI templates; it passes the suite. Deviations from the procedure are fixed in the procedure. | 3 |
 | 17.17 | Examples | A filled profile of a fictitious project, the product-knowledge skeleton, a sample plan; the bootstrap writes them into a new project's `docs/`. | 2 |
-| 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, and node-ts with both runtimes (compat mode). On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |
+| 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts with both runtimes (compat mode), and one detached project with a core rule edited. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |
 | 17.19 | Switch to the published framework | After **the owner** has copied the staging folder to the `harness-framework` repository and tagged `v0.1.0`: the lock's source becomes that tag, the staging folder is removed, and the plan and this design point to the repository. | 2 |
 | 17.20 | Closing targeted harness review, by a session that did not do the build | D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on `framework/`, probes P1, P2 and P5 on `bot-rts` and P1 on the dummy project. The exit criteria of §3.5 and of the phase are checked one by one. | 3 |
 
-Total of the build: 61 SP, so Phase 17 is 64 SP with 17.1.
+Total of the build: 63 SP, so Phase 17 is 66 SP with 17.1.
 
 **Risks of this design.**
 

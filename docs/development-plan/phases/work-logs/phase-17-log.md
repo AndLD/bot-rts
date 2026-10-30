@@ -82,3 +82,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Next step:** the owner approves the triage. A plan pull request then adds the findings to the named build tasks and to Phase 12. After
   that, 17.3 in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — the MVP includes Phases 15 to 17 (H-20261030-06)
+- **Tasks:** none; a plan change that closes H-20261030-06 of the 17.2 review
+- **Branch:** `docs/mvp-includes-phases-15-17`
+- **Decisions / deviations from the plan:** the owner decided on 2026-10-30 that the harness phases 15 to 17 are part of the MVP. The MVP line of
+  the plan index no longer carries its own phase range or total, which went stale ("Phases 0–16 (1148 SP)"). It cites the generated summary
+  table, which `npm run plan:summary` keeps true.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.3 in a fresh session ("Continue Phase 17"). The owner approved the triage of the 17.2 report on 2026-10-30, and PR #262
+  carries it into the build tasks (17.3 now includes H-20261030-01) and into Phase 12 (12.4, 12.5).
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

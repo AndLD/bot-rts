@@ -24,6 +24,10 @@ const isOutsideTheGate = (file) => file.startsWith('.github/') || file.startsWit
 const hasNoJestTests = (file) => file.includes('/cypress/')
 // The staging folder of the framework has tests of its own, and nothing in it feeds the generated files
 const isFrameworkSource = (file) => file.startsWith(`${FRAMEWORK_SOURCE}/`)
+// The vendored copy of the framework and its lock: the pre-push hook has checked them against the source already, so they need the framework
+// tests only, not the full run (H-20261030-04); the formatter leaves them alone
+const isVendored = (file) => file === 'harness.lock.json' || file.startsWith('harness/')
+const isFrameworkTooling = (file) => isFrameworkSource(file) || isVendored(file)
 
 /**
  * The plan of the local gate for a push.
@@ -48,7 +52,8 @@ export function planGate(files, { packages, integration, exists }) {
 
   // Files of no package (root configuration, the lock file, `lib/`, the hooks) can change every package: the full run
   const isShared = relevant.some(
-    (file) => !packageOf(file, packages) && !file.startsWith('scripts/') && !file.startsWith('docs/')
+    (file) =>
+      !packageOf(file, packages) && !file.startsWith('scripts/') && !file.startsWith('docs/') && !isVendored(file)
   )
   const touched = isShared
     ? packages
@@ -63,7 +68,7 @@ export function planGate(files, { packages, integration, exists }) {
       steps.push({ label: `typecheck ${pkg}`, command: 'npm', args: ['run', 'typecheck', '-w', pkg] })
       steps.push({ label: `lint ${pkg}`, command: 'npm', args: ['run', 'lint', '-w', pkg] })
     }
-    const formatted = relevant.filter(exists)
+    const formatted = relevant.filter((file) => exists(file) && !isVendored(file))
     if (formatted.length) {
       steps.push({
         label: 'format changed files',
@@ -122,13 +127,13 @@ export function planGate(files, { packages, integration, exists }) {
   if (changed.some((file) => file.startsWith('scripts/'))) {
     steps.push({ label: 'script tests', command: 'npm', args: ['run', 'test:scripts'] })
   }
-  if (changed.some(isFrameworkSource)) {
+  if (changed.some(isFrameworkTooling)) {
     steps.push({ label: 'framework tests', command: 'npm', args: ['run', 'test:framework'] })
   }
 
   // Generated files can only go stale through the API, the shared library, the documentation sources or the schema; a change that stays in `mcp/` cannot
   const staysInMcp = relevant.every(
-    (file) => file.startsWith('mcp/') || file.startsWith('scripts/') || isFrameworkSource(file)
+    (file) => file.startsWith('mcp/') || file.startsWith('scripts/') || isFrameworkTooling(file)
   )
   if (!staysInMcp) {
     steps.push({ label: 'generated files are up to date', generated: true })

@@ -37,6 +37,7 @@ works in practice.
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
 | `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
 | `npm run test:framework` | The `node --test` tests of the framework's staging folder `docs/harness-framework/framework/` (`scripts/test-framework.mjs` lists them); fails when the folder has none. Prettier checks the folder's code too |
+| `npm run harness -- check vendored` | `harness/` against `harness.lock.json` and against its source folder; the first step of `npm run docs:check` and of the pre-push hook. `npm run harness -- sync` makes the copy equal to the source again |
 | `node scripts/merge-coverage.mjs <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
@@ -50,10 +51,12 @@ push need, and the full run stays in CI and in `npm run test:coverage`:
 | a file that cannot be followed to its tests (`package.json`, a Jest or tsconfig file, messages, the Prisma schema, a deleted file) | the whole test run of that package, as `npm run test:coverage -w <package>` |
 | a file outside the packages (`lib/`, the lock file, root configuration, the hooks) | the full run: typecheck, lint, the tests of every package, the coverage gate |
 | `scripts/` | `npm run test:scripts` as well |
+| `harness/` or `harness.lock.json` (a sync of the vendored framework) | `npm run test:framework` only, not the full run; the vendored check has run before (below) |
 | `docs/harness-framework/framework/` (not only Markdown) | `npm run test:framework`; Prettier on the changed files |
 | anything but a change confined to `mcp/`, `scripts/` or the framework's staging folder | also the generated files (API document, client, documentation data) are regenerated and must not differ |
 
-The file selection is `planGate` in `scripts/local-gate-lib.mjs`, tested by `npm run test:scripts`; `node scripts/local-gate.mjs --dry-run`
+Before the file selection, on every push (documentation only or not), the hook runs `node harness/tools/harness.mjs check vendored`, so an edit
+of the vendored framework never leaves the machine. The file selection is `planGate` in `scripts/local-gate-lib.mjs`, tested by `npm run test:scripts`; `node scripts/local-gate.mjs --dry-run`
 (with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
 whole package (its total, and a changed file that no test reaches) is CI's, which runs everything. A push that changes one client file ran
 8 related suites (77 tests) and the whole gate in 22 s (task 16.6).

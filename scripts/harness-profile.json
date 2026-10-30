@@ -3,6 +3,7 @@
   "branches": { "production": "main", "integration": "develop" },
   "coveragePackages": ["api", "client", "mcp"],
   "requiredChecks": ["verify", "pr-title", "e2e", "lighthouse"],
+  "adapters": { "stacks": [{ "adapter": "node-ts" }], "runtimes": ["claude-code"], "host": "github" },
   "paths": {
     "plan": "docs/development-plan",
     "phases": "docs/development-plan/phases",

@@ -103,7 +103,7 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 80 | Decisions that change the design or the plan go into the matching document in the same pull request (method §6) | the plan summary is checked against the phase files in `docs:check`; other documents are review | judgment |
 | 81 | Several agents: the roles, the integration by one person, the routing of events and comments to the owning session, hotspot owners, per-task records (method §7) | a division of labour between sessions is not visible to the repository; the app routes events of a bound pull request to its session; records per task are the form of the files (row 23, the task log) | judgment |
 | 82 | An agent does not merge its own pull request while others work (method §7) | Protection cannot tell how many agents work; the orchestrator or the owner merges | judgment |
-| 83 | Generated files are regenerated after a rebase and never merged by hand (method §7) | CI and the pre-push hook fail on a stale generated file (rows 7 and 32); a hand-merged but current file passes, which is harmless | partly |
+| 83 | Generated files, the vendored framework and its lock among them, are regenerated after a rebase and never merged by hand (method §7) | CI and the pre-push hook fail on a stale generated file (rows 7 and 32); `harness check vendored` (first in `docs:check`, and in the pre-push hook on every push) fails on a vendored copy or a lock that differs from the source until a sync rewrites them (row 96); a hand-merged but current file passes, which is harmless | partly |
 | 84 | Two working copies must not share ports, databases or running servers (method §7) | `scripts/e2e.mjs` takes ports of its own, refuses a busy port and stops only what it started; the database and Redis ports and the compose project are set per worktree in `.env` | partly |
 | 85 | The tools of the stack are not substituted; a capability extends them (stack §1) | a substitute adds a dependency, which review sees | judgment |
 | 86 | The official client talks to the backend only through the public API; Next.js route handlers hold no business logic or database access (stack §1, §2.0) | the generated client is the only API layer (row 7); import boundaries (row 4) keep Prisma out of presentation; the rest is review | partly |
@@ -116,6 +116,7 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 93 | `npm run lint`, `typecheck`, `check:boundaries`, `i18n:check` and `docs:check` pass in every package (stack §5) | CI `verify` and the pre-push hook (row 6) | enforced |
 | 94 | A Prisma migration is applied to the local development database (stack §5) | row 8 checks the migration against the schema in CI; the developer's own database is outside the repository (row 25) | partly |
 | 95 | The agent-runtime tools are used as the table of stack §6 says; waiting patterns and stale events are handled as listed (stack §6) | advice on a tool; the Hook set refuses the unsafe Git commands (rows 13 and 33) | judgment |
+| 96 | `harness/` is never edited by hand; the framework source and the vendored copy change together (AGENTS §9) | `harness check vendored`: an edited, removed or added file in `harness/`, or a source that changed without a sync, fails `docs:check` (CI) and the pre-push hook on every push; an accepted override is printed on every run | enforced |
 
 ## Source index
 
@@ -129,7 +130,7 @@ Every normative bullet of the sources, by section, with the rows that hold it.
 | `AGENTS.md` | §7.3 branch retention and protection | 10, 11, 12, 43, 44, 45 |
 | `AGENTS.md` | §7.4 commit and pull request rules | 9, 12, 13, 46, 47, 48 |
 | `AGENTS.md` | §7.5 rules for agents | 13, 26, 32, 33, 34, 49, 50, 51, 52, 53, 54, 55, 56 |
-| `AGENTS.md` | §9 project rules | 16, 18, 19, 20, 21, 23, 30, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66 |
+| `AGENTS.md` | §9 project rules | 16, 18, 19, 20, 21, 23, 30, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 96 |
 | `docs/engineering/method.md` | §1, §2 principles and SOLID | 67 |
 | `docs/engineering/method.md` | §3 testing | 1, 2, 22, 68, 69, 70, 71 |
 | `docs/engineering/method.md` | §4 definition of done | 72, 73, 74 |

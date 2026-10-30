@@ -93,3 +93,20 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Next step:** 17.3 in a fresh session ("Continue Phase 17"). The owner approved the triage of the 17.2 report on 2026-10-30, and PR #262
   carries it into the build tasks (17.3 now includes H-20261030-01) and into Phase 12 (12.4, 12.5).
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — 17.3, 17.4 and 17.7 re-rated
+- **Tasks:** agent-complexity markers changed for 17.3 (`C1` → `C2`), 17.4 (`C2` → `C3`) and 17.7 (`C2` → `C3`); SP unchanged
+- **Branch:** `docs/17-complexity-ratings` — the plan only
+- **Decisions / deviations from the plan:** the owner accepted on 2026-10-30 three new ratings that the reviewing session proposed.
+  - 17.3 now also wires the staging folder into CI and the push gate (H-20261030-01), which is more than creating files.
+  - 17.4 is the base of the build: the hash-checked lock, the refusal of a moved tag, detach and `sync --local`, and the gate's handling of the
+    vendored tree (H-20261030-04).
+  - 17.7 merges each tool from two copies, which needs judgment about which behaviour wins.
+  - At the owner's request, the markers moved the same day from design §10 into an `Agent` column of the phase file's task table, before `SP`,
+    so each task row shows its marker and design §10 no longer repeats them. Done tasks carry one only where it was recorded (17.2); 17.1 has
+    `–`. The plan summary reads the size and status from the last two columns, so it is unaffected.
+  - The phase template gets the column with 17.8, and 17.7a adds the check that every open task has a marker. Until then this table is the
+    only one with the column.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: 17.3 in a fresh session ("Continue Phase 17"), now on Sonnet 5.5 at high effort; 17.4 and 17.7 on Opus 5.5 at high.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

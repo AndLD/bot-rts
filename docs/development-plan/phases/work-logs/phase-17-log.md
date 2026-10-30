@@ -44,3 +44,19 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.1 (the framework design), in a fresh session (Opus 5.5, high effort); it may start now, alongside Phase 16.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — second source for the build; the framework repository exists
+- **Tasks:** 17.7, 17.8, 17.11 and 17.15 amended; 17.7a added (⬜, 2 SP); Phase 17 is 68 SP
+- **Branch:** `docs/17-framework-second-source` — a plan change after the 17.1 pull request (#256) was merged
+- **Decisions / deviations from the plan:**
+  - The owner's second project copied 17 of this repository's scripts and improved 9.
+  - The owner decided on 2026-10-30 that the build merges each tool from both copies, and that two of the second project's features join the
+    framework: the link check's index rule, and the optional agent-complexity markers of the plan summary.
+  - The owner created `AndLD/harness-framework` (private, one commit on `main`). GitHub offers no rulesets for it, so 17.15 sets
+    `host.protection: false` there; the bootstrap branches the integration branch from the existing commit.
+- **Problems / blockers / findings:**
+  - The owner had moved some scripts out of `scripts/` by accident while copying them, and put them back. The check of 2026-10-30 found all
+    58 entries present, unchanged and with their executable bits, and no committed deletion under `scripts/` in the last 60 days.
+  - Every script is in the design's classification.
+- **Next step:** the owner reviews this pull request; after the merge, 17.2 in a fresh session ("Continue Phase 17").
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

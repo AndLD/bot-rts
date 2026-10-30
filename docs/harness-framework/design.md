@@ -668,6 +668,20 @@ Total here: 61 SP, so Phase 17 is 64 SP with 17.1.
 
 Total: 12 SP. The real Cursor session of 1.5 is **the owner's** step, recorded in that plan's task log.
 
+**Phase 2 of the framework's own plan** (planned with the owner on 2026-10-30; after `0.1.0`, so it does not hold up Phase 17 here; method
+outline in section 11.1):
+
+| # | Task | Acceptance check | SP |
+| - | ---- | ---------------- | -- |
+| 2.1 | Security review method | `core/reviews/security/README.md` (dimensions S1 to S6 of section 11.1, scoring, procedure, findings, cadence) and `_template.md`, a bindings template, and the procedure `security-review`, packaged per runtime. The code review's security dimension (C7) links to it instead of repeating it. The CORE scan returns 0 on the new files. | 5 |
+| 2.2 | Automated security checks | `harness check security`: a secret scan of the tracked files and of the history range of a push, with its patterns in the profile and no download; the dependency audit as a new optional stack role (`npm audit`, `pip-audit`); the host's CI checks (workflow `permissions:` declared, third-party actions pinned to a commit, no `pull_request_target` that checks out the head); and the runtime's settings checks (the `access.denyRead` rules present, no broad allow rule for shell or edits). Each check has tests with a planted defect. | 3 |
+| 2.3 | Automated review measurements | `harness review measure` prints the measurements that four harness reviews ran by hand: words and normative words in the always-loaded set, rule-map statuses, the reference direction between layers, unreachable files and the highest fan-out, against the budgets of the bindings. The harness review method cites the command instead of the shell lines. Verified against the numbers of the last report on the same commit. | 3 |
+| 2.4 | First security review of the framework itself | A report in the framework repository by the method of 2.1, on S1 to S4 (the framework has no product runtime, so S5 and S6 are "not applicable" with the reason), its findings triaged. | 3 |
+
+Total: 14 SP. A consuming project takes the method with its next sync and runs its own first security review as a task of its plan; for
+`bot-rts` that is a task the owner adds when the sync lands, with S5 covering its product (the script sandbox, the admin console with two-factor
+authentication, the API keys).
+
 **Risks of this design.**
 
 | Risk | How the design handles it |
@@ -690,7 +704,7 @@ After 17.15 the framework is a project of its own, run by its own method:
   generated from that tree. Like a detached project (section 1.5), it runs the CORE scan itself, on `core/`, with the union of every adapter's
   terms. It uses the node-ts stack and the Claude Code runtime presets for its own tools, and the GitHub host adapter.
 - **Its own plan.** The core plan method applies: a plan index, phases, tasks with ids, sizes and acceptance checks, task logs and claims by
-  draft pull request. Phase 1 is the table of section 10. Later phases come from its issues.
+  draft pull request. Phases 1 and 2 are the tables of section 10. Later phases come from its issues.
 - **Its own checks.** CI runs the tools' tests, the conformance suite for every preset, the CORE scan, the link check, the sameness test of
   section 6.2 and `harness check all` on itself. The harness review method runs on the framework repository through its own bindings, which is
   the self-hosting proof of §3.3 step 6.
@@ -702,3 +716,29 @@ After 17.15 the framework is a project of its own, run by its own method:
 - **Releases.** A tag and its changelog section; the release workflow also rebuilds the template repository (section 6.2).
 - **Sessions.** Framework work runs in a session opened in the framework repository. A session in `bot-rts` pushes there only with the
   owner's explicit authorisation (section 1.3).
+
+### 11.1 The security review method (Phase 2)
+
+A third review kind next to the code review and the harness review, with the same shape: a project-neutral method in `core/reviews/security/`,
+a report template, project bindings, dated reports that stay in each project, scores from 1 to 5 with evidence, and findings with severity.
+
+- **Why a separate kind.** The code review's security dimension (C7) looks at the code. Much of a project's exposure is not code: secrets in
+  history, the CI and the repository host, dependencies, and an agent harness that runs commands and reads untrusted text. These need their
+  own evidence and their own cadence.
+- **Dimensions.** The first four apply to every project built with the framework, and to the framework itself. S5 and S6 are filled per
+  project through its bindings, and are "not applicable", with the reason, where a project has no product runtime.
+
+| Id | Dimension | Looks at |
+| -- | --------- | -------- |
+| S1 | Secrets | tracked files and history, environment files, the read exclusions for agents (`access.denyRead`), what reaches logs and agent transcripts |
+| S2 | Dependencies and supply chain | lock files and audits, the vendored framework's hashes, CI actions pinned to a commit, tools that download at run time |
+| S3 | CI and the repository host | workflow permissions, secrets available to pull requests from forks, branch protection and required checks, release integrity |
+| S4 | Agent harness | runtime permissions and allow rules, hooks that run code on tool input, untrusted text that agents read (issues, pages, comments) against the instruction boundary, connected tool servers, merge and push authority |
+| S5 | The product's attack surface (project) | a threat model from the bindings: assets, trust boundaries, authentication and authorisation, input handling, isolation of untrusted code, abuse limits |
+| S6 | Operations (project) | deployment configuration, logs, backups, incident response |
+
+- **Automation.** What a script can decide moves into `harness check security` (task 2.2) and runs in CI. The review judges the rest, and checks
+  that the automation still holds.
+- **Cadence.** A full review before a first release and once per major version. A targeted review after a change to authentication, the CI, the
+  agent runtime's permissions, or a dependency with a known vulnerability.
+

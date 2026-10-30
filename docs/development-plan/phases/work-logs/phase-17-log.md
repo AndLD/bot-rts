@@ -102,7 +102,11 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
   - 17.4 is the base of the build: the hash-checked lock, the refusal of a moved tag, detach and `sync --local`, and the gate's handling of the
     vendored tree (H-20261030-04).
   - 17.7 merges each tool from two copies, which needs judgment about which behaviour wins.
-  The markers live in the `Agent` column of design §10 and in the model line of the phase file; 17.7a moves them into the task table.
+  - At the owner's request, the markers moved the same day from design §10 into an `Agent` column of the phase file's task table, before `SP`,
+    so each task row shows its marker and design §10 no longer repeats them. Done tasks carry one only where it was recorded (17.2); 17.1 has
+    `–`. The plan summary reads the size and status from the last two columns, so it is unaffected.
+  - The phase template gets the column with 17.8, and 17.7a adds the check that every open task has a marker. Until then this table is the
+    only one with the column.
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: 17.3 in a fresh session ("Continue Phase 17"), now on Sonnet 5.5 at high effort; 17.4 and 17.7 on Opus 5.5 at high.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

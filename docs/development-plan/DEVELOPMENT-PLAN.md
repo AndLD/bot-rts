@@ -37,8 +37,8 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
 | 15 | Harness fixes | 77 | ✅ Done |
 | 16 | CI speed and agent throughput | 23 | ✅ Done |
-| 17 | Harness framework extraction | 68 | 🟡 In progress |
-|  | **Total of Phases 0–17** | **1232** (Phase 12 grows as issues are added) | |
+| 17 | Harness framework extraction | 69 | 🟡 In progress |
+|  | **Total of Phases 0–17** | **1233** (Phase 12 grows as issues are added) | |
 <!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
@@ -110,7 +110,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
 - [Phase 15 — Harness fixes (77 SP)](./phases/phase-15-harness-fixes.md)
 - [Phase 16 — CI speed and agent throughput (23 SP)](./phases/phase-16-ci-speed.md)
-- [Phase 17 — Harness framework extraction (68 SP)](./phases/phase-17-harness-framework.md)
+- [Phase 17 — Harness framework extraction (69 SP)](./phases/phase-17-harness-framework.md)
 <!-- plan-contents:end -->
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)

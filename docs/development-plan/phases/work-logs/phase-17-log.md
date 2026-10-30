@@ -60,5 +60,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
   - Every script is in the design's classification.
 - **Also decided (2026-10-30):** the second project's off-plan log becomes task 2.5 of the framework's own plan (Phase 2, after `0.1.0`;
   3 SP), as one fragment per pull request instead of a shared file. Phase 2 of the framework's plan is 17 SP. Phase 17 here is unchanged.
+- **Also decided (2026-10-30), agent-complexity markers:** they become a standard part of the framework's plan method, as in the second project.
+  - Task property and template column; every open task carries one, done tasks are exempt; the bootstrap turns them on.
+  - A model map as a profile role, with the Claude Code preset's default: `C1` Sonnet 5.5 medium, `C2` Sonnet 5.5 high, `C3` Opus 5.5 high.
+  - The session-start hook prints the next task's marker and model.
+  - The framework's own Phases 1 and 2 are rated in design §10.
+  - This repository turns them on in 17.7a (2 → 3 SP) and rates the 34 open tasks of Phases 10 and 17. Phase 17 is rated now in design §10:
+    `C3` 17.2, 17.8, 17.13, 17.17; `C1` 17.3, 17.16; `C2` the rest.
+  - This raises 17.8 and 17.13 from Sonnet at high effort to Opus, and the `C2` build tasks from medium to high effort.
+  - Phase 17 is 69 SP.
 - **Next step:** the owner reviews this pull request; after the merge, 17.2 in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

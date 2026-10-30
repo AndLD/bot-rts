@@ -102,6 +102,19 @@ test('a change in the framework staging folder runs the framework tests and the 
   )
 })
 
+test('a sync of the vendored framework runs the framework tests and the format check of the source, not the full run (H-20261030-04)', () => {
+  const result = plan([
+    'harness.lock.json',
+    'harness/tools/harness.mjs',
+    'harness/core/method/method.md',
+    'docs/harness-framework/framework/tools/harness.mjs'
+  ])
+  assert.deepEqual(labels(result), ['format changed files', 'framework tests'])
+  assert.deepEqual(result.steps[0].args.slice(-1), ['docs/harness-framework/framework/tools/harness.mjs'])
+  assert.deepEqual(labels(plan(['harness.lock.json'])), ['framework tests'])
+  assert.match(plan(['harness/core/method/method.md']).skip, /only Markdown/)
+})
+
 test('a push that changes only Markdown of the framework staging folder runs no code check', () => {
   assert.match(plan(['docs/harness-framework/framework/README.md']).skip, /only Markdown/)
 })

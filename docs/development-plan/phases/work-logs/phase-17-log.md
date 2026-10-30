@@ -119,3 +119,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.4 in a fresh session ("Continue Phase 17"), `C3`: Opus 5.5 at high effort.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
+
+### 2026-10-30 — 17.4 done: the vendored framework in `harness/`
+- **Tasks:** 17.4 ✅ (its log: [`phase-17/17.4.md`](./phase-17/17.4.md))
+- **Branch:** `chore/17.4-vendoring` — done, PR #266
+- **Decisions / deviations from the plan:** one addition, `harness override`, so that an override needs no hash computed by hand. H-20261030-04
+  is closed: the local gate treats `harness/` and the lock as tooling, and method §7 names them among the files regenerated after a rebase.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.5 in a fresh session ("Continue Phase 17"), `C2`: Sonnet 5.5 at high effort.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

@@ -161,8 +161,8 @@ from overwriting each other; they cost nothing for a single agent.
 - **Routing.** The CI events, merge conflicts and review comments of a pull request go to the session that owns it; the orchestrator
   forwards a comment that was made elsewhere. An agent does not act on events of a pull request it does not own.
 - **Hotspots.** A file that several tasks of a wave write (the database migrations, the shared configuration, the registry of components)
-  has one owner per wave, named in the phase file; the others rebase on that owner's change. Generated files are regenerated after a
-  rebase and never merged by hand.
+  has one owner per wave, named in the phase file; the others rebase on that owner's change. Generated files, the vendored copy of the
+  framework and its lock among them, are regenerated after a rebase (a sync) and never merged by hand.
 - **Records.** Each task writes its own log fragment and its own changelog fragment. The task table of the phase file and the plan
   index are updated by whoever merges, and the implementation log is printed from the merged pull requests (profile, section 4).
 - **Environment.** Two working copies must not share ports, databases or running servers; the testing guide says how to separate them.

@@ -7,7 +7,10 @@ import { dirname, join, relative, resolve } from 'node:path'
 const root = resolve(import.meta.dirname, '..')
 const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' })
 
-const markdownFiles = git('ls-files', '*.md').split('\n').filter(Boolean)
+// The vendored framework (`harness/`) is checked at its source, where its links resolve; its copies of the source's links leave the copy
+const markdownFiles = git('ls-files', '*.md')
+  .split('\n')
+  .filter((file) => file && !file.startsWith('harness/'))
 
 function slugify(heading) {
   return heading

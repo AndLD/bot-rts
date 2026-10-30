@@ -14,3 +14,5 @@ docs/harness-framework/*
 api/openapi.json
 client/src/shared/api/generated.ts
 .claude/worktrees
+harness
+harness.lock.json

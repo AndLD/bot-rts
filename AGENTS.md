@@ -147,6 +147,8 @@ Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, t
 - **Harness quality:** the docs and this harness are reviewed by [`docs/quality-reviews/harness/README.md`](./docs/quality-reviews/harness/README.md)
   (layers, scoring, procedure; this repository's values in `bindings.md` there). A review adds one dated report and changes nothing else;
   fixes follow in separate pull requests.
+- **Vendored framework:** `harness/` is a copy of the framework source `docs/harness-framework/framework/`, pinned by `harness.lock.json`. Never
+  edit it: change the source and run `npm run harness -- sync` in the same pull request (`harness check vendored` fails otherwise).
 - **Single writer for world state:** every change to the game world goes through the engine as a command — scripts,
   terminal, manual GUI control and API requests alike. Never write world tables from the API tier directly
   (design §14.2). The engine (`api/src/engine`) is the only writer: use cases send it commands through the engine port, and it

@@ -7,7 +7,7 @@ Every injectable value of this repository's harness, named by its **role**. Rule
 mechanism named next to it), never in the rules. A new project built on the same method rewrites this file.
 
 **The machine-readable part** is [`scripts/harness-profile.json`](../scripts/harness-profile.json): the repository, the production and the
-integration branch, the packages with a coverage gate, the required checks and the paths of the plan and the changelog, read by the hooks and scripts
+integration branch, the packages with a coverage gate, the required checks, the adapters of the framework and the paths of the plan and the changelog, read by the hooks and scripts
 through `scripts/harness-profile.mjs` (and, with the coverage-gate constant, by the pre-push hook and the protection script). The
 branch triggers of `.github/workflows/ci.yml` cannot read it; a script test compares them with it, and another compares the required
 checks with the table below. Change a value in the file and in the table below together. Documents under `docs/engineering`,
@@ -28,6 +28,7 @@ below links to its row instead of copying it.
 | Repository | `AndLD/bot-rts` on GitHub |
 | Packages (npm workspaces) | `api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server) |
 | Agent entry file | `AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`) |
+| Framework and its adapters | `harness/`, a copy of `harness-framework` pinned by `harness.lock.json` (source: the staging folder `docs/harness-framework/framework/` until task 17.15); adapters `node-ts` (stack), `claude-code` (agent runtime) and `github` (host), the `adapters` of the profile file |
 | Owner | The repository owner; the only person who approves rule changes and merges outside the started phases |
 
 ## 2. Quality gates
@@ -126,7 +127,8 @@ Run from the repository root unless a package is named.
 | Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
 | Import boundaries | `npm run check:boundaries` |
 | Message catalogues | `npm run i18n:check` |
-| Markdown links and anchors, the open-items register and the glossary of the design | `npm run docs:check` |
+| The vendored framework against its lock, Markdown links and anchors, the open-items register and the glossary of the design | `npm run docs:check` |
+| Take the framework again from its source into `harness/`; regenerate the managed files only; show a local change of `harness/` | `npm run harness -- sync`; `npm run harness -- sync --local`; `npm run harness -- diff` |
 | Build | `npm run build` |
 | End-to-end tests | `npm run e2e` |
 | Regenerate the API description | `npm run openapi:generate -w api` |

@@ -7,6 +7,9 @@ set -e
 
 cd "$(git rev-parse --show-toplevel)"
 
+# The vendored framework is checked on every push, documentation only or not: an edit in harness/ fails here (docs/harness-framework/design.md §1.1)
+if [ -f harness/tools/harness.mjs ]; then node harness/tools/harness.mjs check vendored; fi
+
 # A checkout with a database port of its own (POSTGRES_PORT in .env, docs/testing/README.md) tests against that database
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 export DATABASE_URL="${DATABASE_URL:-postgresql://botrts:botrts@localhost:${POSTGRES_PORT:-5432}/botrts}"

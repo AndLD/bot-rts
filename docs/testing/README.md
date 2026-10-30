@@ -261,7 +261,7 @@ artifact). The screenshots and server logs of a failed shard are uploaded as `e2
 ## Coverage
 
 - The **coverage gate** of the [profile](../profile.md#2-quality-gates) on statements, branches, functions and lines,
-  separately for `api`, `client` and `mcp`; its value is the constant `scripts/coverage-threshold.json`.
+  separately for `api`, `client` and `mcp`; its value is the `coverageGate` of `harness-profile.json`.
 - The coverage provider is Jest's default (Babel instrumentation). Phase 16 measured `coverageProvider: 'v8'` and kept the default:
   v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
 - CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`); the pre-push hook runs the same

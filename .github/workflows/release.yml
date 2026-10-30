@@ -20,7 +20,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           test "$(node -p "require('./package.json').version")" = "$version" || { echo "package.json is not at $version"; exit 1; }
-          changelog="$(node scripts/harness-profile.mjs get paths.changelog)"
+          changelog="$(node harness/tools/harness.mjs profile get paths.changelog)"
           CHANGELOG="$changelog" node -e "import('./scripts/release-lib.mjs').then(({ releaseNotes }) => process.stdout.write(releaseNotes(require('fs').readFileSync(process.env.CHANGELOG, 'utf8'), '$version')))" > release-notes.md
           test -s release-notes.md
       - uses: docker/setup-buildx-action@v3

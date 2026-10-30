@@ -128,3 +128,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.5 in a fresh session ("Continue Phase 17"), `C2`: Sonnet 5.5 at high effort.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — 17.5 done: the profile file holds every value
+- **Tasks:** 17.5 ✅ (its log: [`phase-17/17.5.md`](./phase-17/17.5.md))
+- **Branch:** `chore/17.5-profile-file` — done, PR #267
+- **Decisions / deviations from the plan:** the coverage gate is the top-level `coverageGate` of the profile file, not `quality.coverageGate`
+  (design §8.3 and the classification table are corrected). `docs/profile.md` is generated from `profile/roles.md`.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.6 (the layer map from one source), `C2`.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`

@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
-# Protects the production and the integration branch (AGENTS.md §7.3; their names and the repository are in scripts/harness-profile.json)
+# Protects the production and the integration branch (AGENTS.md §7.3; their names and the repository are in harness-profile.json)
 # with a repository ruleset and keeps merged branches. The required checks are in the same file (requiredChecks). Needs repository admin rights, and a public repository or a paid GitHub plan.
 # Rules: no deletion, no force-push, every change through a pull request, required jobs green. Repository admins may bypass the
 # rules only when merging a pull request (for example past a red check), never with a direct push.
 # Usage: scripts/protect-branches.sh [owner/repo]
 set -euo pipefail
 
-repo="${1:-$(node "$(dirname "$0")/harness-profile.mjs" get repository.slug)}"
-production=$(node "$(dirname "$0")/harness-profile.mjs" get branches.production)
-integration=$(node "$(dirname "$0")/harness-profile.mjs" get branches.integration)
+# A value of the profile file, by role
+profile_get() { node "$(dirname "$0")/../harness/tools/harness.mjs" profile get "$1" --root "$(dirname "$0")/.."; }
+
+repo="${1:-$(profile_get repository.slug)}"
+production=$(profile_get branches.production)
+integration=$(profile_get branches.integration)
 name="protected-branches"
 # One {"context": "<job>"} entry per required check of the profile file
-checks=$(node "$(dirname "$0")/harness-profile.mjs" get requiredChecks | sed 's/.*/{ "context": "&" }/' | paste -sd, -)
+checks=$(profile_get requiredChecks | sed 's/.*/{ "context": "&" }/' | paste -sd, -)
 
 gh api -X PATCH "repos/${repo}" -F delete_branch_on_merge=false >/dev/null
 

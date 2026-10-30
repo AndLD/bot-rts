@@ -5,16 +5,8 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { generators as registered } from './generators.mjs'
-import {
-  LOCK_FILE,
-  MODES,
-  VENDOR_DIR,
-  profileHash,
-  readLock,
-  readProfile,
-  selectedAdapters,
-  writeLock
-} from './lock.mjs'
+import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
+import { loadProfile } from './profile.mjs'
 import { readManifest, referenceTree, resolveSource } from './source.mjs'
 import { copyFiles, hashFile, hashTree, walk } from './tree.mjs'
 
@@ -55,13 +47,17 @@ export function selectFiles(dir, manifest, adapters) {
 
 /** Writes every managed file and returns their hashes, as the lock keeps them (design §6.3). */
 function generateManaged(root, generators) {
-  const profile = readProfile(root)
+  const profile = loadProfile(root)
   const managed = {}
   for (const generator of generators) {
-    const target = join(root, generator.path)
+    const path = typeof generator.path === 'function' ? generator.path(profile) : generator.path
+    if (!path) {
+      continue // a role the project's profile file does not have: `harness check profile` is what asks for it
+    }
+    const target = join(root, path)
     mkdirSync(dirname(target), { recursive: true })
     writeFileSync(target, generator.render({ root, profile }))
-    managed[generator.path] = hashFile(target)
+    managed[path] = hashFile(target)
   }
   return managed
 }
@@ -95,7 +91,7 @@ export function sync({ root, from, to, local = false, generators = registered })
     )
   }
 
-  const profile = readProfile(root)
+  const profile = loadProfile(root)
   const adapters = profile.adapters || !lock ? selectedAdapters(profile) : lock.adapters
   const fetched = resolveSource({ root, from, to, lock })
   try {

@@ -1,7 +1,7 @@
 // The `harness` command line as a project runs it: a real process, its output and its exit codes (0 done, 1 refused or failed, 2 usage).
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
@@ -62,4 +62,60 @@ test('the arguments: words, flags with values and --local', () => {
     flags: { reason: 'r', issue: 'i' }
   })
   assert.deepEqual(parseArgs(['sync', '--local']), { words: ['sync'], flags: { local: true } })
+})
+
+test('profile get prints a value and a list one item per line, and an unknown role exits with 1', () => {
+  writeFileSync(
+    join(root, 'harness-profile.json'),
+    JSON.stringify({ adapters: { stacks: ['node-ts'] }, branches: { integration: 'dev' }, requiredChecks: ['a', 'b'] })
+  )
+  assert.deepEqual(harness('profile', 'get', 'branches.integration'), { code: 0, out: 'dev\n', err: '' })
+  assert.equal(harness('profile', 'get', 'requiredChecks').out, 'a\nb\n')
+  const unknown = harness('profile', 'get', 'no.such')
+  assert.equal(unknown.code, 1)
+  assert.match(unknown.err, /no value "no\.such"/)
+  assert.equal(harness('profile', 'get').code, 2)
+})
+
+test('check profile fails on a profile file the schema refuses and passes on a valid one', () => {
+  const failed = harness('check', 'profile')
+  assert.equal(failed.code, 1)
+  assert.match(failed.err, /harness check profile: harness-profile\.json: branches\.production: required, and missing/)
+})
+
+test('a changed value fails check vendored until sync --local regenerates the profile document', () => {
+  const write = (integration) =>
+    writeFileSync(
+      join(root, 'harness-profile.json'),
+      JSON.stringify({
+        adapters: { stacks: ['node-ts'] },
+        branches: { production: 'main', integration, productionNote: 'tagged', integrationNote: 'default' },
+        paths: { profileFile: 'harness-profile.json', profileDocument: 'docs/profile.md' }
+      })
+    )
+  write('develop')
+  assert.equal(harness('sync', '--local').code, 0)
+  assert.match(
+    readFileSync(join(root, 'docs/profile.md'), 'utf8'),
+    /^\| \*\*Integration branch\*\* \| `develop`; default \|$/m
+  )
+  assert.equal(harness('check', 'vendored').code, 0)
+
+  write('trunk')
+  const stale = harness('check', 'vendored')
+  assert.equal(stale.code, 1)
+  assert.match(stale.err, /the profile file changed since the managed files were generated: run `harness sync --local`/)
+
+  assert.equal(harness('sync', '--local').code, 0)
+  assert.match(
+    readFileSync(join(root, 'docs/profile.md'), 'utf8'),
+    /^\| \*\*Integration branch\*\* \| `trunk`; default \|$/m
+  )
+  assert.equal(harness('check', 'vendored').code, 0)
+
+  writeFileSync(join(root, 'docs/profile.md'), 'edited by hand\n')
+  assert.match(
+    harness('check', 'vendored').err,
+    /the managed file docs\/profile\.md differs from what the tools generated/
+  )
 })

@@ -5,7 +5,7 @@
 Bot RTS follows [Semantic Versioning](https://semver.org/) and the Git Flow of [AGENTS.md §7](../../AGENTS.md). One version number is
 shared by the root package, `lib`, `api` and `client`; it is tagged as `vX.Y.Z` on the production branch.
 
-In the commands below `<production>` and `<integration>` are the production and the integration branch of the [profile](../profile.md#3-branches-and-merging); `node scripts/harness-profile.mjs get branches.production` (or `branches.integration`) prints them.
+In the commands below `<production>` and `<integration>` are the production and the integration branch of the [profile](../profile.md#3-branches-and-merging); `npm run harness -- profile get branches.production` (or `branches.integration`) prints them.
 
 ## What the number means
 

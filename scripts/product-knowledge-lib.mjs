@@ -1,5 +1,5 @@
 // Keeps the product knowledge (docs/product-knowledge) free of stack terms, plan task ids and implementation paths: those belong in
-// the engineering documents, the operations guide, the testing guide and the plan. The stack terms come from the profile (section 9).
+// the engineering documents, the operations guide, the testing guide and the plan. The stack terms are `terms.stack` of the profile file.
 // A file may keep a term when it is part of the product: the exceptions are listed here and in the harness bindings.
 const EXCLUDED = [/^archived-docs\//, /^CHANGELOG\.md$/, /^game-design\/(20-open-questions|21-backlog)\.md$/]
 
@@ -13,20 +13,11 @@ const ALLOWED_TERMS = {
 const PLAN_REFERENCE = /\b(?:Plan|[Tt]asks?) \d+\.\d+|\bPhase \d+\b|\(tasks? \d/
 const IMPLEMENTATION_PATH = /\b(?:api|client)\/src\/|\.(?:int\.)?test\.tsx?\b|module-catalog/
 
-// The STACK pattern of the profile, section 9
-export function stackPattern(profileText) {
-  const match = profileText.match(/^STACK='(.+)'$/m)
-  if (!match) {
-    throw new Error('The profile has no STACK term list in section 9')
-  }
-  return new RegExp(match[1], 'i')
-}
-
 const withoutCode = (text) => text.replace(/^```[\s\S]*?^```/gm, (block) => block.replace(/[^\n]/g, ''))
 
 // `files` maps a path relative to docs/product-knowledge to its text
-export function productKnowledgeProblems(files, profileText) {
-  const stack = stackPattern(profileText)
+export function productKnowledgeProblems(files, terms) {
+  const stack = new RegExp(terms.stack, 'i')
   const problems = []
 
   for (const [path, text] of Object.entries(files)) {

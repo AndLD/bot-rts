@@ -1,6 +1,6 @@
 import type { Config } from 'jest'
 // The coverage gate of the project profile (docs/profile.md), shared with scripts/check-changed-coverage.mjs
-import coverageGate from '../scripts/coverage-threshold.json'
+import { coverageGate } from '../harness-profile.json'
 
 const shared: Config = {
   preset: 'ts-jest',

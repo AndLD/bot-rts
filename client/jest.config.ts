@@ -1,7 +1,7 @@
 import nextJest from 'next/jest.js'
 import type { Config } from 'jest'
 // The coverage gate of the project profile (docs/profile.md), shared with scripts/check-changed-coverage.mjs
-import coverageGate from '../scripts/coverage-threshold.json'
+import { coverageGate } from '../harness-profile.json'
 
 // Loads next.config.ts and the env files, and compiles TS/TSX with SWC
 const createJestConfig = nextJest({ dir: './' })

@@ -1,0 +1,172 @@
+{
+  "project": {
+    "name": "bot-rts",
+    "title": "Bot RTS",
+    "product": "A programmable real-time strategy sandbox: players write scripts that control bots on a shared map",
+    "packages": "`api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server)",
+    "entryFile": "`AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`)",
+    "frameworkSource": "source: the staging folder `docs/harness-framework/framework/` until task 17.15",
+    "owner": "The repository owner; the only person who approves rule changes and merges outside the started phases"
+  },
+  "repository": {
+    "slug": "AndLD/bot-rts",
+    "url": "https://github.com/AndLD/bot-rts",
+    "host": "GitHub"
+  },
+  "adapters": {
+    "stacks": [
+      {
+        "adapter": "node-ts"
+      }
+    ],
+    "runtimes": ["claude-code"],
+    "host": "github"
+  },
+  "coverageGate": {
+    "statements": 97,
+    "branches": 97,
+    "functions": 97,
+    "lines": 97
+  },
+  "coveragePackages": ["api", "client", "mcp"],
+  "quality": {
+    "coverageMechanism": "the `coverageGate` of [`harness-profile.json`]({{rel:paths.profileFile}}), read by the three `jest.config.ts` files, `scripts/check-changed-coverage.mjs` and `scripts/merge-coverage.mjs`",
+    "coverageScope": "separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request",
+    "coverageScopeMechanism": "Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI",
+    "coverageExclusions": "entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts`",
+    "localGate": "the pre-push hook runs, for the files of the push only, typecheck and lint of the changed packages, the tests related to the changed files and the coverage gate on the changed files, and the generated-files check; no code check for a push that changes no file or only Markdown; the full run is CI's and `npm run test:coverage`",
+    "localGateMechanism": "`.githooks/pre-push`, `scripts/local-gate.mjs`",
+    "requiredChecksMechanism": "set by `scripts/protect-branches.sh` (GitHub repository ruleset `protected-branches`) from the `requiredChecks` list of [`harness-profile.json`]({{rel:paths.profileFile}}); the notes above are the `requiredCheckNotes` of the same file"
+  },
+  "requiredChecks": ["verify", "pr-title", "e2e", "lighthouse"],
+  "requiredCheckNotes": {
+    "verify": "the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests, framework tests and build",
+    "pr-title": "Conventional Commit title",
+    "e2e": "the job that needs the four shards of the end-to-end suite",
+    "lighthouse": "public pages"
+  },
+  "branches": {
+    "production": "main",
+    "integration": "develop",
+    "productionNote": "every release is tagged `vX.Y.Z`",
+    "integrationNote": "also the GitHub default branch; all work starts here",
+    "retention": "merged branches are kept on GitHub; automatic deletion of head branches is off"
+  },
+  "paths": {
+    "plan": "docs/development-plan",
+    "phases": "docs/development-plan/phases",
+    "changelog": "docs/product-knowledge/CHANGELOG.md",
+    "changelogFragments": "docs/product-knowledge/changelog.d",
+    "profileFile": "harness-profile.json",
+    "profileDocument": "docs/profile.md",
+    "planIndex": "docs/development-plan/DEVELOPMENT-PLAN.md"
+  },
+  "plan": {
+    "taskId": "`<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`)",
+    "phasesWithFragments": "Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`), and the phase file carries no implementation-log table",
+    "phasesWithOneLog": "Phases 0 to 9 and 11 to 16: the phase's own log only, and the implementation-log table of the phase file",
+    "logCommand": "`npm run plan:log -- <n>`",
+    "estimationScale": "story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires",
+    "resumePhrases": "\"Start Phase N\", \"Start Phases N-M\", \"Continue Phase N\"; the phrase approves the pull requests of the named phases",
+    "openEndedPhase": "Phase 12 (issues found in use); its size grows",
+    "specificationCitation": "`design §<section>` for the game design (for example `design §12.4`)"
+  },
+  "api": {
+    "prefix": "`/api/v1` (REST and WebSocket); the official client, third-party clients and the MCP server use the same surface",
+    "versioning": "changes inside a version stay compatible; a breaking change ships as the next version (`/api/v2`); deprecation and announcement per {{link:documents.apiContract}}",
+    "description": "the OpenAPI document `api/openapi.json`, generated from the controllers and DTOs"
+  },
+  "languages": {
+    "userFacing": "English (`en`) and Russian (`ru`): every UI string, error message and player documentation page",
+    "catalogues": "`client/messages/en.json`, `client/messages/ru.json`, checked by `npm run i18n:check`",
+    "harness": "English"
+  },
+  "versions": {
+    "language": "TypeScript 5.x, `strict: true`",
+    "runtime": "Node.js 20 LTS",
+    "database": "PostgreSQL, the image pinned in `docker-compose.yml` (`postgres:16.4`), the same version locally, in CI and in production"
+  },
+  "commands": {
+    "lint": "npm run lint",
+    "format": "npm run format",
+    "typecheck": "npm run typecheck",
+    "test": "npm test",
+    "testCoverage": "npm run test:coverage",
+    "changedCoverage": "node scripts/check-changed-coverage.mjs origin/develop api client mcp",
+    "boundaries": "npm run check:boundaries",
+    "i18n": "npm run i18n:check",
+    "docsCheck": "npm run docs:check",
+    "harnessSync": "npm run harness -- sync",
+    "harnessSyncLocal": "npm run harness -- sync --local",
+    "harnessDiff": "npm run harness -- diff",
+    "build": "npm run build",
+    "e2e": "npm run e2e",
+    "openapi": "npm run openapi:generate -w api",
+    "apiClient": "npm run api:generate -w client",
+    "dbUp": "npm run db:up",
+    "dbMigrate": "npm run db:migrate -w api",
+    "dbSeed": "npm run db:seed -w api"
+  },
+  "terms": {
+    "stack": "nestjs|prisma|postgres|\\bjest\\b|cypress|quickjs|socket\\.io|next\\.js|vercel|docker|redis|expressjs|express\\.js|reactjs|react\\.js|redux|ant design|codemirror|\\bnpm\\b|node\\.js|nodejs|github actions|husky|playwright|lighthouse|\\btypescript\\b",
+    "product": "bot-rts|\\bbots?\\b|\\bmodules?\\b|scanner|botos|\\bterminal\\b|\\btick\\b|credits|\\bbase\\b|\\bscripts?\\b|\\bplayers?\\b",
+    "productGeneric": "\\bmodules?\\b|\\bscripts?\\b",
+    "projectValues": "`main`|`develop`|\\b97 ?%|\\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\\bgithub\\b|design §|npm run [a-z:]+|scripts/[a-z-]+\\.(mjs|sh)|\\benglish\\b|\\brussian\\b|\\.claude/|\\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\\.md"
+  },
+  "contexts": [
+    {
+      "name": "Foundations",
+      "sections": "01 vision, 02 glossary, 03 core loop, 05 onboarding"
+    },
+    {
+      "name": "World and base",
+      "sections": "04 world and map, 06 the base"
+    },
+    {
+      "name": "Machines and items",
+      "sections": "07 modules, 08 bots, 09 resources, items and crafting, 28 energy, power and the day cycle"
+    },
+    {
+      "name": "Scripting and runtime",
+      "sections": "10 script API, 11 terminal, 12 execution model, 13 security, 14 concurrency, 18 example scripts"
+    },
+    {
+      "name": "Interface and play",
+      "sections": "15 screens, 17 in-game scenarios"
+    },
+    {
+      "name": "Economy and social",
+      "sections": "16 economy and progression, 23 achievements, 26 market and currency, 27 chat and transfers"
+    },
+    {
+      "name": "Platform",
+      "sections": "22 public API, 24 events and notifications, 25 admin console, 20 open questions, 21 backlog"
+    }
+  ],
+  "documents": {
+    "rules": "AGENTS.md",
+    "method": "docs/engineering/method.md",
+    "stack": "docs/engineering/stack.md",
+    "architecture": "docs/engineering/architecture.md",
+    "ruleChecks": "docs/engineering/rule-checks.md",
+    "readme": "README.md",
+    "specification": "docs/product-knowledge/game-design/GAME-DESIGN.md",
+    "glossary": "docs/product-knowledge/game-design/02-glossary.md",
+    "apiContract": "docs/product-knowledge/integrations/API.md",
+    "mcpContract": "docs/product-knowledge/integrations/MCP.md",
+    "changelog": "docs/product-knowledge/CHANGELOG.md",
+    "changelogFragments": "docs/product-knowledge/changelog.d/README.md",
+    "planMethod": "docs/development-plan/README.md",
+    "planBindings": "docs/development-plan/bindings.md",
+    "definitionOfDone": "docs/development-plan/cross-cutting/definition-of-done.md",
+    "guidingPrinciples": "docs/development-plan/cross-cutting/guiding-principles.md",
+    "testing": "docs/testing/README.md",
+    "e2eMatrix": "docs/testing/e2e-matrix.md",
+    "deployment": "docs/operations/DEPLOYMENT.md",
+    "releasing": "docs/operations/RELEASING.md",
+    "codeReviews": "docs/quality-reviews/code/README.md",
+    "harnessReviews": "docs/quality-reviews/harness/README.md",
+    "harnessBindings": "docs/quality-reviews/harness/bindings.md",
+    "frameworkPlan": "docs/harness-framework/README.md"
+  }
+}

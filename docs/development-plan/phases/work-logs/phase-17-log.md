@@ -71,3 +71,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
   - Phase 17 is 69 SP.
 - **Next step:** the owner reviews this pull request; after the merge, 17.2 in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-10-30 — 17.2 done: the baseline review, its triage waits for the owner
+- **Tasks:** 17.2 ✅ (its log: [`phase-17/17.2.md`](./phase-17/17.2.md))
+- **Branch:** `docs/17.2-targeted-harness-review` — done, PR #260
+- **Decisions / deviations from the plan:** none. The report [`2026-10-30.md`](../../../quality-reviews/harness/2026-10-30.md) is the build's
+  baseline: D3 and D7 are at 4, D8 and D14 at 4, D15 at 3, and the gate passes.
+- **Problems / blockers / findings:** H-20261030-01 (🟠): the staging folder is outside every code check, so 17.3 should wire it in before
+  the first tool moves. The other findings are triaged to 17.4, 17.7, 17.9, 17.10, 17.11 and Phase 12 (report section 13).
+- **Next step:** the owner approves the triage. A plan pull request then adds the findings to the named build tasks and to Phase 12. After
+  that, 17.3 in a fresh session ("Continue Phase 17").
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

@@ -58,5 +58,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
   - The owner had moved some scripts out of `scripts/` by accident while copying them, and put them back. The check of 2026-10-30 found all
     58 entries present, unchanged and with their executable bits, and no committed deletion under `scripts/` in the last 60 days.
   - Every script is in the design's classification.
+- **Also decided (2026-10-30):** the second project's off-plan log becomes task 2.5 of the framework's own plan (Phase 2, after `0.1.0`;
+  3 SP), as one fragment per pull request instead of a shared file. Phase 2 of the framework's plan is 17 SP. Phase 17 here is unchanged.
 - **Next step:** the owner reviews this pull request; after the merge, 17.2 in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

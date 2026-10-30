@@ -156,6 +156,10 @@ The design session (Opus) proposes an answer to each, with trade-offs; you choos
 
 ### 3.2 Target layout
 
+The [framework design](./design.md) (task 17.1) confirms this layout with adjustments: adapters on three axes (stack, agent runtime,
+repository host), a `tools/` folder, `BOOTSTRAP.md`, neutral procedures and the adapter contracts in `core/`, and a conformance suite. Its
+section 2 is the layout to build; the tree below is the starting point it adjusted.
+
 The staging folder is `docs/harness-framework/framework/` and mirrors the layers:
 
 ```
@@ -172,6 +176,10 @@ framework/
 
 ### 3.3 Building (the agent)
 
+The steps below are realized by tasks 17.2 to 17.17 here and by Phase 1 of the framework's own plan, in the order of section 10 of the
+[design](./design.md), which also adds the
+consumption mechanism (a vendored copy pinned by a lock file), the presets for two stacks and two agent runtimes, and the bootstrap's three front ends.
+
 1. **Classify** every harness file and section (the layer map of the review), using the report's dry run; list what goes to core, adapters, profile, examples, and what stays in `bot-rts` (DOMAIN and STATE).
 2. **Extract by moving, not copying**: for each CORE document, write the neutral version in `framework/core/` (roles instead of values, no project terms) and replace the original in `bot-rts` with the neutral text plus a binding to its profile. The review's term lists (M1, M2) must return **zero** hits on `framework/core/`.
 3. **Write the profile template** from the injectable values found in the review (M4, M10); every value in core is a `{{role}}` that the profile fills or a role name the adapter implements.
@@ -180,6 +188,9 @@ framework/
 6. **Make the review methods self-hosting**: the harness and code review methods in `core/` run on a bootstrapped project through its own bindings.
 
 ### 3.4 Prove it
+
+Since the 2026-10-30 revision of the [design](./design.md), this proof is task 1.5 of the framework's own plan, run in the framework
+repository after task 17.15 (design §10).
 
 In a scratch directory (not in this repository), bootstrap a dummy project from the framework with a filled example profile, run the
 framework's own checks (link check, term-leak scan, structure check), then start the harness review method on it. Record the result in
@@ -204,11 +215,16 @@ session, Opus 5.5 at high effort):
 Start Phase 17, task 17.1 only: the framework design of docs/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
 ```
 
-Build session (after the owner has accepted `design.md` and its build order is in the phase file as tasks 17.2 onward):
+Build session (after the owner has accepted `design.md` and its build order is in the phase file as tasks 17.2 to 17.17):
 
 ```text
-Continue Phase 17: build the framework in docs/harness-framework/framework/ per the tasks of the phase file and docs/harness-framework/design.md, moving content out of this repository's harness. Finish with the proof of step 3.4 in a scratch directory and a summary against the exit criteria of step 3.5 and of the phase. Do not create or push to any other repository.
+Continue Phase 17.
 ```
+
+The session protocol and the phase file do the rest: tasks 17.2 to 17.14 build the framework in `docs/harness-framework/framework/`, moving
+content out of this repository's harness; 17.15 publishes it to the `harness-framework` repository, where it bootstraps itself and its own
+development plan; that plan's Phase 1 finishes the presets and runs the proof of 3.4; 17.16 syncs this repository to `0.1.0`, and 17.17 is the
+closing review. No session creates or pushes to another repository without the owner's explicit authorisation.
 
 ---
 

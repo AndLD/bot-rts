@@ -67,7 +67,7 @@ Run from the repository root on a clean checkout, with Docker running for the da
 | K1 translations | `npm run i18n:check` |
 | K1 build | `npm run build` |
 | K1 / K2 / K3 tests and coverage | `npm run db:up && npm run test:coverage` (summary per package in `*/coverage/coverage-summary.json`) |
-| K2 files below the gate | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` plus per-file figures from `coverage-summary.json` |
+| K2 files below the gate | `node scripts/check-changed-coverage.mjs origin/<integration> api client mcp` plus per-file figures from `coverage-summary.json` |
 | K15 generated files | see section 3 |
 | K13 dependencies | `npm outdated --workspaces`, `npm ls --all 2>&1 \| grep -i "deduped\|invalid"`, search for deprecated notices in `npm ci` output |
 

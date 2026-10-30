@@ -603,9 +603,14 @@ test runs it against a stand-in `gh` and compares the request with the profile f
 ### 8.2 B7: the layer map from one source
 
 - **CORE layer.** It is the vendored tree plus the managed blocks, known from the lock, so it needs no list. The `core-files` block of the
-  harness bindings goes away.
+  harness bindings is gone (17.6). Until 17.8 moves the core documents into the framework, the project's own CORE documents are the
+  `layers.core` entries of the profile file (a path, with `sections` and the numbers when only some sections are CORE), which the CORE
+  scan reads too; a file with such an entry is the one allowed overlap (CORE in those sections, another layer for the rest). After 17.8
+  the list is empty.
 - **Other layers.** DOMAIN, ADAPTER, PROFILE, STATE and ENTRY are globs in the profile file (`layers.*`).
-  - `harness layers` prints the map, and the generator writes it into the bindings as a managed block.
+  - `harness layers` prints the map, and the generator writes it into the bindings as a managed block between the markers
+    `<!-- harness:begin layers -->` and `<!-- harness:end layers -->` (the lock hashes the block alone, so the text around it stays the
+    project's; the same mechanism serves the entry file's blocks in 17.8). `layers.scope` says which tracked files the map covers.
   - `harness check layers` fails on a tracked Markdown or harness file that matches no layer, or more than one. A new harness file is
     therefore classified when it is added, and not discovered by a later review.
 - **The staging folder** (until 17.15) is "framework source": the project's layer map leaves it out, and the framework's own checks (CORE scan,

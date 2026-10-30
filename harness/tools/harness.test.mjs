@@ -119,3 +119,37 @@ test('a changed value fails check vendored until sync --local regenerates the pr
     /the managed file docs\/profile\.md differs from what the tools generated/
   )
 })
+
+test('layers prints the map, and check layers fails on a tracked file that no layer claims', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'harness-layers-cli-'))
+  after(() => rmSync(dir, { recursive: true, force: true }))
+  const profile = {
+    adapters: { stacks: ['node-ts'] },
+    layers: { scope: ['**/*.md'], entry: ['README.md'] }
+  }
+  writeFileSync(join(dir, 'harness-profile.json'), JSON.stringify(profile))
+  writeFileSync(join(dir, 'README.md'), '# Project\n')
+  writeFileSync(join(dir, 'NOTES.md'), '# Notes\n')
+  spawnSync('git', ['init', '-q'], { cwd: dir })
+  spawnSync('git', ['add', '-A'], { cwd: dir })
+  const run = (...args) => {
+    const result = spawnSync(process.execPath, [join(import.meta.dirname, 'harness.mjs'), ...args, '--root', dir], {
+      encoding: 'utf8'
+    })
+    return { code: result.status, out: result.stdout, err: result.stderr }
+  }
+
+  assert.match(run('layers').out, /^\| \*\*ENTRY\*\* \| `README\.md` \|$/m)
+  const failed = run('check', 'layers')
+  assert.equal(failed.code, 1)
+  assert.match(failed.err, /harness check layers: NOTES\.md: belongs to no layer/)
+
+  profile.layers.state = ['NOTES.md']
+  writeFileSync(join(dir, 'harness-profile.json'), JSON.stringify(profile))
+  assert.equal(run('check', 'layers').code, 0)
+
+  delete profile.layers
+  writeFileSync(join(dir, 'harness-profile.json'), JSON.stringify(profile))
+  assert.match(run('check', 'layers').out, /no `layers` role/)
+  assert.equal(run('layers').code, 1)
+})

@@ -168,5 +168,72 @@
     "harnessReviews": "docs/quality-reviews/harness/README.md",
     "harnessBindings": "docs/quality-reviews/harness/bindings.md",
     "frameworkPlan": "docs/harness-framework/README.md"
+  },
+  "layers": {
+    "scope": [
+      "**/*.md",
+      "docs/**",
+      ".githooks/**",
+      ".github/**",
+      ".claude/**",
+      "scripts/**",
+      "harness/**",
+      "harness-profile.json",
+      "harness.lock.json"
+    ],
+    "excluded": ["client/public/atlas/LICENSE.md"],
+    "core": [
+      "AGENTS.md sections 1 7",
+      "docs/engineering/method.md",
+      "docs/development-plan/README.md",
+      "docs/development-plan/_template.md",
+      "docs/development-plan/phases/README.md",
+      "docs/development-plan/phases/_template.md",
+      "docs/development-plan/phases/work-logs/_task-template.md",
+      "docs/development-plan/cross-cutting/definition-of-done.md",
+      "docs/development-plan/cross-cutting/guiding-principles.md",
+      "docs/quality-reviews/README.md",
+      "docs/quality-reviews/code/README.md",
+      "docs/quality-reviews/code/_template.md",
+      "docs/quality-reviews/harness/README.md",
+      "docs/quality-reviews/harness/_template.md"
+    ],
+    "domain": [
+      "docs/product-knowledge/**",
+      "!docs/product-knowledge/archived-docs/**",
+      "!docs/product-knowledge/CHANGELOG.md",
+      "!docs/product-knowledge/changelog.d/**"
+    ],
+    "adapter": [
+      "docs/engineering/stack.md",
+      "docs/engineering/architecture.md",
+      "docs/engineering/rule-checks.md",
+      ".githooks/**",
+      ".github/**",
+      ".claude/**",
+      "scripts/**",
+      "docs/operations/**",
+      "docs/testing/**",
+      "!docs/testing/reports/**",
+      "!docs/testing/by-phase.md"
+    ],
+    "state": [
+      "docs/development-plan/DEVELOPMENT-PLAN.md",
+      "docs/development-plan/phases/phase-*.md",
+      "docs/development-plan/phases/work-logs/**",
+      "!docs/development-plan/phases/work-logs/_task-template.md",
+      "docs/development-plan/cross-cutting/risk-register.md",
+      "docs/development-plan/cross-cutting/rfc-*.md",
+      "docs/product-knowledge/CHANGELOG.md",
+      "docs/product-knowledge/changelog.d/**",
+      "docs/product-knowledge/archived-docs/**",
+      "docs/quality-reviews/code/20*.md",
+      "docs/quality-reviews/harness/20*.md",
+      "docs/testing/reports/**",
+      "docs/testing/by-phase.md",
+      "docs/harness-framework/README.md",
+      "docs/harness-framework/design.md"
+    ],
+    "entry": ["AGENTS.md", "CLAUDE.md", "README.md"]
   }
 }

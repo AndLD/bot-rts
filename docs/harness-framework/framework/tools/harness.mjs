@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The `harness` command line (design §7.1). This version holds the vendoring commands of task 17.4 and the profile commands of 17.5; the
+// The `harness` command line (design §7.1). This version holds the vendoring commands of task 17.4 the profile commands of 17.5 and the layer commands of 17.6; the
 // build tasks add the others.
 //   harness sync [--from <folder or Git URL>] [--to <version>]   take the framework into harness/ and rewrite harness.lock.json
 //   harness sync --local                                          regenerate the managed files only, without fetching
@@ -9,9 +9,12 @@
 //   harness detach --reason <why>                                 the project takes the copy over; no more versions
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness check profile                                         the profile file against the schema
+//   harness layers                                                print the layer map
+//   harness check layers                                          every tracked file of the map is in exactly one layer
 // `--root <dir>` runs on another project (default: the Git top level of the working directory).
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
+import { checkLayers, layerConfig, renderLayerMap } from './lib/layers.mjs'
 import { checkProfile, loadProfile, lookup } from './lib/profile.mjs'
 import { checkVendored, detach, diff, override, sync } from './lib/vendor.mjs'
 
@@ -20,6 +23,8 @@ const USAGE = `usage: harness <command>
   sync --local
   check vendored
   check profile
+  check layers
+  layers
   profile get <role>
   diff
   override <path> --reason <why> --issue <link>
@@ -106,6 +111,27 @@ export function run(argv, { out = console.log, err = console.error } = {}) {
           : value
       )
       return 0
+    }
+    if (command === 'layers') {
+      const config = layerConfig(root, loadProfile(root))
+      if (!config) {
+        throw new Error('the profile file has no `layers` role')
+      }
+      out(renderLayerMap(config))
+      return 0
+    }
+    if (command === 'check layers') {
+      const profile = loadProfile(root)
+      if (!profile.layers) {
+        out('The profile file has no `layers` role, so there is no layer map to check.')
+        return 0
+      }
+      const problems = checkLayers({ root, profile })
+      problems.forEach((line) => err(`harness check layers: ${line}`))
+      if (!problems.length) {
+        out('Checked that every file of the layer map is in exactly one layer.')
+      }
+      return problems.length ? 1 : 0
     }
     if (command === 'diff') {
       out(diff({ root }))

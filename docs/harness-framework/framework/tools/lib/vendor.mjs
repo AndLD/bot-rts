@@ -2,13 +2,20 @@
 // `harness/` and pins them in the lock, `checkVendored` proves the copy unchanged, `diff` shows a local change, and `detach` hands the copy
 // to the project for good (§1.5). Every function takes the project root, so the tests run them on throwaway projects.
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { generators as registered } from './generators.mjs'
+import { extractBlock, hashBlock, replaceBlock } from './managed.mjs'
 import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
 import { loadProfile } from './profile.mjs'
 import { readManifest, referenceTree, resolveSource } from './source.mjs'
 import { copyFiles, hashFile, hashTree, walk } from './tree.mjs'
+
+// The hash of the block `id` in a file's text; null when the markers are gone
+const hashBlockOf = (text, id) => {
+  const content = extractBlock(text, id)
+  return content === null ? null : hashBlock(content)
+}
 
 const SYNC_HINT = 'change the framework source and run `harness sync`, or record an override in the lock (design §1.3)'
 const LOCAL_HINT = 'run `harness sync --local`'
@@ -45,19 +52,42 @@ export function selectFiles(dir, manifest, adapters) {
   return [...selected].sort()
 }
 
-/** Writes every managed file and returns their hashes, as the lock keeps them (design §6.3). */
+const managedPath = (generator, profile) =>
+  typeof generator.path === 'function' ? generator.path(profile) : generator.path
+
+/**
+ * Writes every managed file (or the block of a file, when the generator names one) and returns their hashes, as the lock keeps them
+ * (design §6.3): of a whole file, or of the block alone.
+ */
 function generateManaged(root, generators) {
   const profile = loadProfile(root)
   const managed = {}
   for (const generator of generators) {
-    const path = typeof generator.path === 'function' ? generator.path(profile) : generator.path
+    const path = managedPath(generator, profile)
     if (!path) {
       continue // a role the project's profile file does not have: `harness check profile` is what asks for it
     }
     const target = join(root, path)
-    mkdirSync(dirname(target), { recursive: true })
-    writeFileSync(target, generator.render({ root, profile }))
-    managed[path] = hashFile(target)
+    const content = generator.render({ root, profile })
+    if (generator.block) {
+      if (!existsSync(target)) {
+        throw new Error(
+          `${path} must exist, with the markers of the block "${generator.block}", before it can be generated`
+        )
+      }
+      // A block has no line break at either end, so that what the lock hashes is what the file holds between its markers
+      const trimmed = content.replace(/^\n+|\n+$/g, '')
+      try {
+        writeFileSync(target, replaceBlock(readFileSync(target, 'utf8'), generator.block, trimmed))
+      } catch (error) {
+        throw new Error(`${path}: ${error.message}`)
+      }
+      managed[path] = hashBlock(trimmed)
+    } else {
+      mkdirSync(dirname(target), { recursive: true })
+      writeFileSync(target, content)
+      managed[path] = hashFile(target)
+    }
   }
   return managed
 }
@@ -130,7 +160,7 @@ export function sync({ root, from, to, local = false, generators = registered })
  * `harness check vendored`: the vendored copy, the managed files and the profile file against the lock.
  * @returns {{ problems: string[], notes: string[] }}
  */
-export function checkVendored({ root }) {
+export function checkVendored({ root, generators = registered }) {
   const lock = readLock(root)
   const vendor = join(root, VENDOR_DIR)
   const problems = []
@@ -192,10 +222,22 @@ export function checkVendored({ root }) {
     notes.push('The framework itself (mode "self"): there is no vendored copy.')
   }
 
+  const profile = loadProfile(root)
+  const blocks = new Map(
+    generators.filter((generator) => generator.block).map((g) => [managedPath(g, profile), g.block])
+  )
   for (const [path, hash] of Object.entries(lock.managed ?? {})) {
     const target = join(root, path)
-    if (!existsSync(target) || hashFile(target) !== hash) {
-      problems.push(`the managed file ${path} differs from what the tools generated: ${LOCAL_HINT}`)
+    const block = blocks.get(path)
+    const actual = !existsSync(target)
+      ? null
+      : block
+        ? hashBlockOf(readFileSync(target, 'utf8'), block)
+        : hashFile(target)
+    if (actual !== hash) {
+      problems.push(
+        `the managed ${block ? 'block' : 'file'} ${path} differs from what the tools generated: ${LOCAL_HINT}`
+      )
     }
   }
   if (lock.profile !== profileHash(root)) {

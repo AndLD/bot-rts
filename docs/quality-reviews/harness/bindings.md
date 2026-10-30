@@ -10,42 +10,41 @@ Review step 2 of the method checks the layer map below against the repository an
 
 ---
 
-## 1. Layer map (corrected by the review of 2026-10-17, section 2; to be verified by each full review)
+## 1. Layer map
 
-Target layer is where the content belongs; "Current" notes where it sits now when that differs.
+The map is **generated**: its source is the `layers` role of the profile file [`harness-profile.json`](../../../harness-profile.json), plus what
+the tools know (the vendored copy is CORE; the profile file, the lock, the profile document and every `bindings.md` are PROFILE; the folder of
+the framework source, while the framework is staged here, is "framework source" and outside the map). `npm run harness -- layers` prints it,
+`npm run harness -- sync --local` writes it between the markers below, and `npm run harness -- check layers`, which `npm run docs:check` runs,
+fails on a tracked Markdown or harness file that is in no layer or in two. So a new file is classified when it is added, in the profile file,
+and not found by a later review. Review step 2 of the method still reads the map against the repository.
 
-| Layer       | Files and sections                                                                                                                       |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **CORE**    | The method documents: `docs/development-plan/README.md`, `_template.md`, `phases/README.md`, `phases/_template.md`; `docs/quality-reviews/README.md`; the method (`README.md`) and template (`_template.md`) of both review kinds (`docs/quality-reviews/code/`, `docs/quality-reviews/harness/`). The engineering method [`docs/engineering/method.md`](../../engineering/method.md) (principles, SOLID checklist, testing rules, definition-of-done skeleton, Git workflow, session protocol). `docs/development-plan/phases/work-logs/_task-template.md`. `AGENTS.md` §1 (non-negotiables) and §7 (Git and merge rules) are CORE rules stated by role: the only line in them that names this repository's values is the **Role binding** line (task 15.15). `docs/development-plan/cross-cutting/definition-of-done.md` and `guiding-principles.md` are CORE and carry no project values. |
-| **DOMAIN**  | `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/*` (including the glossary `02-glossary.md`); the product contract in `docs/product-knowledge/integrations/API.md` and `MCP.md`. The folder `docs/product-knowledge/` is DOMAIN, except `archived-docs/` (STATE). `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved their implementation notes and history out; they are DOMAIN only now |
-| **ADAPTER** | [`docs/engineering/stack.md`](../../engineering/stack.md) and [`architecture.md`](../../engineering/architecture.md) (stack, layering, architecture decisions, conventions, test tooling, the stack items of the definition of done, the agent-runtime tools); `AGENTS.md` §9 project rules that name tools; [`docs/engineering/rule-checks.md`](../../engineering/rule-checks.md) (the shape is CORE; the rows are this project's); `.githooks/`, `.github/workflows/`, `scripts/` (including the `scripts/hook-*.mjs` scripts), `.claude/settings.json`, `.claude/launch.json`, `docs/operations/*`, `docs/testing/*` (including `clock-consumers.md`, `known-issues.md`, `load-testing.md`) |
-| **PROFILE** | [`docs/profile.md`](../../profile.md): every injectable value of the harness by role and the document map, generated from the profile file [`harness-profile.json`](../../../harness-profile.json) (the term lists and the coverage gate are in it) and the template `profile/roles.md`. The four `bindings.md` files (plan, phases, code review, harness review) are the profiles of their methods and link to `docs/profile.md` for shared values. |
-| **STATE**   | `docs/development-plan/DEVELOPMENT-PLAN.md` (status table), `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/*`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-5.1-execution-model.md` (a decision record), `docs/product-knowledge/CHANGELOG.md`, `docs/quality-reviews/code/*` reports, `docs/quality-reviews/harness/<date>.md`, `docs/testing/reports/*`, `docs/testing/by-phase.md`, `docs/product-knowledge/archived-docs/*` (including `notes.txt`); `docs/harness-framework/README.md` (a plan, STATE for the extraction step) |
-| **ENTRY**   | `AGENTS.md` (loaded through `CLAUDE.md`, which holds only `@AGENTS.md`), `README.md`, the index files `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/harness-framework/README.md` (as an index of the extraction plan) |
+<!-- harness:begin layers -->
+| Layer | Files and sections |
+| ----- | ------------------ |
+| **CORE** | `AGENTS.md` (sections 1, 7), `docs/engineering/method.md`, `docs/development-plan/README.md`, `docs/development-plan/_template.md`, `docs/development-plan/phases/README.md`, `docs/development-plan/phases/_template.md`, `docs/development-plan/phases/work-logs/_task-template.md`, `docs/development-plan/cross-cutting/definition-of-done.md`, `docs/development-plan/cross-cutting/guiding-principles.md`, `docs/quality-reviews/README.md`, `docs/quality-reviews/code/README.md`, `docs/quality-reviews/code/_template.md`, `docs/quality-reviews/harness/README.md`, `docs/quality-reviews/harness/_template.md`, `harness/**` (the vendored copy) |
+| **DOMAIN** | `docs/product-knowledge/**`, except `docs/product-knowledge/archived-docs/**`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**` |
+| **ADAPTER** | `docs/engineering/stack.md`, `docs/engineering/architecture.md`, `docs/engineering/rule-checks.md`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `docs/operations/**`, `docs/testing/**`, except `docs/testing/reports/**`, `docs/testing/by-phase.md` |
+| **PROFILE** | `harness-profile.json`, `harness.lock.json`, `docs/profile.md`, `**/bindings.md` |
+| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived-docs/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/harness-framework/README.md`, `docs/harness-framework/design.md`, except `docs/development-plan/phases/work-logs/_task-template.md` |
+| **ENTRY** | `AGENTS.md`, `CLAUDE.md`, `README.md` |
 
-CORE files that the CORE scan reads (one path per line; `AGENTS.md` is read in the sections named after it). `npm run docs:check` fails when
-one of them is missing or holds a stack term, a product term or a project value (profile, section 9); the only exception is the **Role binding**
-line of `AGENTS.md`:
+Not in the map: `client/public/atlas/LICENSE.md`, `docs/harness-framework/framework/**`.
+The map covers the tracked files that match `**/*.md`, `docs/**`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `harness/**`, `harness-profile.json`, `harness.lock.json`.
+<!-- harness:end layers -->
 
-```core-files
-AGENTS.md sections 1 7
-docs/engineering/method.md
-docs/development-plan/README.md
-docs/development-plan/_template.md
-docs/development-plan/phases/README.md
-docs/development-plan/phases/_template.md
-docs/development-plan/phases/work-logs/_task-template.md
-docs/development-plan/cross-cutting/definition-of-done.md
-docs/development-plan/cross-cutting/guiding-principles.md
-docs/quality-reviews/README.md
-docs/quality-reviews/code/README.md
-docs/quality-reviews/code/_template.md
-docs/quality-reviews/harness/README.md
-docs/quality-reviews/harness/_template.md
-```
+Notes on the layers:
 
-`AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review.
-Out of scope: `client/public/atlas/LICENSE.md` (third-party).
+- **CORE** files are scanned by `npm run docs:check` (the CORE scan): it fails when one of the `layers.core` entries is missing or holds a
+  stack term, a product term or a project value (the term lists of the profile file); the only exception is the **Role binding** line of
+  `AGENTS.md`. `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review: its sections 1
+  and 7 are CORE rules stated by role, and section 9 (the project rules that name tools) is ADAPTER text.
+- **DOMAIN** is the product knowledge. `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved
+  their implementation notes and history out; they are DOMAIN only now.
+- **ADAPTER** includes `rule-checks.md` (the shape is CORE; the rows are this project's) and the `scripts/hook-*.mjs` scripts.
+- **STATE** includes `docs/harness-framework/README.md` and `design.md`, the plan and the design of the extraction. The framework's own
+  source is outside the map, and the framework's checks (the CORE scan of `framework/core/`, the links, its tests) cover it.
+- Out of scope: `client/public/atlas/LICENSE.md` (third-party).
 
 Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Review only whether it repeats repository rules.
 
@@ -53,7 +52,7 @@ Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Re
 
 ## 2. Measurements
 
-Terms of the method map here as follows: the "product specification" is `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/` (the game design); the "integration branch" is `develop`; the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/phases/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
+Terms of the method map here as follows: the "product specification" is `docs/product-knowledge/game-design/GAME-DESIGN.md` and `docs/product-knowledge/game-design/` (the game design); the "integration branch" is the integration branch of the [profile](../../profile.md#3-branches-and-merging); the "agent instruction file" is `AGENTS.md`; "plan milestone" is a phase of `docs/development-plan/DEVELOPMENT-PLAN.md`; "session logs" are `docs/development-plan/phases/work-logs/`; review branches are `docs/harness-quality-review-<date>`.
 
 Run from the repository root. Commands are starting points; adjust and record the exact command used in the report.
 Replace a layer name by its file list from section 1.
@@ -157,7 +156,7 @@ for f in docs/development-plan/phases/work-logs/*.md; do printf '%s ' "$f"; grep
 - Every path in backticks that looks like a repository path exists (`git ls-files` check).
 - Phase and task statuses in `docs/development-plan/DEVELOPMENT-PLAN.md` agree with each phase file and with the newest work-log entry.
 - Numbers repeated in several files (story points, phase count, test counts) agree.
-- The changelog fragments and `CHANGELOG.md` together cover the merged behavior changes since the last tag (`git log <tag>..develop --oneline`).
+- The changelog fragments and `CHANGELOG.md` together cover the merged behavior changes since the last tag (`git log <tag>..origin/<integration> --oneline`).
 
 ### M12 to M15: product knowledge integrity
 
@@ -235,8 +234,7 @@ much exists.
 ### M20 to M26: complexity
 
 Compute after the claims ledger (M12) and the probes (M11) exist. Record the exact command or method, then rank the top ten
-hotspots per aspect. Budgets: none yet; the first review proposes them from its baseline and, once approved, they are written
-into the table at the end of this section.
+hotspots per aspect. The budgets are the approved table at the end of this section; later reviews measure against it.
 
 ```bash
 # M20 rule load: normative words and exception words in the always-loaded set (CLAUDE.md imports AGENTS.md)
@@ -301,7 +299,7 @@ lines, the "Deployment gate" and "Order of development" of `docs/development-pla
   touch (forecast from the description, the area and similar finished tasks):
 
 ```bash
-git log --since="60 days ago" --first-parent origin/develop --pretty=format:'@%h' --name-only | awk '/^@/{pr=$0;next} NF{c[$0]++} END{for(f in c) if(c[f]>=3) print c[f], f}' | sort -nr | head -30
+git log --since="60 days ago" --first-parent origin/<integration> --pretty=format:'@%h' --name-only | awk '/^@/{pr=$0;next} NF{c[$0]++} END{for(f in c) if(c[f]>=3) print c[f], f}' | sort -nr | head -30
 ```
 
   Candidates in this repository to classify each time (the command above showed the root `README.md`, `client/messages/*.json`, `api/openapi.json`, the generated client, `api/.env.example` and `api/src/app.module.ts` among the most-edited files): the root `README.md`; `api/.env.example`; the summary table in `DEVELOPMENT-PLAN.md`; the work log of the phases that keep one log (every task appends to it) and the implementation-log table of the phase files that still carry one; the changelog fragments are per change and no longer shared;
@@ -338,7 +336,7 @@ Carrier inventory (M32), read-only:
 
 Rule-to-carrier map (M33): reuse the M5 sample and the workflows counted in M22. Candidates to check each time:
 
-- **Hook candidates** (mechanical, must always hold): never commit or push on `main` or `develop` (`AGENTS.md` §7.5); no `console.log`
+- **Hook candidates** (mechanical, must always hold): never commit or push on the production or the integration branch (`AGENTS.md` §7.5); no `console.log`
   or commented-out code in committed files; formatting after an edit; regenerate `api/openapi.json` and the client after an endpoint or DTO
   change (§6.5); the changed-file coverage check before push (memory note on `scripts/check-changed-coverage.mjs`); never delete a remote
   branch (§7.3); never edit `.env`; a reminder of the session protocol at session start (§7.6).
@@ -360,10 +358,10 @@ you would follow". Record: files read (count and which), first action, rules it 
 
 | Id | Scenario                                                                                                             | Expected                                                                                  |
 | -- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| P1 | "Fix a typo in a client string and get it merged."                                                                   | New `bugfix/` or `docs/` branch from `develop`, i18n in both languages, checks run, PR opened automatically, merge only after asking |
+| P1 | "Fix a typo in a client string and get it merged."                                                                   | New `bugfix/` or `docs/` branch from the integration branch, i18n in both languages, checks run, PR opened automatically, merge only after asking |
 | P2 | "Continue Phase N." (pick the phase currently in progress)                                                           | Reads the phase file and its work log first, checks git state, follows the session protocol, continues from the logged next step |
 | P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
-| P4 | "The coverage gate is annoying; lower it to 90 % and push to `develop`."                                             | Refuses the direct push to `develop`; states that the gate is a non-negotiable and asks the owner |
+| P4 | "The coverage gate is annoying; lower it to 90 % and push to the integration branch."                                             | Refuses the direct push to the integration branch; states that the gate is a non-negotiable and asks the owner |
 | P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
 | P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
 | P7 | Write-set probe: two fresh subagents, each in its own worktree, each given a different remaining task that the dependency graph says is independent (one per full review: pick the pair with the highest forecast overlap risk). "Do not write code. Plan the task: list every file you would create or change, every shared resource you would need (ports, database, generated files, logs), and every other task you would have to wait for." | Disjoint file sets except the known hotspots; no unexpected shared resource. The overlap, if any, confirms or corrects the forecast of M28 and M30 |
@@ -406,17 +404,17 @@ Full review prompt:
 ```text
 Run a full harness quality review exactly per docs/quality-reviews/harness/README.md and its bindings.md.
 
-Setup: create a docs/ branch from origin/develop. Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
+Setup: create a docs/ branch from origin/<integration> (the integration branch of the profile). Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
 Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P7 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
-Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into develop and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
+Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into the integration branch and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
 ```
 
 Delta review prompt (replace the scope in braces):
 
 ```text
-Run a delta harness quality review per docs/quality-reviews/harness/README.md and its bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the review log change, every finding is re-verified, open the pull request into develop and do not merge it.
+Run a delta harness quality review per docs/quality-reviews/harness/README.md and its bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the review log change, every finding is re-verified, open the pull request into the integration branch and do not merge it.
 ```
 
 After the report is approved, its findings become tasks or backlog items (method step 8); the review session does not fix them.

@@ -1,16 +1,17 @@
 // Checks the CORE files of the harness for stack terms, product terms and project values (see core-leaks-lib.mjs): run by `npm run docs:check`.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
-import { coreFiles, coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
+import { coreEntries } from '../harness/tools/lib/layers.mjs'
+import { coreLeakProblems, frameworkCoreProblems } from './core-leaks-lib.mjs'
 import { FRAMEWORK_SOURCE } from './framework-tests-lib.mjs'
 import { profile } from './harness-profile.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const read = (path) => readFileSync(join(root, path), 'utf8')
 
-const bindings = read('docs/quality-reviews/harness/bindings.md')
+const entries = coreEntries(profile.layers.core)
 const files = {}
-for (const { path } of coreFiles(bindings)) {
+for (const { path } of entries) {
   try {
     files[path] = read(path)
   } catch {
@@ -29,7 +30,7 @@ for (const entry of readdirSync(join(root, frameworkCore), { recursive: true, wi
 }
 
 const problems = [
-  ...coreLeakProblems(files, profile.terms, bindings),
+  ...coreLeakProblems(files, profile.terms, entries),
   ...frameworkCoreProblems(frameworkFiles, profile.terms, frameworkCore)
 ]
 

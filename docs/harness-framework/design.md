@@ -619,7 +619,15 @@ test runs it against a stand-in `gh` and compares the request with the profile f
 | ------- | ----------- |
 | H-20261019-22 (the bindings copy branch values; the branch rows are not compared with the file) | 17.5: `profile.md` is generated from the file, so there is nothing to compare. 17.6: the bindings use role names and `origin/<integration>`, and `harness check values` covers the bindings folders (`checks.roleOnlyPaths`). |
 | H-20261019-23 (the layer map lacks the profile file) | 17.6: the generated layer map (section 8.2) |
-| H-20261019-24 (CI flake in `engine.int.test.ts`) | **Not framework work.** It is a product test. It stays in its triage, a Phase 12 task with H-14. |
+| H-20261019-24 (CI flake in `engine.int.test.ts`) | **Not framework work.** It is a product test. It stays in its triage, Phase 12 task 12.5 with H-14 and H-20261030-07. |
+| H-20261019-19 (rule-map row 27 says "enforced" for "no secrets") | 17.11: the generated core rows of the rule map (section 4.4); the secret scan of the framework's Phase 2 (task 2.2) holds the rest |
+| H-20261019-21 (a stale sentence on budgets in the harness bindings) | 17.6, which regenerates that file's layer map |
+| H-20261030-01 (the staging folder is outside every code check) | 17.3: its tests run in CI and in the push gate, and Prettier checks its code, before the first tool moves (17.7) |
+| H-20261030-02 (the local gate bypassed with `--no-verify` in worktrees) | the database setup and the rule: Phase 12 task 12.4 (the setup stays in `bot-rts`, section 3.4); the guard against the flag: 17.11 |
+| H-20261030-03 (documents describe the local gate as it was before 16.6) | 17.10 (the stack lines), 17.11 (rule-map rows 32 and 93) |
+| H-20261030-04 (the vendored tree runs the full gate; the lock is a new hotspot) | 17.4 |
+| H-20261030-05 (CI copies the coverage packages and the "documentation only" rule) | 17.7 (`harness ci changes`), 17.9 (the workflow templates, `harness check values`) |
+| H-20261030-09 (the local gate skips the link check on a Markdown push) | 17.10 (the gate driver) |
 
 ---
 

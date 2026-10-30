@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { coreFiles, coreLeakProblems, profilePattern } from './core-leaks-lib.mjs'
+import { coreFiles, coreLeakProblems, frameworkCoreProblems, profilePattern } from './core-leaks-lib.mjs'
 
 const PROFILE = [
   "STACK='postgres|\\bnpm\\b'",
@@ -84,4 +84,27 @@ test('the profile lists catch a game noun, a task-id branch example and a link t
 test('the profile lists let a placeholder branch example and a template date pattern pass', () => {
   const text = 'Branch `feature/<id>-<slug>`; reports are named `YYYY-MM-DD.md`.'
   assert.deepEqual(coreLeakProblems(REAL_FILES(text), REAL_PROFILE, BINDINGS), [])
+})
+
+test('the framework core is scanned whole, without a binding line, and an empty folder is a problem', () => {
+  const folder = 'framework/core'
+  assert.deepEqual(
+    frameworkCoreProblems({ 'framework/core/a.md': 'Branch from the integration branch.' }, PROFILE, folder),
+    []
+  )
+  assert.deepEqual(
+    frameworkCoreProblems(
+      {
+        'framework/core/b.md': 'ok\nStored in Postgres.',
+        'framework/core/a.md': 'The integration branch is `develop`.'
+      },
+      PROFILE,
+      folder
+    ),
+    [
+      'framework/core/a.md:1: the project value "`develop`" does not belong in a CORE file; cite a role of the profile',
+      'framework/core/b.md:2: the stack term "Postgres" does not belong in a CORE file; cite a role of the profile'
+    ]
+  )
+  assert.match(frameworkCoreProblems({}, PROFILE, folder)[0], /^framework\/core: no file found/)
 })

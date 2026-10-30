@@ -1,5 +1,6 @@
 // The pure part of the local gate (scripts/local-gate.mjs, run by .githooks/pre-push): which checks a push needs, from the files it changes.
 // Principle (docs/testing/README.md): run only what the changed files need; the full run is CI's and `npm run test:coverage`.
+import { FRAMEWORK_SOURCE } from './framework-tests-lib.mjs'
 
 const SOURCE = /\.(ts|tsx)$/
 const IS_DECLARATION_OR_CONFIG =
@@ -21,6 +22,8 @@ const isDocumentation = (file) => file.endsWith('.md')
 const isOutsideTheGate = (file) => file.startsWith('.github/') || file.startsWith('.claude/')
 // The Cypress suite is typechecked and linted with its package but has no Jest tests: CI runs it
 const hasNoJestTests = (file) => file.includes('/cypress/')
+// The staging folder of the framework has tests of its own, and nothing in it feeds the generated files
+const isFrameworkSource = (file) => file.startsWith(`${FRAMEWORK_SOURCE}/`)
 
 /**
  * The plan of the local gate for a push.
@@ -119,9 +122,14 @@ export function planGate(files, { packages, integration, exists }) {
   if (changed.some((file) => file.startsWith('scripts/'))) {
     steps.push({ label: 'script tests', command: 'npm', args: ['run', 'test:scripts'] })
   }
+  if (changed.some(isFrameworkSource)) {
+    steps.push({ label: 'framework tests', command: 'npm', args: ['run', 'test:framework'] })
+  }
 
   // Generated files can only go stale through the API, the shared library, the documentation sources or the schema; a change that stays in `mcp/` cannot
-  const staysInMcp = relevant.every((file) => file.startsWith('mcp/') || file.startsWith('scripts/'))
+  const staysInMcp = relevant.every(
+    (file) => file.startsWith('mcp/') || file.startsWith('scripts/') || isFrameworkSource(file)
+  )
   if (!staysInMcp) {
     steps.push({ label: 'generated files are up to date', generated: true })
   }

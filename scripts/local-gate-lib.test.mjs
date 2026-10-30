@@ -87,6 +87,25 @@ test('scripts and documentation sources alone run no package test; scripts run t
   assert.ok(!labels(result).some((label) => label.startsWith('typecheck')))
 })
 
+test('a change in the framework staging folder runs the framework tests and the format check, and nothing else', () => {
+  const result = plan([
+    'docs/harness-framework/framework/tools/lib/x.mjs',
+    'docs/harness-framework/framework/README.md'
+  ])
+  assert.deepEqual(labels(result), ['format changed files', 'framework tests'])
+  assert.deepEqual(result.coveragePackages, [])
+  assert.ok(!plan(['scripts/x.mjs']).steps.some((step) => step.label === 'framework tests'))
+  assert.ok(
+    plan(['api/src/x.ts', 'docs/harness-framework/framework/framework.json']).steps.some(
+      (step) => step.label === 'framework tests'
+    )
+  )
+})
+
+test('a push that changes only Markdown of the framework staging folder runs no code check', () => {
+  assert.match(plan(['docs/harness-framework/framework/README.md']).skip, /only Markdown/)
+})
+
 test('a Cypress spec is typechecked and linted with its package but has no Jest tests', () => {
   const result = plan(['client/cypress/e2e/map.cy.ts'])
   assert.ok(labels(result).includes('typecheck client'))

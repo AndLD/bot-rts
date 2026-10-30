@@ -7,7 +7,10 @@ package-lock.json
 *.woff2
 *.ttf
 *.md
-docs
+docs/*
+!docs/harness-framework
+docs/harness-framework/*
+!docs/harness-framework/framework
 api/openapi.json
 client/src/shared/api/generated.ts
 .claude/worktrees

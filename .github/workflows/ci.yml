@@ -123,6 +123,8 @@ jobs:
         run: npm run docs:check
       - name: Release scripts
         run: npm run test:scripts
+      - name: Framework tests
+        run: npm run test:framework
       - name: Build
         if: needs.changes.outputs.code == 'true'
         run: npm run build

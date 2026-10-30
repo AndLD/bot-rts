@@ -35,7 +35,7 @@ Claude Code and Cursor.
 | 7 | Mechanisms | The CORE scan, the profile file and its reader, the hooks, the protection script and the profile tests become `harness` commands on Node. `profile.md` is generated from the profile file. One rule decides "documentation only" for CI and the push gate (`harness ci changes`), and `harness check all` also runs the project's own checks (section 7). |
 | 8 | B6, B7 | Procedures are neutral Markdown, packaged per runtime into skills (B6). The layer map is generated from the lock and the profile file (B7). H-22 and H-23 are absorbed by these two changes; H-24 is not framework work (section 8). |
 | 9 | Cursor | Checked on 2026-10-21. Cursor reads `AGENTS.md` natively. It has a native `.cursor/hooks.json` and native skills, and custom commands now go through skills. It also loads Claude Code's `.claude/` hooks and skills by default, and its CLI has no opt-out. So the Cursor preset is native when Cursor is the only runtime, and runs in compat mode next to Claude Code (section 9). |
-| 10 | Build order | Twenty pull requests, 17.2 to 17.20 with 17.13a, 70 SP. They start with a targeted review of D3, D7, D8, D14 and D15, and end with a closing review by another session (section 10). |
+| 10 | Build order | Here, 17.2 to 17.17 (61 SP): a targeted review of D3, D7, D8, D14 and D15, the build of everything that moves out of `bot-rts`, then publishing the framework to its own repository, where it bootstraps itself with **its own development plan**. That plan's Phase 1 (12 SP) holds the framework-only tasks: adopt, the Cursor and Python presets, examples and the proof. Then a sync to `0.1.0` and a closing review by another session (sections 10 and 11). |
 
 ---
 
@@ -78,7 +78,7 @@ Claude Code and Cursor.
 
 1. **Never in place.** An agent does not edit `harness/`: the edit guard refuses it, and if the guard is absent, `harness check vendored` fails
    the push and CI.
-2. **While staging (Phase 17):** the source is `docs/harness-framework/framework/` in this repository. Change the source, add a line to
+2. **While staging (Phase 17, up to task 17.15):** the source is `docs/harness-framework/framework/` in this repository. Change the source, add a line to
    its `CHANGELOG.md` under "Unreleased", bump the version in `framework.json` by the rules of section 1.4, and run `harness sync`. The source and the
    vendored copy change in the same pull request, and the check proves them equal.
 3. **After the owner has published the framework** (its own repository): a finding of kind "fix in the framework" from a harness review,
@@ -94,7 +94,8 @@ Claude Code and Cursor.
 - The framework uses semantic versioning on its **roles and contracts**. A *major* version removes or renames a role, changes the meaning of a core
   rule, or changes an adapter contract so that an existing adapter fails the conformance suite. A *minor* version adds a role with a default, a
   preset, a procedure or a check. A *patch* changes wording or fixes a tool without changing its contract.
-- **First release: `0.1.0`**, when the owner copies the staging folder to its own repository. While staging, the version reads `0.1.0-dev`.
+- **First release: `0.1.0`**, at the end of Phase 1 of the framework's own plan (section 11). While staging, the version reads `0.1.0-dev`; task 17.15
+  publishes the staging folder to its own repository as the pre-release `0.1.0-dev.1`.
   `1.0.0` comes after the second real project (the trading-bot project of the plan's step 4) has bootstrapped without a core edit.
 - The changelog follows the Keep a Changelog headings. Its "Upgrade notes" list, per version, the changes to scaffolded files that a sync
   cannot make (section 6.3).
@@ -102,7 +103,7 @@ Claude Code and Cursor.
 ### 1.5 A standalone fork
 
 A project may want the framework once and then own it: edit the core freely, never take another update. The lock supports this as a second
-**mode**, so the project keeps the tools and the checks, and keeps the record of where it forked. `bot-rts` stays pinned (the owner's decision).
+**mode**, so the project keeps the tools and the checks, and keeps the record of where it forked. `bot-rts` stays pinned (the owner's decision). A third mode, `self`, is for the framework's own repository (section 11).
 
 **The lock, in both modes.** The fields of section 1.1 plus two:
 
@@ -422,7 +423,7 @@ same for the runtime and host axes.
 5. **Record it.** The adapter is listed in `framework.json`, its changelog line is added, and a preset gets an entry in the framework README.
    A local adapter is offered upstream as in section 1.3.
 
-The python preset of the build (task 17.16) is written by following this procedure, so the procedure is tested before release.
+The python preset (task 1.3 of the framework's own plan, section 11) is written by following this procedure, so the procedure is tested before release.
 
 ---
 
@@ -611,7 +612,7 @@ skill. Sources:
 | Ignore files | `.cursorignore` at the project root, one gitignore-style pattern per line; ignored files are blocked from the agent. `.gitignore` is respected automatically. Terminal commands and MCP tools run outside these access controls. | The preset writes the `access.denyRead` block into `.cursorignore` in both modes (section 4.2). |
 | Skills | `SKILL.md` in a folder named after the skill, in `.cursor/skills/` or `.agents/skills/` (also `~/`). Frontmatter: `name` (equals the folder), `description`, optional `paths`, `disable-model-invocation`, `metadata`. Invoked as `/<name>` or chosen by the agent from the description. | The packaging of section 8.1. |
 
-What only a real session can confirm, so it is on the owner's checklist for the Cursor proof (task 17.18):
+What only a real session can confirm, so it is on the owner's checklist for the Cursor proof (task 1.5 of the framework's own plan, section 11):
 - the field names of `tool_input` for `Write`;
 - whether stderr on exit code 2 reaches the agent (the JSON answer is sent anyway);
 - that compat mode runs each hook once;
@@ -621,10 +622,18 @@ What only a real session can confirm, so it is on the owner's checklist for the 
 
 ## 10. Build order
 
-Each task is one pull request into the integration branch. Each keeps this repository green: the documentation check, lint, the script tests and
-the coverage gate. The sizes follow the plan's scale (1 SP is about one focused session). Model: Sonnet 5.5 at medium effort for the build, as in
-the plan's table, and high effort for 17.8 and 17.13, which restructure. Most tasks are serial; 17.13a may run after 17.13 alongside 17.14 to
-17.16, 17.15 and 17.16 may run in parallel after 17.14, and 17.17 after 17.13.
+Two parts. The tasks that **move content out of `bot-rts`** run here, because each one deletes or rewrites files in this repository and adds
+them to the framework in the same pull request, whose CI proves the source and the vendored copy equal. After 17.14 the framework stands on
+its own (core, tools, vendoring, the GitHub host, the node-ts and Claude Code presets, the bootstrap engine, the conformance suite). 17.15
+publishes it to its own repository, where it bootstraps itself with its own development plan (section 11). The **framework-only tasks** run
+there, as Phase 1 of that plan, because they touch nothing in `bot-rts`. Moving earlier would double the pull requests of every move-out
+task, and moving later would run framework-only work in the wrong repository.
+
+Each task is one pull request into its repository's integration branch and keeps that repository green: here the documentation check, lint,
+the script tests and the coverage gate; there the framework's own checks. The sizes follow the plan's scale (1 SP is about one focused session).
+Model: Sonnet 5.5 at medium effort, and high effort for 17.8 and 17.13, which restructure. The tasks are serial, in the order of the table.
+
+**Phase 17 in `bot-rts`:**
 
 | # | Task | Acceptance check | SP |
 | - | ---- | ---------------- | -- |
@@ -640,16 +649,24 @@ the plan's table, and high effort for 17.8 and 17.13, which restructure. Most ta
 | 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; the merge guard for a host without protection; the format hook routing by stack, without downloads; `.claude/settings.json` (with the `Read(...)` deny rules of `access.denyRead`) and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes, including a refused merge with a red check, and a scaffold check failing when a deny rule is missing. The generated rule map rows of section 4.4, for both protection cases. | 5 |
 | 17.12 | Procedures and their packaging (B6) | The first set of section 8.1 in `core/procedures/`, packaged as `.claude/skills/`. The reading-map fallback. `harness check generated` covers them. | 3 |
 | 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. The sameness test of section 6.2, including the detached case. | 5 |
-| 17.13a | `harness adopt` (section 6.4) | A fixture with copied harness scripts (profile under `scripts/`, the four hooks, link and plan scripts, one project check) is adopted: the profile moves and validates, the hooks call the framework, the redundant scripts are reported and not deleted, the project check runs in `harness check all`. | 3 |
 | 17.14 | Conformance suite and the new-adapter procedure | `tests/conformance/` per axis; `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
-| 17.15 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; the `.cursorignore` block of `access.denyRead`, regenerated without touching the project's own lines; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
-| 17.16 | Python preset, written by following the new-adapter procedure | uv, pytest with coverage.py, ruff, mypy; `gate.mjs` and `coverage.mjs`; CI templates; it passes the suite. Deviations from the procedure are fixed in the procedure. | 3 |
-| 17.17 | Examples | A filled profile of a fictitious project, the product-knowledge skeleton, a sample plan; the bootstrap writes them into a new project's `docs/`. | 2 |
-| 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts and python together with both runtimes (compat mode), and one detached project with a core rule edited; adopt one fixture with copied scripts. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |
-| 17.19 | Switch to the published framework | After **the owner** has copied the staging folder to the `harness-framework` repository and tagged `v0.1.0`: the lock's source becomes that tag, the staging folder is removed, and the plan and this design point to the repository. | 2 |
-| 17.20 | Closing targeted harness review, by a session that did not do the build | D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on `framework/`, probes P1, P2 and P5 on `bot-rts` and P1 on the dummy project. The exit criteria of §3.5 and of the phase are checked one by one. | 3 |
+| 17.15 | Publish and self-host the framework | **The owner** creates the `harness-framework` repository and copies the staging folder into it, or authorises the agent to push it. A session in that repository bootstraps it with its own engine in lock mode `self` (section 11): its profile, `AGENTS.md`, CI running the tools' tests, the conformance suite, the CORE scan and the sameness test, and its own development plan with Phase 1 below. The framework repository tags `0.1.0-dev.1`. Back here: the lock's source becomes that tag, the staging folder is removed, and the plan and this design point to the repository. `harness sync` produces no diff, and `docs:check` passes. | 3 |
+| 17.16 | Sync to `0.1.0` | After the framework's Phase 1 is done and `0.1.0` is tagged: one sync pull request here. Its task log links the framework's Phase 1 pull requests, which `npm run plan:log` cannot see. `docs:check`, lint and the coverage gate pass. | 2 |
+| 17.17 | Closing targeted harness review, by a session that did not do the build | D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on the framework, probes P1, P2 and P5 on `bot-rts` and P1 on a project bootstrapped from `0.1.0`. The exit criteria of §3.5 and of the phase are checked one by one, including the framework's Phase 1. | 3 |
 
-Total of the build: 70 SP, so Phase 17 is 73 SP with 17.1.
+Total here: 61 SP, so Phase 17 is 64 SP with 17.1.
+
+**Phase 1 of the framework's own plan** (written by 17.15 into the framework repository, run there; ids of that plan):
+
+| # | Task | Acceptance check | SP |
+| - | ---- | ---------------- | -- |
+| 1.1 | `harness adopt` (section 6.4) | A fixture with copied harness scripts (profile under `scripts/`, the four hooks, link and plan scripts, one project check) is adopted: the profile moves and validates, the hooks call the framework, the redundant scripts are reported and not deleted, the project check runs in `harness check all`. | 3 |
+| 1.2 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; the `.cursorignore` block of `access.denyRead`, regenerated without touching the project's own lines; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
+| 1.3 | Python preset, written by following the new-adapter procedure | uv, pytest with coverage.py, ruff, mypy; `gate.mjs` and `coverage.mjs`; CI templates; it passes the suite. Deviations from the procedure are fixed in the procedure. | 3 |
+| 1.4 | Examples | A filled profile of a fictitious project, the product-knowledge skeleton, a sample plan; the bootstrap writes them into a new project's `docs/`. | 2 |
+| 1.5 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts and python together with both runtimes (compat mode), and one detached project with a core rule edited; adopt one fixture with copied scripts. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the task log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 1.2. | 2 |
+
+Total: 12 SP. The real Cursor session of 1.5 is **the owner's** step, recorded in that plan's task log.
 
 **Risks of this design.**
 
@@ -658,5 +675,30 @@ Total of the build: 70 SP, so Phase 17 is 73 SP with 17.1.
 | One more hop to the profile from a core document (D6) | The reading map links the profile, and the session-start text prints the key values. The closing review runs P1 and P2 and compares the words read. |
 | Cursor loads the rules or hooks twice in a dual-runtime project | Compat mode; the hooks are idempotent; the owner's session checks it. |
 | The tool surface grows (D13) | One command line; checks are pure functions with tests; the budgets of the harness bindings apply to the framework too, and the closing review measures them. |
-| The vendored copy and the staging source coexist until 17.19 | The vendored check proves them equal on every push. The review method counts the vendored tree once (as CORE) and the staging folder as the framework source. |
+| The vendored copy and the staging source coexist until 17.15 | The vendored check proves them equal on every push. The review method counts the vendored tree once (as CORE) and the staging folder as the framework source. |
+| Phase 17 here waits for Phase 1 of the framework's plan, in another repository | 17.16 and the exit criteria name it; 17.15 sets that plan up before any framework-only work starts, and the owner's steps (the repository, the push authorisation, the Cursor session) are written into both plans. |
 | A wording of a core rule changes its meaning by accident while moving | Moves are byte-for-byte except the changes named in section 3.1. A change of meaning beyond them asks the owner before merging (phase file). |
+
+---
+
+## 11. Maintaining the framework
+
+After 17.15 the framework is a project of its own, run by its own method:
+
+- **It bootstraps itself.** Its repository is bootstrapped with its own engine in a third lock mode, `self`: the framework tree at the root is
+  the source, so there is no `harness/` copy, and the managed files (the entry file's blocks, the profile document, the packaged skills) are
+  generated from that tree. Like a detached project (section 1.5), it runs the CORE scan itself, on `core/`, with the union of every adapter's
+  terms. It uses the node-ts stack and the Claude Code runtime presets for its own tools, and the GitHub host adapter.
+- **Its own plan.** The core plan method applies: a plan index, phases, tasks with ids, sizes and acceptance checks, task logs and claims by
+  draft pull request. Phase 1 is the table of section 10. Later phases come from its issues.
+- **Its own checks.** CI runs the tools' tests, the conformance suite for every preset, the CORE scan, the link check, the sameness test of
+  section 6.2 and `harness check all` on itself. The harness review method runs on the framework repository through its own bindings, which is
+  the self-hosting proof of §3.3 step 6.
+- **Where changes come from.** A finding of kind "fix in the framework" in a consuming project's review, a defect found in use, or a new adapter.
+  Each becomes an issue or a pull request in the framework repository (section 1.3). Consuming projects take a release with a sync pull request
+  of their own.
+- **Who decides.** The owner approves every major version and every change to the meaning of a core rule (section 1.4). Minor and patch
+  releases follow the framework's own merge rules, as plan work does here.
+- **Releases.** A tag and its changelog section; the release workflow also rebuilds the template repository (section 6.2).
+- **Sessions.** Framework work runs in a session opened in the framework repository. A session in `bot-rts` pushes there only with the
+  owner's explicit authorisation (section 1.3).

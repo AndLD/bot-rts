@@ -176,7 +176,8 @@ framework/
 
 ### 3.3 Building (the agent)
 
-The steps below are realized by tasks 17.2 to 17.20 in the order of section 10 of the [design](./design.md), which also adds the
+The steps below are realized by tasks 17.2 to 17.17 here and by Phase 1 of the framework's own plan, in the order of section 10 of the
+[design](./design.md), which also adds the
 consumption mechanism (a vendored copy pinned by a lock file), the presets for two stacks and two agent runtimes, and the bootstrap's three front ends.
 
 1. **Classify** every harness file and section (the layer map of the review), using the report's dry run; list what goes to core, adapters, profile, examples, and what stays in `bot-rts` (DOMAIN and STATE).

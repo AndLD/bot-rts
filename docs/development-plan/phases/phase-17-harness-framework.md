@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 17 — Harness framework extraction (73 SP)
+# Phase 17 — Harness framework extraction (64 SP)
 
 **Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-17-log](./work-logs/phase-17-log.md), and one fragment per task in `work-logs/phase-17/`
 
@@ -22,12 +22,15 @@ the owner before merging.
 **Two stages.** The build tasks depend on the design, so the phase starts with one task. 17.1 writes the design. When the owner accepts it,
 its build order becomes tasks 17.2 onward: the build steps of §3.3, the proof of §3.4 and a closing targeted harness review in a session
 that did not do the build (harness review method §6). The phase grows by those tasks. 17.1 wrote the [design](../../harness-framework/design.md)
-and proposed 17.2 to 17.20 in the same pull request, so merging it accepted both; the reasons, contracts and acceptance details of each task are
-in section 10 of the design.
+and proposed 17.2 to 17.17 in the same pull request, so merging it accepted both; the reasons, contracts and acceptance details of each task are
+in section 10 of the design. The framework-only tasks (adopt, the Cursor and Python presets, examples and the proof of §3.4) are not in this
+file: 17.15 publishes the framework to its own repository, where it bootstraps itself and runs them as Phase 1 of **its own development plan**
+(design §10, §11).
 
-**Execution order:** 17.2 → 17.3 → … → 17.20 in the order of the table, after Phase 16 (done). 17.13a may run after 17.13 in parallel with 17.14 to 17.16; 17.15 and 17.16 may run in parallel after 17.14,
-and 17.17 after 17.13. Two tasks wait for the owner: the real Cursor session closes 17.18, and 17.19 starts after the owner has copied the
-staging folder to the `harness-framework` repository. Model: Sonnet 5.5 at medium effort; high effort for 17.8 and 17.13.
+**Execution order:** 17.2 → 17.3 → … → 17.17 in the order of the table, after Phase 16 (done). Between 17.15 and 17.16, Phase 1 of the
+framework's own plan runs in the framework repository. Owner steps: create the `harness-framework` repository and copy the staging folder into
+it, or authorise the agent to push it (17.15); open sessions there, or authorise pushes there, for the framework's Phase 1; run the Cursor preset
+in a real Cursor session (that plan's proof). Model: Sonnet 5.5 at medium effort; high effort for 17.8 and 17.13.
 
 | #   | Task | SP  | Status |
 | --- | ---- | --- | ------ |
@@ -44,23 +47,20 @@ staging folder to the `harness-framework` repository. Model: Sonnet 5.5 at mediu
 | 17.11 | **Runtime hooks, Git guards, Claude Code preset** (design §4.2, §4.4, §7.3): `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` branch guards; the merge guard for a host without branch protection; the format hook routing files by stack and never downloading a formatter; `.claude/settings.json` (with `Read(...)` deny rules from the profile's `access.denyRead`, design §4.4) and `CLAUDE.md` from the preset; the generated core rows of the rule map for both protection cases. Verified by tests on recorded event samples of both runtimes, on a commit and a push to a protected branch, on a merge refused while a required check is red, and on the scaffold check failing when a deny rule is missing | 5 | ⬜ |
 | 17.12 | **Procedures and their packaging** (B6, design §8.1): the first set in `core/procedures/`, packaged as `.claude/skills/`, and the reading-map fallback. Verified by `harness check generated` failing on a stale skill and passing after a sync | 3 | ⬜ |
 | 17.13 | **Bootstrap engine and front ends** (design §6): `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. Verified by the sameness test: the same answers through the three front ends give byte-identical trees, and `init --detached` equals a pinned bootstrap followed by `harness detach` | 5 | ⬜ |
-| 17.13a | **`harness adopt`** (design §6.4): brings a project that already has copied harness scripts onto the framework: writes `harness/`, the lock and the managed files, moves and completes the profile file, points the hooks at the framework, reports the redundant local scripts without deleting them, keeps project checks in `checks.project`. Verified on a fixture shaped like such a project (never on another repository) | 3 | ⬜ |
 | 17.14 | **Conformance suite and the new-adapter procedure** (design §5): `tests/conformance/` per axis, `harness adapter test`, `core/contracts/new-adapter.md`. Verified by node-ts, claude-code and github passing the suite, and a deliberately broken fixture adapter failing it | 3 | ⬜ |
-| 17.15 | **Cursor preset** (design §9): native and compat modes, recorded Cursor event samples, the managed `access.denyRead` block in `.cursorignore`, the owner's checklist for a real session in its README. Verified by the preset passing the conformance suite in both modes, and by a sync that regenerates the `.cursorignore` block without touching the project's own lines | 2 | ⬜ |
-| 17.16 | **Python preset**, written by following the new-adapter procedure: uv, pytest with coverage.py, ruff, mypy, `gate.mjs`, `coverage.mjs`, CI templates. Verified by the preset passing the conformance suite; a step of the procedure that did not work is fixed in the procedure | 3 | ⬜ |
-| 17.17 | **Examples**: a filled profile of a fictitious project, the product-knowledge skeleton and a sample plan, written by the bootstrap into a new project's `docs/`. Verified by a bootstrapped fixture passing `harness check all` with them | 2 | ⬜ |
-| 17.18 | **Proof of §3.4**: in a scratch directory outside the repository, bootstrap node-ts with Claude Code, python with Cursor, node-ts and python together with both runtimes, and one detached project with a core rule edited, and adopt one fixture with copied scripts; run `harness check all`, the stack's checks and a short harness review (D1, D3, D6) on each; record the result in the framework changelog and the work log. Verified by the recorded runs; the owner then runs the Cursor preset in a real Cursor session with the checklist of 17.15, recorded in the work log | 2 | ⬜ |
-| 17.19 | **Switch to the published framework**, after the owner has copied the staging folder to the `harness-framework` repository and tagged `v0.1.0`: the lock's source becomes that tag, the staging folder is removed, the plan and the design point to the repository. Verified by `harness sync --to 0.1.0` producing no diff and `docs:check` passing | 2 | ⬜ |
-| 17.20 | **Closing targeted harness review**, by a session that did not do the build: D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on the framework, probes P1, P2 and P5 on this repository and P1 on the dummy project. Verified by the report checking each exit criterion of §3.5 and of this phase | 3 | ⬜ |
+| 17.15 | **Publish and self-host the framework** (design §10, §11): the owner creates the `harness-framework` repository and copies the staging folder into it, or authorises the agent to push it; a session in that repository bootstraps it with its own engine in lock mode `self` (its profile, `AGENTS.md`, CI with the tools' tests, the conformance suite, the CORE scan and the sameness test) and writes its own development plan, whose Phase 1 holds the framework-only tasks of design §10 (adopt, the Cursor and Python presets, examples, the proof; 12 SP); it tags `0.1.0-dev.1`. Here, the lock's source becomes that tag, the staging folder is removed, and the plan and the design point to the repository. Verified by `harness sync` producing no diff here, `docs:check` passing, and the framework repository's CI green on its own plan | 3 | ⬜ |
+| 17.16 | **Sync to `0.1.0`**, after Phase 1 of the framework's plan is done and `0.1.0` is tagged: one sync pull request; its task log links the framework's Phase 1 pull requests, which `npm run plan:log` cannot see. Verified by `docs:check`, lint and the coverage gate passing | 2 | ⬜ |
+| 17.17 | **Closing targeted harness review**, by a session that did not do the build: D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on the framework, probes P1, P2 and P5 on this repository and P1 on a project bootstrapped from `0.1.0`. Verified by the report checking each exit criterion of §3.5 and of this phase, including the framework's Phase 1 | 3 | ⬜ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 
 **Exit criteria:** the exit criteria of [§3.5 of the harness-framework plan](../../harness-framework/README.md#35-exit-criteria) hold, as shown by
 the closing review, and:
-- the dummy-project proof of §3.4 bootstraps both stack presets (TypeScript/Node and Python) and both agent-runtime presets (Claude Code and Cursor),
-  and the framework's own checks pass on each;
-- the owner has run the Cursor preset in a real Cursor session and has copied `framework/` to the `harness-framework` repository; both are the
-  owner's steps, recorded in the work log;
+- Phase 1 of the framework's own plan is done: its dummy-project proof of §3.4 bootstraps both stack presets (TypeScript/Node and Python) and
+  both agent-runtime presets (Claude Code and Cursor), and the framework's own checks pass on each, as its task logs record;
+- the owner has copied the staging folder to the `harness-framework` repository (17.15) and has run the Cursor preset in a real Cursor
+  session (the framework's proof); both are the owner's steps, recorded in the work logs;
+- this repository is synced to the framework's `0.1.0` (17.16);
 - `npm run docs:check`, `npm run lint` and the coverage gate pass in this repository.
 
 ## Implementation log

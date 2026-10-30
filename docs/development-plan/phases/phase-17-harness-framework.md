@@ -30,7 +30,7 @@ file: 17.15 publishes the framework to its own repository, where it bootstraps i
 **Execution order:** 17.2 → 17.3 → … → 17.17 in the order of the table, after Phase 16 (done). Between 17.15 and 17.16, Phase 1 of the
 framework's own plan runs in the framework repository. Owner steps: create the `harness-framework` repository and copy the staging folder into
 it, or authorise the agent to push it (17.15); open sessions there, or authorise pushes there, for the framework's Phase 1; run the Cursor preset
-in a real Cursor session (that plan's proof). Model per task: the agent-complexity marker of design §10 (`C3`: 17.2, 17.8, 17.13, 17.17; `C1`: 17.3, 17.16; `C2`: the rest), with the map `C1` Sonnet 5.5 at medium effort, `C2` Sonnet 5.5 at high, `C3` Opus 5.5 at high; 17.7a moves the markers into this table.
+in a real Cursor session (that plan's proof). Model per task: the agent-complexity marker of design §10 (`C3`: 17.2, 17.4, 17.7, 17.8, 17.13, 17.17; `C1`: 17.16; `C2`: the rest; 17.3, 17.4 and 17.7 re-rated by the owner on 2026-10-30), with the map `C1` Sonnet 5.5 at medium effort, `C2` Sonnet 5.5 at high, `C3` Opus 5.5 at high; 17.7a moves the markers into this table.
 
 | #   | Task | SP  | Status |
 | --- | ---- | --- | ------ |

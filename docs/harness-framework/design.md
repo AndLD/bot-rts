@@ -335,12 +335,13 @@ stacks that claim the same path are a profile error.
 
 | Role | Kind | Claude Code preset | Cursor preset |
 | ---- | ---- | ------------------ | ------------- |
-| Entry file | required: how the runtime loads `AGENTS.md` | `CLAUDE.md` with `@AGENTS.md` | none needed: Cursor reads `AGENTS.md` natively, nested files too |
+| Entry file | required: how the runtime loads `AGENTS.md` | `CLAUDE.md` with `@AGENTS.md`. Claude Code reads `AGENTS.md` directly since v2.1.277 when no `CLAUDE.md` exists, but its documentation says some sessions cannot, and advises the import there; the import works in every session, so the preset keeps it | none needed: Cursor reads `AGENTS.md` natively, nested files too |
 | Always-loaded rules | required | the entry file only | the entry file only; no `.cursor/rules` file, so the text is not loaded twice |
 | On-demand rules | required: how a document is read when the task needs it | the reading map of the entry file | the same |
 | Hook configuration | optional (none: section 4.4, column "no runtime hooks") | `.claude/settings.json` (`SessionStart`, `PreToolUse` on `Bash` and on `Edit|Write|NotebookEdit`, `PostToolUse` on `Edit|Write`) | native: `.cursor/hooks.json` (`version: 1`; `sessionStart`, `beforeShellExecution`, `preToolUse` with matcher `Write`, `afterFileEdit`); compat: none (section 9) |
 | Hook input and output | logic: `io.mjs` reads the event and writes the answer | stdin JSON with `tool_name` and `tool_input`; block with exit code 2 and the reason on stderr; session context on stdout | stdin JSON with `hook_event_name`, `command` or `file_path`; answer JSON `permission: "deny"` with `agent_message`; session context as `additional_context` |
 | Project directory | required | `CLAUDE_PROJECT_DIR` | `CURSOR_PROJECT_DIR` (and the alias `CLAUDE_PROJECT_DIR`) |
+| Read exclusions | required: how the runtime keeps the agent from reading the paths of `access.denyRead` (section 4.4) | `Read(...)` rules in `permissions.deny` of `.claude/settings.json`, with `!` for the carve-outs. They apply to the file tools, `@` mentions and the shell commands Claude Code recognises (`cat`, `head`, `tail`, `sed`, redirections), not to a command that reads files without naming them (`grep -r`). A `.claudeignore` file has no effect in Claude Code. | a managed block in `.cursorignore`, in both modes (Cursor does not take Claude Code's permission rules). It blocks the agent; terminal commands and MCP tools are outside it |
 | Procedure packaging | required | `.claude/skills/<name>/SKILL.md` with `name` and `description`; `disable-model-invocation: true` for the explicit ones | native: `.cursor/skills/<name>/SKILL.md`, same fields and `paths`; compat: none |
 | Pull-request tools | optional (none: the agent checks the required checks with the host's command before it merges, and the rule "CI monitoring with automatic fixes" is "not applicable") | attach a pull request: `bind_pr`; CI monitoring with fixes: `set_monitor` with `auto_fix` (the Claude desktop app) | none known; the fallback applies |
 | Waiting advice | optional | the notes of today's stack §6 (done-files, stale events) | none |
@@ -365,6 +366,11 @@ stacks that claim the same path are a profile error.
 
 ### 4.4 Where each core rule is caught
 
+**Reading secrets.** The profile role `access.denyRead` lists the paths an agent must not read, as gitignore-style patterns. Default:
+`.env`, `.env.*` except `.env.example`, `*.pem`, `*.key`; the project adds its own. It holds secrets only. Files that only cost context (lock
+files, generated code) are deliberately not denied, because an agent sometimes needs them. What an agent reads is also written into its
+session transcript in plain text, which is a second reason to keep secrets out of reads and not only out of edits.
+
 Rule ids are given to the core rules in task 17.8. Each adapter's manifest declares the rules it enforces and at which event. The core part
 of the rule-to-check map is generated from those declarations, so a project with other adapters gets a true map. "Early" is the agent
 runtime, before the action happens; "local" is a Git hook; "remote" is CI or the host. On a host without protection
@@ -378,6 +384,7 @@ merge guard turns on.
 | No deletion of a remote branch | the same hook refuses `push --delete`, `push :branch` and the API call | the same hook | **new** in `pre-push`: refuses a deleted ref (an all-zero local object); the host refuses it for the protected branches only, so for a work branch only the Git hook and judgment hold |
 | No force-push or deletion of a protected branch | the hook | the hook | the host's ruleset |
 | Never edit an environment file | `PreToolUse` on `Edit|Write` refuses it | `preToolUse` (`Write`) refuses it | nothing refuses the edit; `.gitignore` keeps the file out of commits |
+| Never read secrets (`access.denyRead`) | `Read(...)` deny rules: best effort, including the shell commands it recognises | `.cursorignore`: the agent is blocked, its terminal is not | nothing. The operating-system sandbox of a runtime is the only strict holder; a project may turn it on, and the rule map then says so |
 | Never edit the vendored framework (pinned mode only) | the same hook | the same hook | `harness check vendored` in `pre-push` and CI |
 | Formatting | `PostToolUse` formats the file | `afterFileEdit` formats the file | the format check of the changed files in `pre-push`; CI |
 | Session start: branch, phase in progress, next step, open claims | `SessionStart` prints it | `sessionStart` `additional_context` (not in Cursor's cloud agents) | the reading map tells the agent to run `harness status` |
@@ -452,12 +459,14 @@ trees byte for byte, apart from the lock's timestamp. The template repository is
   - `docs/profile.md`;
   - the layer-map block of the harness bindings (section 8.2);
   - the core rows of the rule-to-check map;
-  - the packaged skills of the core procedures. These carry values: a skill prints the command of the profile, not its role.
+  - the packaged skills of the core procedures. These carry values: a skill prints the command of the profile, not its role;
+  - the block of `.cursorignore` between `# harness:begin deny-read` and `# harness:end deny-read`, from `access.denyRead`.
 - **Scaffolded** (written once, then the project's): the rest of the entry file; the runtime pointer (`CLAUDE.md`); the runtime config files
   (`.claude/settings.json`, `.cursor/hooks.json`); the CI workflows; `README.md`; the `docs/` skeleton (plan index, the first phase, the
   product-knowledge skeleton from `examples/product/`, the four bindings files from their templates); `.gitignore` and `.env.example`;
   the stack's config files (`.nvmrc`, the formatter's config). `harness check scaffold` checks only their invariants:
   - the framework's hook entries are present and call the vendored scripts;
+  - the `Read(...)` deny rules of `access.denyRead` are present in `.claude/settings.json`;
   - every required check is a job of the CI workflows, and the triggers name both protected branches;
   - the entry file has every managed block;
   - the plan index has its generated markers.
@@ -581,13 +590,14 @@ test runs it against a stand-in `gh` and compares the request with the profile f
 
 ## 9. Cursor: rules, hooks and commands (checked 2026-10-21)
 
-Read on 2026-10-21 from Cursor's documentation. The pages carry no date or version of their own, except "Cursor 2.4+" for the migration
+Read on 2026-10-21 from Cursor's documentation; the ignore-files page on 2026-10-30. The pages carry no date or version of their own, except "Cursor 2.4+" for the migration
 skill. Sources:
 - [rules](https://cursor.com/docs/context/rules);
 - [hooks](https://cursor.com/docs/agent/hooks);
 - [third-party hooks](https://cursor.com/docs/reference/third-party-hooks);
 - [skills](https://cursor.com/docs/skills);
 - [commands](https://cursor.com/docs/context/commands);
+- [ignore files](https://cursor.com/help/customization/ignore-files);
 - two forum threads: [Claude hooks don't work](https://forum.cursor.com/t/claude-hooks-dont-work/153614) and
   [no opt-out of third-party config loading](https://forum.cursor.com/t/no-way-to-opt-out-of-third-party-claude-code-codex-config-loading-the-flag-is-hardcoded/166558).
 
@@ -598,6 +608,7 @@ skill. Sources:
 | Hooks | `.cursor/hooks.json` (project; user and enterprise levels too), `"version": 1`, events mapped to lists of `{ command, matcher, timeout, failClosed, … }`. The events used: `sessionStart` (`additional_context`; fire and forget; not in cloud agents), `beforeShellExecution` (`command`, `cwd`; can deny), `preToolUse` (`tool_name`, `tool_input`; matcher values such as `Shell`, `Read`, `Write`; can deny), `afterFileEdit` (`file_path`, `edits`). Exit code 2 blocks; another failure lets the action proceed unless `failClosed` is set. Environment: `CURSOR_PROJECT_DIR`, with `CLAUDE_PROJECT_DIR` as an alias. | Native mode uses these four events. The guards answer in JSON (`permission: "deny"` with `agent_message`) and also exit 2. |
 | Claude Code compatibility | Cursor loads hooks from `.claude/settings.local.json`, `.claude/settings.json` and `~/.claude/settings.json`. It maps `SessionStart`, `PreToolUse`, `PostToolUse`, `Stop`, … and the tools `Bash` → `Shell`, `Edit` → `Write`. The setting "Include Third-Party Plugins, Skills, and Other Configs" is **on by default**. Skills are loaded from `.claude/skills/` and `.codex/skills/` as well. The forum, as of 2026: a parsing bug in Claude hook configs was reported (Cursor 2.6.11, March 2026) and announced fixed (April 2026); the **CLI has no opt-out**, and it also loads `CLAUDE.md` (feature request acknowledged July 2026). | Both runtimes in one project would load the hooks and skills twice. With Claude Code present, the Cursor preset runs in **compat mode**: no `.cursor/hooks.json`, no `.cursor/skills/`, and Cursor uses the `.claude/` files. `io.mjs` reads both input forms, so the scripts serve either mode. As the only runtime, the preset is **native**. |
 | Commands | The commands page no longer documents `.cursor/commands`. It describes `/migrate-to-skills` (Cursor 2.4+), which turns user and workspace slash commands into skills with `disable-model-invocation: true`. | The preset ships **no commands**. An explicit procedure is a skill with `disable-model-invocation: true`, invoked as `/<name>`. |
+| Ignore files | `.cursorignore` at the project root, one gitignore-style pattern per line; ignored files are blocked from the agent. `.gitignore` is respected automatically. Terminal commands and MCP tools run outside these access controls. | The preset writes the `access.denyRead` block into `.cursorignore` in both modes (section 4.2). |
 | Skills | `SKILL.md` in a folder named after the skill, in `.cursor/skills/` or `.agents/skills/` (also `~/`). Frontmatter: `name` (equals the folder), `description`, optional `paths`, `disable-model-invocation`, `metadata`. Invoked as `/<name>` or chosen by the agent from the description. | The packaging of section 8.1. |
 
 What only a real session can confirm, so it is on the owner's checklist for the Cursor proof (task 17.18):
@@ -626,12 +637,12 @@ the plan's table, and high effort for 17.8 and 17.13, which restructure. Most ta
 | 17.8 | Core documents into the framework | The method documents of section 3.2 are in `framework/core/` and vendored. Links are rewritten and none leaves `core/`. The entry file's managed blocks are generated, with rule ids. The two neutral wordings of section 3.1 are applied. The CORE scan returns 0 on the source. | 5 |
 | 17.9 | Contracts and the GitHub host adapter | `core/contracts/{stack,runtime,host}.md` and the manifest schema, with `adapters.stacks` as a list (two stacks claiming one path fail the profile check). `protect.mjs` on Node with its stand-in test, and the detection of protection availability. The workflow templates. `harness check values` replaces `harness-profile.test.mjs`. | 5 |
 | 17.10 | Stack preset node-ts, consumed by this repository | The gate driver and `gate.mjs`, the neutral coverage summary, and the coverage merge. The pre-push hook and CI of `bot-rts` call them. The gate driver routes files to the stack that owns them. Gate tests: a Markdown-only push, a failing test, a coverage drop, one package, and a fixture with two stacks. | 5 |
-| 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; the merge guard for a host without protection; the format hook routing by stack, without downloads; `.claude/settings.json` and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes, including a refused merge with a red check. The generated rule map rows of section 4.4, for both protection cases. | 5 |
+| 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; the merge guard for a host without protection; the format hook routing by stack, without downloads; `.claude/settings.json` (with the `Read(...)` deny rules of `access.denyRead`) and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes, including a refused merge with a red check, and a scaffold check failing when a deny rule is missing. The generated rule map rows of section 4.4, for both protection cases. | 5 |
 | 17.12 | Procedures and their packaging (B6) | The first set of section 8.1 in `core/procedures/`, packaged as `.claude/skills/`. The reading-map fallback. `harness check generated` covers them. | 3 |
 | 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. The sameness test of section 6.2, including the detached case. | 5 |
 | 17.13a | `harness adopt` (section 6.4) | A fixture with copied harness scripts (profile under `scripts/`, the four hooks, link and plan scripts, one project check) is adopted: the profile moves and validates, the hooks call the framework, the redundant scripts are reported and not deleted, the project check runs in `harness check all`. | 3 |
 | 17.14 | Conformance suite and the new-adapter procedure | `tests/conformance/` per axis; `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
-| 17.15 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
+| 17.15 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; the `.cursorignore` block of `access.denyRead`, regenerated without touching the project's own lines; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
 | 17.16 | Python preset, written by following the new-adapter procedure | uv, pytest with coverage.py, ruff, mypy; `gate.mjs` and `coverage.mjs`; CI templates; it passes the suite. Deviations from the procedure are fixed in the procedure. | 3 |
 | 17.17 | Examples | A filled profile of a fictitious project, the product-knowledge skeleton, a sample plan; the bootstrap writes them into a new project's `docs/`. | 2 |
 | 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts and python together with both runtimes (compat mode), and one detached project with a core rule edited; adopt one fixture with copied scripts. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |

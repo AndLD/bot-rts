@@ -61,7 +61,7 @@ Phase 12 is open-ended and its tasks are done whenever they are found; it has no
 
 ## MVP definition
 
-✅ **The MVP is the whole plan: every phase that exists, Phases 0–16 (1148 SP).** Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
+✅ **The MVP is the whole plan: every phase of the summary table above, and its size is that table's total.** The harness phases 15 to 17 are part of it (owner decision 2026-10-30). Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
 GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./cross-cutting/guiding-principles.md)).
 

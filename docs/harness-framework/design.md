@@ -29,13 +29,13 @@ Claude Code and Cursor.
 | 1 | Consumption | A **vendored copy** at `harness/`, pinned by `harness.lock.json` (version, source and a hash per file). `harness sync` updates it and `harness check` fails on a local edit. Improvements go to the framework source and come back by a sync. Subtree, submodule and an npm package are rejected. A project may instead **detach**: it owns and edits its copy, takes no more updates, and keeps the checks; the lock records the fork point (section 1). |
 | 2 | Layout | §3.2 is confirmed and adjusted: adapters on **three axes** (`stack/`, `runtime/`, `host/`), plus `tools/`, `BOOTSTRAP.md`, `core/procedures/`, `core/contracts/` and a conformance suite. The staging folder stays `docs/harness-framework/framework/` (section 2). |
 | 3 | Classification | Every harness file and section is sorted into core, adapter, profile, example or "stays", with one table per area (section 3). |
-| 4 | Contracts | Three role lists (stack, runtime, host) as machine-readable manifests, and a per-rule table of where each rule is caught (section 4). |
+| 4 | Contracts | Three role lists (stack, runtime, host) as machine-readable manifests, and a per-rule table of where each rule is caught. A project may combine **several stacks**, each owning its packages. A host **without branch protection** turns on a merge guard (section 4). |
 | 5 | New adapter | Copy the skeleton, fill the manifest, then run `harness adapter test`. That is the same suite the presets pass (section 5). |
-| 6 | Bootstrap | One engine, whose input is a complete `harness-profile.json`. The script, the template repository and `BOOTSTRAP.md` only fill that file, so all three give the same result, and a test proves it (section 6). |
-| 7 | Mechanisms | The CORE scan, the profile file and its reader, the hooks, the protection script and the profile tests become `harness` commands on Node. `profile.md` is generated from the profile file (section 7). |
+| 6 | Bootstrap | One engine, whose input is a complete `harness-profile.json`. The script, the template repository and `BOOTSTRAP.md` only fill that file, so all three give the same result, and a test proves it. `harness adopt` brings a project that already has copied harness scripts onto the framework (section 6). |
+| 7 | Mechanisms | The CORE scan, the profile file and its reader, the hooks, the protection script and the profile tests become `harness` commands on Node. `profile.md` is generated from the profile file. One rule decides "documentation only" for CI and the push gate (`harness ci changes`), and `harness check all` also runs the project's own checks (section 7). |
 | 8 | B6, B7 | Procedures are neutral Markdown, packaged per runtime into skills (B6). The layer map is generated from the lock and the profile file (B7). H-22 and H-23 are absorbed by these two changes; H-24 is not framework work (section 8). |
 | 9 | Cursor | Checked on 2026-10-21. Cursor reads `AGENTS.md` natively. It has a native `.cursor/hooks.json` and native skills, and custom commands now go through skills. It also loads Claude Code's `.claude/` hooks and skills by default, and its CLI has no opt-out. So the Cursor preset is native when Cursor is the only runtime, and runs in compat mode next to Claude Code (section 9). |
-| 10 | Build order | Nineteen pull requests, 17.2 to 17.20, 63 SP. They start with a targeted review of D3, D7, D8, D14 and D15, and end with a closing review by another session (section 10). |
+| 10 | Build order | Twenty pull requests, 17.2 to 17.20 with 17.13a, 70 SP. They start with a targeted review of D3, D7, D8, D14 and D15, and end with a closing review by another session (section 10). |
 
 ---
 
@@ -186,8 +186,9 @@ framework/                      staging: docs/harness-framework/framework/; late
     plan/                       a plan index and one phase with two tasks and their logs
 ```
 
-The three axes are independent: a project selects one stack adapter, one or more runtime adapters and one host adapter in the profile
-file (`adapters.stack`, `adapters.runtimes`, `adapters.host`). A project with no runtime adapter is valid. It gets `AGENTS.md`, the
+The three axes are independent: a project selects one or more stack adapters, one or more runtime adapters and one host adapter in the
+profile file (`adapters.stacks`, `adapters.runtimes`, `adapters.host`). Several stacks are for a project whose packages use different
+languages, for example a TypeScript client and a Python service (section 4.1). A project with no runtime adapter is valid. It gets `AGENTS.md`, the
 procedures linked from its reading map, the Git hooks and CI, which is the agent-neutral minimum the owner asked for.
 
 In a consuming project:
@@ -269,7 +270,7 @@ review folders keep their project files (the bindings, the index, the phase file
 | ---- | ------ |
 | `.githooks/pre-push` | split: the hook → **core** (`tools/git-hooks/pre-push`); the database setup (`.env`, `DATABASE_URL`) → **stays**, as the setup script the profile names (`hooks.prePushSetup`) |
 | (new) `pre-commit` | **core** (`tools/git-hooks/pre-commit`): refuses a commit on a protected branch, so that this guarantee no longer needs a runtime hook (section 4.4) |
-| `.github/workflows/ci.yml` `pr-title`, `changes`, `verify` and `e2e` aggregators | **host adapter** templates (github) |
+| `.github/workflows/ci.yml` `pr-title`, `changes`, `verify` and `e2e` aggregators | **host adapter** templates (github). The rule of the `changes` job (is this change documentation only?) moves to **core** as `harness ci changes`, which the template calls. |
 | `.github/workflows/ci.yml` `static`, `api`, `client`, `mcp` jobs | split: the job shapes (install, cache, lint, typecheck, tests in shards, coverage artifacts) → **stack adapter** templates (node-ts); the PostgreSQL service, the generated-file and migration steps → **stays** |
 | `.github/workflows/ci.yml` `docker`, `e2e-shard`, `lighthouse` | **stays** |
 | `.github/workflows/release.yml` | split: the release-notes step → **host adapter**; the image publication → **stays** |
@@ -286,7 +287,7 @@ review folders keep their project files (the bindings, the index, the phase file
 | `scripts/check-glossary.mjs`, `check-open-items.mjs`, `check-product-knowledge.mjs` and their libraries | **core**, parameterised: the file names (`02-glossary.md`, `20-open-questions.md`, the backlog section) and the allowed terms move into the profile file (`productKnowledge.*`). The concepts (one glossary, a register of open items, no stack terms in the product knowledge) are the method's DOMAIN rules, which the review's D2, D11 and D12 rely on. |
 | `scripts/hook-guard-bash.mjs`, `hook-guard-edit.mjs`, `hook-format-edited.mjs`, `hook-session-start.mjs` | **core** (`tools/runtime-hooks/`), with the input and output of each runtime in `io.mjs`. The format hook asks the stack adapter for the formatter and its file types. |
 | `scripts/protect-branches.sh` | **host adapter** (github), rewritten on Node (`protect.mjs`, `harness host protect`) |
-| `scripts/local-gate*.mjs` | split: the driver (read the pushed refs, list the files, skip a documentation-only push, run the plan) → **core**; the plan (packages, related tests, changed-file coverage) → **stack adapter** (`gate.mjs`) |
+| `scripts/local-gate*.mjs` | split: the driver (read the pushed refs, list the files, skip a documentation-only push by the same rule as `harness ci changes`, run the plan) → **core**; the plan (packages, related tests, changed-file coverage) → **stack adapter** (`gate.mjs`) |
 | `scripts/check-changed-coverage.mjs`, `merge-coverage*.mjs` | split: the gate on a neutral coverage summary → **core**; reading and merging Istanbul output → **stack adapter** (node-ts) |
 | `scripts/ci-timings*.mjs`, `fixtures/verify-log-excerpt.txt` | split: run and job timings → **host adapter** (github, optional tool); the slow-test parser → **stack adapter** |
 | `scripts/harness-profile.test.mjs` | **core** checks (`harness check values`, section 7.5) and the framework's own tests |
@@ -304,6 +305,12 @@ Node module of the adapter with a fixed function signature). The conformance sui
 
 ### 4.1 Stack adapter
 
+**Several stacks.** `adapters.stacks` is a list; each entry names an adapter and the packages or paths it owns (`{ "adapter": "python",
+"packages": ["api"] }`). A file belongs to the stack whose paths contain it; a file no stack owns (root configuration, documentation) is
+checked by the core checks only. The format hook and the push gate route each changed file to its stack and run each stack's plan; CI gets
+the jobs of every stack. The coverage gate and the commands of the profile are per stack where they differ (`commands.<stack>.lint`). Two
+stacks that claim the same path are a profile error.
+
 | Role | Kind | Fills | node-ts preset | python preset |
 | ---- | ---- | ----- | -------------- | ------------- |
 | Package manager | required | the install command, the lock file, how packages are listed (`packages`) | npm workspaces, `npm ci` | uv, `uv sync` |
@@ -313,7 +320,7 @@ Node module of the adapter with a fixed function signature). The conformance sui
 | Coverage tool | required | the commands that write the **neutral coverage summary** (`coverage/coverage-summary.json` per package, Istanbul's json-summary shape), the metrics it measures (`statements`, `branches`, `functions`, `lines`, or a subset) | Istanbul via Jest | coverage.py, converted by `coverage.mjs`; lines and branches |
 | Coverage merge | logic, optional (needed only for shards) | `merge(summaries) → summary` | Istanbul `coverageMap.merge` | `coverage combine` |
 | Linter | required | `lint`, and the rules that hold the non-negotiables (untyped boundaries, debug printing) | ESLint | ruff |
-| Formatter | required | `format`, `format:check`, the file types it formats (for the format hook) | Prettier | ruff format |
+| Formatter | required | `format`, `format:check`, the default file types it formats, which the profile may narrow (`formatter.<stack>.extensions`, for example without Markdown). It runs **only from the project's own installation**, never downloaded on demand. | Prettier via `npx --no-install` | ruff via `uv run --no-sync` |
 | Typecheck | optional (none: the gate skips it, and the definition of done marks it "not applicable") | `typecheck` | `tsc --noEmit` | mypy |
 | Import boundaries | optional | `check:boundaries` | dependency-cruiser | import-linter |
 | Generated files | optional | the commands that regenerate them and the paths `git diff --exit-code` checks | none in the preset (`bot-rts` adds its own) | none |
@@ -344,11 +351,13 @@ Node module of the adapter with a fixed function signature). The conformance sui
 | Role | Kind | GitHub preset |
 | ---- | ---- | ------------- |
 | Repository identity | required | `repository.slug`, `repository.url` |
+| Protection available | required: whether the host can enforce the protection on this repository (plan, visibility); `harness host protect` records the answer in the profile file (`host.protection`) | detected from the API: a private repository on a free plan has no rulesets |
 | Branch protection | logic: `protect(profile)`, idempotent | `protect.mjs`, which writes one repository ruleset over the production and the integration branch: no deletion, no force-push, a pull request for every change, the required checks, administrators may bypass only when merging a pull request. It also turns off the automatic deletion of head branches. |
 | Required checks | required: the job names of the profile file, and a way for each to report on every change | the aggregator pattern: one job per required check that needs the parallel jobs, and reports green when a change is documentation only |
 | CI workflow frame | required | `.github/workflows/ci.yml` (triggers on the protected branches, concurrency, a `changes` job) |
 | Pull-request title check | required | the `pr-title` job (the commit format of the profile) |
 | Pull requests | required: open a draft, mark ready, read the state of the checks, list the open ones (claims, session start), merge by strategy | `gh pr create --draft`, `gh pr ready`, `gh pr checks`, `gh pr list`, `gh pr merge --squash` or `--merge` |
+| Merge guard | logic: `isMerge(words)` recognises a merge command, `checksGreen(target)` reads the required checks | `gh pr merge` (with its value options); `gh pr checks` |
 | Release | required: tag, release notes from the changelog | `release.yml` template, `gh release create` |
 | CI timings | optional | `ci-timings.mjs` (`gh run view`) |
 | Values in host files | logic: `readTriggers()`, `readJobNames()` for `harness check values` | parses `.github/workflows/*.yml` |
@@ -358,7 +367,9 @@ Node module of the adapter with a fixed function signature). The conformance sui
 
 Rule ids are given to the core rules in task 17.8. Each adapter's manifest declares the rules it enforces and at which event. The core part
 of the rule-to-check map is generated from those declarations, so a project with other adapters gets a true map. "Early" is the agent
-runtime, before the action happens; "local" is a Git hook; "remote" is CI or the host.
+runtime, before the action happens; "local" is a Git hook; "remote" is CI or the host. On a host without protection
+(`host.protection: false`) the host refuses nothing, so the rows that cite "the host" rest on the Git guards and the runtime hooks, and the
+merge guard turns on.
 
 | Rule | Claude Code (early) | Cursor (early) | No runtime hooks: local and remote |
 | ---- | ------------------- | -------------- | ---------------------------------- |
@@ -372,6 +383,7 @@ runtime, before the action happens; "local" is a Git hook; "remote" is CI or the
 | Session start: branch, phase in progress, next step, open claims | `SessionStart` prints it | `sessionStart` `additional_context` (not in Cursor's cloud agents) | the reading map tells the agent to run `harness status` |
 | Coverage gate, changed-file coverage, lint, typecheck, generated files | not a runtime hook | not a runtime hook | `pre-push` for the changed files; CI for everything |
 | Pull-request title, required checks green | – | – | CI and the host |
+| No merge while the required checks are not green, **on a host without protection** | the shell guard refuses the host's merge command | the same hook | judgment only: nothing local sees a merge on the host. So on such a host a runtime hook is the only early holder, and the generated rule map says so |
 | Claim before work, ask before merging, no auto-merge, rule changes need the owner | judgment | judgment | judgment; `harness status` lists the open pull requests |
 
 ---
@@ -394,7 +406,9 @@ same for the runtime and host axes.
    - the local gate plan: a push of only Markdown runs no code check; a push of a source file with a failing test fails; a push that leaves a
      changed file below the coverage gate fails; a push of one package's file checks only that package;
    - the neutral coverage summary of the fixture has the declared metrics;
-   - the format hook formats an edited file of each declared type and leaves other files alone;
+   - the format hook formats an edited file of each declared type and leaves other files alone, and it never downloads a formatter (the test
+     runs with no network and an empty cache);
+   - stack adapters also pass the suite as one of two stacks in a fixture with a second stack, where each file goes to its own stack;
    - the generated CI workflow has a job for every required check and triggers on both protected branches;
    - runtime adapters: each hook refuses the fixture's forbidden commands and edits, through `io.mjs`, from that runtime's recorded
      event samples; host adapters: `protect` sends the expected ruleset to a stand-in command line.
@@ -448,6 +462,20 @@ trees byte for byte, apart from the lock's timestamp. The template repository is
   - the entry file has every managed block;
   - the plan index has its generated markers.
 
+### 6.4 Adopting a project that already has copied harness scripts
+
+A project that copied scripts from `bot-rts` (a profile file under `scripts/`, the four hooks, the link and plan scripts) moves onto the framework
+with `harness adopt`. It is the bootstrap for an existing repository:
+- it writes `harness/`, the lock and the managed files;
+- it moves the profile file to the root and fills the keys it lacks from the schema's defaults and the adapters, asking for the required
+  ones (as `init`);
+- it points the hook entries of the runtime config files and `core.hooksPath` at the framework's scripts;
+- it reports each local script whose job the framework now does (by name and by a comparison of its exports), so the project removes them in
+  its own pull request; it deletes nothing itself;
+- it leaves project checks in place and lists them in `checks.project`.
+
+Its test runs on a fixture shaped like such a project, never on another repository.
+
 ---
 
 ## 7. Existing mechanisms as framework parts (all on Node)
@@ -455,9 +483,16 @@ trees byte for byte, apart from the lock's timestamp. The template repository is
 ### 7.1 The command line
 
 `node harness/tools/harness.mjs <command>`, wrapped by the stack (`npm run harness -- …`, or a `make` target in the python preset).
-`harness check all` is what `npm run docs:check` runs today, minus the project's own checks:
+`harness check all` is what `npm run docs:check` runs today:
 `vendored`, `generated`, `scaffold`, `profile`, `values`, `links`, `core` (in the framework source only), `layers`, `plan`, `changelog` and
-`product-knowledge`.
+`product-knowledge`, then the **project's own checks**, the commands listed in `checks.project` of the profile file (in `bot-rts`, none of
+today's checks stays outside the framework; another project lists, for example, its check of unfinished report pages). One command thus
+covers both, and the procedures and the definition of done cite only it.
+
+`harness ci changes <base> <head>` decides whether a change is documentation only, from the patterns in `checks.documentationPaths` (default:
+every Markdown file). It prints the answer, and on the host writes it as a step output. When it is in doubt (a missing or all-zero base, a
+failing diff) it answers "not documentation only", so the checks run. The CI template's `changes` job and the push gate call the same function,
+so CI and the local gate cannot disagree about what to skip.
 
 ### 7.2 The profile file and its reader
 
@@ -577,8 +612,8 @@ What only a real session can confirm, so it is on the owner's checklist for the 
 
 Each task is one pull request into the integration branch. Each keeps this repository green: the documentation check, lint, the script tests and
 the coverage gate. The sizes follow the plan's scale (1 SP is about one focused session). Model: Sonnet 5.5 at medium effort for the build, as in
-the plan's table, and high effort for 17.8 and 17.13, which restructure. Most tasks are serial; 17.15 and 17.16 may run in parallel after
-17.14, and 17.17 after 17.13.
+the plan's table, and high effort for 17.8 and 17.13, which restructure. Most tasks are serial; 17.13a may run after 17.13 alongside 17.14 to
+17.16, 17.15 and 17.16 may run in parallel after 17.14, and 17.17 after 17.13.
 
 | # | Task | Acceptance check | SP |
 | - | ---- | ---------------- | -- |
@@ -587,22 +622,23 @@ the plan's table, and high effort for 17.8 and 17.13, which restructure. Most ta
 | 17.4 | Vendoring: `sync`, the lock, `check vendored`, `diff`, and the detached mode | `harness/` and `harness.lock.json` exist, synced from the staging folder. Tests: an edit to a vendored file fails `docs:check` and the pre-push hook; a sync restores it; an override is accepted and reported; after `harness detach` on a fixture, the same edit passes, `sync` refuses, `sync --local` regenerates, `diff` shows the edit against `base`, and a removed `LICENSE` fails. | 5 |
 | 17.5 | The profile file holds every value | `harness-profile.json` at the root, with schema, defaults, term lists and the coverage gate folded in. `profile.md` generated. `harness check profile`. The Jest configs, hooks and scripts read the new path. H-22, first half. | 5 |
 | 17.6 | The layer map from the profile and the lock (B7) | `harness layers`, generated into the harness bindings; `harness check layers` fails on an unclassified file (test). The bindings name roles (H-22, second half). H-23 closed. | 2 |
-| 17.7 | Generic tools into the framework | Links, CORE scan, plan summary and log, changelog fragments and release, and the three product-knowledge checks (parameterised) are `harness` commands in the framework, vendored. The old scripts are removed. `npm run docs:check` gives the same result as before on the same tree. | 5 |
+| 17.7 | Generic tools into the framework | Links, CORE scan, plan summary and log, changelog fragments and release, and the three product-knowledge checks (parameterised) are `harness` commands in the framework, vendored; `harness ci changes` and `checks.project` (section 7.1). The old scripts are removed. `npm run docs:check` gives the same result as before on the same tree; the `changes` job and the push gate agree on a test set of changes. | 5 |
 | 17.8 | Core documents into the framework | The method documents of section 3.2 are in `framework/core/` and vendored. Links are rewritten and none leaves `core/`. The entry file's managed blocks are generated, with rule ids. The two neutral wordings of section 3.1 are applied. The CORE scan returns 0 on the source. | 5 |
-| 17.9 | Contracts and the GitHub host adapter | `core/contracts/{stack,runtime,host}.md` and the manifest schema. `protect.mjs` on Node with its stand-in test. The workflow templates. `harness check values` replaces `harness-profile.test.mjs`. | 3 |
-| 17.10 | Stack preset node-ts, consumed by this repository | The gate driver and `gate.mjs`, the neutral coverage summary, and the coverage merge. The pre-push hook and CI of `bot-rts` call them. Gate tests: a Markdown-only push, a failing test, a coverage drop, one package. | 5 |
-| 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; `.claude/settings.json` and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes. The generated rule map rows of section 4.4. | 3 |
+| 17.9 | Contracts and the GitHub host adapter | `core/contracts/{stack,runtime,host}.md` and the manifest schema, with `adapters.stacks` as a list (two stacks claiming one path fail the profile check). `protect.mjs` on Node with its stand-in test, and the detection of protection availability. The workflow templates. `harness check values` replaces `harness-profile.test.mjs`. | 5 |
+| 17.10 | Stack preset node-ts, consumed by this repository | The gate driver and `gate.mjs`, the neutral coverage summary, and the coverage merge. The pre-push hook and CI of `bot-rts` call them. The gate driver routes files to the stack that owns them. Gate tests: a Markdown-only push, a failing test, a coverage drop, one package, and a fixture with two stacks. | 5 |
+| 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; the merge guard for a host without protection; the format hook routing by stack, without downloads; `.claude/settings.json` and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes, including a refused merge with a red check. The generated rule map rows of section 4.4, for both protection cases. | 5 |
 | 17.12 | Procedures and their packaging (B6) | The first set of section 8.1 in `core/procedures/`, packaged as `.claude/skills/`. The reading-map fallback. `harness check generated` covers them. | 3 |
 | 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. The sameness test of section 6.2, including the detached case. | 5 |
+| 17.13a | `harness adopt` (section 6.4) | A fixture with copied harness scripts (profile under `scripts/`, the four hooks, link and plan scripts, one project check) is adopted: the profile moves and validates, the hooks call the framework, the redundant scripts are reported and not deleted, the project check runs in `harness check all`. | 3 |
 | 17.14 | Conformance suite and the new-adapter procedure | `tests/conformance/` per axis; `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
 | 17.15 | Cursor preset | Native and compat modes (section 9); recorded Cursor event samples; it passes the suite. The owner's checklist for a real session is written into its README. | 2 |
 | 17.16 | Python preset, written by following the new-adapter procedure | uv, pytest with coverage.py, ruff, mypy; `gate.mjs` and `coverage.mjs`; CI templates; it passes the suite. Deviations from the procedure are fixed in the procedure. | 3 |
 | 17.17 | Examples | A filled profile of a fictitious project, the product-knowledge skeleton, a sample plan; the bootstrap writes them into a new project's `docs/`. | 2 |
-| 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts with both runtimes (compat mode), and one detached project with a core rule edited. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |
+| 17.18 | The proof of §3.4 | In a scratch directory outside the repository: bootstrap node-ts with Claude Code, python with Cursor, node-ts and python together with both runtimes (compat mode), and one detached project with a core rule edited; adopt one fixture with copied scripts. On each, `harness check all` and the stack's checks pass, and the harness review method runs (a short targeted review of D1, D3, D6). Recorded in the framework changelog and the work log. **The owner** then runs the Cursor preset in a real Cursor session, with the checklist of 17.15. | 2 |
 | 17.19 | Switch to the published framework | After **the owner** has copied the staging folder to the `harness-framework` repository and tagged `v0.1.0`: the lock's source becomes that tag, the staging folder is removed, and the plan and this design point to the repository. | 2 |
 | 17.20 | Closing targeted harness review, by a session that did not do the build | D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on `framework/`, probes P1, P2 and P5 on `bot-rts` and P1 on the dummy project. The exit criteria of §3.5 and of the phase are checked one by one. | 3 |
 
-Total of the build: 63 SP, so Phase 17 is 66 SP with 17.1.
+Total of the build: 70 SP, so Phase 17 is 73 SP with 17.1.
 
 **Risks of this design.**
 

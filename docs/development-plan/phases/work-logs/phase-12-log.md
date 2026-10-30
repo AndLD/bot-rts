@@ -103,3 +103,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   now grants 5 iron, the room the storage has left.
 - **Next step:** Phase 12 waits for new issues (the user closes it).
 - **Verify with:** `npx jest src/bots/application/starter-resources.test.ts -w api`, `npm test -w api`, `npm run docs:check`
+
+### 2026-10-30 — 12.4 and 12.5 added from the harness review of 2026-10-30
+- **Tasks:** 12.4 (⬜, 3 SP) and 12.5 (⬜, 2 SP) added; Phase 12 is 16 SP
+- **Branch:** `docs/17-review-triage` — the plan only
+- **Decisions / deviations from the plan:** the owner approved on 2026-10-30 the follow-up of the
+  [harness review of 2026-10-30](../../../quality-reviews/harness/2026-10-30.md#13-follow-up) (task 17.2). Two of its actions are Phase 12 work:
+  - 12.4, the pre-push database setup in worktrees and the one rule on `--no-verify` (H-20261030-02). Its guard against the flag comes later, with 17.11.
+  - 12.5, the recurring flakes (H-20261019-14, H-20261019-24, H-20261030-07).
+  H-20261030-06 (the MVP line) was fixed in #261.
+- **Problems / blockers / findings:** none.
+- **Next step:** 12.4 and 12.5 whenever the owner asks; 12.4 before 17.11, which adds the guard.
+- **Verify with:** `npm run plan:summary` (no diff); `npm run docs:check`

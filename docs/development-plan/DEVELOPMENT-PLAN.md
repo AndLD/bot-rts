@@ -32,13 +32,13 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 9 | Admin console | 135 | ✅ Done |
 | 10 | Market, currency, chat & transfers | 154 | ⬜ Not started |
 | 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | ✅ Done |
-| 12 | Issues and stabilization | 11 (grows) | 🟡 In progress |
+| 12 | Issues and stabilization | 16 (grows) | 🟡 In progress |
 | 13 | Observability platform | 48 | ✅ Done |
 | 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
 | 15 | Harness fixes | 77 | ✅ Done |
 | 16 | CI speed and agent throughput | 23 | ✅ Done |
 | 17 | Harness framework extraction | 69 | 🟡 In progress |
-|  | **Total of Phases 0–17** | **1233** (Phase 12 grows as issues are added) | |
+|  | **Total of Phases 0–17** | **1238** (Phase 12 grows as issues are added) | |
 <!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
@@ -105,7 +105,7 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 9 — Admin console (135 SP)](./phases/phase-9-admin-console.md)
 - [Phase 10 — Market, currency, chat & transfers (154 SP)](./phases/phase-10-market-chat.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./phases/phase-11-energy-time-ux.md)
-- [Phase 12 — Issues and stabilization (11 SP, grows as issues are added)](./phases/phase-12-issues.md)
+- [Phase 12 — Issues and stabilization (16 SP, grows as issues are added)](./phases/phase-12-issues.md)
 - [Phase 13 — Observability platform (48 SP)](./phases/phase-13-observability-platform.md)
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
 - [Phase 15 — Harness fixes (77 SP)](./phases/phase-15-harness-fixes.md)

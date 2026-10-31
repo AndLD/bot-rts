@@ -25,7 +25,7 @@ Database migrations are part of the release; applied migrations are never edited
 [CHANGELOG.md](../product-knowledge/CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
 `Security`). A pull request that changes what a player, an API client or an operator sees adds a **fragment** in
 [`changelog.d/`](../product-knowledge/changelog.d/README.md) in the same pull request (a file of its own, so that two pull requests never edit
-the same lines). Pull requests that only touch tests, docs or tooling need none. `scripts/release.mjs` moves the fragments, and what
+the same lines). Pull requests that only touch tests, docs or tooling need none. `npm run harness -- release` moves the fragments, and what
 older entries still stand under `## [Unreleased]`, into the section of the version and deletes the fragments.
 
 ## A release
@@ -35,8 +35,8 @@ older entries still stand under `## [Unreleased]`, into the section of the versi
    ```bash
    git checkout <integration> && git pull
    git checkout -b release/1.2.0
-   node scripts/release.mjs --dry-run   # shows the version and the date, writes nothing
-   node scripts/release.mjs             # versions in every package.json and the lock file, CHANGELOG section
+   npm run harness -- release --dry-run   # shows the version and the date, writes nothing
+   npm run harness -- release             # versions of the version files of the profile, the lock file, CHANGELOG section
    git commit -am "chore(release): 1.2.0"
    git push -u origin release/1.2.0
    ```
@@ -57,7 +57,7 @@ older entries still stand under `## [Unreleased]`, into the section of the versi
 ## A hotfix
 
 Same steps, from the production branch: `git checkout <production> && git checkout -b hotfix/1.2.1`, fix, add a changelog fragment,
-`node scripts/release.mjs`, pull request into the production branch, tag `v1.2.1`, then merge the hotfix branch into the integration branch as well.
+`npm run harness -- release`, pull request into the production branch, tag `v1.2.1`, then merge the hotfix branch into the integration branch as well.
 
 ## Deploying a release
 

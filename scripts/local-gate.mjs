@@ -4,6 +4,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { root, profile } from './harness-profile.mjs'
+import { documentationPaths } from '../harness/tools/lib/changes.mjs'
 import { planGate, rangesOfPush } from './local-gate-lib.mjs'
 
 const integration = profile.branches.integration
@@ -39,7 +40,8 @@ const files = changedFiles(rangesOfPush(stdin, integration))
 const plan = planGate(files, {
   packages: profile.coveragePackages,
   integration,
-  exists: (file) => existsSync(join(root, file))
+  exists: (file) => existsSync(join(root, file)),
+  documentationPaths: documentationPaths(profile)
 })
 
 if (plan.skip) {

@@ -30,7 +30,7 @@ jobs:
           fi
 
   changes:
-    # The required checks must still report, so a markdown-only change runs the workflow but skips the code jobs
+    # The required checks must still report, so a documentation-only change runs the workflow but skips the code jobs
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.changes.outputs.code }}
@@ -38,17 +38,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Detect markdown-only changes
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      # One rule for "documentation only" in CI and in the push gate (checks.documentationPaths of the profile file); in doubt the code jobs run
+      - name: Detect documentation-only changes
         id: changes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
-            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          else
-            files="unknown.ts"
-          fi
-          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+        run: node harness/tools/harness.mjs ci changes "${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}" "${{ github.sha }}"
 
   # `verify` (below) is the required check; it waits for the jobs from here to `mcp`, which run at the same time (docs/testing/README.md, CI performance)
   static:
@@ -419,17 +415,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Detect markdown-only changes
+      - name: Detect documentation-only changes
         id: changes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          elif echo "${{ github.event.before }}" | grep -qv '^0*$'; then
-            files=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
-          else
-            files="unknown.ts"
-          fi
-          if echo "$files" | grep -qv '\.md$'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "code=false" >> "$GITHUB_OUTPUT"; fi
+        run: node harness/tools/harness.mjs ci changes "${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}" "${{ github.sha }}"
       - name: Install dependencies
         if: steps.changes.outputs.code == 'true'
         uses: ./.github/actions/install

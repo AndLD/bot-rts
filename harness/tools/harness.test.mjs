@@ -62,6 +62,8 @@ test('the arguments: words, flags with values and --local', () => {
     flags: { reason: 'r', issue: 'i' }
   })
   assert.deepEqual(parseArgs(['sync', '--local']), { words: ['sync'], flags: { local: true } })
+  assert.deepEqual(parseArgs(['release', '--dry-run']), { words: ['release'], flags: { dryRun: true } })
+  assert.deepEqual(parseArgs(['plan', 'summary', '--check']), { words: ['plan', 'summary'], flags: { check: true } })
 })
 
 test('profile get prints a value and a list one item per line, and an unknown role exits with 1', () => {
@@ -152,4 +154,11 @@ test('layers prints the map, and check layers fails on a tracked file that no la
   writeFileSync(join(dir, 'harness-profile.json'), JSON.stringify(profile))
   assert.match(run('check', 'layers').out, /no `layers` role/)
   assert.equal(run('layers').code, 1)
+})
+
+test('an unknown check is a usage error; ci changes in doubt says that the code checks run', () => {
+  assert.equal(harness('check', 'nonsense').code, 2)
+  const doubt = harness('ci', 'changes', '0000000000000000000000000000000000000000', 'HEAD')
+  assert.equal(doubt.code, 0)
+  assert.match(doubt.out, /could not be listed, so the code checks run/)
 })

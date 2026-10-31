@@ -32,7 +32,7 @@ works in practice.
 | `npm run e2e` | Cypress against a fresh database, the API and the built client on ports 18080 and 15173 (`--open` for the runner, `--skip-build` to reuse the build, `--shard <i>/<n>` for one slice of the specs; `E2E_API_PORT` and `E2E_CLIENT_PORT` change the ports) |
 | `npm run check:boundaries` | Import-boundary rules of the layered `api/src` |
 | `npm run i18n:check` | The message catalogues of every user-facing language are complete |
-| `npm run docs:check` | Markdown links |
+| `npm run docs:check` | `harness check all`: the vendored framework, the profile file, the layer map, Markdown links, backticked repository paths, the CORE scan, the plan summary, the changelog fragments and the product knowledge |
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
 | `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
@@ -229,7 +229,7 @@ The required checks `verify` and `e2e` are the last jobs of several that of `.gi
 
 | Job | What it runs |
 | --- | ------------ |
-| `changes` | decides whether the change is Markdown-only; the code jobs below run only when it is not |
+| `changes` | decides with `harness ci changes` whether the change is documentation only (`checks.documentationPaths` of the profile file: every Markdown file); the code jobs below run only when it is not. The push gate uses the same rule |
 | `static checks` | generated files up to date, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, the script tests, the framework tests, build; the Markdown links, the script tests and the framework tests run for a Markdown-only change too |
 | `api tests` | Jest of `api` with PostgreSQL, Redis and the log gateway |
 | `client tests i/3` | Jest of `client`, one of three shards (`jest --shard=i/3`) |

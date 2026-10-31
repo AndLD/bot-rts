@@ -3,7 +3,7 @@
 # Changelog fragments
 
 A pull request that changes what a player, an API client or an operator sees adds **one file here** instead of a line in the shared
-"Unreleased" list, so that two pull requests never edit the same lines. A release (`scripts/release.mjs`, see
+"Unreleased" list, so that two pull requests never edit the same lines. A release (its command is in
 [`RELEASING.md`](../../operations/RELEASING.md)) moves the fragments into the section of the version and deletes them.
 
 - **Name:** `<plan task>-<slug>.md`, for example `10.4-order-book.md`.

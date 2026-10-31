@@ -2,7 +2,7 @@
 // code, schemes and template placeholders.
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { blankFences, headingAnchors, linkTargets, slugify } from './markdown.mjs'
+import { blankFences, headingAnchors, linkTargets, slugify, unindexedEntries } from './markdown.mjs'
 
 test('slugify follows the host: punctuation goes, `-` and `_` stay, spaces become `-`', () => {
   assert.equal(slugify('5.4 The "arena" and metrics'), '54-the-arena-and-metrics')
@@ -31,4 +31,17 @@ test('linkTargets returns relative targets only, outside code, and skips the pla
 
 test('blankFences keeps the line numbers of the text around a fence', () => {
   assert.equal(blankFences('a\n```\nb\n```\nc'), 'a\n\n\n\nc')
+})
+
+test('an index must link every file and subfolder of its folder', () => {
+  const entries = ['README.md', 'licenses.md', 'machines', 'new-report.md']
+  assert.deepEqual(unindexedEntries(entries, ['./licenses.md', './machines/README.md#adding-a-machine']), [
+    'new-report.md'
+  ])
+})
+
+test('a subfolder named like a document belongs to that document', () => {
+  const entries = ['README.md', 'data-sanity.md', 'data-sanity', 'hardware-budget']
+  assert.deepEqual(unindexedEntries(entries, ['data-sanity.md']), ['hardware-budget'])
+  assert.deepEqual(unindexedEntries(['README.md', 'charts'], ['charts.md']), ['charts'])
 })

@@ -18,27 +18,27 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 **Summary** (written from the phase files by `npm run plan:summary`, checked by `npm run docs:check`; edit a phase file, not this table)
 
 <!-- plan-summary:start -->
-| Phase | Theme | Story points | Status |
-| ----- | ----- | ------------ | ------ |
-| 0 | Stabilize & CI foundation | 24 | ✅ Done |
-| 1 | Architecture refactor, clean architecture & NestJS migration | 100 | ✅ Done |
-| 2 | Test infrastructure & coverage backfill | 43 | ✅ Done |
-| 3 | Core gameplay foundations | 76 | ✅ Done |
-| 4 | Module system & crafting | 70 | ✅ Done |
-| 5 | Script runtime, scheduler & sandbox | 104 | ✅ Done |
-| 6 | Core game GUI & map animations | 96 | ✅ Done |
-| 7 | Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation | 66 | ✅ Done |
-| 8 | Multiplayer, public API & production hardening | 71 | ✅ Done |
-| 9 | Admin console | 135 | ✅ Done |
-| 10 | Market, currency, chat & transfers | 154 | ⬜ Not started |
-| 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | ✅ Done |
-| 12 | Issues and stabilization | 16 (grows) | 🟡 In progress |
-| 13 | Observability platform | 48 | ✅ Done |
-| 14 | Admin MCP: AI-assisted investigation | 19 | ✅ Done |
-| 15 | Harness fixes | 77 | ✅ Done |
-| 16 | CI speed and agent throughput | 23 | ✅ Done |
-| 17 | Harness framework extraction | 69 | 🟡 In progress |
-|  | **Total of Phases 0–17** | **1238** (Phase 12 grows as issues are added) | |
+| Phase | Theme | Story points | Agent complexity | Status |
+| ----- | ----- | ------------ | ---------------- | ------ |
+| 0 | Stabilize & CI foundation | 24 | — | ✅ Done |
+| 1 | Architecture refactor, clean architecture & NestJS migration | 100 | — | ✅ Done |
+| 2 | Test infrastructure & coverage backfill | 43 | — | ✅ Done |
+| 3 | Core gameplay foundations | 76 | — | ✅ Done |
+| 4 | Module system & crafting | 70 | — | ✅ Done |
+| 5 | Script runtime, scheduler & sandbox | 104 | — | ✅ Done |
+| 6 | Core game GUI & map animations | 96 | — | ✅ Done |
+| 7 | Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation | 66 | — | ✅ Done |
+| 8 | Multiplayer, public API & production hardening | 71 | — | ✅ Done |
+| 9 | Admin console | 135 | — | ✅ Done |
+| 10 | Market, currency, chat & transfers | 154 | C2–C3 | ⬜ Not started |
+| 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | — | ✅ Done |
+| 12 | Issues and stabilization | 16 (grows) | C2 | 🟡 In progress |
+| 13 | Observability platform | 48 | — | ✅ Done |
+| 14 | Admin MCP: AI-assisted investigation | 19 | — | ✅ Done |
+| 15 | Harness fixes | 77 | — | ✅ Done |
+| 16 | CI speed and agent throughput | 23 | — | ✅ Done |
+| 17 | Harness framework extraction | 69 | C1–C3 | 🟡 In progress |
+|  | **Total of Phases 0–17** | **1238** (Phase 12 grows as issues are added) | | |
 <!-- plan-summary:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first

@@ -34,7 +34,19 @@ export function derivedValues(profile) {
     .map((name) => (notes[name] ? `\`${name}\` (${notes[name]})` : `\`${name}\``))
     .join(', ')
 
-  return { adapters: sentence(selected), coverageGate, requiredChecks }
+  const complexity = profile.plan?.complexity
+  const markers = (map) =>
+    Object.entries(map ?? {})
+      .map(([marker, text]) => `\`${marker}\` ${text}`)
+      .join('; ')
+
+  return {
+    adapters: sentence(selected),
+    coverageGate,
+    requiredChecks,
+    complexityScale: markers(complexity?.scale),
+    complexityModels: markers(complexity?.models)
+  }
 }
 
 /** The text of the profile document for `profile` (with the defaults of the schema applied). */

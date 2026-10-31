@@ -156,3 +156,13 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** the claim was opened late, after the work and with no other session holding the task (task log).
 - **Next step:** 17.7a in a fresh session ("Continue Phase 17"), `C2`: Sonnet 5.5 at high effort.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-10-31 — 17.7a done: the index rule and the complexity markers
+- **Tasks:** 17.7a ✅ (its log: [`phase-17/17.7a.md`](./phase-17/17.7a.md))
+- **Branch:** `chore/17.7a-second-source-features` — done, PR #270
+- **Decisions / deviations from the plan:** the markers are the profile role `plan.complexity` (scale and models); without it a plan has none. The
+  check fails on an open task without a marker. This repository rated the open tasks of Phase 10 and also of Phase 12 (two), which the
+  work log of 2026-10-30 did not count. The ratings of Phase 10 are the session's proposal; the owner may change any of them.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.8 (core documents into the framework), `C3`: Opus 5.5 at high effort, in a fresh session ("Continue Phase 17").
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`

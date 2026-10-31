@@ -12,9 +12,12 @@ export const CONTENTS_END = '<!-- plan-contents:end -->'
 
 const TITLE = /^# Phase (\d+) — (.+?) \((\d+) SP(?:, ([^)]*))?\)\s*$/m
 const STATUS = /\*\*Status:\*\*\s*((?:⬜|🟡|✅)\s*[A-Za-z ]+?)\s*(?:·|$)/m
-const TASK_ROW = /^\| (\d+\.\d+[a-z]?) \|.*\| (\d+) \| (?:⬜|🟡|✅)[^|]*\|\s*$/gm
+// A task row: its id, the agent-complexity marker in the cell before the size (when it has one), the size and the status symbol
+const TASK_ROW = /^\| (\d+\.\d+[a-z]?) \|.*?\|(?: (C\d+) \|)? (\d+) \| (⬜|🟡|✅)[^|]*\|\s*$/gm
 
-// { number, theme, points, note, status, file, title, taskPoints } of a phase file, or throws with the file name
+// { number, theme, points, note, status, file, title, taskPoints, markers, unmarked } of a phase file, or throws with the file name.
+// `markers` are the agent-complexity markers of its tasks (of done ones too, where they were recorded); `unmarked` are the ids of its open
+// tasks (⬜ or 🟡) without one, since a done task is exempt.
 export function parsePhase(file, text) {
   const title = TITLE.exec(text)
   const status = STATUS.exec(text)
@@ -24,7 +27,8 @@ export function parsePhase(file, text) {
   if (!status) {
     throw new Error(`${file}: the status line must start with "**Status:** ⬜|🟡|✅ <words>"`)
   }
-  const taskPoints = [...text.matchAll(TASK_ROW)].reduce((sum, match) => sum + Number(match[2]), 0)
+  const rows = [...text.matchAll(TASK_ROW)]
+  const taskPoints = rows.reduce((sum, match) => sum + Number(match[3]), 0)
 
   return {
     number: Number(title[1]),
@@ -34,31 +38,72 @@ export function parsePhase(file, text) {
     status: status[1].replace(/\s+/g, ' '),
     file,
     title: `Phase ${title[1]} — ${title[2]} (${title[3]} SP${title[4] ? `, ${title[4]}` : ''})`,
-    taskPoints
+    taskPoints,
+    markers: rows.filter((match) => match[2]).map((match) => match[2]),
+    unmarked: rows.filter((match) => !match[2] && match[4] !== '✅').map((match) => match[1])
   }
 }
 
-// Problems of one phase: the size in the title is the sum of the sizes of its tasks
-export function phaseProblems(phase) {
-  return phase.taskPoints === phase.points
-    ? []
-    : [`${phase.file}: the title says ${phase.points} SP but the tasks add up to ${phase.taskPoints} SP`]
+/** The markers of a complexity scale (`plan.complexity.scale`), lightest first; empty when the plan has no markers. */
+export const markersOf = (complexity) => Object.keys(complexity?.scale ?? {})
+
+/**
+ * Problems of one phase: the size in the title is the sum of the sizes of its tasks, and, when the plan has agent-complexity markers
+ * (`complexity` is `plan.complexity`), every open task carries one from the scale.
+ */
+export function phaseProblems(phase, complexity) {
+  const problems = []
+  if (phase.taskPoints !== phase.points) {
+    problems.push(`${phase.file}: the title says ${phase.points} SP but the tasks add up to ${phase.taskPoints} SP`)
+  }
+  const scale = markersOf(complexity)
+  if (scale.length) {
+    if (phase.unmarked.length) {
+      problems.push(
+        `${phase.file}: open tasks without an agent-complexity marker (${scale.join(', ')}): ${phase.unmarked.join(', ')}`
+      )
+    }
+    const unknown = [...new Set(phase.markers)].filter((marker) => !scale.includes(marker))
+    if (unknown.length) {
+      problems.push(`${phase.file}: markers that are not on the scale (${scale.join(', ')}): ${unknown.join(', ')}`)
+    }
+  }
+  return problems
 }
 
-export function summaryTable(phases) {
+/** The range of a phase's markers on the scale: `C2`, `C1–C3`, or `—` when it has none. */
+export function complexityRange(markers, complexity) {
+  const scale = markersOf(complexity)
+  const levels = [...new Set(markers)]
+    .filter((marker) => scale.includes(marker))
+    .sort((a, b) => scale.indexOf(a) - scale.indexOf(b))
+  if (!levels.length) {
+    return '—'
+  }
+  return levels.length === 1 ? levels[0] : `${levels[0]}–${levels.at(-1)}`
+}
+
+export function summaryTable(phases, { complexity } = {}) {
+  const marked = markersOf(complexity).length > 0
   const sorted = [...phases].sort((a, b) => a.number - b.number)
   const total = sorted.reduce((sum, phase) => sum + phase.points, 0)
   const grows = sorted.filter((phase) => phase.note.includes('grows')).map((phase) => `Phase ${phase.number}`)
   const last = sorted.at(-1)?.number ?? 0
-  const lines = ['| Phase | Theme | Story points | Status |', '| ----- | ----- | ------------ | ------ |']
+  const lines = marked
+    ? [
+        '| Phase | Theme | Story points | Agent complexity | Status |',
+        '| ----- | ----- | ------------ | ---------------- | ------ |'
+      ]
+    : ['| Phase | Theme | Story points | Status |', '| ----- | ----- | ------------ | ------ |']
 
   for (const phase of sorted) {
+    const range = marked ? ` ${complexityRange(phase.markers, complexity)} |` : ''
     lines.push(
-      `| ${phase.number} | ${phase.theme} | ${phase.points}${phase.note.includes('grows') ? ' (grows)' : ''} | ${phase.status} |`
+      `| ${phase.number} | ${phase.theme} | ${phase.points}${phase.note.includes('grows') ? ' (grows)' : ''} |${range} ${phase.status} |`
     )
   }
   lines.push(
-    `|  | **Total of Phases 0–${last}** | **${total}**${grows.length ? ` (${grows.join(', ')} grows as issues are added)` : ''} | |`
+    `|  | **Total of Phases 0–${last}** | **${total}**${grows.length ? ` (${grows.join(', ')} grows as issues are added)` : ''} |${marked ? ' | ' : ' '}|`
   )
 
   return lines.join('\n')
@@ -82,8 +127,8 @@ function replaceBetween(text, start, end, body) {
 }
 
 // The index text with both generated blocks rewritten
-export function renderIndex(indexText, phases, { phasesLink } = {}) {
-  const withSummary = replaceBetween(indexText, SUMMARY_START, SUMMARY_END, summaryTable(phases))
+export function renderIndex(indexText, phases, { phasesLink, complexity } = {}) {
+  const withSummary = replaceBetween(indexText, SUMMARY_START, SUMMARY_END, summaryTable(phases, { complexity }))
   return replaceBetween(withSummary, CONTENTS_START, CONTENTS_END, contentsList(phases, phasesLink))
 }
 
@@ -143,10 +188,11 @@ export function planSummary({ root, profile, check = false }) {
     .filter((name) => PHASE_FILE.test(name))
     .map((name) => parsePhase(name, readFileSync(join(root, phasesDir, name), 'utf8')))
 
-  const problems = phases.flatMap(phaseProblems)
+  const complexity = profile.plan?.complexity
+  const problems = phases.flatMap((phase) => phaseProblems(phase, complexity))
   const current = readFileSync(join(root, planIndex), 'utf8')
   const link = relative(dirname(planIndex), phasesDir).split('\\').join('/')
-  const expected = renderIndex(current, phases, { phasesLink: link.startsWith('.') ? link : `./${link}` })
+  const expected = renderIndex(current, phases, { phasesLink: link.startsWith('.') ? link : `./${link}`, complexity })
 
   if (check) {
     if (expected !== current) {

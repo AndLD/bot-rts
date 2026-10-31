@@ -84,6 +84,8 @@ Branch types:
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
 | Open-ended phase | Phase 12 (issues found in use); its size grows |
 | Specification citation | `design §<section>` for the game design (for example `design §12.4`) |
+| Agent complexity | every open task carries a marker in the `Agent` column of its phase file: `C1` routine: mechanical, fully specified, obvious to verify; `C2` standard engineering: a component to a clear specification with tests, tools to work out; `C3` judgment: research, correctness-critical design, synthesis |
+| Agent models | `C1` Sonnet 5.5 at medium effort; `C2` Sonnet 5.5 at high effort; `C3` Opus 5.5 at high effort |
 
 ## 5. Public API
 

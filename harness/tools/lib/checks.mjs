@@ -28,8 +28,8 @@ export const CHECKS = {
           messages: ['Checked that every file of the layer map is in exactly one layer.']
         }
       : { problems: [], messages: ['The profile file has no `layers` role, so there is no layer map to check.'] },
-  links: ({ root }) => {
-    const { problems, count } = checkLinks({ root })
+  links: ({ root, profile }) => {
+    const { problems, count } = checkLinks({ root, indexedFolders: profile.checks?.indexedFolders })
     return { problems, messages: [`Checked links in ${count} Markdown files.`] }
   },
   paths: (context) => single(checkPaths(context)),

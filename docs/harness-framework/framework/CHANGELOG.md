@@ -15,3 +15,7 @@ versions follow [Semantic Versioning](https://semver.org/).
   `check paths` (new), `check core`, `check plan` with `plan summary` and `plan log`, `check changelog` with `release` and `release notes`,
   `check product-knowledge` (its file names and exceptions in the profile's `productKnowledge`), and `ci changes` with
   `checks.documentationPaths`. The profile gains `checks`, `productKnowledge`, `release` and `paths.entryFile`.
+- The two features of the second source (design §3.4): the link check's index rule (`checks.indexedFolders`: the README of an indexed folder
+  links every file and subfolder that Git tracks in it) and the agent-complexity markers of the plan (`plan.complexity`: the scale and the
+  model of each marker; every open task carries one in an `Agent` column before `SP`, done tasks are exempt, and the plan index shows each
+  phase's range). Without `plan.complexity` the plan has no markers.

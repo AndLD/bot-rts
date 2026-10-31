@@ -84,6 +84,8 @@ Branch types:
 | Resume phrases | {{plan.resumePhrases}} |
 | Open-ended phase | {{plan.openEndedPhase}} |
 | Specification citation | {{plan.specificationCitation}} |
+| Agent complexity | every open task carries a marker in the `Agent` column of its phase file: {{derived.complexityScale}} |
+| Agent models | {{derived.complexityModels}} |
 
 {{#if api}}
 ## 5. Public API

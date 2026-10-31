@@ -36,7 +36,7 @@ test('every placeholder of the template is a role of the schema or a derived val
   const known = (path) => {
     const [head, ...rest] = path.split('.')
     if (head === 'derived') {
-      return path === 'derived.adapters' || path === 'derived.coverageGate' || path === 'derived.requiredChecks'
+      return Object.keys(derivedValues({ plan: { complexity: {} } })).includes(path.slice('derived.'.length))
     }
     let node = properties[head]
     for (const key of rest) {
@@ -54,14 +54,31 @@ test('derived values: the adapters in prose, the coverage gate and the required 
   assert.deepEqual(derivedValues(profile()), {
     adapters: '`node-ts` (stack), `python` (stack), `claude-code` (agent runtime) and `github` (host)',
     coverageGate: '90 % of statements, branches, functions and lines',
-    requiredChecks: '`verify` (the tests), `pr-title`'
+    requiredChecks: '`verify` (the tests), `pr-title`',
+    complexityScale: '',
+    complexityModels: ''
   })
+  const marked = {
+    ...profile(),
+    plan: { complexity: { scale: { C1: 'easy', C2: 'hard' }, models: { C1: 'small', C2: 'large' } } }
+  }
+  assert.equal(derivedValues(marked).complexityScale, '`C1` easy; `C2` hard')
+  assert.equal(derivedValues(marked).complexityModels, '`C1` small; `C2` large')
+  assert.match(renderProfileDocument(marked), /^\| Agent complexity \| .*`C1` easy; `C2` hard \|$/m)
+  assert.match(renderProfileDocument(marked), /^\| Agent models \| `C1` small; `C2` large \|$/m)
+  assert.ok(!renderProfileDocument(profile()).includes('Agent complexity'))
   const uneven = { ...profile(), coverageGate: { statements: 90, branches: 80, functions: 90, lines: 70 } }
   assert.equal(
     derivedValues(uneven).coverageGate,
     '90 % of statements, 80 % of branches, 90 % of functions, 70 % of lines'
   )
-  assert.deepEqual(derivedValues({}), { adapters: '', coverageGate: undefined, requiredChecks: '' })
+  assert.deepEqual(derivedValues({}), {
+    adapters: '',
+    coverageGate: undefined,
+    requiredChecks: '',
+    complexityScale: '',
+    complexityModels: ''
+  })
 })
 
 test('the document holds the values, keeps the numbered sections of the profile, and leaves out roles that have no value', () => {

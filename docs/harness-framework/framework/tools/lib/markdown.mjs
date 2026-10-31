@@ -43,3 +43,23 @@ export function linkTargets(text) {
     .map((match) => match[1])
     .filter((target) => !/^[a-z][a-z0-9+.-]*:/i.test(target) && !target.includes('{{'))
 }
+
+/**
+ * The entries of an indexed folder (its files and subfolders, without its README) that its README does not link to. A link to a path inside a
+ * subfolder covers the subfolder, and a subfolder named like a document (`charts/` next to `charts.md`) belongs to that document and is
+ * covered when the document is.
+ * @param {string[]} entries the names in the folder
+ * @param {string[]} readmeTargets the link targets of its README (`linkTargets`)
+ */
+export function unindexedEntries(entries, readmeTargets) {
+  const linked = new Set(
+    readmeTargets
+      .map((target) => target.split('#')[0].replace(/^\.\//, ''))
+      .filter(Boolean)
+      .map((path) => path.split('/')[0])
+  )
+  return entries.filter(
+    (entry) =>
+      entry !== 'README.md' && !linked.has(entry) && !(linked.has(`${entry}.md`) && entries.includes(`${entry}.md`))
+  )
+}

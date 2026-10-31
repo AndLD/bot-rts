@@ -290,6 +290,30 @@
         "specificationCitation": {
           "type": "string",
           "description": "How the product specification is cited."
+        },
+        "complexity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scale"],
+          "description": "The agent-complexity markers of the plan (design §3.4). Without this role the plan has no markers. With it, every open task of a phase file carries one in an `Agent` column before `SP` (done tasks are exempt), and the plan index shows each phase's range. A marker rates the reasoning a task needs, not its size.",
+          "properties": {
+            "scale": {
+              "type": "object",
+              "description": "The markers and what each one means, from the lightest to the heaviest (the order of the keys).",
+              "additionalProperties": {
+                "type": "string",
+                "description": "The meaning of the marker."
+              }
+            },
+            "models": {
+              "type": "object",
+              "description": "The model and effort for each marker, which the session start prints for the next task (the default comes from the runtime adapter).",
+              "additionalProperties": {
+                "type": "string",
+                "description": "The model and its effort."
+              }
+            }
+          }
         }
       },
       "additionalProperties": false
@@ -666,6 +690,14 @@
           },
           "description": "The project's own checks: commands that `harness check all` runs from the root after the framework's checks.",
           "default": []
+        },
+        "indexedFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Folders whose README.md is their index: it must link every file and subfolder of the folder that Git tracks, so a new document cannot be left out (`harness check links`). A subfolder named like a document belongs to that document."
         }
       }
     },

@@ -2,8 +2,9 @@
 // the harness documents name scripts and files in plain text. STATE documents (logs, reports, plans) are history and are not checked, nor is
 // the vendored copy (checked at its source). A path counts as a repository path when it starts with `./` or `../` (relative to the document),
 // or when its first folder is a top-level entry of the repository; a path the repository ignores (a local file such as an environment file)
-// is accepted, since it exists only on a developer's machine. A path names a file by its extension or a folder by a final `/`.
-import { existsSync, readFileSync } from 'node:fs'
+// is accepted, since it exists only on a developer's machine. A path names a file by its extension or a folder by a final `/`. A path is present
+// when Git tracks it or a file under it, so the check gives the same answer on every machine and in CI.
+import { readFileSync } from 'node:fs'
 import { dirname, join, normalize } from 'node:path'
 import { classify, layerConfig, trackedFiles } from './layers.mjs'
 import { ignoredPaths } from './links.mjs'
@@ -14,7 +15,10 @@ import { blankFences } from './markdown.mjs'
 // an extension) or a folder (it ends with `/`), so a branch name such as `docs/1.2-slug` is not taken for a path
 const PATH = /^(?:\.{1,2}\/)*[\w.@-]+(?:\/[\w.@-]+)*(?:\/[\w@-][\w.@-]*\.[A-Za-z][A-Za-z0-9]{0,5}|\/)$/
 
-/** The backticked repository paths of a document, as `{ line, token, path }` (`path` relative to the repository root). */
+/**
+ * The backticked repository paths of a document, as `{ line, token, path, folder }`: `path` relative to the repository root, `folder` when the
+ * token ends with `/`.
+ */
 export function documentPaths(document, text, topLevel) {
   const found = []
   blankFences(text)
@@ -33,7 +37,7 @@ export function documentPaths(document, text, topLevel) {
           .split('\\')
           .join('/')
           .replace(/\/$/, '')
-        found.push({ line: index + 1, token, path })
+        found.push({ line: index + 1, token, path, folder: token.endsWith('/') })
       }
     })
   return found
@@ -61,10 +65,22 @@ export function checkPaths({ root, profile, files = trackedFiles(root) }) {
   const found = documents.flatMap((document) =>
     documentPaths(document, readFileSync(join(root, document), 'utf8'), topLevel).map((item) => ({ document, ...item }))
   )
-  const missing = found.filter(({ path }) => !path.startsWith('..') && !existsSync(join(root, path)))
-  const ignored = ignoredPaths(root, [...new Set(missing.map(({ path }) => path))])
+  // Present means tracked, or a folder that holds tracked files, so the answer does not depend on what a machine has on disk
+  const tracked = new Set(files)
+  const folders = new Set(
+    files.flatMap((file) =>
+      file
+        .split('/')
+        .slice(0, -1)
+        .map((_, index, parts) => parts.slice(0, index + 1).join('/'))
+    )
+  )
+  const missing = found.filter(({ path }) => !path.startsWith('..') && !tracked.has(path) && !folders.has(path))
+  // A folder is asked with its final `/`, which a folder rule of the ignore files needs when the folder is absent
+  const query = ({ path, folder }) => (folder ? `${path}/` : path)
+  const ignored = ignoredPaths(root, [...new Set(missing.map(query))])
   const problems = missing
-    .filter(({ path }) => !ignored.has(path))
+    .filter((item) => !ignored.has(query(item)))
     .map(
       ({ document, line, token }) =>
         `${document}:${line}: the path \`${token}\` does not exist; correct it or drop the backticks`

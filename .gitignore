@@ -46,3 +46,6 @@ client/cypress/videos
 .lighthouseci
 .load/
 mcp/ts-built
+
+# The agent runtime's own settings on one machine (the shared ones are .claude/settings.json)
+.claude/settings.local.json

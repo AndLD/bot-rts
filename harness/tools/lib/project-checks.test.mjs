@@ -153,6 +153,20 @@ test('paths: a backticked path must exist, an ignored local file is accepted, ST
   ])
 })
 
+test('paths: the answer does not depend on the disk; an absent folder ignored by a folder rule is accepted', () => {
+  const root = project({ '.gitignore': 'local/\n/cache/\n' })
+  write(root, {
+    'docs/stack.md':
+      '# Stack\n\nThe cache is `cache/`, the gate `scripts/gate.mjs`, the folder `scripts/`; the draft `scripts/draft.mjs`.\n',
+    'scripts/draft.mjs': '// on this machine only, neither tracked nor ignored'
+  })
+  git(root, 'add', 'docs/stack.md')
+  git(root, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '--quiet', '-m', 'docs: name a cache folder')
+  assert.deepEqual(checkPaths({ root, profile: profileOf(root) }).problems, [
+    'docs/stack.md:3: the path `scripts/draft.mjs` does not exist; correct it or drop the backticks'
+  ])
+})
+
 test('core: the CORE documents and their sections, the one binding line, and the framework core the project owns', () => {
   const root = project()
   assert.deepEqual(checkCore({ root, profile: profileOf(root) }).problems, [])

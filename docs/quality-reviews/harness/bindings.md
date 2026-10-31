@@ -70,9 +70,9 @@ grep -rniEc "$STACK" docs/product-knowledge/game-design/*.md | sort -t: -k2 -nr 
 For `AGENTS.md`, count per section instead (split at `^## `) and attribute each hit to a layer; search CORE sections for `$PRODUCT`.
 A hit is a leak only if the term carries project meaning there ("module" in "Nest module" is a stack term; judge by context).
 
-**Allowed exceptions in `docs/product-knowledge/`** (the term is part of the product there; the list is also in
-`scripts/product-knowledge-lib.mjs`, which `npm run docs:check` runs and which also fails on plan task or phase references, on
-`api/src` and `client/src` paths and on test file names in that folder): `game-design/10-the-script-api.md` names TypeScript, because
+**Allowed exceptions in `docs/product-knowledge/`** (the term is part of the product there; the list is also
+`productKnowledge.allowedTerms` of the profile file, which `harness check product-knowledge` in `npm run docs:check` reads, and which also
+fails on plan task or phase references, on `api/src` and `client/src` paths and on test file names in that folder): `game-design/10-the-script-api.md` names TypeScript, because
 players write scripts in it; `integrations/API.md` names Socket.IO, the realtime transport of the public API; `integrations/MCP.md`
 names `npm`, in the commands that build and start the MCP server. The open-questions register and the backlog name plan tasks in
 their "Blocks" column, and `CHANGELOG.md` and `archived-docs/` are history and are not scanned. After task 15.4 the scan finds no other hit.
@@ -108,9 +108,9 @@ unenforced:
 | Mechanism                              | Where                                      |
 | -------------------------------------- | ------------------------------------------ |
 | Pre-push hook                          | `.githooks/pre-push`                       |
-| Agent-runtime hooks and skills         | `.claude/settings.json` hooks, `.claude/skills/` (see M32) |
+| Agent-runtime hooks and skills         | `.claude/settings.json` hooks, the skills of the runtime (see M32) |
 | CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
-| Link and anchor check                  | `npm run docs:check` → `scripts/check-markdown-links.mjs` |
+| Link and anchor check                  | `npm run docs:check` → `harness check links` (and `harness check paths` for backticked paths) |
 | Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
 | Import boundaries                      | `npm run check:boundaries`                 |
 | Translation completeness               | `npm run i18n:check`                       |
@@ -175,7 +175,7 @@ shrink, and any prerequisite or unlock cycle.
 
 Status: the design shows decisions only. A rule is decided; an open point carries its id (`Q3`) and has a row in
 `docs/product-knowledge/game-design/20-open-questions.md`; deferred work is in `21-backlog.md`. What is built is tracked only by the
-task statuses of `docs/development-plan/`. Check the register against the text and the plan; `scripts/check-open-items.mjs` (run by
+task statuses of `docs/development-plan/`. Check the register against the text and the plan; `harness check product-knowledge` (run by
 `npm run docs:check`) enforces that the design has no build marker and no marker word without an id.
 
 M15, mechanical checks. A "design §12.4" reference resolves in `docs/product-knowledge/game-design/12-*.md` as the heading `## 12.4`:
@@ -188,7 +188,7 @@ done
 grep -oE '^\| \*\*[^*]+\*\*' docs/product-knowledge/game-design/02-glossary.md   # glossary terms; then search each in other files
 ```
 
-Also list the terms the design emphasises (bold) in two or more files that the glossary does not define: `scripts/glossary-lib.mjs`, run by `npm run docs:check`, fails on them and on a name that belongs to two glossary rows.
+Also list the terms the design emphasises (bold) in two or more files that the glossary does not define: `harness check product-knowledge`, run by `npm run docs:check`, fails on them and on a name that belongs to two glossary rows.
 
 M14, traceability: join design section ids (`docs/product-knowledge/game-design/NN-*.md`) with the "design §" citations in
 `docs/development-plan/phases/phase-*.md` and with `docs/testing/e2e-matrix.md`; list sections never cited by a plan task, and plan
@@ -202,7 +202,7 @@ Forms in which this repository records open items (search all of them):
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
 | Official open-questions list | `docs/product-knowledge/game-design/20-open-questions.md` (the register of `Q<n>` items)                       |
 | Backlog (deferred by design) | `docs/product-knowledge/game-design/21-backlog.md`                                                                |
-| Open-item ids and marker words | `Q<n>` ids in `docs/product-knowledge/game-design/*.md`, their rows in `20-open-questions.md`, and the marker-word scan of `scripts/open-items-lib.mjs` |
+| Open-item ids and marker words | `Q<n>` ids in `docs/product-knowledge/game-design/*.md`, their rows in `20-open-questions.md`, and the marker-word scan of `harness check product-knowledge` |
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
 | Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phases/phase-*.md`; open tasks named in work logs ("next step") |
 | Risks                        | `docs/development-plan/cross-cutting/risk-register.md`                                                        |

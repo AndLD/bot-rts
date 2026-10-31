@@ -245,6 +245,11 @@
           "type": "string",
           "description": "Where the profile document is generated.",
           "default": "docs/profile.md"
+        },
+        "entryFile": {
+          "type": "string",
+          "description": "The agent entry file: the CORE scan allows its one \"Role binding\" line to name the project's values.",
+          "default": "AGENTS.md"
         }
       },
       "additionalProperties": false,
@@ -638,6 +643,104 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The checks of `harness check all` and of the push gate.",
+      "properties": {
+        "documentationPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Globs of the files that count as documentation: a change of nothing else skips the code checks in CI and in the push gate (`harness ci changes`).",
+          "default": ["**/*.md"]
+        },
+        "project": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The project's own checks: commands that `harness check all` runs from the root after the framework's checks.",
+          "default": []
+        }
+      }
+    },
+    "productKnowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "specification", "glossary", "register", "backlog"],
+      "description": "The product knowledge that `harness check product-knowledge` checks: no stack term, plan task or code path, one glossary, a register of open items.",
+      "properties": {
+        "root": {
+          "type": "string",
+          "description": "The folder of the product knowledge."
+        },
+        "specification": {
+          "type": "string",
+          "description": "The folder of the product specification, which holds the glossary, the register and the backlog."
+        },
+        "glossary": {
+          "type": "string",
+          "description": "The file name of the glossary inside the specification folder."
+        },
+        "register": {
+          "type": "string",
+          "description": "The file name of the register of open items inside the specification folder."
+        },
+        "backlog": {
+          "type": "string",
+          "description": "The file name of the backlog inside the specification folder."
+        },
+        "backlogSection": {
+          "type": "string",
+          "description": "The section number of the backlog, by which a line may point to it (`§<n>`)."
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Globs, relative to the product-knowledge folder, of files that are not scanned for stack terms, plan references and code paths (history, the register, the backlog).",
+          "default": []
+        },
+        "allowedTerms": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "A file (relative to the product-knowledge folder) and the stack terms that are part of the product there.",
+          "default": {}
+        },
+        "implementationPattern": {
+          "type": "string",
+          "description": "A regular expression of the project's code paths and test files, which the product knowledge must not name."
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What `harness release` changes on a release branch.",
+      "properties": {
+        "versionFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "The JSON files whose `version` the release sets; the first one holds the current version.",
+          "default": ["package.json"]
+        },
+        "lockCommand": {
+          "type": "string",
+          "description": "A command that brings the dependency lock file up to date with the new versions."
         }
       }
     }

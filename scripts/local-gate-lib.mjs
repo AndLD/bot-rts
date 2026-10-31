@@ -1,5 +1,6 @@
 // The pure part of the local gate (scripts/local-gate.mjs, run by .githooks/pre-push): which checks a push needs, from the files it changes.
 // Principle (docs/testing/README.md): run only what the changed files need; the full run is CI's and `npm run test:coverage`.
+import { DEFAULT_DOCUMENTATION_PATHS, isDocumentation } from '../harness/tools/lib/changes.mjs'
 import { FRAMEWORK_SOURCE } from './framework-tests-lib.mjs'
 
 const SOURCE = /\.(ts|tsx)$/
@@ -17,7 +18,6 @@ function isRelatable(file) {
   return SOURCE.test(file) && !IS_DECLARATION_OR_CONFIG.test(file) && !hasNoJestTests(file)
 }
 
-const isDocumentation = (file) => file.endsWith('.md')
 // Files that no check of the gate looks at: the CI configuration and the agent's own settings
 const isOutsideTheGate = (file) => file.startsWith('.github/') || file.startsWith('.claude/')
 // The Cypress suite is typechecked and linted with its package but has no Jest tests: CI runs it
@@ -37,17 +37,19 @@ const isFrameworkTooling = (file) => isFrameworkSource(file) || isVendored(file)
  * @returns {{ skip: string | null, steps: object[], coveragePackages: string[] }}
  *   `skip` is the reason when no code check is needed; a step is `{ label, command, args, cwd? , ...}`
  */
-export function planGate(files, { packages, integration, exists }) {
+export function planGate(files, { packages, integration, exists, documentationPaths = DEFAULT_DOCUMENTATION_PATHS }) {
+  // The framework's one rule for "documentation only", which CI's `changes` job uses too (`harness ci changes`)
+  const isDocs = (file) => isDocumentation(file, documentationPaths)
   const changed = [...new Set(files.filter(Boolean))]
 
   if (changed.length === 0) {
     return { skip: 'the push changes no file', steps: [], coveragePackages: [] }
   }
-  if (changed.every(isDocumentation)) {
-    return { skip: 'the push changes only Markdown', steps: [], coveragePackages: [] }
+  if (changed.every(isDocs)) {
+    return { skip: 'the push changes only documentation', steps: [], coveragePackages: [] }
   }
 
-  const relevant = changed.filter((file) => !isDocumentation(file) && !isOutsideTheGate(file))
+  const relevant = changed.filter((file) => !isDocs(file) && !isOutsideTheGate(file))
   const steps = []
 
   // Files of no package (root configuration, the lock file, `lib/`, the hooks) can change every package: the full run

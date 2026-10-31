@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { isDocumentationOnly } from '../harness/tools/lib/changes.mjs'
 import { planGate, rangesOfPush } from './local-gate-lib.mjs'
 
 const packages = ['api', 'client', 'mcp']
@@ -16,7 +17,7 @@ test('a push that changes no file runs no code check (the empty claim push)', ()
 
 test('a push that changes only Markdown runs no code check', () => {
   const result = plan(['docs/profile.md', 'README.md'])
-  assert.match(result.skip, /only Markdown/)
+  assert.match(result.skip, /only documentation/)
   assert.deepEqual(result.steps, [])
 })
 
@@ -112,11 +113,11 @@ test('a sync of the vendored framework runs the framework tests and the format c
   assert.deepEqual(labels(result), ['format changed files', 'framework tests'])
   assert.deepEqual(result.steps[0].args.slice(-1), ['docs/harness-framework/framework/tools/harness.mjs'])
   assert.deepEqual(labels(plan(['harness.lock.json'])), ['framework tests'])
-  assert.match(plan(['harness/core/method/method.md']).skip, /only Markdown/)
+  assert.match(plan(['harness/core/method/method.md']).skip, /only documentation/)
 })
 
 test('a push that changes only Markdown of the framework staging folder runs no code check', () => {
-  assert.match(plan(['docs/harness-framework/framework/README.md']).skip, /only Markdown/)
+  assert.match(plan(['docs/harness-framework/framework/README.md']).skip, /only documentation/)
 })
 
 test('a Cypress spec is typechecked and linted with its package but has no Jest tests', () => {
@@ -149,4 +150,27 @@ test('rangesOfPush reads the refs of a push: new branches against the integratio
   ].join('\n')
   assert.deepEqual(rangesOfPush(stdin, 'develop'), ['origin/develop..aaaa', 'cccc..bbbb'])
   assert.deepEqual(rangesOfPush('', 'develop'), [])
+})
+
+test("the gate and CI agree on what is documentation only: one rule, the framework's (H-20261030-05)", () => {
+  const cases = [
+    ['README.md', 'docs/plan.md'],
+    ['harness/core/method/method.md'],
+    ['docs/harness-framework/framework/tools/lib/x.mjs'],
+    ['README.md', 'api/src/x.ts'],
+    ['.github/workflows/ci.yml'],
+    ['harness.lock.json'],
+    ['docs/profile.md', 'package.json']
+  ]
+  for (const files of cases) {
+    assert.equal(Boolean(plan(files).skip), isDocumentationOnly(files), files.join(', '))
+  }
+  const patterns = ['**/*.md', 'docs/**']
+  const withDocsFolder = planGate(['docs/report/chart.svg'], {
+    packages,
+    integration: 'develop',
+    exists: () => true,
+    documentationPaths: patterns
+  })
+  assert.equal(Boolean(withDocsFolder.skip), isDocumentationOnly(['docs/report/chart.svg'], patterns))
 })

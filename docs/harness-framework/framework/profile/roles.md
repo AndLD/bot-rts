@@ -127,7 +127,7 @@ Run from the repository root unless a package is named.
 | Changed-file coverage | `{{commands.changedCoverage}}` (after `{{commands.testCoverage}}`) |
 | Import boundaries | `{{commands.boundaries}}` |
 | Message catalogues | `{{commands.i18n}}` |
-| The vendored framework against its lock, Markdown links and anchors, the open-items register and the glossary of the design | `{{commands.docsCheck}}` |
+| Every check of the framework (`harness check all`): the vendored copy, the profile file, the layer map, links, backticked paths, the CORE scan, the plan summary, the changelog fragments and the product knowledge | `{{commands.docsCheck}}` |
 | Take the framework again from its source into `harness/`; regenerate the managed files only; show a local change of `harness/` | `{{commands.harnessSync}}`; `{{commands.harnessSyncLocal}}`; `{{commands.harnessDiff}}` |
 | Build | `{{commands.build}}` |
 | End-to-end tests | `{{commands.e2e}}` |
@@ -136,6 +136,10 @@ Run from the repository root unless a package is named.
 | Start the local database (and Redis) | `{{commands.dbUp}}` |
 | Apply migrations to the local database | `{{commands.dbMigrate}}` |
 | Seed the local database | `{{commands.dbSeed}}` |
+{{#if release}}
+
+A release (`harness release`, on a release or hotfix branch) sets the version of {{release.versionFiles}}, and then runs `{{release.lockCommand}}`.
+{{/if}}
 
 ## 9. Review values
 
@@ -166,6 +170,14 @@ Project values, which must not appear in CORE text except on the **Role binding*
 PROJECT_VALUES='{{terms.projectValues}}'
 ```
 
+{{#if productKnowledge}}
+The product-knowledge check (`harness check product-knowledge`, part of `{{commands.docsCheck}}`) reads the product specification in
+`{{productKnowledge.specification}}/`: its glossary `{{productKnowledge.glossary}}`, its register of open items `{{productKnowledge.register}}` and its backlog `{{productKnowledge.backlog}}`.
+A line may point to the backlog by its section, §{{productKnowledge.backlogSection}}.
+It scans `{{productKnowledge.root}}/` for stack terms, plan references and code paths (`{{productKnowledge.implementationPattern}}`), except `{{productKnowledge.excluded}}`.
+A file keeps the stack terms that are part of its product: `productKnowledge.allowedTerms` of the profile file.
+
+{{/if}}
 {{#if contexts}}
 Bounded contexts (files of the product specification):
 

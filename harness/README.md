@@ -6,8 +6,8 @@ A framework for the **harness** of a software project: the rules, the method doc
 configuration that let any coding agent, and any person, work on the project under the same engineering rules. A new project bootstraps its
 harness from this framework, whatever its stack and whatever agent it uses, and takes later improvements by a version upgrade.
 
-**Status: `0.1.0-dev`.** The folders of the layout exist, and the vendoring commands work (`sync`, `check vendored`, `diff`, `override`,
-`detach`); the rest follows. This file is the contract of what will stand
+**Status: `0.1.0-dev`.** The folders of the layout exist, and the vendoring, profile, layer, check, plan, release and CI commands work;
+the rest follows. This file is the contract of what will stand
 here; the [design](../design.md) gives the reasons and the build order, and the [plan of the extraction](../README.md) gives the steps. The
 commands below are the ones the build tasks add; until a task lands, a command named here does not exist.
 
@@ -53,6 +53,22 @@ selected in its profile file (`adapters`), and the SHA-256 of every copied file.
 
 Never edit `harness/` by hand. Change the framework, then sync: while the framework is built inside a project, its source is a folder of
 that project, and the copy changes in the same pull request.
+
+The checks and the project tools read every value from the profile file:
+
+| Command | What it does |
+| ------- | ------------ |
+| `check all` | Every check below in this order, then the project's own checks (`checks.project`: commands). It is the one command a project's documentation check runs. |
+| `check vendored`, `check profile`, `check layers` | The copy against the lock, the profile file against its schema, and the layer map over the tracked files. |
+| `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
+| `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with `./` or `../`, or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
+| `check core` | The CORE documents (`layers.core`) and the `core/` folder that the project owns hold no stack term, product term or project value (`terms`). |
+| `check plan` | The summary and the contents of the plan index agree with the phase files (`plan summary` writes them). |
+| `check changelog` | Every changelog fragment starts with a Keep a Changelog kind. |
+| `check product-knowledge` | The register of open items, the glossary, and no stack term, plan reference or code path in the product knowledge (`productKnowledge`). |
+| `plan log <phase> [ref]` | The implementation log of a phase, from the `Plan:` lines of the squash commits. |
+| `release [--dry-run]`, `release notes <version>` | On a `release/<x.y.z>` or `hotfix/<x.y.z>` branch, the versions of `release.versionFiles` and the changelog section; the notes of one version for the host's release. |
+| `ci changes <base> <head>` | Whether a change needs the code checks: not when every changed path is documentation (`checks.documentationPaths`, every Markdown file by default). In doubt it says it does. CI and the push gate use the same rule. |
 
 Planned for `0.1.0`, in the order of the build tasks:
 

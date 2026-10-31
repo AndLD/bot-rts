@@ -146,3 +146,13 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_t
 - **Problems / blockers / findings:** none. H-20261019-21, -22 (second half) and -23 are closed.
 - **Next step:** 17.7 (generic tools into the framework), `C3`: Opus 5.5 at high effort, in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
+
+### 2026-10-31 — 17.7 done: the generic tools are `harness` commands
+- **Tasks:** 17.7 ✅ (its log: [`phase-17/17.7.md`](./phase-17/17.7.md))
+- **Branch:** `chore/17.7-generic-tools` — done, PR #269
+- **Decisions / deviations from the plan:** `npm run docs:check` is `harness check all`. The product-knowledge file names, the release
+  version files and the documentation patterns are profile roles. H-20261030-05 is closed for the "documentation only" rule; the package
+  list of CI is 17.9's.
+- **Problems / blockers / findings:** the claim was opened late, after the work and with no other session holding the task (task log).
+- **Next step:** 17.7a in a fresh session ("Continue Phase 17"), `C2`: Sonnet 5.5 at high effort.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

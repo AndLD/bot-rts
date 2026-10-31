@@ -123,7 +123,7 @@ Run from the repository root unless a package is named.
 | Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
 | Import boundaries | `npm run check:boundaries` |
 | Message catalogues | `npm run i18n:check` |
-| The vendored framework against its lock, Markdown links and anchors, the open-items register and the glossary of the design | `npm run docs:check` |
+| Every check of the framework (`harness check all`): the vendored copy, the profile file, the layer map, links, backticked paths, the CORE scan, the plan summary, the changelog fragments and the product knowledge | `npm run docs:check` |
 | Take the framework again from its source into `harness/`; regenerate the managed files only; show a local change of `harness/` | `npm run harness -- sync`; `npm run harness -- sync --local`; `npm run harness -- diff` |
 | Build | `npm run build` |
 | End-to-end tests | `npm run e2e` |
@@ -132,6 +132,8 @@ Run from the repository root unless a package is named.
 | Start the local database (and Redis) | `npm run db:up` |
 | Apply migrations to the local database | `npm run db:migrate -w api` |
 | Seed the local database | `npm run db:seed -w api` |
+
+A release (`harness release`, on a release or hotfix branch) sets the version of package.json, lib/package.json, api/package.json, client/package.json, and then runs `npm install --package-lock-only --ignore-scripts`.
 
 ## 9. Review values
 
@@ -161,6 +163,12 @@ Project values, which must not appear in CORE text except on the **Role binding*
 ```bash
 PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\.md'
 ```
+
+The product-knowledge check (`harness check product-knowledge`, part of `npm run docs:check`) reads the product specification in
+`docs/product-knowledge/game-design/`: its glossary `02-glossary.md`, its register of open items `20-open-questions.md` and its backlog `21-backlog.md`.
+A line may point to the backlog by its section, §21.
+It scans `docs/product-knowledge/` for stack terms, plan references and code paths (`\b(?:api|client)\/src\/|\.(?:int\.)?test\.tsx?\b|module-catalog`), except `archived-docs/**, CHANGELOG.md, game-design/20-open-questions.md, game-design/21-backlog.md`.
+A file keeps the stack terms that are part of its product: `productKnowledge.allowedTerms` of the profile file.
 
 Bounded contexts (files of the product specification):
 

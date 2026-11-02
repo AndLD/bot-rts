@@ -1,0 +1,25 @@
+# Agent-runtime adapter contract
+
+An **agent-runtime adapter** says how a coding agent loads the rules and procedures, and which of the rules it can block before the action happens. A project
+selects zero or more in `adapters.runtimes`; a project with none is valid and gets the entry file, the procedures linked from its reading map, the Git hooks and CI,
+which is the agent-neutral minimum. The machine form is the `manifest.json` of the adapter (`x-roles.runtime`); `harness check adapters` holds a manifest to it.
+
+| Role | Kind | The adapter says |
+| ---- | ---- | ---------------- |
+| `entry-file` | required | how the runtime loads the entry file (a pointer file, or nothing when it reads the entry file itself) |
+| `always-loaded-rules` | required | what is loaded in every session; the entry file only, so that no text is loaded twice |
+| `on-demand-rules` | required | how a document is read when a task needs it; the reading map of the entry file |
+| `hook-configuration` | optional (none: every rule that needs a hook falls back to the Git hooks and CI) | the file that registers the hooks, and their events |
+| `hook-io` | logic-optional (needed with hooks) | `io.mjs`: reads the runtime's event and writes its answer (block, message, session context) |
+| `project-directory` | required | the environment variable that holds the project directory |
+| `read-exclusions` | required | how the runtime keeps the agent from reading the paths of `access.denyRead`, and what that does not cover |
+| `procedure-packaging` | required | where the neutral procedures of `core/procedures/` are written for the runtime, and in what form |
+| `pull-request-tools` | optional (none: the agent checks the required checks with the host's command before it merges, and the rule on CI monitoring with automatic fixes is "not applicable") | attaching a pull request and monitoring its CI |
+| `waiting-advice` | optional | notes on waiting for long-running commands |
+| `model-map` | optional | the default of `plan.complexity.models` |
+
+**Where a rule is caught.** Each adapter's manifest declares the rules it enforces and at which moment: *early* (the runtime, before the action), *local* (a Git hook)
+or *remote* (CI or the host). The core part of the rule-to-check map is generated from those declarations, so a project with other adapters gets a true map. A rule
+the runtime cannot block early falls to the Git hooks and CI, and a rule nothing can check is judgment, said so in the map.
+
+The `terms` of the manifest are the runtime's own words (its tool names and folders), joined into the CORE scan.

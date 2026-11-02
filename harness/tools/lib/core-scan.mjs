@@ -4,8 +4,9 @@
 // blocks rendered from `core/rules/`); and the framework's `core/` folder where the project owns it, whole: the staging folder of a framework
 // built inside the project, the vendored copy of a detached project, or the framework's own repository (mode "self").
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { DEFAULT_ENTRY_FILE } from './entry.mjs'
+import { adapterTerms } from './adapters.mjs'
 import { coreEntries } from './layers.mjs'
 import { MODES, readLock, VENDOR_DIR } from './lock.mjs'
 import { walk } from './tree.mjs'
@@ -33,11 +34,13 @@ function inSections(text, numbers) {
   })
 }
 
-function leakPatterns(terms) {
+// `adapters` are the term patterns of the framework's adapters (`adapterTerms`): words of a stack, a runtime or a host, which core must not use either
+function leakPatterns(terms, adapters = []) {
   return [
     ['stack term', new RegExp(terms.stack, 'i')],
     ['product term', new RegExp(productPattern(terms), 'i')],
-    ['project value', new RegExp(terms.projectValues, 'i')]
+    ['project value', new RegExp(terms.projectValues, 'i')],
+    ...adapters.map(({ source, pattern }) => [`${source} term`, new RegExp(pattern, 'i')])
   ]
 }
 
@@ -58,8 +61,8 @@ function lineProblems(path, line, index, patterns) {
  * The problems of the framework's `core/` folder, every file whole (no binding line, no sections); `files` maps a path to its text. With no file
  * at all the scan would prove nothing, so an empty `files` is a problem.
  */
-export function frameworkCoreProblems(files, terms, folder) {
-  const patterns = leakPatterns(terms)
+export function frameworkCoreProblems(files, terms, folder, adapters = []) {
+  const patterns = leakPatterns(terms, adapters)
   const paths = Object.keys(files).sort()
 
   if (paths.length === 0) {
@@ -135,7 +138,14 @@ export function checkCore({ root, profile }) {
     for (const path of walk(join(root, folder))) {
       frameworkFiles[`${folder}/${path}`] = readFileSync(join(root, folder, path), 'utf8')
     }
-    problems.push(...frameworkCoreProblems(frameworkFiles, profile.terms, folder))
+    problems.push(
+      ...frameworkCoreProblems(
+        frameworkFiles,
+        profile.terms,
+        folder,
+        adapterTerms(join(root, dirname(folder), 'adapters'))
+      )
+    )
   }
 
   const scope = folder ? ` and ${Object.keys(frameworkFiles).length} files of ${folder}` : ''

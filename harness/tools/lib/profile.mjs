@@ -88,6 +88,45 @@ export function validate(schema, value, path = '') {
   return problems
 }
 
+const folderOf = (path) => String(path).replace(/^\.\//, '').replace(/\/+$/, '')
+// Whether two folders are the same or one holds the other
+const overlaps = (a, b) => a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`)
+
+/**
+ * The problems of the stacks of a profile (design §4.1): with several stacks each lists the folders it owns (`packages`), and no folder belongs
+ * to two stacks, since the push gate and the format hook route a file to the one stack that owns it.
+ */
+export function stackProblems(stacks) {
+  const problems = []
+  const owned = stacks.map((entry, index) => ({
+    index,
+    name: typeof entry === 'string' ? entry : entry?.adapter,
+    folders: (typeof entry === 'object' && Array.isArray(entry?.packages) ? entry.packages : []).map(folderOf)
+  }))
+
+  if (stacks.length > 1) {
+    owned
+      .filter(({ name, folders }) => typeof name === 'string' && name && folders.length === 0)
+      .forEach(({ index, name }) =>
+        problems.push(
+          `adapters.stacks[${index}]: the project has several stacks, so "${name}" must list the folders it owns in "packages"`
+        )
+      )
+  }
+  for (const [position, first] of owned.entries()) {
+    for (const second of owned.slice(position + 1)) {
+      for (const a of first.folders) {
+        for (const b of second.folders.filter((folder) => overlaps(a, folder))) {
+          problems.push(
+            `adapters.stacks[${first.index}] (${first.name}) and adapters.stacks[${second.index}] (${second.name}) both claim ${a === b ? a : `${a} and ${b}`}; a folder belongs to one stack`
+          )
+        }
+      }
+    }
+  }
+  return problems
+}
+
 /**
  * `harness check profile`: the profile file of `root` against the schema, and the rules the subset cannot say: a stack entry is a name or an
  * object with an adapter name, and the document the profile document is generated into is not the profile file itself.
@@ -113,6 +152,7 @@ export function checkProfile(root, schema = readSchema()) {
       problems.push(`${PROFILE_FILE}: adapters.stacks[${index}]: a stack is a name or an object with an "adapter" name`)
     }
   })
+  problems.push(...stackProblems(profile.adapters?.stacks ?? []).map((problem) => `${PROFILE_FILE}: ${problem}`))
   if (profile.paths?.profileDocument === profile.paths?.profileFile) {
     problems.push(`${PROFILE_FILE}: paths.profileDocument must not be the profile file itself`)
   }

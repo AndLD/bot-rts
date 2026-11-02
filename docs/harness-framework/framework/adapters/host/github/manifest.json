@@ -1,0 +1,42 @@
+{
+  "axis": "host",
+  "name": "github",
+  "contract": 1,
+  "description": "GitHub: repository rulesets for the protected branches, GitHub Actions workflows, pull requests with the gh command line.",
+  "terms": "\\bgithub\\b|\\bgh\\b|\\.github/",
+  "roles": {
+    "repository-identity": {
+      "fills": "repository.slug and repository.url of the profile file; the host name is repository.host"
+    },
+    "protection-available": {
+      "fills": "detected from the API: the rulesets of the repository are readable, or GitHub answers that they need a public repository or a paid plan",
+      "module": "protect.mjs",
+      "export": "detectProtection"
+    },
+    "branch-protection": {
+      "fills": "one repository ruleset over the production and the integration branch, and the setting that keeps merged branches",
+      "module": "protect.mjs",
+      "export": "protect"
+    },
+    "required-checks": {
+      "fills": "the job names of requiredChecks; the aggregator job of the CI template reports on every change",
+      "file": "templates/ci.yml"
+    },
+    "ci-workflow-frame": {
+      "fills": "a workflow that triggers on the protected branches, with concurrency and the change-detection job",
+      "file": "templates/ci.yml"
+    },
+    "pull-request-title-check": { "fills": "the pr-title job of the CI template", "file": "templates/ci.yml" },
+    "pull-requests": { "fills": "gh pr create --draft, gh pr ready, gh pr checks, gh pr list, gh pr merge" },
+    "release": {
+      "fills": "a workflow on a version tag that checks the version and creates the release from the changelog",
+      "file": "templates/release.yml"
+    },
+    "values-in-host-files": {
+      "fills": "the branch triggers and the job names of the workflow files",
+      "module": "workflows.mjs",
+      "export": "readTriggers"
+    }
+  },
+  "templates": ["templates/ci.yml", "templates/release.yml"]
+}

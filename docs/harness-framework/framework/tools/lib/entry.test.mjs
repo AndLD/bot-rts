@@ -10,7 +10,8 @@ import { placeholderPaths } from './render.mjs'
 const profile = () => ({
   branches: { integration: 'dev', production: 'prod' },
   plan: { openEndedPhaseNumber: 9 },
-  repository: { host: 'SomeHost', protectionScript: 'tools/protect.sh' },
+  repository: { host: 'SomeHost' },
+  host: { protection: true },
   paths: { profileDocument: 'docs/profile.md' },
   documents: { rules: 'AGENTS.md', method: 'harness/core/method/method.md', stack: 'docs/stack.md' }
 })
@@ -80,7 +81,7 @@ test('the rules use the neutral wordings, and their only values are on the Role 
   assert.equal(valued.length, 1)
   assert.match(
     valued[0],
-    /^\*\*Role binding\.\*\*.*the integration branch is `dev`, the production branch is `prod`, the open-ended phase is Phase 9, the repository host is SomeHost, the branch-protection script is `tools\/protect\.sh`/
+    /^\*\*Role binding\.\*\*.*the integration branch is `dev`, the production branch is `prod`, the open-ended phase is Phase 9, the repository host is SomeHost; every other value/
   )
 })
 
@@ -95,16 +96,23 @@ test('the links are written relative to the entry file', () => {
 
 test('a role the profile lacks is an error naming it, so no line of a rule is left out', () => {
   const lacking = profile()
-  delete lacking.repository.protectionScript
   delete lacking.documents.stack
-  assert.deepEqual(missingRoles(rulesTemplate(ENTRY_BLOCKS['git-rules']), lacking), [
-    'repository.protectionScript',
-    'documents.stack'
-  ])
+  assert.deepEqual(missingRoles(rulesTemplate(ENTRY_BLOCKS['git-rules']), lacking), ['documents.stack'])
   assert.throws(
     () => renderEntryBlock('git-rules', lacking),
-    /the block "git-rules" of the entry file needs the profile roles repository\.protectionScript, documents\.stack/
+    /the block "git-rules" of the entry file needs the profile roles documents\.stack/
   )
+})
+
+test('the protection rule names the ruleset when the host enforces it, and the hooks when it cannot', () => {
+  const protectedHost = renderEntryBlock('git-rules', profile())
+  assert.match(protectedHost, /harness host protect/)
+  assert.match(protectedHost, /rule:git\.admin-bypass/)
+
+  const unprotected = renderEntryBlock('git-rules', { ...profile(), host: { protection: false } })
+  assert.doesNotMatch(unprotected, /harness host protect|rule:git\.admin-bypass/)
+  assert.match(unprotected, /cannot enforce this/)
+  assert.match(unprotected, /rule:git\.protection/)
 })
 
 test('a template is read without its leading comment, from the folder given', () => {

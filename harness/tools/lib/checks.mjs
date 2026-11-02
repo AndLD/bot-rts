@@ -2,6 +2,7 @@
 // runs them in the order below and then the project's own checks (`checks.project` of the profile file: commands), so the procedures and the
 // definition of done cite one command.
 import { spawnSync } from 'node:child_process'
+import { checkAdapters } from './adapters.mjs'
 import { checkChangelog } from './changelog.mjs'
 import { checkCore } from './core-scan.mjs'
 import { checkLayers } from './layers.mjs'
@@ -11,6 +12,7 @@ import { planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
 import { checkProfile } from './profile.mjs'
 import { checkGenerated, checkVendored } from './vendor.mjs'
+import { checkValues } from './values.mjs'
 
 const single = ({ problems, message }) => ({ problems, messages: [message] })
 
@@ -25,6 +27,11 @@ export const CHECKS = {
     messages: ['Checked that the managed files and blocks are what the tools generate now.']
   }),
   profile: ({ root }) => ({ problems: checkProfile(root), messages: ['Checked the profile file against the schema.'] }),
+  adapters: () => {
+    const { adapters, problems } = checkAdapters()
+    return { problems, messages: [`Checked the manifests of ${adapters.length} adapters against their contracts.`] }
+  },
+  values: (context) => single(checkValues(context)),
   layers: ({ root, profile }) =>
     profile.layers
       ? {

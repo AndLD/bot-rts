@@ -166,3 +166,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.8 (core documents into the framework), `C3`: Opus 5.5 at high effort, in a fresh session ("Continue Phase 17").
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
+
+### 2026-11-02 — 17.9 done: the contracts, the GitHub host adapter and `check values`
+- **Tasks:** 17.9 ✅ (its log: [`phase-17/17.9.md`](./phase-17/17.9.md))
+- **Branch:** `chore/17.9-contracts-github-host` — done, PR #274
+- **Decisions / deviations from the plan:** the role `repository.protectionScript` is gone (the protection is the command `harness host
+  protect`), and the protection rule has a text for `host.protection: false`. The merge guard is an optional host role. The CORE scan joins
+  the adapters' terms.
+- **Problems / blockers / findings:** none. H-20261030-05 is closed (the package list of CI comes from the profile, and `check values`
+  fails on a literal one).
+- **Next step:** 17.10 (stack preset node-ts, consumed here), `C2`.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

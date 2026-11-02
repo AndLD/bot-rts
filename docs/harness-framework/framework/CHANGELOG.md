@@ -30,8 +30,24 @@ versions follow [Semantic Versioning](https://semver.org/).
 - The plan method describes the agent-complexity markers as a standard, optional task property (its section 7): the `Agent` column of the
   phase template, the range column of the index template, the conformance rule and the exemption of done tasks.
 
+- The adapter contracts (design §4): `core/contracts/{stack,runtime,host}.md`, their machine form `profile/manifest.schema.json` (`x-roles`),
+  `harness check adapters` (a manifest filled to its contract), and the adapters' `terms` joined into the CORE scan. `adapters.stacks`
+  entries may list the `packages` they own, and `check profile` fails when two stacks claim one folder or a project with several stacks
+  leaves one without folders.
+- The GitHub host adapter (`adapters/host/github/`): `protect.mjs` (`harness host protect`, the ruleset of the protected branches, now on
+  Node, with the detection of whether the host can protect the repository and the new profile role `host.protection`, which must agree
+  with it), `workflows.mjs` (the triggers and job names of the workflow files) and the workflow templates `ci.yml` and `release.yml`
+  (the pull-request title check, change detection, the aggregator, coverage packages read from the profile).
+- `harness check values` (replaces a project's profile test): the host's CI triggers equal the protected branches; every required check is a
+  job; no branch, repository or plan path of the profile is spelled out in the files of `checks.roleOnlyPaths`, and no workflow names a
+  protected branch outside its triggers or lists the coverage packages.
+- `{{#unless …}}` blocks in the template engine.
+
 ### Changed
 
+- The protection rule of the entry file no longer names a script: the host enforces it with the ruleset `harness host protect` sets, and
+  when `host.protection` is off the rule falls back to the hooks. The profile role `repository.protectionScript` is gone, and so is the
+  clause from the Role binding line.
 - Two rules of the non-negotiables are worded without a stack: "no new untyped public boundaries" (the stack's lint rule names them) and
   "no debug printing" (use the logger).
 - The method's local-database step applies only where the profile has the database commands (`commands.dbUp`, `dbMigrate`, `dbSeed`), an

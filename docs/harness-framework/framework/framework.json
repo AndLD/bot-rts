@@ -2,6 +2,6 @@
   "name": "harness-framework",
   "version": "0.1.0-dev",
   "license": "MIT",
-  "adapters": { "stack": [], "runtime": [], "host": [] },
+  "adapters": { "stack": [], "runtime": [], "host": ["github"] },
   "distributable": ["core", "profile", "adapters", "tools", "framework.json", "README.md", "CHANGELOG.md", "LICENSE"]
 }

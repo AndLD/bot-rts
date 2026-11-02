@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, test } from 'node:test'
-import { checkProfile, loadProfile, lookup, readSchema, validate, withDefaults } from './profile.mjs'
+import { checkProfile, loadProfile, lookup, readSchema, stackProblems, validate, withDefaults } from './profile.mjs'
 
 const root = mkdtempSync(join(tmpdir(), 'harness-profile-'))
 after(() => rmSync(root, { recursive: true, force: true }))
@@ -75,7 +75,12 @@ test('a missing file and invalid JSON are reported', () => {
 
 test('a stack is a name or an object with an adapter name; the document must not be the profile file', () => {
   const profile = valid()
-  profile.adapters.stacks = ['node-ts', { adapter: 'python', packages: ['svc'] }, { packages: [] }, 3]
+  profile.adapters.stacks = [
+    { adapter: 'node-ts', packages: ['web'] },
+    { adapter: 'python', packages: ['svc'] },
+    { packages: [] },
+    3
+  ]
   profile.paths.profileDocument = 'harness-profile.json'
   assert.deepEqual(checkProfile(project('stacks', profile), schema), [
     'harness-profile.json: adapters.stacks[2]: a stack is a name or an object with an "adapter" name',
@@ -102,4 +107,61 @@ test('validate covers enum, integer and nested items', () => {
     'free.k: expected string, found number'
   ])
   assert.deepEqual(validate(sample, null), ['(the profile file): expected object, found null'])
+})
+
+test('several stacks each list the folders they own, and a folder belongs to one stack', () => {
+  assert.deepEqual(stackProblems(['node-ts']), [])
+  assert.deepEqual(
+    stackProblems([
+      { adapter: 'node-ts', packages: ['client'] },
+      { adapter: 'python', packages: ['api', 'worker/'] }
+    ]),
+    []
+  )
+  assert.deepEqual(stackProblems([{ adapter: 'node-ts', packages: ['client'] }, 'python']), [
+    'adapters.stacks[1]: the project has several stacks, so "python" must list the folders it owns in "packages"'
+  ])
+  assert.deepEqual(
+    stackProblems([
+      { adapter: 'node-ts', packages: ['api'] },
+      { adapter: 'python', packages: ['./api'] }
+    ]),
+    ['adapters.stacks[0] (node-ts) and adapters.stacks[1] (python) both claim api; a folder belongs to one stack']
+  )
+  assert.match(
+    stackProblems([
+      { adapter: 'node-ts', packages: ['services'] },
+      { adapter: 'python', packages: ['services/api'] }
+    ])[0],
+    /both claim services and services\/api/
+  )
+})
+
+test('two stacks that claim one path fail the profile check', () => {
+  writeFileSync(
+    join(root, 'harness-profile.json'),
+    JSON.stringify({
+      ...valid(),
+      adapters: {
+        stacks: [
+          { adapter: 'node-ts', packages: ['api'] },
+          { adapter: 'python', packages: ['api'] }
+        ],
+        host: 'github'
+      }
+    })
+  )
+  assert.deepEqual(checkProfile(root, schema), [
+    'harness-profile.json: adapters.stacks[0] (node-ts) and adapters.stacks[1] (python) both claim api; a folder belongs to one stack'
+  ])
+})
+
+test('the host can be declared unable to protect, and protects by default', () => {
+  assert.equal(withDefaults(schema, { repository: {} }).host.protection, true)
+  assert.equal(withDefaults(schema, { host: { protection: false } }).host.protection, false)
+  assert.ok(
+    validate(schema, { ...valid(), host: { protection: 'no' } }).some((problem) =>
+      /host\.protection: expected boolean/.test(problem)
+    )
+  )
 })

@@ -116,7 +116,7 @@ unenforced:
 | Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
 | Import boundaries                      | `npm run check:boundaries`                 |
 | Translation completeness               | `npm run i18n:check`                       |
-| Branch protection                      | `scripts/protect-branches.sh` (GitHub settings) |
+| Branch protection                      | `harness host protect` (GitHub settings) |
 | Formatting                             | `npm run format:check`                     |
 
 ### M6: size and always-loaded cost

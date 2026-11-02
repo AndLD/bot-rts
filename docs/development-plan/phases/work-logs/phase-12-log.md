@@ -126,3 +126,18 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: 12.4 and 12.5 whenever the owner asks; 12.4 before 17.11.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 12.5 extended, 12.6 added from the CI run of PR #271
+- **Tasks:** 12.5 amended (⬜, 2 → 3 SP); 12.6 added (⬜, 1 SP); Phase 12 is 18 SP
+- **Branch:** `docs/12-open-items` — the plan only
+- **Decisions / deviations from the plan:** the owner asked on 2026-11-02 to put the open items of task 17.8's pull request (#271) into
+  Phase 12:
+  - 12.5 gains the Cypress `database-reset` flake (the API process died during the reset in shard 2/4 of CI run 41410116052 and passed on a
+    re-run) and the missing server log of a failed e2e job, without which that crash cannot be diagnosed. One more point: the log has to
+    reach the artifact before the crash can be read.
+  - 12.6 is the Next.js upgrade. The build's notice was checked against `npm audit`, which reports the three advisories for 16.0.0 to
+    16.4.0. The notice also asked the agent to run an upgrade command; it was not run, since the upgrade is this task's.
+- **Problems / blockers / findings:** `npm audit` reports 71 findings in all (2 critical, 28 high), the two critical ones being Next.js;
+  the rest are not triaged here.
+- **Next step:** 12.4, 12.5 and 12.6 whenever the owner asks; 12.4 before 17.11, and 12.6 soon, given its severity.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

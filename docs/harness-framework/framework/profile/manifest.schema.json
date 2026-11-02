@@ -56,6 +56,26 @@
         }
       }
     },
+    "enforces": {
+      "type": "array",
+      "default": [],
+      "description": "The rules of the entry file the adapter holds, and at which moment: early (the agent runtime, before the action), local (a Git hook) or remote (the host and CI). The generated core rows of the rule-to-check map are built from these declarations. A `condition` limits an entry to a host that protects its branches (host-protected) or one that cannot (host-unprotected).",
+      "items": {
+        "type": "object",
+        "required": ["rule", "when", "by"],
+        "additionalProperties": false,
+        "properties": {
+          "rule": { "type": "string", "pattern": "^[a-z0-9.-]+$", "description": "A rule id of the entry file." },
+          "when": { "type": "string", "enum": ["early", "local", "remote"] },
+          "by": { "type": "string", "description": "What holds the rule." },
+          "condition": { "type": "string", "enum": ["host-protected", "host-unprotected"] },
+          "partial": {
+            "type": "boolean",
+            "description": "True when the mechanism holds only part of the rule; a rule held only by partial mechanisms is \"partly\" in the map."
+          }
+        }
+      }
+    },
     "templates": {
       "type": "array",
       "items": { "type": "string" },
@@ -88,7 +108,7 @@
       "always-loaded-rules": "required",
       "on-demand-rules": "required",
       "hook-configuration": "optional",
-      "hook-io": "logic-optional",
+      "hook-io": "optional",
       "project-directory": "required",
       "read-exclusions": "required",
       "procedure-packaging": "required",

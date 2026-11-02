@@ -5,5 +5,6 @@
 import { entryBlocks } from './entry.mjs'
 import { layerMap } from './layers.mjs'
 import { profileDocument } from './profile-document.mjs'
+import { ruleMap } from './rule-map.mjs'
 
-export const generators = [profileDocument, layerMap, ...entryBlocks]
+export const generators = [profileDocument, layerMap, ruleMap, ...entryBlocks]

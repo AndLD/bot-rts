@@ -1,23 +1,48 @@
 {
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-session-start.mjs\"" }] }
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/harness/tools/runtime-hooks/session-start.mjs\""
+          }
+        ]
+      }
     ],
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-guard-bash.mjs\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/harness/tools/runtime-hooks/guard-shell.mjs\""
+          }
+        ]
       },
       {
         "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-guard-edit.mjs\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/harness/tools/runtime-hooks/guard-edit.mjs\""
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-format-edited.mjs\"" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/harness/tools/runtime-hooks/format-edited.mjs\""
+          }
+        ]
       }
     ]
+  },
+  "permissions": {
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(!**/.env.example)", "Read(**/*.pem)", "Read(**/*.key)"]
   }
 }

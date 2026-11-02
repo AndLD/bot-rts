@@ -10,7 +10,7 @@ which is the agent-neutral minimum. The machine form is the `manifest.json` of t
 | `always-loaded-rules` | required | what is loaded in every session; the entry file only, so that no text is loaded twice |
 | `on-demand-rules` | required | how a document is read when a task needs it; the reading map of the entry file |
 | `hook-configuration` | optional (none: every rule that needs a hook falls back to the Git hooks and CI) | the file that registers the hooks, and their events |
-| `hook-io` | logic-optional (needed with hooks) | `io.mjs`: reads the runtime's event and writes its answer (block, message, session context) |
+| `hook-io` | optional (needed with hooks) | how the runtime's event is read and its answer written (block, message, session context); the form of each supported runtime is in the framework's `tools/runtime-hooks/io.mjs`, which a new runtime extends |
 | `project-directory` | required | the environment variable that holds the project directory |
 | `read-exclusions` | required | how the runtime keeps the agent from reading the paths of `access.denyRead`, and what that does not cover |
 | `procedure-packaging` | required | where the neutral procedures of `core/procedures/` are written for the runtime, and in what form |

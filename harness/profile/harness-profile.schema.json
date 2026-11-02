@@ -675,6 +675,31 @@
         }
       }
     },
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What an agent may touch (design §4.4).",
+      "default": { "denyRead": [".env", ".env.*", "!.env.example", "*.pem", "*.key"] },
+      "properties": {
+        "denyRead": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [".env", ".env.*", "!.env.example", "*.pem", "*.key"],
+          "description": "Gitignore-style patterns of the paths an agent must not read (secrets only; files that merely cost context are not listed). A pattern with ! is a carve-out. The agent-runtime adapter turns them into its read exclusions, and `harness check scaffold` holds that they are there."
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The project's part of the Git hooks.",
+      "properties": {
+        "prePushSetup": {
+          "type": "string",
+          "description": "A shell file, relative to the root, that the pre-push hook sources before the gate runs: the local settings of the checkout (an `.env` file, the address of the database)."
+        }
+      }
+    },
     "gate": {
       "type": "object",
       "additionalProperties": false,

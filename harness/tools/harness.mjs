@@ -16,6 +16,7 @@
 //   harness release notes <version>                               the changelog section of a version, for the host's release
 //   harness ci changes <base> <head>                              whether a change needs the code checks (`code=true|false`)
 //   harness gate [--dry-run]                                      the local gate of a push (the refs on standard input): the checks its files need
+//   harness guard pre-commit | pre-push                           the Git guards of the protected branches (run by the Git hooks)
 //   harness coverage check-changed [--skip-missing] <base> [<package>...]   the files changed since <base> meet the coverage gate
 //   harness coverage merge <artifacts> [--out <dir>] [<package>...]         merge the coverage shards of CI and hold the total to the gate
 //   harness host protect [--repo <owner/name>]                    set the protection of the production and the integration branch on the host
@@ -28,6 +29,7 @@ import { ciChanges } from './lib/changes.mjs'
 import { release, releaseNotes } from './lib/changelog.mjs'
 import { CHECKS, runCheck, runProjectChecks } from './lib/checks.mjs'
 import { checkChanged, mergeShards } from './lib/coverage.mjs'
+import { guardCommit, guardPush } from './lib/git-guards.mjs'
 import { readStdin, runGate } from './lib/gate.mjs'
 import { protectHost } from './lib/host.mjs'
 import { layerConfig, renderLayerMap } from './lib/layers.mjs'
@@ -50,6 +52,7 @@ const USAGE = `usage: harness <command>
   release notes <version>
   ci changes <base> <head>
   gate [--dry-run]
+  guard pre-commit|pre-push
   coverage check-changed [--skip-missing] <base> [<package>...]
   coverage merge <artifacts> [--out <dir>] [<package>...]
   host protect [--repo <owner/name>]`
@@ -173,6 +176,15 @@ export async function run(argv, { out = console.log, err = console.error } = {})
     if (words[0] === 'ci' && words[1] === 'changes' && words.length === 4) {
       out(ciChanges({ root, profile: loadProfile(root), base: words[2], head: words[3] }).message)
       return 0
+    }
+    if (words[0] === 'guard' && words.length === 2 && ['pre-commit', 'pre-push'].includes(words[1])) {
+      const profile = loadProfile(root)
+      const { code, message } =
+        words[1] === 'pre-commit' ? guardCommit({ root, profile }) : guardPush({ stdin: readStdin(), profile })
+      if (message) {
+        err(message)
+      }
+      return code
     }
     if (command === 'gate') {
       return await runGate({ root, profile: loadProfile(root), stdin: readStdin(), dryRun: flags.dryRun, out, err })

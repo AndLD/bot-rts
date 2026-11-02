@@ -196,3 +196,13 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.12 (procedures and their packaging), `C2`.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 17.12 done: the procedures and their packaging
+- **Tasks:** 17.12 ✅ (its log: [`phase-17/17.12.md`](./phase-17/17.12.md))
+- **Branch:** `chore/17.12-procedures` — done, PR #277
+- **Decisions / deviations from the plan:** seven procedures; `new-adapter` comes with 17.14. The skills are generated per selected runtime, and the
+  entry file's `procedures` block is the fallback for every agent.
+- **Problems / blockers / findings:** none. B6 is closed.
+- **Next step:** 17.13 (bootstrap engine and front ends), `C3`: Opus 5.5 at high effort, in a fresh session. The owner asked this session to stop
+  after 17.12.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

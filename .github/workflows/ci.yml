@@ -291,9 +291,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Install dependencies
-        if: needs.changes.outputs.code == 'true'
-        uses: ./.github/actions/install
       - name: Download the coverage of the shards
         if: needs.changes.outputs.code == 'true'
         uses: actions/download-artifact@v4
@@ -302,7 +299,7 @@ jobs:
           path: coverage-artifacts
       - name: Merge the coverage and apply the coverage gate
         if: needs.changes.outputs.code == 'true'
-        run: node scripts/merge-coverage.mjs coverage-artifacts
+        run: node harness/tools/harness.mjs coverage merge coverage-artifacts
       - name: Coverage report
         if: always() && needs.changes.outputs.code == 'true'
         run: |
@@ -317,7 +314,7 @@ jobs:
           done
       - name: Coverage of changed files (the coverage gate)
         if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" $(node harness/tools/harness.mjs profile get coveragePackages)
+        run: node harness/tools/harness.mjs coverage check-changed "origin/${{ github.base_ref }}" $(node harness/tools/harness.mjs profile get coveragePackages)
 
   docker:
     # The API image must keep building (the release workflow publishes it)

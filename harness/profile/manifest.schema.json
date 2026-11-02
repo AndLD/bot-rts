@@ -36,6 +36,22 @@
           "export": {
             "type": "string",
             "description": "The function of that module (a logic role has a module and an export)."
+          },
+          "files": {
+            "type": "array",
+            "description": "For the stack role \"ignore-files\": the files in which the formatter and the linters exclude paths. Each must exclude the vendored framework (`harness check scaffold`).",
+            "items": {
+              "type": "object",
+              "required": ["path"],
+              "additionalProperties": false,
+              "properties": {
+                "path": { "type": "string", "description": "The ignore file, relative to the project root." },
+                "optional": {
+                  "type": "boolean",
+                  "description": "True when the file may be missing (the project does not use that tool at its root)."
+                }
+              }
+            }
           }
         }
       }

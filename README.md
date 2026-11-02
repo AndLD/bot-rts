@@ -339,7 +339,7 @@ pm2 start ecosystem.config.json
 
 - **Unit tests:** Jest in `api`, `client` and `mcp`. **Integration tests:** `*.int.test.ts` on a real PostgreSQL in Docker
   (`npm run db:up`), no in-memory database. **E2E:** Cypress (`npm run e2e`).
-- **Coverage gate:** per package and per changed file ([value in the profile](./docs/profile.md#2-quality-gates)), enforced in CI and by the pre-push hook. Further gates: import boundaries, OpenAPI drift,
+- **Coverage gate:** per package and per changed file ([value in the profile](./docs/profile.md#2-quality-gates)), enforced in CI; the pre-push hook holds the changed files whose related tests ran. Further gates: import boundaries, OpenAPI drift,
   translations, Markdown links, Lighthouse, and the load and soak harness (`npm run load`).
 
 Commands, conventions, the end-to-end coverage matrix and known issues: [`docs/testing/`](./docs/testing/README.md).

@@ -1,6 +1,6 @@
 import nextJest from 'next/jest.js'
 import type { Config } from 'jest'
-// The coverage gate of the project profile (docs/profile.md), shared with scripts/check-changed-coverage.mjs
+// The coverage gate of the project profile (docs/profile.md), shared with `harness coverage check-changed`
 import { coverageGate } from '../harness-profile.json'
 
 // Loads next.config.ts and the env files, and compiles TS/TSX with SWC
@@ -27,7 +27,7 @@ const config: Config = {
     '!src/shared/api/generated.ts' // generated from the OpenAPI document of the API (npm run api:generate)
   ],
   coverageThreshold: { global: coverageGate },
-  // `json` is what scripts/merge-coverage.mjs merges across the CI shards
+  // `json` is what `harness coverage merge` merges across the CI shards
   coverageReporters: ['text-summary', 'json-summary', 'json', 'lcov']
 }
 

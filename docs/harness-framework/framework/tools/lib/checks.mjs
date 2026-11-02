@@ -11,6 +11,7 @@ import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
 import { checkProfile } from './profile.mjs'
+import { checkScaffold } from './scaffold.mjs'
 import { checkGenerated, checkVendored } from './vendor.mjs'
 import { checkValues } from './values.mjs'
 
@@ -27,6 +28,7 @@ export const CHECKS = {
     messages: ['Checked that the managed files and blocks are what the tools generate now.']
   }),
   profile: ({ root }) => ({ problems: checkProfile(root), messages: ['Checked the profile file against the schema.'] }),
+  scaffold: (context) => single(checkScaffold(context)),
   adapters: () => {
     const { adapters, problems } = checkAdapters()
     return { problems, messages: [`Checked the manifests of ${adapters.length} adapters against their contracts.`] }

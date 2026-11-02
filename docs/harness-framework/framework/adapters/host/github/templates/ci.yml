@@ -77,11 +77,27 @@ jobs:
         if: needs.changes.outputs.code == 'true'
         with:
           node-version-file: .nvmrc
+      - name: Download the coverage of the shards
+        if: needs.changes.outputs.code == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+      - name: Merge the coverage and apply the coverage gate
+        if: needs.changes.outputs.code == 'true'
+        run: node harness/tools/harness.mjs coverage merge coverage-artifacts
       - name: Coverage report
         if: always() && needs.changes.outputs.code == 'true'
         run: |
           for pkg in $(node harness/tools/harness.mjs profile get coveragePackages); do
             [ -f "$pkg/coverage/coverage-summary.json" ] || continue
-            echo "### Coverage ($pkg)" >> "$GITHUB_STEP_SUMMARY"
-            cat "$pkg/coverage/coverage-summary.json" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "### Coverage ($pkg)"
+              echo '```'
+              node -e "const s=require('./$pkg/coverage/coverage-summary.json').total;for(const m of Object.keys(s))console.log(m.padEnd(11),s[m].pct+'%')"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           done
+      - name: Coverage of changed files (the coverage gate)
+        if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
+        run: node harness/tools/harness.mjs coverage check-changed "origin/${{ github.base_ref }}" $(node harness/tools/harness.mjs profile get coveragePackages)

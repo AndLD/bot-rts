@@ -1,5 +1,6 @@
-// The database setup of the local gate (scripts/local-gate.mjs, run by .githooks/pre-push): before `npm run db:up`, find out which case the push is in
-// and act on it, so that a failure says what to do and nobody reaches for `git push --no-verify` (docs/testing/README.md, "Local database").
+// The database setup of the local gate (`gate.prepare.database` of harness-profile.json, called by `harness gate` before the first step that needs a
+// database): before `npm run db:up`, find out which case the push is in and act on it, so that a failure says what to do and nobody reaches for
+// `git push --no-verify` (docs/testing/README.md, "The database of the gate").
 import { spawnSync } from 'node:child_process'
 import net from 'node:net'
 
@@ -104,3 +105,27 @@ export const DB_UP_FAILED_MESSAGE = [
   'in `.env` at the root of this checkout, then push again:',
   ...ENV_LINES.map((line) => `  ${line}`)
 ].join('\n')
+
+/**
+ * The preparation `harness gate` calls: use a database that answers, start one, or throw with what to do.
+ * @param {{ run: (step: object) => number, env?: NodeJS.ProcessEnv, probes?: typeof realProbes }} options `run` runs a step of the gate
+ * @returns {Promise<{ message?: string }>}
+ */
+export async function prepare({ run, env = process.env, probes = realProbes }) {
+  const decision = await decideDatabase({
+    postgresPort: portOf(env.DATABASE_URL, 5432),
+    redisPort: portOf(env.REDIS_URL, 6379),
+    probes
+  })
+
+  if (decision.action === 'stop') {
+    throw new Error(decision.message)
+  }
+  if (decision.action === 'use') {
+    return { message: 'pre-push: a database already answers on the configured ports, so the tests use it' }
+  }
+  if (run({ label: 'database', command: 'npm', args: ['run', 'db:up'] }) !== 0) {
+    throw new Error(`pre-push: "database" failed\n${DB_UP_FAILED_MESSAGE}`)
+  }
+  return {}
+}

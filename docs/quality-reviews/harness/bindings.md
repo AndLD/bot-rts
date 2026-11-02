@@ -331,9 +331,9 @@ Carrier inventory (M32), read-only:
 
 | Carrier | Where to look |
 | ------- | ------------- |
-| Skills | `.claude/skills/*/SKILL.md` in the repository (none today); user-level skills in `~/.claude/skills` are reviewed only for duplication of repository rules |
-| Agent-runtime hooks | `hooks` in `.claude/settings.json` and `.claude/settings.local.json` (the four hooks of `.claude/settings.json`) |
-| Version-control hooks | `.githooks/` (`pre-push` today), installed through the Git `core.hooksPath` setting |
+| Skills | `.claude/skills/*/SKILL.md` in the repository (generated from `harness/core/procedures/`); user-level skills in `~/.claude/skills` are reviewed only for duplication of repository rules |
+| Agent-runtime hooks | `hooks` in `.claude/settings.json` and `.claude/settings.local.json` (the four hooks of `.claude/settings.json`, scripts of `harness/tools/runtime-hooks/`) |
+| Version-control hooks | `.githooks/` (the shims `pre-commit` and `pre-push`, which run the hooks of `harness/tools/git-hooks/`), installed through the Git `core.hooksPath` setting |
 | CI jobs | `.github/workflows/ci.yml`, `release.yml` |
 
 Rule-to-carrier map (M33): reuse the M5 sample and the workflows counted in M22. Candidates to check each time:

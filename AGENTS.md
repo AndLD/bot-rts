@@ -29,6 +29,20 @@ reading map. The rest is read on demand:
 | run tests, find a command | [`docs/testing/`](./docs/testing/README.md), [profile §8](./docs/profile.md#8-commands) |
 | find any other document | [profile §10](./docs/profile.md#10-document-map) (document map) |
 
+**Procedures** (steps for recurring work, also available as skills of the agent runtime):
+
+<!-- harness:begin procedures -->
+| When | Follow the procedure |
+| ---- | -------------------- |
+| asked to review the quality of the code (not the diff of one change) | [`harness/core/procedures/code-review.md`](./harness/core/procedures/code-review.md) |
+| a session ends or pauses, and when a task finishes, to leave the state of the work in the repository | [`harness/core/procedures/end-session.md`](./harness/core/procedures/end-session.md) |
+| the last task of a phase is merged, to close the phase and report it | [`harness/core/procedures/finish-phase.md`](./harness/core/procedures/finish-phase.md) |
+| asked to review the quality of the harness (the documents, rules, hooks and checks that steer agents) | [`harness/core/procedures/harness-review.md`](./harness/core/procedures/harness-review.md) |
+| a branch is ready and a pull request has to be opened, or a claim pull request marked ready | [`harness/core/procedures/open-pull-request.md`](./harness/core/procedures/open-pull-request.md) |
+| cutting a release or a hotfix | [`harness/core/procedures/release.md`](./harness/core/procedures/release.md) |
+| starting or resuming a phase or a task of the development plan, before any other work on it | [`harness/core/procedures/start-task.md`](./harness/core/procedures/start-task.md) |
+<!-- harness:end procedures -->
+
 ---
 
 ## 1. Mission & non-negotiables

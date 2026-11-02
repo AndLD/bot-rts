@@ -141,7 +141,7 @@
     "tools/lib/adapters.test.mjs": "7874de761b012ae1982d3d026317b8682b4414934c9aa3a878e49777680c13bf",
     "tools/lib/bootstrap-sameness.test.mjs": "e92be64cb4b9068eb81145d5013a9297e49e02a71d95753bcd77858cc813a034",
     "tools/lib/bootstrap.mjs": "be5feebcd57ec5dbf3b3623978a9c6517ed0ca060a964ea12b9804886c4f86f4",
-    "tools/lib/bootstrap.test.mjs": "6337d15f5c78dfe39ace436cc7cd28009e60652e7c8da11501d73e5ba7752169",
+    "tools/lib/bootstrap.test.mjs": "6c9651dfe0ea91c1e0e135affdc1f7998e62ca38b0792babe594209bcd25029b",
     "tools/lib/changelog.mjs": "10fcb724b09e0b141b520ca037c510071bb74a3f5a3fbe90c8794e516cb92a11",
     "tools/lib/changelog.test.mjs": "f48067484ab7925e58bb38f321ce070d770666bc845b4100007657e549289b38",
     "tools/lib/changes.mjs": "f4d4c7717b7a8cc0d66ed396ec16c2fe800eaf1af6cf3ea017d6e952129edd62",

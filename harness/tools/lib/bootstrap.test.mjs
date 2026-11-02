@@ -243,7 +243,24 @@ test('--self makes the framework tree at the root a project of its own: mode sel
     })
   )
   const problems = []
-  const { messages: done } = await bootstrap({ root, self: true, out: () => {}, err: (line) => problems.push(line) })
+  // The bootstrap commits: a fixed identity, so that the test does not depend on the machine's Git configuration (CI has none)
+  const identity = {
+    GIT_AUTHOR_NAME: 't',
+    GIT_AUTHOR_EMAIL: 't@t',
+    GIT_COMMITTER_NAME: 't',
+    GIT_COMMITTER_EMAIL: 't@t'
+  }
+  const saved = Object.fromEntries(Object.keys(identity).map((key) => [key, process.env[key]]))
+  Object.assign(process.env, identity)
+  let done
+  try {
+    ;({ messages: done } = await bootstrap({ root, self: true, out: () => {}, err: (line) => problems.push(line) }))
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
+  }
 
   const lock = readLock(root)
   assert.equal(lock.mode, 'self')

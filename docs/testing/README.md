@@ -61,6 +61,23 @@ of the vendored framework never leaves the machine. The file selection is `planG
 whole package (its total, and a changed file that no test reaches) is CI's, which runs everything. A push that changes one client file ran
 8 related suites (77 tests) and the whole gate in 22 s (task 16.6).
 
+**The database of the gate.** A push that runs the tests of `api` needs PostgreSQL and Redis, and the gate finds out which case it is in
+before it runs `npm run db:up` (`scripts/local-gate-database.mjs`, tested by `npm run test:scripts`); a push that needs no database needs no
+Docker either:
+
+| The gate finds | It does |
+| -------------- | ------- |
+| PostgreSQL and Redis already answer on the ports of `DATABASE_URL` and `REDIS_URL` (the main checkout's containers, or your own) | uses them; the integration tests create a database of their own on the server, so two runs do not meet |
+| Docker is not running (`docker info` fails) | stops: "start Docker Desktop (`open -a Docker`), then push again" |
+| a port is in use by a program that is not the database | stops with the two lines for `.env` (`POSTGRES_PORT`, `REDIS_PORT`, [Local environment](#local-environment)) |
+| the ports are free | `npm run db:up`; if that fails on an allocated port, the same two lines are printed |
+
+The hook builds `DATABASE_URL` from `POSTGRES_PORT` and `REDIS_URL` from `REDIS_PORT` of the checkout's `.env`.
+
+**Bypassing the gate.** `git push --no-verify` is the owner's, for an emergency, and the task's log records when it was used and why. An
+agent never uses it: when the gate fails, fix the cause, or stop and say what blocks it. The gate says what to do for the failures that
+used to invite the flag (a database that cannot start, Docker off).
+
 ## Local environment
 
 - After pulling new phases bring the database up to date: `npm run db:up` and `npm run db:migrate -w api`. An outdated schema makes the

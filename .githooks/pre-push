@@ -2,7 +2,9 @@
 # The local gate before code leaves the machine: scripts/local-gate.mjs reads the refs of the push, takes the files they change and runs only
 # the checks those files need (typecheck and lint of the changed packages, the tests related to the changed files, the coverage of the changed
 # files, the generated files). A push that changes no file or only Markdown runs no code check. The full run is CI's, and
-# `npm run test:coverage`. Skip once with `git push --no-verify`. The gate is described in docs/testing/README.md.
+# `npm run test:coverage`. The gate is described in docs/testing/README.md.
+# Never bypass it with `git push --no-verify`: that flag is the owner's, for an emergency, and is recorded in the log of the task
+# (docs/testing/README.md, "Bypassing the gate"). When the database cannot start, the gate says what to do.
 set -e
 
 cd "$(git rev-parse --show-toplevel)"
@@ -13,5 +15,6 @@ if [ -f harness/tools/harness.mjs ]; then node harness/tools/harness.mjs check v
 # A checkout with a database port of its own (POSTGRES_PORT in .env, docs/testing/README.md) tests against that database
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 export DATABASE_URL="${DATABASE_URL:-postgresql://botrts:botrts@localhost:${POSTGRES_PORT:-5432}/botrts}"
+export REDIS_URL="${REDIS_URL:-redis://localhost:${REDIS_PORT:-6379}}"
 
 exec node scripts/local-gate.mjs

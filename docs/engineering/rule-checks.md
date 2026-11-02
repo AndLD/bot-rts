@@ -117,6 +117,7 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 94 | A Prisma migration is applied to the local development database (stack §5) | row 8 checks the migration against the schema in CI; the developer's own database is outside the repository (row 25) | partly |
 | 95 | The agent-runtime tools are used as the table of stack §6 says; waiting patterns and stale events are handled as listed (stack §6) | advice on a tool; the Hook set refuses the unsafe Git commands (rows 13 and 33) | judgment |
 | 96 | `harness/` is never edited by hand; the framework source and the vendored copy change together (AGENTS §9) | `harness check vendored`: an edited, removed or added file in `harness/`, or a source that changed without a sync, fails `docs:check` (CI) and the pre-push hook on every push; an accepted override is printed on every run | enforced |
+| 97 | `git push --no-verify` is the owner's, for an emergency, and is recorded in the task log; an agent never uses it (docs/testing/README.md, "Bypassing the gate") | the pre-push hook gives the cases that invited the flag a message of their own (`scripts/local-gate-database.mjs`: Docker off, a port taken, a database that answers); nothing refuses the flag itself until the Bash guard of 17.11 does | partly |
 
 ## Source index
 
@@ -143,5 +144,6 @@ Every normative bullet of the sources, by section, with the rows that hold it.
 | `docs/engineering/stack.md` | §4 test tooling | 1, 2, 92 |
 | `docs/engineering/stack.md` | §5 definition of done, stack items | 6, 7, 8, 21, 31, 93, 94 |
 | `docs/engineering/stack.md` | §6 agent runtime | 56, 95 |
+| `docs/testing/README.md` | the local gate: bypassing it | 97 |
 
 Rules added to the sources change this table in the same pull request: a rule without a row is a rule nobody checks.

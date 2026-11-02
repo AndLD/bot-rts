@@ -3,6 +3,7 @@
 // `, `, and a path with no value is an error (a workflow with a hole in it would be wrong silently).
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { inFramework } from '../../../tools/lib/lock.mjs'
 
 export const TEMPLATES_DIR = join(import.meta.dirname, 'templates')
 // The types of the Conventional Commits that the pull-request title check accepts
@@ -28,7 +29,13 @@ export function renderTemplate(template, context) {
  * aggregator needs; `checkoutSetup`: nothing yet).
  */
 export function templateContext(profile, { jobs = [] } = {}) {
-  return { ...profile, commitTypes: COMMIT_TYPES, jobs, versionFile: profile.release?.versionFiles?.[0] }
+  return {
+    ...profile,
+    commitTypes: COMMIT_TYPES,
+    jobs,
+    versionFile: profile.release?.versionFiles?.[0],
+    harness: inFramework(profile, 'tools/harness.mjs')
+  }
 }
 
 /** A workflow template of this adapter, rendered. */

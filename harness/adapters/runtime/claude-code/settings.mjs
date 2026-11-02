@@ -3,9 +3,9 @@
 // scaffold` then holds the invariants: every hook entry is present and every deny rule is present.
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { inFramework } from '../../../tools/lib/lock.mjs'
 
 export const SETTINGS_PATH = '.claude/settings.json'
-const HOOKS_DIR = 'harness/tools/runtime-hooks'
 
 // The framework's hook entries: the event, the tool matcher, and the script
 export const HOOKS = Object.freeze([
@@ -15,7 +15,8 @@ export const HOOKS = Object.freeze([
   { event: 'PostToolUse', matcher: 'Edit|Write', script: 'format-edited' }
 ])
 
-const command = (script) => `node "$CLAUDE_PROJECT_DIR/${HOOKS_DIR}/${script}.mjs"`
+const command = (profile, script) =>
+  `node "$CLAUDE_PROJECT_DIR/${inFramework(profile, `tools/runtime-hooks/${script}.mjs`)}"`
 
 /**
  * The `Read(...)` deny rules for gitignore-style patterns: a pattern without a slash matches at any depth, and `!pattern` is a carve-out (an
@@ -34,7 +35,10 @@ export function settingsFor(profile) {
   const hooks = {}
   for (const { event, matcher, script } of HOOKS) {
     hooks[event] ??= []
-    hooks[event].push({ ...(matcher ? { matcher } : {}), hooks: [{ type: 'command', command: command(script) }] })
+    hooks[event].push({
+      ...(matcher ? { matcher } : {}),
+      hooks: [{ type: 'command', command: command(profile, script) }]
+    })
   }
   return { hooks, permissions: { deny: denyRules(profile.access?.denyRead) } }
 }
@@ -54,10 +58,12 @@ export function scaffoldProblems({ root, profile }) {
   const problems = []
   for (const { event, matcher, script } of HOOKS) {
     const entries = (settings.hooks?.[event] ?? []).filter((entry) => (entry.matcher ?? undefined) === matcher)
-    const present = entries.some((entry) => (entry.hooks ?? []).some((hook) => hook.command === command(script)))
+    const present = entries.some((entry) =>
+      (entry.hooks ?? []).some((hook) => hook.command === command(profile, script))
+    )
     if (!present) {
       problems.push(
-        `${SETTINGS_PATH}: the ${event} hook${matcher ? ` for ${matcher}` : ''} must run ${HOOKS_DIR}/${script}.mjs`
+        `${SETTINGS_PATH}: the ${event} hook${matcher ? ` for ${matcher}` : ''} must run ${inFramework(profile, `tools/runtime-hooks/${script}.mjs`)}`
       )
     }
   }

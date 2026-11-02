@@ -3,7 +3,7 @@
 // and the agent runtime's configuration holds the hook entries and the read exclusions of `access.denyRead` (its adapter's `scaffoldProblems`).
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { VENDOR_DIR } from './lock.mjs'
+import { frameworkDir } from './lock.mjs'
 import { ADAPTER_RUNTIMES } from './runtimes.mjs'
 import { selectedStacks, STACKS } from './stacks.mjs'
 
@@ -16,7 +16,10 @@ const excludes = (line, folder) =>
  * @returns {string[]}
  */
 export function scaffoldProblems({ root, profile, stacks = STACKS, runtimes = ADAPTER_RUNTIMES }) {
-  if (!existsSync(join(root, VENDOR_DIR))) {
+  const dir = frameworkDir(profile)
+  // In the framework's own repository (`.`) nothing is vendored, so there is nothing for the formatter to exclude
+  const own = dir === '.'
+  if (!own && !existsSync(join(root, dir))) {
     return []
   }
   const problems = []
@@ -33,18 +36,19 @@ export function scaffoldProblems({ root, profile, stacks = STACKS, runtimes = AD
       if (!existsSync(full)) {
         if (!optional) {
           problems.push(
-            `${path}: the ${stack.name} stack expects this ignore file, and it is missing; it must exclude ${VENDOR_DIR}/`
+            `${path}: the ${stack.name} stack expects this ignore file, and it is missing; it must exclude ${dir}/`
           )
         }
         continue
       }
       if (
+        !own &&
         !readFileSync(full, 'utf8')
           .split('\n')
-          .some((line) => excludes(line, VENDOR_DIR))
+          .some((line) => excludes(line, dir))
       ) {
         problems.push(
-          `${path}: does not exclude ${VENDOR_DIR}/, which the formatter and the linters would rewrite; add the line "${VENDOR_DIR}/"`
+          `${path}: does not exclude ${dir}/, which the formatter and the linters would rewrite; add the line "${dir}/"`
         )
       }
     }

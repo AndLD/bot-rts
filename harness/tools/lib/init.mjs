@@ -163,6 +163,7 @@ export async function init({ root, flags = {}, input = process.stdin, out = () =
     to: flags.to,
     force: flags.force,
     detached: flags.detached,
+    self: flags.self,
     reason: flags.reason,
     out,
     err

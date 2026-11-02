@@ -2,12 +2,12 @@
 // (`procedure-packaging` role), and the block of the entry file that lists the procedures for every agent, with or without such a runtime: "to <trigger>,
 // follow harness/core/procedures/<name>.md". Both are generated, so `harness check generated` fails on a stale one and a sync restores it.
 import { entryFile } from './entry.mjs'
+import { inFramework } from './lock.mjs'
 import { listProcedures, renderProcedure } from './procedures.mjs'
 import { ADAPTER_RUNTIMES } from './runtimes.mjs'
 import { relativeTo } from './render.mjs'
 
 export const PROCEDURES_BLOCK = 'procedures'
-const CORE_PROCEDURES = 'harness/core/procedures'
 
 const selectedRuntimes = (profile) =>
   (profile.adapters?.runtimes ?? []).map((entry) => (typeof entry === 'string' ? entry : entry.adapter))
@@ -40,10 +40,10 @@ export function skillGenerators(runtimes = ADAPTER_RUNTIMES, procedures = listPr
 /** The rows of the procedures block, written relative to the entry file. */
 export function renderProceduresBlock(profile, procedures = listProcedures()) {
   const entry = entryFile(profile)
-  const rows = procedures.map(
-    ({ name, description }) =>
-      `| ${phrase(description)} | [\`${CORE_PROCEDURES}/${name}.md\`](${relativeTo(entry, `${CORE_PROCEDURES}/${name}.md`)}) |`
-  )
+  const rows = procedures.map(({ name, description }) => {
+    const path = inFramework(profile, `core/procedures/${name}.md`)
+    return `| ${phrase(description)} | [\`${path}\`](${relativeTo(entry, path)}) |`
+  })
   return ['| When | Follow the procedure |', '| ---- | -------------------- |', ...rows].join('\n')
 }
 

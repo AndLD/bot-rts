@@ -19,7 +19,7 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           test "$(node -p "require('./<%= versionFile %>').version")" = "$version" || { echo "<%= versionFile %> is not at $version"; exit 1; }
-          node harness/tools/harness.mjs release notes "$version" > release-notes.md
+          node <%= harness %> release notes "$version" > release-notes.md
           test -s release-notes.md
       - name: Create the release
         env:

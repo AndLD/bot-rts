@@ -176,6 +176,27 @@ export function vendor({ root, fetched, adapters, lock = null, generators = regi
 }
 
 /**
+ * The lock of the framework's own repository (mode "self", design §11): the project is the framework tree, so there is nothing to copy; the lock
+ * records the adapters, the managed files and the profile file.
+ * @returns {{ lock: object, messages: string[] }}
+ */
+export function recordSelf({ root, manifest, adapters, generators = registered }) {
+  const next = {
+    framework: manifest.name,
+    mode: MODES.self,
+    version: manifest.version,
+    adapters,
+    managed: generateManaged(root, generators),
+    profile: profileHash(root)
+  }
+  writeLock(root, next)
+  return {
+    lock: next,
+    messages: [`Recorded ${next.framework} ${next.version} as its own project (mode "self"): nothing is vendored.`]
+  }
+}
+
+/**
  * `harness check vendored`: the vendored copy, the managed files and the profile file against the lock.
  * @returns {{ problems: string[], notes: string[] }}
  */

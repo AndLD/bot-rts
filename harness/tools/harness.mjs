@@ -3,7 +3,8 @@
 //   harness init [--name <n>] [--repository <owner/name>] [--stack <a,b>] [--runtime <a,b>] [--host <h>] [--set <role>=<value>]…
 //                [--detached [--reason <why>]] [--non-interactive] [--from <folder or Git URL> [--to <version>]] [--force]
 //                                                                fill the profile file (asking what no flag answers), then bootstrap
-//   harness bootstrap [--non-interactive] [--detached] [--from …] [--force]   the engine on the profile file as it is (design §6.1)
+//   harness bootstrap [--non-interactive] [--detached | --self] [--from …] [--force]   the engine on the profile file as it is (design §6.1); --self is the
+//                                                                 framework's own repository, where the tree at the root is the source (mode self)
 //   harness template <dir> [--from <folder or Git URL> --to <version>]         build the template repository into an empty folder
 //   harness sync [--from <folder or Git URL>] [--to <version>]   take the framework into harness/ and rewrite harness.lock.json
 //   harness sync --local                                          regenerate the managed files only, without fetching
@@ -94,7 +95,8 @@ const BOOLEAN_FLAGS = new Set([
   '--skip-missing',
   '--detached',
   '--non-interactive',
-  '--force'
+  '--force',
+  '--self'
 ])
 
 export function parseArgs(argv) {
@@ -159,6 +161,7 @@ export async function run(argv, { out = console.log, err = console.error, input 
               to: flags.to,
               force: flags.force,
               detached: flags.detached,
+              self: flags.self,
               reason: flags.reason,
               out,
               err

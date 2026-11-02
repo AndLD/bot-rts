@@ -44,7 +44,7 @@ jobs:
       # One rule for "documentation only" in CI and in the push gate (checks.documentationPaths of the profile file); in doubt the code jobs run
       - name: Detect documentation-only changes
         id: changes
-        run: node harness/tools/harness.mjs ci changes "${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}" "${{ github.sha }}"
+        run: node <%= harness %> ci changes "${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}" "${{ github.sha }}"
 
   # The jobs of the stack adapter (setup, static checks, tests per package, coverage artifacts) go here, each with `needs: changes` and
   # `if: needs.changes.outputs.code == 'true'`, and the ids of those jobs are the `jobs` of this template
@@ -85,11 +85,11 @@ jobs:
           path: coverage-artifacts
       - name: Merge the coverage and apply the coverage gate
         if: needs.changes.outputs.code == 'true'
-        run: node harness/tools/harness.mjs coverage merge coverage-artifacts
+        run: node <%= harness %> coverage merge coverage-artifacts
       - name: Coverage report
         if: always() && needs.changes.outputs.code == 'true'
         run: |
-          for pkg in $(node harness/tools/harness.mjs profile get coveragePackages); do
+          for pkg in $(node <%= harness %> profile get coveragePackages); do
             [ -f "$pkg/coverage/coverage-summary.json" ] || continue
             {
               echo "### Coverage ($pkg)"
@@ -100,4 +100,4 @@ jobs:
           done
       - name: Coverage of changed files (the coverage gate)
         if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: node harness/tools/harness.mjs coverage check-changed "origin/${{ github.base_ref }}" $(node harness/tools/harness.mjs profile get coveragePackages)
+        run: node <%= harness %> coverage check-changed "origin/${{ github.base_ref }}" $(node <%= harness %> profile get coveragePackages)

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, test } from 'node:test'
@@ -12,6 +12,7 @@ import {
   FRAMEWORK_DIR,
   missingAnswers,
   NO_TERMS,
+  retarget,
   scaffoldPlan,
   serializeProfile,
   templateProfile,
@@ -213,4 +214,64 @@ test('init asks only what no flag answered, and an empty reply takes the value o
   assert.deepEqual(written.adapters, { stacks: ['node-ts'], runtimes: [], host: 'github' })
   assert.equal(written.coverageGate.branches, 80)
   assert.deepEqual(written.branches, { production: 'main', integration: 'next' })
+})
+
+test('retarget points the framework paths of the starting values at another framework folder', () => {
+  assert.equal(retarget('`node harness/tools/harness.mjs plan log <n>`', '.'), '`node tools/harness.mjs plan log <n>`')
+  assert.deepEqual(retarget({ a: ['harness/core/x.md', 'a harness/ b'] }, 'vendor'), {
+    a: ['vendor/core/x.md', 'a harness/ b']
+  })
+  assert.equal(retarget(7, '.'), 7)
+})
+
+test('--self makes the framework tree at the root a project of its own: mode self, nothing vendored, paths without harness/', async () => {
+  const root = fresh()
+  cpSync(FRAMEWORK_DIR, root, { recursive: true, filter: (path) => !path.split('/').includes('.git') })
+  const readme = readFileSync(join(root, 'README.md'), 'utf8')
+  writeFileSync(
+    join(root, 'harness-profile.json'),
+    JSON.stringify({
+      project: { name: 'framework-itself' },
+      repository: { slug: 'acme/framework-itself' },
+      adapters: { stacks: ['node-ts'], runtimes: ['claude-code'] },
+      paths: { frameworkDir: '.' },
+      host: { protection: false }
+    })
+  )
+  const problems = []
+  const { messages: done } = await bootstrap({ root, self: true, out: () => {}, err: (line) => problems.push(line) })
+
+  const lock = readLock(root)
+  assert.equal(lock.mode, 'self')
+  assert.equal(lock.files, undefined)
+  assert.ok(!existsSync(join(root, 'harness')), 'nothing is vendored')
+  assert.equal(readFileSync(join(root, 'README.md'), 'utf8'), readme, 'the framework keeps its own README')
+  assert.match(done.join('\n'), /Kept the files of the framework itself: .*README\.md/)
+
+  const settings = JSON.parse(readFileSync(join(root, '.claude', 'settings.json'), 'utf8'))
+  assert.equal(
+    settings.hooks.PreToolUse[0].hooks[0].command,
+    'node "$CLAUDE_PROJECT_DIR/tools/runtime-hooks/guard-shell.mjs"'
+  )
+  const entry = readFileSync(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(entry, /\(\.\/core\/method\/method\.md#6-session-protocol/)
+  assert.match(entry, /\[`core\/procedures\/start-task\.md`\]\(\.\/core\/procedures\/start-task\.md\)/)
+  assert.match(
+    readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8'),
+    /node tools\/harness\.mjs ci changes/
+  )
+  assert.equal(
+    JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts.prepare,
+    'git config core.hooksPath tools/git-hooks'
+  )
+  assert.deepEqual(
+    problems.filter((line) => /^harness check (vendored|generated|scaffold|profile|values|adapters)/.test(line)),
+    [],
+    'the checks that belong to the mode find nothing'
+  )
+})
+
+test('--self cannot be combined with --detached or --from', async () => {
+  await assert.rejects(() => bootstrap({ root: fresh(), self: true, detached: true }), /cannot be combined/)
+  await assert.rejects(() => bootstrap({ root: fresh(), self: true, from: '/somewhere' }), /cannot be combined/)
 })

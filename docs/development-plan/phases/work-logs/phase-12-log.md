@@ -141,3 +141,23 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   the rest are not triaged here.
 - **Next step:** 12.4, 12.5 and 12.6 whenever the owner asks; 12.4 before 17.11, and 12.6 soon, given its severity.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 12.4 done: the pre-push gate tells its database cases apart
+- **Tasks:** 12.4 ✅ (3 SP)
+- **Branch:** `bugfix/12.4-prepush-database` — PR #273 (the claim became the work)
+- **Decisions / deviations from the plan:**
+  - `scripts/local-gate-database.mjs` decides before `npm run db:up`: PostgreSQL and Redis answer on the ports of `DATABASE_URL` and `REDIS_URL`
+    (probed with a PostgreSQL SSLRequest and a Redis `PING`, so "answers" means the protocol, not only an open port) → used as they are; Docker off
+    (`docker info` fails) → stop with `open -a Docker`; a port taken by a program that does not answer → stop with the two `.env` lines; free
+    ports → `db:up`, and if it fails the same two lines are printed. A push that needs no database never reaches the setup, so it needs no Docker.
+  - A database that answers on one port only is not treated as taken: it may be the same project's containers with the other service stopped, so
+    `db:up` starts the missing one.
+  - The hook also exports `REDIS_URL` from `REDIS_PORT` (it exported `DATABASE_URL` only, so a checkout with its own Redis port ran the two Redis
+    tests against the main checkout's Redis).
+  - The one rule on the bypass is written in `docs/testing/README.md` ("Bypassing the gate"); the hook header and `known-issues.md` point to it,
+    and rule-map row 97 holds it as _partly_ until the Bash guard of 17.11 refuses the flag.
+- **Problems / blockers / findings:** none. Verified with the real checks against the main checkout's containers (answers → `use`), with an
+  unreachable Docker daemon (`DOCKER_HOST=unix:///nonexistent` → the Docker message), with free own ports (→ `start`) and with a listener that
+  answers HTTP on 15432 (→ the `.env` lines). Docker Desktop itself was left running, since it holds the owner's database.
+- **Next step:** 12.5 and 12.6 whenever the owner asks; 17.9 to 17.12 are next in Phase 17 (17.11 follows 12.4 now).
+- **Verify with:** `npm run test:scripts`; `npm run docs:check`; `npm run plan:summary` (no diff)

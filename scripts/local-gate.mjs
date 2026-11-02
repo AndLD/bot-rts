@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { root, profile } from './harness-profile.mjs'
 import { documentationPaths } from '../harness/tools/lib/changes.mjs'
 import { planGate, rangesOfPush } from './local-gate-lib.mjs'
+import { DB_UP_FAILED_MESSAGE, decideDatabase, portOf, realProbes } from './local-gate-database.mjs'
 
 const integration = profile.branches.integration
 const isDryRun = process.argv.includes('--dry-run')
@@ -31,7 +32,29 @@ function run(step) {
 
   if (result.status !== 0) {
     console.error(`pre-push: "${step.label}" failed`)
+    if (step.onFailure) {
+      console.error(step.onFailure)
+    }
     process.exit(result.status ?? 1)
+  }
+}
+
+// The database of the tests of api: one that already answers on the configured ports is used; otherwise Docker starts it, or the push stops with what to do
+async function prepareDatabase() {
+  const decision = await decideDatabase({
+    postgresPort: portOf(process.env.DATABASE_URL, 5432),
+    redisPort: portOf(process.env.REDIS_URL, 6379),
+    probes: realProbes
+  })
+
+  if (decision.action === 'stop') {
+    console.error(decision.message)
+    process.exit(1)
+  }
+  if (decision.action === 'use') {
+    console.log('pre-push: a database already answers on the configured ports, so the tests use it')
+  } else {
+    run({ label: 'database', command: 'npm', args: ['run', 'db:up'], onFailure: DB_UP_FAILED_MESSAGE })
   }
 }
 
@@ -60,7 +83,7 @@ for (const step of plan.steps) {
   console.log(`pre-push: ${step.label}`)
 
   if (step.needsDatabase && !databaseIsUp) {
-    run({ label: 'database', command: 'npm', args: ['run', 'db:up'] })
+    await prepareDatabase()
     databaseIsUp = true
   }
   if (step.clearsSummary) {

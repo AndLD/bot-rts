@@ -119,11 +119,20 @@ export function shardsOf(pkg, names) {
  * @returns {{ code: number, messages: string[], problems: string[] }} code 1 below the gate, 2 on missing or inconsistent shards
  */
 export function mergeShards({ root, profile, artifacts, out = root, packages, stacks = STACKS }) {
+  const targets = packages.length ? packages : (profile.coveragePackages ?? [])
+  if (targets.length === 0) {
+    // A project with no coverage package uploads no shard, so the folder of the downloaded artifacts may not exist either
+    return {
+      code: 0,
+      messages: ['No coverage packages in the profile file, so there is no coverage to merge.'],
+      problems: []
+    }
+  }
   const names = readdirSync(artifacts)
   const messages = []
   const failures = []
 
-  for (const pkg of packages.length ? packages : (profile.coveragePackages ?? [])) {
+  for (const pkg of targets) {
     const stack = stackOf(pkg, profile, stacks)
     const merger = stack && stackModule(stack, 'coverage-merge')
     if (!merger) {

@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
-import { changedFileFailures, parseArtifactName, shardsOf, totalFailures } from './coverage.mjs'
+import { changedFileFailures, mergeShards, parseArtifactName, shardsOf, totalFailures } from './coverage.mjs'
 
 const GATE = { statements: 97, branches: 97, functions: 97, lines: 97 }
 const metric = (pct) => ({ total: 100, covered: pct, skipped: 0, pct })
@@ -167,4 +167,17 @@ test('a package that no stack owns cannot be merged', () => {
   const result = harness(root, 'coverage', 'merge', join(root, 'artifacts'), 'api')
   assert.equal(result.status, 2)
   assert.match(result.stderr, /api: no stack adapter fills the coverage-merge role for it/)
+})
+
+test('a project with no coverage package has nothing to merge, and the folder of the artifacts need not exist', () => {
+  const missing = join(tmpdir(), 'no-such-coverage-artifacts')
+  const result = mergeShards({
+    root: tmpdir(),
+    profile: { coveragePackages: [], coverageGate: GATE },
+    artifacts: missing,
+    packages: []
+  })
+  assert.equal(result.code, 0)
+  assert.deepEqual(result.problems, [])
+  assert.match(result.messages[0], /No coverage packages in the profile file/)
 })

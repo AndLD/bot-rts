@@ -38,7 +38,16 @@ test('the procedures of the framework are all well formed, and each is named by 
   const procedures = listProcedures()
   assert.deepEqual(
     procedures.map(({ name }) => name),
-    ['code-review', 'end-session', 'finish-phase', 'harness-review', 'open-pull-request', 'release', 'start-task']
+    [
+      'code-review',
+      'end-session',
+      'finish-phase',
+      'harness-review',
+      'new-adapter',
+      'open-pull-request',
+      'release',
+      'start-task'
+    ]
   )
   for (const { description, body, invocation } of procedures) {
     assert.match(description, /^Use when /)

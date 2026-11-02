@@ -25,8 +25,8 @@ const describeSource = (source) =>
 
 /**
  * The files of a framework tree that a project receives: the distributable paths of `framework.json`, and of `adapters/` only the
- * selected adapters (`hosts`, a list, in place of `host` for a template repository, which holds every adapter). Fails on a selected adapter the
- * framework does not have.
+ * selected adapters and the skeletons of the three axes, which the new-adapter guide copies (`hosts`, a list, in place of `host` for a template
+ * repository, which holds every adapter). Fails on a selected adapter the framework does not have.
  */
 export function selectFiles(dir, manifest, adapters) {
   const files = walk(dir)
@@ -36,6 +36,7 @@ export function selectFiles(dir, manifest, adapters) {
     ...(adapters.hosts ?? (adapters.host ? [adapters.host] : [])).map((name) => `adapters/host/${name}`)
   ]
   const inside = (folder) => (file) => file.startsWith(`${folder}/`)
+  const skeletons = ['stack', 'runtime', 'host'].map((axis) => `adapters/${axis}/_skeleton`)
 
   const unknown = adapterFolders.filter((folder) => !files.some(inside(folder)))
   if (unknown.length) {
@@ -46,7 +47,7 @@ export function selectFiles(dir, manifest, adapters) {
   for (const path of manifest.distributable) {
     const matches =
       path === 'adapters'
-        ? files.filter((file) => adapterFolders.some((folder) => inside(folder)(file)))
+        ? files.filter((file) => [...adapterFolders, ...skeletons].some((folder) => inside(folder)(file)))
         : files.filter((file) => file === path || inside(path)(file))
     matches.forEach((file) => selected.add(file))
   }

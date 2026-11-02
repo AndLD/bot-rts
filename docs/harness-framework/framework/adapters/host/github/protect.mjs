@@ -56,8 +56,8 @@ export function buildRuleset(profile) {
  * they need a public repository or a paid plan.
  * @returns {{ available: boolean, reason: string }}; an answer that is neither (no network, no rights) is an error, not a guess
  */
-export function detectProtection({ slug, gh = runGh }) {
-  const answer = gh(['api', `repos/${slug}/rulesets`])
+export function detectProtection({ slug, cli = runGh }) {
+  const answer = cli(['api', `repos/${slug}/rulesets`])
   if (answer.status === 0) {
     return { available: true, reason: 'the host offers rulesets for this repository' }
   }
@@ -71,9 +71,9 @@ export function detectProtection({ slug, gh = runGh }) {
  * Applies the protection of the profile to the host. Idempotent: an existing ruleset of the same name is replaced.
  * @returns {{ messages: string[], problems: string[] }}; `problems` is non-empty when the profile and the host disagree, and nothing is changed then
  */
-export function protect({ profile, slug = profile.repository.slug, gh = runGh }) {
+export function protect({ profile, slug = profile.repository.slug, cli = runGh }) {
   const { production, integration } = profile.branches
-  const detected = detectProtection({ slug, gh })
+  const detected = detectProtection({ slug, cli })
   const declared = profile.host?.protection !== false
 
   if (declared !== detected.available) {
@@ -94,7 +94,7 @@ export function protect({ profile, slug = profile.repository.slug, gh = runGh })
   }
 
   const call = (args, input) => {
-    const answer = gh(args, input)
+    const answer = cli(args, input)
     if (answer.status !== 0) {
       throw new Error(`gh ${args.slice(0, 3).join(' ')} failed: ${(answer.stderr || answer.stdout).trim()}`)
     }
@@ -115,7 +115,7 @@ export function protect({ profile, slug = profile.repository.slug, gh = runGh })
 
   // The ruleset replaces the classic branch protection, which cannot exempt administrators from the checks without also letting them push
   for (const branch of [production, integration]) {
-    if (gh(['api', '-X', 'DELETE', `repos/${slug}/branches/${branch}/protection`]).status === 0) {
+    if (cli(['api', '-X', 'DELETE', `repos/${slug}/branches/${branch}/protection`]).status === 0) {
       messages.push(`Removed the classic protection of ${branch}`)
     }
   }

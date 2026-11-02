@@ -1,0 +1,7 @@
+{
+  "sourceFile": "TODO: a source file of a package, relative to the package, for example src/main.ext",
+  "format": {
+    "handled": ["TODO: files the formatter formats"],
+    "ignored": ["TODO: files it leaves alone, for example logo.png"]
+  }
+}

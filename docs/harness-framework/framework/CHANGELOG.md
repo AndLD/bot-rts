@@ -78,6 +78,10 @@ versions follow [Semantic Versioning](https://semver.org/).
   file; claude-code: `CLAUDE.md` and the settings; github: the CI and release workflows). The bootstrap commits the root commit of the
   integration branch, makes the production branch, installs the Git hooks and runs `check all`; `--detached` equals a pinned bootstrap
   followed by `detach`. `documents.harnessBindings` is optional.
+- The conformance suite (design §5): `harness adapter test <path>` runs the checks of an adapter's axis (`tools/conformance/`), and the presets pass it in
+  the framework's tests, with deliberately broken copies of them failing the check that names what is broken. Every adapter has a `conformance.json` of
+  samples; the skeleton of each axis (`adapters/<axis>/_skeleton/`, vendored) starts red with `TODO` markers; the guide `core/contracts/new-adapter.md` and the
+  procedure `new-adapter` (packaged as a skill) say how to write an adapter.
 
 ### Changed
 
@@ -89,3 +93,6 @@ versions follow [Semantic Versioning](https://semver.org/).
   "no debug printing" (use the logger).
 - The method's local-database step applies only where the profile has the database commands (`commands.dbUp`, `dbMigrate`, `dbSeed`), an
   optional role group; `documents.method` defaults to the vendored method.
+- The host command line of the host adapter's logic roles is the seam `cli` (was `gh`), so one conformance check can pass a stand-in to any host. The
+  claude-code event samples moved from `tests/fixtures/events/` into the adapter (`adapters/runtime/claude-code/events/`), where the suite replays them.
+  A sync also vendors the three skeletons.

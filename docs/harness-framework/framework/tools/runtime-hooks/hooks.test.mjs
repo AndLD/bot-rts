@@ -7,12 +7,16 @@ import { after, test } from 'node:test'
 import { sessionStartMessage } from './session-start.mjs'
 
 const HERE = import.meta.dirname
-const SAMPLES = join(HERE, '..', '..', 'tests', 'fixtures', 'events')
+// The Claude Code samples are the adapter's own (its conformance suite replays them); the Cursor adapter is not shipped yet, so its samples stay in the fixtures
+const SAMPLES = {
+  'claude-code': join(HERE, '..', '..', 'adapters', 'runtime', 'claude-code', 'events'),
+  cursor: join(HERE, '..', '..', 'tests', 'fixtures', 'events', 'cursor')
+}
 const dirs = []
 after(() => dirs.forEach((dir) => rmSync(dir, { recursive: true, force: true })))
 
 const sample = (runtime, name, cwd) => ({
-  ...JSON.parse(readFileSync(join(SAMPLES, runtime, name), 'utf8')),
+  ...JSON.parse(readFileSync(join(SAMPLES[runtime], name), 'utf8')),
   ...(cwd ? { cwd, workspace_roots: [cwd] } : {})
 })
 

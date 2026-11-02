@@ -17,7 +17,7 @@ changed file to its stack and run that stack's plan; CI gets the jobs of every s
 | `test-runner` | required | the commands `test` and `testCoverage`, per package |
 | `e2e-runner` | optional (none: the end-to-end rules of the method are "not applicable" in the generated rule map) | the command `e2e` |
 | `coverage-tool` | required | the commands that write the **neutral coverage summary** (`coverage/coverage-summary.json` per package, the shape of the common JSON summary) and the measures it reports (statements, branches, functions, lines, or a subset) |
-| `coverage-merge` | logic-optional (needed only for shards) | `merge(summaries) → summary` |
+| `coverage-merge` | logic-optional (needed only for shards) | `merge(shards) → { artifacts, summary }`: the parsed raw coverage files of the shards of one package become the merged raw files (`artifacts`, by file name) and the neutral summary; the module also exports `SHARD_FILE`, the name of the raw file of a shard |
 | `linter` | required | `lint`, and the rules that hold the non-negotiables (untyped public boundaries, debug printing) |
 | `formatter` | required | `format` and `format:check`, the default file types it formats (the profile may narrow them); it runs only from the project's own installation, never downloaded on demand |
 | `typecheck` | optional (none: the gate skips it and the definition of done marks it "not applicable") | the command `typecheck` |
@@ -35,3 +35,5 @@ changed file to its stack and run that stack's plan; CI gets the jobs of every s
 
 The `terms` of the manifest are the stack's own words (tool and language names). The CORE scan joins them with the term lists of the profile file, so core text never
 names a tool.
+
+A new adapter is written by [the new-adapter guide](./new-adapter.md), and passes the conformance suite (`harness adapter test`).

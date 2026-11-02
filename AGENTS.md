@@ -38,6 +38,7 @@ reading map. The rest is read on demand:
 | a session ends or pauses, and when a task finishes, to leave the state of the work in the repository | [`harness/core/procedures/end-session.md`](./harness/core/procedures/end-session.md) |
 | the last task of a phase is merged, to close the phase and report it | [`harness/core/procedures/finish-phase.md`](./harness/core/procedures/finish-phase.md) |
 | asked to review the quality of the harness (the documents, rules, hooks and checks that steer agents) | [`harness/core/procedures/harness-review.md`](./harness/core/procedures/harness-review.md) |
+| a project needs an adapter the framework has no preset for (a language and its tools, a coding agent, or a repository host) | [`harness/core/procedures/new-adapter.md`](./harness/core/procedures/new-adapter.md) |
 | a branch is ready and a pull request has to be opened, or a claim pull request marked ready | [`harness/core/procedures/open-pull-request.md`](./harness/core/procedures/open-pull-request.md) |
 | cutting a release or a hotfix | [`harness/core/procedures/release.md`](./harness/core/procedures/release.md) |
 | starting or resuming a phase or a task of the development plan, before any other work on it | [`harness/core/procedures/start-task.md`](./harness/core/procedures/start-task.md) |

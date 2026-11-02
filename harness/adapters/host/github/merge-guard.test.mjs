@@ -26,7 +26,7 @@ test('the pull request is the first operand that is not the value of an option',
 
 test('a merge passes when every required check passed or was skipped, and is refused otherwise, naming the checks', () => {
   const required = ['verify', 'pr-title']
-  const run = (list) => checkMerge({ words: words('gh pr merge 12'), requiredChecks: required, gh: checks(list) })
+  const run = (list) => checkMerge({ words: words('gh pr merge 12'), requiredChecks: required, cli: checks(list) })
   assert.equal(
     run([
       { name: 'verify', bucket: 'pass' },
@@ -48,9 +48,12 @@ test('a merge passes when every required check passed or was skipped, and is ref
 test('the checks of the pull request are asked for by its number; pending checks make gh exit 8, which is not a failure to read them', () => {
   const calls = []
   const gh = (args) => (calls.push(args), { status: 8, stdout: '[{"name":"verify","bucket":"pending"}]', stderr: '' })
-  assert.match(checkMerge({ words: words('gh pr merge 12'), requiredChecks: ['verify'], gh }), /verify \(pending\)/)
+  assert.match(
+    checkMerge({ words: words('gh pr merge 12'), requiredChecks: ['verify'], cli: gh }),
+    /verify \(pending\)/
+  )
   assert.deepEqual(calls[0], ['pr', 'checks', '12', '--json', 'name,bucket'])
-  checkMerge({ words: words('gh pr merge'), requiredChecks: [], gh })
+  checkMerge({ words: words('gh pr merge'), requiredChecks: [], cli: gh })
   assert.deepEqual(calls[1], ['pr', 'checks', '--json', 'name,bucket'])
 })
 
@@ -58,14 +61,14 @@ test('checks that cannot be read refuse the merge: the guard does not guess', ()
   const unreadable = checkMerge({
     words: words('gh pr merge 12'),
     requiredChecks: ['verify'],
-    gh: () => ({ status: 1, stdout: '', stderr: 'no network' })
+    cli: () => ({ status: 1, stdout: '', stderr: 'no network' })
   })
   assert.match(unreadable, /Cannot read the checks of 12, so the merge is refused/)
   assert.match(
     checkMerge({
       words: words('gh pr merge'),
       requiredChecks: [],
-      gh: () => ({ status: 0, stdout: 'garbage', stderr: '' })
+      cli: () => ({ status: 0, stdout: 'garbage', stderr: '' })
     }),
     /Cannot read the checks of this pull request/
   )

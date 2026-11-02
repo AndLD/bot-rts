@@ -1,0 +1,10 @@
+{
+  "sourceFile": "src/main.ts",
+  "format": {
+    "handled": ["src/main.ts", "README.md", "config.json"],
+    "ignored": ["logo.png", "archive.zip"]
+  },
+  "coverage": {
+    "shards": ["conformance/shard-1.json", "conformance/shard-2.json"]
+  }
+}

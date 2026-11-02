@@ -74,7 +74,7 @@ Branch types:
 | Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
 | Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
-| Phases with per-task records | Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`), and the phase file carries no implementation-log table |
+| Phases with per-task records | Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `harness/core/plan/task-log-template.md`), and the phase file carries no implementation-log table |
 | Phases with one log | Phases 0 to 9 and 11 to 16: the phase's own log only, and the implementation-log table of the phase file |
 | Plan-log command | `npm run plan:log -- <n>` |
 | Implementation log | printed from the merged pull requests by the plan-log command (the `Plan: <task id>` lines of the squash commits); the phases with one log keep the table written in the phase file |
@@ -189,7 +189,7 @@ Bounded contexts (files of the product specification):
 | Role | Document |
 | ---- | -------- |
 | Agent rules (always loaded) | [`AGENTS.md`](../AGENTS.md) |
-| Engineering method (read on demand) | [`engineering/method.md`](./engineering/method.md) |
+| Engineering method (read on demand) | [`harness/core/method/method.md`](../harness/core/method/method.md) |
 | Stack, layering, conventions (read on demand) | [`engineering/stack.md`](./engineering/stack.md) |
 | Architecture decisions (read on demand) | [`engineering/architecture.md`](./engineering/architecture.md) |
 | Rule-to-check map (read on demand) | [`engineering/rule-checks.md`](./engineering/rule-checks.md) |
@@ -198,13 +198,13 @@ Bounded contexts (files of the product specification):
 | Product specification | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
 | Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
 | Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`product-knowledge/integrations/MCP.md`](./product-knowledge/integrations/MCP.md) |
-| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`product-knowledge/changelog.d/README.md`](./product-knowledge/changelog.d/README.md), collected by the release script |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`harness/core/templates/changelog-fragments.md`](../harness/core/templates/changelog-fragments.md), collected by the release script |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
-| Plan method and its values | [`development-plan/README.md`](./development-plan/README.md), [`development-plan/bindings.md`](./development-plan/bindings.md) |
-| Definition of done | [`development-plan/cross-cutting/definition-of-done.md`](./development-plan/cross-cutting/definition-of-done.md) |
-| Guiding principles | [`development-plan/cross-cutting/guiding-principles.md`](./development-plan/cross-cutting/guiding-principles.md) |
+| Plan method and its values | [`harness/core/plan/README.md`](../harness/core/plan/README.md), [`development-plan/bindings.md`](./development-plan/bindings.md) |
+| Definition of done | [`harness/core/plan/definition-of-done.md`](../harness/core/plan/definition-of-done.md) |
+| Guiding principles | [`harness/core/plan/guiding-principles.md`](../harness/core/plan/guiding-principles.md) |
 | Testing guide, e2e matrix | [`testing/README.md`](./testing/README.md), [`testing/e2e-matrix.md`](./testing/e2e-matrix.md) |
 | Deployment and releases | [`operations/DEPLOYMENT.md`](./operations/DEPLOYMENT.md), [`operations/RELEASING.md`](./operations/RELEASING.md) |
-| Code quality reviews | [`quality-reviews/code/README.md`](./quality-reviews/code/README.md) |
-| Harness quality reviews | [`quality-reviews/harness/README.md`](./quality-reviews/harness/README.md), [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
+| Code quality reviews | [`harness/core/reviews/code/README.md`](../harness/core/reviews/code/README.md) |
+| Harness quality reviews | [`harness/core/reviews/harness/README.md`](../harness/core/reviews/harness/README.md), [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
 | Harness-to-framework plan | [`harness-framework/README.md`](./harness-framework/README.md) |

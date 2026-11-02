@@ -67,6 +67,10 @@
           "type": "string",
           "description": "The name of the repository host.",
           "default": "GitHub"
+        },
+        "protectionScript": {
+          "type": "string",
+          "description": "The script that sets the protection of the production and the integration branch on the host; the entry file's Role binding line names it."
         }
       },
       "additionalProperties": false,
@@ -314,6 +318,10 @@
               }
             }
           }
+        },
+        "openEndedPhaseNumber": {
+          "type": "integer",
+          "description": "The number of the open-ended phase, which collects the issues found in use; the entry file's Role binding line names it."
         }
       },
       "additionalProperties": false
@@ -445,15 +453,15 @@
         },
         "dbUp": {
           "type": "string",
-          "description": "Start the local database."
+          "description": "Start the local database. With `dbMigrate` and `dbSeed` it forms the optional database commands; the method's local-database step after a phase applies only where they are set."
         },
         "dbMigrate": {
           "type": "string",
-          "description": "Apply migrations."
+          "description": "Apply migrations to the local database (an optional database command, with `dbUp`)."
         },
         "dbSeed": {
           "type": "string",
-          "description": "Seed the local database."
+          "description": "Seed the local database (an optional database command, with `dbUp`)."
         }
       },
       "additionalProperties": false
@@ -512,7 +520,8 @@
         },
         "method": {
           "type": "string",
-          "description": "The engineering method."
+          "description": "The engineering method; the entry file's rules link it.",
+          "default": "harness/core/method/method.md"
         },
         "stack": {
           "type": "string",
@@ -628,7 +637,7 @@
         },
         "core": {
           "type": "array",
-          "description": "CORE files, one per entry: a path, optionally followed by `sections` and the numbers of the sections that are CORE (the rest of the file belongs to another layer). Until the core documents move into the framework (17.8), this list is also what the CORE scan reads.",
+          "description": "The project's own CORE files, one per entry: a path, optionally followed by `sections` and the numbers of the sections that are CORE (the rest of the file belongs to another layer); the CORE scan reads them. A project that uses the framework needs none: the vendored copy and the entry file's managed rule blocks are CORE without an entry.",
           "items": {
             "type": "string"
           }

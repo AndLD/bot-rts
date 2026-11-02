@@ -1,8 +1,8 @@
-[← Harness quality reviews](./README.md) · [README](../../../README.md) · sibling: [code quality reviews](../code/README.md)
+[← Harness quality reviews](../../../harness/core/reviews/harness/README.md) · [README](../../../README.md) · sibling: [code quality reviews](../../../harness/core/reviews/code/README.md)
 
 # Bindings for this repository
 
-The method in [`README.md`](./README.md) is project-neutral. This file supplies the values for `bot-rts`: where each layer
+The method in [`README.md`](../../../harness/core/reviews/harness/README.md) is project-neutral. This file supplies the values for `bot-rts`: where each layer
 lives, the commands for the measurements, the term lists, the probe scenarios and the indexes to update. It is the
 **profile** of the review itself. A new project copies the method and rewrites only this file.
 
@@ -13,7 +13,7 @@ Review step 2 of the method checks the layer map below against the repository an
 ## 1. Layer map
 
 The map is **generated**: its source is the `layers` role of the profile file [`harness-profile.json`](../../../harness-profile.json), plus what
-the tools know (the vendored copy is CORE; the profile file, the lock, the profile document and every `bindings.md` are PROFILE; the folder of
+the tools know (the vendored copy and the managed rule blocks of `AGENTS.md` are CORE; the profile file, the lock, the profile document and every `bindings.md` are PROFILE; the folder of
 the framework source, while the framework is staged here, is "framework source" and outside the map). `npm run harness -- layers` prints it,
 `npm run harness -- sync --local` writes it between the markers below, and `npm run harness -- check layers`, which `npm run docs:check` runs,
 fails on a tracked Markdown or harness file that is in no layer or in two. So a new file is classified when it is added, in the profile file,
@@ -22,11 +22,11 @@ and not found by a later review. Review step 2 of the method still reads the map
 <!-- harness:begin layers -->
 | Layer | Files and sections |
 | ----- | ------------------ |
-| **CORE** | `AGENTS.md` (sections 1, 7), `docs/engineering/method.md`, `docs/development-plan/README.md`, `docs/development-plan/_template.md`, `docs/development-plan/phases/README.md`, `docs/development-plan/phases/_template.md`, `docs/development-plan/phases/work-logs/_task-template.md`, `docs/development-plan/cross-cutting/definition-of-done.md`, `docs/development-plan/cross-cutting/guiding-principles.md`, `docs/quality-reviews/README.md`, `docs/quality-reviews/code/README.md`, `docs/quality-reviews/code/_template.md`, `docs/quality-reviews/harness/README.md`, `docs/quality-reviews/harness/_template.md`, `harness/**` (the vendored copy) |
+| **CORE** | `AGENTS.md` (the managed blocks non-negotiables, git-rules), `harness/**` (the vendored copy) |
 | **DOMAIN** | `docs/product-knowledge/**`, except `docs/product-knowledge/archived-docs/**`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**` |
 | **ADAPTER** | `docs/engineering/stack.md`, `docs/engineering/architecture.md`, `docs/engineering/rule-checks.md`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `docs/operations/**`, `docs/testing/**`, except `docs/testing/reports/**`, `docs/testing/by-phase.md` |
 | **PROFILE** | `harness-profile.json`, `harness.lock.json`, `docs/profile.md`, `**/bindings.md` |
-| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived-docs/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/harness-framework/README.md`, `docs/harness-framework/design.md`, except `docs/development-plan/phases/work-logs/_task-template.md` |
+| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived-docs/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/harness-framework/README.md`, `docs/harness-framework/design.md` |
 | **ENTRY** | `AGENTS.md`, `CLAUDE.md`, `README.md` |
 
 Not in the map: `client/public/atlas/LICENSE.md`, `docs/harness-framework/framework/**`.
@@ -35,10 +35,12 @@ The map covers the tracked files that match `**/*.md`, `docs/**`, `.githooks/**`
 
 Notes on the layers:
 
-- **CORE** files are scanned by `npm run docs:check` (the CORE scan): it fails when one of the `layers.core` entries is missing or holds a
-  stack term, a product term or a project value (the term lists of the profile file); the only exception is the **Role binding** line of
-  `AGENTS.md`. `AGENTS.md` is both an entry point and the main rule file, so it is classified section by section in each review: its sections 1
-  and 7 are CORE rules stated by role, and section 9 (the project rules that name tools) is ADAPTER text.
+- **CORE** is the vendored framework and the two managed blocks of `AGENTS.md` (sections 1 and 7: the non-negotiables and the Git rules),
+  which `npm run harness -- sync` renders from `harness/core/rules/` with the profile; `npm run harness -- check generated` and
+  `check vendored` fail on a block that differs, and the CORE scan of `npm run docs:check` runs on the framework source, where the rules
+  are written by role (the **Role binding** line is the only line of the blocks with this project's values). `layers.core` is empty.
+  `AGENTS.md` is both an entry point and the main rule file, so each review still reads it section by section: section 9 (the project rules
+  that name tools) is ADAPTER text.
 - **DOMAIN** is the product knowledge. `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved
   their implementation notes and history out; they are DOMAIN only now.
 - **ADAPTER** includes `rule-checks.md` (the shape is CORE; the rows are this project's) and the `scripts/hook-*.mjs` scripts.
@@ -402,7 +404,7 @@ read-only subagents of the method itself.
 Full review prompt:
 
 ```text
-Run a full harness quality review exactly per docs/quality-reviews/harness/README.md and its bindings.md.
+Run a full harness quality review exactly per harness/core/reviews/harness/README.md and docs/quality-reviews/harness/bindings.md.
 
 Setup: create a docs/ branch from origin/<integration> (the integration branch of the profile). Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
@@ -414,7 +416,7 @@ Do the whole procedure through step 8 without stopping. On the first review, pro
 Delta review prompt (replace the scope in braces):
 
 ```text
-Run a delta harness quality review per docs/quality-reviews/harness/README.md and its bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the review log change, every finding is re-verified, open the pull request into the integration branch and do not merge it.
+Run a delta harness quality review per harness/core/reviews/harness/README.md and docs/quality-reviews/harness/bindings.md, scope: {dimensions or areas, for example "D8, D10, D12, D13 since the last report" or "the product knowledge changed since <date>"}. Start from the latest report in docs/quality-reviews/harness/, carry forward the scores you do not re-score and mark them as carried. Same rules as the full review: only the new report and the review log change, every finding is re-verified, open the pull request into the integration branch and do not merge it.
 ```
 
 After the report is approved, its findings become tasks or backlog items (method step 8); the review session does not fix them.

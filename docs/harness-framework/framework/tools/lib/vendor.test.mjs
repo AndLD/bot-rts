@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, test } from 'node:test'
 import { readLock } from './lock.mjs'
-import { checkVendored, detach, diff, override, selectFiles, sync } from './vendor.mjs'
+import { checkGenerated, checkVendored, detach, diff, override, selectFiles, sync } from './vendor.mjs'
 import { walk } from './tree.mjs'
 
 const made = []
@@ -352,12 +352,71 @@ test('a managed block is generated inside a file the project owns; only the bloc
   assert.deepEqual(checkVendored({ root, generators }).problems, [])
 
   write(root, { 'docs/bindings.md': text('edited inside the block') })
-  assert.match(checkVendored({ root, generators }).problems.join('\n'), /the managed block docs\/bindings\.md differs/)
+  assert.match(
+    checkVendored({ root, generators }).problems.join('\n'),
+    /the managed block "map" of docs\/bindings\.md differs/
+  )
 
   write(root, { 'docs/bindings.md': 'the markers are gone\n' })
-  assert.match(checkVendored({ root, generators }).problems.join('\n'), /the managed block docs\/bindings\.md differs/)
+  assert.match(
+    checkVendored({ root, generators }).problems.join('\n'),
+    /the managed block "map" of docs\/bindings\.md differs/
+  )
 
   write(root, { 'docs/bindings.md': text('stale') })
   sync({ root, local: true, generators })
   assert.deepEqual(checkVendored({ root, generators }).problems, [])
+})
+
+test('two blocks of one file are locked apart, and an edit names the block it touched', () => {
+  const root = synced()
+  const block = (id) => ({ block: id, path: () => 'AGENTS.md', render: () => `the ${id} rules` })
+  const generators = [block('first'), block('second')]
+  const around = (first, second) =>
+    `# Rules\n<!-- harness:begin first -->\n${first}\n<!-- harness:end first -->\nmine\n<!-- harness:begin second -->\n${second}\n<!-- harness:end second -->\n`
+
+  write(root, { 'AGENTS.md': around('x', 'y') })
+  sync({ root, local: true, generators })
+  assert.deepEqual(Object.keys(readLock(root).managed), ['AGENTS.md#first', 'AGENTS.md#second'])
+  assert.deepEqual(checkVendored({ root, generators }).problems, [])
+
+  write(root, { 'AGENTS.md': around('the first rules', 'edited') })
+  assert.deepEqual(checkVendored({ root, generators }).problems, [
+    'the managed block "second" of AGENTS.md differs from what the tools generated: run `harness sync --local`'
+  ])
+})
+
+test('check generated renders the managed files again: an edit, or a template changed without a sync, fails it, also when detached', () => {
+  const root = synced()
+  let rules = 'the rules'
+  const generators = [
+    { block: 'rules', path: () => 'AGENTS.md', render: () => rules },
+    { path: () => 'docs/profile.md', render: () => '# Profile\n' }
+  ]
+  const entry = (inside) => `# Rules\n<!-- harness:begin rules -->\n${inside}\n<!-- harness:end rules -->\n`
+
+  write(root, { 'AGENTS.md': entry('old') })
+  sync({ root, local: true, generators })
+  assert.deepEqual(checkGenerated({ root, generators }), [])
+
+  write(root, { 'AGENTS.md': entry('edited') })
+  assert.deepEqual(checkGenerated({ root, generators }), [
+    'the managed block "rules" of AGENTS.md is not what the tools generate now: run `harness sync --local`'
+  ])
+
+  detach({ root, reason: 'our own rules' })
+  sync({ root, local: true, generators })
+  rules = 'the rules, changed in the copy'
+  assert.deepEqual(checkVendored({ root, generators }).problems, [])
+  assert.match(
+    checkGenerated({ root, generators }).join('\n'),
+    /block "rules" of AGENTS\.md is not what the tools generate now/
+  )
+
+  rmSync(join(root, 'docs/profile.md'))
+  assert.match(checkGenerated({ root, generators }).join('\n'), /the managed file docs\/profile\.md is not what/)
+  sync({ root, local: true, generators })
+  assert.deepEqual(checkGenerated({ root, generators }), [])
+
+  assert.deepEqual(checkGenerated({ root: project(), generators }), [])
 })

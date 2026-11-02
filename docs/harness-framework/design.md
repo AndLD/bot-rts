@@ -9,7 +9,7 @@ tasks 17.2 onward of the phase file in the same pull request.
 **Inputs.** The owner's decisions of 2026-10-20 ([Phase 17 work log](../development-plan/phases/work-logs/phase-17-log.md)), which this
 design does not reopen. Step 3 of the [harness-framework plan](./README.md#step-3-extract-the-framework). The latest harness review,
 [2026-10-19-3](../quality-reviews/harness/2026-10-19-3.md): its export dry run, blockers B6 and B7, and findings H-20261019-22 to -24. The
-[review method](../quality-reviews/harness/README.md) and its [bindings](../quality-reviews/harness/bindings.md) (layer map and `core-files`
+[review method](../../harness/core/reviews/harness/README.md) and its [bindings](../quality-reviews/harness/bindings.md) (layer map and `core-files`
 block). The [profile](../profile.md) and [`harness-profile.json`](../../harness-profile.json). The CI jobs and the pre-push hook
 as Phase 16 left them on `develop` at `a53de8b`: `verify` and `e2e` are aggregator jobs over parallel jobs and shards, and
 `.githooks/pre-push` runs `scripts/local-gate.mjs`, which checks only what the pushed files need. Task 16.7 was deferred, so there is no
@@ -602,11 +602,12 @@ test runs it against a stand-in `gh` and compares the request with the profile f
 
 ### 8.2 B7: the layer map from one source
 
-- **CORE layer.** It is the vendored tree plus the managed blocks, known from the lock, so it needs no list. The `core-files` block of the
-  harness bindings is gone (17.6). Until 17.8 moves the core documents into the framework, the project's own CORE documents are the
-  `layers.core` entries of the profile file (a path, with `sections` and the numbers when only some sections are CORE), which the CORE
-  scan reads too; a file with such an entry is the one allowed overlap (CORE in those sections, another layer for the rest). After 17.8
-  the list is empty.
+- **CORE layer.** It is the vendored tree plus the entry file's managed rule blocks, known from the lock and the generators, so it needs no
+  list. The `core-files` block of the harness bindings is gone (17.6). Until 17.8 moved the core documents into the framework, the project's
+  own CORE documents were the `layers.core` entries of the profile file (a path, with `sections` and the numbers when only some sections are
+  CORE), which the CORE scan reads too. Since 17.8 the list is empty in `bot-rts`; it stays for a project that holds CORE documents of its own
+  before it adopts the framework. A file with such an entry or with CORE blocks is the one allowed overlap (CORE in those parts, one other
+  layer for the rest).
 - **Other layers.** DOMAIN, ADAPTER, PROFILE, STATE and ENTRY are globs in the profile file (`layers.*`).
   - `harness layers` prints the map, and the generator writes it into the bindings as a managed block between the markers
     `<!-- harness:begin layers -->` and `<!-- harness:end layers -->` (the lock hashes the block alone, so the text around it stays the

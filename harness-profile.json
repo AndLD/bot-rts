@@ -11,7 +11,8 @@
   "repository": {
     "slug": "AndLD/bot-rts",
     "url": "https://github.com/AndLD/bot-rts",
-    "host": "GitHub"
+    "host": "GitHub",
+    "protectionScript": "scripts/protect-branches.sh"
   },
   "adapters": {
     "stacks": [
@@ -63,12 +64,13 @@
   },
   "plan": {
     "taskId": "`<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`)",
-    "phasesWithFragments": "Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `work-logs/_task-template.md`), and the phase file carries no implementation-log table",
+    "phasesWithFragments": "Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `harness/core/plan/task-log-template.md`), and the phase file carries no implementation-log table",
     "phasesWithOneLog": "Phases 0 to 9 and 11 to 16: the phase's own log only, and the implementation-log table of the phase file",
     "logCommand": "`npm run plan:log -- <n>`",
     "estimationScale": "story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires",
     "resumePhrases": "\"Start Phase N\", \"Start Phases N-M\", \"Continue Phase N\"; the phrase approves the pull requests of the named phases",
     "openEndedPhase": "Phase 12 (issues found in use); its size grows",
+    "openEndedPhaseNumber": 12,
     "specificationCitation": "`design §<section>` for the game design (for example `design §12.4`)",
     "complexity": {
       "scale": {
@@ -176,7 +178,7 @@
   ],
   "documents": {
     "rules": "AGENTS.md",
-    "method": "docs/engineering/method.md",
+    "method": "harness/core/method/method.md",
     "stack": "docs/engineering/stack.md",
     "architecture": "docs/engineering/architecture.md",
     "ruleChecks": "docs/engineering/rule-checks.md",
@@ -186,17 +188,17 @@
     "apiContract": "docs/product-knowledge/integrations/API.md",
     "mcpContract": "docs/product-knowledge/integrations/MCP.md",
     "changelog": "docs/product-knowledge/CHANGELOG.md",
-    "changelogFragments": "docs/product-knowledge/changelog.d/README.md",
-    "planMethod": "docs/development-plan/README.md",
+    "changelogFragments": "harness/core/templates/changelog-fragments.md",
+    "planMethod": "harness/core/plan/README.md",
     "planBindings": "docs/development-plan/bindings.md",
-    "definitionOfDone": "docs/development-plan/cross-cutting/definition-of-done.md",
-    "guidingPrinciples": "docs/development-plan/cross-cutting/guiding-principles.md",
+    "definitionOfDone": "harness/core/plan/definition-of-done.md",
+    "guidingPrinciples": "harness/core/plan/guiding-principles.md",
     "testing": "docs/testing/README.md",
     "e2eMatrix": "docs/testing/e2e-matrix.md",
     "deployment": "docs/operations/DEPLOYMENT.md",
     "releasing": "docs/operations/RELEASING.md",
-    "codeReviews": "docs/quality-reviews/code/README.md",
-    "harnessReviews": "docs/quality-reviews/harness/README.md",
+    "codeReviews": "harness/core/reviews/code/README.md",
+    "harnessReviews": "harness/core/reviews/harness/README.md",
     "harnessBindings": "docs/quality-reviews/harness/bindings.md",
     "frameworkPlan": "docs/harness-framework/README.md"
   },
@@ -213,22 +215,6 @@
       "harness.lock.json"
     ],
     "excluded": ["client/public/atlas/LICENSE.md"],
-    "core": [
-      "AGENTS.md sections 1 7",
-      "docs/engineering/method.md",
-      "docs/development-plan/README.md",
-      "docs/development-plan/_template.md",
-      "docs/development-plan/phases/README.md",
-      "docs/development-plan/phases/_template.md",
-      "docs/development-plan/phases/work-logs/_task-template.md",
-      "docs/development-plan/cross-cutting/definition-of-done.md",
-      "docs/development-plan/cross-cutting/guiding-principles.md",
-      "docs/quality-reviews/README.md",
-      "docs/quality-reviews/code/README.md",
-      "docs/quality-reviews/code/_template.md",
-      "docs/quality-reviews/harness/README.md",
-      "docs/quality-reviews/harness/_template.md"
-    ],
     "domain": [
       "docs/product-knowledge/**",
       "!docs/product-knowledge/archived-docs/**",
@@ -252,7 +238,6 @@
       "docs/development-plan/DEVELOPMENT-PLAN.md",
       "docs/development-plan/phases/phase-*.md",
       "docs/development-plan/phases/work-logs/**",
-      "!docs/development-plan/phases/work-logs/_task-template.md",
       "docs/development-plan/cross-cutting/risk-register.md",
       "docs/development-plan/cross-cutting/rfc-*.md",
       "docs/product-knowledge/CHANGELOG.md",

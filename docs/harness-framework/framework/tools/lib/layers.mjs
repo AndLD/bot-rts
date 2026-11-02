@@ -1,8 +1,9 @@
 // The layer map from one source (design §8.2, blocker B7): the layers of the harness (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY) are
-// globs in the `layers` role of the profile file; the tools add what they know (the vendored copy is CORE, the profile file, the lock, the
-// profile document and the bindings are PROFILE, the folder of a framework source is outside the map). `harness layers` prints the map,
+// globs in the `layers` role of the profile file; the tools add what they know (the vendored copy and the entry file's managed rule blocks are
+// CORE, the profile file, the lock, the profile document and the bindings are PROFILE, the folder of a framework source is outside the map). `harness layers` prints the map,
 // the generator writes it into the harness bindings, and `harness check layers` fails on a file that no layer or two layers claim.
 import { execFileSync } from 'node:child_process'
+import { entryBlocks } from './entry.mjs'
 import { readLock, VENDOR_DIR, LOCK_FILE } from './lock.mjs'
 import { PROFILE_FILE } from './profile.mjs'
 
@@ -52,7 +53,8 @@ export function coreEntries(entries = []) {
 
 /**
  * The map in force: the `layers` role plus what the tools know from the profile file and the lock.
- * @returns {{ scope: string[], excluded: string[], layers: Record<string, string[]>, core: { path: string, sections: string[]|null }[] } | null}
+ * @returns {{ scope: string[], excluded: string[], layers: Record<string, string[]>, core: { path: string, sections: string[]|null }[],
+ *   blocks: { path: string, block: string }[] } | null} `blocks` are the CORE blocks: the entry file's rules, where the framework is in use
  *   null when the project has no `layers` role
  */
 export function layerConfig(root, profile) {
@@ -63,11 +65,17 @@ export function layerConfig(root, profile) {
   const lock = readLock(root)
   const known = [PROFILE_FILE, LOCK_FILE, profile.paths?.profileDocument, '**/bindings.md'].filter(Boolean)
   const sourceFolder = lock?.source?.type === 'path' ? [`${lock.source.location}/**`] : []
+  const blocks = lock
+    ? entryBlocks
+        .filter((generator) => generator.path(profile))
+        .map(({ path, block }) => ({ path: path(profile), block }))
+    : []
 
   return {
     scope: configured.scope ?? [],
     excluded: [...(configured.excluded ?? []), ...sourceFolder],
     core: coreEntries(configured.core),
+    blocks,
     layers: {
       core: lock ? [`${VENDOR_DIR}/**`] : [],
       domain: configured.domain ?? [],
@@ -81,25 +89,31 @@ export function layerConfig(root, profile) {
 
 /**
  * Sorts files into layers. A file in the scope of the map that no layer claims, or that two layers claim, is a problem; a core entry with
- * sections is the one allowed overlap (such a file is CORE in those sections and belongs to another layer for the rest).
+ * sections and a file with CORE blocks are the allowed overlap (such a file is CORE in those parts and belongs to another layer for the rest).
  * @returns {{ classes: Map<string, string[]>, problems: string[] }}
  */
 export function classify(files, config) {
   const classes = new Map()
   const problems = []
   const coreByPath = new Map(config.core.map((entry) => [entry.path, entry]))
+  const partlyCore = new Set([
+    ...config.core.filter(({ sections }) => sections).map(({ path }) => path),
+    ...(config.blocks ?? []).map(({ path }) => path)
+  ])
 
   for (const path of files) {
     if (!claims(config.scope, path) || claims(config.excluded, path)) {
       continue
     }
     const layers = LAYERS.filter((layer) =>
-      layer === 'core' ? coreByPath.has(path) || claims(config.layers.core, path) : claims(config.layers[layer], path)
+      layer === 'core'
+        ? coreByPath.has(path) || partlyCore.has(path) || claims(config.layers.core, path)
+        : claims(config.layers[layer], path)
     )
     classes.set(path, layers)
     if (layers.length === 0) {
       problems.push(`${path}: belongs to no layer; add it to a layer of \`layers\` in the profile file`)
-    } else if (layers.length > 1 && !(layers.includes('core') && coreByPath.get(path)?.sections)) {
+    } else if (layers.length > 1 && !(layers.length === 2 && layers.includes('core') && partlyCore.has(path))) {
       problems.push(`${path}: belongs to ${layers.length} layers (${layers.join(', ')}); a file has exactly one`)
     }
   }
@@ -134,7 +148,12 @@ function describeLayer(layer, config) {
     const entries = config.core.map(({ path, sections }) =>
       sections ? `\`${path}\` (sections ${sections.join(', ')})` : `\`${path}\``
     )
-    return [...entries, ...code(positive).map((item) => `${item} (the vendored copy)`)].join(', ')
+    const blocks = new Map()
+    for (const { path, block } of config.blocks ?? []) {
+      blocks.set(path, [...(blocks.get(path) ?? []), block])
+    }
+    const managed = [...blocks].map(([path, ids]) => `\`${path}\` (the managed blocks ${ids.join(', ')})`)
+    return [...entries, ...managed, ...code(positive).map((item) => `${item} (the vendored copy)`)].join(', ')
   }
   const text = code(positive).join(', ')
   return negative.length ? `${text}, except ${code(negative).join(', ')}` : text

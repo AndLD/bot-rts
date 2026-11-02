@@ -6,7 +6,7 @@ of the current base would compound the existing coupling and zero-test debt.
 
 **Phase status legend:** ⬜ Not started · 🟡 In progress · ✅ Done. A phase's status is kept in the summary table below and
 in the phase file, and is updated in the pull request that starts or finishes it. Each phase file also has an
-**implementation log** listing the branches and pull requests that delivered its tasks ([method §4](../engineering/method.md#4-definition-of-done)).
+**implementation log** listing the branches and pull requests that delivered its tasks ([method §4](../../harness/core/method/method.md#4-definition-of-done)).
 
 **Task status** is tracked per task in the phase files (⬜ not started · 🟡 in progress · ✅ done), and each phase has an
 append-only **work log** in `development-plan/phases/work-logs/` so a phase can be resumed in a new session.
@@ -63,7 +63,7 @@ Phase 12 is open-ended and its tasks are done whenever they are found; it has no
 
 ✅ **The MVP is the whole plan: every phase of the summary table above, and its size is that table's total.** The harness phases 15 to 17 are part of it (owner decision 2026-10-30). Phase 12 collects issues found in use, so its share grows as issues are added; the MVP is reached when every phase is done and the user has closed Phase 12. There is no smaller intermediate release milestone. The phase
 order stays as written (stabilize → refactor → tests → gameplay foundations → modules and crafting → script runtime →
-GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](./cross-cutting/guiding-principles.md)).
+GUI → multiplayer, public API and hardening), and each phase still ships green (see [Guiding principles](../../harness/core/plan/guiding-principles.md)).
 
 ---
 
@@ -82,7 +82,7 @@ Ask for one phase or a range: *"Start Phase 0"*, *"Start Phases 0-3"*, *"Continu
 phases' tasks in the documented order, creating and squash-merging every task's pull request into `develop` by itself (the
 request is the approval), **without pausing between tasks or between the named phases**. It stops with a summary after the
 last named phase, or earlier when it is blocked or needs a decision; phases you did not name are not started. Promoting
-`develop` to `main` still needs your approval. The agent follows the session protocol in [method §6](../engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase): it reads
+`develop` to `main` still needs your approval. The agent follows the session protocol in [method §6](../../harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase): it reads
 the phase file and its work log, checks `git status`, the branch list and open pull requests, and continues from the last
 "next step".
 
@@ -90,8 +90,8 @@ the phase file and its work log, checks `git status`, the branch list and open p
 
 ## Contents
 
-- How this plan is structured and maintained: [README](./README.md) (method), [bindings](./bindings.md), [phase file rules](./phases/README.md)
-- [Guiding principles](./cross-cutting/guiding-principles.md)
+- How this plan is structured and maintained: the framework's [plan method](../../harness/core/plan/README.md), [bindings](./bindings.md), [phase file rules](../../harness/core/plan/phases.md)
+- [Guiding principles](../../harness/core/plan/guiding-principles.md)
 <!-- plan-contents:start -->
 - [Phase 0 — Stabilize & CI foundation (24 SP)](./phases/phase-0-stabilize-ci.md)
 - [Phase 1 — Architecture refactor, clean architecture & NestJS migration (100 SP)](./phases/phase-1-architecture-refactor.md)
@@ -114,5 +114,5 @@ the phase file and its work log, checks `git status`, the branch list and open p
 <!-- plan-contents:end -->
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
-- [Definition of Done](./cross-cutting/definition-of-done.md)
+- [Definition of Done](../../harness/core/plan/definition-of-done.md)
 - Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md), [phase 16](./phases/work-logs/phase-16-log.md), [phase 17](./phases/work-logs/phase-17-log.md)

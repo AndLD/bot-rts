@@ -84,6 +84,7 @@ test('core entries: a path, optionally followed by the sections that are CORE', 
 test('the map adds what the tools know: the vendored copy, the profile files and bindings, the framework source folder', () => {
   const none = layerConfig(project('no-lock'), profile())
   assert.deepEqual(none.layers.core, [])
+  assert.deepEqual(none.blocks, [])
   assert.deepEqual(none.excluded, ['vendor/LICENSE.md'])
 
   const config = layerConfig(project('lock', { source: { type: 'path', location: 'framework' } }), profile())
@@ -149,7 +150,10 @@ test('the rendered map names each layer once, with its patterns, its exceptions 
     rows.map((row) => row.split('|')[1].trim()),
     ['**CORE**', '**DOMAIN**', '**ADAPTER**', '**PROFILE**', '**STATE**', '**ENTRY**']
   )
-  assert.match(rows[0], /`AGENTS\.md` \(sections 1, 7\), `docs\/method\.md`, `harness\/\*\*` \(the vendored copy\)/)
+  assert.match(
+    rows[0],
+    /`AGENTS\.md` \(sections 1, 7\), `docs\/method\.md`, `AGENTS\.md` \(the managed blocks non-negotiables, git-rules\), `harness\/\*\*` \(the vendored copy\)/
+  )
   assert.match(rows[1], /`docs\/product\/\*\*`, except `docs\/product\/archive\/\*\*`/)
   assert.match(text, /Not in the map: `vendor\/LICENSE\.md`, `framework\/\*\*`\./)
 })
@@ -158,4 +162,33 @@ test('the generator writes into the bindings of the profile, and only when the p
   assert.equal(layerMap.block, 'layers')
   assert.equal(layerMap.path(profile()), 'docs/reviews/bindings.md')
   assert.equal(layerMap.path({}), undefined)
+})
+
+test('the entry file blocks are CORE where the framework is in use, so the file shares CORE with its own layer', () => {
+  const lock = { source: { type: 'git' } }
+  const withoutEntries = profile()
+  withoutEntries.layers.core = ['docs/method.md']
+  const config = layerConfig(project('blocks', lock), withoutEntries)
+
+  assert.deepEqual(config.blocks, [
+    { path: 'AGENTS.md', block: 'non-negotiables' },
+    { path: 'AGENTS.md', block: 'git-rules' }
+  ])
+  const { classes, problems } = classify(FILES, config)
+  assert.deepEqual(problems, [])
+  assert.deepEqual(classes.get('AGENTS.md'), ['core', 'entry'])
+  assert.deepEqual(classes.get('docs/reviews/bindings.md'), ['profile'])
+  assert.match(
+    renderLayerMap(config).split('\n')[2],
+    /`docs\/method\.md`, `AGENTS\.md` \(the managed blocks non-negotiables, git-rules\), `harness\/\*\*` \(the vendored copy\)/
+  )
+})
+
+test('a file with CORE blocks still fails when two other layers claim it', () => {
+  const lock = { source: { type: 'git' } }
+  const doubled = profile()
+  doubled.layers.core = ['docs/method.md']
+  doubled.layers.state.push('AGENTS.md')
+  const { problems } = classify(FILES, layerConfig(project('blocks-doubled', lock), doubled))
+  assert.deepEqual(problems, ['AGENTS.md: belongs to 3 layers (core, state, entry); a file has exactly one'])
 })

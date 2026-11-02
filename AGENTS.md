@@ -6,7 +6,7 @@ reading map. The rest is read on demand:
 
 - the [project profile](./docs/profile.md): every value the rules cite by role (the coverage gate, branch names and types, merge
   strategy, the API prefix, the user-facing languages, versions, commands) and the map of the documents;
-- the [engineering method](./docs/engineering/method.md): principles, SOLID checklist, testing rules, definition of done, Git
+- the [engineering method](./harness/core/method/method.md): principles, SOLID checklist, testing rules, definition of done, Git
   workflow, session protocol;
 - the [stack file](./docs/engineering/stack.md): tools, layering, conventions, test tooling, the stack items of the definition of
   done, the agent-runtime tools;
@@ -17,14 +17,14 @@ reading map. The rest is read on demand:
 
 | To … | Read first |
 | ---- | ---------- |
-| start or continue a phase, or end a session | [method §6](./docs/engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase) (session protocol), then the phase file and its work log ([plan index](./docs/development-plan/DEVELOPMENT-PLAN.md)) |
-| write or change code in any package | [stack.md](./docs/engineering/stack.md) (stack, layering, conventions) and [method §2–§3](./docs/engineering/method.md#2-solid-checklist-apply-per-file) (SOLID, testing) |
+| start or continue a phase, or end a session | [method §6](./harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase) (session protocol), then the phase file and its work log ([plan index](./docs/development-plan/DEVELOPMENT-PLAN.md)) |
+| write or change code in any package | [stack.md](./docs/engineering/stack.md) (stack, layering, conventions) and [method §2–§3](./harness/core/method/method.md#2-solid-checklist-apply-per-file) (SOLID, testing) |
 | add or change an endpoint | [stack §2.0](./docs/engineering/stack.md#20-one-api-for-every-client), [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (generated files), [`API.md`](./docs/product-knowledge/integrations/API.md) |
 | change the database schema or authentication | [architecture](./docs/engineering/architecture.md) (persistence and migrations §2, identity providers §1) |
-| add or change a user-visible flow | [method §3.4](./docs/engineering/method.md#34-end-to-end-tests) and the [e2e matrix](./docs/testing/e2e-matrix.md) |
+| add or change a user-visible flow | [method §3.4](./harness/core/method/method.md#34-end-to-end-tests) and the [e2e matrix](./docs/testing/e2e-matrix.md) |
 | change a game rule or add a game feature | [`GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and the [glossary](./docs/product-knowledge/game-design/02-glossary.md), then section 9 below |
 | see which tool holds a rule | the [rule-to-check map](./docs/engineering/rule-checks.md) |
-| finish a task | [method §4](./docs/engineering/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (definition of done) |
+| finish a task | [method §4](./harness/core/method/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items) (definition of done) |
 | cut a release or a hotfix | [`RELEASING.md`](./docs/operations/RELEASING.md) |
 | run tests, find a command | [`docs/testing/`](./docs/testing/README.md), [profile §8](./docs/profile.md#8-commands) |
 | find any other document | [profile §10](./docs/profile.md#10-document-map) (document map) |
@@ -33,18 +33,20 @@ reading map. The rest is read on demand:
 
 ## 1. Mission & non-negotiables
 
+<!-- harness:begin non-negotiables -->
 The principles (SOLID, scalability, testability, maintainability, low coupling, Git Flow, tests for every feature) are in
-[method §1](./docs/engineering/method.md#1-principles). If a rule conflicts with existing legacy code, the rule wins for **new
+[method §1](./harness/core/method/method.md#1-principles). If a rule conflicts with existing legacy code, the rule wins for **new
 and modified** code — refactor the touched area to comply rather than perpetuating the anti-pattern.
 
 Non-negotiables (a PR that violates these is rejected). **Changing one needs the owner's explicit confirmation of that change**, recorded
-in the pull request; a mention in passing ("the gate is annoying") is not a confirmation, so ask.
+in the pull request; a mention in passing ("the gate is annoying") is not a confirmation, so ask. <!-- rule:nn.change -->
 
-1. Every feature ships with **unit + integration tests**, and user-visible flows get **e2e** tests.
-2. Coverage must stay at or above the coverage gate ([profile](./docs/profile.md#2-quality-gates)); CI fails below it.
-3. No new `any`-typed public API boundaries. No new magic string logic without a typed constant.
-4. No dead code, no commented-out blocks, no `console.log` left in committed code (use the logger).
-5. No secrets in the repo; add values only to `.env.example`, never `.env`.
+1. Every feature ships with **unit + integration tests**, and user-visible flows get **e2e** tests. <!-- rule:nn.tests -->
+2. Coverage must stay at or above the coverage gate ([profile](./docs/profile.md#2-quality-gates)); CI fails below it. <!-- rule:nn.coverage -->
+3. No new untyped public boundaries (the stack's lint rule names them). No new magic string logic without a typed constant. <!-- rule:nn.typed -->
+4. No dead code, no commented-out blocks, no debug printing left in committed code (use the logger). <!-- rule:nn.clean -->
+5. No secrets in the repo; add values only to `.env.example`, never `.env`. <!-- rule:nn.secrets -->
+<!-- harness:end non-negotiables -->
 
 ## 2.–6. Moved sections
 
@@ -52,90 +54,92 @@ The former sections keep their numbers here so that older references resolve:
 
 - §2 Tech stack & test tooling → [stack §1](./docs/engineering/stack.md#1-tech-stack-and-test-tooling-do-not-substitute).
 - §3 Architecture & layering: §3.0–§3.2 → [stack §2](./docs/engineering/stack.md#2-architecture-and-layering) (§2.0–§2.2); §3.3 identity providers → [architecture §1](./docs/engineering/architecture.md#1-identity-provider-abstraction); §3.4 persistence → [architecture §2](./docs/engineering/architecture.md#2-persistence-isolation-postgresql--prisma).
-- §4 SOLID checklist → [method §2](./docs/engineering/method.md#2-solid-checklist-apply-per-file) (its application to this code: [stack §3.4](./docs/engineering/stack.md#34-solid-in-this-code-base)).
+- §4 SOLID checklist → [method §2](./harness/core/method/method.md#2-solid-checklist-apply-per-file) (its application to this code: [stack §3.4](./docs/engineering/stack.md#34-solid-in-this-code-base)).
 - §5 Conventions → [stack §3](./docs/engineering/stack.md#3-conventions).
-- §6.1–§6.4 Testing → [method §3](./docs/engineering/method.md#3-testing) (rules) and [stack §4](./docs/engineering/stack.md#4-test-tooling) (tools).
-- §6.5 Definition of done → [method §4](./docs/engineering/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items).
+- §6.1–§6.4 Testing → [method §3](./harness/core/method/method.md#3-testing) (rules) and [stack §4](./docs/engineering/stack.md#4-test-tooling) (tools).
+- §6.5 Definition of done → [method §4](./harness/core/method/method.md#4-definition-of-done) and [stack §5](./docs/engineering/stack.md#5-definition-of-done-stack-items).
 
 ---
 
 ## 7. Git Flow
 
+<!-- harness:begin git-rules -->
 **Role binding.** This repository fills the roles of §1 and §7 as follows, and this line is the only place in these two sections that names the values: the integration branch is `develop`, the production branch is `main`, the open-ended phase is Phase 12, the repository host is GitHub, the branch-protection script is `scripts/protect-branches.sh`; every other value is in the [profile](./docs/profile.md).
 
 ### 7.1 Branches
 
-Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow
-(one branch per task, finishing a release) is in [method §5](./docs/engineering/method.md#5-git-workflow).
+Branch names, types and the merge strategy are in the [profile](./docs/profile.md#3-branches-and-merging); how branches flow <!-- rule:git.branches -->
+(one branch per task, finishing a release) is in [method §5](./harness/core/method/method.md#5-git-workflow).
 **`<id>` is the task number from the development plan**, as in `feature/<id>-<slug>`.
 Work that is not in the plan first becomes a task: a defect or an improvement found in use becomes a task of the open-ended phase (a bugfix branch named by its task id).
 Documentation or tooling work that no task covers uses a branch slug only (the docs and chore branch types).
 
 ### 7.2 Merge strategy
 
-Squash merge into the integration branch; a merge commit for release and hotfix branches ([profile](./docs/profile.md#3-branches-and-merging)).
+Squash merge into the integration branch; a merge commit for release and hotfix branches ([profile](./docs/profile.md#3-branches-and-merging)). <!-- rule:git.merge -->
 
 ### 7.3 Branch retention
 
-- **Branches are never deleted from the repository host after merging; they are kept for history.** Turn off "automatically delete head
+- **Branches are never deleted from the repository host after merging; they are kept for history.** Turn off "automatically delete head <!-- rule:git.retention -->
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
-- Deleting a *local* branch is fine when it is already merged.
-- The production and the integration branch are protected by the repository ruleset of the branch-protection script: no direct pushes (for administrators
+- Deleting a *local* branch is fine when it is already merged. <!-- rule:git.local-delete -->
+- The production and the integration branch are protected by the repository ruleset of the branch-protection script: no direct pushes (for administrators <!-- rule:git.protection -->
   too), no force-push, no deletion, every change through a PR, and the **required checks** green. The required checks are the
   status contexts that script sets, listed with what each job runs in the [profile](./docs/profile.md#2-quality-gates); that
   list is the only statement of the merge gates.
-  An administrator may bypass the rules only when merging a PR, for example past a red check. That bypass is the owner's: an agent
+  An administrator may bypass the rules only when merging a PR, for example past a red check. That bypass is the owner's: an agent <!-- rule:git.admin-bypass -->
   never uses it unless the owner asks for that specific merge.
 
 ### 7.4 Commit & PR rules
 
-- Commit messages: the commit format of the [profile](./docs/profile.md#3-branches-and-merging) (its type and optional scope, for
+- Commit messages: the commit format of the [profile](./docs/profile.md#3-branches-and-merging) (its type and optional scope, for <!-- rule:git.commit-format -->
   example `feat(<scope>): …`), with the plan task id in the body (the plan-reference line of the profile).
-- One logical change per commit; PRs should be small and single-purpose.
-- No direct commits to the production or the integration branch; merge via PR with at least one review (while the project is solo, the owner's
+- One logical change per commit; PRs should be small and single-purpose. <!-- rule:git.small-prs -->
+- No direct commits to the production or the integration branch; merge via PR with at least one review (while the project is solo, the owner's <!-- rule:git.no-direct-commit -->
   approval to merge counts as the review).
-- The required checks (§7.3) must be green before merge.
+- The required checks (§7.3) must be green before merge. <!-- rule:git.green-checks -->
 
 ### 7.5 Rules for agents
 
-- If the current branch is the production or the integration branch, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from the integration branch as it is on the remote (fetch first).
-- Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or
+- If the current branch is the production or the integration branch, **create the right branch first** (names per §7.1) before changing files. Start every new branch, worktree and session from the integration branch as it is on the remote (fetch first). <!-- rule:agent.branch-first -->
+- Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or <!-- rule:agent.routine-push -->
   push directly to the production or the integration branch.
-- **Plan work (approval given by the request):** when the user asks to start or continue one or more phases (the resume phrases
+- **Plan work (approval given by the request):** when the user asks to start or continue one or more phases (the resume phrases <!-- rule:agent.plan-approval -->
   of the [profile](./docs/profile.md#4-plan), for example "Start Phase N"), that request is the approval for **every task PR of the named phases**. Create each
   task's pull request into the integration branch and squash-merge it **without asking**, once the required checks pass (before CI
   exists: once lint, typecheck and tests pass locally). Do not pause between tasks, and when a named phase's exit criteria are
   met, record it and start the next named phase. Stop after the last named phase with a summary, and earlier only when
   blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
-- **Plan-related PRs merge the same way.** Every PR that belongs to a named phase is covered by the same approval: its task
+- **Plan-related PRs merge the same way.** Every PR that belongs to a named phase is covered by the same approval: its task <!-- rule:agent.plan-related -->
   PRs, and also the documentation and chore PRs that exist because of the plan (the phase's implementation log, task and
   status updates in the phase file and the development plan, the work log, the matching specification updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
-- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title and body as in the claim row of the
+- **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title and body as in the claim row of the <!-- rule:agent.claim -->
   [profile](./docs/profile.md#4-plan)); a task with an open pull request belongs to the session that opened it.
   With several agents the orchestrator or the owner merges, and the CI events and review comments of a pull request go to the session
-  that owns it ([method §7](./docs/engineering/method.md#7-several-agents)).
-- **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including
+  that owns it ([method §7](./harness/core/method/method.md#7-several-agents)).
+- **Opening a pull request is automatic.** Create the PR as soon as a branch is ready (any branch type, including <!-- rule:agent.open-pr -->
   release and hotfix branches into the production branch) without asking.
-- **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything
+- **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything <!-- rule:agent.ask-merge -->
   targeting the production branch, and release and hotfix branches. Approval for one merge does not carry over to another.
-- Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history.
-- Never enable auto-merge unless the user asks.
-- **Automatic CI fixes are on for plan work.** After opening a PR for a named phase, attach it to the session and turn on the agent
+- Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history. <!-- rule:agent.no-rewrite -->
+- Never enable auto-merge unless the user asks. <!-- rule:agent.no-auto-merge -->
+- **Automatic CI fixes are on for plan work.** After opening a PR for a named phase, attach it to the session and turn on the agent <!-- rule:agent.ci-fixes -->
   runtime's CI monitoring with automatic fixes (the tools are in [stack §6](./docs/engineering/stack.md#6-agent-runtime)) without
   asking; it wakes the session on CI failures, merge conflicts and review comments. Do not poll CI yourself. When CI is green,
   merge per the rules above and go on to the next task, so work flows across phases.
+<!-- harness:end git-rules -->
 
 ### 7.6 Session protocol
 
-Moved to [method §6](./docs/engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase).
+Moved to [method §6](./harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase).
 
 ---
 
 ## 8. Do's & Don'ts
 
-Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, the [method](./docs/engineering/method.md) and the
+Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, the [method](./harness/core/method/method.md) and the
 [stack file](./docs/engineering/stack.md).
 
 ---
@@ -144,8 +148,8 @@ Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, t
 
 - **Docs are the source of truth** for game rules and plan: [`docs/product-knowledge/game-design/GAME-DESIGN.md`](./docs/product-knowledge/game-design/GAME-DESIGN.md) and
   [`docs/development-plan/DEVELOPMENT-PLAN.md`](./docs/development-plan/DEVELOPMENT-PLAN.md). Check them before implementing a feature and keep them in sync.
-- **Harness quality:** the docs and this harness are reviewed by [`docs/quality-reviews/harness/README.md`](./docs/quality-reviews/harness/README.md)
-  (layers, scoring, procedure; this repository's values in `bindings.md` there). A review adds one dated report and changes nothing else;
+- **Harness quality:** the docs and this harness are reviewed by [`harness/core/reviews/harness/README.md`](./harness/core/reviews/harness/README.md)
+  (layers, scoring, procedure; this repository's values in [`docs/quality-reviews/harness/bindings.md`](./docs/quality-reviews/harness/bindings.md)). A review adds one dated report and changes nothing else;
   fixes follow in separate pull requests.
 - **Vendored framework:** `harness/` is a copy of the framework source `docs/harness-framework/framework/`, pinned by `harness.lock.json`. Never
   edit it: change the source and run `npm run harness -- sync` in the same pull request (`harness check vendored` fails otherwise).

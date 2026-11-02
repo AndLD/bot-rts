@@ -2,7 +2,7 @@
 
 How a development plan is organized and maintained. This file is the **method** and is project-neutral, so it can move to a
 blueprint unchanged. What belongs to one project (file names, status symbols, estimation scale, gates, the resume phrase) is in
-[`bindings.md`](./bindings.md). The plan itself is the index document named there.
+the plan bindings (the project's `bindings.md` next to the plan index). The plan itself is the index document named there.
 
 ---
 
@@ -19,15 +19,18 @@ any session, human or agent, can stop and resume from the repository alone. It a
 ## 2. Structure
 
 ```
-development-plan/
+<plan folder>/
   <index>.md        the plan: summary, order, scope, gates, how to resume, contents (the only entry point)
-  README.md         this method
   bindings.md       this project's values for the method
-  _template.md      template of the index
-  phases/           one file per phase (README, bindings, template inside)
+  phases/           one file per phase, and the phase bindings
     work-logs/      one append-only log per phase, next to the phase files, used to resume a session
   cross-cutting/    documents that apply to every phase (section 4)
 ```
+
+The method and its templates are the framework's (`core/plan/`): this file, the rules of a phase file ([`phases.md`](./phases.md)), the
+templates of the index ([`index-template.md`](./index-template.md)), a phase ([`phase-template.md`](./phase-template.md)) and a task log
+([`task-log-template.md`](./task-log-template.md)), the definition of done ([`definition-of-done.md`](./definition-of-done.md)) and the guiding
+principles ([`guiding-principles.md`](./guiding-principles.md)). The project's plan folder holds only its own files.
 
 Rules of the structure:
 
@@ -38,13 +41,13 @@ Rules of the structure:
 
 ## 3. The index document
 
-Required sections, in this order (template: [`_template.md`](./_template.md)):
+Required sections, in this order (template: [`index-template.md`](./index-template.md)):
 
 | Section | Content |
 | ------- | ------- |
 | Introduction | Goal of the plan and the sequencing principle, in a few sentences |
 | Legends | Status symbols of phases and tasks, the estimation scale and what an estimate includes |
-| Summary | One table: phase number, theme, size, status, and a total row |
+| Summary | One table: phase number, theme, size, the range of agent-complexity markers when the plan uses them (section 7), status, and a total row |
 | Order of development | The actual order when it differs from the numbering, with the reason |
 | Scope definition | What the finished product is for this plan (the minimum releasable scope), and what is excluded |
 | Gates | Conditions that must hold before the product is deployed or released, naming the tasks that satisfy them |
@@ -53,7 +56,7 @@ Required sections, in this order (template: [`_template.md`](./_template.md)):
 
 Rules:
 
-- The summary table is derived from the phase files. When a phase changes status or size, the index is updated in the **same change**.
+- The summary table is derived from the phase files. When a phase changes status or size, the index is updated in the **same change**. The plan-summary command of the profile writes it, and the contents list, between their marker comments (see the template).
 - Numbers are identities, not order. Never renumber a phase or a task: other documents cite them. Record a different order in the "Order of development" section.
 - A total counts only what the legend says it counts; an open-ended phase is marked as growing.
 - A gate names task ids, not prose, so it can be checked mechanically.
@@ -65,8 +68,8 @@ phase and is not a rule of the product. Typical kinds:
 
 | Kind | What it holds |
 | ---- | ------------- |
-| Guiding principles | The sequencing and delivery principles every phase follows |
-| Definition of done | A pointer to the single place where "done" is defined; it never restates the checklist |
+| Guiding principles | The sequencing and delivery principles every phase follows; the framework's [`guiding-principles.md`](./guiding-principles.md) unless the project adds its own |
+| Definition of done | A pointer to the single place where "done" is defined; it never restates the checklist (the framework's [`definition-of-done.md`](./definition-of-done.md)) |
 | Risk register | Risks with likelihood, impact and mitigation, reviewed at each milestone |
 | Decision records | A design record (RFC) that a phase task requires before implementation, kept with the decision and its date |
 
@@ -90,4 +93,31 @@ verify the current state. The log is part of the change that it describes.
 | A decision changes the order | The "Order of development" section, with the date and the reason |
 
 Consistency checks (done in review, automated where possible): the index summary agrees with each phase file; every phase is in
-the contents; every gate task exists; every task cited elsewhere exists; no document in the folder is unreachable.
+the contents; every gate task exists; every task cited elsewhere exists; no document in the folder is unreachable; where the plan uses
+agent-complexity markers, every open task carries one (section 7).
+
+## 7. Agent-complexity markers (optional)
+
+A plan may rate each task by the **reasoning** it needs, so that the owner or an orchestrator gives it a model and an effort that fit. A
+marker rates the reasoning, not the size: a large mechanical task is light, a small decision with wide consequences is heavy. The scale and
+the meaning of each marker are a profile role (section 4 of the profile), and so is the model map, the model and effort for each marker.
+The framework's scale has three markers:
+
+| Marker | Meaning |
+| ------ | ------- |
+| `C1` | routine: mechanical, fully specified, obvious to verify |
+| `C2` | standard engineering: a component to a clear specification with tests, tools to work out |
+| `C3` | judgment: research, correctness-critical design, synthesis |
+
+Rules:
+
+- **Where the plan uses markers**, a phase file's task table has an `Agent` column just before the size, and every **open** task (not
+  started or in progress) carries one marker of the scale, written `C` and a number.
+- **Done tasks are exempt.** A project that turns the markers on does not rate its history; a marker recorded on a done task stays.
+- **The index shows the range.** The summary gives each phase the range of its markers, lightest to heaviest (`C1–C3`, one marker
+  alone, or `—` when no task has one), written by the plan-summary command with the rest of the summary.
+- **Conformance.** The documentation check names every open task without a marker, so a new task is rated when it is added.
+- **Re-rating.** A marker changes when the scope of its task changes, in the change that changes the scope; a re-rating by the owner
+  is recorded in the phase file or its work log with the date.
+- **On or off.** The bootstrap turns the markers on. A project turns them off by removing the scale from the profile; the column and
+  the range are then absent, and nothing is checked.

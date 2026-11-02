@@ -10,7 +10,7 @@ import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
 import { checkProfile } from './profile.mjs'
-import { checkVendored } from './vendor.mjs'
+import { checkGenerated, checkVendored } from './vendor.mjs'
 
 const single = ({ problems, message }) => ({ problems, messages: [message] })
 
@@ -20,6 +20,10 @@ export const CHECKS = {
     const done = 'Checked the vendored framework, the managed files and the profile file against harness.lock.json.'
     return { problems, messages: [...notes, ...(problems.length ? [] : [done])] }
   },
+  generated: ({ root }) => ({
+    problems: checkGenerated({ root }),
+    messages: ['Checked that the managed files and blocks are what the tools generate now.']
+  }),
   profile: ({ root }) => ({ problems: checkProfile(root), messages: ['Checked the profile file against the schema.'] }),
   layers: ({ root, profile }) =>
     profile.layers

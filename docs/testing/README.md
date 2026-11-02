@@ -2,7 +2,7 @@
 
 # Testing
 
-The rules (what every feature must ship with) are in [method §3](../engineering/method.md#3-testing); the tools are in [stack §4](../engineering/stack.md#4-test-tooling). This folder describes how testing
+The rules (what every feature must ship with) are in [method §3](../../harness/core/method/method.md#3-testing); the tools are in [stack §4](../engineering/stack.md#4-test-tooling). This folder describes how testing
 works in practice.
 
 | Page | What it holds |

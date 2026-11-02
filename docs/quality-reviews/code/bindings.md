@@ -1,15 +1,15 @@
-[← Code quality reviews](./README.md)
+[← Code quality reviews](../../../harness/core/reviews/code/README.md)
 
 # Bindings for this repository
 
-The method in [`README.md`](./README.md) is project-neutral. This file supplies the values for `bot-rts`: the bar, packages,
+The method in [`README.md`](../../../harness/core/reviews/code/README.md) is project-neutral. This file supplies the values for `bot-rts`: the bar, packages,
 layers, commands, thresholds and exclusions. A new project copies the method and rewrites only this file.
 
 ---
 
 ## 1. The bar
 
-The declared quality bar is [`AGENTS.md`](../../../AGENTS.md) with the [method](../../engineering/method.md) and the
+The declared quality bar is [`AGENTS.md`](../../../AGENTS.md) with the [method](../../../harness/core/method/method.md) and the
 [stack file](../../engineering/stack.md); the § numbers below are those of `AGENTS.md`, whose moved sections point to their new
 place (§2–§5 to the stack file and the method, §6 to method §3–§4 and stack §4–§5): §1 mission and non-negotiables, §3 layering and its forbidden
 imports, §4 SOLID checklist, §5 conventions, §6 testing and the definition of done, §7 Git Flow, §9 project rules (single writer

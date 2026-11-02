@@ -1,11 +1,9 @@
-[← AGENTS.md](../../AGENTS.md) · values: [profile](../profile.md) · stack: [stack.md](./stack.md)
-
 # Engineering method
 
 The project-neutral workflow of this repository: principles, the design checklist, the testing rules, the definition of done,
 the Git workflow and the session protocol. It names **roles** ("the coverage gate", "the integration branch", "the plan
-index"); their values are in the [project profile](../profile.md), and the tools that implement them are in the
-[stack file](./stack.md). The rules every task needs are in [`AGENTS.md`](../../AGENTS.md), which is always loaded; this file is
+index"); their values are in the project profile, and the tools that implement them are in the
+stack file. The rules every task needs are in the entry file, which is always loaded; this file is
 read on demand through its reading map.
 
 ---
@@ -76,7 +74,7 @@ rather than perpetuating the anti-pattern.
 ## 4. Definition of done
 
 A task is done only when **all** of these hold. The stack items (generated files, migrations, catalogues) are in
-[stack.md §5](./stack.md#5-definition-of-done-stack-items).
+the stack file.
 
 - [ ] Business logic implemented behind interfaces; no untyped public boundary.
 - [ ] Unit tests cover the new code's happy path and error paths.
@@ -84,7 +82,7 @@ A task is done only when **all** of these hold. The stack items (generated files
 - [ ] An end-to-end spec is added for any new user-visible flow.
 - [ ] The coverage gate holds (CI green).
 - [ ] The lint, typecheck and import-boundary commands of the profile pass in every package.
-- [ ] The stack items of [stack.md §5](./stack.md#5-definition-of-done-stack-items) hold.
+- [ ] The stack items of the stack file hold.
 - [ ] No dead code, no commented-out blocks, no debug output.
 - [ ] The task is marked ✅ in its phase file and the work log has an entry for it (section 6).
 - [ ] The plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit criteria are met, in the
@@ -113,7 +111,7 @@ A task is done only when **all** of these hold. The stack items (generated files
   with one `git push --force-with-lease origin <b1> <b2> …` (a pre-push hook then runs once). Keep the records that every task edits (the
   phase file, the work log) in as few branches as possible, and prefer fewer, larger pull requests over a deep stack when the tasks
   touch the same documents.
-- Commits, pull requests, branch protection and merge approvals are CORE rules. They are stated once, by role, in [`AGENTS.md`](../../AGENTS.md) §7.3–7.5, which the agent runtime loads; one line there binds the roles to this repository's values, and the CORE scan of the documentation check keeps every other value out of them.
+- Commits, pull requests, branch protection and merge approvals are CORE rules. They are stated once, by role, in the entry file (§7.3–7.5), which the agent runtime loads; one line there binds the roles to this repository's values, and the CORE scan of the documentation check keeps every other value out of them.
 
 ## 6. Session protocol (resuming and pausing a phase)
 
@@ -136,7 +134,8 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   that verify the current state. Commit and push it on the task branch, in the same pull request as the work.
 - **Changelog:** a change that a user of the product can see adds a changelog fragment (a file of its own, so that two changes
   never edit the same lines); the release collects the fragments (profile, section 7).
-- **Local database after a phase:** when a phase's exit criteria are met (and the task pull requests are merged into the
+- **Local database after a phase** (only where the profile has the database commands, an optional role group; a project without
+  them has no such step): when a phase's exit criteria are met (and the task pull requests are merged into the
   integration branch), bring the developer's local database up to date before reporting the phase as done, with the database
   commands of the profile (start, migrate, and seed when the phase changed the seed data). Run them from the updated
   integration branch, never against a shared or production database. Record the result in the phase's work log and tell the

@@ -7,7 +7,7 @@
 //   harness detach --reason <why>                                 the project takes the copy over; no more versions
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness layers                                                print the layer map
-//   harness check <name>                                          one check: vendored, profile, layers, links, paths, core, plan, changelog,
+//   harness check <name>                                          one check: vendored, generated, profile, layers, links, paths, core, plan, changelog,
 //                                                                 product-knowledge
 //   harness check all                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index

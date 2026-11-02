@@ -2,12 +2,12 @@
 
 Instruction for reviewing the quality of the **harness**: everything in the repository that steers an AI agent or a human
 contributor, as opposed to the product code. It is separate from the review of the code itself. A review produces one dated
-report in this folder (`YYYY-MM-DD.md`), built from
-[`_template.md`](./_template.md).
+report in the project's folder of this review (`YYYY-MM-DD.md`), built from
+[`report-template.md`](./report-template.md).
 
 This file is the **method** and is written to be project-neutral, so it can move to a blueprint unchanged. Everything that
 belongs to this repository (which file sits in which layer, commands, term lists, thresholds) is in
-[`bindings.md`](./bindings.md). The reviewer reads both.
+the review's bindings (the project's `bindings.md` next to its reports). The reviewer reads both.
 
 ---
 
@@ -304,7 +304,7 @@ for the harness**: it adds one report (and updates the indexes that link to it).
 report is approved.
 
 1. **Prepare.** Record the commit under review (`git rev-parse --short HEAD`) and the previous review's scores. Read
-   [`bindings.md`](./bindings.md). Prefer a reviewer who did not write the harness (a fresh agent session or a subagent
+   the bindings. Prefer a reviewer who did not write the harness (a fresh agent session or a subagent
    given only this folder); say in the report who reviewed.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
@@ -352,7 +352,7 @@ report is approved.
    uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
 6. **Export dry run.** Perform the blueprint exercise of section 3 on paper: classify, list the parameters a new project
    would have to supply, and name the blockers.
-7. **Report.** Fill [`_template.md`](./_template.md) as `YYYY-MM-DD.md` in this folder; if two reviews happen
+7. **Report.** Fill [`report-template.md`](./report-template.md) as `YYYY-MM-DD.md` in the project's folder of this review; if two reviews happen
    on one day, add `-2`. Link it from the indexes in `bindings.md`. Compare with the previous report (trend table).
 8. **Follow-up.** After approval, turn findings into work: 🔴 and 🟠 become tasks in the delivery plan or a dedicated
    documentation change; 🟡 and 🔵 go to the backlog. Record the resulting tasks in the report's follow-up table.

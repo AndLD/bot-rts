@@ -1,10 +1,10 @@
-[← AGENTS.md](../../AGENTS.md) · values: [profile](../profile.md) · method: [method.md](./method.md)
+[← AGENTS.md](../../AGENTS.md) · values: [profile](../profile.md) · method: [method.md](../../harness/core/method/method.md)
 
 # Stack
 
 The tools of this repository and the rules that name them: the stack and test tooling, the architecture and layering of the
 code, the coding conventions, the stack items of the definition of done, and the agent-runtime tools. The project-neutral
-workflow is in the [method](./method.md); values (versions, commands, the coverage gate) are in the [profile](../profile.md).
+workflow is in the [method](../../harness/core/method/method.md); values (versions, commands, the coverage gate) are in the [profile](../profile.md).
 Read this file before writing or changing code.
 
 ---
@@ -150,7 +150,7 @@ Moved to [architecture §2](./architecture.md#2-persistence-isolation-postgresql
 
 ### 3.4 SOLID in this code base
 
-The checklist of [method §2](./method.md#2-solid-checklist-apply-per-file) applied here: module behaviors are polymorphic (a new
+The checklist of [method §2](../../harness/core/method/method.md#2-solid-checklist-apply-per-file) applied here: module behaviors are polymorphic (a new
 `Module` subclass, not a central `switch`); subclasses (`ScannerModule`, `WeaponModule`, …) honor the `IModule`/`IModuleProps`
 contracts; the `lib` interfaces stay narrow (`IScannerModule`, `IWeaponModule`, …); the clock, RNG, logger and module registry
 are injected.
@@ -171,14 +171,14 @@ are injected.
 
 ## 5. Definition of done: stack items
 
-These complete the definition of done of [method §4](./method.md#4-definition-of-done):
+These complete the definition of done of [method §4](../../harness/core/method/method.md#4-definition-of-done):
 
 - [ ] `npm run lint`, `npm run typecheck` and `npm run check:boundaries` pass (every package).
 - [ ] Generated files are current: after an endpoint or DTO change run `npm run openapi:generate -w api` and
       `npm run api:generate -w client` and commit the result (CI fails on a stale `api/openapi.json` or client).
 - [ ] `npm run i18n:check` (the message catalogues of the user-facing languages) and `npm run docs:check` (Markdown links) pass.
 - [ ] If the change adds a Prisma migration, it is applied to the local development database (`npm run db:migrate -w api`; see
-      the session protocol of [method §6](./method.md#6-session-protocol-resuming-and-pausing-a-phase) for the end-of-phase rule;
+      the session protocol of [method §6](../../harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase) for the end-of-phase rule;
       without it the API starts with an outdated schema, for example the engine fails on a missing table).
 
 ## 6. Agent runtime

@@ -13,7 +13,7 @@ ones listed below.
 | 2 | Refactor and fix the docs and harness from the findings | you choose which findings; the agent fixes | Sonnet 5.5, medium (high for restructuring findings) |
 | 3 | Extract the framework | you decide the design questions of 3.1; the agent builds | design: Opus 5.5, high; building: Sonnet 5.5, medium |
 
-Documents used: the review method [`quality-reviews/harness/README.md`](../quality-reviews/harness/README.md), its
+Documents used: the review method [`harness/core/reviews/harness/README.md`](../../harness/core/reviews/harness/README.md), its
 [`bindings.md`](../quality-reviews/harness/bindings.md) (this repository's values, with the start prompts), and the layer model
 of section 2.1 of that method (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY).
 
@@ -125,7 +125,7 @@ findings and reports the new blueprint readiness. Step 3 starts when the exit cr
 Start Phase 15.
 ```
 
-The session protocol ([method §6](../engineering/method.md#6-session-protocol-resuming-and-pausing-a-phase)) and the phase file do the rest: the agent reads the phase file and its work log, works
+The session protocol ([method §6](../../harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase)) and the phase file do the rest: the agent reads the phase file and its work log, works
 through the tasks in order, opens a pull request per task, and merges it once the checks pass. A task that changes the meaning of a
 rule waits for your approval.
 

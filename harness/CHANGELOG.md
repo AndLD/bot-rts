@@ -19,3 +19,20 @@ versions follow [Semantic Versioning](https://semver.org/).
   links every file and subfolder that Git tracks in it) and the agent-complexity markers of the plan (`plan.complexity`: the scale and the
   model of each marker; every open task carries one in an `Agent` column before `SP`, done tasks are exempt, and the plan index shows each
   phase's range). Without `plan.complexity` the plan has no markers.
+- The core documents (design §3.2): the engineering method (`core/method/`), the plan method with the index, phase and task-log templates,
+  the definition of done and the guiding principles (`core/plan/`), the review methods with their report templates (`core/reviews/`) and
+  the changelog-fragment format (`core/templates/`). Their links to project documents are role names, and none leaves `core/`.
+- The entry file's rules as managed blocks: `core/rules/non-negotiables.md` and `core/rules/git.md`, rendered into the blocks
+  `non-negotiables` and `git-rules` with the Role binding line from the profile (`plan.openEndedPhaseNumber`,
+  `repository.protectionScript`), each rule with a stable id; the lock keeps one hash per block (`<path>#<block>`), and the layer map
+  counts the blocks as CORE, so `layers.core` is empty for a project that uses the framework.
+- `check generated`: every managed file and block rendered again and compared, in every mode.
+- The plan method describes the agent-complexity markers as a standard, optional task property (its section 7): the `Agent` column of the
+  phase template, the range column of the index template, the conformance rule and the exemption of done tasks.
+
+### Changed
+
+- Two rules of the non-negotiables are worded without a stack: "no new untyped public boundaries" (the stack's lint rule names them) and
+  "no debug printing" (use the logger).
+- The method's local-database step applies only where the profile has the database commands (`commands.dbUp`, `dbMigrate`, `dbSeed`), an
+  optional role group; `documents.method` defaults to the vendored method.

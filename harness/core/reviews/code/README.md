@@ -3,11 +3,11 @@
 # Code quality reviews
 
 Instruction for reviewing the quality of the **source code** against the project's own declared quality bar. A review
-produces one dated report in this folder (`YYYY-MM-DD.md`), built from [`_template.md`](./_template.md). The review of the
+produces one dated report in the project's folder of this review (`YYYY-MM-DD.md`), built from [`report-template.md`](./report-template.md). The review of the
 documentation and AI harness is a separate method, in the sibling folder.
 
 This file is the **method** and is project-neutral, so it can move to a blueprint unchanged. What belongs to one project
-(its bar, packages, layers, commands, thresholds, generated files) is in [`bindings.md`](./bindings.md). The reviewer reads both.
+(its bar, packages, layers, commands, thresholds, generated files) is in the review's bindings (the project's `bindings.md` next to its reports). The reviewer reads both.
 
 A review is a **point-in-time assessment**: blunt, evidence-based, and read-only for the code. It says where the code stands
 against the bar, what is wrong and in what order to fix it. It does not fix anything.
@@ -82,7 +82,7 @@ for the code**: it adds one report and updates the index that links to it. Fixes
    direct test, not by assumption (for example: try to find one violation of each forbidden-import rule by search).
 7. **Verify findings.** Re-open every cited location and confirm it before it goes into the report. Remove findings that cannot
    be reproduced. Carry over, close or mark regressed every finding of the previous report.
-8. **Report.** Fill [`_template.md`](./_template.md) as `YYYY-MM-DD.md` in this folder; add `-2` for a second review on one
+8. **Report.** Fill [`report-template.md`](./report-template.md) as `YYYY-MM-DD.md` in the project's folder of this review; add `-2` for a second review on one
    day. Link it from the index in `bindings.md`. State the verdict and the recommended order of work.
 9. **Follow-up.** After approval, 🔴 and 🟠 findings become tasks in the delivery plan; 🟡 and 🔵 go to the backlog. Record the
    resulting task ids in the report's follow-up table.

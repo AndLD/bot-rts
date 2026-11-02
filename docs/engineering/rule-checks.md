@@ -5,7 +5,7 @@
 Every normative rule of the repository with the mechanism that holds it. A rule with a mechanism cannot be broken without a red
 check or a refused call; a rule marked _judgment_ is held by review and by the tests the feature brings, and its row says why no
 mechanism can hold it. Values are in the [profile](../profile.md); the rules are in [`AGENTS.md`](../../AGENTS.md), the
-[method](./method.md) and the [stack file](./stack.md). Rows 1 to 27 are the sample of the
+[method](../../harness/core/method/method.md) and the [stack file](./stack.md). Rows 1 to 27 are the sample of the
 [harness review of 2026-10-17](../quality-reviews/harness/2026-10-17.md#d7-enforceability--3), rows 28 to 36 the checks added by the
 harness-fixes phase, and rows 37 on the remaining normative bullets of the three sources, so that the
 [source index](#source-index) below covers every one of them.
@@ -131,12 +131,12 @@ Every normative bullet of the sources, by section, with the rows that hold it.
 | `AGENTS.md` | §7.4 commit and pull request rules | 9, 12, 13, 46, 47, 48 |
 | `AGENTS.md` | §7.5 rules for agents | 13, 26, 32, 33, 34, 49, 50, 51, 52, 53, 54, 55, 56 |
 | `AGENTS.md` | §9 project rules | 16, 18, 19, 20, 21, 23, 30, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 96 |
-| `docs/engineering/method.md` | §1, §2 principles and SOLID | 67 |
-| `docs/engineering/method.md` | §3 testing | 1, 2, 22, 68, 69, 70, 71 |
-| `docs/engineering/method.md` | §4 definition of done | 72, 73, 74 |
-| `docs/engineering/method.md` | §5 Git workflow | 34, 40, 75, 76 |
-| `docs/engineering/method.md` | §6 session protocol | 23, 24, 25, 51, 77, 78, 79, 80 |
-| `docs/engineering/method.md` | §7 several agents | 34, 51, 81, 82, 83, 84 |
+| `harness/core/method/method.md` | §1, §2 principles and SOLID | 67 |
+| `harness/core/method/method.md` | §3 testing | 1, 2, 22, 68, 69, 70, 71 |
+| `harness/core/method/method.md` | §4 definition of done | 72, 73, 74 |
+| `harness/core/method/method.md` | §5 Git workflow | 34, 40, 75, 76 |
+| `harness/core/method/method.md` | §6 session protocol | 23, 24, 25, 51, 77, 78, 79, 80 |
+| `harness/core/method/method.md` | §7 several agents | 34, 51, 81, 82, 83, 84 |
 | `docs/engineering/stack.md` | §1 stack and test tooling | 70, 85, 86 |
 | `docs/engineering/stack.md` | §2 architecture and layering | 4, 5, 73, 86, 87 |
 | `docs/engineering/stack.md` | §3 conventions | 14, 15, 67, 88, 89, 90, 91 |

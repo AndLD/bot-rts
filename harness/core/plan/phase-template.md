@@ -1,4 +1,4 @@
-[← Development plan index](../DEVELOPMENT-PLAN.md)
+← Plan index: link to the plan index here (`[← Development plan index](../<plan index>)`).
 
 # Phase <n> — <Theme> (<size>)
 
@@ -8,11 +8,11 @@
 
 **Execution order:** <only if different from the ids, with the reason>
 
-| #   | Task                                                          | SP  | Status |
-| --- | ------------------------------------------------------------- | --- | ------ |
-| n.1 | <What is delivered and how it is verified. Cites the specification section (profile, section 4).> | 3   | ⬜     |
+| #   | Task                                                          | Agent | SP  | Status |
+| --- | ------------------------------------------------------------- | ----- | --- | ------ |
+| n.1 | <What is delivered and how it is verified. Cites the specification section (profile, section 4).> | C2    | 3   | ⬜     |
 
-Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
+Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done. Agent: the task's agent-complexity marker (plan method, section 7); a plan without markers leaves the column out.
 
 **Exit criteria:** <observable conditions a reviewer can check>
 

@@ -24,7 +24,7 @@ Database migrations are part of the release; applied migrations are never edited
 
 [CHANGELOG.md](../product-knowledge/CHANGELOG.md) uses the Keep a Changelog headings (`Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`,
 `Security`). A pull request that changes what a player, an API client or an operator sees adds a **fragment** in
-[`changelog.d/`](../product-knowledge/changelog.d/README.md) in the same pull request (a file of its own, so that two pull requests never edit
+`docs/product-knowledge/changelog.d/` (format: [`changelog-fragments.md`](../../harness/core/templates/changelog-fragments.md)) in the same pull request (a file of its own, so that two pull requests never edit
 the same lines). Pull requests that only touch tests, docs or tooling need none. `npm run harness -- release` moves the fragments, and what
 older entries still stand under `## [Unreleased]`, into the section of the version and deletes the fragments.
 

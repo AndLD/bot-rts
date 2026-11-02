@@ -9,12 +9,16 @@ updated in the change that starts or finishes it.
 
 **Estimation scale:** <unit, scale, what an estimate includes>.
 
-**Summary**
+**Summary** (written from the phase files by the plan-summary command of the profile; edit a phase file, not this table)
 
-| Phase | Theme | Size | Status |
-| ----- | ----- | ---- | ------ |
-| 0     |       |      |        |
-|       | **Total** | | |
+<!-- plan-summary:start -->
+| Phase | Theme | Size | Agent complexity | Status |
+| ----- | ----- | ---- | ---------------- | ------ |
+| 0     |       |      | C1–C2            |        |
+|       | **Total** | | | |
+<!-- plan-summary:end -->
+
+The agent-complexity column is the range of each phase's markers (plan method, section 7); a plan without markers has no such column.
 
 **Order of development.** <Only if different from the numbering: the actual order and the reason, with the date.>
 
@@ -41,5 +45,10 @@ updated in the change that starts or finishes it.
 ## Contents
 
 - Principles and cross-cutting documents: <links to the files in the cross-cutting folder>
-- Phases: <one line per phase: title, size, link to the file in the phases folder>
+- Phases (written by the plan-summary command):
+
+<!-- plan-contents:start -->
+- <one line per phase: title, size, link to the file in the phases folder>
+<!-- plan-contents:end -->
+
 - Work logs: <one link per phase>

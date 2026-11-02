@@ -1,15 +1,16 @@
 // `harness check core`: the CORE files hold no stack term, product term or project value (the term lists are `terms` of the profile file). Two
-// kinds of CORE are scanned: the project's CORE documents (the `layers.core` entries, some only in numbered sections), where the entry file's
-// one "Role binding" line may name the project's values; and the framework's `core/` folder where the project owns it, whole: the staging
-// folder of a framework built inside the project, the vendored copy of a detached project, or the framework's own repository (mode "self").
+// kinds of CORE are scanned: the project's own CORE documents (the `layers.core` entries, some only in numbered sections, where the entry file's
+// one "Role binding" line may name the project's values; a project that uses the framework has none, since its entry file's rules are managed
+// blocks rendered from `core/rules/`); and the framework's `core/` folder where the project owns it, whole: the staging folder of a framework
+// built inside the project, the vendored copy of a detached project, or the framework's own repository (mode "self").
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { DEFAULT_ENTRY_FILE } from './entry.mjs'
 import { coreEntries } from './layers.mjs'
 import { MODES, readLock, VENDOR_DIR } from './lock.mjs'
 import { walk } from './tree.mjs'
 
 export const BINDING_MARKER = '**Role binding.**'
-export const DEFAULT_ENTRY_FILE = 'AGENTS.md'
 
 // The product terms without the generic words (productGeneric), which are judged in context and not scanned
 function productPattern(terms) {

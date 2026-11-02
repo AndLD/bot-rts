@@ -1,13 +1,13 @@
-[← Development plan](../README.md)
+[← Development plan](./README.md)
 
 # Phase files: structure and rules
 
 How one phase of a development plan is written. This file is the **method** and is project-neutral. The project's values
-(identifiers, symbols, scale, branch naming, how the specification is cited) are in [`bindings.md`](./bindings.md). The template
-for a new phase is [`_template.md`](./_template.md).
+(identifiers, symbols, scale, branch naming, how the specification is cited) are in the phase bindings (the project's `bindings.md` next to its phase files). The template
+for a new phase is [`phase-template.md`](./phase-template.md).
 
 A **phase** is a coherent stretch of work with a theme, a list of tasks, exit criteria, and a record of the changes that delivered
-it. One phase is one file in this folder.
+it. One phase is one file in the plan's `phases/` folder.
 
 ---
 
@@ -20,7 +20,7 @@ it. One phase is one file in this folder.
 | Status line | Status, branches (or a link to the implementation log), link to the phase's work log |
 | Introduction | Optional: one paragraph on the goal and, if relevant, why this phase exists |
 | Execution order | Optional: the order of tasks when it differs from their ids, with the reason |
-| Task table | One row per task: id, description, size, status |
+| Task table | One row per task: id, description, agent-complexity marker (where the plan uses them), size, status |
 | Task legend | The status symbols, one line |
 | Exit criteria | Observable conditions that make the phase done |
 | Implementation log | A table of the changes (branch, tasks, pull request, status) that delivered the tasks |
@@ -31,6 +31,7 @@ it. One phase is one file in this folder.
 - **Atomic:** a task is deliverable as one reviewable change, small enough to finish in a session. A larger item is split before it starts.
 - **Complete:** a task's size includes its tests and documentation. A task is done only when the definition of done holds (cross-cutting document), not when the code exists.
 - **Self-describing:** the description says what is delivered and how it is verified. It cites the specification sections it implements, in the form fixed by the bindings, so every requirement can be traced to a task and every task to a requirement.
+- **Rated:** where the plan uses agent-complexity markers, every open task carries one in the `Agent` column (the plan method, section 7); a done task is exempt.
 - **Ordered:** if a task depends on another, the dependency is named in the execution order or the description. A task never depends on a later phase.
 - **Added by appending:** new work discovered during a phase gets the next free id. A task removed from scope is marked as dropped, with the reason, not deleted.
 
@@ -73,7 +74,7 @@ Each phase has an append-only log in `work-logs/` next to the phase files, with 
 to it from the status line; the log links back to the phase file. The log records sessions, the exact next step and the commands
 that verify the state; the phase file records only the plan and its outcome.
 
-**In the phases that use per-task records, a task writes its own fragment** `work-logs/phase-<n>/<task id>.md` (start from `work-logs/_task-template.md`), so
+**In the phases that use per-task records, a task writes its own fragment** `work-logs/phase-<n>/<task id>.md` (start from the framework's [`task-log-template.md`](./task-log-template.md)), so
 that tasks worked on in parallel never edit the same file. The phase's own log keeps only what concerns the whole phase (decisions before
 the start, pauses, the hand-over between waves). The fragment starts with a `**Status:**` line (🟡 while the task is in progress, ✅ when
 it is done); the session-start hook prints the "Next step" of every fragment in progress. The logs of the other phases stay as they are.
@@ -87,5 +88,5 @@ it is done); the session-start hook prints the "Next step" of every fragment in 
 ## 9. Checks
 
 A phase file is conformant when: the anatomy parts that apply are present and in order; every task has an id, a size and a status;
-the title size equals the sum of the task sizes; the status agrees with the index; the work-log link resolves; every task cited
+every open task carries an agent-complexity marker where the plan uses them; the title size equals the sum of the task sizes; the status agrees with the index; the work-log link resolves; every task cited
 elsewhere exists here; every done task has a row in the implementation log.

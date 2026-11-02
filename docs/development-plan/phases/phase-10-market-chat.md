@@ -12,7 +12,7 @@ single-class market terminal module, chat, and transfers between players. The ph
 
 **Dependencies, waves and ownership** (replaces the single chain of the earlier execution order, owner decision 2026-10-18; derived by the
 harness review of 2026-10-17, section 10, with 10.16 added). One agent may still work the tasks in the id order that satisfies the
-dependencies (10.1, 10.2, 10.3, 10.4, 10.16, 10.5, …); several agents follow the waves ([method §7](../../engineering/method.md#7-several-agents)).
+dependencies (10.1, 10.2, 10.3, 10.4, 10.16, 10.5, …); several agents follow the waves ([method §7](../../../harness/core/method/method.md#7-several-agents)).
 Each edge is *e* (stated in a task text) or *i* (inferred from the interfaces the task cites); the agent that starts a task confirms its edges.
 
 | Task | Depends on |

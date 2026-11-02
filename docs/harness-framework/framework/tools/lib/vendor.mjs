@@ -1,6 +1,6 @@
 // The vendored copy of the framework in a project (design §1): `sync` copies the distributable paths and the selected adapters into
-// `harness/` and pins them in the lock, `checkVendored` proves the copy unchanged, `diff` shows a local change, and `detach` hands the copy
-// to the project for good (§1.5). Every function takes the project root, so the tests run them on throwaway projects.
+// `harness/` and pins them in the lock, `checkVendored` proves the copy unchanged, `checkGenerated` re-renders the managed files, `diff` shows a
+// local change, and `detach` hands the copy to the project for good (§1.5). Every function takes the project root, so the tests run them on throwaway projects.
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -55,34 +55,42 @@ export function selectFiles(dir, manifest, adapters) {
 const managedPath = (generator, profile) =>
   typeof generator.path === 'function' ? generator.path(profile) : generator.path
 
+// The key of a managed file in the lock: its path, or `<path>#<block>` for a block, so that one file can hold several blocks
+export const managedKey = (path, block) => (block ? `${path}#${block}` : path)
+
 /**
  * Writes every managed file (or the block of a file, when the generator names one) and returns their hashes, as the lock keeps them
  * (design §6.3): of a whole file, or of the block alone.
  */
-function generateManaged(root, generators) {
+// Every managed file and block as the generators render it now, `{ path, block, content }`. A role the project's profile file does not have
+// leaves its generator out: `harness check profile` is what asks for it. A block has no line break at either end, so that what the lock
+// hashes is what the file holds between its markers.
+function renderManaged(root, generators) {
   const profile = loadProfile(root)
-  const managed = {}
-  for (const generator of generators) {
+  return generators.flatMap((generator) => {
     const path = managedPath(generator, profile)
     if (!path) {
-      continue // a role the project's profile file does not have: `harness check profile` is what asks for it
+      return []
     }
-    const target = join(root, path)
     const content = generator.render({ root, profile })
-    if (generator.block) {
+    return [{ path, block: generator.block, content: generator.block ? content.replace(/^\n+|\n+$/g, '') : content }]
+  })
+}
+
+function generateManaged(root, generators) {
+  const managed = {}
+  for (const { path, block, content } of renderManaged(root, generators)) {
+    const target = join(root, path)
+    if (block) {
       if (!existsSync(target)) {
-        throw new Error(
-          `${path} must exist, with the markers of the block "${generator.block}", before it can be generated`
-        )
+        throw new Error(`${path} must exist, with the markers of the block "${block}", before it can be generated`)
       }
-      // A block has no line break at either end, so that what the lock hashes is what the file holds between its markers
-      const trimmed = content.replace(/^\n+|\n+$/g, '')
       try {
-        writeFileSync(target, replaceBlock(readFileSync(target, 'utf8'), generator.block, trimmed))
+        writeFileSync(target, replaceBlock(readFileSync(target, 'utf8'), block, content))
       } catch (error) {
         throw new Error(`${path}: ${error.message}`)
       }
-      managed[path] = hashBlock(trimmed)
+      managed[managedKey(path, block)] = hashBlock(content)
     } else {
       mkdirSync(dirname(target), { recursive: true })
       writeFileSync(target, content)
@@ -222,13 +230,9 @@ export function checkVendored({ root, generators = registered }) {
     notes.push('The framework itself (mode "self"): there is no vendored copy.')
   }
 
-  const profile = loadProfile(root)
-  const blocks = new Map(
-    generators.filter((generator) => generator.block).map((g) => [managedPath(g, profile), g.block])
-  )
-  for (const [path, hash] of Object.entries(lock.managed ?? {})) {
+  for (const [key, hash] of Object.entries(lock.managed ?? {})) {
+    const [path, block] = key.split('#')
     const target = join(root, path)
-    const block = blocks.get(path)
     const actual = !existsSync(target)
       ? null
       : block
@@ -236,7 +240,7 @@ export function checkVendored({ root, generators = registered }) {
         : hashFile(target)
     if (actual !== hash) {
       problems.push(
-        `the managed ${block ? 'block' : 'file'} ${path} differs from what the tools generated: ${LOCAL_HINT}`
+        `the managed ${block ? `block "${block}" of` : 'file'} ${path} differs from what the tools generated: ${LOCAL_HINT}`
       )
     }
   }
@@ -245,6 +249,30 @@ export function checkVendored({ root, generators = registered }) {
   }
 
   return { problems, notes }
+}
+
+/**
+ * `harness check generated` (design §6.3): renders every managed file and block again and compares it with what the project holds, so a
+ * managed text that an edit, a changed profile or a changed template left behind fails in every mode, detached too. A project without a lock
+ * has no managed files yet.
+ * @returns {string[]} the problems
+ */
+export function checkGenerated({ root, generators = registered }) {
+  const problems = []
+  if (!readLock(root)) {
+    return problems
+  }
+  for (const { path, block, content } of renderManaged(root, generators)) {
+    const target = join(root, path)
+    const text = existsSync(target) ? readFileSync(target, 'utf8') : null
+    const current = text === null ? null : block ? extractBlock(text, block) : text
+    if (current !== content) {
+      problems.push(
+        `the managed ${block ? `block "${block}" of` : 'file'} ${path} is not what the tools generate now: ${LOCAL_HINT}`
+      )
+    }
+  }
+  return problems
 }
 
 function unifiedDiff(from, to, label) {

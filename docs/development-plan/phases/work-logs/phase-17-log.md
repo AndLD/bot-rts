@@ -3,7 +3,7 @@
 # Phase 17 — Harness framework extraction — work log
 
 Append-only log of the phase-wide matters of Phase 17 (method, section 6): decisions that concern the whole phase and pauses. Each task
-writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`_task-template.md`](./_task-template.md)). Newest entry at the bottom.
+writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`task-log-template.md`](../../../../harness/core/plan/task-log-template.md)). Newest entry at the bottom.
 
 ## Entry template
 

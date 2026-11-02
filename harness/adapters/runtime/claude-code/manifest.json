@@ -39,6 +39,11 @@
     },
     "model-map": {
       "fills": "C1 Sonnet 5.5 at medium effort, C2 Sonnet 5.5 at high, C3 Opus 5.5 at high"
+    },
+    "scaffold-files": {
+      "fills": "`CLAUDE.md` importing the entry file, `.claude/settings.json` from `settingsFor`, and the ignore line of the local settings",
+      "module": "scaffold.mjs",
+      "export": "scaffoldFiles"
     }
   },
   "templates": ["templates/CLAUDE.md"],

@@ -17,6 +17,7 @@ const LOCK_FIELDS = [
   'adapters',
   'reason',
   'base',
+  'template',
   'files',
   'managed',
   'profile',

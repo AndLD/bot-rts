@@ -3,7 +3,7 @@
 // local change, and `detach` hands the copy to the project for good (§1.5). Every function takes the project root, so the tests run them on throwaway projects.
 import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { generators as registered } from './generators.mjs'
 import { extractBlock, hashBlock, replaceBlock } from './managed.mjs'
 import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
@@ -25,14 +25,15 @@ const describeSource = (source) =>
 
 /**
  * The files of a framework tree that a project receives: the distributable paths of `framework.json`, and of `adapters/` only the
- * selected adapters. Fails on a selected adapter the framework does not have.
+ * selected adapters (`hosts`, a list, in place of `host` for a template repository, which holds every adapter). Fails on a selected adapter the
+ * framework does not have.
  */
 export function selectFiles(dir, manifest, adapters) {
   const files = walk(dir)
   const adapterFolders = [
     ...adapters.stacks.map((name) => `adapters/stack/${name}`),
     ...adapters.runtimes.map((name) => `adapters/runtime/${name}`),
-    ...(adapters.host ? [`adapters/host/${adapters.host}`] : [])
+    ...(adapters.hosts ?? (adapters.host ? [adapters.host] : [])).map((name) => `adapters/host/${name}`)
   ]
   const inside = (folder) => (file) => file.startsWith(`${folder}/`)
 
@@ -133,35 +134,44 @@ export function sync({ root, from, to, local = false, generators = registered })
   const adapters = profile.adapters || !lock ? selectedAdapters(profile) : lock.adapters
   const fetched = resolveSource({ root, from, to, lock })
   try {
-    const paths = selectFiles(fetched.dir, fetched.manifest, adapters)
-    const vendor = join(root, VENDOR_DIR)
-    rmSync(vendor, { recursive: true, force: true })
-    copyFiles(fetched.dir, vendor, paths)
-
-    const { source, version } = fetched
-    const sameRepository = source.type === 'git' && lock?.source?.type === 'git' && lock.source.url === source.url
-    const next = {
-      framework: fetched.manifest.name,
-      mode: MODES.pinned,
-      version,
-      source,
-      adapters,
-      files: hashTree(vendor, paths),
-      managed: generateManaged(root, generators),
-      profile: profileHash(root),
-      overrides: [],
-      seen: source.type === 'git' ? { ...(sameRepository ? lock.seen : {}), [version]: source.commit } : undefined
-    }
-    writeLock(root, next)
-
-    const messages = [`Synced ${paths.length} files of ${next.framework} ${version} from ${describeSource(source)}.`]
-    for (const override of lock?.overrides ?? []) {
-      messages.push(`Dropped the override of ${override.path} (${override.reason}): the synced version replaces it.`)
-    }
-    return { lock: next, messages }
+    return vendor({ root, fetched, adapters, lock, generators })
   } finally {
     fetched.cleanup()
   }
+}
+
+/**
+ * Replaces `harness/` with the selected files of a resolved framework tree (`resolveSource`), generates the managed files and writes a pinned
+ * lock. `sync` and the bootstrap share it; `lock` is the previous lock, whose overrides the new version drops.
+ * @returns {{ lock: object, messages: string[] }}
+ */
+export function vendor({ root, fetched, adapters, lock = null, generators = registered }) {
+  const paths = selectFiles(fetched.dir, fetched.manifest, adapters)
+  const vendorDir = join(root, VENDOR_DIR)
+  rmSync(vendorDir, { recursive: true, force: true })
+  copyFiles(fetched.dir, vendorDir, paths)
+
+  const { source, version } = fetched
+  const sameRepository = source.type === 'git' && lock?.source?.type === 'git' && lock.source.url === source.url
+  const next = {
+    framework: fetched.manifest.name,
+    mode: MODES.pinned,
+    version,
+    source,
+    adapters,
+    files: hashTree(vendorDir, paths),
+    managed: generateManaged(root, generators),
+    profile: profileHash(root),
+    overrides: [],
+    seen: source.type === 'git' ? { ...(sameRepository ? lock.seen : {}), [version]: source.commit } : undefined
+  }
+  writeLock(root, next)
+
+  const messages = [`Synced ${paths.length} files of ${next.framework} ${version} from ${describeSource(source)}.`]
+  for (const override of lock?.overrides ?? []) {
+    messages.push(`Dropped the override of ${override.path} (${override.reason}): the synced version replaces it.`)
+  }
+  return { lock: next, messages }
 }
 
 /**
@@ -205,7 +215,7 @@ export function checkVendored({ root, generators = registered }) {
 
     // While the source is a folder of this project (the staging folder), the source and the copy change in the same pull request
     if (lock.source.type === 'path') {
-      const dir = join(root, lock.source.location)
+      const dir = resolve(root, lock.source.location)
       if (existsSync(dir)) {
         const sourceHashes = hashTree(dir, selectFiles(dir, readManifest(dir), lock.adapters))
         if (JSON.stringify(sourceHashes) !== JSON.stringify(lock.files)) {

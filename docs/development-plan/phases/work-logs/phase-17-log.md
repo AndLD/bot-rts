@@ -206,3 +206,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Next step:** 17.13 (bootstrap engine and front ends), `C3`: Opus 5.5 at high effort, in a fresh session. The owner asked this session to stop
   after 17.12.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 17.13 done: the bootstrap engine and its three front ends
+- **Tasks:** 17.13 ✅ (its log: [`phase-17/17.13.md`](./phase-17/17.13.md))
+- **Branch:** `chore/17.13-bootstrap` — done, PR #278
+- **Decisions / deviations from the plan:** the defaults of a new project are in `profile/starter.json` and the adapters' new `defaults`, not in
+  the schema, which keeps its required roles strict. Each axis has an optional `scaffold-files` role. The managed files come from the sync engine.
+  The first push of the two branches is the owner's (`--no-verify`).
+- **Problems / blockers / findings:** the scaffolded workflows have not run on a real host; the framework's proof (its task 1.5) runs them.
+- **Next step:** 17.14 (conformance suite and the new-adapter procedure), `C2`: Sonnet 5.5 at high effort, in a fresh session. The owner asked
+  this session to stop after 17.13.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

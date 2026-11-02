@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 // The `harness` command line (design §7.1). The build tasks add commands; this version holds:
+//   harness init [--name <n>] [--repository <owner/name>] [--stack <a,b>] [--runtime <a,b>] [--host <h>] [--set <role>=<value>]…
+//                [--detached [--reason <why>]] [--non-interactive] [--from <folder or Git URL> [--to <version>]] [--force]
+//                                                                fill the profile file (asking what no flag answers), then bootstrap
+//   harness bootstrap [--non-interactive] [--detached] [--from …] [--force]   the engine on the profile file as it is (design §6.1)
+//   harness template <dir> [--from <folder or Git URL> --to <version>]         build the template repository into an empty folder
 //   harness sync [--from <folder or Git URL>] [--to <version>]   take the framework into harness/ and rewrite harness.lock.json
 //   harness sync --local                                          regenerate the managed files only, without fetching
 //   harness diff                                                  the local change of harness/ against the locked version or the fork point
@@ -27,9 +32,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { ciChanges } from './lib/changes.mjs'
 import { release, releaseNotes } from './lib/changelog.mjs'
-import { CHECKS, runCheck, runProjectChecks } from './lib/checks.mjs'
+import { bootstrap, buildTemplate } from './lib/bootstrap.mjs'
+import { CHECKS, checkAll, report, runCheck } from './lib/checks.mjs'
 import { checkChanged, mergeShards } from './lib/coverage.mjs'
 import { guardCommit, guardPush } from './lib/git-guards.mjs'
+import { init } from './lib/init.mjs'
 import { readStdin, runGate } from './lib/gate.mjs'
 import { protectHost } from './lib/host.mjs'
 import { layerConfig, renderLayerMap } from './lib/layers.mjs'
@@ -38,6 +45,10 @@ import { loadProfile, lookup } from './lib/profile.mjs'
 import { detach, diff, override, sync } from './lib/vendor.mjs'
 
 const USAGE = `usage: harness <command>
+  init [--name <n>] [--repository <owner/name>] [--stack <a,b>] [--runtime <a,b>] [--host <h>] [--set <role>=<value>]
+       [--detached [--reason <why>]] [--non-interactive] [--from <folder or Git URL> [--to <version>]] [--force]
+  bootstrap [--non-interactive] [--detached [--reason <why>]] [--from <folder or Git URL> [--to <version>]] [--force]
+  template <dir> [--from <folder or Git URL> [--to <version>]]
   sync [--from <folder or Git URL>] [--to <version>]
   sync --local
   diff
@@ -57,19 +68,43 @@ const USAGE = `usage: harness <command>
   coverage merge <artifacts> [--out <dir>] [<package>...]
   host protect [--repo <owner/name>]`
 
-const FLAGS_WITH_VALUE = new Set(['--from', '--to', '--reason', '--issue', '--root', '--repo', '--out'])
-const BOOLEAN_FLAGS = new Set(['--local', '--check', '--dry-run', '--skip-missing'])
+const FLAGS_WITH_VALUE = new Set([
+  '--from',
+  '--to',
+  '--reason',
+  '--issue',
+  '--root',
+  '--repo',
+  '--out',
+  '--name',
+  '--repository',
+  '--stack',
+  '--runtime',
+  '--host'
+])
+// Flags that may be given several times; their values are collected in a list
+const REPEATED_FLAGS = new Set(['--set'])
+const BOOLEAN_FLAGS = new Set([
+  '--local',
+  '--check',
+  '--dry-run',
+  '--skip-missing',
+  '--detached',
+  '--non-interactive',
+  '--force'
+])
 
 export function parseArgs(argv) {
   const words = []
   const flags = {}
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
-    if (FLAGS_WITH_VALUE.has(arg)) {
+    if (FLAGS_WITH_VALUE.has(arg) || REPEATED_FLAGS.has(arg)) {
       if (index + 1 >= argv.length) {
         throw new Error(`${arg} needs a value`)
       }
-      flags[arg.slice(2)] = argv[index + 1]
+      const key = arg.slice(2)
+      flags[key] = REPEATED_FLAGS.has(arg) ? [...(flags[key] ?? []), argv[index + 1]] : argv[index + 1]
       index += 1
     } else if (BOOLEAN_FLAGS.has(arg)) {
       flags[arg.slice(2).replace(/-(\w)/g, (_, letter) => letter.toUpperCase())] = true
@@ -96,27 +131,8 @@ function projectRoot(flag) {
   }
 }
 
-// Prints what a check found; returns its exit code
-function report(name, { problems, messages }, { out, err }) {
-  messages.forEach((line) => out(line))
-  problems.forEach((line) => err(`harness check ${name}: ${line}`))
-  return problems.length ? 1 : 0
-}
-
-// Every check in order, then the project's own; the exit code is 1 when any of them found a problem
-function checkAll(root, { out, err }) {
-  const profile = loadProfile(root)
-  let failed = false
-  for (const name of Object.keys(CHECKS)) {
-    failed = report(name, runCheck(name, { root, profile }), { out, err }) !== 0 || failed
-  }
-  const projectProblems = runProjectChecks({ root, profile })
-  projectProblems.forEach((line) => err(`harness check all: ${line}`))
-  return failed || projectProblems.length ? 1 : 0
-}
-
 /** Runs one command; returns the exit code (0 done, 1 a check failed or the command was refused, 2 a usage error). */
-export async function run(argv, { out = console.log, err = console.error } = {}) {
+export async function run(argv, { out = console.log, err = console.error, input = process.stdin } = {}) {
   let parsed
   try {
     parsed = parseArgs(argv)
@@ -129,12 +145,33 @@ export async function run(argv, { out = console.log, err = console.error } = {})
   const command = words.join(' ')
 
   try {
+    if (command === 'init' || command === 'bootstrap') {
+      const options = { root, flags, input, out, err }
+      const { code } =
+        command === 'init'
+          ? await init(options)
+          : await bootstrap({
+              root,
+              from: flags.from,
+              to: flags.to,
+              force: flags.force,
+              detached: flags.detached,
+              reason: flags.reason,
+              out,
+              err
+            })
+      return code
+    }
+    if (words[0] === 'template' && words.length === 2) {
+      buildTemplate({ out: resolve(words[1]), from: flags.from, to: flags.to }).messages.forEach((line) => out(line))
+      return 0
+    }
     if (command === 'sync') {
       sync({ root, from: flags.from, to: flags.to, local: flags.local }).messages.forEach((line) => out(line))
       return 0
     }
     if (command === 'check all') {
-      return checkAll(root, { out, err })
+      return checkAll({ root, out, err })
     }
     if (words[0] === 'check' && words.length === 2 && CHECKS[words[1]]) {
       return report(words[1], runCheck(words[1], { root, profile: loadProfile(root) }), { out, err })

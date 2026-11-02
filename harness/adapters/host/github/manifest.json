@@ -46,6 +46,11 @@
       "fills": "`gh pr merge` is recognised, and the required checks of the pull request are read with `gh pr checks`",
       "module": "merge-guard.mjs",
       "export": "isMerge"
+    },
+    "scaffold-files": {
+      "fills": "`.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks) and `.github/workflows/release.yml`",
+      "module": "scaffold.mjs",
+      "export": "scaffoldFiles"
     }
   },
   "templates": ["templates/ci.yml", "templates/release.yml"],
@@ -91,5 +96,8 @@
       "when": "remote",
       "by": "the `pr-title` job checks the pull-request title"
     }
-  ]
+  ],
+  "defaults": {
+    "requiredChecks": ["verify", "pr-title"]
+  }
 }

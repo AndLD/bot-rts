@@ -17,6 +17,9 @@ which is the agent-neutral minimum. The machine form is the `manifest.json` of t
 | `pull-request-tools` | optional (none: the agent checks the required checks with the host's command before it merges, and the rule on CI monitoring with automatic fixes is "not applicable") | attaching a pull request and monitoring its CI |
 | `waiting-advice` | optional | notes on waiting for long-running commands |
 | `model-map` | optional | the default of `plan.complexity.models` |
+| `scaffold-files` | logic-optional | `scaffoldFiles(profile) → [{ path, content }]`: the entry-file pointer and the hook configuration that the bootstrap writes once into a new project |
+
+**Defaults for a new project.** The manifest's `defaults` are values of the profile file that the adapter gives a project it bootstraps: the bootstrap writes them where the answers leave a role empty, and an answer always wins. The scaffolded files are the adapter's `scaffold-files` role.
 
 **Where a rule is caught.** Each adapter's manifest declares the rules it enforces and at which moment: *early* (the runtime, before the action), *local* (a Git hook)
 or *remote* (CI or the host). The core part of the rule-to-check map is generated from those declarations, so a project with other adapters gets a true map. A rule

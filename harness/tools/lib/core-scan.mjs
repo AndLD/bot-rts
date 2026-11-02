@@ -4,7 +4,7 @@
 // blocks rendered from `core/rules/`); and the framework's `core/` folder where the project owns it, whole: the staging folder of a framework
 // built inside the project, the vendored copy of a detached project, or the framework's own repository (mode "self").
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join } from 'node:path'
 import { DEFAULT_ENTRY_FILE } from './entry.mjs'
 import { adapterTerms } from './adapters.mjs'
 import { coreEntries } from './layers.mjs'
@@ -106,12 +106,13 @@ export function coreLeakProblems(files, terms, entries, { entryFile = DEFAULT_EN
   return problems
 }
 
-/** The framework `core/` folder that the project scans itself, or null when the framework scans it upstream (pinned to a Git source). */
+/** The framework `core/` folder that the project scans itself, or null when the framework scans it upstream (pinned to a Git source, or to a folder outside the project). */
 export function frameworkCoreFolder(root) {
   const lock = readLock(root)
   if (lock?.mode === MODES.self) return 'core'
   if (lock?.mode === MODES.detached) return `${VENDOR_DIR}/core`
-  if (lock?.source?.type === 'path') return `${lock.source.location}/core`
+  // A folder source inside the project is the staging folder of a framework built there; a folder elsewhere is scanned where it lives
+  if (lock?.source?.type === 'path' && !isAbsolute(lock.source.location)) return `${lock.source.location}/core`
   return null
 }
 

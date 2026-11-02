@@ -1,0 +1,48 @@
+{
+  "description": "The starting values of a new project's profile file (design §6): the defaults that `harness init` offers for its questions, and the values the bootstrap writes where the answers, the schema's defaults and the selected adapters' defaults leave a role empty. The term lists are derived from the answers.",
+  "profile": {
+    "adapters": {
+      "runtimes": [],
+      "host": "github"
+    },
+    "coverageGate": {
+      "statements": 90,
+      "branches": 90,
+      "functions": 90,
+      "lines": 90
+    },
+    "coveragePackages": [],
+    "branches": {
+      "production": "main",
+      "integration": "develop"
+    },
+    "paths": {
+      "plan": "docs/development-plan",
+      "phases": "docs/development-plan/phases",
+      "planIndex": "docs/development-plan/README.md",
+      "changelog": "CHANGELOG.md",
+      "changelogFragments": "changelog.d"
+    },
+    "documents": {
+      "rules": "AGENTS.md",
+      "readme": "README.md",
+      "stack": "docs/engineering/stack.md",
+      "ruleChecks": "docs/engineering/rule-checks.md",
+      "planMethod": "harness/core/plan/README.md",
+      "changelogFragments": "harness/core/templates/changelog-fragments.md",
+      "releasing": "docs/operations/releasing.md",
+      "codeReviews": "harness/core/reviews/code/README.md",
+      "harnessReviews": "harness/core/reviews/harness/README.md",
+      "harnessBindings": "docs/quality-reviews/harness/bindings.md"
+    },
+    "plan": {
+      "taskId": "`<phase>.<number>`, with an optional letter suffix (`2.1`, `2.1a`)",
+      "phasesWithFragments": "every phase: each task writes one log fragment `work-logs/phase-<n>/<task id>.md` next to the phase files (template: `harness/core/plan/task-log-template.md`)",
+      "logCommand": "`node harness/tools/harness.mjs plan log <n>`",
+      "estimationScale": "story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires",
+      "resumePhrases": "\"Start Phase N\", \"Continue Phase N\"; the phrase approves the pull requests of the named phases",
+      "openEndedPhase": "Phase 1 (issues found in use); its size grows",
+      "openEndedPhaseNumber": 1
+    }
+  }
+}

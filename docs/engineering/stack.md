@@ -34,7 +34,7 @@ Read this file before writing or changing code.
   `mongodb-memory-server`) is used in tests.
 - **E2E:** **Cypress**.
 - **Coverage:** Istanbul via Jest `--coverage`; the coverage gate (the `coverageGate` of `harness-profile.json`) is enforced in
-  CI and locally in the pre-push hook, and `scripts/check-changed-coverage.mjs` checks every changed file.
+  CI, which holds the package totals and every changed file (`harness coverage check-changed`); the pre-push hook holds the changed files whose related tests ran.
 
 All of this tooling is installed (see the root `package.json` scripts and the commands of the
 [profile](../profile.md#8-commands)). To add a capability, extend these tools rather than hand-rolling an alternative; the
@@ -166,8 +166,9 @@ are injected.
 - **E2E:** Cypress (`npm run e2e`); the matrix is [`docs/testing/e2e-matrix.md`](../testing/e2e-matrix.md).
 - **Coverage:** Istanbul via Jest `--coverage`; the gate is read from the `coverageGate` of `harness-profile.json` by the three
   `jest.config.ts` files, whose `collectCoverageFrom` lists each exclusion with its reason; the targeted exclusion is
-  `/* istanbul ignore next */` with a comment. CI (`npm run test:coverage`) and the pre-push hook enforce it for `api`,
-  `client` and `mcp`; `scripts/check-changed-coverage.mjs` blocks a PR whose changed files are below the gate.
+  `/* istanbul ignore next */` with a comment. CI (`npm run test:coverage`, with the merged shards) enforces it for `api`,
+  `client` and `mcp`, and `harness coverage check-changed` blocks a PR whose changed files are below the gate; the pre-push hook holds the changed files whose
+  related tests ran, and the totals are CI's.
 
 ## 5. Definition of done: stack items
 

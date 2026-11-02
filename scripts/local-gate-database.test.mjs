@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import net from 'node:net'
 import { test } from 'node:test'
-import { decideDatabase, portOf, realProbes } from './local-gate-database.mjs'
+import { decideDatabase, portOf, prepare, realProbes } from './local-gate-database.mjs'
 
 // Stand-ins for the checks: what each port holds, and whether Docker runs
 const decide = ({ postgres = 'free', redis = 'free', docker = true } = {}) =>
@@ -101,4 +101,34 @@ test('the real probes tell a database, another program and a free port apart', a
       await new Promise((resolve) => server.close(resolve))
     }
   }
+})
+
+// `prepare` is what `harness gate` calls: it gets the ports from the environment of the hook and runs `db:up` only when it must
+const stand = (postgres, redis, docker = true) => ({
+  postgres: async () => postgres,
+  redis: async () => redis,
+  docker: () => docker
+})
+const env = { DATABASE_URL: 'postgresql://x@localhost:15432/x', REDIS_URL: 'redis://localhost:16379' }
+
+test('prepare uses a database that answers and starts nothing', async () => {
+  const ran = []
+  const result = await prepare({ run: (step) => ran.push(step) && 0, env, probes: stand('answers', 'answers') })
+  assert.match(result.message, /a database already answers on the configured ports/)
+  assert.deepEqual(ran, [])
+})
+
+test('prepare starts the containers when the ports are free, and says what to do when that fails', async () => {
+  const ran = []
+  await prepare({ run: (step) => ran.push(step.args.join(' ')) && 0, env, probes: stand('free', 'free') })
+  assert.deepEqual(ran, ['run db:up'])
+  await assert.rejects(
+    prepare({ run: () => 1, env, probes: stand('free', 'free') }),
+    /"database" failed[\s\S]*POSTGRES_PORT=15432/
+  )
+})
+
+test('prepare stops the push with the message when Docker is off or a port is taken', async () => {
+  await assert.rejects(prepare({ run: () => 0, env, probes: stand('free', 'free', false) }), /open -a Docker/)
+  await assert.rejects(prepare({ run: () => 0, env, probes: stand('taken', 'free') }), /15432 \(PostgreSQL\)/)
 })

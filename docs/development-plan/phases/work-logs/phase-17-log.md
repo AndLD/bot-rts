@@ -177,3 +177,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   fails on a literal one).
 - **Next step:** 17.10 (stack preset node-ts, consumed here), `C2`.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 17.10 done: the gate driver, the node-ts preset and the neutral coverage
+- **Tasks:** 17.10 ✅ (its log: [`phase-17/17.10.md`](./phase-17/17.10.md))
+- **Branch:** `chore/17.10-stack-node-ts` — done, PR #275
+- **Decisions / deviations from the plan:** a new profile role `gate` holds what stayed project-specific in the old local gate. The coverage
+  summary is computed without a dependency, so CI's `verify` installs nothing. H-20261030-03 and -09 are closed.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.11 (runtime hooks, Git guards, Claude Code preset), `C2`.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

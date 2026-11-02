@@ -90,20 +90,23 @@ export function adapterTerms(adaptersDir = ADAPTERS_DIR) {
   }))
 }
 
-/** The host adapter modules by host name, loaded once: `{ github: { workflows, protect, … } }`, from the `logic` roles of the manifests. */
-export async function loadHostAdapters(adaptersDir = ADAPTERS_DIR) {
-  const hosts = {}
-  for (const { axis, name, dir, manifest } of listAdapters(adaptersDir)) {
-    if (axis !== 'host') {
-      continue
-    }
+/**
+ * The Node modules of the adapters of one axis, by adapter name, loaded once: `{ github: { manifest, dir, modules: { 'protect.mjs': … } } }`.
+ * A module is loaded when a role of the manifest names it (`module`).
+ */
+export async function loadAdapterModules(axis, adaptersDir = ADAPTERS_DIR) {
+  const loaded = {}
+  for (const adapter of listAdapters(adaptersDir).filter((item) => item.axis === axis)) {
     const modules = {}
-    for (const entry of Object.values(manifest.roles)) {
+    for (const entry of Object.values(adapter.manifest.roles)) {
       if (entry.module && !modules[entry.module]) {
-        modules[entry.module] = await import(join(dir, entry.module))
+        modules[entry.module] = await import(join(adapter.dir, entry.module))
       }
     }
-    hosts[name] = { manifest, modules }
+    loaded[adapter.name] = { manifest: adapter.manifest, dir: adapter.dir, modules }
   }
-  return hosts
+  return loaded
 }
+
+/** The host adapter modules by host name. */
+export const loadHostAdapters = (adaptersDir = ADAPTERS_DIR) => loadAdapterModules('host', adaptersDir)

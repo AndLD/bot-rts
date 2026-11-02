@@ -21,7 +21,7 @@ test('the pre-push hook runs the vendored check on every push, before the local 
   const hook = read('.githooks/pre-push')
   const check = hook.indexOf(CHECK)
   assert.ok(check > 0, 'the hook runs the vendored check')
-  assert.ok(check < hook.indexOf('exec node scripts/local-gate.mjs'), 'before the local gate')
+  assert.ok(check < hook.indexOf('exec node harness/tools/harness.mjs gate'), 'before the local gate')
   assert.ok(!hook.slice(0, check).includes('exit 0'), 'nothing before it ends the hook')
 })
 

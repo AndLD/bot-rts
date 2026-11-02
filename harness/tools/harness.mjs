@@ -15,6 +15,9 @@
 //   harness release [--dry-run]                                   prepare a release on its branch: versions and changelog
 //   harness release notes <version>                               the changelog section of a version, for the host's release
 //   harness ci changes <base> <head>                              whether a change needs the code checks (`code=true|false`)
+//   harness gate [--dry-run]                                      the local gate of a push (the refs on standard input): the checks its files need
+//   harness coverage check-changed [--skip-missing] <base> [<package>...]   the files changed since <base> meet the coverage gate
+//   harness coverage merge <artifacts> [--out <dir>] [<package>...]         merge the coverage shards of CI and hold the total to the gate
 //   harness host protect [--repo <owner/name>]                    set the protection of the production and the integration branch on the host
 // `--root <dir>` runs on another project (default: the Git top level of the working directory).
 import { execFileSync } from 'node:child_process'
@@ -24,6 +27,8 @@ import { join } from 'node:path'
 import { ciChanges } from './lib/changes.mjs'
 import { release, releaseNotes } from './lib/changelog.mjs'
 import { CHECKS, runCheck, runProjectChecks } from './lib/checks.mjs'
+import { checkChanged, mergeShards } from './lib/coverage.mjs'
+import { readStdin, runGate } from './lib/gate.mjs'
 import { protectHost } from './lib/host.mjs'
 import { layerConfig, renderLayerMap } from './lib/layers.mjs'
 import { planLog, planSummary } from './lib/plan.mjs'
@@ -44,10 +49,13 @@ const USAGE = `usage: harness <command>
   release [--dry-run]
   release notes <version>
   ci changes <base> <head>
+  gate [--dry-run]
+  coverage check-changed [--skip-missing] <base> [<package>...]
+  coverage merge <artifacts> [--out <dir>] [<package>...]
   host protect [--repo <owner/name>]`
 
-const FLAGS_WITH_VALUE = new Set(['--from', '--to', '--reason', '--issue', '--root', '--repo'])
-const BOOLEAN_FLAGS = new Set(['--local', '--check', '--dry-run'])
+const FLAGS_WITH_VALUE = new Set(['--from', '--to', '--reason', '--issue', '--root', '--repo', '--out'])
+const BOOLEAN_FLAGS = new Set(['--local', '--check', '--dry-run', '--skip-missing'])
 
 export function parseArgs(argv) {
   const words = []
@@ -105,7 +113,7 @@ function checkAll(root, { out, err }) {
 }
 
 /** Runs one command; returns the exit code (0 done, 1 a check failed or the command was refused, 2 a usage error). */
-export function run(argv, { out = console.log, err = console.error } = {}) {
+export async function run(argv, { out = console.log, err = console.error } = {}) {
   let parsed
   try {
     parsed = parseArgs(argv)
@@ -166,6 +174,35 @@ export function run(argv, { out = console.log, err = console.error } = {}) {
       out(ciChanges({ root, profile: loadProfile(root), base: words[2], head: words[3] }).message)
       return 0
     }
+    if (command === 'gate') {
+      return await runGate({ root, profile: loadProfile(root), stdin: readStdin(), dryRun: flags.dryRun, out, err })
+    }
+    if (words[0] === 'coverage' && words[1] === 'check-changed' && words.length >= 3) {
+      const [base, ...packages] = words.slice(2)
+      const { code, messages, problems } = checkChanged({
+        root,
+        profile: loadProfile(root),
+        base,
+        packages,
+        skipMissing: flags.skipMissing
+      })
+      messages.forEach((line) => out(line))
+      problems.forEach((line) => err(line))
+      return code
+    }
+    if (words[0] === 'coverage' && words[1] === 'merge' && words.length >= 3) {
+      const [artifacts, ...packages] = words.slice(2)
+      const { code, messages, problems } = mergeShards({
+        root,
+        profile: loadProfile(root),
+        artifacts: resolve(artifacts),
+        out: flags.out ? resolve(flags.out) : root,
+        packages
+      })
+      messages.forEach((line) => out(line))
+      problems.forEach((line) => err(line))
+      return code
+    }
     if (command === 'host protect') {
       const { messages, problems } = protectHost({ profile: loadProfile(root), repo: flags.repo })
       return report('host protect', { problems, messages }, { out, err })
@@ -192,5 +229,5 @@ export function run(argv, { out = console.log, err = console.error } = {}) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
-  process.exitCode = run(process.argv.slice(2))
+  process.exitCode = await run(process.argv.slice(2))
 }

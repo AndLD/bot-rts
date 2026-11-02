@@ -1,5 +1,5 @@
 import type { Config } from 'jest'
-// The coverage gate of the project profile (docs/profile.md), shared with scripts/check-changed-coverage.mjs
+// The coverage gate of the project profile (docs/profile.md), shared with `harness coverage check-changed`
 import { coverageGate } from '../harness-profile.json'
 
 const shared: Config = {
@@ -48,7 +48,7 @@ const config: Config = {
     '!scripts/**' // command line entry points
   ],
   coverageThreshold: { global: coverageGate },
-  // `json` is what scripts/merge-coverage.mjs merges across the CI shards
+  // `json` is what `harness coverage merge` merges across the CI shards
   coverageReporters: ['text-summary', 'json-summary', 'json', 'lcov']
 }
 

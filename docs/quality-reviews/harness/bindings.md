@@ -113,7 +113,7 @@ unenforced:
 | Agent-runtime hooks and skills         | `.claude/settings.json` hooks, the skills of the runtime (see M32) |
 | CI jobs                                | `.github/workflows/ci.yml`, `release.yml`  |
 | Link and anchor check                  | `npm run docs:check` → `harness check links` (and `harness check paths` for backticked paths) |
-| Changed-file coverage                  | `scripts/check-changed-coverage.mjs`       |
+| Changed-file coverage                  | `harness coverage check-changed`           |
 | Import boundaries                      | `npm run check:boundaries`                 |
 | Translation completeness               | `npm run i18n:check`                       |
 | Branch protection                      | `harness host protect` (GitHub settings) |
@@ -340,7 +340,7 @@ Rule-to-carrier map (M33): reuse the M5 sample and the workflows counted in M22.
 
 - **Hook candidates** (mechanical, must always hold): never commit or push on the production or the integration branch (`AGENTS.md` §7.5); no `console.log`
   or commented-out code in committed files; formatting after an edit; regenerate `api/openapi.json` and the client after an endpoint or DTO
-  change (§6.5); the changed-file coverage check before push (memory note on `scripts/check-changed-coverage.mjs`); never delete a remote
+  change (§6.5); the changed-file coverage check before push (memory note on `harness coverage check-changed`); never delete a remote
   branch (§7.3); never edit `.env`; a reminder of the session protocol at session start (§7.6).
 - **Skill candidates** (procedures used by some tasks): start a phase or task (§7.5, §7.6); end a session and write the work-log entry
   (§7.6); open a PR, bind it and turn on CI Auto-fix (§7.5); add an endpoint with its DTO, OpenAPI, API-key scope, client regeneration and

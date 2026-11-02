@@ -43,6 +43,15 @@ versions follow [Semantic Versioning](https://semver.org/).
   protected branch outside its triggers or lists the coverage packages.
 - `{{#unless …}}` blocks in the template engine.
 
+- The node-ts stack preset (`adapters/stack/node-ts/`): `gate.mjs` (the plan of the local gate: typecheck, lint and format of the touched
+  packages, the tests related to the changed files, the whole package for a change that cannot be followed, the changed-file coverage),
+  `coverage.mjs` (the merge of Istanbul shards and the neutral coverage summary, without a dependency), `ci-jobs.mjs` (a static job and a
+  coverage job per package for the host's workflow frame) and its manifest, with the stack role "ignore files".
+- The gate driver `harness gate` (the local gate of a push): it routes each changed file to the stack that owns it, runs the documentation
+  checks for a push that changes documentation, and adds the project's own steps (the profile role `gate`: `outside`, `isolated`, `needs`,
+  `prepare`, `steps`). `harness coverage check-changed` and `harness coverage merge` apply the coverage gate to the neutral summary.
+- `harness check scaffold`: the stack's ignore files exclude the vendored framework.
+
 ### Changed
 
 - The protection rule of the entry file no longer names a script: the host enforces it with the ruleset `harness host protect` sets, and

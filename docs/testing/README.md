@@ -38,16 +38,17 @@ works in practice.
 | `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
 | `npm run test:framework` | The `node --test` tests of the framework's staging folder `docs/harness-framework/framework/` (`scripts/test-framework.mjs` lists them); fails when the folder has none. Prettier checks the folder's code too |
 | `npm run harness -- check vendored` | `harness/` against `harness.lock.json` and against its source folder; the first step of `npm run docs:check` and of the pre-push hook. `npm run harness -- sync` makes the copy equal to the source again |
-| `node scripts/merge-coverage.mjs <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
+| `node harness/tools/harness.mjs coverage merge <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package (the node-ts stack's merge) and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
-The pre-push hook (`.githooks/pre-push`, which runs `scripts/local-gate.mjs`) is the **local gate**. It runs only what the files of the
+The pre-push hook (`.githooks/pre-push`, which runs `harness gate`) is the **local gate**. It runs only what the files of the
 push need, and the full run stays in CI and in `npm run test:coverage`:
 
 | The push changes | The gate runs |
 | ---------------- | ------------- |
-| no file (an empty claim push) or only Markdown | no code check |
-| files of `api`, `client` or `mcp` | typecheck and lint of those packages; Prettier on the changed files; the Jest tests related to the changed files (`jest --findRelatedTests`) with coverage, and `scripts/check-changed-coverage.mjs` on them; with `api`, the database (`npm run db:up`) |
+| no file (an empty claim push) | nothing |
+| only Markdown (or the other documentation files of `checks.documentationPaths`) | the documentation checks, `harness check all` (links, paths, plan, product knowledge, the generated files of the harness); no code check |
+| files of `api`, `client` or `mcp` | typecheck and lint of those packages; Prettier on the changed files; the Jest tests related to the changed files (`jest --findRelatedTests`) with coverage, and `harness coverage check-changed` on them; with `api`, the database (see below) |
 | a file that cannot be followed to its tests (`package.json`, a Jest or tsconfig file, messages, the Prisma schema, a deleted file) | the whole test run of that package, as `npm run test:coverage -w <package>` |
 | a file outside the packages (`lib/`, the lock file, root configuration, the hooks) | the full run: typecheck, lint, the tests of every package, the coverage gate |
 | `scripts/` | `npm run test:scripts` as well |
@@ -56,9 +57,10 @@ push need, and the full run stays in CI and in `npm run test:coverage`:
 | anything but a change confined to `mcp/`, `scripts/` or the framework's staging folder | also the generated files (API document, client, documentation data) are regenerated and must not differ |
 
 Before the file selection, on every push (documentation only or not), the hook runs `node harness/tools/harness.mjs check vendored`, so an edit
-of the vendored framework never leaves the machine. The file selection is `planGate` in `scripts/local-gate-lib.mjs`, tested by `npm run test:scripts`; `node scripts/local-gate.mjs --dry-run`
-(with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
-whole package (its total, and a changed file that no test reaches) is CI's, which runs everything. A push that changes one client file ran
+of the vendored framework never leaves the machine. The file selection is the framework's gate driver (`harness gate`, which routes each file to the stack that owns it)
+and the plan of the node-ts stack (`adapters/stack/node-ts/gate.mjs`), with the `gate` role of `harness-profile.json` for this repository's own steps; both are tested by `npm run test:framework`.
+`node harness/tools/harness.mjs gate --dry-run` (with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
+whole package (its total, and a changed file that no test reaches) is CI's, which runs everything: **the local gate holds the changed files whose related tests ran, CI holds the package totals and every changed file**. A push that changes one client file ran
 8 related suites (77 tests) and the whole gate in 22 s (task 16.6).
 
 **The database of the gate.** A push that runs the tests of `api` needs PostgreSQL and Redis, and the gate finds out which case it is in
@@ -257,7 +259,7 @@ The required checks `verify` and `e2e` are the last jobs of several that of `.gi
 
 Every test job runs Jest with `--coverage --coverageThreshold='{}'`, so a shard cannot fail the package gate on its own coverage, and
 uploads `coverage/coverage-final.json` as the artifact `coverage-<package>-<shard>-of-<count>`. `verify` downloads them,
-`scripts/merge-coverage.mjs` adds up the hit counts of statements, functions and branches of the shards entry by entry (the shards are
+`harness coverage merge` (the merge of the node-ts stack, `adapters/stack/node-ts/coverage.mjs`) adds up the hit counts of statements, functions and branches of the shards entry by entry (the shards are
 instrumented from the same source, so entry `i` of a file is the same code in each) and writes the `coverage-final.json` and
 `coverage-summary.json` that one Jest run would write. It does not use `CoverageMap.merge` of `istanbul-lib-coverage`, which matches
 entries by source location: two functions at one location (as in `client/src/site/LazyAmbient.tsx`) became one and the covered one hid
@@ -268,7 +270,7 @@ the merge as well, and Jest fails on a shard with no test files, so a test canno
 package, which are those of one unsharded run. To count the tests across the jobs, add the `Tests:` lines of the
 jobs' logs (`node scripts/ci-timings.mjs <run-id>` lists the jobs). To try the same locally: run a package with `--shard=i/n` and
 `--coverageThreshold='{}'`, copy each `coverage/coverage-final.json` to `<dir>/coverage-<package>-<i>-of-<n>/`, and run
-`node scripts/merge-coverage.mjs <dir> --out <scratch-dir> <package>`.
+`node harness/tools/harness.mjs coverage merge <dir> --out <scratch-dir> <package>`.
 
 The Cypress specs are split by `scripts/e2e-durations.json` (seconds per spec, taken from the Cypress summary of a CI run): longest spec
 first into the shard with the least time so far (`specsOfShard` in `scripts/e2e-lib.mjs`). A spec that is not recorded counts as the median,
@@ -281,9 +283,9 @@ artifact). The screenshots and server logs of a failed shard are uploaded as `e2
   separately for `api`, `client` and `mcp`; its value is the `coverageGate` of `harness-profile.json`.
 - The coverage provider is Jest's default (Babel instrumentation). Phase 16 measured `coverageProvider: 'v8'` and kept the default:
   v8 puts files below the gate that pass today and is slower (see [the measurement](#coverage-provider-measurement)).
-- CI also blocks a PR whose **changed files** are below the gate (`scripts/check-changed-coverage.mjs`); the pre-push hook runs the same
-  check on the tests related to the changed files, and you can run it yourself:
-  `node scripts/check-changed-coverage.mjs origin/<integration> api client mcp` after `npm run test:coverage` (`<integration>` is the integration branch of the [profile](../profile.md#3-branches-and-merging)). A package can pass its total
+- CI also blocks a PR whose **changed files** are below the gate (`harness coverage check-changed`); the pre-push hook runs the same
+  check on the files whose related tests ran (a package with none is judged by CI), and you can run it yourself:
+  `node harness/tools/harness.mjs coverage check-changed origin/<integration> api client mcp` after `npm run test:coverage` (`<integration>` is the integration branch of the [profile](../profile.md#3-branches-and-merging)). A package can pass its total
   and still fail here, because every changed file is held to the gate on its own. Causes: a mocked-away module (a mocked file shows 0 %),
   an unused helper (dead code shows 0 %), and an untested side of `??` or a ternary (cover it with an input that takes each side).
 - Read `Test Suites:` in the Jest summary, not only `Tests:`: a suite that fails to compile (a type error in a fixture after a shared

@@ -675,6 +675,55 @@
         }
       }
     },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The local gate of a push (`harness gate`, design §7.3): what the project adds to the plan of its stacks.",
+      "properties": {
+        "outside": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Globs of the files that no check of the gate looks at (the CI configuration, the agent's settings)."
+        },
+        "isolated": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Globs of the files that cannot change a package's code (scripts, documents, the vendored framework): they never trigger the full run of a stack, only the steps that name them."
+        },
+        "needs": {
+          "type": "object",
+          "default": {},
+          "description": "What the tests of some packages need before they run: a need (such as \"database\") and the packages whose test steps have it.",
+          "additionalProperties": { "type": "array", "items": { "type": "string" } }
+        },
+        "prepare": {
+          "type": "object",
+          "default": {},
+          "description": "The module of the project that gets a need ready, per need: a Node module that exports prepare({ root, run }) and throws, with a message that says what to do, when the push must stop.",
+          "additionalProperties": { "type": "string" }
+        },
+        "steps": {
+          "type": "array",
+          "default": [],
+          "description": "The project's own steps: a label, the commands to run (each an argument list), the files that trigger it (`when`, default: any relevant change), the changes it is skipped for (`unlessOnly`), and paths that must not differ afterwards (`diff`, with a `hint` for the message).",
+          "items": {
+            "type": "object",
+            "required": ["label"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string" },
+              "run": { "type": "array", "items": { "type": "array", "items": { "type": "string" } } },
+              "when": { "type": "array", "items": { "type": "string" } },
+              "unlessOnly": { "type": "array", "items": { "type": "string" } },
+              "diff": { "type": "array", "items": { "type": "string" } },
+              "hint": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
     "host": {
       "type": "object",
       "additionalProperties": false,

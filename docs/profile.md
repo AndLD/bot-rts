@@ -31,10 +31,10 @@ below links to its row instead of copying it.
 
 | Role | Value | Mechanism |
 | ---- | ----- | --------- |
-| **Coverage gate** | **97 % of statements, branches, functions and lines** | the `coverageGate` of [`harness-profile.json`](../harness-profile.json), read by the three `jest.config.ts` files, `scripts/check-changed-coverage.mjs` and `scripts/merge-coverage.mjs` |
-| Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `scripts/check-changed-coverage.mjs` in CI |
+| **Coverage gate** | **97 % of statements, branches, functions and lines** | the `coverageGate` of [`harness-profile.json`](../harness-profile.json), read by the three `jest.config.ts` files and by `harness coverage check-changed` and `harness coverage merge` |
+| Coverage gate scope | separately per package (`api`, `client`, `mcp`) **and** per changed source file of a pull request | Jest `coverageThreshold` per package; `harness coverage check-changed` for the changed files, in CI and in the pre-push hook (on the files whose related tests ran) |
 | Coverage exclusions | entry and bootstrap files, config files, type-only files and generated code, each listed with its reason in the package's `jest.config.ts` | `collectCoverageFrom` |
-| Local gate | the pre-push hook runs, for the files of the push only, typecheck and lint of the changed packages, the tests related to the changed files and the coverage gate on the changed files, and the generated-files check; no code check for a push that changes no file or only Markdown; the full run is CI's and `npm run test:coverage` | `.githooks/pre-push`, `scripts/local-gate.mjs` |
+| Local gate | the pre-push hook runs, for the files of the push only, typecheck and lint of the changed packages, the tests related to the changed files and the coverage gate on the changed files, and the generated-files check, and the documentation checks (`harness check all`) for a push that changes Markdown; a push that changes no file runs nothing; the package totals and the shards are CI's, and `npm run test:coverage` runs the whole package | `.githooks/pre-push`, which runs `harness gate` |
 | **Required checks** (the merge gates) | `verify` (the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests, framework tests and build), `pr-title` (Conventional Commit title), `e2e` (the job that needs the four shards of the end-to-end suite), `lighthouse` (public pages); jobs of the host's CI workflow | set by `harness host protect` (GitHub repository ruleset `protected-branches`) from the `requiredChecks` list of [`harness-profile.json`](../harness-profile.json); the notes above are the `requiredCheckNotes` of the same file |
 
 ## 3. Branches and merging
@@ -122,7 +122,7 @@ Run from the repository root unless a package is named.
 | Typecheck | `npm run typecheck` |
 | Unit and integration tests | `npm test` (needs `npm run db:up`) |
 | Tests with the coverage gate | `npm run test:coverage` |
-| Changed-file coverage | `node scripts/check-changed-coverage.mjs origin/develop api client mcp` (after `npm run test:coverage`) |
+| Changed-file coverage | `node harness/tools/harness.mjs coverage check-changed origin/develop api client mcp` (after `npm run test:coverage`) |
 | Import boundaries | `npm run check:boundaries` |
 | Message catalogues | `npm run i18n:check` |
 | Every check of the framework (`harness check all`): the vendored copy, the profile file, the layer map, links, backticked paths, the CORE scan, the plan summary, the changelog fragments and the product knowledge | `npm run docs:check` |

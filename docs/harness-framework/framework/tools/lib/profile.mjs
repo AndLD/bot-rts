@@ -88,7 +88,7 @@ export function validate(schema, value, path = '') {
   return problems
 }
 
-const folderOf = (path) => String(path).replace(/^\.\//, '').replace(/\/+$/, '')
+export const folderOf = (path) => String(path).replace(/^\.\//, '').replace(/\/+$/, '')
 // Whether two folders are the same or one holds the other
 const overlaps = (a, b) => a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`)
 

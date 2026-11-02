@@ -7,7 +7,7 @@ configuration that let any coding agent, and any person, work on the project und
 harness from this framework, whatever its stack and whatever agent it uses, and takes later improvements by a version upgrade.
 
 **Status: `0.1.0-dev`.** The folders of the layout exist, the core documents (rules, method, plan and review methods and their templates)
-are in `core/`, and the vendoring, profile, layer, check, plan, release and CI commands work; the rest follows. This file is the contract of what will stand
+are in `core/`, and the bootstrap, vendoring, profile, layer, check, plan, release and CI commands work; the rest follows. This file is the contract of what will stand
 here; the [design](../design.md) gives the reasons and the build order, and the [plan of the extraction](../README.md) gives the steps. The
 commands below are the ones the build tasks add; until a task lands, a command named here does not exist.
 
@@ -35,6 +35,24 @@ The framework is opinionated, and these assumptions hold for every project that 
 - **A plan of phases and tasks**, with task ids, sizes, acceptance checks and a log per task.
 
 A trunk-based variant is not a profile switch. It would be a later phase of the framework's own plan.
+
+## Starting a project
+
+A new project starts in one of three ways, and all three give the same result, because they only fill `harness-profile.json` and then run
+one engine (`tools/lib/bootstrap.mjs`):
+
+| Front end | How |
+| --------- | --- |
+| The script | `node <framework>/tools/harness.mjs init` in the project's folder. It asks the questions (the project name, the repository, the adapters, the coverage gate, the branches), offering a default for each one that has it; with flags (`--name`, `--repository`, `--stack`, `--runtime`, `--host`, `--set <role>=<value>`, `--non-interactive`) it asks nothing, and a missing required answer fails before anything is written. |
+| The template repository | `harness template <dir>` builds it from the framework: the whole framework in `harness/`, a profile file with the defaults and the required roles empty, `BOOTSTRAP.md`, and a README that says how to start. Make a repository from it, then run `node harness/tools/harness.mjs init`. |
+| `BOOTSTRAP.md` | A prompt that any coding agent can follow: it asks the user the questions in one message, writes the answers into the profile file and runs `harness bootstrap`. |
+
+`harness bootstrap` completes the profile file from the answers, `profile/starter.json` and the defaults of the selected adapters, writes the
+scaffolded files once (it refuses to overwrite one the project has, unless `--force`), vendors the framework and generates the managed files,
+commits the result as the root commit of the integration branch (or on a new integration branch from a commit the host made), makes the
+production branch from the same commit, installs the Git hooks and runs `check all`. It prints what is left to the owner: the first push of
+both branches, and `host protect`. `--detached` starts the project as its own copy; the result equals a pinned bootstrap followed by
+`detach`.
 
 ## Using it
 
@@ -72,7 +90,7 @@ The checks and the project tools read every value from the profile file:
 | `gate [--dry-run]` | The local gate of a push, run by the pre-push hook with the refs on standard input: the documentation checks when documentation changed, the plan of each stack for the files it owns, the project's own steps (`gate`). |
 | `coverage check-changed [--skip-missing] <base> [<package>...]` | Every file added or changed since `<base>` meets the coverage gate in the neutral summary of its package. |
 | `coverage merge <artifacts> [--out <dir>] [<package>...]` | Merges the shards that CI uploaded (`coverage-<package>-<i>-of-<n>`) with the stack's merge and holds each total to the gate. |
-| `check scaffold` | The ignore files of the stacks exclude the vendored framework. |
+| `check scaffold` | The ignore files of the stacks exclude the vendored framework, and the configuration of each agent runtime holds the framework's hook entries and read exclusions. |
 | `host protect [--repo <owner/name>]` | Sets the protection of the production and the integration branch on the host through the host adapter; it fails when `host.protection` of the profile differs from what the host can do. |
 | `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
 | `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with `./` or `../`, or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
@@ -86,8 +104,6 @@ The checks and the project tools read every value from the profile file:
 
 Planned for `0.1.0`, in the order of the build tasks:
 
-- **Bootstrap a project** with `harness init` (interactive or with flags), with `harness bootstrap`, or by following `BOOTSTRAP.md`. All
-  three produce the same result.
 - **Add a stack, a runtime or a host** by following `core/contracts/new-adapter.md` and passing the conformance suite.
 
 ## License

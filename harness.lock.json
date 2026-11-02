@@ -17,9 +17,9 @@
   },
   "files": {
     "BOOTSTRAP.md": "c81d65863a4e247dfc12e5ec1b69836fe2892bd3a98eb220608eaf72b02cb864",
-    "CHANGELOG.md": "6b7746e67758aa078e99db6689d2c81ceb67ccb98ea500c9ce2cfc48131408ec",
+    "CHANGELOG.md": "07b32c71e728748afb4095e1e23a578e40d0269a90d2cdea3dec329e55e7d280",
     "LICENSE": "05abb11a226621a02a46cbabdc913212f8327b9ab419ce1fe6cc14651fca1bed",
-    "README.md": "18643669721fe92e0bd3ce2b1343f5c9602b5753d22f8cb4f0bf0310cc1f9385",
+    "README.md": "71ac01810b696168c7bad1000abf763d569cffbe1c11b242e723790ec472023b",
     "adapters/host/github/manifest.json": "4f83828766284d65c8b2869fd2c4915cc48a368bb05cb651f5262a90aa38d0a5",
     "adapters/host/github/merge-guard.mjs": "f0db24585e21f6ccdd143466d00f40c206d9642450626dcee93ffa7ee8148729",
     "adapters/host/github/merge-guard.test.mjs": "c8ecf61414f1ed8840dada94b2204457f4664bd0143b7341872b2ea15f0a300a",

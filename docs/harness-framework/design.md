@@ -449,18 +449,25 @@ The python preset (task 1.3 of the framework's own plan, section 11) is written 
 
 ### 6.1 One engine
 
-`tools/lib/bootstrap.mjs` is a pure function from **a complete profile file** and **a framework tree** to **a file plan**: a list of
-paths, contents and kinds (vendored, managed, scaffolded). `harness bootstrap` validates the profile against the schema, runs the
-engine, writes the plan (it refuses to overwrite an existing scaffolded file unless `--force`), writes the lock, installs the Git hooks
+`tools/lib/bootstrap.mjs` holds the engine. `completeProfile` turns the answers into **a complete profile file**: the answers win, then the defaults of the
+questions, the `defaults` of the selected adapters' manifests and `profile/starter.json` (the starting values of a new project: the branches, the
+coverage gate, the paths, the document map, the plan's prose roles); the title and the term lists are derived from the answers. The schema keeps its
+required roles without defaults, so `check profile` still catches a missing one in an existing project. `scaffoldPlan` is a pure function from
+the complete profile and **a framework tree** to the **scaffolded files** (section 6.3). `harness bootstrap` validates the profile against the
+schema, writes the profile file in the schema's key order and the scaffolded files (it refuses to overwrite an existing one unless `--force`),
+then vendors the framework and generates the managed files with the engine of `harness sync` (`vendor`), writes the lock, installs the Git hooks
 (`core.hooksPath`) and runs `harness check all`. `harness sync` is the same engine restricted to vendored and managed files. A bootstrapped
-project and `bot-rts` therefore stay current by the same command.
+project and `bot-rts` therefore stay current by the same command. (Built in 17.13: the managed files come from the sync engine rather than from
+the pure plan, so that a sync and a bootstrap cannot render them differently.)
 
 **The first commit.** A new repository has no integration branch yet, and the `pre-commit` guard refuses commits on the protected branches.
 So the bootstrap commits its own output first, as the repository's root commit on the integration branch, and installs the Git hooks after
 that. In a repository that already has a commit (a host can create one, such as a `.gitattributes` or a README), the bootstrap branches the
 integration branch from it and commits its output there, also before it installs the hooks. The guard also lets a root commit (one with no parent) through, so a re-run in an empty repository behaves the same. The bootstrap then
 creates the production branch from the same commit and prints the next steps: push both branches, protect them with `harness host protect`,
-and do all further work on work branches.
+and do all further work on work branches. The pre-push guard refuses a push to a protected branch, so the first push of the two branches is
+the owner's, with `git push --no-verify`, the one push that skips the hooks; the shell guard of the agent runtime refuses `--no-verify`, so an
+agent cannot make it.
 
 ### 6.2 Three front ends, one result
 
@@ -469,7 +476,7 @@ All three front ends only produce the complete `harness-profile.json`; the engin
 | Front end | How it fills the profile file |
 | --------- | ----------------------------- |
 | Script | `node <framework>/tools/harness.mjs init`. **Interactive**: it asks every required role that has no default, in the order of `profile/roles.md`, and shows the default of the others. **With flags**: `--name`, `--repository`, `--stack node-ts`, `--runtime claude-code,cursor`, `--host github`, `--set key=value` for any role, `--detached` (section 1.5), `--non-interactive` (it fails and lists the missing roles). Then it runs `bootstrap`. |
-| Template repository | The framework's release workflow builds it from the framework tree: `harness/`, a `harness-profile.json` with the defaults and empty required roles, `BOOTSTRAP.md` and a README that says "run `node harness/tools/harness.mjs init`, or ask your agent to follow `BOOTSTRAP.md`". "Use this template" on the host, then one of the two. Creating it on the host is the owner's step. |
+| Template repository | `harness template <dir>` builds it from the framework tree, and the framework's release workflow runs it: `harness/` with every adapter, a `harness-profile.json` with the defaults and empty required roles, `BOOTSTRAP.md`, a README that says "run `node harness/tools/harness.mjs init`, or ask your agent to follow `BOOTSTRAP.md`", and a lock that records the source and lists the template's own files (`template`: the README and `BOOTSTRAP.md`), which the bootstrap replaces or removes. "Use this template" on the host, then one of the two. Creating it on the host is the owner's step. |
 | `BOOTSTRAP.md` | A prompt for any coding agent. Read `profile/roles.md`; ask the user for each required role in one message, offering the defaults; write the answers into `harness-profile.json`; run `harness bootstrap --non-interactive`; run `harness check all`; report what was written and what the user must do by hand (protect the branches with `harness host protect`, turn on the runtime's settings). It uses only reading, writing and running commands, which every agent can do. |
 
 **Proof of sameness:** a framework test runs the engine three ways for the same answers: with the flags, with the answers file that the
@@ -490,7 +497,14 @@ trees byte for byte, apart from the lock's timestamp. The template repository is
 - **Scaffolded** (written once, then the project's): the rest of the entry file; the runtime pointer (`CLAUDE.md`); the runtime config files
   (`.claude/settings.json`, `.cursor/hooks.json`); the CI workflows; `README.md`; the `docs/` skeleton (plan index, the first phase, the
   product-knowledge skeleton from `examples/product/`, the four bindings files from their templates); `.gitignore` and `.env.example`;
-  the stack's config files (`.nvmrc`, the formatter's config). `harness check scaffold` checks only their invariants:
+  the stack's config files (`.nvmrc`, the formatter's config). The core files are the templates of `core/templates/scaffold/`, rendered with the
+  profile, and their paths are roles (`scaffold.json`); each adapter adds its own with the optional role `scaffold-files`, and a file that
+  several of them name is a list of lines (`.gitignore`). As built in 17.13: the entry file with its reading map and empty managed blocks, the
+  README, the stack file, the rule-to-check map, the plan index, the open-ended phase as the first phase (`plan.openEndedPhaseNumber` 1, no
+  task yet) and its work log, the changelog and its fragments folder, a releasing guide, and the harness-review bindings as a stub that the
+  first harness review fills; node-ts adds a package manifest whose lint and test scripts say that no tool is installed yet (so CI is green on
+  a project with no code) and an empty lock file. The product-knowledge skeleton and the other bindings come with the examples (Phase 1 of the
+  framework's plan, task 1.4). `harness check scaffold` checks only their invariants:
   - the framework's hook entries are present and call the vendored scripts;
   - the `Read(...)` deny rules of `access.denyRead` are present in `.claude/settings.json`;
   - the stack's ignore files exclude `harness/` (pinned mode), so formatting the project never rewrites the vendored tree;

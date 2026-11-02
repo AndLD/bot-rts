@@ -35,7 +35,7 @@ import { PROFILE_FILE, loadProfile, readSchema, validate, withDefaults } from '.
 import { render, valueAt } from './render.mjs'
 import { readManifest, resolveSource } from './source.mjs'
 import { hashTree } from './tree.mjs'
-import { detach, recordSelf, selectFiles, vendor } from './vendor.mjs'
+import { detach, recordSelf, selectFiles, sync, vendor } from './vendor.mjs'
 
 /** The framework tree this command runs from. */
 export const FRAMEWORK_DIR = resolve(import.meta.dirname, '..', '..')
@@ -412,7 +412,7 @@ const gitSucceeds = (root, ...args) => {
  * commit; the Git hooks are installed last, so that their guard of the protected branches never sees the bootstrap's own commit.
  * @returns {string[]} what it did
  */
-export function setUpGit({ root, profile, version }) {
+export function setUpGit({ root, profile, version, regenerate = () => {} }) {
   const { production, integration } = profile.branches
   const messages = []
   const topLevel = gitSucceeds(root, 'rev-parse', '--show-toplevel') ? git(root, 'rev-parse', '--show-toplevel') : null
@@ -422,6 +422,9 @@ export function setUpGit({ root, profile, version }) {
   }
   const hasBranch = (branch) => gitSucceeds(root, 'show-ref', '--verify', '--quiet', `refs/heads/${branch}`)
   const commit = () => {
+    git(root, 'add', '--all')
+    // The layer map lists the files Git tracks, so the managed files are generated again once the whole output is staged
+    regenerate()
     git(root, 'add', '--all')
     git(root, 'commit', '--quiet', '-m', `chore: bootstrap the harness from harness-framework ${version}`)
   }
@@ -554,7 +557,14 @@ export async function bootstrap({
       messages.push(...detach({ root, reason }).messages)
     }
     const effective = withDefaults(schema, profile)
-    messages.push(...setUpGit({ root, profile: effective, version: fetched.version }))
+    messages.push(
+      ...setUpGit({
+        root,
+        profile: effective,
+        version: fetched.version,
+        regenerate: () => sync({ root, local: true })
+      })
+    )
     messages.forEach((line) => out(line))
 
     const code = checkAll({ root, out, err, stdio: 'pipe' })

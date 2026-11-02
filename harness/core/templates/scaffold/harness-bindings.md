@@ -9,3 +9,10 @@ tools already know.
 - **Values:** the [project profile]({{rel:paths.profileDocument}}), with the term lists of the CORE scan (its section 9).
 - **Checks:** `{{commands.docsCheck}}` runs every check of the framework.
 - **Reports:** one dated file per review next to this one, from the report template of the method.
+
+{{#if layers}}
+## Layers
+
+<!-- harness:begin layers -->
+<!-- harness:end layers -->
+{{/if}}

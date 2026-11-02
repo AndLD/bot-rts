@@ -1,5 +1,3 @@
-[← Design of the framework](../design.md)
-
 # harness-framework
 
 A framework for the **harness** of a software project: the rules, the method documents, the checks, the Git hooks and the agent-runtime
@@ -8,8 +6,8 @@ harness from this framework, whatever its stack and whatever agent it uses, and 
 
 **Status: `0.1.0-dev`.** The folders of the layout exist, the core documents (rules, method, plan and review methods and their templates)
 are in `core/`, and the bootstrap, vendoring, profile, layer, check, plan, release and CI commands work; the rest follows. This file is the contract of what will stand
-here; the [design](../design.md) gives the reasons and the build order, and the [plan of the extraction](../README.md) gives the steps. The
-commands below are the ones the build tasks add; until a task lands, a command named here does not exist.
+here; the design document in the docs folder of the framework's repository gives the reasons and the build order, and that repository's development plan
+gives the steps. The commands below are the ones the build tasks added; one that the plan has not delivered yet is marked as planned.
 
 ## What it holds
 
@@ -94,7 +92,7 @@ The checks and the project tools read every value from the profile file:
 | `host protect [--repo <owner/name>]` | Sets the protection of the production and the integration branch on the host through the host adapter; it fails when `host.protection` of the profile differs from what the host can do. |
 | `adapter test <path> [--only <pattern>]` | Runs the conformance suite of its axis on the adapter folder at `<path>` (a preset, or a new adapter written by [the new-adapter guide](core/contracts/new-adapter.md)); `--only` narrows the checks by name. It exits 1 when a check fails. |
 | `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
-| `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with `./` or `../`, or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
+| `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with a dot and a slash (the current or the parent folder), or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
 | `check core` | The project's own CORE documents (`layers.core`, none for a project that uses the framework) and the `core/` folder that the project owns hold no stack term, product term or project value (`terms`). |
 | `check plan` | The summary and the contents of the plan index agree with the phase files (`plan summary` writes them). |
 | `check changelog` | Every changelog fragment starts with a Keep a Changelog kind. |

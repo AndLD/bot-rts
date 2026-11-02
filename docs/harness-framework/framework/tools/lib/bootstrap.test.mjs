@@ -226,7 +226,11 @@ test('retarget points the framework paths of the starting values at another fram
 
 test('--self makes the framework tree at the root a project of its own: mode self, nothing vendored, paths without harness/', async () => {
   const root = fresh()
-  cpSync(FRAMEWORK_DIR, root, { recursive: true, filter: (path) => !path.split('/').includes('.git') })
+  // The tree of a framework repository: what a sync would copy (in the framework's own repository the root also holds its project files)
+  for (const path of JSON.parse(readFileSync(join(FRAMEWORK_DIR, 'framework.json'), 'utf8')).distributable) {
+    cpSync(join(FRAMEWORK_DIR, path), join(root, path), { recursive: true })
+  }
+  cpSync(join(FRAMEWORK_DIR, 'profile', 'starter.json'), join(root, 'profile', 'starter.json'))
   const readme = readFileSync(join(root, 'README.md'), 'utf8')
   writeFileSync(
     join(root, 'harness-profile.json'),

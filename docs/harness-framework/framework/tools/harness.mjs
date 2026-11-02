@@ -7,14 +7,15 @@
 //   harness detach --reason <why>                                 the project takes the copy over; no more versions
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness layers                                                print the layer map
-//   harness check <name>                                          one check: vendored, generated, profile, layers, links, paths, core, plan, changelog,
-//                                                                 product-knowledge
+//   harness check <name>                                          one check: vendored, generated, profile, adapters, values, layers, links, paths, core,
+//                                                                 plan, changelog, product-knowledge
 //   harness check all                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
 //   harness plan log <phase> [ref]                                the implementation log of a phase from the merged pull requests
 //   harness release [--dry-run]                                   prepare a release on its branch: versions and changelog
 //   harness release notes <version>                               the changelog section of a version, for the host's release
 //   harness ci changes <base> <head>                              whether a change needs the code checks (`code=true|false`)
+//   harness host protect [--repo <owner/name>]                    set the protection of the production and the integration branch on the host
 // `--root <dir>` runs on another project (default: the Git top level of the working directory).
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
@@ -23,6 +24,7 @@ import { join } from 'node:path'
 import { ciChanges } from './lib/changes.mjs'
 import { release, releaseNotes } from './lib/changelog.mjs'
 import { CHECKS, runCheck, runProjectChecks } from './lib/checks.mjs'
+import { protectHost } from './lib/host.mjs'
 import { layerConfig, renderLayerMap } from './lib/layers.mjs'
 import { planLog, planSummary } from './lib/plan.mjs'
 import { loadProfile, lookup } from './lib/profile.mjs'
@@ -41,9 +43,10 @@ const USAGE = `usage: harness <command>
   plan log <phase> [ref]
   release [--dry-run]
   release notes <version>
-  ci changes <base> <head>`
+  ci changes <base> <head>
+  host protect [--repo <owner/name>]`
 
-const FLAGS_WITH_VALUE = new Set(['--from', '--to', '--reason', '--issue', '--root'])
+const FLAGS_WITH_VALUE = new Set(['--from', '--to', '--reason', '--issue', '--root', '--repo'])
 const BOOLEAN_FLAGS = new Set(['--local', '--check', '--dry-run'])
 
 export function parseArgs(argv) {
@@ -162,6 +165,10 @@ export function run(argv, { out = console.log, err = console.error } = {}) {
     if (words[0] === 'ci' && words[1] === 'changes' && words.length === 4) {
       out(ciChanges({ root, profile: loadProfile(root), base: words[2], head: words[3] }).message)
       return 0
+    }
+    if (command === 'host protect') {
+      const { messages, problems } = protectHost({ profile: loadProfile(root), repo: flags.repo })
+      return report('host protect', { problems, messages }, { out, err })
     }
     if (command === 'diff') {
       out(diff({ root }))

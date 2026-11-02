@@ -1,5 +1,5 @@
 <!-- The managed block "git-rules" of the entry file (its section 7, up to the session protocol), rendered with the profile file by `harness sync`. Each rule carries a stable id in a comment; the Role binding line is the only line that names values. -->
-**Role binding.** This repository fills the roles of §1 and §7 as follows, and this line is the only place in these two sections that names the values: the integration branch is `{{branches.integration}}`, the production branch is `{{branches.production}}`, the open-ended phase is Phase {{plan.openEndedPhaseNumber}}, the repository host is {{repository.host}}, the branch-protection script is `{{repository.protectionScript}}`; every other value is in the [profile]({{rel:paths.profileDocument}}).
+**Role binding.** This repository fills the roles of §1 and §7 as follows, and this line is the only place in these two sections that names the values: the integration branch is `{{branches.integration}}`, the production branch is `{{branches.production}}`, the open-ended phase is Phase {{plan.openEndedPhaseNumber}}, the repository host is {{repository.host}}; every other value is in the [profile]({{rel:paths.profileDocument}}).
 
 ### 7.1 Branches
 
@@ -18,12 +18,18 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 - **Branches are never deleted from the repository host after merging; they are kept for history.** Turn off "automatically delete head <!-- rule:git.retention -->
   branches" in the repository settings, and never run `git push --delete` / `git push origin :branch` on a remote branch.
 - Deleting a *local* branch is fine when it is already merged. <!-- rule:git.local-delete -->
-- The production and the integration branch are protected by the repository ruleset of the branch-protection script: no direct pushes (for administrators <!-- rule:git.protection -->
-  too), no force-push, no deletion, every change through a PR, and the **required checks** green. The required checks are the
-  status contexts that script sets, listed with what each job runs in the [profile]({{rel:paths.profileDocument}}#2-quality-gates); that
-  list is the only statement of the merge gates.
+- The production and the integration branch are protected: no direct pushes (for administrators <!-- rule:git.protection -->
+  too), no force-push, no deletion, every change through a PR, and the **required checks** green. The required checks are listed with
+  what each job runs in the [profile]({{rel:paths.profileDocument}}#2-quality-gates); that list is the only statement of the merge gates.
+{{#if host.protection}}
+  The host enforces this with the repository ruleset that `harness host protect` sets from the profile.
   An administrator may bypass the rules only when merging a PR, for example past a red check. That bypass is the owner's: an agent <!-- rule:git.admin-bypass -->
   never uses it unless the owner asks for that specific merge.
+{{/if}}
+{{#unless host.protection}}
+  The host cannot enforce this for this repository (`host.protection` is off in the profile), so the Git hooks and the agent runtime's
+  hooks hold it where they can, and an agent never merges a PR while a required check is not green.
+{{/unless}}
 
 ### 7.4 Commit & PR rules
 

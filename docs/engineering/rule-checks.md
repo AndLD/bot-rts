@@ -16,7 +16,7 @@ _permission_: the rule allows an action and sets no limit; the limits are in the
 
 **Mechanisms.** _CI_: a job of the pipeline that gates the merge (the profile lists the required checks). _Pre-push_: `.githooks/pre-push`
 (code changes only). _Lint_: `npm run lint`. _Hook_: a script of `.claude/settings.json`, which refuses the call or acts on it in the
-agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches.sh`.
+agent runtime. _Protection_: the repository ruleset that `harness host protect` sets.
 
 | # | Rule | Mechanism | Status |
 | - | ---- | --------- | ------ |
@@ -63,7 +63,7 @@ agent runtime. _Protection_: the repository ruleset of `scripts/protect-branches
 | 40 | Branch names follow the types of the profile, with the plan task id (AGENTS §7.1, method §5) | nothing reads a branch name (the plan log reads the `Plan:` line of the commit, row 41), so a wrong name breaks no tool and is caught in review | judgment |
 | 41 | Unplanned work becomes a task of the open-ended phase first; documentation and tooling work that no task covers uses a slug (AGENTS §7.1) | the choice depends on what the change is, which only a reader can tell; the generated plan log shows a missing `Plan:` line | judgment |
 | 42 | A pull request is merged by the merge strategy of its branch type: squash for work branches, a merge commit for release and hotfix (AGENTS §7.2, profile §3) | the ruleset does not restrict merge methods, because one repository needs both; the person who merges chooses it | judgment |
-| 43 | The required checks are the status contexts that the protection script sets, listed in the profile (AGENTS §7.3) | `scripts/protect-branches.sh` sets them; that the profile's list matches the script is compared by the harness review (M9) | partly |
+| 43 | The required checks are the status contexts that the protection sets, listed in the profile (AGENTS §7.3) | `harness host protect` sets them from `requiredChecks` of the profile file; `harness check values` fails when one of them is not a job of a workflow; that the host holds the list is checked when the command runs, not on a push | partly |
 | 44 | Only the owner bypasses the rules, and only when merging a pull request (AGENTS §7.3) | Protection allows the bypass for the `pull_request` mode only; that an agent does not use it unless asked is judgment | partly |
 | 45 | A local branch may be deleted when merged (AGENTS §7.3) | none needed: this permits an action and limits nothing | permission |
 | 46 | The commit message has the commit format of the profile, with the plan task id in the body (AGENTS §7.4) | CI `pr-title` checks the title of the pull request, which becomes the squash commit (row 9); the `Plan:` line is read by `npm run plan:log`, so a missing one is missing from the generated log | partly |

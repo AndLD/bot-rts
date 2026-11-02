@@ -70,3 +70,24 @@ test('the framework core is scanned whole, without a binding line, and an empty 
   )
   assert.match(frameworkCoreProblems({}, PROFILE, folder)[0], /^framework\/core: no file found/)
 })
+
+test('the words of the framework adapters are scanned for too, each reported with its adapter', () => {
+  const adapters = [
+    { source: 'host adapter somehost', pattern: '\\bsomehost\\b|\\.somehost/' },
+    { source: 'runtime adapter agentx', pattern: 'agentx' }
+  ]
+  assert.deepEqual(frameworkCoreProblems({ 'f/core/a.md': 'Ask the host.' }, PROFILE, 'f/core', adapters), [])
+  assert.deepEqual(
+    frameworkCoreProblems(
+      { 'f/core/a.md': 'Push to SomeHost.\nOpen .somehost/x in AgentX.' },
+      PROFILE,
+      'f/core',
+      adapters
+    ),
+    [
+      'f/core/a.md:1: the host adapter somehost term "SomeHost" does not belong in a CORE file; cite a role of the profile',
+      'f/core/a.md:2: the host adapter somehost term ".somehost/" does not belong in a CORE file; cite a role of the profile',
+      'f/core/a.md:2: the runtime adapter agentx term "AgentX" does not belong in a CORE file; cite a role of the profile'
+    ]
+  )
+})

@@ -70,6 +70,8 @@ const PHASE = (status, rows) =>
   ].join('\n')
 
 const FILES = {
+  '.github/workflows/ci.yml':
+    'on:\n  pull_request:\n    branches: [develop, main]\n  push:\n    branches: [develop, main]\njobs:\n  verify:\n    runs-on: x\n',
   'AGENTS.md':
     '# Rules\n\n## 1. Rules\n\nWork from the integration branch.\n**Role binding.** The integration branch is `develop`.\n\n## 2. Other\n\nA cart holds items.\n',
   'README.md':

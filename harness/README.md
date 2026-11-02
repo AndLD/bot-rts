@@ -65,7 +65,10 @@ The checks and the project tools read every value from the profile file:
 | Command | What it does |
 | ------- | ------------ |
 | `check all` | Every check below in this order, then the project's own checks (`checks.project`: commands). It is the one command a project's documentation check runs. |
-| `check vendored`, `check generated`, `check profile`, `check layers` | The copy against the lock, the managed files rendered again, the profile file against its schema, and the layer map over the tracked files. |
+| `check vendored`, `check generated`, `check profile`, `check layers` | The copy against the lock, the managed files rendered again, the profile file against its schema (and two stacks never claiming one folder), and the layer map over the tracked files. |
+| `check adapters` | The manifest of every adapter is filled to the contract of its axis (`core/contracts/`). |
+| `check values` | The host's CI triggers equal the protected branches, every required check is a job, and the files of `checks.roleOnlyPaths` name branches, the repository, plan paths and the coverage packages by role. |
+| `host protect [--repo <owner/name>]` | Sets the protection of the production and the integration branch on the host through the host adapter; it fails when `host.protection` of the profile differs from what the host can do. |
 | `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
 | `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with `./` or `../`, or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
 | `check core` | The project's own CORE documents (`layers.core`, none for a project that uses the framework) and the `core/` folder that the project owns hold no stack term, product term or project value (`terms`). |

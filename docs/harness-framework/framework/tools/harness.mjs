@@ -25,6 +25,7 @@
 //   harness coverage check-changed [--skip-missing] <base> [<package>...]   the files changed since <base> meet the coverage gate
 //   harness coverage merge <artifacts> [--out <dir>] [<package>...]         merge the coverage shards of CI and hold the total to the gate
 //   harness host protect [--repo <owner/name>]                    set the protection of the production and the integration branch on the host
+//   harness adapter test <path> [--only <pattern>]                run the conformance suite of its axis on the adapter folder at <path>
 // `--root <dir>` runs on another project (default: the Git top level of the working directory).
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
@@ -66,7 +67,8 @@ const USAGE = `usage: harness <command>
   guard pre-commit|pre-push
   coverage check-changed [--skip-missing] <base> [<package>...]
   coverage merge <artifacts> [--out <dir>] [<package>...]
-  host protect [--repo <owner/name>]`
+  host protect [--repo <owner/name>]
+  adapter test <path> [--only <pattern>]`
 
 const FLAGS_WITH_VALUE = new Set([
   '--from',
@@ -80,7 +82,8 @@ const FLAGS_WITH_VALUE = new Set([
   '--repository',
   '--stack',
   '--runtime',
-  '--host'
+  '--host',
+  '--only'
 ])
 // Flags that may be given several times; their values are collected in a list
 const REPEATED_FLAGS = new Set(['--set'])
@@ -255,6 +258,14 @@ export async function run(argv, { out = console.log, err = console.error, input 
     if (command === 'host protect') {
       const { messages, problems } = protectHost({ profile: loadProfile(root), repo: flags.repo })
       return report('host protect', { problems, messages }, { out, err })
+    }
+    if (words[0] === 'adapter' && words[1] === 'test' && words.length === 3) {
+      const { describeRun, runSuite } = await import('./conformance/suite.mjs')
+      const { lines, passed } = describeRun(
+        await runSuite({ dir: resolve(words[2]), only: flags.only ? new RegExp(flags.only, 'i') : undefined })
+      )
+      lines.forEach((line) => out(line))
+      return passed ? 0 : 1
     }
     if (command === 'diff') {
       out(diff({ root }))

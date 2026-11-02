@@ -45,7 +45,7 @@ test('the ruleset protects the two branches and requires the checks of the profi
 
 test('protect keeps merged branches, creates the ruleset and removes the classic protection', () => {
   const { gh, calls } = standIn()
-  const { messages, problems } = protect({ profile: profile(), gh })
+  const { messages, problems } = protect({ profile: profile(), cli: gh })
   assert.deepEqual(problems, [])
   const post = calls.find((call) => call.args.includes('POST'))
   assert.deepEqual(JSON.parse(post.input), buildRuleset(profile()))
@@ -61,7 +61,7 @@ test('protect keeps merged branches, creates the ruleset and removes the classic
 
 test('protect replaces a ruleset of the same name, and is the same request twice', () => {
   const { gh, calls } = standIn({ existing: { id: 42, name: 'protected-branches' } })
-  protect({ profile: profile(), gh })
+  protect({ profile: profile(), cli: gh })
   assert.ok(calls.some((call) => call.args.join(' ').startsWith('api -X PUT repos/owner/name/rulesets/42')))
   assert.ok(!calls.some((call) => call.args.includes('POST')))
 })
@@ -72,14 +72,14 @@ test('the host answering that rulesets need a public repository or a paid plan m
     stdout: '',
     stderr: 'gh: Upgrade to GitHub Pro or make this repository public to enable this feature. (HTTP 403)'
   }
-  assert.deepEqual(detectProtection({ slug: 'owner/name', gh: standIn({ rulesets: needs }).gh }).available, false)
-  assert.equal(detectProtection({ slug: 'owner/name', gh: standIn().gh }).available, true)
+  assert.deepEqual(detectProtection({ slug: 'owner/name', cli: standIn({ rulesets: needs }).gh }).available, false)
+  assert.equal(detectProtection({ slug: 'owner/name', cli: standIn().gh }).available, true)
 })
 
 test('an answer that is neither a ruleset list nor the plan notice is an error, not a guess', () => {
   const offline = { status: 1, stdout: '', stderr: 'error connecting to api.github.com' }
   assert.throws(
-    () => detectProtection({ slug: 'owner/name', gh: standIn({ rulesets: offline }).gh }),
+    () => detectProtection({ slug: 'owner/name', cli: standIn({ rulesets: offline }).gh }),
     /cannot tell whether the host can protect owner\/name/
   )
 })
@@ -87,18 +87,18 @@ test('an answer that is neither a ruleset list nor the plan notice is an error, 
 test('a profile that says the host protects, when it cannot, fails and changes nothing', () => {
   const needs = { status: 1, stdout: '', stderr: 'Upgrade to GitHub Pro or make this repository public' }
   const { gh, calls } = standIn({ rulesets: needs })
-  const { problems } = protect({ profile: profile(), gh })
+  const { problems } = protect({ profile: profile(), cli: gh })
   assert.match(problems[0], /host\.protection is true in the profile file, but .*set host\.protection to false/)
   assert.equal(calls.length, 1, 'only the detection ran')
 })
 
 test('a profile that says the host cannot protect, when it can, fails too; when both say no there is nothing to do', () => {
   const unprotected = profile({ host: { protection: false } })
-  assert.match(protect({ profile: unprotected, gh: standIn().gh }).problems[0], /set host\.protection to true/)
+  assert.match(protect({ profile: unprotected, cli: standIn().gh }).problems[0], /set host\.protection to true/)
 
   const needs = { status: 1, stdout: '', stderr: 'Upgrade to GitHub Pro' }
   const { gh, calls } = standIn({ rulesets: needs })
-  const result = protect({ profile: unprotected, gh })
+  const result = protect({ profile: unprotected, cli: gh })
   assert.deepEqual(result.problems, [])
   assert.match(result.messages[0], /Nothing to protect/)
   assert.equal(calls.length, 1)
@@ -107,7 +107,7 @@ test('a profile that says the host cannot protect, when it can, fails too; when 
 test('a failing request names the call and stops', () => {
   const gh = (args) =>
     args.includes('PATCH') ? { status: 1, stdout: '', stderr: 'HTTP 403' } : { status: 0, stdout: '[]', stderr: '' }
-  assert.throws(() => protect({ profile: profile(), gh }), /gh api -X PATCH failed: HTTP 403/)
+  assert.throws(() => protect({ profile: profile(), cli: gh }), /gh api -X PATCH failed: HTTP 403/)
 })
 
 // The real runner against a stand-in executable on the path: the request that leaves the process is the one the tests above see

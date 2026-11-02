@@ -18,8 +18,8 @@ commands below are the ones the build tasks add; until a task lands, a command n
 | `core/` | the project-, stack-, runtime- and host-neutral part: rules, method documents, plan and review methods, procedures, adapter contracts and templates |
 | `profile/` | the schema of `harness-profile.json`, the one file that holds every project value, and the description of each role |
 | `adapters/` | what depends on a stack (`stack/`), a coding-agent runtime (`runtime/`) or a repository host (`host/`); each axis has a skeleton for a new adapter |
-| `tools/` | the `harness` command line, its checks, the Git hooks and the runtime hooks; plain Node, with no dependencies |
-| `tests/conformance/` | the suite that every adapter passes |
+| `tools/` | the `harness` command line, its checks, the Git hooks and the runtime hooks, and the conformance suite that every adapter passes (`tools/conformance/`, run by `harness adapter test`); plain Node, with no dependencies |
+| `tests/` | the framework's own tests that run the suite on the presets and on deliberately broken adapters (`tests/conformance/`), and the recorded fixtures |
 | `examples/` | a filled profile, a product-knowledge skeleton and a plan of a fictitious project |
 | `framework.json` | the name, the version, the adapters and the paths that a sync copies |
 
@@ -92,6 +92,7 @@ The checks and the project tools read every value from the profile file:
 | `coverage merge <artifacts> [--out <dir>] [<package>...]` | Merges the shards that CI uploaded (`coverage-<package>-<i>-of-<n>`) with the stack's merge and holds each total to the gate. |
 | `check scaffold` | The ignore files of the stacks exclude the vendored framework, and the configuration of each agent runtime holds the framework's hook entries and read exclusions. |
 | `host protect [--repo <owner/name>]` | Sets the protection of the production and the integration branch on the host through the host adapter; it fails when `host.protection` of the profile differs from what the host can do. |
+| `adapter test <path> [--only <pattern>]` | Runs the conformance suite of its axis on the adapter folder at `<path>` (a preset, or a new adapter written by [the new-adapter guide](core/contracts/new-adapter.md)); `--only` narrows the checks by name. It exits 1 when a check fails. |
 | `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
 | `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with `./` or `../`, or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
 | `check core` | The project's own CORE documents (`layers.core`, none for a project that uses the framework) and the `core/` folder that the project owns hold no stack term, product term or project value (`terms`). |

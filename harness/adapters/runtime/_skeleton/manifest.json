@@ -1,0 +1,24 @@
+{
+  "axis": "runtime",
+  "name": "my-runtime",
+  "contract": 1,
+  "description": "TODO: one sentence on the coding agent this adapter is for.",
+  "terms": "TODO-the-words-of-this-runtime",
+  "roles": {
+    "entry-file": {
+      "fills": "TODO: how the runtime loads the entry file (a pointer file, or nothing when it reads the entry file itself)"
+    },
+    "always-loaded-rules": { "fills": "TODO: the entry file only" },
+    "on-demand-rules": { "fills": "TODO: the reading map of the entry file" },
+    "project-directory": { "fills": "TODO: the environment variable that holds the project directory" },
+    "read-exclusions": {
+      "fills": "TODO: how the runtime keeps the agent from reading access.denyRead, and what that does not cover"
+    },
+    "procedure-packaging": {
+      "fills": "TODO: where the neutral procedures are written for the runtime, and in what form",
+      "module": "packaging.mjs",
+      "export": "packageProcedure"
+    }
+  },
+  "enforces": []
+}

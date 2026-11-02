@@ -1,0 +1,42 @@
+{
+  "axis": "stack",
+  "name": "my-stack",
+  "contract": 1,
+  "description": "TODO: one sentence on the language and tools this adapter is for.",
+  "terms": "TODO-the-words-of-this-stack",
+  "roles": {
+    "package-manager": { "fills": "TODO: the install command, the lock file, and how the packages are listed" },
+    "coverage-packages": { "fills": "TODO: the default of coveragePackages" },
+    "test-runner": { "fills": "TODO: the commands test and testCoverage, per package" },
+    "coverage-tool": {
+      "fills": "TODO: the tool that writes coverage/coverage-summary.json per package, and the metrics it reports"
+    },
+    "linter": { "fills": "TODO: the lint command, and the rules that hold the non-negotiables" },
+    "formatter": {
+      "fills": "TODO: the formatter, run from the project's own installation only",
+      "module": "format.mjs",
+      "export": "formatCommand"
+    },
+    "version-file": { "fills": "TODO: where the release tool reads and writes the version" },
+    "local-gate-plan": {
+      "fills": "TODO: which checks a push of these files needs",
+      "module": "gate.mjs",
+      "export": "plan"
+    },
+    "ci-job-layout": {
+      "fills": "TODO: a static job and a coverage job per package",
+      "module": "ci-jobs.mjs",
+      "export": "ciJobs"
+    },
+    "commands": { "fills": "TODO: the commands of the profile file" },
+    "ignored-directories": { "fills": "TODO: the directories the hooks and the checks skip" },
+    "ignore-files": {
+      "fills": "TODO: the files in which the formatter and the linters exclude the vendored framework",
+      "files": [{ "path": ".formatterignore" }]
+    }
+  },
+  "enforces": [],
+  "defaults": {
+    "commands": {}
+  }
+}

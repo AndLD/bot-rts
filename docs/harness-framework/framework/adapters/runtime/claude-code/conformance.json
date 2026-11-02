@@ -1,0 +1,11 @@
+{
+  "events": "events",
+  "samples": {
+    "sessionStart": "session-start.json",
+    "shellRefused": "bash-push-main.json",
+    "shellAllowed": "bash-ls.json",
+    "editRefused": "write-env.json",
+    "editAllowed": "edit-source.json",
+    "editAfter": "after-edit.json"
+  }
+}

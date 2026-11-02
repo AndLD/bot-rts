@@ -186,7 +186,7 @@ framework/                      staging: docs/harness-framework/framework/; late
     lib/                        the engine and the checks, pure functions with node --test tests
     git-hooks/                  pre-commit, pre-push (thin shell files that call harness.mjs)
     runtime-hooks/              guard-shell, guard-edit, format-edited, session-start, and io.mjs (input and output per runtime)
-  tests/conformance/            the suite that every adapter passes (section 5), with fixture projects
+  tools/conformance/            the suite that every adapter passes (section 5); tests/conformance/ holds its tests (as built, 17.14)
   examples/
     profile/                    a filled harness-profile.json of a fictitious project
     product/                    a product-knowledge skeleton: specification index, glossary, open-questions register, backlog
@@ -442,6 +442,14 @@ same for the runtime and host axes.
    A local adapter is offered upstream as in section 1.3.
 
 The python preset (task 1.3 of the framework's own plan, section 11) is written by following this procedure, so the procedure is tested before release.
+
+**As built (17.14).** The suite is `tools/conformance/` (not `tests/conformance/`), so that `harness adapter test` runs in a project's vendored copy; `tests/conformance/`
+holds the framework's tests of it. The skeletons are vendored for the same reason. The checks run the adapter's logic against the framework's own gate driver,
+coverage gate and hooks, in a copy of the framework that holds the adapter; they never run a stack's tools (a formatter, a test runner), call the host or start the
+runtime, so "the format hook never downloads a formatter" is a rule on the command the adapter returns, and "a push with a failing test fails" is the plan holding
+a test step and the coverage gate. The samples a suite cannot derive are the adapter's `conformance.json`. Selecting an adapter that lives in the project's own
+repository (`local:harness-adapters/…`, step 1) is not built: the tools load the adapters of the framework tree, so a new adapter is developed in a checkout of the
+framework and offered upstream.
 
 ---
 
@@ -713,7 +721,7 @@ The agent-complexity marker of each Phase 17 task (section 3.4) is in the `Agent
 | 17.11 | Runtime hooks, Git guards, Claude Code preset | `tools/runtime-hooks` with `io.mjs`; the new `pre-commit` and `pre-push` guards; the merge guard for a host without protection; the format hook routing by stack, without downloads; `.claude/settings.json` (with the `Read(...)` deny rules of `access.denyRead`) and `CLAUDE.md` from the preset. Tests from recorded event samples of both runtimes, including a refused merge with a red check, and a scaffold check failing when a deny rule is missing. The generated rule map rows of section 4.4, for both protection cases. The `pre-commit` guard lets a root commit through (test). The hooks are merged from both copies. | 5 |
 | 17.12 | Procedures and their packaging (B6) | The first set of section 8.1 in `core/procedures/`, packaged as `.claude/skills/`. The reading-map fallback. `harness check generated` covers them. | 3 |
 | 17.13 | Bootstrap engine and its three front ends | `harness init` (interactive and with flags), `harness bootstrap`, `BOOTSTRAP.md`, the template-repository build, `--detached`. The sameness test of section 6.2, including the detached case. A fresh empty repository is bootstrapped end to end: the root commit on the integration branch, then the production branch, then the hooks (section 6.1). | 5 |
-| 17.14 | Conformance suite and the new-adapter procedure | `tests/conformance/` per axis; `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
+| 17.14 | Conformance suite and the new-adapter procedure | `tools/conformance/` per axis, with its tests in `tests/conformance/` (section 5, as built); `harness adapter test`; `core/contracts/new-adapter.md`. node-ts, claude-code and github pass. | 3 |
 | 17.15 | Publish and self-host the framework | **The owner** creates the `harness-framework` repository and copies the staging folder into it, or authorises the agent to push it. A session in that repository bootstraps it with its own engine in lock mode `self` (section 11): its profile, `AGENTS.md`, CI running the tools' tests, the conformance suite, the CORE scan and the sameness test, and its own development plan with Phase 1 below. The framework repository tags `0.1.0-dev.1`. Back here: the lock's source becomes that tag, the staging folder is removed, and the plan and this design point to the repository. `harness sync` produces no diff, and `docs:check` passes. `framework.json` lists the distributable paths, and a sync copies only those. The parts of this design that the framework's later work needs move to its repository (section 11). The repository exists since 2026-10-30: `AndLD/harness-framework`, private, with one commit on `main`. GitHub offers no rulesets for it (a private repository on a free plan), so its profile sets `host.protection: false` (section 4.3) until it is public or on a paid plan, and the bootstrap branches the integration branch from that commit (section 6.1). The framework's own plan is written with the markers of section 10. | 5 |
 | 17.16 | Sync to `0.1.0` | After the framework's Phase 1 is done and `0.1.0` is tagged: one sync pull request here. Its task log links the framework's Phase 1 pull requests, which `npm run plan:log` cannot see. `docs:check`, lint and the coverage gate pass. | 2 |
 | 17.17 | Closing targeted harness review, by a session that did not do the build | D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on the framework, probes P1, P2 and P5 on `bot-rts` and P1 on a project bootstrapped from `0.1.0`. The exit criteria of §3.5 and of the phase are checked one by one, including the framework's Phase 1. | 3 |

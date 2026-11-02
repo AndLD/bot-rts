@@ -217,3 +217,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Next step:** 17.14 (conformance suite and the new-adapter procedure), `C2`: Sonnet 5.5 at high effort, in a fresh session. The owner asked
   this session to stop after 17.13.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 17.14 done: the conformance suite and the new-adapter guide
+- **Tasks:** 17.14 ✅ (its log: [`phase-17/17.14.md`](./phase-17/17.14.md))
+- **Branch:** `chore/17.14-conformance` — done, PR #279
+- **Decisions / deviations from the plan:** the suite is `tools/conformance/` (vendored, so `harness adapter test` runs in a project), its tests are in
+  `tests/conformance/`. The checks run the adapter's logic through the framework's gate driver, coverage gate and hooks and a bootstrapped fixture project; they never
+  run a stack's tools. The host adapter's command-line seam is `cli` (was `gh`). The skeletons are real and vendored. The claude-code event samples moved into the adapter.
+- **Problems / blockers / findings:** the suite found that `harness.mjs` and the runtime hooks do nothing, silently, when started through a symbolic link (task log); it is
+  not fixed here, and needs a task. `local:` adapters of a project are not built.
+- **Next step:** 17.15 (publish and self-host the framework), `C2`, in a fresh session; it begins with the owner's step. The owner asked this session to stop after 17.14.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

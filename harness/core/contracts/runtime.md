@@ -26,3 +26,5 @@ or *remote* (CI or the host). The core part of the rule-to-check map is generate
 the runtime cannot block early falls to the Git hooks and CI, and a rule nothing can check is judgment, said so in the map.
 
 The `terms` of the manifest are the runtime's own words (its tool names and folders), joined into the CORE scan.
+
+A new adapter is written by [the new-adapter guide](./new-adapter.md), and passes the conformance suite (`harness adapter test`).

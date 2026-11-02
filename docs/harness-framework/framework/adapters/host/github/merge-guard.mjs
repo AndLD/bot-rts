@@ -50,9 +50,9 @@ export function mergeTarget(words) {
  * The message that refuses a merge, or null when every required check of the pull request passed (or was skipped for a documentation-only change).
  * A pull request whose checks cannot be read is refused: the guard does not guess.
  */
-export function checkMerge({ words, cwd, requiredChecks, gh = (args) => runGh(args, undefined, cwd) }) {
+export function checkMerge({ words, cwd, requiredChecks, cli = (args) => runGh(args, undefined, cwd) }) {
   const target = mergeTarget(words)
-  const answer = gh(['pr', 'checks', ...(target ? [target] : []), '--json', 'name,bucket'])
+  const answer = cli(['pr', 'checks', ...(target ? [target] : []), '--json', 'name,bucket'])
   let checks
   try {
     checks = JSON.parse(answer.stdout || '[]')

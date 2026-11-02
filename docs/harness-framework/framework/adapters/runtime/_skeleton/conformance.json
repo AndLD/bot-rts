@@ -1,0 +1,11 @@
+{
+  "events": "events",
+  "samples": {
+    "sessionStart": "TODO.json",
+    "shellRefused": "TODO.json",
+    "shellAllowed": "TODO.json",
+    "editRefused": "TODO.json",
+    "editAllowed": "TODO.json",
+    "editAfter": "TODO.json"
+  }
+}

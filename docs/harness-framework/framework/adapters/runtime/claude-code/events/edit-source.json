@@ -1,0 +1,13 @@
+{
+  "session_id": "s1",
+  "transcript_path": "/t.jsonl",
+  "cwd": "/project",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/project/api/src/a.ts",
+    "old_string": "a",
+    "new_string": "b"
+  }
+}

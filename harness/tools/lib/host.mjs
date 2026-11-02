@@ -27,7 +27,7 @@ export function hostModule(profile, role, hosts = HOSTS) {
  * `harness host protect`: the branch protection of the profile, applied through the host adapter.
  * @returns {{ messages: string[], problems: string[] }}
  */
-export function protectHost({ profile, repo, gh }) {
+export function protectHost({ profile, repo, cli }) {
   const { protect } = hostModule(profile, 'branch-protection')
-  return protect({ profile, ...(repo ? { slug: repo } : {}), ...(gh ? { gh } : {}) })
+  return protect({ profile, ...(repo ? { slug: repo } : {}), ...(cli ? { cli } : {}) })
 }

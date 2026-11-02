@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
 import { test } from 'node:test'
-import { fileURLToPath } from 'node:url'
-import { refusal, simpleCommands } from './hook-guard-bash.mjs'
+import { refusal as refusalWith, simpleCommands } from './guard.mjs'
 
-const SCRIPT = fileURLToPath(new URL('./hook-guard-bash.mjs', import.meta.url))
+const PROTECTED = ['main', 'develop']
+const refusal = (command, branch, merge) => refusalWith(command, branch, { protectedBranches: PROTECTED, merge })
 
 test('a commit or a push on a protected branch is refused, on a task branch it is allowed', () => {
   for (const branch of ['main', 'develop']) {
@@ -49,7 +48,7 @@ test('the deletion of a remote branch is refused', () => {
 test('a protected pattern that is only text is allowed: quotes, heredocs, echo and printf (the false positives of the review)', () => {
   for (const command of [
     // a loop that pipes JSON fixtures holding a deletion into the hook
-    `for c in 'git push origin --delete feature/x' 'git push origin main'; do\n  echo "{\\"tool_input\\":{\\"command\\":\\"$c\\"}}" | node scripts/hook-guard-bash.mjs\ndone`,
+    `for c in 'git push origin --delete feature/x' 'git push origin main'; do\n  echo "{\\"tool_input\\":{\\"command\\":\\"$c\\"}}" | node guard-shell.mjs\ndone`,
     `printf 'git push origin develop\\n' > /tmp/fixture.txt`,
     `echo "git push origin --delete old"`,
     `cat <<'EOF' > notes.txt\ngit push origin main\ngit push origin --delete old\nEOF`,
@@ -104,17 +103,40 @@ test('simpleCommands splits on separators and keeps quoted text inside one word'
   assert.deepEqual(simpleCommands("echo 'unclosed"), [['echo', 'unclosed']])
 })
 
-test('as a hook: exit code 2 and the reason on stderr for a refused command, 0 otherwise', () => {
-  const run = (event, cwd) =>
-    spawnSync('node', [SCRIPT], {
-      input: typeof event === 'string' ? event : JSON.stringify(event),
-      encoding: 'utf8',
-      cwd
-    })
-  const refused = run({ tool_input: { command: 'git push origin main' }, cwd: process.cwd() })
-  assert.equal(refused.status, 2)
-  assert.match(refused.stderr, /Never push to/)
-  assert.equal(run({ tool_input: { command: 'ls' }, cwd: process.cwd() }).status, 0)
-  assert.equal(run({ tool_input: {} }).status, 0)
-  assert.equal(run('not json').status, 0)
+test('--no-verify is refused on a commit and a push, in every spelling, and --dry-run style flags are not mistaken for it', () => {
+  for (const command of [
+    'git push --no-verify',
+    'git push --no-verify origin feature/x',
+    'git commit --no-verify -m x',
+    'git commit -n -m x',
+    'git commit -anm x',
+    'cd api && git push origin feature/x --no-verify'
+  ]) {
+    assert.match(refusal(command, 'feature/x'), /--no-verify.*owner/, command)
+  }
+  for (const command of [
+    'git push -n origin feature/x',
+    'git commit -m "x --no-verify"',
+    'echo git push --no-verify',
+    'git commit -m x',
+    'git push -u origin feature/x'
+  ]) {
+    assert.equal(refusal(command, 'feature/x'), null, command)
+  }
+})
+
+test('the merge guard of a host without protection refuses a merge whose check says no, and lets every other command through', () => {
+  const merge = {
+    isMerge: (words) => words[0] === 'gh' && words[2] === 'merge',
+    check: () => 'No merge while a required check is not green: verify'
+  }
+  assert.match(refusal('gh pr merge 12 --squash', 'feature/x', merge), /No merge while/)
+  assert.match(refusal('npm test && gh pr merge 12', 'feature/x', merge), /No merge while/)
+  assert.equal(refusal('gh pr view 12', 'feature/x', merge), null)
+  assert.equal(refusal('gh pr merge 12', 'feature/x', { ...merge, check: () => null }), null)
+  assert.equal(
+    refusal('gh pr merge 12', 'feature/x'),
+    null,
+    'a host that protects its branches refuses the merge itself'
+  )
 })

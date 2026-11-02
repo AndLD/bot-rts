@@ -68,6 +68,7 @@ The checks and the project tools read every value from the profile file:
 | `check vendored`, `check generated`, `check profile`, `check layers` | The copy against the lock, the managed files rendered again, the profile file against its schema (and two stacks never claiming one folder), and the layer map over the tracked files. |
 | `check adapters` | The manifest of every adapter is filled to the contract of its axis (`core/contracts/`). |
 | `check values` | The host's CI triggers equal the protected branches, every required check is a job, and the files of `checks.roleOnlyPaths` name branches, the repository, plan paths and the coverage packages by role. |
+| `guard pre-commit`, `guard pre-push` | The Git guards that the hooks `tools/git-hooks/pre-commit` and `pre-push` run: no commit on a protected branch (the root commit of a new repository passes), no push to a protected branch, no deletion of a remote branch. |
 | `gate [--dry-run]` | The local gate of a push, run by the pre-push hook with the refs on standard input: the documentation checks when documentation changed, the plan of each stack for the files it owns, the project's own steps (`gate`). |
 | `coverage check-changed [--skip-missing] <base> [<package>...]` | Every file added or changed since `<base>` meets the coverage gate in the neutral summary of its package. |
 | `coverage merge <artifacts> [--out <dir>] [<package>...]` | Merges the shards that CI uploaded (`coverage-<package>-<i>-of-<n>`) with the stack's merge and holds each total to the gate. |

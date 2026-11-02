@@ -16,7 +16,8 @@ _permission_: the rule allows an action and sets no limit; the limits are in the
 
 **Mechanisms.** _CI_: a job of the pipeline that gates the merge (the profile lists the required checks). _Pre-push_: `.githooks/pre-push`
 (code changes only). _Lint_: `npm run lint`. _Hook_: a script of `.claude/settings.json`, which refuses the call or acts on it in the
-agent runtime. _Protection_: the repository ruleset that `harness host protect` sets.
+agent runtime (`guard-shell`, `guard-edit`, `format-edited`, `session-start` of the vendored `harness/tools/runtime-hooks/`). _Git hook_: `pre-commit` and `pre-push`
+of `harness/tools/git-hooks/`. _Protection_: the repository ruleset that `harness host protect` sets.
 
 | # | Rule | Mechanism | Status |
 | - | ---- | --------- | ------ |
@@ -29,11 +30,11 @@ agent runtime. _Protection_: the repository ruleset that `harness host protect` 
 | 7 | Generated files are current after an endpoint or DTO change (stack §5) | CI steps "API document and generated client are up to date" and "Documentation data is up to date"; pre-push runs the same | enforced |
 | 8 | Migrations match the Prisma schema (architecture §2) | CI step | enforced |
 | 9 | A pull request title is a Conventional Commit (AGENTS §7.4) | CI `pr-title` | enforced |
-| 10 | Branches are kept after merging (AGENTS §7.3) | repository setting "delete head branches" off; the Hook refuses a remote deletion | enforced |
+| 10 | Branches are kept after merging (AGENTS §7.3) | repository setting "delete head branches" off; the `guard-shell` hook and the `pre-push` Git hook refuse a remote deletion | enforced |
 | 11 | No force-push or deletion of the production or the integration branch (AGENTS §7.3) | Protection | enforced |
 | 12 | A pull request needs the required checks green (AGENTS §7.3, §7.4) | Protection lists the required status contexts | enforced; the owner may bypass when merging (profile) |
-| 13 | No commits or pushes directly on the production or the integration branch (AGENTS §7.5) | Protection (administrators bypass it); the Hook `hook-guard-bash` refuses `git commit` and `git push` on them and any push naming them | enforced |
-| 14 | Formatting (stack §3) | Prettier check inside Lint; the Hook `hook-format-edited` formats each edited file | enforced |
+| 13 | No commits or pushes directly on the production or the integration branch (AGENTS §7.5) | Protection (administrators bypass it); the `guard-shell` hook refuses `git commit` and `git push` on them and any push naming them; the Git hooks `pre-commit` and `pre-push` refuse them too | enforced |
+| 14 | Formatting (stack §3) | Prettier check inside Lint and in the pre-push gate for the changed files; the `format-edited` hook formats each edited file | enforced |
 | 15 | No `console.log` in committed code (AGENTS §1) | ESLint `no-console` in `api`, `client`, `lib`, `mcp` (tests, command-line scripts and the seed excepted); Lint | enforced |
 | 16 | No `Date.now()`, `new Date()` without arguments or `Math.random()` in game logic (AGENTS §9) | ESLint `no-restricted-properties` (`Date.now`, `Math.random`) and `no-restricted-syntax` (`new Date()`) in `api/src/**/domain`, `api/src/engine` and `lib/utils` (tests and the engine supervisor, `engine-process.ts` and `kill-stalled.ts`, excepted: they time and stamp a thread's stall on the real clock by design; the clock and generator adapters are in `api/src/shared/infrastructure`, outside the scope); `docs/testing/clock-consumers.md` classifies who reads which clock | enforced |
 | 17 | No dead code or commented-out blocks (AGENTS §1) | `@typescript-eslint/no-unused-vars`; review | partly |
@@ -46,13 +47,13 @@ agent runtime. _Protection_: the repository ruleset that `harness host protect` 
 | 24 | The task status, the task log and the phase file are updated in the task's pull request (method §6) | the implementation log and the plan summary are generated from the merged commits and the phase files (`npm run plan:log`, `npm run plan:summary`; the summary is checked in `docs:check`); the Hook `hook-session-start` prints the phase in progress and the last "Next step"; the status cell and the log entry are hand-written and a script cannot tell whether a task is finished, so they are review | partly |
 | 25 | The local database is migrated after a phase (method §6) | the state of a developer's own database is outside the repository and CI, so nothing can read it; the end-of-phase entry of the work log records the result | judgment |
 | 26 | Ask the owner before merging a pull request that is not plan work (AGENTS §7.5) | agent judgment | judgment |
-| 27 | No secrets in the repository, `.env` never committed (AGENTS §1) | `.gitignore`; the Hook `hook-guard-edit` refuses edits of `.env` files except `.env.example` | enforced |
+| 27 | No secrets in the repository, `.env` never committed (AGENTS §1) | `.gitignore`; the `guard-edit` hook refuses edits of `.env` files except `.env.example`; the `Read(...)` deny rules of `access.denyRead` in `.claude/settings.json` keep the agent from reading them (best effort: not a command that reads files without naming them); nothing scans the committed content for a secret | partly |
 | 28 | Design status shows decisions only; every open point has a register row (AGENTS §9) | `harness check product-knowledge` (the register of open items) in `npm run docs:check` | enforced |
 | 29 | One name for one concept; terms emphasised in two design files are defined (AGENTS §9) | `harness check product-knowledge` (the glossary) in `npm run docs:check` | enforced |
 | 30 | The product knowledge names no stack term, plan task or implementation path (AGENTS §9) | `harness check product-knowledge` (the scan; file names and exceptions in `productKnowledge` of the profile file) in `npm run docs:check` | enforced |
 | 31 | Documentation links and anchors resolve | `harness check links` in `npm run docs:check`; CI. `harness check paths` holds the backticked repository paths of the documents outside STATE | enforced |
-| 32 | The changed-file coverage and the generated files are checked before a push (AGENTS §7.5) | Pre-push | enforced |
-| 33 | Never delete a remote branch (AGENTS §7.3, §7.5) | the Hook `hook-guard-bash` refuses `git push --delete`, `git push origin :branch` and the API call that deletes a ref | enforced |
+| 32 | The changed-file coverage and the generated files are checked before a push (AGENTS §7.5) | Pre-push: the generated files in full, the coverage of the changed files whose related tests ran (a package whose related tests found none is judged by CI); the package totals are CI's | partly |
+| 33 | Never delete a remote branch (AGENTS §7.3, §7.5) | the `guard-shell` hook refuses `git push --delete`, `git push origin :branch` and the API call that deletes a ref; the `pre-push` Git hook refuses a deleted ref | enforced |
 | 34 | A task, branch, worktree and session start from the integration branch on the remote (method §5, AGENTS §7.5) | agent judgment; the session-start hook prints the branch | judgment |
 | 35 | A change to a non-negotiable needs the owner's explicit confirmation, recorded in the pull request (AGENTS §1) | agent judgment | judgment |
 | 36 | The CORE files name no stack term, product term or project value; the rules of AGENTS §1 and §7 cite roles, and one line binds them (method §5) | `harness check core` in `npm run docs:check` | enforced |
@@ -113,11 +114,50 @@ agent runtime. _Protection_: the repository ruleset that `harness host protect` 
 | 90 | Errors are typed `AppError` values and are not matched by message (stack §3.2) | review; a raw `Error` carries no code and fails the tests that read the error code | judgment |
 | 91 | `lib` has no runtime dependencies, no I/O and no persistence types (stack §3.3) | the `lib-is-independent` rule of `api/.dependency-cruiser.cjs` and the `lib` package manifest; a runtime dependency is visible in the diff | partly |
 | 92 | Integration test files are `*.int.test.ts`; the end-to-end matrix is kept (stack §4) | the Jest configuration separates them; the matrix is row 22 | partly |
-| 93 | `npm run lint`, `typecheck`, `check:boundaries`, `i18n:check` and `docs:check` pass in every package (stack §5) | CI `verify` and the pre-push hook (row 6) | enforced |
+| 93 | `npm run lint`, `typecheck`, `check:boundaries`, `i18n:check` and `docs:check` pass in every package (stack §5) | CI `verify` runs all of them; the pre-push gate runs lint and typecheck of the touched packages and, for a push that changes documentation, `docs:check`; `check:boundaries` and `i18n:check` are CI's | partly |
 | 94 | A Prisma migration is applied to the local development database (stack §5) | row 8 checks the migration against the schema in CI; the developer's own database is outside the repository (row 25) | partly |
-| 95 | The agent-runtime tools are used as the table of stack §6 says; waiting patterns and stale events are handled as listed (stack §6) | advice on a tool; the Hook set refuses the unsafe Git commands (rows 13 and 33) | judgment |
+| 95 | The agent-runtime tools are used as the table of stack §6 says; waiting patterns and stale events are handled as listed (stack §6) | advice on a tool; the `guard-shell` hook refuses the unsafe Git commands (rows 13 and 33) | judgment |
 | 96 | `harness/` is never edited by hand; the framework source and the vendored copy change together (AGENTS §9) | `harness check vendored`: an edited, removed or added file in `harness/`, or a source that changed without a sync, fails `docs:check` (CI) and the pre-push hook on every push; an accepted override is printed on every run | enforced |
 | 97 | `git push --no-verify` is the owner's, for an emergency, and is recorded in the task log; an agent never uses it (docs/testing/README.md, "Bypassing the gate") | the pre-push hook gives the cases that invited the flag a message of their own (`scripts/local-gate-database.mjs`: Docker off, a port taken, a database that answers); nothing refuses the flag itself until the Bash guard of 17.11 does | partly |
+
+## Core rules, generated
+
+The rules of the entry file by where they are caught, generated from what the framework and the selected adapters declare (`enforces` in their
+manifests, and the Git hooks); a rule that nothing declares is judgment. The table follows the protection of the host (`host.protection`). Do not edit it:
+`harness sync --local` writes it, and `harness check generated` fails when it is stale.
+
+<!-- harness:begin rule-map -->
+| Rule | Text | Early (agent runtime) | Local (Git hooks, gate) | Remote (host, CI) | Status |
+| ---- | ---- | --------------------- | ----------------------- | ----------------- | ------ |
+| `nn.change` | Non-negotiables (a PR that violates these is rejected). Changing one needs the owner's explicit confirmation of that change, recorded in the pull r… | – | – | – | judgment |
+| `nn.tests` | Every feature ships with unit + integration tests, and user-visible flows get e2e tests. | – | – | CI runs the tests of every package | enforced |
+| `nn.coverage` | Coverage must stay at or above the coverage gate (profile); CI fails below it. | – | the pre-push gate holds the changed files whose related tests ran (`harness coverage check-changed`) | CI merges the coverage of the shards and holds each package and every changed file to the gate | enforced |
+| `nn.typed` | No new untyped public boundaries (the stack's lint rule names them). No new magic string logic without a typed constant. | – | lint and typecheck of the touched packages in the pre-push gate | – | enforced |
+| `nn.clean` | No dead code, no commented-out blocks, no debug printing left in committed code (use the logger). | – | lint of the touched packages in the pre-push gate | – | enforced |
+| `nn.secrets` | No secrets in the repo; add values only to .env.example, never .env. | `guard-edit` refuses the edit of an environment file; the `Read(...)` deny rules of `access.denyRead` keep secrets out of reads (best effort); nothing scans the committed content for a secret | – | – | partly |
+| `git.branches` | Branch names, types and the merge strategy are in the profile; how branches flow (one branch per task, finishing a release) is in method §5. | – | – | – | judgment |
+| `git.merge` | Squash merge into the integration branch; a merge commit for release and hotfix branches (profile). | – | – | – | judgment |
+| `git.retention` | Branches are never deleted from the repository host after merging; they are kept for history. Turn off "automatically delete head branches" in the … | `guard-shell` refuses `push --delete`, `push :branch` and the API call that deletes a ref | `pre-push` refuses the deletion of a remote branch | the ruleset forbids deleting the protected branches; the setting that deletes merged branches is off | enforced |
+| `git.local-delete` | Deleting a local branch is fine when it is already merged. | – | – | – | judgment |
+| `git.protection` | The production and the integration branch are protected: no direct pushes (for administrators too), no force-push, no deletion, every change throug… | `guard-shell` refuses a push to a protected branch | `pre-push` refuses a push to a protected branch | the repository ruleset of `harness host protect`: no direct push, no force-push, no deletion, a pull request for every change | enforced |
+| `git.admin-bypass` | The production and the integration branch are protected: no direct pushes (for administrators too), no force-push, no deletion, every change throug… | – | – | the ruleset lets administrators bypass only when merging a pull request | enforced |
+| `git.commit-format` | Commit messages: the commit format of the profile (its type and optional scope, for example feat(<scope>): …), with the plan task id in the body (t… | – | – | the `pr-title` job checks the pull-request title | enforced |
+| `git.small-prs` | One logical change per commit; PRs should be small and single-purpose. | – | – | – | judgment |
+| `git.no-direct-commit` | No direct commits to the production or the integration branch; merge via PR with at least one review (while the project is solo, the owner's approv… | `guard-shell` refuses a commit on a protected branch | `pre-commit` refuses a commit on a protected branch (the root commit of a new repository passes) | the ruleset requires a pull request | enforced |
+| `git.green-checks` | The required checks (§7.3) must be green before merge. | – | – | the ruleset requires the checks of `requiredChecks` | enforced |
+| `agent.branch-first` | If the current branch is the production or the integration branch, create the right branch first (names per §7.1) before changing files. Start ever… | `guard-shell` refuses a commit or a push on a protected branch | `pre-commit` refuses a commit on a protected branch | – | enforced |
+| `agent.routine-push` | Committing and pushing to a feature/bugfix/docs/chore branch is routine and needs no confirmation. Never commit or push directly to the production … | – | – | – | judgment |
+| `agent.plan-approval` | Plan work (approval given by the request): when the user asks to start or continue one or more phases (the resume phrases of the profile, for examp… | – | – | – | judgment |
+| `agent.plan-related` | Plan-related PRs merge the same way. Every PR that belongs to a named phase is covered by the same approval: its task PRs, and also the documentati… | – | – | – | judgment |
+| `agent.claim` | Claim a task before working on it. Push its branch and open a draft pull request for it first (title and body as in the claim row of the profile); … | – | – | – | judgment |
+| `agent.open-pr` | Opening a pull request is automatic. Create the PR as soon as a branch is ready (any branch type, including release and hotfix branches into the pr… | – | – | – | judgment |
+| `agent.ask-merge` | Ask the user before merging any other pull request: documentation or chore PRs that are not related to the development plan of a named phase, anyth… | – | – | – | judgment |
+| `agent.no-rewrite` | Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history. | – | – | – | judgment |
+| `agent.no-auto-merge` | Never enable auto-merge unless the user asks. | – | – | – | judgment |
+| `agent.ci-fixes` | Automatic CI fixes are on for plan work. After opening a PR for a named phase, attach it to the session and turn on the agent runtime's CI monitori… | – | – | – | judgment |
+
+The host enforces the protection rules with the ruleset that `harness host protect` sets.
+<!-- harness:end rule-map -->
 
 ## Source index
 

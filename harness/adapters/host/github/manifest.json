@@ -26,8 +26,13 @@
       "fills": "a workflow that triggers on the protected branches, with concurrency and the change-detection job",
       "file": "templates/ci.yml"
     },
-    "pull-request-title-check": { "fills": "the pr-title job of the CI template", "file": "templates/ci.yml" },
-    "pull-requests": { "fills": "gh pr create --draft, gh pr ready, gh pr checks, gh pr list, gh pr merge" },
+    "pull-request-title-check": {
+      "fills": "the pr-title job of the CI template",
+      "file": "templates/ci.yml"
+    },
+    "pull-requests": {
+      "fills": "gh pr create --draft, gh pr ready, gh pr checks, gh pr list, gh pr merge"
+    },
     "release": {
       "fills": "a workflow on a version tag that checks the version and creates the release from the changelog",
       "file": "templates/release.yml"
@@ -36,7 +41,55 @@
       "fills": "the branch triggers and the job names of the workflow files",
       "module": "workflows.mjs",
       "export": "readTriggers"
+    },
+    "merge-guard": {
+      "fills": "`gh pr merge` is recognised, and the required checks of the pull request are read with `gh pr checks`",
+      "module": "merge-guard.mjs",
+      "export": "isMerge"
     }
   },
-  "templates": ["templates/ci.yml", "templates/release.yml"]
+  "templates": ["templates/ci.yml", "templates/release.yml"],
+  "enforces": [
+    {
+      "rule": "git.protection",
+      "when": "remote",
+      "by": "the repository ruleset of `harness host protect`: no direct push, no force-push, no deletion, a pull request for every change",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "git.no-direct-commit",
+      "when": "remote",
+      "by": "the ruleset requires a pull request",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "git.retention",
+      "when": "remote",
+      "by": "the ruleset forbids deleting the protected branches; the setting that deletes merged branches is off",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "git.admin-bypass",
+      "when": "remote",
+      "by": "the ruleset lets administrators bypass only when merging a pull request",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "git.green-checks",
+      "when": "remote",
+      "by": "the ruleset requires the checks of `requiredChecks`",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "git.green-checks",
+      "when": "early",
+      "by": "the merge guard of the shell hook refuses `gh pr merge` while a required check is not green",
+      "condition": "host-unprotected"
+    },
+    {
+      "rule": "git.commit-format",
+      "when": "remote",
+      "by": "the `pr-title` job checks the pull-request title"
+    }
+  ]
 }

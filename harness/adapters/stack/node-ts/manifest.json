@@ -11,8 +11,12 @@
     "coverage-packages": {
       "fills": "the npm workspaces that carry a coverage gate (coveragePackages of the profile file)"
     },
-    "test-runner": { "fills": "Jest: `npm test` and `npm run test:coverage`, per workspace with `-w <package>`" },
-    "e2e-runner": { "fills": "Cypress, run by the project's `e2e` command" },
+    "test-runner": {
+      "fills": "Jest: `npm test` and `npm run test:coverage`, per workspace with `-w <package>`"
+    },
+    "e2e-runner": {
+      "fills": "Cypress, run by the project's `e2e` command"
+    },
     "coverage-tool": {
       "fills": "Istanbul through Jest; the neutral summary is coverage/coverage-summary.json per package (`json-summary`)"
     },
@@ -21,11 +25,23 @@
       "module": "coverage.mjs",
       "export": "merge"
     },
-    "linter": { "fills": "ESLint through `npm run lint`" },
-    "formatter": { "fills": "Prettier, run from the project's installation only: `npx --no-install prettier`" },
-    "typecheck": { "fills": "`tsc --noEmit` through `npm run typecheck`" },
-    "import-boundaries": { "fills": "the project's `check:boundaries` command (dependency-cruiser)" },
-    "version-file": { "fills": "package.json, the `version` field (release.versionFiles of the profile file)" },
+    "linter": {
+      "fills": "ESLint through `npm run lint`"
+    },
+    "formatter": {
+      "fills": "Prettier, run from the project's installation only: `npx --no-install prettier`",
+      "module": "format.mjs",
+      "export": "formatCommand"
+    },
+    "typecheck": {
+      "fills": "`tsc --noEmit` through `npm run typecheck`"
+    },
+    "import-boundaries": {
+      "fills": "the project's `check:boundaries` command (dependency-cruiser)"
+    },
+    "version-file": {
+      "fills": "package.json, the `version` field (release.versionFiles of the profile file)"
+    },
     "local-gate-plan": {
       "fills": "typecheck, lint and format of the touched packages, Jest tests related to the changed files, the whole package for a change that cannot be followed, the changed-file coverage",
       "module": "gate.mjs",
@@ -39,10 +55,47 @@
     "commands": {
       "fills": "npm run lint, typecheck, test, test:coverage, format and the project's own scripts (the commands of the profile file)"
     },
-    "ignored-directories": { "fills": "node_modules, coverage, dist" },
+    "ignored-directories": {
+      "fills": "node_modules, coverage, dist"
+    },
     "ignore-files": {
       "fills": "the Prettier ignore file, and the ESLint one when the project has it at its root; both exclude the vendored framework",
-      "files": [{ "path": ".prettierignore" }, { "path": ".eslintignore", "optional": true }]
+      "files": [
+        {
+          "path": ".prettierignore"
+        },
+        {
+          "path": ".eslintignore",
+          "optional": true
+        }
+      ]
     }
-  }
+  },
+  "enforces": [
+    {
+      "rule": "nn.coverage",
+      "when": "local",
+      "by": "the pre-push gate holds the changed files whose related tests ran (`harness coverage check-changed`)"
+    },
+    {
+      "rule": "nn.coverage",
+      "when": "remote",
+      "by": "CI merges the coverage of the shards and holds each package and every changed file to the gate"
+    },
+    {
+      "rule": "nn.tests",
+      "when": "remote",
+      "by": "CI runs the tests of every package"
+    },
+    {
+      "rule": "nn.typed",
+      "when": "local",
+      "by": "lint and typecheck of the touched packages in the pre-push gate"
+    },
+    {
+      "rule": "nn.clean",
+      "when": "local",
+      "by": "lint of the touched packages in the pre-push gate"
+    }
+  ]
 }

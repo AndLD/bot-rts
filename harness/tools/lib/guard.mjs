@@ -1,10 +1,7 @@
-// Agent-runtime hook (PreToolUse on Bash): refuses a git command that would break the Git rules of AGENTS.md section 7: a commit
-// or a push on a protected branch, a push to one, and the deletion of a remote branch. Input: the hook JSON on stdin. Exit code 2
-// blocks the call and sends stderr to the agent. It looks at the commands that would run, not at text: a protected pattern inside a
-// quoted string or a heredoc is data and is allowed.
-import { execFileSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
-import { protectedBranches as PROTECTED } from './harness-profile.mjs'
+// The shell guard of the agent runtime (design §7.3, `guard-shell`): refuses a command that would break the Git rules of the entry file: a commit or a
+// push on a protected branch, a push to one, the deletion of a remote branch, `--no-verify` (the owner's), and, on a host that cannot protect its
+// branches, a merge while a required check is not green. It looks at the commands that would run, not at text: a protected pattern inside a quoted
+// string or a heredoc is data and is allowed.
 
 const SHELLS = new Set(['bash', 'sh', 'zsh'])
 const WRAPPERS = new Set(['env', 'sudo', 'command', 'exec', 'time', 'nohup', 'nice'])
@@ -124,24 +121,49 @@ function nestedCommand(words) {
   return flag >= 0 ? (words[flag + 1] ?? '') : null
 }
 
-const DELETE_MESSAGE = 'Never delete a remote branch: branches are kept for history (AGENTS.md section 7.3).'
+const DELETE_MESSAGE =
+  'Never delete a remote branch: branches are kept for history (the Git rules of the entry file, branch retention).'
+const NO_VERIFY_MESSAGE =
+  "`--no-verify` skips the Git hooks that hold the rules of the entry file. It is the owner's, for an emergency, and is recorded in the log of the task; " +
+  'when a hook fails, fix what it reports, or stop and say what blocks the push.'
 
-// The message that refuses the command, or null when it is allowed. `branch` is the branch checked out where the command runs;
-// a `git checkout -b` or `git switch -c` earlier in the same command line moves it to the new branch.
-export function refusal(command, branch) {
+/**
+ * The message that refuses the command, or null when it is allowed. `branch` is the branch checked out where the command runs; a
+ * `git checkout -b` or `git switch -c` earlier in the same command line moves it to the new branch.
+ * @param {string} command the shell command line
+ * @param {string} branch the current branch
+ * @param {{ protectedBranches: string[], merge?: { isMerge: (words: string[]) => boolean, check: (words: string[]) => string | null } }} options
+ *   `merge` is the merge guard of a host that cannot protect its branches: `check` returns the message that refuses the merge, or null
+ */
+export function refusal(command, branch, { protectedBranches: PROTECTED, merge } = { protectedBranches: [] }) {
   let current = branch
   for (const words of simpleCommands(command)) {
     const nested = nestedCommand(words)
-    const inner = nested === null ? null : refusal(nested, current)
+    const inner = nested === null ? null : refusal(nested, current, { protectedBranches: PROTECTED, merge })
     if (inner) {
       return inner
     }
     if (isRefDeletion(words)) {
       return DELETE_MESSAGE
     }
+    if (merge?.isMerge(words)) {
+      const message = merge.check(words)
+      if (message) {
+        return message
+      }
+    }
     const git = gitCommand(words)
     if (!git) {
       continue
+    }
+    if (git.subcommand === 'push' && git.args.includes('--no-verify')) {
+      return NO_VERIFY_MESSAGE
+    }
+    if (
+      git.subcommand === 'commit' &&
+      git.args.some((arg) => arg === '--no-verify' || /^-[a-zA-Z]*n[a-zA-Z]*$/.test(arg))
+    ) {
+      return NO_VERIFY_MESSAGE
     }
     const operands = git.args.filter((arg) => !arg.startsWith('-'))
 
@@ -150,11 +172,11 @@ export function refusal(command, branch) {
         return DELETE_MESSAGE
       }
       if (operands.some((arg) => PROTECTED.includes(destination(arg)))) {
-        return `Never push to ${PROTECTED.join(' or ')} directly: open a pull request (AGENTS.md section 7.5).`
+        return `Never push to ${PROTECTED.join(' or ')} directly: open a pull request (the Git rules of the entry file).`
       }
     }
     if ((git.subcommand === 'commit' || git.subcommand === 'push') && PROTECTED.includes(current)) {
-      return `You are on ${current}: create a branch named by AGENTS.md section 7.1 before you commit or push.`
+      return `You are on ${current}: create a branch named by the Git rules of the entry file (branches) before you commit or push.`
     }
     const flags = NEW_BRANCH_FLAGS[git.subcommand] ?? []
     const flag = git.args.findIndex((arg) => flags.includes(arg))
@@ -165,39 +187,4 @@ export function refusal(command, branch) {
     }
   }
   return null
-}
-
-function currentBranch(directory) {
-  try {
-    return execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: directory, encoding: 'utf8' }).trim()
-  } catch {
-    return ''
-  }
-}
-
-function main() {
-  let input = ''
-  process.stdin.setEncoding('utf8')
-  process.stdin.on('data', (chunk) => (input += chunk))
-  process.stdin.on('end', () => {
-    let event
-    try {
-      event = JSON.parse(input)
-    } catch {
-      return
-    }
-    const command = event?.tool_input?.command
-    if (typeof command !== 'string') {
-      return
-    }
-    const message = refusal(command, currentBranch(event.cwd ?? process.cwd()))
-    if (message) {
-      process.stderr.write(`${message}\n`)
-      process.exit(2)
-    }
-  })
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
 }

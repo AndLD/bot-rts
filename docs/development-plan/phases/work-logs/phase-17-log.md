@@ -186,3 +186,13 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Problems / blockers / findings:** none.
 - **Next step:** 17.11 (runtime hooks, Git guards, Claude Code preset), `C2`.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+
+### 2026-11-02 — 17.11 done: runtime hooks, Git guards and the Claude Code preset
+- **Tasks:** 17.11 ✅ (its log: [`phase-17/17.11.md`](./phase-17/17.11.md))
+- **Branch:** `chore/17.11-runtime-hooks` — done, PR #276
+- **Decisions / deviations from the plan:** `io.mjs` holds both runtimes' forms (`hook-io` is an optional role). The `Read(...)` deny rules and the
+  Cursor event samples are not verified in a live session (task log). H-20261019-19 and -20261030-02, -03 (rows 32, 93) are closed.
+- **Problems / blockers / findings:** none.
+- **Next step:** 17.12 (procedures and their packaging), `C2`.
+- **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)

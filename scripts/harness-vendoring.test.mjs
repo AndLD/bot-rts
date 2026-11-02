@@ -9,7 +9,7 @@ import { checkVendored } from '../harness/tools/lib/vendor.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const read = (path) => readFileSync(join(root, path), 'utf8')
-const CHECK = 'node harness/tools/harness.mjs check vendored'
+const CHECK = 'node "$harness" check vendored'
 
 test("the documentation check is the framework's check all, whose first check is the vendored one", () => {
   const { scripts } = JSON.parse(read('package.json'))
@@ -18,10 +18,10 @@ test("the documentation check is the framework's check all, whose first check is
 })
 
 test('the pre-push hook runs the vendored check on every push, before the local gate and its documentation-only skip', () => {
-  const hook = read('.githooks/pre-push')
+  const hook = read('harness/tools/git-hooks/pre-push')
   const check = hook.indexOf(CHECK)
   assert.ok(check > 0, 'the hook runs the vendored check')
-  assert.ok(check < hook.indexOf('exec node harness/tools/harness.mjs gate'), 'before the local gate')
+  assert.ok(check < hook.indexOf('"$harness" gate'), 'before the local gate')
   assert.ok(!hook.slice(0, check).includes('exit 0'), 'nothing before it ends the hook')
 })
 

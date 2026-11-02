@@ -1,6 +1,0 @@
-#!/bin/sh
-# The Git hook that guards the protected branches (harness-framework): no commit on the production or the integration branch, except the root
-# commit of a new repository. Install it with `git config core.hooksPath <folder>`; a project's own hook folder calls it with `exec sh <this file>`.
-here=$(cd "$(dirname "$0")" && pwd)
-cd "$(git rev-parse --show-toplevel)" || exit 1
-exec node "$here/../harness.mjs" guard pre-commit

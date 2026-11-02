@@ -2,7 +2,7 @@
 // manifest holds the scripts the commands of the profile run (the linter and the tests say that they are not installed yet, until the project adds
 // them), and its `prepare` script installs the Git hooks after every `npm ci`; the lock file lists no dependency yet, so `npm ci` in CI works before
 // the project adds any. The ignore file of the formatter excludes the vendored framework.
-import { VENDOR_DIR } from '../../../tools/lib/lock.mjs'
+import { frameworkDir, inFramework } from '../../../tools/lib/lock.mjs'
 
 export const NODE_VERSION = '22'
 export const START_VERSION = '0.1.0'
@@ -31,9 +31,9 @@ export function scaffoldFiles(profile) {
     version: START_VERSION,
     private: true,
     scripts: {
-      prepare: `git config core.hooksPath ${VENDOR_DIR}/tools/git-hooks`,
-      harness: `node ${VENDOR_DIR}/tools/harness.mjs`,
-      'docs:check': `node ${VENDOR_DIR}/tools/harness.mjs check all`,
+      prepare: `git config core.hooksPath ${inFramework(profile, 'tools/git-hooks')}`,
+      harness: `node ${inFramework(profile, 'tools/harness.mjs')}`,
+      'docs:check': `node ${inFramework(profile, 'tools/harness.mjs')} check all`,
       lint: placeholder('linter', 'ESLint and Prettier'),
       test: placeholder('test runner', 'Jest'),
       'test:coverage': placeholder('test runner', 'Jest with coverage')
@@ -50,7 +50,14 @@ export function scaffoldFiles(profile) {
     { path: '.nvmrc', content: `${NODE_VERSION}\n` },
     {
       path: '.prettierignore',
-      content: ['node_modules', 'coverage', 'dist', `${VENDOR_DIR}/`, 'harness.lock.json', ''].join('\n')
+      content: [
+        'node_modules',
+        'coverage',
+        'dist',
+        ...(frameworkDir(profile) === '.' ? [] : [`${frameworkDir(profile)}/`]),
+        'harness.lock.json',
+        ''
+      ].join('\n')
     },
     { path: 'package.json', content: json(manifest) },
     { path: 'package-lock.json', content: json(lock) },

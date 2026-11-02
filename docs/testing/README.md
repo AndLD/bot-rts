@@ -36,8 +36,7 @@ works in practice.
 | `npm run lighthouse` | Lighthouse CI on the landing page |
 | `npm run load` | The load and soak harness ([load-testing.md](./load-testing.md)) |
 | `npm run test:scripts` | The `node --test` tests of the scripts in `scripts/` (release, CI timings, coverage merge) |
-| `npm run test:framework` | The `node --test` tests of the framework's staging folder `docs/harness-framework/framework/` (`scripts/test-framework.mjs` lists them); fails when the folder has none. Prettier checks the folder's code too |
-| `npm run harness -- check vendored` | `harness/` against `harness.lock.json` and against its source folder; the first step of `npm run docs:check` and of the pre-push hook. `npm run harness -- sync` makes the copy equal to the source again |
+| `npm run harness -- check vendored` | `harness/` against `harness.lock.json`; the first step of `npm run docs:check` and of the pre-push hook. `npm run harness -- sync` takes the locked version again |
 | `node harness/tools/harness.mjs coverage merge <artifacts-dir>` | What the `verify` job of CI runs: merges the `coverage-final.json` of the shards of each package (the node-ts stack's merge) and applies the coverage gate to the merged data ([CI jobs](#ci-jobs)) |
 | `node scripts/ci-timings.mjs <run-id>` | The duration of each job and step of a GitHub Actions run and the slowest test files ([CI performance](#ci-performance)) |
 
@@ -52,13 +51,12 @@ push need, and the full run stays in CI and in `npm run test:coverage`:
 | a file that cannot be followed to its tests (`package.json`, a Jest or tsconfig file, messages, the Prisma schema, a deleted file) | the whole test run of that package, as `npm run test:coverage -w <package>` |
 | a file outside the packages (`lib/`, the lock file, root configuration, the hooks) | the full run: typecheck, lint, the tests of every package, the coverage gate |
 | `scripts/` | `npm run test:scripts` as well |
-| `harness/` or `harness.lock.json` (a sync of the vendored framework) | `npm run test:framework` only, not the full run; the vendored check has run before (below) |
-| `docs/harness-framework/framework/` (not only Markdown) | `npm run test:framework`; Prettier on the changed files |
-| anything but a change confined to `mcp/`, `scripts/` or the framework's staging folder | also the generated files (API document, client, documentation data) are regenerated and must not differ |
+| `harness/` or `harness.lock.json` (a sync of the vendored framework) | no code check, not the full run; the vendored check has run before (below). The framework's own tests run in its repository |
+| anything but a change confined to `mcp/`, `scripts/` or the vendored framework | also the generated files (API document, client, documentation data) are regenerated and must not differ |
 
 Before the file selection, on every push (documentation only or not), the hook runs `node harness/tools/harness.mjs check vendored`, so an edit
 of the vendored framework never leaves the machine. The file selection is the framework's gate driver (`harness gate`, which routes each file to the stack that owns it)
-and the plan of the node-ts stack (`adapters/stack/node-ts/gate.mjs`), with the `gate` role of `harness-profile.json` for this repository's own steps; both are tested by `npm run test:framework`.
+and the plan of the node-ts stack (`adapters/stack/node-ts/gate.mjs`), with the `gate` role of `harness-profile.json` for this repository's own steps; both are tested in the framework's repository.
 `node harness/tools/harness.mjs gate --dry-run` (with the push lines of the hook on its standard input) prints the plan. Related tests judge the changed files only: the gate of the
 whole package (its total, and a changed file that no test reaches) is CI's, which runs everything: **the local gate holds the changed files whose related tests ran, CI holds the package totals and every changed file**. A push that changes one client file ran
 8 related suites (77 tests) and the whole gate in 22 s (task 16.6).

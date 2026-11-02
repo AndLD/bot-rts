@@ -1,5 +1,7 @@
 [← Harness-to-framework plan](./README.md) · phase: [Phase 17](../development-plan/phases/phase-17-harness-framework.md)
 
+> **Moved on 2026-11-02 (task 17.15).** The framework lives in its own repository, [`AndLD/harness-framework`](https://github.com/AndLD/harness-framework), and its current design is `docs/design.md` there. This copy is the record of the design as 17.1 to 17.14 built it; it is not updated any more.
+
 # Framework design
 
 **Status:** proposed by task 17.1 on 2026-10-21; accepted when its pull request is merged. **Scope:** how `harness-framework` is built

@@ -228,3 +228,13 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   not fixed here, and needs a task. `local:` adapters of a project are not built.
 - **Next step:** 17.15 (publish and self-host the framework), `C2`, in a fresh session; it begins with the owner's step. The owner asked this session to stop after 17.14.
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
+
+### 2026-11-02 — 17.15 done: the framework is published, self-hosted and consumed from its tag
+- **Tasks:** 17.15 ✅ (its log: [`phase-17/17.15.md`](./phase-17/17.15.md))
+- **Branch:** `chore/17.15-publish-framework` — done, PR #280; in `AndLD/harness-framework`: the bootstrap commit on `develop` (pushed by the owner) and PR 1, tag `0.1.0-dev.1`
+- **Decisions / deviations from the plan:** lock mode `self` was only a name, so 17.15 built it (`paths.frameworkDir`, `--self`); the first tag is `0.1.0-dev.1`; this repository's lock source is that tag and
+  the staging folder is removed. The sync differed from the staging copy only by the version.
+- **Problems / blockers / findings:** two CI failures on the first run of the scaffolded workflows, both defects of the tools, fixed in the tag (task log). The repository's branches are unprotected (private, free plan).
+- **Next step:** Phase 1 of the framework's own plan (in its repository), then 17.16. 17.15 was the last task that changes this repository's tools; the `Agent` of 17.16 is `C1`.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+

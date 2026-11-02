@@ -19,13 +19,23 @@ import { tmpdir } from 'node:os'
 import { dirname, join, relative, resolve } from 'node:path'
 import { listAdapters, loadAdapterModules } from './adapters.mjs'
 import { checkAll } from './checks.mjs'
-import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
+import {
+  LOCK_FILE,
+  MODES,
+  VENDOR_DIR,
+  frameworkDir as profileFrameworkDir,
+  inFramework,
+  profileHash,
+  readLock,
+  selectedAdapters,
+  writeLock
+} from './lock.mjs'
 import { planSummary } from './plan.mjs'
 import { PROFILE_FILE, loadProfile, readSchema, validate, withDefaults } from './profile.mjs'
 import { render, valueAt } from './render.mjs'
 import { readManifest, resolveSource } from './source.mjs'
 import { hashTree } from './tree.mjs'
-import { detach, selectFiles, vendor } from './vendor.mjs'
+import { detach, recordSelf, selectFiles, sync, vendor } from './vendor.mjs'
 
 /** The framework tree this command runs from. */
 export const FRAMEWORK_DIR = resolve(import.meta.dirname, '..', '..')
@@ -183,6 +193,21 @@ export function derivedTerms(profile, catalogue) {
   }
 }
 
+// The starting values name the vendored framework as `harness/…`; a project whose framework folder is another (`paths.frameworkDir`, `.` for the
+// framework's own repository) gets them pointed there
+const FRAMEWORK_PATH = /\bharness\/(?=(?:core|tools|adapters)\/)/g
+export function retarget(value, dir) {
+  if (typeof value === 'string') {
+    return value.replace(FRAMEWORK_PATH, dir === '.' ? '' : `${dir}/`)
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => retarget(item, dir))
+  }
+  return value && typeof value === 'object'
+    ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, retarget(item, dir)]))
+    : value
+}
+
 /**
  * The complete profile of a new project from its answers: the defaults of the questions (which select the adapters), then the selected adapters'
  * `defaults`, then the other starter values; the title and the term lists are derived. An answer always wins, and an empty string counts as no
@@ -199,10 +224,15 @@ export function completeProfile(
       setAnswer(profile, question, structuredClone(fallback))
     }
   }
+  const dir = profile.paths?.frameworkDir
+  const pointed = (defaults) => (dir && dir !== VENDOR_DIR ? retarget(defaults, dir) : defaults)
   for (const manifest of selectedManifests(profile, catalogue)) {
-    profile = mergeUnder(profile, manifest.defaults)
+    profile = mergeUnder(profile, pointed(manifest.defaults))
   }
-  profile = mergeUnder(profile, starter)
+  profile = mergeUnder(profile, pointed(starter))
+  if (dir && dir !== VENDOR_DIR && valueAt(profile, 'documents.method') === undefined) {
+    setRole(profile, 'documents.method', retarget(`${VENDOR_DIR}/core/method/method.md`, dir))
+  }
   if (profile.project?.name && !profile.project.title) {
     profile.project.title = profile.project.name
   }
@@ -332,7 +362,17 @@ export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules })
 }
 
 // A framework tree for the bootstrap: `--from`, the template repository's own `harness/`, or the framework this command runs from
-function frameworkFor({ root, from, to, template }) {
+function frameworkFor({ root, from, to, template, self }) {
+  if (self) {
+    // The framework's own repository: the tree at the root is the source
+    return {
+      source: { type: 'path', location: '.' },
+      version: readManifest(root).version,
+      manifest: readManifest(root),
+      dir: root,
+      cleanup: () => {}
+    }
+  }
   if (from) {
     return resolveSource({ root, from, to, lock: null })
   }
@@ -372,7 +412,7 @@ const gitSucceeds = (root, ...args) => {
  * commit; the Git hooks are installed last, so that their guard of the protected branches never sees the bootstrap's own commit.
  * @returns {string[]} what it did
  */
-export function setUpGit({ root, profile, version }) {
+export function setUpGit({ root, profile, version, regenerate = () => {} }) {
   const { production, integration } = profile.branches
   const messages = []
   const topLevel = gitSucceeds(root, 'rev-parse', '--show-toplevel') ? git(root, 'rev-parse', '--show-toplevel') : null
@@ -382,6 +422,9 @@ export function setUpGit({ root, profile, version }) {
   }
   const hasBranch = (branch) => gitSucceeds(root, 'show-ref', '--verify', '--quiet', `refs/heads/${branch}`)
   const commit = () => {
+    git(root, 'add', '--all')
+    // The layer map lists the files Git tracks, so the managed files are generated again once the whole output is staged
+    regenerate()
     git(root, 'add', '--all')
     git(root, 'commit', '--quiet', '-m', `chore: bootstrap the harness from harness-framework ${version}`)
   }
@@ -404,8 +447,9 @@ export function setUpGit({ root, profile, version }) {
     git(root, 'branch', production, integration)
     messages.push(`Made ${production} from the same commit.`)
   }
-  git(root, 'config', 'core.hooksPath', `${VENDOR_DIR}/tools/git-hooks`)
-  messages.push(`Installed the Git hooks (core.hooksPath ${VENDOR_DIR}/tools/git-hooks).`)
+  const hooks = inFramework(profile, 'tools/git-hooks')
+  git(root, 'config', 'core.hooksPath', hooks)
+  messages.push(`Installed the Git hooks (core.hooksPath ${hooks}).`)
   return messages
 }
 
@@ -416,7 +460,7 @@ export function nextSteps(profile) {
     'Next steps (yours):',
     `  1. Push both branches once, to the repository ${profile.repository.slug} on its host: git push --no-verify -u origin ${integration} ${production}`,
     '     The Git hooks refuse every push to the protected branches, so this first push is the only one that skips them.',
-    `  2. Protect both branches: node ${VENDOR_DIR}/tools/harness.mjs host protect`,
+    `  2. Protect both branches: node ${inFramework(profile, 'tools/harness.mjs')} host protect`,
     `  3. Read the scaffolded files (${profile.paths.entryFile}, the stack file, the plan) and fill in what is the project's.`,
     '  4. Do all further work on work branches, through pull requests (the Git rules of the entry file).'
   ]
@@ -434,10 +478,16 @@ export async function bootstrap({
   to,
   force = false,
   detached = false,
+  self = false,
   reason = DEFAULT_DETACH_REASON,
   out = () => {},
   err = () => {}
 }) {
+  if (self && (detached || from)) {
+    throw new Error(
+      '--self takes the framework tree at the root of the project, so it cannot be combined with --detached or --from'
+    )
+  }
   const profilePath = join(root, PROFILE_FILE)
   if (!existsSync(profilePath)) {
     throw new Error(`there is no ${PROFILE_FILE}: run \`harness init\`, or write it as ${BOOTSTRAP_PROMPT} says`)
@@ -447,7 +497,7 @@ export async function bootstrap({
     throw new Error(`${LOCK_FILE} exists, so this project is bootstrapped already: \`harness sync\` keeps it current`)
   }
   const template = lock?.template ? lock : null
-  const fetched = frameworkFor({ root, from, to, template })
+  const fetched = frameworkFor({ root, from, to, template, self })
   try {
     const schema = readSchema()
     const catalogue = adapterCatalogue(fetched.dir)
@@ -465,11 +515,14 @@ export async function bootstrap({
       throw new Error(`the profile file is not valid:\n  ${problems.join('\n  ')}`)
     }
 
-    const files = scaffoldPlan({
+    const planned = scaffoldPlan({
       profile: withDefaults(schema, profile),
       frameworkDir: fetched.dir,
       modules: await loadModules(fetched.dir)
     })
+    // The framework's own repository has files of its own where the scaffold has them too (the README, the changelog, the license): they stay
+    const kept = self ? planned.filter(({ path }) => existsSync(join(root, path))) : []
+    const files = planned.filter((file) => !kept.includes(file))
     const replaceable = new Set(template?.template ?? [])
     const existing = files.filter(({ path }) => existsSync(join(root, path)) && !replaceable.has(path))
     if (existing.length && !force) {
@@ -490,13 +543,28 @@ export async function bootstrap({
       }
     }
     const messages = [`Wrote ${PROFILE_FILE} and ${files.length} scaffolded files.`]
-    messages.push(...vendor({ root, fetched, adapters: selectedAdapters(profile) }).messages)
+    if (kept.length) {
+      messages.push(`Kept the files of the framework itself: ${kept.map(({ path }) => path).join(', ')}.`)
+    }
+    messages.push(
+      ...(self
+        ? recordSelf({ root, manifest: fetched.manifest, adapters: selectedAdapters(profile) })
+        : vendor({ root, fetched, adapters: selectedAdapters(profile) })
+      ).messages
+    )
     messages.push(planSummary({ root, profile: loadProfile(root), check: false }).message)
     if (detached) {
       messages.push(...detach({ root, reason }).messages)
     }
     const effective = withDefaults(schema, profile)
-    messages.push(...setUpGit({ root, profile: effective, version: fetched.version }))
+    messages.push(
+      ...setUpGit({
+        root,
+        profile: effective,
+        version: fetched.version,
+        regenerate: () => sync({ root, local: true })
+      })
+    )
     messages.forEach((line) => out(line))
 
     const code = checkAll({ root, out, err, stdio: 'pipe' })

@@ -24,7 +24,7 @@ below links to its row instead of copying it.
 | Repository | `AndLD/bot-rts` on GitHub |
 | Packages | `api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server) |
 | Agent entry file | `AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`) |
-| Framework and its adapters | `harness/`, a copy of `harness-framework` pinned by `harness.lock.json` (source: the staging folder `docs/harness-framework/framework/` until task 17.15); adapters `node-ts` (stack), `claude-code` (agent runtime) and `github` (host) |
+| Framework and its adapters | `harness/`, a copy of `harness-framework` pinned by `harness.lock.json` (source: the repository `AndLD/harness-framework`, pinned to a tag by `harness.lock.json`); adapters `node-ts` (stack), `claude-code` (agent runtime) and `github` (host) |
 | Owner | The repository owner; the only person who approves rule changes and merges outside the started phases |
 
 ## 2. Quality gates

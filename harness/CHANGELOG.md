@@ -7,6 +7,7 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- The framework is its own project (design §11): lock mode `self` with the profile role `paths.frameworkDir` (`.`), `harness init --self` and `harness bootstrap --self`, its own plan (Phases 1 to 3), CI and rules. The first tagged development version is `0.1.0-dev.1`.
 - The skeleton of the framework: the folders of the layout, `framework.json` at `0.1.0-dev`, the MIT license, this changelog and the
   README. The core documents, the tools and the adapters follow in the build tasks of the design.
 - Vendoring (design §1): `harness sync` (from a folder or a Git tag, with the selected adapters only), `sync --local`, `check vendored`,

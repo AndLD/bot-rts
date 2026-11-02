@@ -250,6 +250,11 @@
           "type": "string",
           "description": "The agent entry file: the CORE scan allows its one \"Role binding\" line to name the project's values.",
           "default": "AGENTS.md"
+        },
+        "frameworkDir": {
+          "type": "string",
+          "description": "The folder that holds the framework's tools and core: `harness` in a project that uses the framework, `.` in the framework's own repository (lock mode self).",
+          "default": "harness"
         }
       },
       "additionalProperties": false,

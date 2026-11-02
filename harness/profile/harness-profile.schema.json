@@ -67,10 +67,6 @@
           "type": "string",
           "description": "The name of the repository host.",
           "default": "GitHub"
-        },
-        "protectionScript": {
-          "type": "string",
-          "description": "The script that sets the protection of the production and the integration branch on the host; the entry file's Role binding line names it."
         }
       },
       "additionalProperties": false,
@@ -83,7 +79,7 @@
         "stacks": {
           "type": "array",
           "minItems": 1,
-          "description": "One or more stack adapters: a name, or an object with the name under \"adapter\" and the adapter's own settings.",
+          "description": "One or more stack adapters: a name, or an object { \"adapter\": <name>, \"packages\": [<folder>, …] } with the folders (relative to the repository root) that the stack owns. A project with several stacks lists the folders of each, and two stacks must not claim the same folder (`harness check profile`).",
           "items": {
             "description": "A stack adapter name, or an object { \"adapter\": <name>, … }."
           }
@@ -679,11 +675,32 @@
         }
       }
     },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What the repository host can do for this repository (design §4.3).",
+      "default": { "protection": true },
+      "properties": {
+        "protection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the host can enforce the protection of the production and the integration branch on this repository (a plan or visibility may rule it out). `harness host protect` detects the real answer and fails when it differs from this value."
+        }
+      }
+    },
     "checks": {
       "type": "object",
       "additionalProperties": false,
       "description": "The checks of `harness check all` and of the push gate.",
       "properties": {
+        "roleOnlyPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Globs of the files that name branches, the repository, plan paths and the coverage packages by role, never by value: scripts, hooks, workflows and the Markdown documents of the stack, operations and testing guides. `harness check values` fails on a value of the profile spelled out in them (Markdown: outside fenced code blocks)."
+        },
         "documentationPaths": {
           "type": "array",
           "items": {

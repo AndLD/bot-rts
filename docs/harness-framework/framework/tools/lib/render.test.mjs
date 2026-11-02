@@ -43,6 +43,14 @@ test('an if block is kept for a value and dropped for an empty one or a missing 
   assert.equal(run(template, { on: false }), 'before\nafter')
 })
 
+test('an unless block is the other side of an if block: kept for an empty value, a missing one and false', () => {
+  const template = 'before\n{{#unless on}}\nwithout\n{{/unless}}\nafter'
+  assert.equal(run(template, { on: 'yes' }), 'before\nafter')
+  assert.equal(run(template, { on: false }), 'before\nwithout\nafter')
+  assert.equal(run(template, { on: '' }), 'before\nwithout\nafter')
+  assert.equal(run(template, {}), 'before\nwithout\nafter')
+})
+
 test('an each block repeats for every item, with the fields of the item first and the rest of the context behind them', () => {
   const template = '{{#each rows}}\n| {{name}} | {{suffix}} |\n{{/each}}'
   assert.equal(

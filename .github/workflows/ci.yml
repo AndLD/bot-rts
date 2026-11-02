@@ -306,7 +306,7 @@ jobs:
       - name: Coverage report
         if: always() && needs.changes.outputs.code == 'true'
         run: |
-          for pkg in api client mcp; do
+          for pkg in $(node harness/tools/harness.mjs profile get coveragePackages); do
             [ -f "$pkg/coverage/coverage-summary.json" ] || continue
             {
               echo "### Coverage ($pkg)"
@@ -317,7 +317,7 @@ jobs:
           done
       - name: Coverage of changed files (the coverage gate)
         if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
-        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" api client mcp
+        run: node scripts/check-changed-coverage.mjs "origin/${{ github.base_ref }}" $(node harness/tools/harness.mjs profile get coveragePackages)
 
   docker:
     # The API image must keep building (the release workflow publishes it)

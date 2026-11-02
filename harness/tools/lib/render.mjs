@@ -3,14 +3,14 @@
 //   {{a.b}}         the value at a dotted path (an array is joined with ", "; an object is an error)
 //   {{link:a.b}}    a Markdown link to the path that the value names, written relative to the generated document
 //   {{rel:a.b}}     that relative path alone
-//   {{#if a.b}} … {{/if}} and {{#each a.b}} … {{/each}}    blocks, each tag alone on its line; inside `each`, the fields of the item come first
+//   {{#if a.b}} … {{/if}}, {{#unless a.b}} … {{/unless}} and {{#each a.b}} … {{/each}}    blocks, each tag alone on its line; inside `each`, the fields of the item come first
 // A line with a placeholder that has no value is left out, so an optional role needs no block of its own. A value may hold placeholders too
 // (prose that cites another role); they are resolved against the same context.
 import { posix } from 'node:path'
 
 const PLACEHOLDER = /\{\{\s*(?:(link|rel):)?([\w.-]+)\s*\}\}/g
-const BLOCK_OPEN = /^\s*\{\{#(if|each)\s+([\w.-]+)\s*\}\}\s*$/
-const BLOCK_CLOSE = /^\s*\{\{\/(if|each)\}\}\s*$/
+const BLOCK_OPEN = /^\s*\{\{#(if|unless|each)\s+([\w.-]+)\s*\}\}\s*$/
+const BLOCK_CLOSE = /^\s*\{\{\/(if|unless|each)\}\}\s*$/
 const MAX_DEPTH = 5
 
 /** The value at a dotted path of `context`, or undefined. */
@@ -89,7 +89,8 @@ function renderLines(lines, context, options) {
     const body = lines.slice(index + 1, end - 1)
     const [, kind, path] = open
     const value = valueAt(context, path)
-    if (kind === 'if' && !isEmpty(value) && value !== false) {
+    const present = !isEmpty(value) && value !== false
+    if ((kind === 'if' && present) || (kind === 'unless' && !present)) {
       out.push(...renderLines(body, context, options))
     } else if (kind === 'each' && Array.isArray(value)) {
       for (const item of value) {

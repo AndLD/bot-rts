@@ -377,7 +377,7 @@ stacks that claim the same path are a profile error.
 | CI workflow frame | required | `.github/workflows/ci.yml` (triggers on the protected branches, concurrency, a `changes` job) |
 | Pull-request title check | required | the `pr-title` job (the commit format of the profile) |
 | Pull requests | required: open a draft, mark ready, read the state of the checks, list the open ones (claims, session start), merge by strategy | `gh pr create --draft`, `gh pr ready`, `gh pr checks`, `gh pr list`, `gh pr merge --squash` or `--merge` |
-| Merge guard | logic: `isMerge(words)` recognises a merge command, `checksGreen(target)` reads the required checks | `gh pr merge` (with its value options); `gh pr checks` |
+| Merge guard | logic, optional (needed only when `host.protection` is false): `isMerge(words)` recognises a merge command, `checksGreen(target)` reads the required checks | `gh pr merge` (with its value options); `gh pr checks` |
 | Release | required: tag, release notes from the changelog | `release.yml` template, `gh release create` |
 | CI timings | optional | `ci-timings.mjs` (`gh run view`) |
 | Values in host files | logic: `readTriggers()`, `readJobNames()` for `harness check values` | parses `.github/workflows/*.yml` |

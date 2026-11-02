@@ -81,6 +81,11 @@
       "items": { "type": "string" },
       "default": [],
       "description": "The template files the adapter provides, relative to its folder."
+    },
+    "defaults": {
+      "type": "object",
+      "default": {},
+      "description": "Values of the profile file that the adapter gives a new project (design §6): the bootstrap writes them where the answers leave a role empty, and the answers win."
     }
   },
   "x-roles": {
@@ -101,7 +106,8 @@
       "ci-job-layout": "required",
       "commands": "required",
       "ignored-directories": "required",
-      "ignore-files": "required"
+      "ignore-files": "required",
+      "scaffold-files": "logic-optional"
     },
     "runtime": {
       "entry-file": "required",
@@ -114,7 +120,8 @@
       "procedure-packaging": "required",
       "pull-request-tools": "optional",
       "waiting-advice": "optional",
-      "model-map": "optional"
+      "model-map": "optional",
+      "scaffold-files": "logic-optional"
     },
     "host": {
       "repository-identity": "required",
@@ -127,7 +134,8 @@
       "merge-guard": "logic-optional",
       "release": "required",
       "ci-timings": "optional",
-      "values-in-host-files": "logic"
+      "values-in-host-files": "logic",
+      "scaffold-files": "logic-optional"
     }
   }
 }

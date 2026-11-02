@@ -71,6 +71,9 @@ export function phaseProblems(phase, complexity) {
   return problems
 }
 
+// The phases of the total line: one phase, or the range from the first to the last
+const phaseRange = (first, last) => (first === last ? `Phase ${last}` : `Phases ${first}–${last}`)
+
 /** The range of a phase's markers on the scale: `C2`, `C1–C3`, or `—` when it has none. */
 export function complexityRange(markers, complexity) {
   const scale = markersOf(complexity)
@@ -103,7 +106,7 @@ export function summaryTable(phases, { complexity } = {}) {
     )
   }
   lines.push(
-    `|  | **Total of Phases 0–${last}** | **${total}**${grows.length ? ` (${grows.join(', ')} grows as issues are added)` : ''} |${marked ? ' | ' : ' '}|`
+    `|  | **Total of ${phaseRange(sorted[0]?.number ?? 0, last)}** | **${total}**${grows.length ? ` (${grows.join(', ')} grows as issues are added)` : ''} |${marked ? ' | ' : ' '}|`
   )
 
   return lines.join('\n')

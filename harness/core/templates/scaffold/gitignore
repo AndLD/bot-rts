@@ -1,0 +1,5 @@
+# Secrets stay out of the repository: only the example file is tracked
+.env
+.env.*
+!.env.example
+.DS_Store

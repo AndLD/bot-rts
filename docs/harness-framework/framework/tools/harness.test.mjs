@@ -52,8 +52,9 @@ test('sync, then check vendored passes; an edit fails it with exit code 1 and na
 test('a refused command exits with 1, a usage error with 2', () => {
   assert.equal(harness('detach').code, 1)
   assert.equal(harness('sync', '--to').code, 2)
-  assert.equal(harness('sync', '--force').code, 2)
-  assert.equal(harness('bootstrap').code, 2)
+  assert.equal(harness('sync', '--bogus').code, 2)
+  assert.equal(harness('launch').code, 2)
+  assert.equal(harness('bootstrap').code, 1, 'a project without a profile file has nothing to bootstrap')
 })
 
 test('the arguments: words, flags with values and --local', () => {

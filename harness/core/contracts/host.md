@@ -16,6 +16,9 @@ A **host adapter** says how the repository host fills the roles of branch protec
 | `release` | required | the workflow on a version tag: check the version, build the release notes from the changelog (`harness release notes`), create the release |
 | `ci-timings` | optional | a report of the durations of a CI run |
 | `values-in-host-files` | logic | `readTriggers(root)` and `readJobNames(root)` for `harness check values`, and `isWorkflowFile(path)` |
+| `scaffold-files` | logic-optional | `scaffoldFiles(profile, { jobs }) → [{ path, content }]`: the CI and release workflows that the bootstrap writes once into a new project, with `jobs` the CI jobs of the selected stacks (`ci-job-layout`) |
+
+**Defaults for a new project.** The manifest's `defaults` are values of the profile file that the adapter gives a project it bootstraps: the bootstrap writes them where the answers leave a role empty, and an answer always wins. The scaffolded files are the adapter's `scaffold-files` role.
 
 **Without protection.** On a host that cannot protect the repository (`host.protection: false`) the host refuses nothing. The rules that cite "the host" then rest
 on the Git hooks and the runtime's hooks, the merge guard turns on, and the rule map generated for the project says so.

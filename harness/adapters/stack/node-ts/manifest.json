@@ -69,6 +69,11 @@
           "optional": true
         }
       ]
+    },
+    "scaffold-files": {
+      "fills": "`.nvmrc`, `.prettierignore` (excluding the vendored framework), a `package.json` whose `prepare` script installs the Git hooks, an empty `package-lock.json`, and the ignore lines of its tools",
+      "module": "scaffold.mjs",
+      "export": "scaffoldFiles"
     }
   },
   "enforces": [
@@ -97,5 +102,22 @@
       "when": "local",
       "by": "lint of the touched packages in the pre-push gate"
     }
-  ]
+  ],
+  "defaults": {
+    "commands": {
+      "lint": "npm run lint",
+      "test": "npm test",
+      "testCoverage": "npm run test:coverage",
+      "docsCheck": "npm run docs:check",
+      "harnessSync": "npm run harness -- sync",
+      "harnessSyncLocal": "npm run harness -- sync --local",
+      "harnessDiff": "npm run harness -- diff"
+    },
+    "versions": {
+      "runtime": "Node.js 22 LTS"
+    },
+    "release": {
+      "versionFiles": ["package.json"]
+    }
+  }
 }

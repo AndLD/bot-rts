@@ -29,6 +29,9 @@ changed file to its stack and run that stack's plan; CI gets the jobs of every s
 | `commands` | required | the defaults of the `commands.*` roles that the profile document and the packaged procedures print |
 | `ignored-directories` | required | the directories the hooks and the checks skip |
 | `ignore-files` | required | the files in which the formatter and the linters exclude paths, so that the vendored framework is excluded from them; the scaffold check fails when they do not |
+| `scaffold-files` | logic-optional | `scaffoldFiles(profile) → [{ path, content }]`: the stack's configuration files that the bootstrap writes once into a new project (the runtime version file, the ignore files, the package manifest); a file named by several adapters is a list of lines (the Git ignore file), and the lines are joined |
+
+**Defaults for a new project.** The manifest's `defaults` are values of the profile file that the adapter gives a project it bootstraps: the bootstrap writes them where the answers leave a role empty, and an answer always wins. The scaffolded files are the adapter's `scaffold-files` role.
 
 The `terms` of the manifest are the stack's own words (tool and language names). The CORE scan joins them with the term lists of the profile file, so core text never
 names a tool.

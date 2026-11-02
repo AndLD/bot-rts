@@ -10,7 +10,7 @@ import { checkLinks } from './links.mjs'
 import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
-import { checkProfile } from './profile.mjs'
+import { checkProfile, loadProfile } from './profile.mjs'
 import { checkScaffold } from './scaffold.mjs'
 import { checkGenerated, checkVendored } from './vendor.mjs'
 import { checkValues } from './values.mjs'
@@ -71,4 +71,23 @@ export function runProjectChecks({ root, profile }, { stdio = 'inherit' } = {}) 
     }
   }
   return problems
+}
+
+/** Prints what a check found (`harness check <name>`); returns its exit code. */
+export function report(name, { problems, messages }, { out, err }) {
+  messages.forEach((line) => out(line))
+  problems.forEach((line) => err(`harness check ${name}: ${line}`))
+  return problems.length ? 1 : 0
+}
+
+/** `harness check all`: every check in order, then the project's own; the exit code is 1 when any of them found a problem. */
+export function checkAll({ root, out, err, stdio }) {
+  const profile = loadProfile(root)
+  let failed = false
+  for (const name of Object.keys(CHECKS)) {
+    failed = report(name, runCheck(name, { root, profile }), { out, err }) !== 0 || failed
+  }
+  const projectProblems = runProjectChecks({ root, profile }, stdio ? { stdio } : undefined)
+  projectProblems.forEach((line) => err(`harness check all: ${line}`))
+  return failed || projectProblems.length ? 1 : 0
 }

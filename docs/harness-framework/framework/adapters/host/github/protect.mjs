@@ -8,9 +8,9 @@ export const RULESET_NAME = 'protected-branches'
 // The repository role "admin", whose members may bypass the rules when merging a pull request
 const ADMIN_ROLE_ID = 5
 
-/** Runs `gh` with `args`, `input` on its standard input; `{ status, stdout, stderr }`. */
-export function runGh(args, input) {
-  const result = spawnSync('gh', args, { input, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
+/** Runs `gh` with `args`, `input` on its standard input, in `cwd`; `{ status, stdout, stderr }`. */
+export function runGh(args, input, cwd) {
+  const result = spawnSync('gh', args, { input, cwd, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
   return {
     status: result.status ?? 1,
     stdout: result.stdout ?? '',

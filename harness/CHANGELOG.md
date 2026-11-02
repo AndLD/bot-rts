@@ -52,6 +52,20 @@ versions follow [Semantic Versioning](https://semver.org/).
   `prepare`, `steps`). `harness coverage check-changed` and `harness coverage merge` apply the coverage gate to the neutral summary.
 - `harness check scaffold`: the stack's ignore files exclude the vendored framework.
 
+- The runtime hooks (`tools/runtime-hooks/`): `guard-shell` (the Git rules of the entry file, `--no-verify`, and the merge guard of a host
+  without protection), `guard-edit` (environment files, and the vendored framework in pinned mode), `format-edited` (the formatter of the stack
+  that owns the file, from the project's installation, never downloaded) and `session-start`, with `io.mjs`, which reads the event of Claude Code
+  or Cursor (recognised by `cursor_version`; native and compat modes) and answers in its form. Recorded event samples of both runtimes are in
+  `tests/fixtures/events/` (the Cursor ones are written from its documentation, not recorded in a live session).
+- The Git hooks `tools/git-hooks/pre-commit` (no commit on a protected branch, except the root commit of a new repository) and `pre-push` (the
+  vendored check, a protected or deleted remote ref, the project's setup script `hooks.prePushSetup`, then `harness gate`), and `harness guard`.
+- The Claude Code preset (`adapters/runtime/claude-code/`): `CLAUDE.md` that imports the entry file, `.claude/settings.json` from the profile
+  (`settings.mjs`: the hook entries and the `Read(...)` deny rules of the new profile role `access.denyRead`), and the scaffold invariants
+  (`harness check scaffold` fails on a missing hook entry or deny rule).
+- The merge guard of the GitHub host adapter (`gh pr merge` while a required check is not green), used when `host.protection` is false.
+- The core rows of the rule-to-check map, generated from the `enforces` declarations of the adapters and the Git hooks, for both protection cases
+  (a managed block in the rule-map document); the manifest gains `enforces`.
+
 ### Changed
 
 - The protection rule of the entry file no longer names a script: the host enforces it with the ruleset `harness host protect` sets, and

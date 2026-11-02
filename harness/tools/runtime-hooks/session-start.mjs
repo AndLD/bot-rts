@@ -1,16 +1,16 @@
-// Agent-runtime hook (SessionStart): prints the branch, the phase in progress and the last "Next step" of its work log, so that a
-// session starts where the last one stopped (method, session protocol). The text goes to the agent as context.
+// Runtime hook (session start): prints the branch, the phase in progress and the last "Next step" of its work log, so that a session starts where the
+// last one stopped (method, session protocol). The text goes to the agent as context. The phases folder and the method are roles of the profile file.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { profile } from './harness-profile.mjs'
+import { loadProfile } from '../lib/profile.mjs'
+import { runHook } from './io.mjs'
 
-const PHASES = profile.paths.phases
 const IN_PROGRESS = /\*\*Status:\*\*\s*🟡/
 
 // The phase files that say "in progress", as { file, title, log }
-export function phasesInProgress(readText, list) {
+export function phasesInProgress(readText, list, PHASES) {
   return list(PHASES)
     .filter((name) => /^phase-\d+-.+\.md$/.test(name))
     .flatMap((name) => {
@@ -43,9 +43,9 @@ export function lastNextStep(logText) {
 }
 
 // The message to print for a repository
-export function sessionStartMessage(branch, readText, list) {
+export function sessionStartMessage(branch, readText, list, phasesDir, methodPath = 'the method') {
   const lines = [`Branch: ${branch || 'unknown'}`]
-  const phases = phasesInProgress(readText, list)
+  const phases = phasesInProgress(readText, list, phasesDir)
 
   if (!phases.length) {
     lines.push('No phase is in progress.')
@@ -58,23 +58,39 @@ export function sessionStartMessage(branch, readText, list) {
       lines.push(`Task in progress (${fragment.file}): ${fragment.step ?? 'no next step recorded'}`)
     }
   }
-  lines.push('Read the method, section "Session protocol", before you start or resume a phase.')
+  lines.push(`Read the method, section "Session protocol" (${methodPath}), before you start or resume a phase.`)
   return lines.join('\n')
 }
 
-function main() {
-  const root = process.env.CLAUDE_PROJECT_DIR ?? process.cwd()
+export function decide(event) {
+  if (event.kind !== 'session-start') {
+    return {}
+  }
+  const root = process.env.CLAUDE_PROJECT_DIR ?? process.env.CURSOR_PROJECT_DIR ?? event.cwd
+  const profile = loadProfile(root)
   const readText = (path) => readFileSync(join(root, path), 'utf8')
   const list = (path) => (existsSync(join(root, path)) ? readdirSync(join(root, path)) : [])
   let branch = ''
   try {
-    branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
+    branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim()
   } catch {
     // not a git checkout
   }
-  process.stdout.write(`${sessionStartMessage(branch, readText, list)}\n`)
+  return {
+    context: sessionStartMessage(
+      branch,
+      readText,
+      list,
+      profile.paths?.phases ?? 'docs/plan/phases',
+      profile.documents?.method
+    )
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
+  await runHook((event) => decide(event), { kind: 'session-start' })
 }

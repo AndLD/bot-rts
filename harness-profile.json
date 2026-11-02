@@ -177,6 +177,7 @@
       }
     ]
   },
+  "hooks": { "prePushSetup": "scripts/pre-push-setup.sh" },
   "checks": {
     "roleOnlyPaths": [
       "scripts/*.mjs",

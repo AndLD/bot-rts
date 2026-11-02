@@ -1,0 +1,14 @@
+{
+  "session_id": "s1",
+  "transcript_path": "/t.jsonl",
+  "cwd": "/project",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/project/api/src/a.ts"
+  },
+  "tool_response": {
+    "success": true
+  }
+}

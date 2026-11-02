@@ -1,10 +1,12 @@
 {
   "framework": "harness-framework",
   "mode": "pinned",
-  "version": "0.1.0-dev",
+  "version": "0.1.0-dev.1",
   "source": {
-    "type": "path",
-    "location": "docs/harness-framework/framework"
+    "type": "git",
+    "url": "https://github.com/AndLD/harness-framework.git",
+    "tag": "0.1.0-dev.1",
+    "commit": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79"
   },
   "adapters": {
     "stacks": [
@@ -17,7 +19,7 @@
   },
   "files": {
     "BOOTSTRAP.md": "c81d65863a4e247dfc12e5ec1b69836fe2892bd3a98eb220608eaf72b02cb864",
-    "CHANGELOG.md": "9d5a2f8367e2a3bb4111a7c7741b7d87dba91034bc7ade7a25f2a8c2627b7a1e",
+    "CHANGELOG.md": "72c8d53726ccb9463ca97f22fde5846faddb7be6197e74ad2f7e4b054dedf55e",
     "LICENSE": "05abb11a226621a02a46cbabdc913212f8327b9ab419ce1fe6cc14651fca1bed",
     "README.md": "d27f6c3f2a005c64e66450333c22582fc126e691d029f880014425a095501fbb",
     "adapters/host/_skeleton/README.md": "6ec6c5bf9b35fe9c6cb4dd569b7f5f84146611d15a971e46b045bfbaa97c785e",
@@ -121,7 +123,7 @@
     "core/templates/scaffold/scaffold.json": "8f481a53f97e192d520d4dcb9182d797383fbdc51b3acd1531a3a91a29b71315",
     "core/templates/scaffold/stack.md": "0367dc9088f2c8c9b58b0dc4398cea8efc9f3ed163ce8fdee31cc5fddb5825d9",
     "core/templates/scaffold/template-readme.md": "73f37b24b4558936e71416e4bd93b04a0f8c98f3bca96332cf27d41a84cb9a4d",
-    "framework.json": "de3e3763abb88883b7eb8224ebbe1a7537b8392962e1a54db43c533c9e150216",
+    "framework.json": "a7cd6a6ebafcc3785430ba5e57a554c955cebcde9eb55825f0094cf9d3c9a612",
     "profile/harness-profile.schema.json": "89a367cd3c971cc1425e1ebbb413b0baacfaed0ea016af4da6fc71c47b18e509",
     "profile/manifest.schema.json": "af39362c5a6f212fd44b9176cc132ee4b7e31a4ff46491f4c5d23d51d3c983ba",
     "profile/roles.md": "44af0f254bfdc9f4f3eb27ff4242272f2be547676f79479dceee0ee407d4b8ab",
@@ -214,8 +216,8 @@
     "tools/runtime-hooks/session-start.mjs": "406ddca96cf2f7291cd0f3efd35bf700c471b33f494fdb3121479bbdb8636f96"
   },
   "managed": {
-    "docs/profile.md": "c8ebf371b408e092ea1937b36b59ad03181ac6adbbbd7d00551b0071ebe542f9",
-    "docs/quality-reviews/harness/bindings.md#layers": "a4340efb0b111b60998c8c412e3057f487c99029fc6cce39ad546cf8d8e325d5",
+    "docs/profile.md": "4af11edf33d6ef6f094a31040084c520cad2a11cbb3b92b6b2f11d1e6ac5e748",
+    "docs/quality-reviews/harness/bindings.md#layers": "13260e71051746349575a01d0364137c541dafc3201da898fd50fe8c6f2205ad",
     "docs/engineering/rule-checks.md#rule-map": "b4bf9aa1465573b59be071fe03f5e909ff13c75b4d7848f4cc1ccd3eac6873bd",
     "AGENTS.md#procedures": "6fdeae518f509ba3599590fb7dbad92b71d1455d7d42fcddeaf962806cfc6d35",
     "AGENTS.md#non-negotiables": "29ac105e9a01c3980220dfadf5c9e453eeafd3e6b08330e842bb3e5d0fd73479",
@@ -229,6 +231,9 @@
     ".claude/skills/release/SKILL.md": "04e2ec62e80bbac523361e59e58db118eaa6b96db9da6cd95644962127b24042",
     ".claude/skills/start-task/SKILL.md": "8b1845aab25c195c8a184df4e2b5d9afa63abb86f7c84158a8b0f9eb3d2a60eb"
   },
-  "profile": "e2212491929a29770242a71aad0500f067d3a6b9917e91455db89bb72323fff1",
-  "overrides": []
+  "profile": "1f0a919ee7477eb3bd3b6a6ea9c313a75655a24ac04df1b00c597d70419dbb70",
+  "overrides": [],
+  "seen": {
+    "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79"
+  }
 }

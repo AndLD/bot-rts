@@ -5,7 +5,7 @@
     "product": "A programmable real-time strategy sandbox: players write scripts that control bots on a shared map",
     "packages": "`api` (backend and engine), `client` (web client), `lib` (shared types and pure functions), `mcp` (MCP server)",
     "entryFile": "`AGENTS.md`, loaded through `CLAUDE.md` (which holds only `@AGENTS.md`)",
-    "frameworkSource": "source: the staging folder `docs/harness-framework/framework/` until task 17.15",
+    "frameworkSource": "source: the repository `AndLD/harness-framework`, pinned to a tag by `harness.lock.json`",
     "owner": "The repository owner; the only person who approves rule changes and merges outside the started phases"
   },
   "repository": {
@@ -149,24 +149,13 @@
     "steps": [
       { "label": "script tests", "run": [["npm", "run", "test:scripts"]], "when": ["scripts/**"] },
       {
-        "label": "framework tests",
-        "run": [["npm", "run", "test:framework"]],
-        "when": ["harness/**", "harness.lock.json", "docs/harness-framework/framework/**"]
-      },
-      {
         "label": "generated files are up to date",
         "run": [
           ["npm", "run", "openapi:generate", "-w", "api"],
           ["npm", "run", "api:generate", "-w", "client"],
           ["npm", "run", "docs:generate"]
         ],
-        "unlessOnly": [
-          "mcp/**",
-          "scripts/**",
-          "harness/**",
-          "harness.lock.json",
-          "docs/harness-framework/framework/**"
-        ],
+        "unlessOnly": ["mcp/**", "scripts/**", "harness/**", "harness.lock.json"],
         "diff": [
           "api/openapi.json",
           "client/src/shared/api/generated.ts",

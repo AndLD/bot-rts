@@ -1,4 +1,0 @@
-{
-  "mergeCommand": ["gh", "pr", "merge", "12", "--squash"],
-  "otherCommand": ["gh", "pr", "list"]
-}

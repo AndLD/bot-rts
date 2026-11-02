@@ -29,7 +29,7 @@ and not found by a later review. Review step 2 of the method still reads the map
 | **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived-docs/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/harness-framework/README.md`, `docs/harness-framework/design.md` |
 | **ENTRY** | `AGENTS.md`, `CLAUDE.md`, `README.md` |
 
-Not in the map: `client/public/atlas/LICENSE.md`, `docs/harness-framework/framework/**`.
+Not in the map: `client/public/atlas/LICENSE.md`.
 The map covers the tracked files that match `**/*.md`, `docs/**`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `harness/**`, `harness-profile.json`, `harness.lock.json`.
 <!-- harness:end layers -->
 

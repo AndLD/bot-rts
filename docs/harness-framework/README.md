@@ -1,5 +1,7 @@
 [← README](../../README.md)
 
+> **Moved on 2026-11-02 (task 17.15).** The framework lives in its own repository, [`AndLD/harness-framework`](https://github.com/AndLD/harness-framework), with its own development plan; this plan of the extraction stays here as history, and Phase 17 of this repository's plan holds the consuming side.
+
 # From harness to reusable framework: the plan
 
 The goal: turn this repository's docs and AI harness into a **project-neutral framework (a blueprint)** that can be published as

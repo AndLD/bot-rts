@@ -8,9 +8,6 @@ package-lock.json
 *.ttf
 *.md
 docs/*
-!docs/harness-framework
-docs/harness-framework/*
-!docs/harness-framework/framework
 api/openapi.json
 client/src/shared/api/generated.ts
 .claude/worktrees

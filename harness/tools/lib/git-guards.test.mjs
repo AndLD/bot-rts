@@ -114,3 +114,14 @@ test('the pre-push hook refuses a push to a protected branch and a deletion befo
   const deletion = git('push', 'origin', ':old')
   assert.match(deletion.stderr, /Never delete a remote branch \(old\)/)
 })
+
+test('the pre-push hook given the arguments Git gives it (the remote name and address) runs the gate on the refs of standard input', () => {
+  const { root } = repository('develop')
+  const result = spawnSync('sh', [join(HOOKS, 'pre-push'), 'origin', 'https://example.test/repo.git'], {
+    cwd: root,
+    input: '',
+    encoding: 'utf8'
+  })
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /pre-push: no check needed, the push changes no file/)
+})

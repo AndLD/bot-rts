@@ -29,8 +29,7 @@ file: 17.15 publishes the framework to its own repository, where it bootstraps i
 
 **Execution order:** 17.2 → 17.3 → … → 17.17 in the order of the table, after Phase 16 (done). Between 17.15 and 17.16, Phase 1 of the
 framework's own plan runs in the framework repository. Owner steps: create the `harness-framework` repository and copy the staging folder into
-it, or authorise the agent to push it (17.15); open sessions there, or authorise pushes there, for the framework's Phase 1; run the Cursor preset
-in a real Cursor session (that plan's proof). Model per task: the `Agent` column of the task table holds each open task's agent-complexity marker (design §3.4; 17.3, 17.4 and 17.7 re-rated by the owner on 2026-10-30); the model of each marker is in the [profile](../../profile.md#4-plan), and `npm run docs:check` fails on an open task without one; done tasks need none.
+it, or authorise the agent to push it (17.15); open sessions there, or authorise pushes there, for the framework's Phase 1. Model per task: the `Agent` column of the task table holds each open task's agent-complexity marker (design §3.4; 17.3, 17.4 and 17.7 re-rated by the owner on 2026-10-30); the model of each marker is in the [profile](../../profile.md#4-plan), and `npm run docs:check` fails on an open task without one; done tasks need none.
 
 | #   | Task | Agent | SP  | Status |
 | --- | ---- | ----- | --- | ------ |
@@ -58,11 +57,14 @@ Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) 
 **Exit criteria:** the exit criteria of [§3.5 of the harness-framework plan](../../harness-framework/README.md#35-exit-criteria) hold, as shown by
 the closing review, and:
 - Phase 1 of the framework's own plan is done: its dummy-project proof of §3.4 bootstraps both stack presets (TypeScript/Node and Python) and
-  both agent-runtime presets (Claude Code and Cursor), and the framework's own checks pass on each, as its task logs record;
-- the owner has copied the staging folder to the `harness-framework` repository (17.15) and has run the Cursor preset in a real Cursor
-  session (the framework's proof); both are the owner's steps, recorded in the work logs;
+  the Claude Code runtime preset, and the framework's own checks pass on each, as its task logs record;
+- the owner has copied the staging folder to the `harness-framework` repository (17.15), the owner's step, recorded in the work logs;
 - this repository is synced to the framework's `0.1.0` (17.16);
 - `npm run docs:check`, `npm run lint` and the coverage gate pass in this repository.
+
+**Cursor is deferred (the owner's decision of 2026-11-03).** Supporting Cursor is put off for an unspecified term, so no exit criterion of this
+phase concerns it. The Cursor preset stays in the framework as `0.1.0` shipped it, unverified in a live Cursor session. The real-session checklist
+(the framework's task 1.2) waits until the owner takes Cursor up again; see the [work log](./work-logs/phase-17-log.md).
 
 ## Implementation log
 

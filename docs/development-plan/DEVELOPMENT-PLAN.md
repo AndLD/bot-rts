@@ -57,6 +57,20 @@ Phase 17 (harness framework extraction, step 3 of the [harness-framework plan](.
 **developed after Phase 16 and before Phase 10**; its design task 17.1 may run while Phase 16 is in progress.
 Phase 12 is open-ended and its tasks are done whenever they are found; it has no fixed place in the order.
 
+**From 2026-11-03 this project is the first consumer of the harness framework** (the owner's decision): the framework
+([AndLD/harness-framework](https://github.com/AndLD/harness-framework)) is developed first, and this project takes its releases to prove them on a
+real project. Product work waits until the owner resumes it: Phase 10, and the open tasks 12.5 and 12.6. Each release is taken by the framework's
+procedure and migration notes; a defect found while taking one becomes a task of the framework, not of this plan: the session first searches that repository's issues for the same problem (and adds to an existing report rather than posting another), then reports it as an issue in [AndLD/harness-framework](https://github.com/AndLD/harness-framework/issues) (posting it needs the owner's approval, given in the prompt or asked), records the issue in the task's log, and stops or rolls back if the defect blocks the migration. A framework session reads those issues first. The order (the framework's plan
+index holds what each release contains):
+
+| Framework release | This project |
+| ----------------- | ------------ |
+| `0.1.1` | takes it (a Phase 17 task, added when the release exists), then closes Phase 17 |
+| `0.1.2` | skips it on purpose, so that `0.2.0` is the framework's first chained migration |
+| `0.2.0` | takes its development version before the final tag, then the release (12.7), and turns on upstream reporting at `ask`: the migration splits the phases into task files, also Phase 17 by the owner's choice; Phase 12 becomes a normal phase that keeps its ids and ends with 12.7, and 12.5 and 12.6 move to the new issue queue under their old ids too |
+| `0.3.0` | takes it |
+| the release of the framework's Phase 2 (security) | takes it |
+
 ---
 
 ## MVP definition

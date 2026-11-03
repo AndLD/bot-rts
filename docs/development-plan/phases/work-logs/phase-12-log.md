@@ -195,3 +195,35 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none. Phase 12 is now 20 SP.
 - **Next step:** the framework releases `0.1.1`; a task here takes it and closes Phase 17. 12.7 waits for `0.2.0`.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — the order of this project as the framework's first consumer
+- **Tasks:** none changed.
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the owner's decisions, now in the plan index ("Order of development"):
+  - This project is the harness framework's first consumer; product work waits (Phase 10, 12.5, 12.6).
+  - It takes the framework's `0.1.1`, `0.2.0` (its development version first), `0.3.0` and the security release, and skips `0.1.2` on purpose.
+  - The framework's task 3.13 replaces the open-ended phase with an issue queue. The migration of `0.2.0` (with 12.7) makes this phase a normal phase
+    that keeps every id and ends with 12.7; 12.5 and 12.6, not started, become issues under their old ids too. No planned task is renamed, so the
+    order written by id stays valid. Finished issues move to the queue's archive.
+- **Problems / blockers / findings:** none.
+- **Next step:** the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — how a framework defect is reported
+- **Tasks:** none changed.
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the owner runs one session per repository. A defect of the framework found here is reported as an issue in
+  AndLD/harness-framework (with the owner's approval to post it) and recorded in the task's log; the framework's sessions read those issues first.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`
+
+### 2026-11-03 — upstream reporting at `ask`; no duplicate reports
+- **Tasks:** 12.7 (not started; size unchanged).
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the framework's task 3.16 makes upstream reporting a switch, `off` by default so a consumer spends no
+  tokens on it. The owner turns it on here at `ask`, as one of 12.7's choices. Until then, a session searches the framework's issues for the same
+  problem before it reports one.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`

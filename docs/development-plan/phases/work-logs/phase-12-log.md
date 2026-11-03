@@ -208,3 +208,12 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — how a framework defect is reported
+- **Tasks:** none changed.
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the owner runs one session per repository. A defect of the framework found here is reported as an issue in
+  AndLD/harness-framework (with the owner's approval to post it) and recorded in the task's log; the framework's sessions read those issues first.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`

@@ -272,3 +272,25 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   framework and sync, or the owner accepts it.
 - **Next step:** the owner decides on H-20261103-01; then `finish-phase`.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — H-20261103-01: the owner chose fixes A and B, planned in the framework
+- **Tasks:** none here (a decision)
+- **Branch:** `docs/17-core-scan-decision`
+- **Decisions / deviations from the plan:** for the D1 regression of the closing review (nothing automated scans the framework's core with this project's
+  terms), the owner chose two fixes.
+  - **B:** a broader tool-name list in the framework's own scan.
+  - **A:** a pinned project scans its vendored `core/` with its own terms. A was extended so that it works when other people use the framework:
+    - the framework's own vocabulary is never reported;
+    - a hit says what to do;
+    - a recorded exception tied to one framework version keeps a consumer unblocked;
+    - a confirmed leak reaches the framework through an issue template and is fixed in a patch release;
+    - a development version comes before each final tag.
+
+  They are tasks 3.6 to 3.8 of the framework's open-ended phase ([AndLD/harness-framework#12](https://github.com/AndLD/harness-framework/pull/12)).
+- **Problems / blockers / findings:** none.
+- **Next step:**
+  - The framework builds 3.6 to 3.8 and releases `0.1.1`.
+  - Then a sync task here takes it. That task is added when `0.1.1` exists.
+  - After the sync, `docs:check` scans `harness/core` with this project's terms, and "no regression" of §3.5 holds.
+  - Then `finish-phase` closes Phase 17.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

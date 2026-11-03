@@ -169,7 +169,7 @@ PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|se
 The product-knowledge check (`harness check product-knowledge`, part of `npm run docs:check`) reads the product specification in
 `docs/product-knowledge/game-design/`: its glossary `02-glossary.md`, its register of open items `20-open-questions.md` and its backlog `21-backlog.md`.
 A line may point to the backlog by its section, §21.
-It scans `docs/product-knowledge/` for stack terms, plan references and code paths (`\b(?:api|client)\/src\/|\.(?:int\.)?test\.tsx?\b|module-catalog`), except `archived-docs/**, CHANGELOG.md, game-design/20-open-questions.md, game-design/21-backlog.md`.
+It scans `docs/product-knowledge/` for stack terms, plan references and code paths (`\b(?:api|client)\/src\/|\.(?:int\.)?test\.tsx?\b|module-catalog`), except `archived/**, CHANGELOG.md, game-design/20-open-questions.md, game-design/21-backlog.md`.
 A file keeps the stack terms that are part of its product: `productKnowledge.allowedTerms` of the profile file.
 
 Bounded contexts (files of the product specification):
@@ -213,4 +213,4 @@ Bounded contexts (files of the product specification):
 | Code quality reviews | [`harness/core/reviews/code/README.md`](../harness/core/reviews/code/README.md) |
 | Harness quality reviews | [`harness/core/reviews/harness/README.md`](../harness/core/reviews/harness/README.md) |
 | Harness review bindings | [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
-| Harness-to-framework plan | [`harness-framework/README.md`](./harness-framework/README.md) |
+| Harness-to-framework plan | [`archived/harness-framework/README.md`](./archived/harness-framework/README.md) |

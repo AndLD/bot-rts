@@ -26,7 +26,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - The owner decided to run step 2 of the harness-framework plan as a development phase instead of a standalone procedure,
     developed before Phase 10.
   - The tasks follow the triage of the 2026-10-17 harness review (its follow-up table, merged in #213) and the order of groups in
-    `docs/harness-framework/README.md` §2.2, whose step 2 now points to this phase.
+    `docs/archived/harness-framework/README.md` §2.2, whose step 2 now points to this phase.
   - A task that changes the meaning of a product rule or an `AGENTS.md` rule asks the owner before merging, even inside the phase.
 - **Problems / blockers / findings:** none.
 - **Next step:** start 15.1 (the profile) when the owner asks ("Start Phase 15").
@@ -53,7 +53,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   - 15.2: the method and stack files are `docs/engineering/method.md` and `docs/engineering/stack.md`. The always-loaded set keeps
     the rules every task needs and a reading map; the method and stack files are read on demand.
   - 15.3: the architecture moves to `docs/engineering/architecture.md`.
-  - 15.4: implementation notes go to `docs/operations`, `docs/testing` or the architecture document; history to `archived-docs/`.
+  - 15.4: implementation notes go to `docs/operations`, `docs/testing` or the architecture document; history to `archived/`.
   - 15.5: the implemented behaviour wins for the empty battery, local imports, the admin-key rule and world generation. The repair
     rule changes in the code: below the 20 % threshold, condition 0 included, a module can only be disassembled. So a broken memory
     module's files are lost when it is disassembled, and a corpse base cannot be restored (this resolves the conflict with the
@@ -88,7 +88,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     the profile for the shared rows; the harness bindings take the term lists and bounded contexts from it.
   - The corrected layer map of the review (its section 2) is in `docs/quality-reviews/harness/bindings.md` §1.
   - Scope of the M4 search: the rule and reference documents. Historical STATE (finished phase files, work logs, dated reports,
-    `archived-docs/`) keeps the values it recorded at the time; product facts (the design, the changelog, `API.md` endpoint
+    `archived/`) keeps the values it recorded at the time; product facts (the design, the changelog, `API.md` endpoint
     lists) keep `/api/v1` and the language names, because they describe the product, not the harness.
 - **Problems / blockers / findings:**
   - `npm run lint` fails locally only on Prettier warnings for two untracked worktrees under `.claude/worktrees/`
@@ -300,7 +300,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     and the event bus). The notes of the metrics history and the Prometheus decision moved to `docs/operations/DEPLOYMENT.md` ("Metrics
     history: measured values and the Prometheus decision"); the tests of the public API and the MCP server, and the test of the design
     scripts, to `docs/testing/README.md`; the history of §25.1 ("no admin UI today", the pre-console security findings) to
-    `archived-docs/admin-console-starting-point.md` (§25.1 stays as a stub, so the numbering holds).
+    `archived/admin-console-starting-point.md` (§25.1 stays as a stub, so the numbering holds).
   - Binding constraints stay, stated without the product that satisfies them: the sandbox table of §13, the single writer of §14.2, the
     starter-kit reason of §6.1, the watchdog of §12.3.1. Status words ("delivered", "planned", "Implemented") are gone with the plan ids.
   - The profile's `STACK` list (section 9) was refined, because it matched English words (`express` in "expressed", `react` in "react to",
@@ -308,7 +308,7 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
     leak scan of `method.md` still returns 0.
   - Allowed exceptions (listed in the harness bindings and in `scripts/product-knowledge-lib.mjs`): TypeScript in §10 (players write
     scripts in it), Socket.IO in `API.md` (the realtime transport of the public API), `npm` in `MCP.md` (the commands that start the
-    server). The register (§20) and the backlog (§21) name plan tasks in their "Blocks" column; `CHANGELOG.md` and `archived-docs/`
+    server). The register (§20) and the backlog (§21) name plan tasks in their "Blocks" column; `CHANGELOG.md` and `archived/`
     are not scanned.
   - New check `scripts/check-product-knowledge.mjs` (library, tests, part of `npm run docs:check`): stack terms from the profile, plan
     references, `api/src` and `client/src` paths, test file names, and `module-catalog`.

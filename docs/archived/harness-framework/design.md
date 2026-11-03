@@ -1,4 +1,4 @@
-[← Harness-to-framework plan](./README.md) · phase: [Phase 17](../development-plan/phases/phase-17-harness-framework.md)
+[← Harness-to-framework plan](./README.md) · phase: [Phase 17](../../development-plan/phases/phase-17-harness-framework.md)
 
 > **Moved on 2026-11-02 (task 17.15).** The framework lives in its own repository, [`AndLD/harness-framework`](https://github.com/AndLD/harness-framework), and its current design is `docs/design.md` there. This copy is the record of the design as 17.1 to 17.14 built it; it is not updated any more.
 
@@ -8,11 +8,11 @@
 from this repository's harness and how `bot-rts` consumes it. Nothing is built by this document. The build order of section 10 becomes
 tasks 17.2 onward of the phase file in the same pull request.
 
-**Inputs.** The owner's decisions of 2026-10-20 ([Phase 17 work log](../development-plan/phases/work-logs/phase-17-log.md)), which this
+**Inputs.** The owner's decisions of 2026-10-20 ([Phase 17 work log](../../development-plan/phases/work-logs/phase-17-log.md)), which this
 design does not reopen. Step 3 of the [harness-framework plan](./README.md#step-3-extract-the-framework). The latest harness review,
-[2026-10-19-3](../quality-reviews/harness/2026-10-19-3.md): its export dry run, blockers B6 and B7, and findings H-20261019-22 to -24. The
-[review method](../../harness/core/reviews/harness/README.md) and its [bindings](../quality-reviews/harness/bindings.md) (layer map and `core-files`
-block). The [profile](../profile.md) and [`harness-profile.json`](../../harness-profile.json). The CI jobs and the pre-push hook
+[2026-10-19-3](../../quality-reviews/harness/2026-10-19-3.md): its export dry run, blockers B6 and B7, and findings H-20261019-22 to -24. The
+[review method](../../../harness/core/reviews/harness/README.md) and its [bindings](../../quality-reviews/harness/bindings.md) (layer map and `core-files`
+block). The [profile](../../profile.md) and [`harness-profile.json`](../../../harness-profile.json). The CI jobs and the pre-push hook
 as Phase 16 left them on `develop` at `a53de8b`: `verify` and `e2e` are aggregator jobs over parallel jobs and shards, and
 `.githooks/pre-push` runs `scripts/local-gate.mjs`, which checks only what the pushed files need. Task 16.7 was deferred, so there is no
 stacked-branch rule for CI waits; method §5 keeps its older note on rebasing stacked pull requests.
@@ -29,7 +29,7 @@ Claude Code and Cursor.
 | # | Item | Proposal |
 | - | ---- | -------- |
 | 1 | Consumption | A **vendored copy** at `harness/`, pinned by `harness.lock.json` (version, source and a hash per file). `harness sync` updates it and `harness check` fails on a local edit. Improvements go to the framework source and come back by a sync. Subtree, submodule and an npm package are rejected. A project may instead **detach**: it owns and edits its copy, takes no more updates, and keeps the checks; the lock records the fork point (section 1). |
-| 2 | Layout | §3.2 is confirmed and adjusted: adapters on **three axes** (`stack/`, `runtime/`, `host/`), plus `tools/`, `BOOTSTRAP.md`, `core/procedures/`, `core/contracts/` and a conformance suite. The staging folder stays `docs/harness-framework/framework/` (section 2). |
+| 2 | Layout | §3.2 is confirmed and adjusted: adapters on **three axes** (`stack/`, `runtime/`, `host/`), plus `tools/`, `BOOTSTRAP.md`, `core/procedures/`, `core/contracts/` and a conformance suite. The staging folder stays `docs/archived/harness-framework/framework/` (section 2). |
 | 3 | Classification | Every harness file and section is sorted into core, adapter, profile, example or "stays", with one table per area (section 3). |
 | 4 | Contracts | Three role lists (stack, runtime, host) as machine-readable manifests, and a per-rule table of where each rule is caught. A project may combine **several stacks**, each owning its packages. A host **without branch protection** turns on a merge guard (section 4). |
 | 5 | New adapter | Copy the skeleton, fill the manifest, then run `harness adapter test`. That is the same suite the presets pass (section 5). |
@@ -86,7 +86,7 @@ workflows (section 11, assumptions); shells other than `sh` for the Git hooks.
 
 1. **Never in place.** An agent does not edit `harness/`: the edit guard refuses it, and if the guard is absent, `harness check vendored` fails
    the push and CI.
-2. **While staging (Phase 17, up to task 17.15):** the source is `docs/harness-framework/framework/` in this repository. Change the source, add a line to
+2. **While staging (Phase 17, up to task 17.15):** the source is `docs/archived/harness-framework/framework/` in this repository. Change the source, add a line to
    its `CHANGELOG.md` under "Unreleased" (the version stays `0.1.0-dev` until 17.15), and run `harness sync`. The source and the
    vendored copy change in the same pull request, and the check proves them equal.
 3. **After the owner has published the framework** (its own repository): a finding of kind "fix in the framework" from a harness review,
@@ -157,10 +157,10 @@ wants to own its method, and a fork of the framework for a variant that several 
 
 §3.2 of the plan is **confirmed** with these **adjustments**: adapters on three axes instead of one; a `tools/` folder, since the first release
 includes the tooling; `BOOTSTRAP.md` at the top, as the prompt any agent can follow; neutral procedures and the adapter contracts inside `core/`;
-and a conformance suite. The staging folder stays `docs/harness-framework/framework/`, and its content is the framework repository's tree.
+and a conformance suite. The staging folder stays `docs/archived/harness-framework/framework/`, and its content is the framework repository's tree.
 
 ```
-framework/                      staging: docs/harness-framework/framework/; later the root of the harness-framework repository
+framework/                      staging: docs/archived/harness-framework/framework/; later the root of the harness-framework repository
   README.md                     what it is, how to bootstrap, how to sync, how to upgrade
   BOOTSTRAP.md                  the agent-neutral bootstrap prompt (section 6)
   CHANGELOG.md  LICENSE         MIT
@@ -219,8 +219,8 @@ In a consuming project:
 
 Target: **core** (`framework/core`, `tools`), **stack**, **runtime** or **host adapter**, **profile template** (`framework/profile` or
 `core/templates`), **example**, or **stays** in `bot-rts` (DOMAIN, STATE or project-specific ADAPTER). "Split" names the parts. The basis is
-the `core-files` block of the [harness bindings](../quality-reviews/harness/bindings.md) and the export dry run of the
-[2026-10-19-3 report](../quality-reviews/harness/2026-10-19-3.md); P5's finding that three DOMAIN checks hard-code product file names is
+the `core-files` block of the [harness bindings](../../quality-reviews/harness/bindings.md) and the export dry run of the
+[2026-10-19-3 report](../../quality-reviews/harness/2026-10-19-3.md); P5's finding that three DOMAIN checks hard-code product file names is
 resolved by parameterising them.
 
 **A second source** (added 2026-10-30). The owner's second project, `ecommerce-predict-model-investigate`, copied 17 of these scripts
@@ -276,7 +276,7 @@ review folders keep their project files (the bindings, the index, the phase file
 | `docs/development-plan/DEVELOPMENT-PLAN.md` | **stays**; a skeleton with the summary and contents markers → **template** |
 | `phases/phase-*.md`, `work-logs/*`, `cross-cutting/risk-register.md`, `rfc-5.1-execution-model.md` | **stays** (STATE) |
 | `docs/quality-reviews/*/<date>.md` reports | **stays** (STATE) |
-| `docs/harness-framework/README.md`, `design.md` | **stays** (STATE: the plan of this extraction) |
+| `docs/archived/harness-framework/README.md`, `design.md` | **stays** (STATE: the plan of this extraction) |
 | `docs/testing/README.md` | split: "CI jobs" (aggregator required checks, a Markdown-only change reports green), "local gate", "Coverage" → **host** and **stack adapter** documents; the rest → **stays** |
 | `docs/testing/e2e-matrix.md`, `known-issues.md`, `clock-consumers.md`, `load-testing.md`, `by-phase.md`, `reports/` | **stays** |
 | `docs/operations/RELEASING.md` | split: the release and hotfix procedure → **core procedure** `release`; the tag and release-notes steps → **host adapter**; the version file → **stack adapter**; deployment → **stays** |
@@ -711,7 +711,7 @@ The agent-complexity marker of each Phase 17 task (section 3.4) is in the `Agent
 | # | Task | Acceptance check | SP |
 | - | ---- | ---------------- | -- |
 | 17.2 | Targeted harness review of the dimensions Phase 16 touched (D3, D7, D8, D14, D15), so the build starts from a fresh baseline. Others carried. | A new report in `docs/quality-reviews/harness/`, its follow-up table triaged. A finding that the framework absorbs names its build task. | 3 |
-| 17.3 | Framework skeleton | `docs/harness-framework/framework/` per section 2, with `README.md`, `LICENSE` (MIT), `CHANGELOG.md` and `framework.json` (`0.1.0-dev`). `docs:check` covers it: links, and the CORE scan on `framework/core/` with the profile's term lists (from 17.9 also the adapters' terms), which returns 0. The framework README states the method's assumptions (section 11). `LICENSE` reads "Copyright (c) 2026 Andrii Larionov" (the owner's name, given on 2026-10-30). | 2 |
+| 17.3 | Framework skeleton | `docs/archived/harness-framework/framework/` per section 2, with `README.md`, `LICENSE` (MIT), `CHANGELOG.md` and `framework.json` (`0.1.0-dev`). `docs:check` covers it: links, and the CORE scan on `framework/core/` with the profile's term lists (from 17.9 also the adapters' terms), which returns 0. The framework README states the method's assumptions (section 11). `LICENSE` reads "Copyright (c) 2026 Andrii Larionov" (the owner's name, given on 2026-10-30). | 2 |
 | 17.4 | Vendoring: `sync`, the lock, `check vendored`, `diff`, and the detached mode | `harness/` and `harness.lock.json` exist, synced from the staging folder. Tests: an edit to a vendored file fails `docs:check` and the pre-push hook; a sync restores it; an override is accepted and reported; after `harness detach` on a fixture, the same edit passes, `sync` refuses, `sync --local` regenerates, `diff` shows the edit against `base`, and a removed `LICENSE` fails. `harness sync --local` regenerates without network in both modes; a moved tag is refused (test); the vendored check runs in the pre-push hook on every push, before the documentation-only skip; this repository's `.prettierignore` excludes `harness/`. | 5 |
 | 17.5 | The profile file holds every value | `harness-profile.json` at the root, with schema, defaults, term lists and the coverage gate folded in. `profile.md` generated. `harness check profile`. The Jest configs, hooks and scripts read the new path. H-22, first half. The generated `profile.md` keeps today's section anchors, which other documents link to. | 5 |
 | 17.6 | The layer map from the profile and the lock (B7) | `harness layers`, generated into the harness bindings; `harness check layers` fails on an unclassified file (test). The bindings name roles (H-22, second half). H-23 closed. The staging folder is "framework source", outside the project's layer map (section 8.2). | 2 |

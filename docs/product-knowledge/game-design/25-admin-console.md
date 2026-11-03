@@ -4,7 +4,7 @@
 
 ## 25.1 Starting point
 
-_Removed: the review of the code before the console existed is history, not a rule of the product (kept in `archived-docs/`). The section number is kept so that references resolve._
+_Removed: the review of the code before the console existed is history, not a rule of the product (kept in `archived/`). The section number is kept so that references resolve._
 
 ## 25.2 Access model
 

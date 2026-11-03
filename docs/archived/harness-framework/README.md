@@ -1,6 +1,8 @@
-[← README](../../README.md)
+[← README](../../../README.md)
 
 > **Moved on 2026-11-02 (task 17.15).** The framework lives in its own repository, [`AndLD/harness-framework`](https://github.com/AndLD/harness-framework), with its own development plan; this plan of the extraction stays here as history, and Phase 17 of this repository's plan holds the consuming side.
+
+> **Starting a new project or adopting the framework?** Read the framework's [`README.md`](../../../harness/README.md) and [`BOOTSTRAP.md`](../../../harness/BOOTSTRAP.md) instead. This file is history and does not need to be read for that.
 
 # From harness to reusable framework: the plan
 
@@ -15,8 +17,8 @@ ones listed below.
 | 2 | Refactor and fix the docs and harness from the findings | you choose which findings; the agent fixes | Sonnet 5.5, medium (high for restructuring findings) |
 | 3 | Extract the framework | you decide the design questions of 3.1; the agent builds | design: Opus 5.5, high; building: Sonnet 5.5, medium |
 
-Documents used: the review method [`harness/core/reviews/harness/README.md`](../../harness/core/reviews/harness/README.md), its
-[`bindings.md`](../quality-reviews/harness/bindings.md) (this repository's values, with the start prompts), and the layer model
+Documents used: the review method [`harness/core/reviews/harness/README.md`](../../../harness/core/reviews/harness/README.md), its
+[`bindings.md`](../../quality-reviews/harness/bindings.md) (this repository's values, with the start prompts), and the layer model
 of section 2.1 of that method (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY).
 
 ---
@@ -30,7 +32,7 @@ of section 2.1 of that method (CORE, DOMAIN, ADAPTER, PROFILE, STATE, ENTRY).
 
 ### Checkpoint file
 
-Each step keeps `docs/harness-framework/progress.md` on its branch (append-only; removed when the step's pull request merges, its
+Each step keeps `docs/archived/harness-framework/progress.md` on its branch (append-only; removed when the step's pull request merges, its
 content moves into the report or the pull request description):
 
 ```markdown
@@ -60,9 +62,9 @@ scorecard, the top findings and the blockers list.
 ### Start prompt (step 1)
 
 ```text
-Execute step 1 of docs/harness-framework/README.md: run the first full harness quality review.
+Execute step 1 of docs/archived/harness-framework/README.md: run the first full harness quality review.
 
-Follow the "Full review prompt" in section 5 of docs/quality-reviews/harness/bindings.md exactly: you are the orchestrator, spawn the context subagents and the probes as it says (model "sonnet", effort "medium"), verify every finding yourself, and open the pull request without merging it. Keep docs/harness-framework/progress.md on the branch as in the plan, so a new session can resume if this one is interrupted. Finish with the summary the prompt asks for, plus the extraction blockers and the proposed complexity budgets.
+Follow the "Full review prompt" in section 5 of docs/quality-reviews/harness/bindings.md exactly: you are the orchestrator, spawn the context subagents and the probes as it says (model "sonnet", effort "medium"), verify every finding yourself, and open the pull request without merging it. Keep docs/archived/harness-framework/progress.md on the branch as in the plan, so a new session can resume if this one is interrupted. Finish with the summary the prompt asks for, plus the extraction blockers and the proposed complexity budgets.
 ```
 
 ---
@@ -73,7 +75,7 @@ Follow the "Full review prompt" in section 5 of docs/quality-reviews/harness/bin
 the extraction blockers of the report are closed, every 🔴 finding is closed, and a targeted re-review (below) shows D1, D3
 and D7 at the target and no dimension at 1 or 2.
 
-**The work is planned as [Phase 15 — Harness fixes](../development-plan/phases/phase-15-harness-fixes.md)** (owner decision
+**The work is planned as [Phase 15 — Harness fixes](../../development-plan/phases/phase-15-harness-fixes.md)** (owner decision
 2026-10-18). It is a phase of the development plan, so it has task ids, sizes, statuses, an implementation log and a work log. It is
 started like any phase ("Start Phase 15"). This section keeps the reasons, the rules and the exit criteria; the phase file holds the
 tasks.
@@ -127,7 +129,7 @@ findings and reports the new blueprint readiness. Step 3 starts when the exit cr
 Start Phase 15.
 ```
 
-The session protocol ([method §6](../../harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase)) and the phase file do the rest: the agent reads the phase file and its work log, works
+The session protocol ([method §6](../../../harness/core/method/method.md#6-session-protocol-resuming-and-pausing-a-phase)) and the phase file do the rest: the agent reads the phase file and its work log, works
 through the tasks in order, opens a pull request per task, and merges it once the checks pass. A task that changes the meaning of a
 rule waits for your approval.
 
@@ -138,10 +140,10 @@ rule waits for your approval.
 **Input:** the fixed harness and the blockers list. **Output:** a project-neutral framework in a staging folder of this repository,
 ready to be copied to its own GitHub repository, and a proof that it bootstraps a new project. **Exit criteria:** section 3.5.
 
-**The work is planned as [Phase 17 — Harness framework extraction](../development-plan/phases/phase-17-harness-framework.md)** (owner
+**The work is planned as [Phase 17 — Harness framework extraction](../../development-plan/phases/phase-17-harness-framework.md)** (owner
 decision 2026-10-20), as step 2 was planned as Phase 15: task ids, sizes, statuses and the work log of the phase replace the checkpoint file.
 The owner made the decisions of 3.1 on 2026-10-20; they are recorded in the
-[Phase 17 work log](../development-plan/phases/work-logs/phase-17-log.md), and its task 17.1 writes the design within them. This section keeps
+[Phase 17 work log](../../development-plan/phases/work-logs/phase-17-log.md), and its task 17.1 writes the design within them. This section keeps
 the reasons, the layout, the building steps, the proof and the exit criteria; the phase file holds the tasks.
 
 ### 3.1 Decisions (you, before building)
@@ -162,7 +164,7 @@ The [framework design](./design.md) (task 17.1) confirms this layout with adjust
 repository host), a `tools/` folder, `BOOTSTRAP.md`, neutral procedures and the adapter contracts in `core/`, and a conformance suite. Its
 section 2 is the layout to build; the tree below is the starting point it adjusted.
 
-The staging folder is `docs/harness-framework/framework/` and mirrors the layers:
+The staging folder is `docs/archived/harness-framework/framework/` and mirrors the layers:
 
 ```
 framework/
@@ -214,7 +216,7 @@ Step 3 is Phase 17, so it starts like any phase; the phase file holds the tasks 
 session, Opus 5.5 at high effort):
 
 ```text
-Start Phase 17, task 17.1 only: the framework design of docs/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
+Start Phase 17, task 17.1 only: the framework design of docs/archived/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/archived/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
 ```
 
 Build session (after the owner has accepted `design.md` and its build order is in the phase file as tasks 17.2 to 17.17):
@@ -223,7 +225,7 @@ Build session (after the owner has accepted `design.md` and its build order is i
 Continue Phase 17.
 ```
 
-The session protocol and the phase file do the rest: tasks 17.2 to 17.14 build the framework in `docs/harness-framework/framework/`, moving
+The session protocol and the phase file do the rest: tasks 17.2 to 17.14 build the framework in `docs/archived/harness-framework/framework/`, moving
 content out of this repository's harness; 17.15 publishes it to the `harness-framework` repository, where it bootstraps itself and its own
 development plan; that plan's Phase 1 finishes the presets and runs the proof of 3.4; 17.16 syncs this repository to `0.1.0`, and 17.17 is the
 closing review. No session creates or pushes to another repository without the owner's explicit authorisation.

@@ -246,3 +246,14 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Next step:** 17.17 (closing targeted harness review, `C3`), in a different session than the build's, on the owner's "go on".
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
 
+
+### 2026-11-03 — 17.17 done: the closing review; the phase stays open on two criteria
+- **Tasks:** 17.17 ✅ (its log: [`phase-17/17.17.md`](./phase-17/17.17.md); the report: [`2026-11-03.md`](../../../quality-reviews/harness/2026-11-03.md))
+- **Branch:** `docs/17.17-closing-harness-review` — done, PR #283
+- **Decisions / deviations from the plan:** the probes ran as read-only subagents (the command line's login had expired); the report says what that changes.
+- **Problems / blockers / findings:** the review's gate passes, and a project bootstraps from `v0.1.0` in one command. The phase's exit criteria hold except two:
+  the owner's Cursor session (open by the owner's decision of 2026-11-02), and "no regression" (§3.5), which fails on D1. Since the pin, nothing automated scans the
+  framework's core with this project's terms (H-20261103-01; the core is clean by hand).
+- **Next step:** the owner approves the triage of the report's section 14. Then H-01 is fixed in the framework and synced here, or accepted; then `finish-phase`.
+  No task of Phase 17 is left.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

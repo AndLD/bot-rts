@@ -81,7 +81,7 @@ test('the same answers give the same tree through the flags, the interactive que
   const asked = fresh()
   const interactive = await harness(asked, ['init'], TYPED)
   assert.equal(interactive.code, 0, interactive.output)
-  assert.match(interactive.output, /Stack adapters \(available: node-ts\): /)
+  assert.match(interactive.output, /Stack adapters \(available: node-ts, python\): /)
   assert.match(interactive.output, /Production branch \[main\]: /)
 
   const template = fresh()

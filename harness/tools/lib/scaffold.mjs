@@ -11,6 +11,18 @@ import { selectedStacks, STACKS } from './stacks.mjs'
 const excludes = (line, folder) =>
   [folder, `${folder}/`, `/${folder}`, `/${folder}/`, `${folder}/**`, `${folder}/*`].includes(line.trim())
 
+const escaped = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Whether the text of an ignore file excludes `folder`: a line that names it, or, for a file in which a tool excludes paths with a setting of its own
+ * (`extend-exclude = ["harness"]` in a TOML file), a line that matches the `pattern` of the manifest, whose `<folder>` stands for the folder.
+ */
+export function excludesFolder(text, folder, pattern) {
+  return pattern
+    ? new RegExp(pattern.replaceAll('<folder>', escaped(folder)), 'm').test(text)
+    : text.split('\n').some((line) => excludes(line, folder))
+}
+
 /**
  * The problems of the ignore files of the selected stacks. An adapter without a manifest here, or without the role, adds none.
  * @returns {string[]}
@@ -31,7 +43,7 @@ export function scaffoldProblems({ root, profile, stacks = STACKS, runtimes = AD
   }
   for (const stack of selectedStacks(profile, stacks)) {
     const files = stack.adapter?.manifest.roles['ignore-files']?.files ?? []
-    for (const { path, optional } of files) {
+    for (const { path, optional, pattern, example } of files) {
       const full = join(root, path)
       if (!existsSync(full)) {
         if (!optional) {
@@ -41,14 +53,9 @@ export function scaffoldProblems({ root, profile, stacks = STACKS, runtimes = AD
         }
         continue
       }
-      if (
-        !own &&
-        !readFileSync(full, 'utf8')
-          .split('\n')
-          .some((line) => excludes(line, dir))
-      ) {
+      if (!own && !excludesFolder(readFileSync(full, 'utf8'), dir, pattern)) {
         problems.push(
-          `${path}: does not exclude ${dir}/, which the formatter and the linters would rewrite; add the line "${dir}/"`
+          `${path}: does not exclude ${dir}/, which the formatter and the linters would rewrite; add the line "${example?.replaceAll('<folder>', dir) ?? `${dir}/`}"`
         )
       }
     }

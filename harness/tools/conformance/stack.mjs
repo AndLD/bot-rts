@@ -10,6 +10,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { isAbsolute, join } from 'node:path'
 import { changedFileFailures } from '../lib/coverage.mjs'
+import { excludesFolder } from '../lib/scaffold.mjs'
 import { planPush } from '../lib/gate.mjs'
 import { Skip } from './skip.mjs'
 
@@ -166,7 +167,7 @@ export const stackChecks = [
       const shards = sample(context, 'coverage.shards').map((file) =>
         JSON.parse(readFileSync(join(context.dir, file), 'utf8'))
       )
-      const { artifacts, summary } = module[entry.export](shards)
+      const { artifacts, summary } = module[entry.export](shards, { root: '/project', pkg: 'api' })
 
       assert.ok(artifacts?.[module.SHARD_FILE], `the merge writes the merged ${module.SHARD_FILE}`)
       const files = Object.keys(summary).filter((key) => key !== 'total')
@@ -246,13 +247,16 @@ export const stackChecks = [
         const file = files.find((item) => item.path === path)
         return file && (file.content ?? file.lines.join('\n'))
       }
-      for (const { path, optional } of context.manifest.roles['ignore-files']?.files ?? []) {
+      for (const { path, optional, pattern } of context.manifest.roles['ignore-files']?.files ?? []) {
         const text = textOf(path)
         if (text === undefined && optional) {
           continue
         }
         assert.ok(text !== undefined, `the ignore file ${path} is not written by the scaffold`)
-        assert.match(text, /^harness\/?$/m, `${path} does not exclude the vendored framework (a line \`harness/\`)`)
+        assert.ok(
+          excludesFolder(text, 'harness', pattern),
+          `${path} does not exclude the vendored framework (${pattern ? `a line that matches ${pattern}` : 'a line `harness/`'})`
+        )
       }
     }
   }

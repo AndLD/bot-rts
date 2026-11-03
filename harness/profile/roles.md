@@ -203,14 +203,20 @@ Bounded contexts (files of the product specification):
 | Project overview, setup, environment variables | {{link:documents.readme}} |
 | Product specification | {{link:documents.specification}} |
 | Glossary | {{link:documents.glossary}} |
-| Public API contract | {{link:documents.apiContract}}, {{link:documents.mcpContract}} |
-| Changelog | {{link:documents.changelog}}; entries of unreleased changes are fragments in {{link:documents.changelogFragments}}, collected by the release script |
+| Public API contract | {{link:documents.apiContract}} |
+| MCP contract | {{link:documents.mcpContract}} |
+| Changelog | {{link:documents.changelog}} |
+| Changelog fragments (entries of unreleased changes, collected by the release script) | {{link:documents.changelogFragments}} |
 | Plan index | {{link:paths.planIndex}} |
-| Plan method and its values | {{link:documents.planMethod}}, {{link:documents.planBindings}} |
+| Plan method | {{link:documents.planMethod}} |
+| Plan bindings (the values of the plan method) | {{link:documents.planBindings}} |
 | Definition of done | {{link:documents.definitionOfDone}} |
 | Guiding principles | {{link:documents.guidingPrinciples}} |
-| Testing guide, e2e matrix | {{link:documents.testing}}, {{link:documents.e2eMatrix}} |
-| Deployment and releases | {{link:documents.deployment}}, {{link:documents.releasing}} |
+| Testing guide | {{link:documents.testing}} |
+| End-to-end coverage matrix | {{link:documents.e2eMatrix}} |
+| Deployment guide | {{link:documents.deployment}} |
+| Releases | {{link:documents.releasing}} |
 | Code quality reviews | {{link:documents.codeReviews}} |
-| Harness quality reviews | {{link:documents.harnessReviews}}, {{link:documents.harnessBindings}} |
+| Harness quality reviews | {{link:documents.harnessReviews}} |
+| Harness review bindings | {{link:documents.harnessBindings}} |
 | Harness-to-framework plan | {{link:documents.frameworkPlan}} |

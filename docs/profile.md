@@ -197,14 +197,20 @@ Bounded contexts (files of the product specification):
 | Project overview, setup, environment variables | [`README.md`](../README.md) |
 | Product specification | [`product-knowledge/game-design/GAME-DESIGN.md`](./product-knowledge/game-design/GAME-DESIGN.md) |
 | Glossary | [`product-knowledge/game-design/02-glossary.md`](./product-knowledge/game-design/02-glossary.md) |
-| Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md), [`product-knowledge/integrations/MCP.md`](./product-knowledge/integrations/MCP.md) |
-| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md); entries of unreleased changes are fragments in [`harness/core/templates/changelog-fragments.md`](../harness/core/templates/changelog-fragments.md), collected by the release script |
+| Public API contract | [`product-knowledge/integrations/API.md`](./product-knowledge/integrations/API.md) |
+| MCP contract | [`product-knowledge/integrations/MCP.md`](./product-knowledge/integrations/MCP.md) |
+| Changelog | [`product-knowledge/CHANGELOG.md`](./product-knowledge/CHANGELOG.md) |
+| Changelog fragments (entries of unreleased changes, collected by the release script) | [`harness/core/templates/changelog-fragments.md`](../harness/core/templates/changelog-fragments.md) |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
-| Plan method and its values | [`harness/core/plan/README.md`](../harness/core/plan/README.md), [`development-plan/bindings.md`](./development-plan/bindings.md) |
+| Plan method | [`harness/core/plan/README.md`](../harness/core/plan/README.md) |
+| Plan bindings (the values of the plan method) | [`development-plan/bindings.md`](./development-plan/bindings.md) |
 | Definition of done | [`harness/core/plan/definition-of-done.md`](../harness/core/plan/definition-of-done.md) |
 | Guiding principles | [`harness/core/plan/guiding-principles.md`](../harness/core/plan/guiding-principles.md) |
-| Testing guide, e2e matrix | [`testing/README.md`](./testing/README.md), [`testing/e2e-matrix.md`](./testing/e2e-matrix.md) |
-| Deployment and releases | [`operations/DEPLOYMENT.md`](./operations/DEPLOYMENT.md), [`operations/RELEASING.md`](./operations/RELEASING.md) |
+| Testing guide | [`testing/README.md`](./testing/README.md) |
+| End-to-end coverage matrix | [`testing/e2e-matrix.md`](./testing/e2e-matrix.md) |
+| Deployment guide | [`operations/DEPLOYMENT.md`](./operations/DEPLOYMENT.md) |
+| Releases | [`operations/RELEASING.md`](./operations/RELEASING.md) |
 | Code quality reviews | [`harness/core/reviews/code/README.md`](../harness/core/reviews/code/README.md) |
-| Harness quality reviews | [`harness/core/reviews/harness/README.md`](../harness/core/reviews/harness/README.md), [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
+| Harness quality reviews | [`harness/core/reviews/harness/README.md`](../harness/core/reviews/harness/README.md) |
+| Harness review bindings | [`quality-reviews/harness/bindings.md`](./quality-reviews/harness/bindings.md) |
 | Harness-to-framework plan | [`harness-framework/README.md`](./harness-framework/README.md) |

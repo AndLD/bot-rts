@@ -45,3 +45,18 @@ test('the jobs of the stack and the frame of the host make one workflow that pas
   assert.match(workflow, /needs: \[changes, static, api, web\]/)
   assert.match(workflow, /harness\.mjs coverage merge coverage-artifacts/)
 })
+
+test('among several stacks the static job is named after the stack, runs its own commands, and the coverage jobs are those of its own packages', () => {
+  const profile = {
+    commands: { lint: 'run-lint', docsCheck: 'run-docs' },
+    coveragePackages: ['api', 'web']
+  }
+  const many = { stacks: 2, name: 'node-ts', packages: ['web'], commands: { lint: 'npm run lint' } }
+  const first = ciJobs(profile, { ...many, first: true })
+  assert.deepEqual(first.ids, ['static-node-ts', 'web'])
+  assert.match(first.yaml, /^ {2}static-node-ts:\n {4}name: static checks \(node-ts\)\n/m)
+  assert.ok(first.yaml.includes('- run: npm run lint') && first.yaml.includes('- run: run-docs'))
+  assert.equal(first.yaml.includes('run-lint'), false, "the stack runs its own lint command, not the first stack's")
+  assert.equal(ciJobs(profile, { ...many, first: false }).yaml.includes('run-docs'), false)
+  assert.deepEqual(ciJobs(profile).ids, ['static', 'api', 'web'], 'a project with one stack is as it was')
+})

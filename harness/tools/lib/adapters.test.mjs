@@ -45,7 +45,8 @@ test('the github host adapter fills its contract', () => {
 
 test('a folder without a manifest, and a skeleton, are not adapters', () => {
   assert.ok(listAdapters().every(({ name }) => !name.startsWith('_')))
-  assert.ok(!listAdapters().some(({ axis, name }) => axis === 'stack' && name === 'python'))
+  assert.ok(listAdapters().some(({ axis, name }) => axis === 'stack' && name === 'python'))
+  assert.ok(!listAdapters().some(({ axis, name }) => axis === 'stack' && name === 'rust'))
 })
 
 test('a required role that is not filled fails, naming the role and the contract', () => {

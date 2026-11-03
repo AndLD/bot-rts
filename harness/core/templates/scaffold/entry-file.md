@@ -13,6 +13,9 @@ cite by its role (the branches, the coverage gate, the commands) is in the [proj
 | see which tool holds a rule | the [rule-to-check map]({{rel:documents.ruleChecks}}) |
 | finish a task | [method §4]({{rel:documents.method}}#4-definition-of-done) (definition of done) |
 | find a value or a command | the [project profile]({{rel:paths.profileDocument}}) |
+{{#if documents.specification}}
+| understand what the product is or does | the [product specification]({{rel:documents.specification}}) and its [glossary]({{rel:documents.glossary}}) |
+{{/if}}
 
 **Procedures** (steps for recurring work, also available as skills of the agent runtime):
 

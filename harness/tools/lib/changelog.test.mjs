@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addFragments, nextVersion, parseFragment, parseVersion, releaseChangelog, releaseNotes } from './changelog.mjs'
+import {
+  addFragments,
+  nextVersion,
+  parseFragment,
+  parseVersion,
+  readVersion,
+  releaseChangelog,
+  releaseNotes,
+  writeVersion
+} from './changelog.mjs'
 
 const REPO = 'https://github.com/AndLD/bot-rts'
 
@@ -112,4 +121,27 @@ test('releaseChangelog releases the fragments too, and an Unreleased list that h
   const result = releaseChangelog(only, '1.0.0', '2026-11-01', REPO, [{ kind: 'Added', entry: 'From a fragment.' }])
   assert.match(result, /## \[1\.0\.0\] - 2026-11-01\n\n### Added\n\n- From a fragment\./)
   assert.throws(() => releaseChangelog(only, '1.0.0', '2026-11-01', REPO, []), /nothing/)
+})
+
+test('the version of a TOML file is the one in its [project] table, and writing it keeps the rest of the file', () => {
+  const toml =
+    '[build-system]\nversion = "9"\n\n[project]\nname = "demo"\nversion = "0.1.0"\nrequires-python = ">=3.12"\n\n[tool.x]\nversion = "7"\n'
+  assert.equal(readVersion('pyproject.toml', toml), '0.1.0')
+  assert.equal(writeVersion('pyproject.toml', toml, '0.2.0'), toml.replace('version = "0.1.0"', 'version = "0.2.0"'))
+  assert.equal(readVersion('package.json', '{"version":"1.2.3"}'), '1.2.3')
+  assert.equal(
+    writeVersion('package.json', '{"name":"x","version":"1.2.3"}', '1.3.0'),
+    '{\n  "name": "x",\n  "version": "1.3.0"\n}\n'
+  )
+  assert.throws(() => readVersion('pyproject.toml', '[tool.x]\nversion = "7"\n'), /no version in its \[project\] table/)
+  assert.throws(() => readVersion('package.json', '{}'), /package\.json has no version/)
+})
+
+test('a development version is below its own release, so 0.1.0-dev.1 is released as 0.1.0 and not as anything lower', () => {
+  assert.equal(nextVersion('0.1.0-dev.1', '0.1.0'), '0.1.0')
+  assert.equal(nextVersion('0.1.0-dev.1', 'patch'), '0.1.0')
+  assert.equal(nextVersion('0.1.0-dev.1', 'minor'), '0.2.0')
+  assert.equal(nextVersion('0.1.0-dev.1', '0.2.0'), '0.2.0')
+  assert.throws(() => nextVersion('0.1.0-dev.1', '0.0.9'), /not higher/)
+  assert.throws(() => nextVersion('0.1.0', '0.1.0-dev.2'), /not a version/)
 })

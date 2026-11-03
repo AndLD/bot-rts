@@ -6,6 +6,8 @@ import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'no
 import { join } from 'node:path'
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/
+// The version a development line is at, before the release it leads to: 0.1.0-dev.1 comes before 0.1.0
+const DEVELOPMENT = /^(\d+)\.(\d+)\.(\d+)-[0-9A-Za-z.-]+$/
 
 export function parseVersion(version) {
   const match = SEMVER.exec(version)
@@ -15,16 +17,25 @@ export function parseVersion(version) {
   return match.slice(1).map(Number)
 }
 
-// `bump` is major | minor | patch, or an explicit version that must be higher than the current one
+// `bump` is major | minor | patch, or an explicit version that must be higher than the current one. A current version that is a development version
+// (`0.1.0-dev.1`) is below its own release: `patch` and `0.1.0` both give 0.1.0.
 export function nextVersion(current, bump) {
-  const [major, minor, patch] = parseVersion(current)
+  const development = DEVELOPMENT.exec(current)
+  const [major, minor, patch] = development ? development.slice(1).map(Number) : parseVersion(current)
 
   if (bump === 'major') return `${major + 1}.0.0`
   if (bump === 'minor') return `${major}.${minor + 1}.0`
-  if (bump === 'patch') return `${major}.${minor}.${patch + 1}`
+  if (bump === 'patch') return development ? `${major}.${minor}.${patch}` : `${major}.${minor}.${patch + 1}`
 
   const [nextMajor, nextMinor, nextPatch] = parseVersion(bump)
-  const isHigher = nextMajor !== major ? nextMajor > major : nextMinor !== minor ? nextMinor > minor : nextPatch > patch
+  const isHigher =
+    nextMajor !== major
+      ? nextMajor > major
+      : nextMinor !== minor
+        ? nextMinor > minor
+        : development
+          ? nextPatch >= patch
+          : nextPatch > patch
   if (!isHigher) {
     throw new Error(`${bump} is not higher than the current version ${current}`)
   }
@@ -141,10 +152,31 @@ export function checkChangelog({ root, profile }) {
   return { problems, message: `Checked ${names.length} changelog fragments.` }
 }
 
+// The `version = "x.y.z"` line of the `[project]` table of a TOML file, which a Python project keeps its version in; every other version file is JSON
+const PROJECT_VERSION = /(^\[project\]\s*\n(?:(?!\[)[^\n]*\n)*?version\s*=\s*)(["'])([^"']*)\2/m
+const isToml = (file) => file.endsWith('.toml')
+
+/** The version in the text of a version file (a JSON file with a `version`, or the `[project]` table of a TOML file). */
+export function readVersion(file, text) {
+  const version = isToml(file) ? PROJECT_VERSION.exec(text)?.[3] : JSON.parse(text).version
+  if (!version) {
+    throw new Error(`${file} has no version${isToml(file) ? ' in its [project] table' : ''}`)
+  }
+  return version
+}
+
+/** The text of a version file with its version set; the rest of a TOML file is kept as it is. */
+export function writeVersion(file, text, version) {
+  readVersion(file, text)
+  return isToml(file)
+    ? text.replace(PROJECT_VERSION, `$1$2${version}$2`)
+    : `${JSON.stringify({ ...JSON.parse(text), version }, null, 2)}\n`
+}
+
 const RELEASE_BRANCH = /^(release|hotfix)\/(\d+\.\d+\.\d+)$/
 
 /**
- * `harness release [--dry-run]`, on a branch `release/<x.y.z>` or `hotfix/<x.y.z>`: sets the version in every version file, moves the entries under
+ * `harness release [--dry-run]`, on a branch `release/<x.y.z>` or `hotfix/<x.y.z>`: sets the version in every version file (JSON, or the `[project]` table of a TOML file), moves the entries under
  * "Unreleased" and those of the fragments to a section of the version, removes the fragments and runs the lock command of the profile. It
  * commits and tags nothing.
  * @returns {string[]} what it did or would do
@@ -162,7 +194,7 @@ export function release({ root, profile, dryRun = false, date = new Date().toISO
     throw new Error('the working tree is not clean: commit or stash first')
   }
 
-  const current = JSON.parse(readFileSync(join(root, versionFiles[0]), 'utf8')).version
+  const current = readVersion(versionFiles[0], readFileSync(join(root, versionFiles[0]), 'utf8'))
   const version = nextVersion(current, match[2])
   const fragmentsDir = join(root, profile.paths.changelogFragments)
   const names = fragmentFiles(fragmentsDir)
@@ -181,8 +213,7 @@ export function release({ root, profile, dryRun = false, date = new Date().toISO
     return [...lines, 'Dry run: nothing was written.']
   }
   for (const file of versionFiles) {
-    const manifest = JSON.parse(readFileSync(join(root, file), 'utf8'))
-    writeFileSync(join(root, file), `${JSON.stringify({ ...manifest, version }, null, 2)}\n`)
+    writeFileSync(join(root, file), writeVersion(file, readFileSync(join(root, file), 'utf8'), version))
   }
   writeFileSync(changelogPath, changelog)
   names.forEach((name) => rmSync(join(fragmentsDir, name)))

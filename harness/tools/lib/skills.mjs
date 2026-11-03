@@ -16,7 +16,8 @@ const selectedRuntimes = (profile) =>
 const phrase = (description) => description.replace(/^Use when\s+/i, '').replace(/\.$/, '')
 
 /**
- * The skill generators: for each runtime of the framework that packages procedures, and each procedure, the file the runtime wants it in.
+ * The skill generators: for each runtime of the framework that packages procedures, and each procedure, the file the runtime wants it in (a runtime may
+ * want none for a profile: `skillPath` then returns undefined, as Cursor does when Claude Code's skills serve it).
  * @param {object} runtimes the loaded runtime adapters (`loadAdapterModules('runtime')`)
  */
 export function skillGenerators(runtimes = ADAPTER_RUNTIMES, procedures = listProcedures()) {
@@ -28,10 +29,13 @@ export function skillGenerators(runtimes = ADAPTER_RUNTIMES, procedures = listPr
           id: `skill-${runtime}-${procedure.name}`,
           path: (profile) =>
             selectedRuntimes(profile).includes(runtime) && profile.documents
-              ? packaging.skillPath(procedure)
+              ? packaging.skillPath(procedure, profile)
               : undefined,
           render: ({ profile }) =>
-            packaging.packageProcedure(procedure, renderProcedure(procedure, profile, packaging.skillPath(procedure)))
+            packaging.packageProcedure(
+              procedure,
+              renderProcedure(procedure, profile, packaging.skillPath(procedure, profile))
+            )
         }))
       : []
   })

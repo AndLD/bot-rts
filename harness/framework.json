@@ -1,10 +1,10 @@
 {
   "name": "harness-framework",
-  "version": "0.1.0-dev.1",
+  "version": "0.1.0",
   "license": "MIT",
   "adapters": {
-    "stack": ["node-ts"],
-    "runtime": ["claude-code"],
+    "stack": ["node-ts", "python"],
+    "runtime": ["claude-code", "cursor"],
     "host": ["github"]
   },
   "distributable": [

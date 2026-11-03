@@ -88,7 +88,7 @@ test('the profile file is written in the order of the schema, the unknown keys l
 
 test('an adapter the framework does not have is named with the ones it has', () => {
   const problems = unknownAdapters(completeProfile({ ...ANSWERS, adapters: { stacks: ['rust'] } }), adapterCatalogue())
-  assert.deepEqual(problems, ['the framework has no stack adapter "rust"; it has node-ts'])
+  assert.deepEqual(problems, ['the framework has no stack adapter "rust"; it has node-ts, python'])
 })
 
 test('the scaffold joins the ignore lines of every part and renders the core files with the profile', () => {
@@ -102,6 +102,50 @@ test('the scaffold joins the ignore lines of every part and renders the core fil
   assert.match(files['docs/engineering/stack.md'], /The stack adapters of the profile: node-ts \(TypeScript on Node/)
   assert.ok(files['docs/development-plan/phases/phase-1-issues.md'].startsWith('[← Development plan](../README.md)'))
   assert.ok(files['.github/workflows/ci.yml'] && files['CLAUDE.md'] && files['package.json'])
+})
+
+test('the scaffold writes the product-knowledge skeleton, which the entry file points to and the product-knowledge check accepts', () => {
+  const profile = withDefaults(readSchema(), completeProfile(ANSWERS))
+  const files = Object.fromEntries(scaffoldPlan({ profile, modules }).map(({ path, content }) => [path, content]))
+  assert.deepEqual(profile.productKnowledge.excluded, ['open-questions.md', 'backlog.md'])
+  for (const path of ['README.md', 'glossary.md', 'open-questions.md', 'backlog.md']) {
+    assert.ok(files[`docs/product/${path}`], path)
+  }
+  assert.match(
+    files['docs/product/README.md'],
+    /^\[← README\]\(\.\.\/\.\.\/README\.md\)\n\n# acme — product specification/
+  )
+  assert.match(files['docs/product/glossary.md'], /\| Term \| Code name \| Aliases \| Definition \|/)
+  assert.match(files['docs/product/open-questions.md'], /\| Id \| Question \| Kind \| Section \| Blocks \| Owner \|/)
+  assert.match(
+    files['AGENTS.md'],
+    /\| understand what the product is or does \| the \[product specification\]\(\.\/docs\/product\/README\.md\)/
+  )
+})
+
+test('a project with two stacks gets one CI workflow whose job ids are unique, each stack with its own static job and its own coverage jobs', () => {
+  const profile = withDefaults(
+    readSchema(),
+    completeProfile({
+      ...ANSWERS,
+      adapters: {
+        stacks: [
+          { adapter: 'node-ts', packages: ['web'] },
+          { adapter: 'python', packages: ['api'] }
+        ],
+        runtimes: ['claude-code']
+      },
+      coveragePackages: ['web', 'api']
+    })
+  )
+  const files = Object.fromEntries(scaffoldPlan({ profile, modules }).map(({ path, content }) => [path, content]))
+  const ci = files['.github/workflows/ci.yml']
+  const jobIds = [...ci.slice(ci.indexOf('\njobs:')).matchAll(/^ {2}([a-z][\w-]*):$/gm)].map((match) => match[1])
+  assert.equal(new Set(jobIds).size, jobIds.length, jobIds.join(', '))
+  assert.deepEqual(jobIds, ['pr-title', 'changes', 'static-node-ts', 'web', 'static-python', 'api', 'verify'])
+  assert.match(ci, /needs: \[changes, static-node-ts, web, static-python, api\]/)
+  assert.equal(files['.nvmrc'], '22\n', 'both stacks name the Node version, as one line')
+  assert.match(files['pyproject.toml'], /members = \["api"\]/)
 })
 
 test('without an agent runtime the project gets the agent-neutral minimum', () => {
@@ -158,7 +202,11 @@ test('the template repository holds every adapter, the empty questions, and a lo
   buildTemplate({ out })
   const lock = readLock(out)
   assert.deepEqual(lock.template, ['README.md', 'BOOTSTRAP.md'])
-  assert.deepEqual(lock.adapters, { stacks: ['node-ts'], runtimes: ['claude-code'], hosts: ['github'] })
+  assert.deepEqual(lock.adapters, {
+    stacks: ['node-ts', 'python'],
+    runtimes: ['claude-code', 'cursor'],
+    hosts: ['github']
+  })
   assert.equal(lock.source.type, 'path')
   assert.ok(existsSync(join(out, 'harness', 'adapters', 'runtime', 'claude-code', 'manifest.json')))
   assert.ok(existsSync(join(out, 'BOOTSTRAP.md')))
@@ -209,7 +257,7 @@ test('init asks only what no flag answered, and an empty reply takes the value o
     /holds no framework\.json/
   )
   assert.equal(prompts.length, 6)
-  assert.ok(prompts[0].startsWith('Stack adapters (available: node-ts)'))
+  assert.ok(prompts[0].startsWith('Stack adapters (available: node-ts, python)'))
   const written = JSON.parse(readFileSync(join(root, 'harness-profile.json'), 'utf8'))
   assert.deepEqual(written.adapters, { stacks: ['node-ts'], runtimes: [], host: 'github' })
   assert.equal(written.coverageGate.branches, 80)

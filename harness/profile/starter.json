@@ -33,7 +33,10 @@
       "releasing": "docs/operations/releasing.md",
       "codeReviews": "harness/core/reviews/code/README.md",
       "harnessReviews": "harness/core/reviews/harness/README.md",
-      "harnessBindings": "docs/quality-reviews/harness/bindings.md"
+      "harnessBindings": "docs/quality-reviews/harness/bindings.md",
+      "specification": "docs/product/README.md",
+      "glossary": "docs/product/glossary.md",
+      "changelog": "CHANGELOG.md"
     },
     "plan": {
       "taskId": "`<phase>.<number>`, with an optional letter suffix (`2.1`, `2.1a`)",
@@ -43,6 +46,14 @@
       "resumePhrases": "\"Start Phase N\", \"Continue Phase N\"; the phrase approves the pull requests of the named phases",
       "openEndedPhase": "Phase 1 (issues found in use); its size grows",
       "openEndedPhaseNumber": 1
+    },
+    "productKnowledge": {
+      "root": "docs/product",
+      "specification": "docs/product",
+      "glossary": "glossary.md",
+      "register": "open-questions.md",
+      "backlog": "backlog.md",
+      "excluded": ["open-questions.md", "backlog.md"]
     }
   }
 }

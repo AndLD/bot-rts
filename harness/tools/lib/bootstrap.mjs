@@ -31,10 +31,11 @@ import {
   writeLock
 } from './lock.mjs'
 import { planSummary } from './plan.mjs'
-import { PROFILE_FILE, loadProfile, readSchema, validate, withDefaults } from './profile.mjs'
+import { PROFILE_FILE, folderOf, loadProfile, readSchema, validate, withDefaults } from './profile.mjs'
 import { render, valueAt } from './render.mjs'
 import { readManifest, resolveSource } from './source.mjs'
 import { hashTree } from './tree.mjs'
+import { adoptGit, ensureManagedBlocks } from './adopt-steps.mjs'
 import { detach, recordSelf, selectFiles, sync, vendor } from './vendor.mjs'
 
 /** The framework tree this command runs from. */
@@ -295,6 +296,23 @@ function roleFunction(adapter, role) {
 }
 
 /**
+ * What a stack's `ciJobs` needs to know when the project has several stacks: how many there are, whether this is the first (the one that runs the
+ * documentation check), the folders it owns, and its own commands (the profile's commands are the project's, and come from the first stack's defaults).
+ */
+function jobsContext(profile, name, index, count, adapter) {
+  const entry = (profile.adapters?.stacks ?? []).find(
+    (item) => (typeof item === 'string' ? item : item.adapter) === name
+  )
+  return {
+    stacks: count,
+    first: index === 0,
+    name,
+    packages: Array.isArray(entry?.packages) ? entry.packages.map(folderOf) : undefined,
+    commands: adapter?.manifest.defaults?.commands
+  }
+}
+
+/**
  * The scaffolded files of a new project (design §6.3): the core templates of `core/templates/scaffold/` rendered with the profile, and the files
  * of each selected adapter's `scaffold-files` role. A file that several of them name must be a list of lines (the Git ignore file), and the lines
  * are joined in order without repeats; any other path named twice is an error.
@@ -331,13 +349,13 @@ export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules })
     )
   }
   const jobs = []
-  for (const name of stacks) {
+  stacks.forEach((name, index) => {
     contributions.push(...(roleFunction(modules.stack[name], 'scaffold-files')?.(profile) ?? []))
     const ciJobs = roleFunction(modules.stack[name], 'ci-job-layout')
     if (ciJobs) {
-      jobs.push(ciJobs(profile))
+      jobs.push(ciJobs(profile, jobsContext(profile, name, index, stacks.length, modules.stack[name])))
     }
-  }
+  })
   for (const name of runtimes) {
     contributions.push(...(roleFunction(modules.runtime[name], 'scaffold-files')?.(profile) ?? []))
   }
@@ -453,6 +471,17 @@ export function setUpGit({ root, profile, version, regenerate = () => {} }) {
   return messages
 }
 
+/** The owner's steps after an adoption: everything is in the working tree, nothing is committed. */
+export function adoptionSteps(profile) {
+  const { integration } = profile.branches
+  return [
+    'Next steps (yours):',
+    `  1. Branch from ${integration} and read \`git status\`: the framework is in ${profile.paths.frameworkDir ?? VENDOR_DIR}/, the profile file is at the root, and the entry file has the managed blocks.`,
+    '  2. Remove, in the same pull request, the scripts and hooks that the report names as replaced, and your own text of the rules that the managed blocks now hold.',
+    '  3. `git add` the new files, run `harness sync --local` (a layer map lists the files Git tracks) and `harness check all`, commit, and open the pull request.'
+  ]
+}
+
 /** The owner's steps after a bootstrap, which the tools cannot do. */
 export function nextSteps(profile) {
   const { production, integration } = profile.branches
@@ -479,10 +508,14 @@ export async function bootstrap({
   force = false,
   detached = false,
   self = false,
+  adopt = false,
   reason = DEFAULT_DETACH_REASON,
   out = () => {},
   err = () => {}
 }) {
+  if (adopt && (self || detached)) {
+    throw new Error('--adopt is for a project that exists already, so it cannot be combined with --self or --detached')
+  }
   if (self && (detached || from)) {
     throw new Error(
       '--self takes the framework tree at the root of the project, so it cannot be combined with --detached or --from'
@@ -520,8 +553,8 @@ export async function bootstrap({
       frameworkDir: fetched.dir,
       modules: await loadModules(fetched.dir)
     })
-    // The framework's own repository has files of its own where the scaffold has them too (the README, the changelog, the license): they stay
-    const kept = self ? planned.filter(({ path }) => existsSync(join(root, path))) : []
+    // The framework's own repository, and a project that is adopted, have files of their own where the scaffold has them too: they stay
+    const kept = self || adopt ? planned.filter(({ path }) => existsSync(join(root, path))) : []
     const files = planned.filter((file) => !kept.includes(file))
     const replaceable = new Set(template?.template ?? [])
     const existing = files.filter(({ path }) => existsSync(join(root, path)) && !replaceable.has(path))
@@ -544,7 +577,19 @@ export async function bootstrap({
     }
     const messages = [`Wrote ${PROFILE_FILE} and ${files.length} scaffolded files.`]
     if (kept.length) {
-      messages.push(`Kept the files of the framework itself: ${kept.map(({ path }) => path).join(', ')}.`)
+      messages.push(
+        adopt
+          ? `Kept the project's own files: ${kept.map(({ path }) => path).join(', ')} (compare them with the scaffold of the framework in your own pull request).`
+          : `Kept the files of the framework itself: ${kept.map(({ path }) => path).join(', ')}.`
+      )
+    }
+    if (adopt) {
+      const { added, path } = ensureManagedBlocks(root, withDefaults(schema, profile))
+      if (added.length) {
+        messages.push(
+          `Added the managed blocks ${added.join(', ')} at the end of ${path}; remove your own text of the same rules.`
+        )
+      }
     }
     messages.push(
       ...(self
@@ -552,23 +597,45 @@ export async function bootstrap({
         : vendor({ root, fetched, adapters: selectedAdapters(profile) })
       ).messages
     )
-    messages.push(planSummary({ root, profile: loadProfile(root), check: false }).message)
+    try {
+      messages.push(planSummary({ root, profile: loadProfile(root), check: false }).message)
+    } catch (error) {
+      if (!adopt) {
+        throw error
+      }
+      messages.push(`The plan summary was not written: ${error.message}`)
+    }
     if (detached) {
       messages.push(...detach({ root, reason }).messages)
     }
     const effective = withDefaults(schema, profile)
-    messages.push(
-      ...setUpGit({
-        root,
-        profile: effective,
-        version: fetched.version,
-        regenerate: () => sync({ root, local: true })
-      })
-    )
+    if (adopt) {
+      const modules = await loadModules(fetched.dir)
+      for (const name of selectedAdapters(profile).runtimes) {
+        const adoption = roleFunction(modules.runtime[name], 'hook-adoption')
+        const { files: configured = [], notes = [] } = adoption?.({ root, profile: effective }) ?? {}
+        for (const { path, content } of configured) {
+          mkdirSync(dirname(join(root, path)), { recursive: true })
+          writeFileSync(join(root, path), content)
+          messages.push(`Pointed the hook entries of ${path} at the framework's runtime hooks.`)
+        }
+        messages.push(...notes)
+      }
+      messages.push(...adoptGit(root, effective))
+    } else {
+      messages.push(
+        ...setUpGit({
+          root,
+          profile: effective,
+          version: fetched.version,
+          regenerate: () => sync({ root, local: true })
+        })
+      )
+    }
     messages.forEach((line) => out(line))
 
     const code = checkAll({ root, out, err, stdio: 'pipe' })
-    nextSteps(effective).forEach((line) => out(line))
+    ;(adopt ? adoptionSteps(effective) : nextSteps(effective)).forEach((line) => out(line))
     return { code, messages }
   } finally {
     fetched.cleanup()

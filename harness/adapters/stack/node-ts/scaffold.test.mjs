@@ -27,7 +27,7 @@ test('the package manifest runs the framework and installs the hooks; the lock f
   const lock = JSON.parse(files['package-lock.json'].content)
   assert.equal(lock.lockfileVersion, 3)
   assert.deepEqual(Object.keys(lock.packages), [''])
-  assert.equal(files['.nvmrc'].content, `${NODE_VERSION}\n`)
+  assert.deepEqual(files['.nvmrc'].lines, [NODE_VERSION])
   assert.deepEqual(files['.gitignore'].lines, ['node_modules/', 'coverage/', 'dist/'])
 })
 

@@ -2,7 +2,7 @@
 
 # Phase 17 — Harness framework extraction (71 SP)
 
-**Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-17-log](./work-logs/phase-17-log.md), and one fragment per task in `work-logs/phase-17/`
+**Status:** ✅ Done · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-17-log](./work-logs/phase-17-log.md), and one fragment per task in `work-logs/phase-17/`
 
 Extracts the project-neutral part of this repository's harness into a framework, `harness-framework`, from which a new project with
 any stack and any coding agent bootstraps its harness, and which `bot-rts` then consumes. This phase is step 3 of the

@@ -317,4 +317,17 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   - `docs/product-knowledge/archived-docs/` is renamed `docs/product-knowledge/archived/`. Links, the profile file and the generated files follow.
 - **Problems / blockers / findings:** none.
 - **Next step:** the rest of H-05 waits for the owner: the P2 budget (after the discussion of the phase log and the task logs), and budgets for P8 and P9.
+
+### 2026-11-03 — H-20261103-05, second part: the probe budgets
+- **Tasks:** none here (a finding of the closing review, 17.17)
+- **Branch:** `docs/h-20261103-05-budgets-and-archive`
+- **Decisions / deviations from the plan:** the owner's decisions:
+  - P2 keeps the routine budget (6,000 words). Its excess is recorded as known until the framework's task 3.10, which makes the work logs one source (a
+    finished task is logged only in its fragment) and has a resuming agent read only the open tasks' rows.
+  - P8 and P9 are routine probes, budget 6,000 words. Their excess is recorded as known until the framework's procedures for adding a phase and
+    recording a defect (its tasks 4.3 and 4.4).
+  - Task 3.10 is planned in the framework ([AndLD/harness-framework#13](https://github.com/AndLD/harness-framework/pull/13)).
+- **Problems / blockers / findings:** none. H-20261103-05 is resolved: every exceeded budget has a recorded reason.
+- **Next step:** unchanged: the framework builds 3.6 to 3.8 and releases `0.1.1`; then the sync task here, then `finish-phase`.
+- **Verify with:** `npm run docs:check`
 - **Verify with:** `npm run docs:check`

@@ -261,7 +261,7 @@ for f in docs/product-knowledge/game-design/[0-9]*.md; do n=$(basename "$f" | cu
 - **M24 rule interaction and state space:** from the claims ledger count rules per entity, rules whose condition names
   another rule's outcome, the longest such chain, and the share of rules phrased as exceptions. Extract the lifecycles (bot,
   module, base, order, session, script run) as states and transitions and count both.
-- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5, and P8 and P9; the first review that runs P8 and P9 sets their baseline).
+- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5, P8 and P9; P8 and P9 have the routine budget since 2026-11-03).
 
 Essential versus accidental: the economy, the script runtime and the market are essential complexity of this product; judge how
 they are written, not that they exist. Typical accidental signs here: the same rule restated in `AGENTS.md`, a design section and
@@ -279,7 +279,7 @@ Budgets (approved by the owner on 2026-10-17, from the baseline of the [2026-10-
 | Harness: reference structure | Hops to answer "which checks gate a merge?" | ≤ 2 (baseline 4) | 2026-10-17 |
 | Harness: process | Manual steps in the task workflow (start → done → pull request → merge → log) | ≤ 15 (baseline 21) | 2026-10-17 |
 | Harness: process | Branch types and document types | no growth without a recorded reason (baseline 8 and 12) | 2026-10-17 |
-| Harness: time to first action | Words read before the first correct action (M26) | routine probes ≤ 6,000; export probe ≤ 10,000 (baseline P1 4,826 … P5 23,680) | 2026-10-17 |
+| Harness: time to first action | Words read before the first correct action (M26) | routine probes ≤ 6,000; export probe ≤ 10,000 (baseline P1 4,826 … P5 23,680). P8 and P9 are routine probes (baseline 9,200 and ≈ 11,000). Known excess, the owner's decision on H-20261103-05: P2 until the framework's task 3.10 (a resuming agent reads the rows of finished tasks); P8 and P9 until the framework's tasks 4.3 and 4.4 (the procedures that add a phase and record a defect) | 2026-10-17; P8, P9 and the known excess 2026-11-03 |
 | Product: concept load | Domain terms used in two or more files and missing from the glossary | 0 (baseline ≈ 15) | 2026-10-17 |
 | Product: concept load | New concepts per onboarding step | ≤ 5 (baseline peak 5) | 2026-10-17 |
 | Product: rule interaction | Rules per entity | ≤ 25 | 2026-10-17 |

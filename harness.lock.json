@@ -226,8 +226,8 @@
     "tools/runtime-hooks/session-start.mjs": "406ddca96cf2f7291cd0f3efd35bf700c471b33f494fdb3121479bbdb8636f96"
   },
   "managed": {
-    "docs/profile.md": "00f2ab3e545b3fc9a6c10d95018bc0d3be6fd84285adcc0aa657c4241eaba22a",
-    "docs/quality-reviews/harness/bindings.md#layers": "13260e71051746349575a01d0364137c541dafc3201da898fd50fe8c6f2205ad",
+    "docs/profile.md": "673ecdce5b695d2e0f0f48105f10de96c2334ca268cbecf12120795099b8121e",
+    "docs/quality-reviews/harness/bindings.md#layers": "0f561e4c87dff0a3d2c74f267b4651f5efea7004c58bb5b1551d00a56178995f",
     "docs/engineering/rule-checks.md#rule-map": "b4bf9aa1465573b59be071fe03f5e909ff13c75b4d7848f4cc1ccd3eac6873bd",
     "AGENTS.md#procedures": "6fdeae518f509ba3599590fb7dbad92b71d1455d7d42fcddeaf962806cfc6d35",
     "AGENTS.md#non-negotiables": "29ac105e9a01c3980220dfadf5c9e453eeafd3e6b08330e842bb3e5d0fd73479",
@@ -241,7 +241,7 @@
     ".claude/skills/release/SKILL.md": "04e2ec62e80bbac523361e59e58db118eaa6b96db9da6cd95644962127b24042",
     ".claude/skills/start-task/SKILL.md": "8b1845aab25c195c8a184df4e2b5d9afa63abb86f7c84158a8b0f9eb3d2a60eb"
   },
-  "profile": "1f0a919ee7477eb3bd3b6a6ea9c313a75655a24ac04df1b00c597d70419dbb70",
+  "profile": "4b7a9b7b833e7d3ff52a11b4d215b203eada26a38a50ea07ce428c5dd0520e3f",
   "overrides": [],
   "seen": {
     "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79",

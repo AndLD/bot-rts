@@ -133,7 +133,7 @@
     "register": "20-open-questions.md",
     "backlog": "21-backlog.md",
     "backlogSection": "21",
-    "excluded": ["archived-docs/**", "CHANGELOG.md", "game-design/20-open-questions.md", "game-design/21-backlog.md"],
+    "excluded": ["archived/**", "CHANGELOG.md", "game-design/20-open-questions.md", "game-design/21-backlog.md"],
     "allowedTerms": {
       "game-design/10-the-script-api.md": ["typescript"],
       "integrations/API.md": ["socket.io"],
@@ -237,7 +237,7 @@
     "codeReviews": "harness/core/reviews/code/README.md",
     "harnessReviews": "harness/core/reviews/harness/README.md",
     "harnessBindings": "docs/quality-reviews/harness/bindings.md",
-    "frameworkPlan": "docs/harness-framework/README.md"
+    "frameworkPlan": "docs/archived/harness-framework/README.md"
   },
   "layers": {
     "scope": [
@@ -254,7 +254,7 @@
     "excluded": ["client/public/atlas/LICENSE.md"],
     "domain": [
       "docs/product-knowledge/**",
-      "!docs/product-knowledge/archived-docs/**",
+      "!docs/product-knowledge/archived/**",
       "!docs/product-knowledge/CHANGELOG.md",
       "!docs/product-knowledge/changelog.d/**"
     ],
@@ -279,13 +279,13 @@
       "docs/development-plan/cross-cutting/rfc-*.md",
       "docs/product-knowledge/CHANGELOG.md",
       "docs/product-knowledge/changelog.d/**",
-      "docs/product-knowledge/archived-docs/**",
+      "docs/product-knowledge/archived/**",
       "docs/quality-reviews/code/20*.md",
       "docs/quality-reviews/harness/20*.md",
       "docs/testing/reports/**",
       "docs/testing/by-phase.md",
-      "docs/harness-framework/README.md",
-      "docs/harness-framework/design.md"
+      "docs/archived/harness-framework/README.md",
+      "docs/archived/harness-framework/design.md"
     ],
     "entry": ["AGENTS.md", "CLAUDE.md", "README.md"]
   }

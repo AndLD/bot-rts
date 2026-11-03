@@ -7,7 +7,7 @@ modules. You can command a bot by hand from the GUI (manual micromanagement) or 
 Strategy is expressed as design and code: you design the machine, you write its brain, and you watch it compete in a
 shared, persistent world.
 
-> This document describes the **intended game design** gathered from the original [`notes.txt`](../archived-docs/notes.txt) (15 Jun 2024 and 21 Jan 2026),
+> This document describes the **intended game design** gathered from the original [`notes.txt`](../archived/notes.txt) (15 Jun 2024 and 21 Jan 2026),
 > the codebase, and the decisions made while planning. Every rule in these documents is **decided**; a point that is not
 > decided is registered in [§20 Open questions](./20-open-questions.md) and carries its id there (`Q3`). What is built is not
 > marked in the design: the status of each task is kept in the [development plan](../../development-plan/DEVELOPMENT-PLAN.md).

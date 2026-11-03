@@ -202,7 +202,9 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Decisions / deviations from the plan:** the owner's decisions, now in the plan index ("Order of development"):
   - This project is the harness framework's first consumer; product work waits (Phase 10, 12.5, 12.6).
   - It takes the framework's `0.1.1`, `0.2.0` (its development version first), `0.3.0` and the security release, and skips `0.1.2` on purpose.
-  - The framework's task 3.13 turns the open-ended phase into an issue queue; the migration of `0.2.0` does that to this phase, with 12.7.
+  - The framework's task 3.13 replaces the open-ended phase with an issue queue. The migration of `0.2.0` (with 12.7) makes this phase a normal phase
+    that keeps every id and ends with 12.7; 12.5 and 12.6, not started, become issues under their old ids too. No planned task is renamed, so the
+    order written by id stays valid. Finished issues move to the queue's archive.
 - **Problems / blockers / findings:** none.
 - **Next step:** the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

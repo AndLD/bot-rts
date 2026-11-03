@@ -294,3 +294,15 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   - After the sync, `docs:check` scans `harness/core` with this project's terms, and "no regression" of §3.5 holds.
   - Then `finish-phase` closes Phase 17.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — H-20261103-04 fixed: four stale statements
+- **Tasks:** none here (a finding of the closing review, 17.17)
+- **Branch:** `docs/h-20261103-04-stale-statements`
+- **Decisions / deviations from the plan:** the owner chose to fix H-04 now, in its own pull request, not with the sync to `0.1.1`.
+  - Rule-map row 97 is _enforced_: the `guard-shell` hook refuses `--no-verify` for an agent; the owner's terminal and the log record stay the owner's.
+  - The notes of the review bindings no longer describe a staging folder. They say that the CORE scan checks 0 files here while the copy is
+    pinned, until framework task 3.7 is synced; the sync rewrites that note.
+  - The review prompt names the probes P1 to P9.
+- **Problems / blockers / findings:** none. H-20261103-05 (budgets) waits for the owner's decision.
+- **Next step:** unchanged: the framework builds 3.6 to 3.8 and releases `0.1.1`; then the sync task here, then `finish-phase`.
+- **Verify with:** `npm run docs:check`

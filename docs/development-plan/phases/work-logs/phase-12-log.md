@@ -217,3 +217,13 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
 - **Verify with:** `npm run docs:check`
+
+### 2026-11-03 — upstream reporting at `ask`; no duplicate reports
+- **Tasks:** 12.7 (not started; size unchanged).
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the framework's task 3.16 makes upstream reporting a switch, `off` by default so a consumer spends no
+  tokens on it. The owner turns it on here at `ask`, as one of 12.7's choices. Until then, a session searches the framework's issues for the same
+  problem before it reports one.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`

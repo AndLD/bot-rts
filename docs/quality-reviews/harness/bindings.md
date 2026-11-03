@@ -13,8 +13,8 @@ Review step 2 of the method checks the layer map below against the repository an
 ## 1. Layer map
 
 The map is **generated**: its source is the `layers` role of the profile file [`harness-profile.json`](../../../harness-profile.json), plus what
-the tools know (the vendored copy and the managed rule blocks of `AGENTS.md` are CORE; the profile file, the lock, the profile document and every `bindings.md` are PROFILE; the folder of
-the framework source, while the framework is staged here, is "framework source" and outside the map). `npm run harness -- layers` prints it,
+the tools know (the vendored copy and the managed rule blocks of `AGENTS.md` are CORE; the profile file, the lock, the profile document and every `bindings.md` are PROFILE).
+`npm run harness -- layers` prints it,
 `npm run harness -- sync --local` writes it between the markers below, and `npm run harness -- check layers`, which `npm run docs:check` runs,
 fails on a tracked Markdown or harness file that is in no layer or in two. So a new file is classified when it is added, in the profile file,
 and not found by a later review. Review step 2 of the method still reads the map against the repository.
@@ -37,15 +37,18 @@ Notes on the layers:
 
 - **CORE** is the vendored framework and the two managed blocks of `AGENTS.md` (sections 1 and 7: the non-negotiables and the Git rules),
   which `npm run harness -- sync` renders from `harness/core/rules/` with the profile; `npm run harness -- check generated` and
-  `check vendored` fail on a block that differs, and the CORE scan of `npm run docs:check` runs on the framework source, where the rules
-  are written by role (the **Role binding** line is the only line of the blocks with this project's values). `layers.core` is empty.
+  `check vendored` fail on a block that differs. The rules are written by role (the **Role binding** line is the only line of the blocks
+  with this project's values). The vendored copy is pinned (`harness.lock.json`), so the CORE scan of `npm run docs:check` checks 0 files
+  here: the framework's own CI scans its `core/` with the framework's terms, and nothing scans it with this project's terms until the
+  framework's task 3.7 (H-20261103-01) is released and synced. `layers.core` is empty.
   `AGENTS.md` is both an entry point and the main rule file, so each review still reads it section by section: section 9 (the project rules
   that name tools) is ADAPTER text.
 - **DOMAIN** is the product knowledge. `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved
   their implementation notes and history out; they are DOMAIN only now.
 - **ADAPTER** includes `rule-checks.md` (the shape is CORE; the rows are this project's) and the `scripts/hook-*.mjs` scripts.
-- **STATE** includes `docs/harness-framework/README.md` and `design.md`, the plan and the design of the extraction. The framework's own
-  source is outside the map, and the framework's checks (the CORE scan of `framework/core/`, the links, its tests) cover it.
+- **STATE** includes `docs/harness-framework/README.md` and `design.md`, the plan and the design of the extraction. The framework's source
+  lives in its own repository, `AndLD/harness-framework`, whose checks (the CORE scan of `core/`, the links, its tests) cover it; here it
+  exists only as the vendored copy `harness/`, which is CORE.
 - Out of scope: `client/public/atlas/LICENSE.md` (third-party).
 
 Outside the repository: `~/.claude/projects/<project>/memory/` (user memory). Review only whether it repeats repository rules.
@@ -411,7 +414,7 @@ Run a full harness quality review exactly per harness/core/reviews/harness/READM
 
 Setup: create a docs/ branch from origin/<integration> (the integration branch of the profile). Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
-Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P7 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
+Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P9 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
 Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into the integration branch and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
 ```

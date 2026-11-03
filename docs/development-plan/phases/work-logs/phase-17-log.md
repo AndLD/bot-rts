@@ -330,3 +330,12 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Problems / blockers / findings:** none. H-20261103-05 is resolved: every exceeded budget has a recorded reason.
 - **Next step:** unchanged: the framework builds 3.6 to 3.8 and releases `0.1.1`; then the sync task here, then `finish-phase`.
 - **Verify with:** `npm run docs:check`
+
+### 2026-11-03 — task 17.18 added: sync to `0.1.1`
+- **Tasks:** 17.18 (added by the owner's request; 2 SP, `C1`; the phase is 71 SP)
+- **Branch:** `chore/17.18-sync-0.1.1`
+- **Decisions / deviations from the plan:** the framework released `0.1.1` (tag `v0.1.1`, with the migration note `migrations/0.1.1.md`); the sync follows the note. The scan of the vendored core with this project's terms finds
+  0 hits, so no exception is recorded and the "no regression" criterion of §3.5 holds. The owner's standing request for auto-merge (`AGENTS.md` §9) applies to the pull request.
+- **Problems / blockers / findings:** the vendored framework tests that read the framework's own profile file fail in a pinned project (see the task log); to report upstream after the owner has seen the text.
+- **Next step:** `finish-phase` for Phase 17.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

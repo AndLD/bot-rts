@@ -141,6 +141,9 @@ Run from the repository root unless a package is named.
 {{#if release}}
 
 A release (`harness release`, on a release or hotfix branch) sets the version of {{release.versionFiles}}, and then runs `{{release.lockCommand}}`.
+{{#if release.migrations}}
+A release is refused without the migration note of its version in `{{release.migrations}}/`.
+{{/if}}
 {{/if}}
 
 ## 9. Review values
@@ -171,6 +174,8 @@ Project values, which must not appear in CORE text except on the **Role binding*
 ```bash
 PROJECT_VALUES='{{terms.projectValues}}'
 ```
+
+A hit of the CORE scan in the vendored framework core that the project reported upstream and waits for the fix of is recorded in `terms.exceptions` of the profile file (the file, the word, the link to the report and the framework version it holds for); `{{commands.docsCheck}}` accepts it while the lock is at that version and fails on the exception after a sync to another one.
 
 {{#if productKnowledge}}
 The product-knowledge check (`harness check product-knowledge`, part of `{{commands.docsCheck}}`) reads the product specification in

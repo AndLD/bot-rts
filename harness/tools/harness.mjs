@@ -19,7 +19,7 @@
 //   harness check all                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
 //   harness plan log <phase> [ref]                                the implementation log of a phase from the merged pull requests
-//   harness release [--dry-run]                                   prepare a release on its branch: versions and changelog
+//   harness release [--dev] [--dry-run]                           prepare a release on its branch: versions and changelog; --dev only sets a development version
 //   harness release notes <version>                               the changelog section of a version, for the host's release
 //   harness ci changes <base> <head>                              whether a change needs the code checks (`code=true|false`)
 //   harness gate [--dry-run]                                      the local gate of a push (the refs on standard input): the checks its files need
@@ -65,7 +65,7 @@ const USAGE = `usage: harness <command>
   check <${Object.keys(CHECKS).join('|')}|all>
   plan summary [--check]
   plan log <phase> [ref]
-  release [--dry-run]
+  release [--dev] [--dry-run]
   release notes <version>
   ci changes <base> <head>
   gate [--dry-run]
@@ -97,6 +97,7 @@ const BOOLEAN_FLAGS = new Set([
   '--local',
   '--check',
   '--dry-run',
+  '--dev',
   '--skip-missing',
   '--detached',
   '--non-interactive',
@@ -215,7 +216,7 @@ export async function run(argv, { out = console.log, err = console.error, input 
       return 0
     }
     if (command === 'release') {
-      release({ root, profile: loadProfile(root), dryRun: flags.dryRun }).forEach((line) => out(line))
+      release({ root, profile: loadProfile(root), dryRun: flags.dryRun, dev: flags.dev }).forEach((line) => out(line))
       return 0
     }
     if (words[0] === 'release' && words[1] === 'notes' && words.length === 3) {

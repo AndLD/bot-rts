@@ -161,3 +161,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
   answers HTTP on 15432 (→ the `.env` lines). Docker Desktop itself was left running, since it holds the owner's database.
 - **Next step:** 12.5 and 12.6 whenever the owner asks; 17.9 to 17.12 are next in Phase 17 (17.11 follows 12.4 now).
 - **Verify with:** `npm run test:scripts`; `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — task 12.7 added: a phase as a folder of task files
+- **Tasks:** 12.7 added (not started).
+- **Branch:** `docs/plan-task-files-task`
+- **Decisions / deviations from the plan:** the owner asked to split every open phase into an index and a file per task, in the framework and here.
+  - The framework builds it as its task 3.10 ([AndLD/harness-framework#14](https://github.com/AndLD/harness-framework/pull/14)), for `0.2.0`.
+  - 12.7 takes that version and splits Phases 10 and 12. Phase 17 is not split: it has no open task and closes after the sync to `0.1.1`.
+  - A task's description and its log stay in separate files side by side: in Phase 17 a task log averages 831 words and a description 125.
+- **Problems / blockers / findings:** none. Phase 12 is now 21 SP.
+- **Next step:** 12.7 waits for the framework's `0.2.0`; 12.5 and 12.6 whenever the owner asks.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

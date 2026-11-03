@@ -172,3 +172,13 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none. Phase 12 is now 21 SP.
 - **Next step:** 12.7 waits for the framework's `0.2.0`; 12.5 and 12.6 whenever the owner asks.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — 12.7 also splits Phase 17
+- **Tasks:** 12.7 (not started); its size stays 3 SP, since the framework's command does the split.
+- **Branch:** `docs/12.7-scope-phase-17`
+- **Decisions / deviations from the plan:** the owner wants Phase 17 split too, as the example of a large phase split into task files. It is not split
+  now: 12.7 splits it with Phases 10 and 12 once the framework's `0.2.0` exists, when Phase 17 is already finished. 24 files link to Phase 17, so the
+  framework's split command must rewrite the links into a phase; that requirement is added to the framework's task 3.10.
+- **Problems / blockers / findings:** none.
+- **Next step:** unchanged: 12.7 waits for the framework's `0.2.0`; 12.5 and 12.6 whenever the owner asks.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

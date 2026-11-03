@@ -227,3 +227,15 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
 - **Verify with:** `npm run docs:check`
+
+### 2026-11-03 — a framework defect found here: the Git guard judges the wrong repository
+- **Tasks:** none here; the defect is the framework's task 3.17 ([AndLD/harness-framework#18](https://github.com/AndLD/harness-framework/pull/18)).
+- **Branch:** `docs/guard-other-repository`
+- **Decisions / deviations from the plan:** while this checkout was on `develop`, a session editing the framework's own clone (on a feature branch)
+  could not commit there: the `guard-shell` hook judges every Git command by this checkout's branch, also after `cd` or with `git -C`. The reverse is
+  the unsafe case: with this checkout on a feature branch, a commit to another clone's integration branch passes. Until the framework's `0.1.2` fixes
+  it, a session here that must commit in another clone first moves this checkout off `develop` onto a branch of real work, never only to pass the
+  guard, and does not commit to another clone's integration branch.
+- **Problems / blockers / findings:** the defect above.
+- **Next step:** unchanged: the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`

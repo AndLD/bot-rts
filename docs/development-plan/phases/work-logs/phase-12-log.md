@@ -182,3 +182,16 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none.
 - **Next step:** unchanged: 12.7 waits for the framework's `0.2.0`; 12.5 and 12.6 whenever the owner asks.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — 12.7 follows the framework's migration notes
+- **Tasks:** 12.7 (not started), from 3 to 2 SP.
+- **Branch:** `docs/12.7-by-migration`
+- **Decisions / deviations from the plan:** the owner decided that consumers take a framework version through migrations the framework carries (a note
+  for every version, scripts for the mechanical steps, run in order: the framework's tasks 3.5, 3.11 and 3.12), since many consumers will skip versions.
+  - So 12.7 no longer lists the migration steps: it takes `0.2.0` by the framework's procedure, its development version first.
+  - This project skips `0.1.2` on purpose, as the framework's first chained migration.
+  - Only the owner's own choice stays here: also split Phase 17, as the example.
+  - This project is now the framework's first consumer; its product work waits (the owner's decision of 2026-11-03).
+- **Problems / blockers / findings:** none. Phase 12 is now 20 SP.
+- **Next step:** the framework releases `0.1.1`; a task here takes it and closes Phase 17. 12.7 waits for `0.2.0`.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

@@ -47,7 +47,8 @@ export function scaffoldFiles(profile) {
     packages: { '': { name, version: START_VERSION } }
   }
   return [
-    { path: '.nvmrc', content: `${NODE_VERSION}\n` },
+    // A file of lines, so that a project with another stack, whose harness tools run on Node as well, can name the same line
+    { path: '.nvmrc', lines: [NODE_VERSION] },
     {
       path: '.prettierignore',
       content: [

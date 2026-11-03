@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, test } from 'node:test'
-import { scaffoldProblems } from './scaffold.mjs'
+import { excludesFolder, scaffoldProblems } from './scaffold.mjs'
 import { STACKS } from './stacks.mjs'
 
 const dirs = []
@@ -51,5 +51,36 @@ test('a project without a vendored framework, or with a stack the framework does
   assert.deepEqual(
     scaffoldProblems({ root: project({}), profile: { adapters: { stacks: ['nowhere'] } }, stacks: STACKS }),
     []
+  )
+})
+
+test('a file whose tool excludes paths with a setting is held to the pattern of the manifest, and the message gives the line to add', () => {
+  const pattern = '^\\s*extend-exclude\\s*=.*["\']<folder>/?["\']'
+  assert.equal(excludesFolder('[tool.ruff]\nextend-exclude = ["harness"]\n', 'harness', pattern), true)
+  assert.equal(excludesFolder("extend-exclude = ['a', 'harness/']\n", 'harness', pattern), true)
+  assert.equal(excludesFolder('# extend-exclude = ["harness"]\n', 'harness', pattern), false)
+  assert.equal(excludesFolder('extend-exclude = ["harness-adapters"]\n', 'harness', pattern), false)
+  assert.equal(excludesFolder('node_modules\nharness/\n', 'harness'), true)
+
+  const stacks = {
+    python: {
+      manifest: {
+        roles: {
+          'ignore-files': { files: [{ path: 'pyproject.toml', pattern, example: 'extend-exclude = ["<folder>"]' }] }
+        }
+      },
+      modules: {}
+    }
+  }
+  const run = (text) =>
+    scaffoldProblems({
+      root: project({ 'pyproject.toml': text }),
+      profile: { adapters: { stacks: ['python'] } },
+      stacks
+    })
+  assert.deepEqual(run('[tool.ruff]\nextend-exclude = ["harness"]\n'), [])
+  assert.match(
+    run('[tool.ruff]\n')[0],
+    /^pyproject\.toml: does not exclude harness\/.*add the line "extend-exclude = \["harness"\]"/
   )
 })

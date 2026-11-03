@@ -49,6 +49,14 @@
                 "optional": {
                   "type": "boolean",
                   "description": "True when the file may be missing (the project does not use that tool at its root)."
+                },
+                "pattern": {
+                  "type": "string",
+                  "description": "A regular expression, with `<folder>` for the vendored folder, that a line of the file must match when the tool excludes paths with a setting of its own (a TOML file) and not with one pattern per line. Without it, a line `<folder>/` is expected."
+                },
+                "example": {
+                  "type": "string",
+                  "description": "With `pattern`: the line to add, with `<folder>`, which the scaffold check prints."
                 }
               }
             }
@@ -121,6 +129,8 @@
       "pull-request-tools": "optional",
       "waiting-advice": "optional",
       "model-map": "optional",
+      "hook-adoption": "logic-optional",
+      "managed-blocks": "logic-optional",
       "scaffold-files": "logic-optional"
     },
     "host": {

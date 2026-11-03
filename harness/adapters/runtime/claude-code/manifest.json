@@ -44,6 +44,11 @@
       "fills": "`CLAUDE.md` importing the entry file, `.claude/settings.json` from `settingsFor`, and the ignore line of the local settings",
       "module": "scaffold.mjs",
       "export": "scaffoldFiles"
+    },
+    "hook-adoption": {
+      "fills": "adds the framework's hook entries and the `Read(...)` deny rules to the project's own `.claude/settings.json`, and names the hook commands that are not the framework's",
+      "module": "adoption.mjs",
+      "export": "adoptConfiguration"
     }
   },
   "templates": ["templates/CLAUDE.md"],

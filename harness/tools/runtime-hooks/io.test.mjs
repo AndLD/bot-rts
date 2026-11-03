@@ -4,10 +4,10 @@ import { join } from 'node:path'
 import { test } from 'node:test'
 import { answer, readEvent, runHook } from './io.mjs'
 
-// The Claude Code samples are the adapter's own; the Cursor ones stay in the fixtures until its adapter is written
+// The samples are the adapters' own (their conformance suites replay them); the Cursor ones are written from its documentation
 const SAMPLES = {
   'claude-code': join(import.meta.dirname, '..', '..', 'adapters', 'runtime', 'claude-code', 'events'),
-  cursor: join(import.meta.dirname, '..', '..', 'tests', 'fixtures', 'events', 'cursor')
+  cursor: join(import.meta.dirname, '..', '..', 'adapters', 'runtime', 'cursor', 'events')
 }
 const sample = (runtime, name) => readFileSync(join(SAMPLES[runtime], name), 'utf8')
 

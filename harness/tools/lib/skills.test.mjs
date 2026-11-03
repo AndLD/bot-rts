@@ -35,7 +35,7 @@ test('the Claude Code preset packages each procedure as a skill, explicit ones w
   const generators = skillGenerators(ADAPTER_RUNTIMES, procedures)
   assert.deepEqual(
     generators.map(({ id }) => id),
-    ['skill-claude-code-start-it', 'skill-claude-code-look-around']
+    ['skill-claude-code-start-it', 'skill-claude-code-look-around', 'skill-cursor-start-it', 'skill-cursor-look-around']
   )
   const [explicit, auto] = generators
   assert.equal(explicit.path(profile(['claude-code'])), '.claude/skills/start-it/SKILL.md')
@@ -50,6 +50,21 @@ test('the Claude Code preset packages each procedure as a skill, explicit ones w
     auto.render({ profile: profile(['claude-code']) }),
     /Look, per \.\.\/\.\.\/\.\.\/harness\/core\/method\/method\.md\./
   )
+})
+
+test('the Cursor preset packages the skills under .cursor/skills when it is the only runtime, and none next to Claude Code', () => {
+  const [, , explicit] = skillGenerators(ADAPTER_RUNTIMES, procedures)
+  assert.equal(explicit.path(profile(['cursor'])), '.cursor/skills/start-it/SKILL.md')
+  assert.match(
+    explicit.render({ profile: profile(['cursor']) }),
+    /^---\nname: start-it\n.*disable-model-invocation: true/s
+  )
+  assert.equal(
+    explicit.path(profile(['claude-code', 'cursor'])),
+    undefined,
+    'Cursor loads the skills of .claude/skills'
+  )
+  assert.equal(explicit.path(profile([])), undefined)
 })
 
 test('the entry file lists the procedures for every agent, with or without a runtime, relative to the entry file', () => {

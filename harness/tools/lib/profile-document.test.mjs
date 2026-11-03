@@ -130,3 +130,32 @@ test('the generator writes to the path the profile names', () => {
   assert.throws(() => renderProfileDocument({ paths: {} }), /nowhere to write/)
   assert.ok(ROLES_PATH.endsWith(join('profile', 'roles.md')))
 })
+
+test('the document map lists each document that has a role, whichever of its neighbours the project leaves out', () => {
+  const text = renderProfileDocument({
+    ...profile(),
+    documents: {
+      ...profile().documents,
+      changelog: 'CHANGELOG.md',
+      changelogFragments: 'frag.md',
+      releasing: 'docs/releasing.md',
+      planMethod: 'plan.md',
+      harnessReviews: 'reviews.md',
+      e2eMatrix: 'docs/e2e.md'
+    }
+  })
+  const map = text.slice(text.indexOf('## 10. Document map'))
+  for (const row of [
+    '| Changelog |',
+    '| Changelog fragments',
+    '| Releases |',
+    '| Plan method |',
+    '| Harness quality reviews |',
+    '| End-to-end coverage matrix |'
+  ]) {
+    assert.ok(map.includes(row), row)
+  }
+  for (const row of ['| Deployment guide |', '| Plan bindings', '| Testing guide |', '| MCP contract |']) {
+    assert.equal(map.includes(row), false, `${row} has no document`)
+  }
+})

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { extractBlock, hashBlock, markers, replaceBlock } from './managed.mjs'
+import { appendBlock, extractBlock, hashBlock, hashMarkers, markers, replaceBlock } from './managed.mjs'
 
 const { start, end } = markers('map')
 const file = (content) => `intro\n${start}\n${content}\n${end}\noutro\n`
@@ -30,4 +30,24 @@ test('a file without the markers is refused, naming them', () => {
 test('the hash of a block is the hash of its content', () => {
   assert.equal(hashBlock('a'), hashBlock('a'))
   assert.notEqual(hashBlock('a'), hashBlock('b'))
+})
+
+test('a block between # markers, as in an ignore file, is found and replaced like one between comments', () => {
+  const text = 'own\n# harness:begin deny-read\n.env\n# harness:end deny-read\nmore\n'
+  assert.equal(extractBlock(text, 'deny-read'), '.env')
+  assert.equal(
+    replaceBlock(text, 'deny-read', '.env\n*.pem'),
+    'own\n# harness:begin deny-read\n.env\n*.pem\n# harness:end deny-read\nmore\n'
+  )
+  assert.deepEqual(hashMarkers('deny-read'), { start: '# harness:begin deny-read', end: '# harness:end deny-read' })
+})
+
+test('appending a block puts it at the end of the file after a blank line, keeps the own lines, and refuses a block that is there', () => {
+  assert.equal(
+    appendBlock('own\n', 'deny-read', '.env'),
+    'own\n\n# harness:begin deny-read\n.env\n# harness:end deny-read\n'
+  )
+  assert.equal(appendBlock('own', 'deny-read', ''), 'own\n\n# harness:begin deny-read\n# harness:end deny-read\n')
+  assert.equal(appendBlock('', 'deny-read', '.env'), '# harness:begin deny-read\n.env\n# harness:end deny-read\n')
+  assert.throws(() => appendBlock(appendBlock('', 'deny-read', 'x'), 'deny-read', 'y'), /deny-read is there already/)
 })

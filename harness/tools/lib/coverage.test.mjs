@@ -4,7 +4,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
-import { changedFileFailures, mergeShards, parseArtifactName, shardsOf, totalFailures } from './coverage.mjs'
+import {
+  changedFileFailures,
+  mergeShards,
+  parseArtifactName,
+  shardsOf,
+  summarizePackages,
+  totalFailures
+} from './coverage.mjs'
 
 const GATE = { statements: 97, branches: 97, functions: 97, lines: 97 }
 const metric = (pct) => ({ total: 100, covered: pct, skipped: 0, pct })
@@ -180,4 +187,41 @@ test('a project with no coverage package has nothing to merge, and the folder of
   assert.equal(result.code, 0)
   assert.deepEqual(result.problems, [])
   assert.match(result.messages[0], /No coverage packages in the profile file/)
+})
+
+test('summarize writes the neutral summary of the last run of a package, passes the project root and package to the stack, and skips a package with no raw coverage on request', () => {
+  const seen = []
+  const stack = {
+    manifest: { roles: { 'coverage-merge': { module: 'coverage.mjs', export: 'merge' } } },
+    modules: {
+      'coverage.mjs': {
+        SHARD_FILE: 'raw.json',
+        merge: (shards, where) => {
+          seen.push([shards, where])
+          return { artifacts: { 'raw.json': { merged: true } }, summary: { total: {}, '/r/a.py': {} } }
+        }
+      }
+    }
+  }
+  const profile = { adapters: { stacks: ['x'] }, coveragePackages: ['api'] }
+  const root = mkdtempSync(join(tmpdir(), 'summarize-'))
+  const run = (options = {}) => summarizePackages({ root, profile, packages: [], stacks: { x: stack }, ...options })
+
+  assert.match(run().problems[0], /api: no raw\.json in api\/coverage/)
+  assert.deepEqual(run({ skipMissing: true }), {
+    code: 0,
+    messages: ['No raw coverage in api, so there is nothing to summarize.'],
+    problems: []
+  })
+
+  mkdirSync(join(root, 'api', 'coverage'), { recursive: true })
+  writeFileSync(join(root, 'api', 'coverage', 'raw.json'), JSON.stringify({ files: 1 }))
+  assert.deepEqual(run().messages, ['api: summarized 1 files.'])
+  assert.deepEqual(seen, [[[{ files: 1 }], { root, pkg: 'api' }]])
+  assert.deepEqual(JSON.parse(readFileSync(join(root, 'api', 'coverage', 'raw.json'), 'utf8')), { merged: true })
+  assert.deepEqual(
+    Object.keys(JSON.parse(readFileSync(join(root, 'api', 'coverage', 'coverage-summary.json'), 'utf8'))),
+    ['total', '/r/a.py']
+  )
+  assert.match(run({ stacks: {} }).problems[0], /api: no stack adapter fills the coverage-merge role/)
 })

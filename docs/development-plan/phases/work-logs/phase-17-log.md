@@ -238,3 +238,11 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Next step:** Phase 1 of the framework's own plan (in its repository), then 17.16. 17.15 was the last task that changes this repository's tools; the `Agent` of 17.16 is `C1`.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
 
+### 2026-11-03 — 17.16 done: synced to the framework's `0.1.0`
+- **Tasks:** 17.16 ✅ (its log: [`phase-17/17.16.md`](./phase-17/17.16.md))
+- **Branch:** `chore/17.16-sync-0.1.0` — done, PR #281
+- **Decisions / deviations from the plan:** none; the framework's Phase 1 (PRs 1 to 10 of its repository) is linked from the task log. The lock is at `v0.1.0`. Nothing in this repository had to change except generated files.
+- **Problems / blockers / findings:** the Cursor exit criterion of the phase stays open (the preset is unverified in a live session; the owner's decision of 2026-11-02).
+- **Next step:** 17.17 (closing targeted harness review, `C3`), in a different session than the build's, on the owner's "go on".
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+

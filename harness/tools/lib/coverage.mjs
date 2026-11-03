@@ -1,5 +1,6 @@
 // The coverage gate on the neutral coverage summary (design §3.4 and §4.1): `harness coverage check-changed` holds every source file changed by a pull
-// request to the gate, and `harness coverage merge` merges the shards of each package that CI uploaded and holds the merged total to the gate. The
+// request to the gate, `harness coverage merge` merges the shards of each package that CI uploaded and holds the merged total to the gate, and `harness coverage
+// summarize` writes the summary of one local run for a tool that does not write it. The
 // summary is `<package>/coverage/coverage-summary.json` (`total` and one entry per file, each with the metrics `statements`, `branches`,
 // `functions` and `lines`); the stack adapter writes it and merges its tool's raw output (`coverage.mjs` of the adapter, role "coverage merge").
 import { execFileSync } from 'node:child_process'
@@ -141,7 +142,8 @@ export function mergeShards({ root, profile, artifacts, out = root, packages, st
     try {
       const shards = shardsOf(pkg, names)
       const merged = merger.merge(
-        shards.map((shard) => JSON.parse(readFileSync(join(artifacts, shard, merger.SHARD_FILE), 'utf8')))
+        shards.map((shard) => JSON.parse(readFileSync(join(artifacts, shard, merger.SHARD_FILE), 'utf8'))),
+        { root, pkg }
       )
       const dir = join(out, pkg, 'coverage')
       mkdirSync(dir, { recursive: true })
@@ -174,6 +176,48 @@ export function mergeShards({ root, profile, artifacts, out = root, packages, st
 
   if (failures.length) {
     return { code: 1, messages, problems: [`Coverage below the gate:\n${failures.join('\n')}`] }
+  }
+  return { code: 0, messages, problems: [] }
+}
+
+/**
+ * `harness coverage summarize [--skip-missing] [<package>...]`: writes the neutral summary of a package from the raw coverage that one run of its tests left
+ * (`<package>/coverage/<SHARD_FILE>`), with the coverage-merge role of the stack that owns it, as the merge does for the shards of CI but without the gate: the
+ * local gate holds only the changed files. A stack whose tool writes the summary itself (Jest) needs no such step. With `skipMissing`, a package without raw
+ * coverage is skipped (no test ran).
+ * @returns {{ code: number, messages: string[], problems: string[] }}
+ */
+export function summarizePackages({ root, profile, packages, skipMissing = false, stacks = STACKS }) {
+  const messages = []
+  for (const pkg of packages.length ? packages : (profile.coveragePackages ?? [])) {
+    const stack = stackOf(pkg, profile, stacks)
+    const merger = stack && stackModule(stack, 'coverage-merge')
+    if (!merger) {
+      return { code: 2, messages, problems: [`${pkg}: no stack adapter fills the coverage-merge role for it`] }
+    }
+    const dir = join(root, pkg, 'coverage')
+    const raw = join(dir, merger.SHARD_FILE)
+    if (!existsSync(raw)) {
+      if (skipMissing) {
+        messages.push(`No raw coverage in ${pkg}, so there is nothing to summarize.`)
+        continue
+      }
+      return {
+        code: 2,
+        messages,
+        problems: [`${pkg}: no ${merger.SHARD_FILE} in ${pkg}/coverage; run its tests with coverage first.`]
+      }
+    }
+    try {
+      const { artifacts, summary } = merger.merge([JSON.parse(readFileSync(raw, 'utf8'))], { root, pkg })
+      for (const [file, content] of Object.entries(artifacts)) {
+        writeFileSync(join(dir, file), JSON.stringify(content))
+      }
+      writeFileSync(join(dir, SUMMARY_FILE), JSON.stringify(summary))
+      messages.push(`${pkg}: summarized ${Object.keys(summary).length - 1} files.`)
+    } catch (error) {
+      return { code: 2, messages, problems: [error.message.includes(pkg) ? error.message : `${pkg}: ${error.message}`] }
+    }
   }
   return { code: 0, messages, problems: [] }
 }

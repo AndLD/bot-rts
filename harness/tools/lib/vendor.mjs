@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { generators as registered } from './generators.mjs'
-import { extractBlock, hashBlock, replaceBlock } from './managed.mjs'
+import { appendBlock, extractBlock, hashBlock, replaceBlock } from './managed.mjs'
 import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
 import { loadProfile } from './profile.mjs'
 import { readManifest, referenceTree, resolveSource } from './source.mjs'
@@ -64,31 +64,42 @@ export const managedKey = (path, block) => (block ? `${path}#${block}` : path)
  * Writes every managed file (or the block of a file, when the generator names one) and returns their hashes, as the lock keeps them
  * (design §6.3): of a whole file, or of the block alone.
  */
-// Every managed file and block as the generators render it now, `{ path, block, content }`. A role the project's profile file does not have
+// Every managed file and block as the generators render it now, `{ path, block, content, append? }`. A role the project's profile file does not have
 // leaves its generator out: `harness check profile` is what asks for it. A block has no line break at either end, so that what the lock
-// hashes is what the file holds between its markers.
+// hashes is what the file holds between its markers. A generator with `expand({ root, profile })` gives several blocks of its own (`{ path, block,
+// content, append }`); `append` says that the block is added at the end of its file when the file lacks it (the file is made if it is missing).
 function renderManaged(root, generators) {
   const profile = loadProfile(root)
+  const trimmed = (item) => ({ ...item, content: item.content.replace(/^\n+|\n+$/g, '') })
   return generators.flatMap((generator) => {
+    if (generator.expand) {
+      return generator.expand({ root, profile }).map(trimmed)
+    }
     const path = managedPath(generator, profile)
     if (!path) {
       return []
     }
     const content = generator.render({ root, profile })
-    return [{ path, block: generator.block, content: generator.block ? content.replace(/^\n+|\n+$/g, '') : content }]
+    return [generator.block ? trimmed({ path, block: generator.block, content }) : { path, content }]
   })
 }
 
 function generateManaged(root, generators) {
   const managed = {}
-  for (const { path, block, content } of renderManaged(root, generators)) {
+  for (const { path, block, content, append } of renderManaged(root, generators)) {
     const target = join(root, path)
     if (block) {
-      if (!existsSync(target)) {
+      if (!existsSync(target) && !append) {
         throw new Error(`${path} must exist, with the markers of the block "${block}", before it can be generated`)
       }
+      const text = existsSync(target) ? readFileSync(target, 'utf8') : ''
       try {
-        writeFileSync(target, replaceBlock(readFileSync(target, 'utf8'), block, content))
+        const next =
+          append && !text.includes(`harness:begin ${block}`)
+            ? appendBlock(text, block, content)
+            : replaceBlock(text, block, content)
+        mkdirSync(dirname(target), { recursive: true })
+        writeFileSync(target, next)
       } catch (error) {
         throw new Error(`${path}: ${error.message}`)
       }

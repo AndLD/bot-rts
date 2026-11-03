@@ -52,7 +52,7 @@ A **stack** adapter, judged through the framework's gate driver and coverage gat
 - `coverage-merge`: shards of raw coverage become a neutral summary (`total` and one entry per file, keyed by absolute path, with a subset of `statements`,
   `branches`, `functions`, `lines`, each `{ total, covered, pct }`) that the gate reads;
 - the CI jobs are keys of the workflow's jobs, each needs `changes`, and each coverage package keeps its coverage as the artifact `coverage-<package>-1-of-1`;
-- the scaffolded files are paths inside the project outside `harness/`, and the ignore files exclude the vendored framework.
+- the scaffolded files are paths inside the project outside `harness/`, and the ignore files exclude the vendored framework (a line `harness/`, or the line the manifest's `pattern` for that file describes).
 
 A **runtime** adapter, with the framework's hooks fed the recorded samples through `io.mjs`:
 
@@ -70,6 +70,24 @@ A **host** adapter, with a stand-in command line:
 
 What the suite does not do: it never runs the stack's tools (a test runner, a formatter), never calls the host, and never starts the runtime. It checks the
 adapter's logic and its files. A stack's tools are exercised by the first real run of the project's CI, and the event samples of a runtime should be recorded in a real session of it.
+
+## What a stack learns the hard way
+
+The second stack preset (a language whose test tool writes no coverage summary of the common shape) was written by following these steps; where the steps did not say enough, this is what they now say.
+
+- **The tool writes no neutral summary.** Some test tools write the summary themselves; others write only their own report. Such a stack names the report file as `SHARD_FILE`, fills `coverage-merge`, and ends
+  the test step of its gate plan with `harness coverage summarize --skip-missing <package>`, which turns the report of the run into the summary with the same `merge`. CI uploads the report as the shard, and
+  the aggregator merges it. `merge` gets `{ root, pkg }` as its second argument, because a report that names files relative to where the tool ran needs both to give the absolute paths.
+- **A package's tests may not be followable from a changed file.** Then the plan runs the whole suite of each touched package and holds only the changed files to the gate (the gate of the package is CI's).
+- **The harness tools run on Node, whatever the stack.** The host's workflow sets Node up from `.nvmrc`, so every stack's `scaffold-files` names `.nvmrc` **as a list of lines** (`lines: ['22']`); a file
+  that two stacks write as text would fail the bootstrap of a project that uses both. The stack's CI jobs set Node up too, because the project's documentation check is a Node command.
+- **The tool excludes paths with a setting, not a pattern per line** (a key in a TOML file). Give the `ignore-files` entry a `pattern` (a regular expression with `<folder>`) and an `example` line; the scaffold
+  check and the suite use them in place of the line `harness/`. Keep the setting on one line, as the pattern reads lines.
+- **The version is not in a JSON file.** The release tool reads and writes the `version` of the `[project]` table of a TOML file; a stack whose lock file records the version names `release.lockCommand` in its
+  `defaults`.
+- **A lock file cannot be written by hand.** If the tools of the development group need a resolver, the scaffold writes no lock and the stack file says to create it once; the CI install command is the locked
+  one, so the first pull request of a new project must commit it.
+- **The commands of the defaults must exist on the machine.** The suite runs `<program> --version` for every command of `defaults.commands`, so the framework's own CI sets up the programs of every preset.
 
 ## `conformance.json`
 

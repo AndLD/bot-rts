@@ -390,6 +390,7 @@ P8 and P9 test the part of the harness that an agent reaches only by following l
 | 2026-10-19 | targeted (task 15.18: D1, D3, D7; D6, D8, D10, D15 re-checked) | [2026-10-19-2.md](./2026-10-19-2.md) | Claude Code session (Opus 5.5) that did not write the fixes of 15.15–15.17; probes P4 and P5 on Sonnet 5.5, medium |
 | 2026-10-19 | targeted (task 15.21: D1, D3; D6, D7, D8 re-checked) | [2026-10-19-3.md](./2026-10-19-3.md) | Claude Code session (Opus 5.5) that did not write the fixes of 15.19 and 15.20; probe P5 on Sonnet 5.5, medium |
 | 2026-10-30 | targeted (task 17.2: D3, D7, D8, D14, D15 after Phase 16) | [2026-10-30.md](./2026-10-30.md) | Claude Code session (Opus 5.5, high) that did not write Phase 16 or the framework design; no probe |
+| 2026-11-03 | targeted (task 17.17, the closing review: D1, D3–D8, D13, D15; the export dry run; the exit criteria of §3.5 and Phase 17) | [2026-11-03.md](./2026-11-03.md) | Claude Code session (Opus 5.5, high) that did not do the build; probes P1, P2, P5, P8, P9 and P1 on a bootstrapped project as subagents on Sonnet 5.5, medium |
 
 ## 5. How to start a review
 

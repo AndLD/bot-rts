@@ -37,7 +37,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 14 | Admin MCP: AI-assisted investigation | 19 | — | ✅ Done |
 | 15 | Harness fixes | 77 | — | ✅ Done |
 | 16 | CI speed and agent throughput | 23 | — | ✅ Done |
-| 17 | Harness framework extraction | 71 | C1–C3 | 🟡 In progress |
+| 17 | Harness framework extraction | 71 | C1–C3 | ✅ Done |
 |  | **Total of Phases 0–17** | **1244** (Phase 12 grows as issues are added) | | |
 <!-- plan-summary:end -->
 
@@ -65,7 +65,7 @@ index holds what each release contains):
 
 | Framework release | This project |
 | ----------------- | ------------ |
-| `0.1.1` | takes it (a Phase 17 task, added when the release exists), then closes Phase 17 |
+| `0.1.1` | taken by task 17.18 (migration note followed, core scan clean); Phase 17 is closed |
 | `0.1.2` | skips it on purpose, so that `0.2.0` is the framework's first chained migration |
 | `0.2.0` | takes its development version before the final tag, then the release (12.7), and turns on upstream reporting at `ask`: the migration splits the phases into task files, also Phase 17 by the owner's choice; Phase 12 becomes a normal phase that keeps its ids and ends with 12.7, and 12.5 and 12.6 move to the new issue queue under their old ids too |
 | `0.3.0` | takes it |

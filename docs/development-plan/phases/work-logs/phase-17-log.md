@@ -339,3 +339,28 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Problems / blockers / findings:** the vendored framework tests that read the framework's own profile file fail in a pinned project (see the task log); to report upstream after the owner has seen the text.
 - **Next step:** `finish-phase` for Phase 17.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — Phase 17 done
+- **Tasks:** 17.1 to 17.18 ✅ (71 SP); phase ✅
+- **Branch:** `chore/17-finish-phase`
+- **What each task delivered:** 17.1 the design; 17.2 the baseline review; 17.3 to 17.14 the framework in the staging folder (vendoring and detached mode, the profile file, the layer map, the generic tools, the core documents,
+  the contracts and the GitHub adapter, the `node-ts` stack preset, runtime hooks and Git guards with the Claude Code preset, procedures as skills, the bootstrap engine, the conformance suite); 17.15 the framework in its own repository,
+  self-hosted; 17.16 the sync to `0.1.0`; 17.17 the closing review; 17.18 the sync to `0.1.1`, which gave the scan of the vendored core with this project's terms (0 hits).
+- **Exit criteria of the phase:**
+  1. Phase 1 of the framework's plan done, its dummy-project proof bootstrapping both stack presets and the Claude Code preset: **holds** (its pull requests 1 to 10, linked in the log of 17.16; confirmed by the closing review).
+  2. The owner copied the staging folder to the `harness-framework` repository (17.15): **holds** (the repository exists since 2026-10-30; recorded in the log of 17.15).
+  3. This repository is synced to the framework's `0.1.0` (17.16): **holds**, and it is now at `0.1.1` (17.18).
+  4. `npm run docs:check`, `npm run lint` and the coverage gate pass: **holds**. `docs:check`, `format:check`, `lint`, `typecheck` and `test:scripts` ran on the merged tree; the coverage gate was green on the pull request run of #294
+     (the push run on `develop` after its merge was still running when this entry was written).
+  5. The exit criteria of §3.5 of the extraction plan, as the closing review checked them: **hold**, with "no regression" fixed by 17.18 (the failure was H-20261103-01, D1). The Cursor session criterion is not one of the phase
+     by the owner's decision of 2026-11-03 (deferred, the preset stays unverified).
+- **Left over, not part of the phase (decisions for the owner or work for the framework):**
+  - H-20261103-02 (who owns a claim after its session ends) and H-20261103-03 (seven of eight skills cannot be loaded by the agent) are defects of the framework, not yet fixed; they come with a later release, taken here by the order of the plan index.
+  - [AndLD/harness-framework#30](https://github.com/AndLD/harness-framework/issues/30), found while taking `0.1.1`: the vendored framework tests that need the framework's own files fail in a pinned project (not blocking).
+  - Cursor stays deferred until the owner takes it up again.
+- **Local database (method §6):** from the updated `develop` (`f6e899f`): `npm run db:up` (database and Redis healthy); `npm run db:migrate -w api` applied the migrations that were still pending locally from earlier phases, and a second run
+  reports 31 migrations found, none pending. Phase 17 changed no schema and no seed data, so no seed was run.
+- **Problems / blockers / findings:** none.
+- **Next step:** none in Phase 17. By the plan index, the next framework release to take is `0.2.0` (its development version first). The product work (Phase 10, tasks 12.5 and 12.6) waits until the owner resumes it.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+

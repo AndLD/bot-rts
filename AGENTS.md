@@ -195,3 +195,8 @@ Removed: it restated §1–§7 and the method. The rules are in §1, §7, §9, t
 - **Money and goods** (planned, Phase 10): credits and traded items move only through engine commands that write double-entry **ledger**
   entries (design §26.1); nothing updates a wallet, escrow or inbox directly, and a reconciliation test must prove that the
   money supply and item counts are conserved.
+- **Auto-merge (the owner's standing request of 2026-11-03).** On every task pull request and plan-related pull request into the integration branch
+  that the rules of section 7 let an agent merge without asking, the agent enables the host's auto-merge (squash) once the task's definition of done
+  holds, and merges the pull request itself if it is green but still open. Never on a pull request into the production branch, a release or hotfix
+  branch, or one that needs the owner's approval. This is the owner asking, as the auto-merge rule of section 7 requires; the framework's task 3.18
+  makes it a core rule.

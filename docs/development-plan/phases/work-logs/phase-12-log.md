@@ -195,3 +195,14 @@ whenever a session ends or pauses, or a task finishes; commit it in the same pul
 - **Problems / blockers / findings:** none. Phase 12 is now 20 SP.
 - **Next step:** the framework releases `0.1.1`; a task here takes it and closes Phase 17. 12.7 waits for `0.2.0`.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — the order of this project as the framework's first consumer
+- **Tasks:** none changed.
+- **Branch:** `docs/order-first-consumer`
+- **Decisions / deviations from the plan:** the owner's decisions, now in the plan index ("Order of development"):
+  - This project is the harness framework's first consumer; product work waits (Phase 10, 12.5, 12.6).
+  - It takes the framework's `0.1.1`, `0.2.0` (its development version first), `0.3.0` and the security release, and skips `0.1.2` on purpose.
+  - The framework's task 3.13 turns the open-ended phase into an issue queue; the migration of `0.2.0` does that to this phase, with 12.7.
+- **Problems / blockers / findings:** none.
+- **Next step:** the framework releases `0.1.1`; a Phase 17 task takes it and closes the phase.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

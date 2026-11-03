@@ -23,10 +23,10 @@ and not found by a later review. Review step 2 of the method still reads the map
 | Layer | Files and sections |
 | ----- | ------------------ |
 | **CORE** | `AGENTS.md` (the managed blocks non-negotiables, git-rules), `harness/**` (the vendored copy) |
-| **DOMAIN** | `docs/product-knowledge/**`, except `docs/product-knowledge/archived-docs/**`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**` |
+| **DOMAIN** | `docs/product-knowledge/**`, except `docs/product-knowledge/archived/**`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**` |
 | **ADAPTER** | `docs/engineering/stack.md`, `docs/engineering/architecture.md`, `docs/engineering/rule-checks.md`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `docs/operations/**`, `docs/testing/**`, except `docs/testing/reports/**`, `docs/testing/by-phase.md` |
 | **PROFILE** | `harness-profile.json`, `harness.lock.json`, `docs/profile.md`, `**/bindings.md` |
-| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived-docs/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/harness-framework/README.md`, `docs/harness-framework/design.md` |
+| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/archived/harness-framework/README.md`, `docs/archived/harness-framework/design.md` |
 | **ENTRY** | `AGENTS.md`, `CLAUDE.md`, `README.md` |
 
 Not in the map: `client/public/atlas/LICENSE.md`.
@@ -46,7 +46,7 @@ Notes on the layers:
 - **DOMAIN** is the product knowledge. `25-admin-console.md` and `12-real-time-execution-model.md` were doubly classified until task 15.4 moved
   their implementation notes and history out; they are DOMAIN only now.
 - **ADAPTER** includes `rule-checks.md` (the shape is CORE; the rows are this project's) and the `scripts/hook-*.mjs` scripts.
-- **STATE** includes `docs/harness-framework/README.md` and `design.md`, the plan and the design of the extraction. The framework's source
+- **STATE** includes `docs/archived/harness-framework/README.md` and `design.md`, the plan and the design of the extraction. The framework's source
   lives in its own repository, `AndLD/harness-framework`, whose checks (the CORE scan of `core/`, the links, its tests) cover it; here it
   exists only as the vendored copy `harness/`, which is CORE.
 - Out of scope: `client/public/atlas/LICENSE.md` (third-party).
@@ -80,7 +80,7 @@ A hit is a leak only if the term carries project meaning there ("module" in "Nes
 fails on plan task or phase references, on `api/src` and `client/src` paths and on test file names in that folder): `game-design/10-the-script-api.md` names TypeScript, because
 players write scripts in it; `integrations/API.md` names Socket.IO, the realtime transport of the public API; `integrations/MCP.md`
 names `npm`, in the commands that build and start the MCP server. The open-questions register and the backlog name plan tasks in
-their "Blocks" column, and `CHANGELOG.md` and `archived-docs/` are history and are not scanned. After task 15.4 the scan finds no other hit.
+their "Blocks" column, and `CHANGELOG.md` and `archived/` are history and are not scanned. After task 15.4 the scan finds no other hit.
 
 ### M3: reference direction
 
@@ -211,11 +211,11 @@ Forms in which this repository records open items (search all of them):
 | Marker words                 | `TODO`, `TBD`, `to be decided`, `undecided`, `unknown`, `open question`, `needs decision`, `later`, `not yet`, `for now`, `will be decided`, `?` at the end of a heading |
 | Unfinished plan items        | `⬜` and `🟡` tasks in `docs/development-plan/phases/phase-*.md`; open tasks named in work logs ("next step") |
 | Risks                        | `docs/development-plan/cross-cutting/risk-register.md`                                                        |
-| Decision log (archived)      | `docs/product-knowledge/archived-docs/UNCERTAINTIES.md`: check that every resolved point reached the specification |
+| Decision log (archived)      | `docs/product-knowledge/archived/UNCERTAINTIES.md`: check that every resolved point reached the specification |
 | Known issues                 | `docs/testing/known-issues.md`                                                                  |
 
 ```bash
-grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived-docs' | wc -l
+grep -rniE 'TODO|TBD|to be decided|undecided|unknown|open question|needs decision|not yet|for now|later' docs AGENTS.md README.md | grep -v 'archived' | wc -l
 grep -rcE '[✅🟡🔴]' docs/product-knowledge/game-design | grep -v ':0'   # build markers: none are allowed
 grep -rcE '\bQ[0-9]+\b' docs/product-knowledge/game-design | grep -v ':0'   # open-item ids
 grep -cE '^\| [0-9]+\.[0-9]+[a-z]? .*\| ⬜' docs/development-plan/phases/phase-*.md
@@ -275,7 +275,7 @@ Budgets (approved by the owner on 2026-10-17, from the baseline of the [2026-10-
 | Harness: rule load | Normative words in the always-loaded set (M20) | ≤ 70 (baseline 94) | 2026-10-17 |
 | Harness: rule load | Exception words in the always-loaded set | ≤ 10 (baseline 7) | 2026-10-17 |
 | Harness: rule load | Definition-of-done items checked by hand | ≤ 6 (baseline 14, 7 automated) | 2026-10-17 |
-| Harness: reference structure | Highest fan-out of one document | ≤ 40 (baseline 39) | 2026-10-17 |
+| Harness: reference structure | Highest fan-out of one document | ≤ 40 (baseline 39); the plan index ≤ 12 + 2 per phase, since its generated contents link a phase file and a work log for each phase (46 at 18 phases; the owner's decision on H-20261103-05) | 2026-10-17; the plan index 2026-11-03 |
 | Harness: reference structure | Hops to answer "which checks gate a merge?" | ≤ 2 (baseline 4) | 2026-10-17 |
 | Harness: process | Manual steps in the task workflow (start → done → pull request → merge → log) | ≤ 15 (baseline 21) | 2026-10-17 |
 | Harness: process | Branch types and document types | no growth without a recorded reason (baseline 8 and 12) | 2026-10-17 |

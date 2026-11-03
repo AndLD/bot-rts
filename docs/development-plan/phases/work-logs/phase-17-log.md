@@ -23,7 +23,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Tasks:** 17.1 added (⬜, 3 SP); the build tasks follow from its design
 - **Branch:** `docs/phase-17-harness-framework` — the plan only
 - **Decisions / deviations from the plan:** the owner decided every point of §3.1 of the
-  [harness-framework plan](../../../harness-framework/README.md#31-decisions-you-before-building) before the start, so the design session
+  [harness-framework plan](../../../archived/harness-framework/README.md#31-decisions-you-before-building) before the start, so the design session
   proposes only how to realize them:
   - **How `bot-rts` uses the framework:** it **consumes** it, so the method has one home. The mechanism (a vendored copy pinned to a version
     with a sync script was suggested; a git subtree is the alternative) is confirmed by 17.1.
@@ -305,4 +305,16 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
   - The review prompt names the probes P1 to P9.
 - **Problems / blockers / findings:** none. H-20261103-05 (budgets) waits for the owner's decision.
 - **Next step:** unchanged: the framework builds 3.6 to 3.8 and releases `0.1.1`; then the sync task here, then `finish-phase`.
+- **Verify with:** `npm run docs:check`
+
+### 2026-11-03 — H-20261103-05, first part: the fan-out budget, the archive folders
+- **Tasks:** none here (a finding of the closing review, 17.17)
+- **Branch:** `docs/h-20261103-05-budgets-and-archive`, stacked on `docs/h-20261103-04-stale-statements` (both edit the layer notes of the review bindings)
+- **Decisions / deviations from the plan:** the owner's decisions on H-05:
+  - The fan-out budget of the plan index scales with the plan: ≤ 12 + 2 per phase, because its contents are generated. Other documents keep ≤ 40.
+  - The extraction plan is archived: `docs/harness-framework/` moved to `docs/archived/harness-framework/`, and its README sends a reader who starts a
+    new project to the framework's `README.md` and `BOOTSTRAP.md` (the P5 probe read the whole plan).
+  - `docs/product-knowledge/archived-docs/` is renamed `docs/product-knowledge/archived/`. Links, the profile file and the generated files follow.
+- **Problems / blockers / findings:** none.
+- **Next step:** the rest of H-05 waits for the owner: the P2 budget (after the discussion of the phase log and the task logs), and budgets for P8 and P9.
 - **Verify with:** `npm run docs:check`

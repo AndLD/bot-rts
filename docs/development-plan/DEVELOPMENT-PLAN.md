@@ -53,7 +53,7 @@ code is cheaper than after. Phase 14 was developed right after Phase 13. Phase 1
 (owner decision 2026-10-18): it makes the rules true and enforced and lets several agents work at once, which Phase 10 can use.
 Phase 16 (CI speed) was added on 2026-10-18 and is **developed after Phase 15 and before Phase 10**: a task pull request waits about
 21 minutes for the required checks today, and Phase 10 has many tasks.
-Phase 17 (harness framework extraction, step 3 of the [harness-framework plan](../harness-framework/README.md)) was added on 2026-10-20 and is
+Phase 17 (harness framework extraction, step 3 of the [harness-framework plan](../archived/harness-framework/README.md)) was added on 2026-10-20 and is
 **developed after Phase 16 and before Phase 10**; its design task 17.1 may run while Phase 16 is in progress.
 Phase 12 is open-ended and its tasks are done whenever they are found; it has no fixed place in the order.
 

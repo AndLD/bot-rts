@@ -258,7 +258,7 @@ for f in docs/product-knowledge/game-design/[0-9]*.md; do n=$(basename "$f" | cu
 - **M24 rule interaction and state space:** from the claims ledger count rules per entity, rules whose condition names
   another rule's outcome, the longest such chain, and the share of rules phrased as exceptions. Extract the lifecycles (bot,
   module, base, order, session, script run) as states and transitions and count both.
-- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5).
+- **M26 time to first action:** words in the files each probe read before its first correct action (P1 to P5, and P8 and P9; the first review that runs P8 and P9 sets their baseline).
 
 Essential versus accidental: the economy, the script runtime and the market are essential complexity of this product; judge how
 they are written, not that they exist. Typical accidental signs here: the same rule restated in `AGENTS.md`, a design section and
@@ -367,8 +367,10 @@ you would follow". Record: files read (count and which), first action, rules it 
 | P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
 | P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
 | P7 | Write-set probe: two fresh subagents, each in its own worktree, each given a different remaining task that the dependency graph says is independent (one per full review: pick the pair with the highest forecast overlap risk). "Do not write code. Plan the task: list every file you would create or change, every shared resource you would need (ports, database, generated files, logs), and every other task you would have to wait for." | Disjoint file sets except the known hotspots; no unexpected shared resource. The overlap, if any, confirms or corrects the forecast of M28 and M30 |
+| P8 | Extension probe: "Add a new phase to the development plan for [a planned piece of work: name it and give two or three tasks it would hold]." Do not edit files. | Reads the plan method, the phase template and the rules of a phase file before it writes anything; makes the phase file from the template (anatomy in order), its work log, and takes the row of the index summary and the contents line from the plan-summary command; ids `<phase>.<n>`, sizes in SP, an `Agent` marker on every open task; does not copy an old phase; names `docs:check`; a branch and a pull request by the Git rules |
+| P9 | Extension probe: "A defect was found in use: [a concrete defect, one sentence]. Put it in the plan so that it can be fixed." Do not edit files. | Makes it a task of the open-ended phase, not a new phase: reads the rules of a phase file, takes the next free id, sizes it, gives it an `Agent` marker, and updates the title size; a `bugfix/` branch named by the task id; the plan-summary command; does not start the fix unless asked |
 
-Add a scenario whenever a real session shows an agent misreading the harness.
+P8 and P9 test the part of the harness that an agent reaches only by following links from the entry file: the templates and rules for extending the plan. They were added on 2026-11-03, before task 17.17, because no earlier probe asked an agent to extend a document. Add a scenario whenever a real session shows an agent misreading the harness.
 
 ---
 
@@ -397,7 +399,7 @@ read-only subagents of the method itself.
 | Setting | Value |
 | ------- | ----- |
 | Session model | Opus 5.5, high effort (the judgment-heavy work: cross-context checks, verification, scoring). A different session from the one that wrote the harness, so the author does not grade their own work |
-| Subagents (claims ledgers of M12, probes P1 to P7) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
+| Subagents (claims ledgers of M12, probes P1 to P9) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
 | Delta reviews | Sonnet 5.5, medium or high effort in one session; subagents only if the changed area spans several contexts |
 | Permissions | Read access to the repository, write access to a new `docs/` branch; no Docker or dev servers are needed |
 

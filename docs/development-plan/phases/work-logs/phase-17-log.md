@@ -257,3 +257,18 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Next step:** the owner approves the triage of the report's section 14. Then H-01 is fixed in the framework and synced here, or accepted; then `finish-phase`.
   No task of Phase 17 is left.
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
+
+### 2026-11-03 — Cursor deferred; its exit criterion removed
+- **Tasks:** none (a plan change)
+- **Branch:** `docs/17-defer-cursor`
+- **Decisions / deviations from the plan:** the owner deferred Cursor support for an unspecified term ("now is not the right time to continue supporting
+  Cursor for this framework"). By the owner's explicit request, Cursor is removed from the exit criteria of this phase:
+  - the owner's real Cursor session;
+  - Cursor in the framework's Phase 1 proof (that proof did bootstrap the Cursor preset, task 1.5; it is no longer required).
+
+  The preset stays in the framework as `0.1.0` shipped it, unverified in a live session. The checklist of the framework's task 1.2 waits for the
+  owner. This replaces the decision of 2026-11-02, which kept the criterion open. The closing review (17.17) is a dated record and is not changed.
+- **Problems / blockers / findings:** the only exit criterion left open is "no regression" of §3.5. It fails on D1 (H-20261103-01): fix it in the
+  framework and sync, or the owner accepts it.
+- **Next step:** the owner decides on H-20261103-01; then `finish-phase`.
+- **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)

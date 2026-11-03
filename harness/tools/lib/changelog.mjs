@@ -3,7 +3,8 @@
 // the project's (`release.versionFiles` of the profile file), so the tool works for any stack whose version sits in a JSON file.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
+import { areasOf, noteProblems, notePath, readAreas, WATCHED, withAreas } from './migration-notes.mjs'
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/
 // The version a development line is at, before the release it leads to: 0.1.0-dev.1 comes before 0.1.0
@@ -40,6 +41,20 @@ export function nextVersion(current, bump) {
     throw new Error(`${bump} is not higher than the current version ${current}`)
   }
   return bump
+}
+
+/**
+ * The next development version of a release: 0.1.1 gives 0.1.1-dev.1, then 0.1.1-dev.2, by the tags the repository already has (`tags`, with or
+ * without the `v`). A project syncs a development version to run its checks before the final tag.
+ */
+export function nextDevelopmentVersion(version, tags) {
+  const prefix = `${version}-dev.`
+  const taken = tags
+    .map((tag) => tag.replace(/^v/, ''))
+    .filter((tag) => tag.startsWith(prefix))
+    .map((tag) => Number(tag.slice(prefix.length)))
+    .filter(Number.isInteger)
+  return `${prefix}${Math.max(0, ...taken) + 1}`
 }
 
 const UNRELEASED = '## [Unreleased]'
@@ -81,7 +96,7 @@ const LINK = /^\[[^\]]+\]: .*$/
 
 // Moves the entries under "Unreleased", and those of the fragments, to a section of the version, leaves an empty "Unreleased", and keeps the comparison links
 // at the end of the file (`[1.2.0]: <repo>/compare/v1.1.0...v1.2.0`)
-export function releaseChangelog(text, version, date, repoUrl, fragments = []) {
+export function releaseChangelog(text, version, date, repoUrl, fragments = [], noteLink = null) {
   const start = text.indexOf(UNRELEASED)
   if (start < 0) {
     throw new Error('The changelog has no "## [Unreleased]" section')
@@ -109,7 +124,8 @@ export function releaseChangelog(text, version, date, repoUrl, fragments = []) {
     ? `[${version}]: ${repoUrl}/compare/v${previous}...v${version}`
     : `[${version}]: ${repoUrl}/releases/tag/v${version}`
 
-  const released = `${content.slice(0, bodyStart)}\n\n## [${version}] - ${date}\n\n${body}\n${content.slice(bodyEnd)}`
+  const migration = noteLink ? `Migration note: ${noteLink}\n` : ''
+  const released = `${content.slice(0, bodyStart)}\n\n## [${version}] - ${date}\n\n${migration}${migration ? '\n' : ''}${body}\n${content.slice(bodyEnd)}`
   return `${released.trimEnd()}\n\n${[`[Unreleased]: ${repoUrl}/compare/v${version}...HEAD`, comparison, ...kept].join('\n')}\n`
 }
 
@@ -173,15 +189,52 @@ export function writeVersion(file, text, version) {
     : `${JSON.stringify({ ...JSON.parse(text), version }, null, 2)}\n`
 }
 
+// The release version before `version`, as the changelog's comparison links have it
+const previousRelease = (changelogText) => /^\[(\d+\.\d+\.\d+)\]:/m.exec(changelogText)?.[1]
+
+/**
+ * The migration note of a release (`release.migrations` of the profile file): it must exist and have its shape, and its areas are derived from the
+ * files that changed in the watched folders since the tag of the previous release. Returns the note with the areas written, and the areas.
+ */
+function migrationNote({ root, profile, git, version, changelogText }) {
+  const folder = profile.release.migrations
+  const path = notePath(folder, version)
+  if (!existsSync(join(root, path))) {
+    throw new Error(
+      `the migration note ${path} is missing: write it before the release (a version that needs nothing from a project says so)`
+    )
+  }
+  const text = readFileSync(join(root, path), 'utf8')
+  const problems = noteProblems(text, version)
+  if (problems.length) {
+    throw new Error(`${path}: ${problems.join('; ')}`)
+  }
+  const previous = previousRelease(changelogText)
+  if (previous && !git('tag', '--list', `v${previous}`)) {
+    throw new Error(`the tag v${previous} of the previous release is not in this clone: git fetch --tags`)
+  }
+  const changed = previous
+    ? git('diff', '--name-only', `v${previous}`, '--', ...WATCHED)
+        .split('\n')
+        .filter(Boolean)
+    : []
+  const { areas, unmatched } = areasOf(changed, readAreas(root, folder))
+  if (unmatched.length) {
+    throw new Error(`${folder}/areas.json has no area for: ${unmatched.join(', ')}`)
+  }
+  return { path, areas, text: withAreas(text, areas) }
+}
+
 const RELEASE_BRANCH = /^(release|hotfix)\/(\d+\.\d+\.\d+)$/
 
 /**
  * `harness release [--dry-run]`, on a branch `release/<x.y.z>` or `hotfix/<x.y.z>`: sets the version in every version file (JSON, or the `[project]` table of a TOML file), moves the entries under
  * "Unreleased" and those of the fragments to a section of the version, removes the fragments and runs the lock command of the profile. It
- * commits and tags nothing.
+ * commits and tags nothing. With `dev` it only sets the next development version of the release (`0.1.1-dev.1`), which is tagged first so that
+ * projects can sync it before the final tag: the changelog and the fragments stay as they are.
  * @returns {string[]} what it did or would do
  */
-export function release({ root, profile, dryRun = false, date = new Date().toISOString().slice(0, 10) }) {
+export function release({ root, profile, dryRun = false, dev = false, date = new Date().toISOString().slice(0, 10) }) {
   const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim()
   const versionFiles = profile.release?.versionFiles ?? ['package.json']
 
@@ -195,34 +248,54 @@ export function release({ root, profile, dryRun = false, date = new Date().toISO
   }
 
   const current = readVersion(versionFiles[0], readFileSync(join(root, versionFiles[0]), 'utf8'))
-  const version = nextVersion(current, match[2])
+  const target = nextVersion(current, match[2])
+  const version = dev ? nextDevelopmentVersion(target, git('tag', '--list').split('\n')) : target
   const fragmentsDir = join(root, profile.paths.changelogFragments)
   const names = fragmentFiles(fragmentsDir)
   const fragments = names.map((name) => parseFragment(name, readFileSync(join(fragmentsDir, name), 'utf8')))
   const changelogPath = join(root, profile.paths.changelog)
-  const changelog = releaseChangelog(
-    readFileSync(changelogPath, 'utf8'),
-    version,
-    date,
-    profile.repository.url,
-    fragments
-  )
+  const changelogText = readFileSync(changelogPath, 'utf8')
+  const note =
+    dev || !profile.release?.migrations ? null : migrationNote({ root, profile, git, version, changelogText })
+  const noteLink =
+    note && `[${note.path}](${relative(dirname(changelogPath), join(root, note.path)).replace(/\\/g, '/')})`
+  const changelog = dev
+    ? null
+    : releaseChangelog(changelogText, version, date, profile.repository.url, fragments, noteLink)
 
-  const lines = [`${branch}: ${current} -> ${version} (${date}), ${fragments.length} changelog fragments`]
+  const lines = [
+    ...(note
+      ? [`${note.path}: ${note.areas.length ? `areas touched: ${note.areas.join(', ')}` : 'no area touched'}`]
+      : []),
+    dev
+      ? `${branch}: ${current} -> ${version} (a development version: no changelog entry)`
+      : `${branch}: ${current} -> ${version} (${date}), ${fragments.length} changelog fragments`
+  ]
   if (dryRun) {
     return [...lines, 'Dry run: nothing was written.']
   }
   for (const file of versionFiles) {
     writeFileSync(join(root, file), writeVersion(file, readFileSync(join(root, file), 'utf8'), version))
   }
-  writeFileSync(changelogPath, changelog)
-  names.forEach((name) => rmSync(join(fragmentsDir, name)))
+  if (note) {
+    writeFileSync(join(root, note.path), note.text)
+  }
+  if (!dev) {
+    writeFileSync(changelogPath, changelog)
+    names.forEach((name) => rmSync(join(fragmentsDir, name)))
+  }
   const lockCommand = profile.release?.lockCommand
   if (lockCommand) {
     const [command, ...args] = lockCommand.split(' ')
     if (spawnSync(command, args, { cwd: root, stdio: 'inherit' }).status !== 0) {
       throw new Error(`${lockCommand} failed`)
     }
+  }
+  if (dev) {
+    return [
+      ...lines,
+      `Done. Commit it (chore(release): ${version}) and tag the commit ${version} (no "v": a tag with it is a release); the final release is made with \`harness release\`.`
+    ]
   }
   return [
     ...lines,

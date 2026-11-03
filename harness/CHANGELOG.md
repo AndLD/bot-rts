@@ -5,6 +5,23 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-03
+
+Migration note: [migrations/0.1.1.md](migrations/0.1.1.md)
+
+### Added
+
+- a migration note for every version, `migrations/<version>.md` (from `0.1.1`), in a fixed shape: what changed for a project, the areas touched, the required actions with their checks, the optional actions, how to verify. `migrations/` is distributed with the framework. With `release.migrations` in the profile file, `harness release` refuses a version without its note, writes the areas the version touched into it (derived from the files that changed in `core/`, `tools/`, `adapters/` and `profile/` since the previous tag, by `migrations/areas.json`) and links the note from the changelog entry. The README says how a project takes a version, also across several.
+- `core/vocabulary.json`, the words the framework's core uses on purpose (task, phase, plan, release, review, session, agent, …). The CORE scan never reports one of them, whatever the term lists of a project say.
+- `terms.exceptions` in the profile file records a hit of the CORE scan in the vendored `core/` (the file, the word, the link to the upstream report, and the framework version it holds for). `harness check core` accepts it while the lock is at that version, and fails on the exception after a sync to another version or when the hit is gone, so an exception cannot outlive the fix.
+- `harness release --dev` sets the next development version of a release (`<x.y.z>-dev.<n>`, the changelog and its fragments untouched), and the release procedure tags it before the final tag, so that a project can sync it and run its checks, the CORE scan included.
+- the issue template "A word found in core" and a section of the README on what to do with a word the scan reports in `core/`: an ordinary word is answered in the project (`terms.productGeneric`, and `core/vocabulary.json` when the core uses it on purpose), a leak is a defect fixed in a patch release.
+
+### Changed
+
+- the framework's own CORE scan refuses the names of tools that no adapter covers: databases, ORMs, web and test frameworks, containers and cloud services, and other hosts and agent runtimes (`terms.stack` of its profile file). Neutral words such as "database" or "container" stay allowed.
+- `harness check core` in a pinned project scans the vendored `core/` with the project's own `terms` and the adapters' terms, so a product or tool word of the project that reached the framework's core is found before a release is taken. A hit names the file, the line and the word, and the two ways out: add an ordinary word to `terms.productGeneric`, or report a product or tool word upstream and stay on the current version.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added
@@ -112,5 +129,6 @@ versions follow [Semantic Versioning](https://semver.org/).
 - three defects the proof found. (1) A project with two stacks got a CI workflow with the same job ids twice (`static`, and each coverage package): each stack now names its static job after itself, runs its own commands, runs the documentation check only in the first, and keeps the coverage jobs of its own packages (`ciJobs(profile, context)` in the stack contract). (2) The document map of the profile document dropped a row when any role in it had no value, which hid the releases guide, the changelog and the plan method from every new project: each document has a row of its own now, and the starter profile names the changelog. (3) An orphan: the documents the map dropped were not reachable from the entry file; with the map fixed, a new project has none.
 - `harness release` could not release from a development version such as `0.1.0-dev.1` (it did not parse it); a development version is now below its own release, so `0.1.0` and `patch` both give `0.1.0`. Found cutting `0.1.0`.
 
-[Unreleased]: https://github.com/AndLD/harness-framework/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AndLD/harness-framework/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/AndLD/harness-framework/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AndLD/harness-framework/releases/tag/v0.1.0

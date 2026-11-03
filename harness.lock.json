@@ -1,12 +1,12 @@
 {
   "framework": "harness-framework",
   "mode": "pinned",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "source": {
     "type": "git",
     "url": "https://github.com/AndLD/harness-framework.git",
-    "tag": "v0.1.0",
-    "commit": "79bf48fbee8935da41020e7ec581d1fd59282d3a"
+    "tag": "v0.1.1",
+    "commit": "be11253b0c2826b8a8c8090fb4fa7c7b6da72eb5"
   },
   "adapters": {
     "stacks": [
@@ -19,9 +19,9 @@
   },
   "files": {
     "BOOTSTRAP.md": "c81d65863a4e247dfc12e5ec1b69836fe2892bd3a98eb220608eaf72b02cb864",
-    "CHANGELOG.md": "be1a9156bdf4326e4d711b9ae287a9e9bb530daeb207535af2d47307bfefca6d",
+    "CHANGELOG.md": "28586f784fb75fc3468f2c2962e5e547bcb3538bef86e33bf07950be4a773d3f",
     "LICENSE": "05abb11a226621a02a46cbabdc913212f8327b9ab419ce1fe6cc14651fca1bed",
-    "README.md": "0b8c208e273d0ef9973a02e05f32e6c58121583e6f9e9edc636b0533510fbeac",
+    "README.md": "03497f56815c2c67f55705e85a8d598621ac74f4cc85345fe91d86c14245f816",
     "adapters/host/_skeleton/README.md": "6ec6c5bf9b35fe9c6cb4dd569b7f5f84146611d15a971e46b045bfbaa97c785e",
     "adapters/host/_skeleton/conformance.json": "085f6ced80094d8cf6d8c414ff20e2129a06becd0f8620fbd0688d6c5f33db9e",
     "adapters/host/_skeleton/manifest.json": "c4c826b89193832d478532d0859e8f042e7799a71c7577648e9e6551ff133183",
@@ -99,7 +99,7 @@
     "core/procedures/harness-review.md": "4b9b482648fbd6e741276a4db5037166042ae8413891ccbac97ebffbfee77936",
     "core/procedures/new-adapter.md": "8ffb08201ea6d129a9e760dccff60e480fa107dc4744137f9f69f393c2dd503a",
     "core/procedures/open-pull-request.md": "4bdfc36fda9f8ceabd0adf91b8bc6da8937b7e38f4be28ab7181e88dbf55a6c0",
-    "core/procedures/release.md": "568f3177c3ad2d65cc1ece2a5534ccce1eee158732c0fb38640120ebb5081be1",
+    "core/procedures/release.md": "6e23a515949204dc5e14f6676f2de8560ee21fbf8c0c8433aedd810596603da6",
     "core/procedures/start-task.md": "31b78200f8e80ab975d2905b9a8119a1b928695575053e195370c6d59301c087",
     "core/reviews/README.md": "ad8eaf9fc5f903a03c1d6261f33858d9b3412438ec59694978cc1b01ffc5c6e5",
     "core/reviews/code/README.md": "3d3991edcc1611807fae5613d3e6e75d5c3e7bdf143a943b65ef59158acc25b5",
@@ -128,10 +128,14 @@
     "core/templates/scaffold/scaffold.json": "13363a5efacabbca81be9778aa51b5cd1d1f651c102b72e975b67f17822ac5ac",
     "core/templates/scaffold/stack.md": "0367dc9088f2c8c9b58b0dc4398cea8efc9f3ed163ce8fdee31cc5fddb5825d9",
     "core/templates/scaffold/template-readme.md": "73f37b24b4558936e71416e4bd93b04a0f8c98f3bca96332cf27d41a84cb9a4d",
-    "framework.json": "ded20ff88230f0c433a77980e51afcf690b16b3e287d7315bae22c4a8953c109",
-    "profile/harness-profile.schema.json": "89a367cd3c971cc1425e1ebbb413b0baacfaed0ea016af4da6fc71c47b18e509",
+    "core/vocabulary.json": "8e74b9a58230a2778b159fbe89f1c66cc26f3d217c5bccf39ff92381c4e73390",
+    "framework.json": "96859431fe8459b2a0246ad2c268db28250f7e68dd696056a831abd7aba45d3a",
+    "migrations/0.1.1.md": "bdb159767f3151db389e5eedc2613c5c0b695c4903637e8c7bb92c0ddf22752b",
+    "migrations/README.md": "c811ce0200e28031690189c673282d23161f29bda8801ee2f2f6920ebe6f190a",
+    "migrations/areas.json": "1ef7da16d026f13a16f32726e2047343386433d1ebb5d13346f29fc43b490009",
+    "profile/harness-profile.schema.json": "5cfc7229aa6ad967f89db1fcd406c8eaeb091de614375d012a17426a81a3b220",
     "profile/manifest.schema.json": "bc3f680f502d10e0eb0db984784c141d22de0ac2d9bd41d29a6ce59f33805111",
-    "profile/roles.md": "35c07cd5c14d133bc0221fe01225f993e22704c16408424ae499d7159298872f",
+    "profile/roles.md": "478a3f5440fe06481972f75e3befffd21b6bd2d31d3adfda3da167a2d210d3f2",
     "profile/starter.json": "22866705f01351be83ed979dc81f2ed65628f766e36f4dea0ae3324910264bcb",
     "tools/conformance/common.mjs": "c5d058c496a8266b1d65da0efd6fc597118dd9b6aab12dab89e156a1248b7f89",
     "tools/conformance/fixture.mjs": "2dfbdbf71c6c71ea775c394d3eb0f33ae531c905f01e87697a6eec77770d3f64",
@@ -142,7 +146,7 @@
     "tools/conformance/suite.mjs": "ba0a761b691e5a43e30fba7b7d0420eae9be76ea470ffbc44a228ba2b1a71934",
     "tools/git-hooks/pre-commit": "5b0313960dfdfb33df61138e9955ec1090ced0747abc120101933bb7361fc575",
     "tools/git-hooks/pre-push": "324706059794b255df12e81875b03396bba1ce9b1517a9485febae60f0d635fc",
-    "tools/harness.mjs": "77bffa038a979aacf8596329160eebfea07917906111fe01818e9b6e3a943a1f",
+    "tools/harness.mjs": "ad43c14ce2b042615869d11e711d0c2606e4248c900f22b46887b7feda02f97a",
     "tools/harness.test.mjs": "3832d73b238c9c1a1e1fad4ab5cc0c195a5fdba7f6f06da4d6dd42b0b8cf1135",
     "tools/lib/adapters.mjs": "e7e610e5bc6c43ea69d77fbf3d8117ab4d424be30521e67b1f26590d025427a5",
     "tools/lib/adapters.test.mjs": "30c28272b746822d30cf41f608cb9fc29e5f1624d6f69cc2443f6e29b03c7c5d",
@@ -152,14 +156,14 @@
     "tools/lib/bootstrap-sameness.test.mjs": "44ef5415d253f6de6b900257966fb1694389fe4c93823d0917c3c8b227c22da2",
     "tools/lib/bootstrap.mjs": "9ca4d1d309497c15797bb0dba3acee8e5f3c4375a1992db7bcc382b6dd6c1e01",
     "tools/lib/bootstrap.test.mjs": "dc11babb7640e62d9ccae9bc178196414331ba3eb0ddad5b36a02c55090c4217",
-    "tools/lib/changelog.mjs": "4d87a8295ba2252d8dbeacd76acb7eadca48797827adeeb7e52d6ad04a3cf513",
-    "tools/lib/changelog.test.mjs": "402a91518466357933ebabef1565c61f57731639355641c565435ced80fa5cfc",
+    "tools/lib/changelog.mjs": "df0d9d7c7adf0bda97e41988282886b13e2334b60daeb91410da47f7a9334fd5",
+    "tools/lib/changelog.test.mjs": "71bf7f58ad9bab4fc8868e1bab21a7b1d494c4d0db7dc05be3dc70e2ef80aae9",
     "tools/lib/changes.mjs": "f4d4c7717b7a8cc0d66ed396ec16c2fe800eaf1af6cf3ea017d6e952129edd62",
     "tools/lib/changes.test.mjs": "879e854e164e710fc92fe7f1dd281a67e4d8bfdc37aa580e9e949f989d3f6326",
     "tools/lib/checks.mjs": "cc0b64003c39c92b1e3a02444c67641452dce3667ba421773f5a8b184ce81770",
     "tools/lib/core-documents.test.mjs": "4dd4d5f19beb4033466583d9d357d01eb737eb069c823868eab6605ae8bf5621",
-    "tools/lib/core-scan.mjs": "84c2fd5527cc8d1c81f0c1a96d5fece0873550742c4fd50052b9feb421e2ae1a",
-    "tools/lib/core-scan.test.mjs": "e74f56913c03e2d420c62474f772fd5f278fa203d6d0df094fc2bdb93933db93",
+    "tools/lib/core-scan.mjs": "47988aefc73936ea04ed123f30bc8a2fe5b96cb96bf25a169fe8f507bcce1ee6",
+    "tools/lib/core-scan.test.mjs": "d877c1d623ebfa6147496ba652b8ede7d18fd789715c181f61674a245657c8b9",
     "tools/lib/coverage.mjs": "592c7348334ff4d1de3a3a2d929a6ecd5c8570ab3669065c579e3f92f0ef3b0f",
     "tools/lib/coverage.test.mjs": "6c7bc3af626ac285960b40863ba783438686528f345d0aa2a39d1cc42082b0a4",
     "tools/lib/entry.mjs": "52933045c8bc9df669b42357466ffbe10dba8a374eef4e20ab43bdc41454619a",
@@ -184,6 +188,8 @@
     "tools/lib/managed.test.mjs": "d6e426c0b7d5c8020215a6657b5fb3361e2dc1da0f595bd92cfa9670484323f1",
     "tools/lib/markdown.mjs": "f831269b99c96bccce5e318b60b48ec70d488873a997fc3796b2ad46b125845f",
     "tools/lib/markdown.test.mjs": "cdd3842c7bedb409ec27139ab839bdfb8002c1b0f14943f2e5025aed0116e6b0",
+    "tools/lib/migration-notes.mjs": "c029f75b1f023adf077e4d1662a6acbb05060e424e386d426c1b82f327d65b16",
+    "tools/lib/migration-notes.test.mjs": "8d86b22ed063fd3a7701ff44e2d617baab60bdb04629f7901b26efc4b115083b",
     "tools/lib/open-items.mjs": "e77240cbd0ea271396f35f481c1fdf45c5dc0c47c17a703bc0b09ea0ce090d86",
     "tools/lib/open-items.test.mjs": "1fabc1e34ea6537ab63ad8c26c18a50da4477ae4b96233171b517727cd3e0e5b",
     "tools/lib/paths.mjs": "3ec015d925d0ba8268c235dc7756918e174faf2dad67edac484521dc796860c9",
@@ -198,7 +204,7 @@
     "tools/lib/profile-document.test.mjs": "552e056d1e94ae9409897519779735261dbe4c1762ffe06747e34a8fa803151c",
     "tools/lib/profile.mjs": "84aca5feb0989ae98f08f3a1ddfcd59cda812a59f6e2fefa6092af0018d2289b",
     "tools/lib/profile.test.mjs": "3c3cdf316bd91f76d525d42d9fb1fee6aa64211f238b35d388be1a77eec45e7c",
-    "tools/lib/project-checks.test.mjs": "81e2535024abe5bafe41c1b842887acc8c5e3cfcac28d47f0cbf46d8c45160f1",
+    "tools/lib/project-checks.test.mjs": "3db95293f6c705d2ee23aeca9b245c0a8cf9080b65f806c215e9d410abc5239b",
     "tools/lib/render.mjs": "6b04f413423987eb936380e5c132e620d14b38d9c0c2a876ef547b77f19024e7",
     "tools/lib/render.test.mjs": "6312afc05e39e202efbcfe1d565f3b9f526ac99ef947b11967cc8fd25e77cedb",
     "tools/lib/rule-map.mjs": "90aee983b9653eeaceaffea5ca64cc4c19236c11db51ae059795e682930242be",
@@ -226,7 +232,7 @@
     "tools/runtime-hooks/session-start.mjs": "406ddca96cf2f7291cd0f3efd35bf700c471b33f494fdb3121479bbdb8636f96"
   },
   "managed": {
-    "docs/profile.md": "673ecdce5b695d2e0f0f48105f10de96c2334ca268cbecf12120795099b8121e",
+    "docs/profile.md": "f60317d2396ea9d2da9fcdacdd2dd9d2549f0e1c6600cf7e60799c1a8a625725",
     "docs/quality-reviews/harness/bindings.md#layers": "0f561e4c87dff0a3d2c74f267b4651f5efea7004c58bb5b1551d00a56178995f",
     "docs/engineering/rule-checks.md#rule-map": "b4bf9aa1465573b59be071fe03f5e909ff13c75b4d7848f4cc1ccd3eac6873bd",
     "AGENTS.md#procedures": "6fdeae518f509ba3599590fb7dbad92b71d1455d7d42fcddeaf962806cfc6d35",
@@ -238,13 +244,14 @@
     ".claude/skills/harness-review/SKILL.md": "10bdc29a6cb4b18a6c804bf40eb38056f57ad32ffd40284c2020ceb1fca2f4c4",
     ".claude/skills/new-adapter/SKILL.md": "abf372f55fe41b78c86db30776c4425156f4832c5aef56ae85dd79d6d88f7d1d",
     ".claude/skills/open-pull-request/SKILL.md": "a40f251c0ccde81d8fa240005182284641b9d6e0af03c6c5075b2445e462f87b",
-    ".claude/skills/release/SKILL.md": "04e2ec62e80bbac523361e59e58db118eaa6b96db9da6cd95644962127b24042",
+    ".claude/skills/release/SKILL.md": "01a2525230a8d4c5c6120fc611e033f2b2a2453fbeb63044baf646192d266394",
     ".claude/skills/start-task/SKILL.md": "8b1845aab25c195c8a184df4e2b5d9afa63abb86f7c84158a8b0f9eb3d2a60eb"
   },
   "profile": "4b7a9b7b833e7d3ff52a11b4d215b203eada26a38a50ea07ce428c5dd0520e3f",
   "overrides": [],
   "seen": {
     "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79",
-    "0.1.0": "79bf48fbee8935da41020e7ec581d1fd59282d3a"
+    "0.1.0": "79bf48fbee8935da41020e7ec581d1fd59282d3a",
+    "0.1.1": "be11253b0c2826b8a8c8090fb4fa7c7b6da72eb5"
   }
 }

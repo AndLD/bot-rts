@@ -95,13 +95,25 @@ The checks and the project tools read every value from the profile file:
 | `adapter test <path> [--only <pattern>]` | Runs the conformance suite of its axis on the adapter folder at `<path>` (a preset, or a new adapter written by [the new-adapter guide](core/contracts/new-adapter.md)); `--only` narrows the checks by name. It exits 1 when a check fails. |
 | `check links` | Every relative link of the tracked Markdown files resolves, and an `#anchor` matches a heading as the host renders it. |
 | `check paths` | A repository path in backticks in a document outside STATE exists: a path that starts with a dot and a slash (the current or the parent folder), or whose first folder is a top-level entry, and that names a file by its extension or a folder by a final `/`. A path the repository ignores is accepted. |
-| `check core` | The project's own CORE documents (`layers.core`, none for a project that uses the framework) and the `core/` folder that the project owns hold no stack term, product term or project value (`terms`). |
+| `check core` | The project's own CORE documents (`layers.core`, none for a project that uses the framework) and the `core/` folder hold no stack term, product term or project value (`terms`): the folder the project owns, and in a pinned project its vendored copy, scanned with the project's own terms. The words in `core/vocabulary.json` (the ones the core uses on purpose) are never reported. |
 | `check plan` | The summary and the contents of the plan index agree with the phase files (`plan summary` writes them). |
 | `check changelog` | Every changelog fragment starts with a Keep a Changelog kind. |
 | `check product-knowledge` | The register of open items, the glossary, and no stack term, plan reference or code path in the product knowledge (`productKnowledge`). |
 | `plan log <phase> [ref]` | The implementation log of a phase, from the `Plan:` lines of the squash commits. |
-| `release [--dry-run]`, `release notes <version>` | On a `release/<x.y.z>` or `hotfix/<x.y.z>` branch, the versions of `release.versionFiles` and the changelog section; the notes of one version for the host's release. |
+| `release [--dev] [--dry-run]`, `release notes <version>` | On a `release/<x.y.z>` or `hotfix/<x.y.z>` branch, the versions of `release.versionFiles` and the changelog section; with `--dev` only the next development version `<x.y.z>-dev.<n>` (the changelog stays), which is tagged before the final tag so that a project can sync it and run its checks; the notes of one version for the host's release. With `release.migrations` in the profile file, a release is refused without the migration note of its version, which the command links from the changelog and fills with the areas the version touched. |
 | `ci changes <base> <head>` | Whether a change needs the code checks: not when every changed path is documentation (`checks.documentationPaths`, every Markdown file by default). In doubt it says it does. CI and the push gate use the same rule. |
+
+## Taking a version
+
+A project takes a version with `sync --from <source> --to <version>`, then regenerates the managed files as the note says. Every version from `0.1.1` on has a **migration note**, [`migrations/<version>.md`](./migrations/README.md), that says what a project must do when it takes that version from the previous one, with the check that proves each action done. A project that skips versions (`0.1.1` straight to `0.3.0`) reads the notes of every version after its own up to the target, in order, and does the required actions of each; the changelog says what changed, the notes say what to do. The areas a note lists tell which of the project's own files and probes the version touched. A version that needs nothing says so.
+
+## A word found in `core/`
+
+The framework's `core/` is neutral: it names no stack, tool, runtime, host or project. `harness check core` of a project that uses the framework scans its vendored `core/` with the project's own `terms`, and a hit names the file, the line and the word.
+
+- **An ordinary word** (the project's term list is too broad): answer it in the project, with `terms.productGeneric`. If the core uses the word on purpose, it belongs in `core/vocabulary.json`, which the scan never reports. The framework does not rename its own words.
+- **A product, tool or project word that reached `core/`** is a leak, and a defect of the framework: report it with the issue template "A word found in core". A confirmed leak becomes a task of the open-ended phase of the plan, and is fixed in a patch release. Until then the project is not blocked: it records the hit in `terms.exceptions` of its profile file (the file, the word, the link to the report, and the framework version it holds for), which `check core` accepts while the lock is at that version. After a sync to another version the exception fails the check, so it cannot outlive the fix.
+- **Before the final tag** of a release the framework tags a development version (`<x.y.z>-dev.<n>`, see the [releasing guide](./docs/operations/releasing.md)), so that a project can sync it and run the scan first.
 
 Planned for `0.1.0`, in the order of the build tasks:
 

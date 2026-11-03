@@ -1,6 +1,6 @@
 {
   "name": "harness-framework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "adapters": {
     "stack": ["node-ts", "python"],
@@ -12,6 +12,7 @@
     "profile",
     "adapters",
     "tools",
+    "migrations",
     "framework.json",
     "README.md",
     "BOOTSTRAP.md",

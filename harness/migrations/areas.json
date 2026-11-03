@@ -1,0 +1,38 @@
+{
+  "description": "The areas of the framework that a migration note lists. `harness release` derives the areas a version touched from the files that changed in core/, tools/, adapters/ and profile/ since the previous release: a changed path belongs to the first area whose globs match it; a path of an `ignore` glob belongs to none; any other path is an error, so this list stays complete. A project's probes (task 3.15) name these areas.",
+  "ignore": ["**/*.test.mjs"],
+  "areas": {
+    "entry rules": [
+      "core/rules/non-negotiables.md",
+      "core/templates/scaffold/AGENTS.md",
+      "core/templates/scaffold/CLAUDE.md"
+    ],
+    "Git rules": ["core/rules/git.md", "tools/git-hooks/**", "tools/lib/git-guards.mjs", "tools/lib/guard.mjs"],
+    "plan format": ["core/plan/**", "tools/lib/plan.mjs"],
+    "procedures": ["core/procedures/**", "tools/lib/procedures.mjs", "tools/lib/skills.mjs"],
+    "review method": ["core/reviews/**"],
+    "engineering method": ["core/method/**"],
+    "adapter contract": [
+      "core/contracts/**",
+      "tools/conformance/**",
+      "profile/manifest.schema.json",
+      "tools/lib/adapters.mjs"
+    ],
+    "stack adapters": ["adapters/stack/**"],
+    "runtime adapters": ["adapters/runtime/**", "tools/runtime-hooks/**"],
+    "host adapters": ["adapters/host/**"],
+    "profile file": ["profile/**", "tools/lib/profile*.mjs", "tools/lib/values.mjs"],
+    "templates and scaffold": ["core/templates/**"],
+    "core vocabulary": ["core/vocabulary.json"],
+    "bootstrap and sync": [
+      "tools/lib/bootstrap.mjs",
+      "tools/lib/init.mjs",
+      "tools/lib/adopt*.mjs",
+      "tools/lib/vendor.mjs",
+      "tools/lib/source.mjs",
+      "tools/lib/lock.mjs",
+      "tools/lib/managed.mjs"
+    ],
+    "checks": ["tools/lib/**", "tools/harness.mjs"]
+  }
+}

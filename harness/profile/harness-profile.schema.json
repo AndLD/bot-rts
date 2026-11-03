@@ -486,6 +486,28 @@
         "projectValues": {
           "type": "string",
           "description": "Project values, which must not appear in CORE text."
+        },
+        "exceptions": {
+          "type": "array",
+          "default": [],
+          "description": "Hits of the CORE scan in the vendored `core/` that the project accepts until its next sync: a leak it reported upstream and waits for the fix of. Each holds for one framework version only; after a sync to another version `harness check core` fails on it.",
+          "items": {
+            "type": "object",
+            "required": ["file", "word", "report", "version"],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "The file of the hit, as the scan prints it (for example `harness/core/method/method.md`)."
+              },
+              "word": { "type": "string", "description": "The word the scan reports (case-insensitive)." },
+              "report": { "type": "string", "description": "The link to the report in the framework's repository." },
+              "version": {
+                "type": "string",
+                "description": "The framework version (`version` of the lock) the exception holds for."
+              }
+            }
+          }
         }
       },
       "additionalProperties": false,
@@ -874,6 +896,10 @@
           "minItems": 1,
           "description": "The JSON files whose `version` the release sets; the first one holds the current version.",
           "default": ["package.json"]
+        },
+        "migrations": {
+          "type": "string",
+          "description": "The folder of the migration notes, one `<version>.md` for every version, with an `areas.json` next to them. `harness release` refuses a version without its note, writes the areas the version touched into it, and links it from the changelog."
         },
         "lockCommand": {
           "type": "string",

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   addFragments,
+  nextDevelopmentVersion,
   nextVersion,
   parseFragment,
   parseVersion,
@@ -144,4 +145,10 @@ test('a development version is below its own release, so 0.1.0-dev.1 is released
   assert.equal(nextVersion('0.1.0-dev.1', '0.2.0'), '0.2.0')
   assert.throws(() => nextVersion('0.1.0-dev.1', '0.0.9'), /not higher/)
   assert.throws(() => nextVersion('0.1.0', '0.1.0-dev.2'), /not a version/)
+})
+
+test('nextDevelopmentVersion numbers the development versions of a release by its tags, with or without the v', () => {
+  assert.equal(nextDevelopmentVersion('0.1.1', []), '0.1.1-dev.1')
+  assert.equal(nextDevelopmentVersion('0.1.1', ['v0.1.0', 'v0.1.1-dev.1', '0.1.1-dev.2']), '0.1.1-dev.3')
+  assert.equal(nextDevelopmentVersion('0.1.1', ['v0.1.10-dev.5', 'v0.1.1-dev.x', 'v0.2.0-dev.1']), '0.1.1-dev.1')
 })

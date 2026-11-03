@@ -7,11 +7,12 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, test } from 'node:test'
 import { checkChangelog, release } from './changelog.mjs'
-import { checkCore, frameworkCoreFolder } from './core-scan.mjs'
+import { checkCore, frameworkCoreFolder, frameworkCoreScan } from './core-scan.mjs'
 import { checkLinks } from './links.mjs'
 import { checkPaths } from './paths.mjs'
 import { planLog, planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
+import { AREAS_BEGIN, AREAS_END, NOTE_HEADINGS } from './migration-notes.mjs'
 import { loadProfile } from './profile.mjs'
 
 const made = []
@@ -122,6 +123,8 @@ const commit = (root, message) => {
   git(root, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '--quiet', '-m', message)
 }
 const profileOf = (root) => loadProfile(root)
+const NOTE_TEXT = (version) =>
+  `# Migration to ${version} from 1.0.0\n\n${NOTE_HEADINGS.map((heading) => `## ${heading}\n\n${heading === 'Areas touched' ? `${AREAS_BEGIN}\n${AREAS_END}` : 'Nothing.'}\n`).join('\n')}`
 
 test('links: a clean project passes; a broken file link, a missing anchor and a link to an ignored file fail', () => {
   const root = project()
@@ -191,6 +194,69 @@ test('core: the CORE documents and their sections, the one binding line, and the
   )
 })
 
+test('core, pinned: the vendored framework core is scanned with the project terms, and a hit names the ways out', () => {
+  const lock = JSON.stringify({ mode: 'pinned', source: { type: 'git', url: 'https://example.com/framework.git' } })
+  const root = project({ 'harness.lock.json': lock, 'harness/core/rules.md': 'Each cart is checked.\n' })
+  assert.deepEqual(frameworkCoreScan(root), { folder: 'harness/core', vendored: true })
+
+  const problems = checkCore({ root, profile: profileOf(root) }).problems
+  assert.equal(problems.length, 1)
+  assert.match(problems[0], /^harness\/core\/rules\.md:1: the product term "cart" is in the vendored framework core/)
+  assert.match(problems[0], /add it to `terms\.productGeneric`/)
+  assert.match(problems[0], /report it upstream.*record it in `terms\.exceptions`/)
+
+  // Way out 1: an ordinary word is listed in productGeneric
+  const generic = { ...PROFILE, terms: { ...PROFILE.terms, productGeneric: '\\border\\b|\\bcart\\b' } }
+  write(root, { 'harness-profile.json': JSON.stringify(generic) })
+  assert.deepEqual(checkCore({ root, profile: profileOf(root) }).problems, [])
+
+  // Way out 2: the word is in the vocabulary of the framework's core, whatever the terms say
+  write(root, {
+    'harness-profile.json': JSON.stringify(PROFILE),
+    'harness/core/vocabulary.json': JSON.stringify({ words: ['cart'] })
+  })
+  assert.deepEqual(checkCore({ root, profile: profileOf(root) }).problems, [])
+
+  // A tool word the vocabulary does not hold is still reported, also on a line with a vocabulary word
+  write(root, { 'harness/core/rules.md': 'Each cart waits for Postgres.\n' })
+  assert.match(
+    checkCore({ root, profile: profileOf(root) }).problems.join('\n'),
+    /the stack term "Postgres" is in the vendored/
+  )
+})
+
+test('core, pinned: a recorded exception holds while the lock is at its version and fails after a sync to the next', () => {
+  const lock = (version) =>
+    JSON.stringify({ mode: 'pinned', version, source: { type: 'git', url: 'https://example.com/framework.git' } })
+  const exception = {
+    file: 'harness/core/rules.md',
+    word: 'cart',
+    report: 'https://example.com/framework/issues/7',
+    version: '0.1.0'
+  }
+  const withException = (exceptions) => JSON.stringify({ ...PROFILE, terms: { ...PROFILE.terms, exceptions } })
+  const root = project({ 'harness.lock.json': lock('0.1.0'), 'harness/core/rules.md': 'Each cart is checked.\n' })
+
+  assert.equal(checkCore({ root, profile: profileOf(root) }).problems.length, 1)
+
+  write(root, { 'harness-profile.json': withException([exception]) })
+  assert.deepEqual(checkCore({ root, profile: profileOf(root) }).problems, [])
+
+  // The next version still has the word: the hit is reported again, and the exception says why it does not hold
+  write(root, { 'harness.lock.json': lock('0.1.1') })
+  const problems = checkCore({ root, profile: profileOf(root) }).problems
+  assert.equal(problems.length, 2)
+  assert.match(problems[0], /harness\/core\/rules\.md:1: the product term "cart" is in the vendored/)
+  assert.match(problems[1], /holds for version 0\.1\.0, and the lock is at 0\.1\.1: remove it/)
+
+  // The next version has the fix: only the stale exception is left
+  write(root, { 'harness/core/rules.md': 'Each item is checked.\n' })
+  assert.match(
+    checkCore({ root, profile: profileOf(root) }).problems.join('\n'),
+    /^terms\.exceptions\[0\].*the lock is at 0\.1\.1: remove it/
+  )
+})
+
 test('plan: the summary is written from the phase files and checked; the log is printed from the Plan lines of the commits', () => {
   const root = project()
   assert.match(
@@ -237,6 +303,74 @@ test('changelog: a fragment needs a kind; a release on its branch sets the versi
     checkChangelog({ root, profile: profileOf(root) }).problems[0],
     /bad\.md: a changelog fragment starts with/
   )
+})
+
+test('changelog: a development version of a release sets only the versions, and numbers itself by the tags', () => {
+  const root = project()
+  git(root, 'checkout', '--quiet', '-b', 'release/1.1.0')
+  const dry = release({ root, profile: profileOf(root), dev: true, dryRun: true })
+  assert.deepEqual(dry, [
+    'release/1.1.0: 1.0.0 -> 1.1.0-dev.1 (a development version: no changelog entry)',
+    'Dry run: nothing was written.'
+  ])
+
+  release({ root, profile: profileOf(root), dev: true })
+  assert.equal(JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version, '1.1.0-dev.1')
+  assert.equal(readFileSync(join(root, 'CHANGELOG.md'), 'utf8'), FILES['CHANGELOG.md'])
+  assert.equal(git(root, 'status', '--porcelain', 'changelog.d'), '', 'the fragments stay for the final release')
+
+  // Tagged, the next one is dev.2; the final release still starts from the development version
+  commit(root, 'chore(release): 1.1.0-dev.1')
+  git(root, 'tag', 'v1.1.0-dev.1')
+  assert.match(release({ root, profile: profileOf(root), dev: true, dryRun: true })[0], /-> 1\.1\.0-dev\.2 /)
+  release({ root, profile: profileOf(root), date: '2026-10-31' })
+  assert.equal(JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version, '1.1.0')
+})
+
+test('release with migration notes: refused without the note, areas derived from the diff since the previous tag, the note linked', () => {
+  const changelog =
+    '# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2026-10-01\n\n### Added\n\n- Start.\n\n[Unreleased]: https://example.com/acme/shop/compare/v1.0.0...HEAD\n[1.0.0]: https://example.com/acme/shop/releases/tag/v1.0.0\n'
+  const profile = { ...PROFILE, release: { ...PROFILE.release, migrations: 'migrations' } }
+  const root = project({
+    'harness-profile.json': JSON.stringify(profile),
+    'CHANGELOG.md': changelog,
+    'migrations/areas.json': JSON.stringify({
+      ignore: ['**/*.test.mjs'],
+      areas: { procedures: ['core/procedures/**'], checks: ['tools/**'] }
+    }),
+    'core/procedures/start.md': 'Start.\n',
+    'tools/check.mjs': 'a\n'
+  })
+  git(root, 'tag', 'v1.0.0')
+  write(root, { 'core/procedures/start.md': 'Start it.\n', 'tools/check.test.mjs': 'b\n' })
+  commit(root, 'feat: change a procedure')
+  git(root, 'checkout', '--quiet', '-b', 'release/1.0.1')
+  const run = (options = {}) => release({ root, profile: profileOf(root), date: '2026-11-03', ...options })
+
+  assert.throws(() => run({ dryRun: true }), /the migration note migrations\/1\.0\.1\.md is missing/)
+
+  write(root, { 'migrations/1.0.1.md': NOTE_TEXT('1.0.1').replace('## Optional actions', '## Extras') })
+  assert.throws(() => run({ dryRun: true }), /migrations\/1\.0\.1\.md: the sections must be, in order/)
+
+  write(root, { 'migrations/1.0.1.md': NOTE_TEXT('1.0.1') })
+  commit(root, 'docs: the note')
+  const dry = run({ dryRun: true })
+  assert.equal(dry[0], 'migrations/1.0.1.md: areas touched: procedures')
+  assert.match(dry[1], /^release\/1\.0\.1: 1\.0\.0 -> 1\.0\.1/)
+
+  run()
+  assert.match(
+    readFileSync(join(root, 'migrations/1.0.1.md'), 'utf8'),
+    /<!-- areas:begin -->\n- procedures\n<!-- areas:end -->/
+  )
+  assert.match(
+    readFileSync(join(root, 'CHANGELOG.md'), 'utf8'),
+    /## \[1\.0\.1\] - 2026-11-03\n\nMigration note: \[migrations\/1\.0\.1\.md\]\(migrations\/1\.0\.1\.md\)\n\n### Added/
+  )
+
+  // A development version needs no note, and writes none
+  git(root, 'checkout', '--quiet', '-b', 'release/1.0.2')
+  assert.match(run({ dev: true, dryRun: true })[0], /-> 1\.0\.2-dev\.1 /)
 })
 
 test('product knowledge: the register, the glossary and the scan, each from the profile; no role, no check', () => {

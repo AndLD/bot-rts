@@ -1,6 +1,6 @@
 [← Development plan index](../DEVELOPMENT-PLAN.md)
 
-# Phase 17 — Harness framework extraction (69 SP)
+# Phase 17 — Harness framework extraction (71 SP)
 
 **Status:** 🟡 In progress · **Branches:** see the [implementation log](#implementation-log) · **Work log:** [phase-17-log](./work-logs/phase-17-log.md), and one fragment per task in `work-logs/phase-17/`
 
@@ -27,7 +27,7 @@ in section 10 of the design. The framework-only tasks (adopt, the Cursor and Pyt
 file: 17.15 publishes the framework to its own repository, where it bootstraps itself and runs them as Phase 1 of **its own development plan**
 (design §10, §11).
 
-**Execution order:** 17.2 → 17.3 → … → 17.17 in the order of the table, after Phase 16 (done). Between 17.15 and 17.16, Phase 1 of the
+**Execution order:** 17.2 → 17.3 → … → 17.18 in the order of the table, after Phase 16 (done). Between 17.15 and 17.16, Phase 1 of the
 framework's own plan runs in the framework repository. Owner steps: create the `harness-framework` repository and copy the staging folder into
 it, or authorise the agent to push it (17.15); open sessions there, or authorise pushes there, for the framework's Phase 1. Model per task: the `Agent` column of the task table holds each open task's agent-complexity marker (design §3.4; 17.3, 17.4 and 17.7 re-rated by the owner on 2026-10-30); the model of each marker is in the [profile](../../profile.md#4-plan), and `npm run docs:check` fails on an open task without one; done tasks need none.
 
@@ -51,6 +51,7 @@ it, or authorise the agent to push it (17.15); open sessions there, or authorise
 | 17.15 | **Publish and self-host the framework** (design §10, §11): the owner creates the `harness-framework` repository and copies the staging folder into it, or authorises the agent to push it; a session in that repository bootstraps it with its own engine in lock mode `self` (its profile, `AGENTS.md`, CI with the tools' tests, the conformance suite, the CORE scan and the sameness test) and writes its own development plan, whose Phase 1 holds the framework-only tasks of design §10 (adopt, the Cursor and Python presets, examples, the proof; 12 SP); it tags `0.1.0-dev.1`. Here, the lock's source becomes that tag, the staging folder is removed, and the plan and the design point to the repository. Verified by `harness sync` producing no diff here, `docs:check` passing, and the framework repository's CI green on its own plan; `framework.json` lists the distributable paths a sync copies, and the parts of the design that the framework's later work needs move to its repository (design §11); the repository exists since 2026-10-30 (`AndLD/harness-framework`, private, one commit on `main`); GitHub offers no rulesets for it, so its profile sets `host.protection: false` until it is public or on a paid plan, and the bootstrap branches the integration branch from that commit; the framework's own plan is written with the markers of design §10 | C2 | 5 | ✅ |
 | 17.16 | **Sync to `0.1.0`**, after Phase 1 of the framework's plan is done and `0.1.0` is tagged: one sync pull request; its task log links the framework's Phase 1 pull requests, which `npm run plan:log` cannot see. Verified by `docs:check`, lint and the coverage gate passing | C1 | 2 | ✅ |
 | 17.17 | **Closing targeted harness review**, by a session that did not do the build: D1, D3, D4, D5, D6, D7, D8, D13 and D15, the export dry run on the framework, probes P1, P2 and P5 and the extension probes P8 and P9 on this repository, and P1 on a project bootstrapped from `0.1.0`. Verified by the report checking each exit criterion of §3.5 and of this phase, including the framework's Phase 1 | C3 | 3 | ✅ |
+| 17.18 | **Sync to `0.1.1`** by its migration note (`migrations/0.1.1.md` of the framework): one sync pull request; the note's required actions (regenerate the managed files, clear what the scan of the core reports), so that `harness check core` scans the vendored `core/` with this project's terms and the "no regression" criterion of §3.5 holds (H-20261103-01); a hit is answered by the note's two ways out. Verified by `harness check all`, `docs:check`, lint and the coverage gate passing, and `version` in `harness.lock.json` being `0.1.1` | C1 | 2 | ✅ |
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the work log) · ✅ done.
 

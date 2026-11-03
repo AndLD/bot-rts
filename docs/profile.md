@@ -166,6 +166,8 @@ Project values, which must not appear in CORE text except on the **Role binding*
 PROJECT_VALUES='`main`|`develop`|\b97 ?%|\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\bgithub\b|design §|npm run [a-z:]+|scripts/[a-z-]+\.(mjs|sh)|\benglish\b|\brussian\b|\.claude/|\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\.md'
 ```
 
+A hit of the CORE scan in the vendored framework core that the project reported upstream and waits for the fix of is recorded in `terms.exceptions` of the profile file (the file, the word, the link to the report and the framework version it holds for); `npm run docs:check` accepts it while the lock is at that version and fails on the exception after a sync to another one.
+
 The product-knowledge check (`harness check product-knowledge`, part of `npm run docs:check`) reads the product specification in
 `docs/product-knowledge/game-design/`: its glossary `02-glossary.md`, its register of open items `20-open-questions.md` and its backlog `21-backlog.md`.
 A line may point to the backlog by its section, §21.

@@ -32,14 +32,18 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 | 9 | Admin console | 135 | — | ✅ Done |
 | 10 | Market, currency, chat & transfers | 154 | C2–C3 | ⬜ Not started |
 | 11 | Energy balance, day/night, connection resilience & play-feel polish | 47 | — | ✅ Done |
-| 12 | Issues and stabilization | 20 (grows) | C1–C2 | 🟡 In progress |
+| 12 | Issues and stabilization | 16 | C1–C2 | 🟡 In progress |
 | 13 | Observability platform | 48 | — | ✅ Done |
 | 14 | Admin MCP: AI-assisted investigation | 19 | — | ✅ Done |
 | 15 | Harness fixes | 77 | — | ✅ Done |
 | 16 | CI speed and agent throughput | 23 | — | ✅ Done |
 | 17 | Harness framework extraction | 71 | C1–C3 | ✅ Done |
-|  | **Total of Phases 0–17** | **1244** (Phase 12 grows as issues are added) | | |
+|  | **Total of Phases 0–17** | **1240** | | |
 <!-- plan-summary:end -->
+
+<!-- plan-issues:start -->
+**Issue queue** (not a phase; its size is not in the totals above): [2 open](./issues/README.md), 4 SP; 0 archived.
+<!-- plan-issues:end -->
 
 **Order of development.** The phases are numbered in plan order, but Phase 11 was added later (2026-10-13), after the first
 hands-on run of Phases 0–7, and it is **developed right after Phase 7 and before Phases 8–10**. It got the next free number so that the task numbers of
@@ -117,16 +121,16 @@ the phase file and its work log, checks `git status`, the branch list and open p
 - [Phase 7 — Presentation & engagement: landing, auth scene, achievements, notifications, Russian, privacy policy, player documentation (66 SP)](./phases/phase-7-presentation-engagement.md)
 - [Phase 8 — Multiplayer, public API & production hardening (71 SP)](./phases/phase-8-multiplayer-api-hardening.md)
 - [Phase 9 — Admin console (135 SP)](./phases/phase-9-admin-console.md)
-- [Phase 10 — Market, currency, chat & transfers (154 SP)](./phases/phase-10-market-chat.md)
+- [Phase 10 — Market, currency, chat & transfers (154 SP)](./phases/phase-10-market-chat/README.md)
 - [Phase 11 — Energy balance, day/night, connection resilience & play-feel polish (47 SP)](./phases/phase-11-energy-time-ux.md)
-- [Phase 12 — Issues and stabilization (20 SP, grows as issues are added)](./phases/phase-12-issues.md)
+- [Phase 12 — Issues and stabilization (16 SP)](./phases/phase-12-issues/README.md)
 - [Phase 13 — Observability platform (48 SP)](./phases/phase-13-observability-platform.md)
 - [Phase 14 — Admin MCP: AI-assisted investigation (19 SP)](./phases/phase-14-admin-mcp.md)
 - [Phase 15 — Harness fixes (77 SP)](./phases/phase-15-harness-fixes.md)
 - [Phase 16 — CI speed and agent throughput (23 SP)](./phases/phase-16-ci-speed.md)
-- [Phase 17 — Harness framework extraction (71 SP)](./phases/phase-17-harness-framework.md)
+- [Phase 17 — Harness framework extraction (71 SP)](./phases/phase-17-harness-framework/README.md)
 <!-- plan-contents:end -->
 - [Testing](../testing/README.md) (current documentation) and [testing work by phase](../testing/by-phase.md) (historical)
 - [Risk register](./cross-cutting/risk-register.md)
 - [Definition of Done](../../harness/core/plan/definition-of-done.md)
-- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/work-logs/phase-10-log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/work-logs/phase-12-log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md), [phase 16](./phases/work-logs/phase-16-log.md), [phase 17](./phases/work-logs/phase-17-log.md)
+- Work logs: [phase 0](./phases/work-logs/phase-0-log.md), [phase 1](./phases/work-logs/phase-1-log.md), [phase 2](./phases/work-logs/phase-2-log.md), [phase 3](./phases/work-logs/phase-3-log.md), [phase 4](./phases/work-logs/phase-4-log.md), [phase 5](./phases/work-logs/phase-5-log.md), [phase 6](./phases/work-logs/phase-6-log.md), [phase 7](./phases/work-logs/phase-7-log.md), [phase 8](./phases/work-logs/phase-8-log.md), [phase 9](./phases/work-logs/phase-9-log.md), [phase 10](./phases/phase-10-market-chat/log.md), [phase 11](./phases/work-logs/phase-11-log.md), [phase 12](./phases/phase-12-issues/log.md), [phase 13](./phases/work-logs/phase-13-log.md), [phase 14](./phases/work-logs/phase-14-log.md), [phase 15](./phases/work-logs/phase-15-log.md), [phase 16](./phases/work-logs/phase-16-log.md), [phase 17](./phases/phase-17-harness-framework/log.md)

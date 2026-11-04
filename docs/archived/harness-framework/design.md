@@ -1,4 +1,4 @@
-[← Harness-to-framework plan](./README.md) · phase: [Phase 17](../../development-plan/phases/phase-17-harness-framework.md)
+[← Harness-to-framework plan](./README.md) · phase: [Phase 17](../../development-plan/phases/phase-17-harness-framework/README.md)
 
 > **Moved on 2026-11-02 (task 17.15).** The framework lives in its own repository, [`AndLD/harness-framework`](https://github.com/AndLD/harness-framework), and its current design is `docs/design.md` there. This copy is the record of the design as 17.1 to 17.14 built it; it is not updated any more.
 
@@ -8,7 +8,7 @@
 from this repository's harness and how `bot-rts` consumes it. Nothing is built by this document. The build order of section 10 becomes
 tasks 17.2 onward of the phase file in the same pull request.
 
-**Inputs.** The owner's decisions of 2026-10-20 ([Phase 17 work log](../../development-plan/phases/work-logs/phase-17-log.md)), which this
+**Inputs.** The owner's decisions of 2026-10-20 ([Phase 17 work log](../../development-plan/phases/phase-17-harness-framework/log.md)), which this
 design does not reopen. Step 3 of the [harness-framework plan](./README.md#step-3-extract-the-framework). The latest harness review,
 [2026-10-19-3](../../quality-reviews/harness/2026-10-19-3.md): its export dry run, blockers B6 and B7, and findings H-20261019-22 to -24. The
 [review method](../../../harness/core/reviews/harness/README.md) and its [bindings](../../quality-reviews/harness/bindings.md) (layer map and `core-files`

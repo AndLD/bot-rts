@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { resolve } from 'node:path'
 import { test } from 'node:test'
 import { refusal as refusalWith, simpleCommands } from './guard.mjs'
 
@@ -139,4 +140,80 @@ test('the merge guard of a host without protection refuses a merge whose check s
     null,
     'a host that protects its branches refuses the merge itself'
   )
+})
+
+// Two clones: the project (`/work/app`) and others, each on a branch; a path that is no repository answers null
+const BRANCHES = {
+  '/work/app': 'develop',
+  '/work/task': 'feature/3.1-x',
+  '/work/main': 'main',
+  '/work/app/sub': 'develop'
+}
+const GIT_DIRS = { '/work/task/.git': 'feature/3.1-x', '/work/main/.git': 'main' }
+const branchOf = ({ cwd, gitDir }) => (gitDir ? GIT_DIRS[resolve(cwd, gitDir)] : BRANCHES[cwd]) ?? null
+const inRepository = (command, project = '/work/app') =>
+  refusalWith(command, BRANCHES[project], { protectedBranches: PROTECTED, cwd: project, branchOf })
+
+test('a Git command is judged by the branch of the repository it acts on, not the project: a `cd` before it, `-C`, `--git-dir`', () => {
+  // the project is on develop; the other clone is on a task branch, so the command is allowed
+  for (const command of [
+    'cd /work/task && git commit -m x',
+    'git -C /work/task commit -m x',
+    'git -C ../task commit -m x',
+    'cd .. && git -C task commit -m x',
+    'git --git-dir=/work/task/.git commit -m x',
+    'git --git-dir /work/task/.git push origin HEAD',
+    'GIT_DIR=/work/task/.git git commit -m x',
+    'cd /work/task && git status && git commit -m x',
+    'cd /work/task\ngit commit -m x'
+  ]) {
+    assert.equal(inRepository(command), null, command)
+  }
+  // the project is on a task branch; the other clone is on an integration or production branch, so the command is refused
+  for (const command of [
+    'cd /work/main && git commit -m x',
+    'git -C /work/main push',
+    'git --git-dir=/work/main/.git commit -m x',
+    'cd /work && git -C main commit -m x',
+    'cd /work/app && git commit -m x',
+    'bash -c "cd /work/main && git commit -m x"'
+  ]) {
+    assert.match(inRepository(command, '/work/task'), /You are on (main|develop)/, command)
+  }
+  assert.match(inRepository('cd /work/main && git commit -m x', '/work/task'), /You are on main in \/work\/main/)
+})
+
+test('a `cd` inside parentheses ends with them, and a relative `cd` is taken from the directory the command runs in', () => {
+  assert.match(inRepository('(cd /work/task && git status); git commit -m x'), /You are on develop/)
+  assert.equal(inRepository('(cd /work/task && git commit -m x)'), null)
+  assert.equal(inRepository('(cd /work/main && ls); git commit -m x', '/work/task'), null)
+  assert.match(inRepository('cd sub && git commit -m x'), /You are on develop/)
+  assert.equal(inRepository('git -C . log && git status', '/work/main'), null)
+})
+
+test('a repository that cannot be resolved is judged as protected, and a branch made there is its branch', () => {
+  for (const command of [
+    'cd /nowhere && git commit -m x',
+    'cd "$CLONE" && git commit -m x',
+    'cd ~/nowhere && git push',
+    'cd - && git commit -m x',
+    'git -C /nowhere commit -m x',
+    'git --work-tree /work/task commit -m x',
+    'git --git-dir=/nowhere/.git commit -m x',
+    'popd && git commit -m x'
+  ]) {
+    assert.match(inRepository(command, '/work/task'), /cannot be told/, command)
+  }
+  assert.equal(inRepository('cd /nowhere && git checkout -b feature/y && git commit -m x', '/work/task'), null)
+  assert.equal(inRepository('git -C /nowhere switch -c feature/y && git push -u origin feature/y', '/work/task'), null)
+  assert.match(
+    inRepository('git -C /work/task checkout develop && git -C /work/task commit -m x', '/work/main'),
+    /You are on develop in \/work\/task/
+  )
+})
+
+test('a command that is not a commit or a push is never judged by a repository, and a push to a protected branch is refused from any', () => {
+  assert.equal(inRepository('cd /nowhere && git status && git log'), null)
+  assert.match(inRepository('cd /work/task && git push origin main'), /Never push to/)
+  assert.match(inRepository('git -C /work/task push --delete origin x'), /Never delete/)
 })

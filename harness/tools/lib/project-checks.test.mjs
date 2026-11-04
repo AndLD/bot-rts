@@ -2,7 +2,7 @@
 // problem it was planted with. Also the plan log, the release on its branch, and `check all` with the project's own checks.
 import assert from 'node:assert/strict'
 import { execFileSync, spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, test } from 'node:test'
@@ -12,7 +12,7 @@ import { checkLinks } from './links.mjs'
 import { checkPaths } from './paths.mjs'
 import { planLog, planSummary } from './plan.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
-import { AREAS_BEGIN, AREAS_END, NOTE_HEADINGS } from './migration-notes.mjs'
+import { AREAS_BEGIN, AREAS_END, NOTE_HEADINGS, noteProblems } from './migration-notes.mjs'
 import { loadProfile } from './profile.mjs'
 
 const made = []
@@ -368,9 +368,59 @@ test('release with migration notes: refused without the note, areas derived from
     /## \[1\.0\.1\] - 2026-11-03\n\nMigration note: \[migrations\/1\.0\.1\.md\]\(migrations\/1\.0\.1\.md\)\n\n### Added/
   )
 
-  // A development version needs no note, and writes none
+  // A development version has a note of its own, as the final one does; the previous release is the tag of 1.0.1
+  commit(root, 'chore(release): 1.0.1')
+  git(root, 'tag', 'v1.0.1')
+  write(root, { 'changelog.d/added-thing.md': 'Added: a thing.\n' })
+  commit(root, 'feat: a thing')
   git(root, 'checkout', '--quiet', '-b', 'release/1.0.2')
-  assert.match(run({ dev: true, dryRun: true })[0], /-> 1\.0\.2-dev\.1 /)
+  assert.throws(() => run({ dev: true, dryRun: true }), /the migration note migrations\/1\.0\.2-dev\.1\.md is missing/)
+  assert.ok(!existsSync(join(root, 'migrations/1.0.2-dev.1.md')), 'a dry run writes no stub')
+})
+
+test('release: the stub of a missing note lists the fragments and the areas since the previous tag, and a placeholder in the required actions stops the release', () => {
+  const profile = { ...PROFILE, release: { ...PROFILE.release, migrations: 'migrations' } }
+  const root = project({
+    'harness-profile.json': JSON.stringify(profile),
+    'migrations/areas.json': JSON.stringify({ areas: { procedures: ['core/procedures/**'], checks: ['tools/**'] } }),
+    'core/procedures/start.md': 'Start.\n',
+    'tools/check.mjs': 'a\n'
+  })
+  git(root, 'tag', 'v1.0.0')
+  write(root, { 'core/procedures/start.md': 'Start it.\n', 'changelog.d/first.md': 'Added: the first thing.\n' })
+  commit(root, 'feat: first')
+  git(root, 'checkout', '--quiet', '-b', 'release/1.1.0')
+  const run = (options = {}) => release({ root, profile: profileOf(root), dev: true, date: '2026-11-04', ...options })
+
+  assert.throws(() => run(), /migrations\/1\.1\.0-dev\.1\.md is missing.*A stub .* is written/)
+  const stub = readFileSync(join(root, 'migrations/1.1.0-dev.1.md'), 'utf8')
+  assert.match(stub, /^# Migration to 1\.1\.0-dev\.1 from 1\.0\.0\n/)
+  assert.match(stub, /- Added: the first thing\./)
+  assert.match(stub, /<!-- areas:begin -->\n- procedures\n<!-- areas:end -->/)
+  assert.deepEqual(noteProblems(stub, '1.1.0-dev.1'), [])
+
+  // The stub is the author's to complete: a placeholder in its required actions stops the release
+  commit(root, 'docs: the stub')
+  assert.throws(() => run(), /the required actions still hold a TODO/)
+  write(root, {
+    'migrations/1.1.0-dev.1.md': stub.replace(/TODO: what the project must do[^\n]*/, 'None: nothing to do.')
+  })
+  commit(root, 'docs: the note')
+  assert.match(run({ dryRun: true })[0], /^migrations\/1\.1\.0-dev\.1\.md: areas touched: procedures/)
+  run()
+  assert.equal(JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version, '1.1.0-dev.1')
+
+  // The next development version is written against the tag of the previous one: the fragments and the areas since it
+  commit(root, 'chore(release): 1.1.0-dev.1')
+  git(root, 'tag', '1.1.0-dev.1')
+  write(root, { 'tools/check.mjs': 'b\n', 'changelog.d/second.md': 'Fixed: the second thing.\n' })
+  commit(root, 'fix: second')
+  assert.throws(() => run(), /migrations\/1\.1\.0-dev\.2\.md is missing/)
+  const second = readFileSync(join(root, 'migrations/1.1.0-dev.2.md'), 'utf8')
+  assert.match(second, /^# Migration to 1\.1\.0-dev\.2 from 1\.1\.0-dev\.1\n/)
+  assert.match(second, /- Fixed: the second thing\./)
+  assert.ok(!second.includes('the first thing'), 'the first fragment is in the note of dev.1')
+  assert.match(second, /<!-- areas:begin -->\n- checks\n<!-- areas:end -->/)
 })
 
 test('product knowledge: the register, the glossary and the scan, each from the profile; no role, no check', () => {

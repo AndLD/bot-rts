@@ -228,6 +228,19 @@
           "type": "string",
           "description": "The plan index document."
         },
+        "issues": {
+          "type": "string",
+          "description": "The folder of the issue queue: defects and improvements found in use, one file per issue (`I-<n>.md`) with its log beside it, an index of the open ones, and `archived/` for the finished ones.",
+          "default": "docs/development-plan/issues"
+        },
+        "backlog": {
+          "type": "string",
+          "description": "The folder of the backlog: the feature requests, which are not defects and are built only when the owner puts them into a release; one file per item (`B-<n>.md`) with its `Source:` (`report` with the link of each report, `owner` or `agent`), an index of the open ones, and `archived/` for the finished ones. Optional: a project without the role has no backlog."
+        },
+        "procedures": {
+          "type": "string",
+          "description": "The folder of the project's own procedures, files of the format of `core/procedures/` (`<name>.md` with the frontmatter `name`, `description`, `invocation`). The skill generators and the procedures block of the entry file list them with the framework's; a name that the framework's procedures have too is an error. Optional: a project without the role has none."
+        },
         "changelog": {
           "type": "string",
           "description": "The changelog."
@@ -290,7 +303,7 @@
         },
         "openEndedPhase": {
           "type": "string",
-          "description": "The open-ended phase."
+          "description": "Deprecated since 0.2.0 (the issue queue, `paths.issues`, replaces the open-ended phase); kept so that a profile written before loads, and removed from it by the migration."
         },
         "specificationCitation": {
           "type": "string",
@@ -322,7 +335,46 @@
         },
         "openEndedPhaseNumber": {
           "type": "integer",
-          "description": "The number of the open-ended phase, which collects the issues found in use; the entry file's Role binding line names it."
+          "description": "Deprecated since 0.2.0 (the issue queue, `paths.issues`, replaces the open-ended phase); kept so that a profile written before loads, and removed from it by the migration."
+        }
+      },
+      "additionalProperties": false
+    },
+    "reports": {
+      "type": "object",
+      "description": "Reports from users on the repository host (task 3.16): whether an agent takes them in, and whether a consuming project sends the defects it finds in the framework upstream. Both need a host adapter with the `reports` role; a host without it keeps both switches `off`. A local, ignored file, `harness-profile.local.json`, may override these three values at once without a pull request (for example `{ \"reports\": { \"intake\": \"off\" } }` pauses the intake when reports flood in).",
+      "default": {},
+      "properties": {
+        "intake": {
+          "type": "string",
+          "enum": ["off", "notify", "auto"],
+          "default": "off",
+          "description": "`off`: no hook line and no skill. `notify`: the session start prints the open reports and those not yet triaged, and the agent does not process them; the owner starts the triage. `auto`: the agent triages before other work, at most `triageLimit` reports a session, and the rest wait."
+        },
+        "triageLimit": {
+          "type": "integer",
+          "default": 3,
+          "description": "The most reports an agent triages in one session when `intake` is `auto` (1 or more)."
+        },
+        "upstream": {
+          "type": "string",
+          "enum": ["off", "ask", "post"],
+          "default": "off",
+          "description": "For a consuming project: what it does with a defect of the framework that it suspects. `off`: it is noted in the task's log and the owner told, with no draft. `ask`: the agent searches the framework's reports for the same problem, drafts a report and posts it after the owner's approval. `post`: as `ask`, without the approval."
+        }
+      },
+      "additionalProperties": false
+    },
+    "probes": {
+      "type": "object",
+      "description": "How taking a version of the framework handles the cold-start probes of the project (report 65): each probe whose areas the version touched is a session of its own that reads thousands of words, for every release. A local, ignored file, `harness-profile.local.json`, may override `run` on one machine without a pull request.",
+      "default": {},
+      "properties": {
+        "run": {
+          "type": "string",
+          "enum": ["auto", "ask", "disabled"],
+          "default": "ask",
+          "description": "`auto`: whoever takes the version runs the probes `harness probes` lists, each as a separate session, and reports what each read against the last review. `ask` (the default): the owner is asked first and the probes run only on a yes; where nobody can be asked it behaves as `disabled`. `disabled`: the probes are not run, and the output of `migrate` and `harness probes` only says how to run them. No command starts a probe itself yet, so `auto` and `ask` are instructions to the one who takes the version."
         }
       },
       "additionalProperties": false
@@ -633,6 +685,14 @@
         "frameworkPlan": {
           "type": "string",
           "description": "The harness-to-framework plan."
+        },
+        "riskRegister": {
+          "type": "string",
+          "description": "The risk register (the plan method, section 4). Optional: the bootstrap writes the framework's template there once; a project that leaves it empty has no such file."
+        },
+        "rfcs": {
+          "type": "string",
+          "description": "The index of the design records (RFCs) with their template (the plan method, section 4). Optional: the bootstrap writes the framework's template there once, and the records sit in its folder; a project that leaves it empty has no such file."
         }
       },
       "additionalProperties": false,
@@ -786,6 +846,12 @@
           "type": "boolean",
           "default": true,
           "description": "Whether the host can enforce the protection of the production and the integration branch on this repository (a plan or visibility may rule it out). `harness host protect` detects the real answer and fails when it differs from this value."
+        },
+        "autoMerge": {
+          "type": "boolean",
+          "x-sameAs": "protection",
+          "default": true,
+          "description": "Whether an agent enables the host's auto-merge on the pull requests it may merge without asking (the task and plan-related pull requests of a named phase), so that the host merges them once the required checks pass. Not set: on where `host.protection` is true, off where it is false (nothing would require the checks there). Off brings back the rule that an agent asks before it merges and never enables auto-merge unless asked."
         }
       }
     },

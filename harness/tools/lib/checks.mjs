@@ -9,6 +9,7 @@ import { checkLayers } from './layers.mjs'
 import { checkLinks } from './links.mjs'
 import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
+import { checkProbes } from './probe-areas.mjs'
 import { checkProductKnowledge } from './product-knowledge.mjs'
 import { checkProfile, loadProfile } from './profile.mjs'
 import { checkScaffold } from './scaffold.mjs'
@@ -49,6 +50,7 @@ export const CHECKS = {
   core: (context) => single(checkCore(context)),
   plan: (context) => single(planSummary({ ...context, check: true })),
   changelog: (context) => single(checkChangelog(context)),
+  probes: (context) => single(checkProbes(context)),
   'product-knowledge': (context) => checkProductKnowledge(context)
 }
 

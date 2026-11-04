@@ -1,9 +1,9 @@
 // Runtime hook (PreToolUse on file writes): refuses the edit of an environment file (values go to `.env.example` only), and, in pinned mode, of a file
 // of the vendored framework (the framework changes at its source, then a sync).
 import { basename, relative, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { readLock, MODES, VENDOR_DIR } from '../lib/lock.mjs'
 import { runHook } from './io.mjs'
+import { isMain } from '../lib/main-module.mjs'
 
 const ENV_FILE = /^\.env(\..+)?$/
 
@@ -29,6 +29,6 @@ export function decide(event) {
   return message ? { block: message } : {}
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   await runHook((event) => decide(event), { kind: 'edit-before' })
 }

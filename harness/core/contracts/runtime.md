@@ -13,8 +13,8 @@ which is the agent-neutral minimum. The machine form is the `manifest.json` of t
 | `hook-io` | optional (needed with hooks) | how the runtime's event is read and its answer written (block, message, session context); the form of each supported runtime is in the framework's `tools/runtime-hooks/io.mjs`, which a new runtime extends |
 | `project-directory` | required | the environment variable that holds the project directory |
 | `read-exclusions` | required | how the runtime keeps the agent from reading the paths of `access.denyRead`, and what that does not cover |
-| `procedure-packaging` | required | where the neutral procedures of `core/procedures/` are written for the runtime, and in what form |
-| `pull-request-tools` | optional (none: the agent checks the required checks with the host's command before it merges, and the rule on CI monitoring with automatic fixes is "not applicable") | attaching a pull request and monitoring its CI |
+| `procedure-packaging` | required | where the neutral procedures of `core/procedures/` (and those of the project's own folder, `paths.procedures`, whose `source` names the file) are written for the runtime, and in what form |
+| `pull-request-tools` | optional (none: the agent checks the required checks with the host's command before it merges, and the rule on CI monitoring with automatic fixes is "not applicable") | attaching a pull request and monitoring its CI, and how a session waits for a pull request without checking it again and again (the monitor that wakes it, or one background wait per pull request) |
 | `waiting-advice` | optional | notes on waiting for long-running commands |
 | `model-map` | optional | the default of `plan.complexity.models` |
 | `hook-adoption` | logic-optional (needed for `harness adopt` on a project that has the runtime's configuration already) | `adoptConfiguration({ root, profile }) → { files: [{ path, content }], notes }`: the runtime's configuration of the project with the framework's hook entries and read exclusions added, and a note for each hook command that is the project's own; it deletes nothing |

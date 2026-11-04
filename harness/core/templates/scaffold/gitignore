@@ -3,3 +3,5 @@
 .env.*
 !.env.example
 .DS_Store
+# The switches of the report intake that the owner changes on this machine only (the profile file, role "reports")
+harness-profile.local.json

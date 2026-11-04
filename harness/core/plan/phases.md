@@ -4,14 +4,27 @@
 
 How one phase of a development plan is written. This file is the **method** and is project-neutral. The project's values
 (identifiers, symbols, scale, branch naming, how the specification is cited) are in the phase bindings (the project's `bindings.md` next to its phase files). The template
-for a new phase is [`phase-template.md`](./phase-template.md).
+for a new phase is [`phase-index-template.md`](./phase-index-template.md), and for a task [`task-template.md`](./task-template.md).
 
 A **phase** is a coherent stretch of work with a theme, a list of tasks, exit criteria, and a record of the changes that delivered
-it. One phase is one file in the plan's `phases/` folder.
+it. One phase is a **folder** in the plan's `phases/` folder, `phase-<n>-<slug>/` (a phase of the older layout is one file `phase-<n>-<slug>.md`; the
+tools read both, so a finished phase need not be split, and `harness plan split <n>` splits one by choice).
 
 ---
 
 ## 1. Anatomy
+
+A phase folder holds:
+
+| File | Content |
+| ---- | ------- |
+| `README.md` | the **phase index**: the parts of the table below, with the task table generated from the task files |
+| `<id>.md` | one **task**: its title (`# <id> — <title>`), a status line (`**Status:**`, `**Agent:**`, `**Size:**`, optional `**Needs:**` and `**Log:**`) and its description, from the [task template](./task-template.md) |
+| `<id>.log.md` | the task's append-only log (the [task-log template](./task-log-template.md)), kept beside the task and separate from it, since a log is several times its task and most readers need only the task |
+| `log.md` | the phase's work log, for what concerns the whole phase only (decisions, pauses, the close of the phase) |
+
+A resuming agent reads the phase index and the file of the task it works on, never the other tasks. The phase index follows
+the [phase index template](./phase-index-template.md):
 
 | Part | Content |
 | ---- | ------- |
@@ -20,7 +33,7 @@ it. One phase is one file in the plan's `phases/` folder.
 | Status line | Status, branches (or a link to the implementation log), link to the phase's work log |
 | Introduction | Optional: one paragraph on the goal and, if relevant, why this phase exists |
 | Execution order | Optional: the order of tasks when it differs from their ids, with the reason |
-| Task table | One row per task: id, description, agent-complexity marker (where the plan uses them), size, status |
+| Task table | Generated from the task files (`harness plan summary`) between two markers: id (linking the task file), title, agent-complexity marker (where the plan uses them), size, status. In a phase of the older layout, one row per task with its whole description |
 | Task legend | The status symbols, one line |
 | Exit criteria | Observable conditions that make the phase done |
 | Implementation log | A table of the changes (branch, tasks, pull request, status) that delivered the tasks |
@@ -40,7 +53,7 @@ it. One phase is one file in the plan's `phases/` folder.
 - A task is `not started` until a change for it exists, `in progress` while its change is open, `done` when merged and verified.
 - A phase is `not started` until its first task starts, `in progress` until its exit criteria hold, then `done`.
 - The status of a phase is the same in the phase file and in the plan index; both change in the same change.
-- An open-ended phase (issues found in use, stabilization) declares it at the top; its size is stated as growing.
+- Issues found in use are not a phase: they are the issue queue (the plan method, section 8), so that no phase has to stay open without a goal or an end.
 
 ## 4. Exit criteria
 
@@ -70,14 +83,15 @@ A phase file holds the plan and its outcome, nothing else. There is no free-form
 
 ## 7. Work log
 
-Each phase has an append-only log in `work-logs/` next to the phase files, with the entry template inside it. The phase file links
-to it from the status line; the log links back to the phase file. The log records sessions, the exact next step and the commands
+Each phase has an append-only `log.md` in its folder (older layout: a log in `work-logs/` next to the phase files), with the entry template inside it. The phase index links
+to it from the status line; the log links back to the phase index. The log records sessions, the exact next step and the commands
 that verify the state; the phase file records only the plan and its outcome.
 
-**In the phases that use per-task records, a task writes its own fragment** `work-logs/phase-<n>/<task id>.md` (start from the framework's [`task-log-template.md`](./task-log-template.md)), so
+**A task writes its own log** `<task id>.log.md` beside its task file (start from the framework's [`task-log-template.md`](./task-log-template.md); older layout: a fragment in `work-logs/phase-<n>/<task id>.md`), so
 that tasks worked on in parallel never edit the same file. The phase's own log keeps only what concerns the whole phase (decisions before
-the start, pauses, the hand-over between waves). The fragment starts with a `**Status:**` line (🟡 while the task is in progress, ✅ when
-it is done); the session-start hook prints the "Next step" of every fragment in progress. The logs of the other phases stay as they are.
+the start, pauses, the hand-over between waves). The log starts with a `**Status:**` line (🟡 while the task is in progress, ✅ when
+it is done). **A finished task writes only its own log**, and its "next step" names what follows; the session-start hook prints the newest "next step" across the
+phase log and the task logs, by the date of the entry, and the open tasks of the phase. The logs of a phase kept as one file stay as they are.
 
 ## 8. Splitting and merging phases
 
@@ -87,6 +101,15 @@ it is done); the session-start hook prints the "Next step" of every fragment in 
 
 ## 9. Checks
 
-A phase file is conformant when: the anatomy parts that apply are present and in order; every task has an id, a size and a status;
-every open task carries an agent-complexity marker where the plan uses them; the title size equals the sum of the task sizes; the status agrees with the index; the work-log link resolves; every task cited
-elsewhere exists here; every done task has a row in the implementation log.
+`harness check plan` (part of the documentation check) holds this, for the phases kept as folders; a phase of the older layout (one file) is held to the sizes, the markers and the summary only, since the tools do not rewrite its history, and `harness plan split <n>` moves it to the folder layout.
+
+**Checked**, each with a test that plants the defect:
+
+- **The phase index** has the parts that apply, in the order of section 1: title, status line, optional execution order, the task table between its markers, the task legend (`Task status: …`), the exit criteria and the implementation-log heading. The exit criteria are the line `**Exit criteria:** …` of the template, not a heading of their own. A missing part, a part out of place and a heading in its stead are named.
+- **Back-links.** The first line of the phase index links to the plan index, that of a task file to the phase index, that of the phase's `log.md` to the phase index, and that of a task log to its task file; each link must resolve to that document.
+- **The work log.** A link in the status line resolves, and a phase that has a `log.md` links it. A task log starts with its `**Status:**` line.
+- **Tasks.** A task has an id, a size and a status in its file (in a folder), the title size equals the sum of the task sizes, and every open task carries an agent-complexity marker where the plan uses them. The task table and the summary agree with the files.
+- **Records.** A done task has the log of its own (`<id>.log.md`), or, in a phase that keeps a table in its implementation log, a row there (section 5).
+- **Tasks cited elsewhere exist.** The tasks that an order of development or an execution order names, and those that a task `Needs`, exist in a phase or in the issue queue (under its old id as well), and a task never needs one of a later phase.
+
+**Judgment**, which no tool reads: that the goal is clear, that a task is atomic and says how it is verified, that the exit criteria are observable (section 4), and that a decision is in the document that owns it (section 6).

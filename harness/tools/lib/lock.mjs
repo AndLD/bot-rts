@@ -22,6 +22,7 @@ const LOCK_FIELDS = [
   'framework',
   'mode',
   'version',
+  'migrations',
   'source',
   'adapters',
   'reason',

@@ -130,9 +130,12 @@ test('the version of a TOML file is the one in its [project] table, and writing 
   assert.equal(readVersion('pyproject.toml', toml), '0.1.0')
   assert.equal(writeVersion('pyproject.toml', toml, '0.2.0'), toml.replace('version = "0.1.0"', 'version = "0.2.0"'))
   assert.equal(readVersion('package.json', '{"version":"1.2.3"}'), '1.2.3')
+  // a JSON file keeps its formatting (an inline array stays inline), so that the project's formatter finds nothing to change
+  const json = '{\n  "name": "x",\n  "version": "1.2.3",\n  "files": ["a", "b"],\n  "deps": { "version": "9" }\n}\n'
+  assert.equal(writeVersion('package.json', json, '1.3.0'), json.replace('"version": "1.2.3"', '"version": "1.3.0"'))
   assert.equal(
     writeVersion('package.json', '{"name":"x","version":"1.2.3"}', '1.3.0'),
-    '{\n  "name": "x",\n  "version": "1.3.0"\n}\n'
+    '{"name":"x","version":"1.3.0"}'
   )
   assert.throws(() => readVersion('pyproject.toml', '[tool.x]\nversion = "7"\n'), /no version in its \[project\] table/)
   assert.throws(() => readVersion('package.json', '{}'), /package\.json has no version/)

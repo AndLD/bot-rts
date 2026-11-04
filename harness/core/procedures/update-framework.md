@@ -1,0 +1,40 @@
+---
+name: update-framework
+description: Use when the project takes a new version of the framework, adopts it from the copy of a first harness, or has found a defect in the framework.
+invocation: explicit
+---
+
+# Take a version of the framework
+
+`harness …` below is the harness command line of the project, started the way its command `{{commands.harnessSyncLocal}}` shows (the same line with `migrate`, `probes`, `rollback` … after `harness`). The framework's version is a change of the project's own files, so it is **not a task of the project's plan**: do not write one; the pull request is its record. Merging it needs the owner (the Git rules: a chore pull request outside a named phase).
+
+## Take the version
+
+1. Know the two versions: the one in `harness.lock.json` (`version`) and the target (a final version, or a development version `<x.y.z>-dev.<n>` to try it before the final tag). Several versions in a row are taken in one jump.
+2. Branch from the integration branch as it is on the remote, on a chore branch of its own (the branch types are in the profile). `sync` refuses on a protected branch and with uncommitted changes, so that the whole migration is one commit that `harness rollback` can undo. Set the task you have in hand (claimed by a draft pull request) to 🟡 in its task file first: a migration that converts the plan reads a task that is still ⬜ as not started.
+3. `{{commands.harnessSync}} --from <source> --to <target>`. It places the new files, updates the lock and starts `harness migrate` of the new version in a new process. A `sync` of a version before `0.2.0` does not start it: run `harness migrate` yourself, with the new tools, when the output does not say it ran. `migrate` runs the scripts of every version between (the mechanical changes), regenerates the managed files, commits the migration as one commit, and prints the migration notes of those versions in order.
+4. A project that copied the first harness (its scripts and hooks in its own folders, no `harness.lock.json`) is not synced: adopt it (`harness adopt`, which keeps its files and adds the managed blocks), then take versions as above.
+
+## Follow the notes
+
+For each version between the two, in order (`migrate` prints them; a development version has a note of its own, and the notes of the development versions of an `x.y.z` are left out when its final note is among them), read its note (`migrations/<version>.md` of the vendored copy: what changed, the areas touched, the required actions each with its check, the optional actions). Do every required action, then run its check; a check that does not pass is not done. The optional actions are the owner's choice. Commit what you change apart from the migration commit.
+
+## Verify
+
+1. `{{commands.docsCheck}}` (every check of the framework and the project's own), then the project's gate: `{{commands.lint}}` and `{{commands.testCoverage}}`.
+2. `harness probes <from> <to>` lists the probes of the project whose areas the versions touched, with the words each read at the last review, and the starting probe of an area no probe covers. Whether to run them is the project's choice, `probes.run` of the profile file (the ignored local file overrides it on one machine), and the end of the output of `migrate` and of `harness probes` says which: `auto` runs them; `ask` (the default) asks the owner first and runs them only on a yes; `disabled` does not run them. Run each as a separate session started in this repository (it then loads this entry file and its session-start hook, as a real task would) and compare what it reads with the last review: a probe that reads more, or reads a document that changed, is a finding of the version.
+3. Write in the pull request what the notes missed: a step you had to take that no note named, a check that did not prove its action, a probe that read more. Report each to the framework so that the note is corrected (an issue in its repository with the template; the procedure `report-upstream` does it where the project has it).
+
+## When it fails
+
+- A failure the project can fix (a word of its own in the core, a restated rule): fix it in a commit apart and run the checks again.
+- A failure you cannot fix now: `harness rollback` restores every file the migration commit changed to its content before the version, and removes the files it added, and nothing else; the result stays uncommitted for review. Look at `git status`, commit the undoing or drop the branch, and report what failed.
+- Never edit the vendored copy to get past it: `harness override <path> --reason <why> --issue <link>` accepts one edited file until the next sync, and a defect of the framework is fixed in the framework.
+
+## The pull request
+
+Open it by the procedure `open-pull-request`, titled `chore(framework): take <target>`; list the versions taken, the required actions done and their checks, the probes run (or that `probes.run` left them out), and what the notes missed.
+
+## A defect found in the framework
+
+Report it to the framework's repository (an issue, or the procedure `report-upstream`), with the version, the command and its output, and the note or document concerned. The framework fixes it and tags a version, and the project takes that version by this procedure. A project that is a copy of its own (detached) takes no versions: it fixes the copy and may offer the fix upstream in a pull request.

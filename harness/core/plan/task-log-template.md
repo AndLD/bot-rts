@@ -1,11 +1,11 @@
-← Phase <n>: link to its phase file here (`[← Phase <n> — <theme>](../../phase-<n>-<slug>.md)`).
+← Task <id>: link to its task file here (`[← <id> — <title>](./<id>.md)`), first line of `phases/phase-<n>-<slug>/<id>.log.md`.
 
 # <task id> — <task name> — work log
 
 **Status:** 🟡 in progress · **Branch:** `<branch>` · **Claim:** draft pull request #<number>
 
 Append-only log of this task, used to resume it in a new session (method, section 6). Write an entry whenever a session ends or pauses, or
-the task finishes; commit it in the same pull request as the work. Decisions that concern the whole phase go to the phase's work log.
+the task finishes; commit it in the same pull request as the work. Decisions that concern the whole phase go to the phase's work log (`log.md`). A finished task writes only this log: its "next step" names what follows.
 
 ## Entries
 

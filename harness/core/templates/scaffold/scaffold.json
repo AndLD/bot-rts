@@ -22,12 +22,20 @@
       "path": "{{paths.planIndex}}"
     },
     {
-      "template": "open-ended-phase.md",
-      "path": "{{paths.phases}}/phase-{{plan.openEndedPhaseNumber}}-issues.md"
+      "template": "issue-queue.md",
+      "path": "{{paths.issues}}/README.md"
     },
     {
-      "template": "phase-log.md",
-      "path": "{{paths.phases}}/work-logs/phase-{{plan.openEndedPhaseNumber}}-log.md"
+      "template": "issue-archive.md",
+      "path": "{{paths.issues}}/archived/README.md"
+    },
+    {
+      "template": "backlog-queue.md",
+      "path": "{{paths.backlog}}/README.md"
+    },
+    {
+      "template": "backlog-archive.md",
+      "path": "{{paths.backlog}}/archived/README.md"
     },
     {
       "template": "changelog.md",
@@ -60,6 +68,14 @@
     {
       "template": "product-backlog.md",
       "path": "{{productKnowledge.specification}}/{{productKnowledge.backlog}}"
+    },
+    {
+      "template": "risk-register.md",
+      "path": "{{documents.riskRegister}}"
+    },
+    {
+      "template": "rfc-index.md",
+      "path": "{{documents.rfcs}}"
     },
     {
       "template": "gitignore",

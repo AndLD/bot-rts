@@ -140,10 +140,10 @@ rule waits for your approval.
 **Input:** the fixed harness and the blockers list. **Output:** a project-neutral framework in a staging folder of this repository,
 ready to be copied to its own GitHub repository, and a proof that it bootstraps a new project. **Exit criteria:** section 3.5.
 
-**The work is planned as [Phase 17 — Harness framework extraction](../../development-plan/phases/phase-17-harness-framework.md)** (owner
+**The work is planned as [Phase 17 — Harness framework extraction](../../development-plan/phases/phase-17-harness-framework/README.md)** (owner
 decision 2026-10-20), as step 2 was planned as Phase 15: task ids, sizes, statuses and the work log of the phase replace the checkpoint file.
 The owner made the decisions of 3.1 on 2026-10-20; they are recorded in the
-[Phase 17 work log](../../development-plan/phases/work-logs/phase-17-log.md), and its task 17.1 writes the design within them. This section keeps
+[Phase 17 work log](../../development-plan/phases/phase-17-harness-framework/log.md), and its task 17.1 writes the design within them. This section keeps
 the reasons, the layout, the building steps, the proof and the exit criteria; the phase file holds the tasks.
 
 ### 3.1 Decisions (you, before building)
@@ -216,7 +216,7 @@ Step 3 is Phase 17, so it starts like any phase; the phase file holds the tasks 
 session, Opus 5.5 at high effort):
 
 ```text
-Start Phase 17, task 17.1 only: the framework design of docs/archived/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/archived/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
+Start Phase 17, task 17.1 only: the framework design of docs/archived/harness-framework/README.md step 3, within the owner's decisions recorded in the Phase 17 work log. Follow the task text in docs/development-plan/phases/phase-17-harness-framework/README.md. Read the latest harness quality review report (export dry run, blockers B6 and B7, open findings), the harness review method and bindings, docs/profile.md and scripts/harness-profile.json first. Write docs/archived/harness-framework/design.md, open the pull request, and stop for my acceptance: do not merge it. Do not build anything yet.
 ```
 
 Build session (after the owner has accepted `design.md` and its build order is in the phase file as tasks 17.2 to 17.17):

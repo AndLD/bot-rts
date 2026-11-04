@@ -9,10 +9,9 @@ import { placeholderPaths } from './render.mjs'
 
 const profile = () => ({
   branches: { integration: 'dev', production: 'prod' },
-  plan: { openEndedPhaseNumber: 9 },
   repository: { host: 'SomeHost' },
-  host: { protection: true },
-  paths: { profileDocument: 'docs/profile.md' },
+  host: { protection: true, autoMerge: true },
+  paths: { profileDocument: 'docs/profile.md', issues: 'docs/plan/issues' },
   documents: { rules: 'AGENTS.md', method: 'harness/core/method/method.md', stack: 'docs/stack.md' }
 })
 
@@ -38,6 +37,8 @@ const IDS = {
     'agent.open-pr',
     'agent.ask-merge',
     'agent.no-rewrite',
+    'agent.auto-merge',
+    'agent.stack',
     'agent.no-auto-merge',
     'agent.ci-fixes'
   ]
@@ -77,11 +78,11 @@ test('the rules use the neutral wordings, and their only values are on the Role 
   assert.match(text, /no debug printing left in committed code \(use the logger\)/)
   assert.doesNotMatch(text, /`any`|console\.log/)
 
-  const valued = text.split('\n').filter((line) => /\bdev\b|\bprod\b|SomeHost|Phase 9/.test(line))
+  const valued = text.split('\n').filter((line) => /\bdev\b|\bprod\b|SomeHost|docs\/plan\/issues/.test(line))
   assert.equal(valued.length, 1)
   assert.match(
     valued[0],
-    /^\*\*Role binding\.\*\*.*the integration branch is `dev`, the production branch is `prod`, the open-ended phase is Phase 9, the repository host is SomeHost; every other value/
+    /^\*\*Role binding\.\*\*.*the integration branch is `dev`, the production branch is `prod`, the issue queue is the \[open issues\]\(\.\/docs\/plan\/issues\/README\.md\), the repository host is SomeHost; every other value/
   )
 })
 
@@ -90,7 +91,10 @@ test('the links are written relative to the entry file', () => {
   assert.match(atRoot, /\[method §1\]\(\.\/harness\/core\/method\/method\.md#1-principles\)/)
   assert.match(atRoot, /\[profile\]\(\.\/docs\/profile\.md#2-quality-gates\)/)
 
-  const nested = { ...profile(), paths: { profileDocument: 'docs/profile.md', entryFile: 'docs/agents/AGENTS.md' } }
+  const nested = {
+    ...profile(),
+    paths: { profileDocument: 'docs/profile.md', issues: 'docs/plan/issues', entryFile: 'docs/agents/AGENTS.md' }
+  }
   assert.match(renderEntryBlock('git-rules', nested), /\[stack §6\]\(\.\.\/stack\.md#6-agent-runtime\)/)
 })
 
@@ -109,10 +113,25 @@ test('the protection rule names the ruleset when the host enforces it, and the h
   assert.match(protectedHost, /harness host protect/)
   assert.match(protectedHost, /rule:git\.admin-bypass/)
 
-  const unprotected = renderEntryBlock('git-rules', { ...profile(), host: { protection: false } })
+  const unprotected = renderEntryBlock('git-rules', { ...profile(), host: { protection: false, autoMerge: false } })
   assert.doesNotMatch(unprotected, /harness host protect|rule:git\.admin-bypass/)
   assert.match(unprotected, /cannot enforce this/)
   assert.match(unprotected, /rule:git\.protection/)
+})
+
+test('the auto-merge rule is on with host.autoMerge, and the old rule (never unasked) is back with it off', () => {
+  const on = renderEntryBlock('git-rules', profile())
+  assert.match(on, /rule:agent\.auto-merge/)
+  assert.match(on, /rule:agent\.stack/)
+  assert.doesNotMatch(on, /Never enable auto-merge unless the user asks|rule:agent\.no-auto-merge/)
+  assert.match(on, /harness branch update/)
+  assert.match(on, /a retarget alone starts no checks/)
+  assert.match(on, /the host merges the pull request \(auto-merge\)/)
+
+  const off = renderEntryBlock('git-rules', { ...profile(), host: { protection: true, autoMerge: false } })
+  assert.match(off, /Never enable auto-merge unless the user asks\. <!-- rule:agent\.no-auto-merge -->/)
+  assert.doesNotMatch(off, /rule:agent\.auto-merge|rule:agent\.stack|harness branch update/)
+  assert.match(off, /merge per the rules above and go on to the next task/)
 })
 
 test('a template is read without its leading comment, from the folder given', () => {

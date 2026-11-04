@@ -1,5 +1,6 @@
-// The GitHub host adapter's merge guard (design §4.3, role "merge guard"), for a repository whose host cannot protect its branches
-// (`host.protection: false`): nothing on the host refuses a merge while a required check is red, so the shell guard of the agent runtime does.
+// The GitHub host adapter's merge guard (design §4.3, role "merge guard"). For a repository whose host cannot protect its branches
+// (`host.protection: false`) nothing on the host refuses a merge while a required check is red, so the shell guard of the agent runtime does.
+// For every repository it refuses `gh pr merge --auto` where an agent may not enable auto-merge (`checkAutoMerge`).
 import { runGh } from './protect.mjs'
 
 // Options of `gh pr merge` that take a value, so that the value is not taken for the pull request
@@ -67,4 +68,41 @@ export function checkMerge({ words, cwd, requiredChecks, cli = (args) => runGh(a
   return notGreen.length
     ? `No merge while a required check is not green: ${notGreen.map((name) => `${name} (${bucketOf.get(name) ?? 'not reported'})`).join(', ')}. This repository's host cannot protect its branches, so this guard does.`
     : null
+}
+
+/** Whether the words of a simple command are `gh pr merge … --auto`: the command that turns on auto-merge. */
+export function isAutoMerge(words) {
+  return isMerge(words) && commandWords(words).includes('--auto')
+}
+
+// The head branches of a release and of a hotfix (the branch types of the Git rules)
+const RELEASE_BRANCH = /^(?:release|hotfix)\//
+
+/**
+ * The message that refuses turning on auto-merge, or null when it is allowed: only on a pull request into the integration branch that is not a
+ * release or a hotfix (those, and everything into the production branch, wait for the owner), and only where `enabled` (`host.autoMerge`). A pull
+ * request whose base cannot be read is refused: the guard does not guess.
+ */
+export function checkAutoMerge({ words, cwd, branches, enabled = true, cli = (args) => runGh(args, undefined, cwd) }) {
+  if (!enabled) {
+    return 'Auto-merge is off for this repository (`host.autoMerge` is false in the profile file): merge as the Git rules of the entry file say, and ask before you merge what they do not cover.'
+  }
+  const target = mergeTarget(words)
+  const answer = cli(['pr', 'view', ...(target ? [target] : []), '--json', 'baseRefName,headRefName'])
+  let pull = null
+  try {
+    pull = JSON.parse(answer.stdout || 'null')
+  } catch {
+    pull = null
+  }
+  if (answer.status !== 0 || !pull?.baseRefName) {
+    return `Cannot read the base of ${target ?? 'this pull request'}, so auto-merge is not enabled: only a pull request into ${branches.integration} that is not a release or a hotfix gets it.`
+  }
+  if (pull.baseRefName !== branches.integration) {
+    return `Auto-merge only on a pull request into ${branches.integration}; this one is into ${pull.baseRefName}${pull.baseRefName === branches.production ? ', the production branch, which waits for the owner' : '; a pull request stacked on a task branch is retargeted to ' + branches.integration + ' once the one under it is merged'}.`
+  }
+  if (RELEASE_BRANCH.test(pull.headRefName ?? '')) {
+    return `Auto-merge never on a release or hotfix branch (${pull.headRefName}): it waits for the owner.`
+  }
+  return null
 }

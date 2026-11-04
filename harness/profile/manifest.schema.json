@@ -12,6 +12,11 @@
     },
     "contract": { "type": "integer", "description": "The version of the contract the adapter fills." },
     "description": { "type": "string", "description": "One sentence on what the adapter is for." },
+    "firstSteps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What a project does once, by hand, after the bootstrap, that the adapter cannot do for it (a lock file that no tool writes without the network, for example). The bootstrap lists the steps of the selected adapters in its next steps, and the scaffolded stack file lists them."
+    },
     "terms": {
       "type": "string",
       "description": "A regular expression (case-insensitive) of the words that belong to this adapter and must not appear in core; the CORE scan joins it with the term lists of the profile file."
@@ -135,6 +140,7 @@
     },
     "host": {
       "repository-identity": "required",
+      "repository-address": "logic-optional",
       "protection-available": "logic",
       "branch-protection": "logic",
       "required-checks": "required",
@@ -142,8 +148,10 @@
       "pull-request-title-check": "required",
       "pull-requests": "required",
       "merge-guard": "logic-optional",
+      "auto-merge": "optional",
       "release": "required",
       "ci-timings": "optional",
+      "reports": "logic-optional",
       "values-in-host-files": "logic",
       "scaffold-files": "logic-optional"
     }

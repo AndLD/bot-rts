@@ -15,13 +15,21 @@ export function loadProfile(root, schema = readSchema()) {
   return existsSync(path) ? withDefaults(schema, JSON.parse(readFileSync(path, 'utf8'))) : {}
 }
 
-/** `value` with the `default` of every property of an object schema that it lacks; the input is not changed. */
+/**
+ * `value` with the `default` of every property of an object schema that it lacks; the input is not changed. A property with `x-sameAs` (the name of a
+ * sibling) takes the value of that sibling first, and its `default` only when the sibling has none: `host.autoMerge` is on where the host protects its
+ * branches. The `default` is there for the tools of an earlier version, which a sync runs with the schema of the version it brings in and which do not
+ * know `x-sameAs`: they must still find a value, or the sync stops half way.
+ */
 export function withDefaults(schema, value) {
   if (schema.type !== 'object' || value === null || typeof value !== 'object' || Array.isArray(value)) {
     return value
   }
   const result = { ...value }
   for (const [key, property] of Object.entries(schema.properties ?? {})) {
+    if (result[key] === undefined && property['x-sameAs'] !== undefined) {
+      result[key] = result[property['x-sameAs']]
+    }
     if (result[key] === undefined && property.default !== undefined) {
       result[key] = structuredClone(property.default)
     }

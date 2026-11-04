@@ -8,6 +8,11 @@
     "repository-identity": {
       "fills": "repository.slug and repository.url of the profile file; the host name is repository.host"
     },
+    "repository-address": {
+      "fills": "the web address of the repository from its slug, which the bootstrap writes into repository.url (the compare and tag links of the changelog)",
+      "module": "repository.mjs",
+      "export": "repositoryUrl"
+    },
     "protection-available": {
       "fills": "detected from the API: the rulesets of the repository are readable, or GitHub answers that they need a public repository or a paid plan",
       "module": "protect.mjs",
@@ -43,17 +48,26 @@
       "export": "readTriggers"
     },
     "merge-guard": {
-      "fills": "`gh pr merge` is recognised, and the required checks of the pull request are read with `gh pr checks`",
+      "fills": "`gh pr merge` is recognised, and the required checks of the pull request are read with `gh pr checks`; `gh pr merge --auto` is recognised, and the base and the head of the pull request are read with `gh pr view`",
       "module": "merge-guard.mjs",
       "export": "isMerge"
     },
+    "auto-merge": {
+      "fills": "the repository setting \"allow auto-merge\", turned on by `harness host protect` (with `host.autoMerge`); `gh pr merge --auto` turns it on for a pull request; the workflow that brings the integration branch into the pull requests waiting on it, which the ruleset requires up to date",
+      "file": "templates/update-branches.yml"
+    },
+    "reports": {
+      "fills": "the reports of users are GitHub issues: list, search, show, create, comment on and close them with the gh command line; the slug of a framework repository from its address",
+      "module": "reports.mjs",
+      "export": "listReports"
+    },
     "scaffold-files": {
-      "fills": "`.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks) and `.github/workflows/release.yml`",
+      "fills": "`.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks), `.github/workflows/release.yml` and, with `host.protection` and `host.autoMerge`, `.github/workflows/update-branches.yml`",
       "module": "scaffold.mjs",
       "export": "scaffoldFiles"
     }
   },
-  "templates": ["templates/ci.yml", "templates/release.yml"],
+  "templates": ["templates/ci.yml", "templates/release.yml", "templates/update-branches.yml"],
   "enforces": [
     {
       "rule": "git.protection",

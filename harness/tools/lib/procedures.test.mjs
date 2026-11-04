@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
-import { listProcedures, parseProcedure, renderProcedure } from './procedures.mjs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { after, test } from 'node:test'
+import {
+  listAllProcedures,
+  listProcedures,
+  listProjectProcedures,
+  parseProcedure,
+  renderProcedure
+} from './procedures.mjs'
 
 const text = (header, body = 'Step one.\n') => `---\n${header}\n---\n\n${body}`
 
@@ -39,6 +48,7 @@ test('the procedures of the framework are all well formed, and each is named by 
   assert.deepEqual(
     procedures.map(({ name }) => name),
     [
+      'change-plan',
       'code-review',
       'end-session',
       'finish-phase',
@@ -46,7 +56,10 @@ test('the procedures of the framework are all well formed, and each is named by 
       'new-adapter',
       'open-pull-request',
       'release',
-      'start-task'
+      'report-upstream',
+      'start-task',
+      'triage-reports',
+      'update-framework'
     ]
   )
   for (const { description, body, invocation } of procedures) {
@@ -81,5 +94,46 @@ test('a block of an optional role is left out without it, and a required role th
   assert.throws(
     () => renderProcedure(procedure, { documents: profile.documents }, 'x.md'),
     /the procedure "p" needs the profile roles commands\.lint/
+  )
+})
+
+const own = (root, files) =>
+  Object.entries(files).forEach(([name, body]) => {
+    mkdirSync(join(root, 'docs/procedures'), { recursive: true })
+    writeFileSync(join(root, 'docs/procedures', name), body)
+  })
+const header = (name) =>
+  `---\nname: ${name}\ndescription: Use when doing ${name}.\ninvocation: auto\n---\n\nSteps of ${name}.\n`
+
+test('the procedures of a project are the files of paths.procedures, each with its source, and a project without the role or the folder has none', () => {
+  const root = mkdtempSync(join(tmpdir(), 'own-procedures-'))
+  after(() => rmSync(root, { recursive: true, force: true }))
+  own(root, { 'add-endpoint.md': header('add-endpoint'), 'add-column.md': header('add-column') })
+  const profile = { paths: { procedures: 'docs/procedures/' } }
+
+  assert.deepEqual(
+    listProjectProcedures(root, profile).map(({ name, source }) => [name, source]),
+    [
+      ['add-column', 'docs/procedures/add-column.md'],
+      ['add-endpoint', 'docs/procedures/add-endpoint.md']
+    ]
+  )
+  assert.deepEqual(listProjectProcedures(root, {}), [])
+  assert.deepEqual(listProjectProcedures(root, { paths: { procedures: 'docs/none' } }), [])
+})
+
+test('the framework procedures come first, and a name that both have is an error naming the folder', () => {
+  const root = mkdtempSync(join(tmpdir(), 'own-procedures-'))
+  after(() => rmSync(root, { recursive: true, force: true }))
+  own(root, { 'add-endpoint.md': header('add-endpoint') })
+  const profile = { paths: { procedures: 'docs/procedures' } }
+  const names = listAllProcedures(root, profile).map(({ name }) => name)
+  assert.equal(names.at(-1), 'add-endpoint')
+  assert.equal(names[0], 'change-plan')
+
+  own(root, { 'start-task.md': header('start-task') })
+  assert.throws(
+    () => listAllProcedures(root, profile),
+    /docs\/procedures: the procedure "start-task" has the name of a procedure of the framework/
   )
 })

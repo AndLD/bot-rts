@@ -71,9 +71,9 @@ Branch types:
 | Role | Value |
 | ---- | ----- |
 | Plan index | [`development-plan/DEVELOPMENT-PLAN.md`](./development-plan/DEVELOPMENT-PLAN.md) |
-| Milestone | a phase, one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
+| Milestone | a phase, a folder `docs/development-plan/phases/phase-<n>-<slug>/` (its index `README.md`, a file `<id>.md` per task); a phase of the older layout is one file `docs/development-plan/phases/phase-<n>-<slug>.md` |
 | Task id | `<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`) |
-| Session log | `docs/development-plan/phases/work-logs/phase-<n>-log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses) |
+| Session log | `docs/development-plan/phases/phase-<n>-<slug>/log.md`, one per phase, append-only: the phase-wide entries (decisions before the start, pauses); a phase of the older layout keeps `docs/development-plan/phases/work-logs/phase-<n>-log.md` |
 | Phases with per-task records | Phase 10 and every phase planned after 2026-10-19: each task writes one log fragment `docs/development-plan/phases/work-logs/phase-<n>/<task id>.md` (template: `harness/core/plan/task-log-template.md`), and the phase file carries no implementation-log table |
 | Phases with one log | Phases 0 to 9 and 11 to 16: the phase's own log only, and the implementation-log table of the phase file |
 | Plan-log command | `npm run plan:log -- <n>` |
@@ -82,7 +82,7 @@ Branch types:
 | Status symbols | ⬜ not started · 🟡 in progress · ✅ done |
 | Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
-| Open-ended phase | Phase 12 (issues found in use); its size grows |
+| Issue queue | [`development-plan/issues`](./development-plan/issues): the defects and improvements found in use, not a phase; a file `I-<n>.md` per issue with its log beside it, branch `bugfix/I-<n>-<slug>`, the open ones in the folder's `README.md`, the finished ones in `archived/` |
 | Specification citation | `design §<section>` for the game design (for example `design §12.4`) |
 | Agent complexity | every open task carries a marker in the `Agent` column of its phase file: `C1` routine: mechanical, fully specified, obvious to verify; `C2` standard engineering: a component to a clear specification with tests, tools to work out; `C3` judgment: research, correctness-critical design, synthesis |
 | Agent models | `C1` Sonnet 5.5 at medium effort; `C2` Sonnet 5.5 at high effort; `C3` Opus 5.5 at high effort |

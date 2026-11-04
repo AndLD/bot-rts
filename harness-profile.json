@@ -59,7 +59,8 @@
     "changelogFragments": "docs/product-knowledge/changelog.d",
     "profileFile": "harness-profile.json",
     "profileDocument": "docs/profile.md",
-    "planIndex": "docs/development-plan/DEVELOPMENT-PLAN.md"
+    "planIndex": "docs/development-plan/DEVELOPMENT-PLAN.md",
+    "issues": "docs/development-plan/issues"
   },
   "plan": {
     "taskId": "`<phase>.<number>`, with an optional letter suffix (`3.12`, `1.1a`)",
@@ -68,8 +69,6 @@
     "logCommand": "`npm run plan:log -- <n>`",
     "estimationScale": "story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires",
     "resumePhrases": "\"Start Phase N\", \"Start Phases N-M\", \"Continue Phase N\"; the phrase approves the pull requests of the named phases",
-    "openEndedPhase": "Phase 12 (issues found in use); its size grows",
-    "openEndedPhaseNumber": 12,
     "specificationCitation": "`design §<section>` for the game design (for example `design §12.4`)",
     "complexity": {
       "scale": {
@@ -239,6 +238,9 @@
     "harnessBindings": "docs/quality-reviews/harness/bindings.md",
     "frameworkPlan": "docs/archived/harness-framework/README.md"
   },
+  "reports": {
+    "upstream": "ask"
+  },
   "layers": {
     "scope": [
       "**/*.md",
@@ -274,6 +276,8 @@
     "state": [
       "docs/development-plan/DEVELOPMENT-PLAN.md",
       "docs/development-plan/phases/phase-*.md",
+      "docs/development-plan/phases/phase-*/**",
+      "docs/development-plan/issues/**",
       "docs/development-plan/phases/work-logs/**",
       "docs/development-plan/cross-cutting/risk-register.md",
       "docs/development-plan/cross-cutting/rfc-*.md",

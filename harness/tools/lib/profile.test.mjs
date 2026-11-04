@@ -48,6 +48,20 @@ test('the reader fills the defaults of the schema into the parts that exist, and
   assert.equal(loadProfile(project('none'), schema).repository, undefined)
 })
 
+test('host.autoMerge follows host.protection when the file does not set it, falls back to its default, and an explicit value wins', () => {
+  const autoMerge = (value) => withDefaults(schema, value).host.autoMerge
+  assert.equal(autoMerge({}), true, 'protected by default')
+  assert.equal(autoMerge({ host: { protection: true } }), true)
+  assert.equal(autoMerge({ host: { protection: false } }), false, 'nothing would require the checks')
+  assert.equal(autoMerge({ host: { protection: false, autoMerge: true } }), true)
+  assert.equal(autoMerge({ host: { protection: true, autoMerge: false } }), false)
+
+  // a reader that does not know x-sameAs (the tools of an earlier version) still finds a value
+  const plain = structuredClone(schema)
+  delete plain.properties.host.properties.autoMerge['x-sameAs']
+  assert.equal(withDefaults(plain, { host: { protection: false } }).host.autoMerge, true)
+})
+
 test('a valid profile file has no problem', () => {
   assert.deepEqual(checkProfile(project('valid', valid()), schema), [])
 })

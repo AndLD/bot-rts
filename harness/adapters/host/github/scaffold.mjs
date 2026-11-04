@@ -1,9 +1,14 @@
 // The GitHub host's files of a new project (design §6.3, role "scaffold-files"): the CI workflow, whose frame is this adapter's template and whose
-// jobs come from the selected stacks (their role "CI job layout"), and the release workflow. Written once by the bootstrap; `harness check values`
+// jobs come from the selected stacks (their role "CI job layout"), the release workflow, and, where the host protects its branches and auto-merge is on,
+// the workflow that keeps the pull requests waiting on auto-merge up to date. Written once by the bootstrap; `harness check values`
 // then holds the triggers and the required checks.
 import { renderWorkflow } from './templates.mjs'
 
 export const WORKFLOWS = '.github/workflows'
+
+/** Whether the project gets the workflow that updates the pull requests waiting on auto-merge: the ruleset requires them up to date, and the agents use auto-merge. */
+export const keepsPullRequestsUpToDate = (profile) =>
+  profile.host?.protection !== false && (profile.host?.autoMerge ?? true)
 // The comment of the CI template that marks where the stacks' jobs go; the jobs replace it
 const JOBS_COMMENT = /^ {2}# The jobs of the stack adapter[^\n]*\n(?: {2}#[^\n]*\n)*/m
 
@@ -20,6 +25,9 @@ export function scaffoldFiles(profile, { jobs = [] } = {}) {
   const ci = frame.replace(JOBS_COMMENT, jobs.map((job) => job.yaml).join('\n'))
   return [
     { path: `${WORKFLOWS}/ci.yml`, content: ci },
-    { path: `${WORKFLOWS}/release.yml`, content: renderWorkflow('release.yml', profile) }
+    { path: `${WORKFLOWS}/release.yml`, content: renderWorkflow('release.yml', profile) },
+    ...(keepsPullRequestsUpToDate(profile)
+      ? [{ path: `${WORKFLOWS}/update-branches.yml`, content: renderWorkflow('update-branches.yml', profile) }]
+      : [])
   ]
 }

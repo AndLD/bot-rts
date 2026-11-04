@@ -147,13 +147,15 @@ manifests, and the Git hooks); a rule that nothing declares is judgment. The tab
 | `git.green-checks` | The required checks (§7.3) must be green before merge. | – | – | the ruleset requires the checks of `requiredChecks` | enforced |
 | `agent.branch-first` | If the current branch is the production or the integration branch, create the right branch first (names per §7.1) before changing files. Start ever… | `guard-shell` refuses a commit or a push on a protected branch | `pre-commit` refuses a commit on a protected branch | – | enforced |
 | `agent.routine-push` | Committing and pushing to a feature/bugfix/docs/chore branch is routine and needs no confirmation. Never commit or push directly to the production … | – | – | – | judgment |
-| `agent.plan-approval` | Plan work (approval given by the request): when the user asks to start or continue one or more phases (the resume phrases of the profile, for examp… | – | – | – | judgment |
-| `agent.plan-related` | Plan-related PRs merge the same way. Every PR that belongs to a named phase is covered by the same approval: its task PRs, and also the documentati… | – | – | – | judgment |
+| `agent.plan-approval` | Plan work (approval given by the request): when the user asks to start or continue one or more phases, to work the issue queue or to fix issues (th… | – | – | – | judgment |
+| `agent.plan-related` | Plan-related PRs merge the same way. Every PR that belongs to a named phase or issue is covered by the same approval: its task PRs, and also the do… | – | – | – | judgment |
 | `agent.claim` | Claim a task before working on it. Push its branch and open a draft pull request for it first (title and body as in the claim row of the profile); … | – | – | – | judgment |
 | `agent.open-pr` | Opening a pull request is automatic. Create the PR as soon as a branch is ready (any branch type, including release and hotfix branches into the pr… | – | – | – | judgment |
 | `agent.ask-merge` | Ask the user before merging any other pull request: documentation or chore PRs that are not related to the development plan of a named phase, anyth… | – | – | – | judgment |
 | `agent.no-rewrite` | Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history. | – | – | – | judgment |
-| `agent.no-auto-merge` | Never enable auto-merge unless the user asks. | – | – | – | judgment |
+| `agent.auto-merge` | Auto-merge merges a task's pull request; nothing waits for you to come back. As the last step of a task, once its definition of done holds, enable … | `guard-shell` refuses `gh pr merge --auto` into the production branch, on a release or hotfix branch and on a pull request not into the integration branch | – | – | enforced |
+| `agent.stack` | A task that needs the previous one branches from its branch (one level, no deeper) while that pull request is open; after the squash merge, retarge… | – | – | – | judgment |
+| `agent.no-auto-merge` | Never enable auto-merge unless the user asks. | `guard-shell` refuses `gh pr merge --auto` where `host.autoMerge` is off | – | – | enforced |
 | `agent.ci-fixes` | Automatic CI fixes are on for plan work. After opening a PR for a named phase, attach it to the session and turn on the agent runtime's CI monitori… | – | – | – | judgment |
 
 The host enforces the protection rules with the ruleset that `harness host protect` sets.

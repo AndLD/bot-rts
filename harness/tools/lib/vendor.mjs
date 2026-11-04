@@ -8,6 +8,7 @@ import { generators as registered } from './generators.mjs'
 import { appendBlock, extractBlock, hashBlock, replaceBlock } from './managed.mjs'
 import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
 import { loadProfile } from './profile.mjs'
+import { startOfSync } from './migration-guard.mjs'
 import { readManifest, referenceTree, resolveSource } from './source.mjs'
 import { copyFiles, hashFile, hashTree, walk } from './tree.mjs'
 
@@ -26,7 +27,9 @@ const describeSource = (source) =>
 /**
  * The files of a framework tree that a project receives: the distributable paths of `framework.json`, and of `adapters/` only the
  * selected adapters and the skeletons of the three axes, which the new-adapter guide copies (`hosts`, a list, in place of `host` for a template
- * repository, which holds every adapter). Fails on a selected adapter the framework does not have.
+ * repository, which holds every adapter), without the files whose names end as `excluded` says: the framework's tests prove the framework against its own
+ * repository (its profile file, every preset, its documents), so in a project they fail for what the project does not have (I-1). Fails on a selected
+ * adapter the framework does not have.
  */
 export function selectFiles(dir, manifest, adapters) {
   const files = walk(dir)
@@ -51,7 +54,8 @@ export function selectFiles(dir, manifest, adapters) {
         : files.filter((file) => file === path || inside(path)(file))
     matches.forEach((file) => selected.add(file))
   }
-  return [...selected].sort()
+  const excluded = manifest.excluded ?? []
+  return [...selected].filter((file) => !excluded.some((ending) => file.endsWith(ending))).sort()
 }
 
 const managedPath = (generator, profile) =>
@@ -67,13 +71,14 @@ export const managedKey = (path, block) => (block ? `${path}#${block}` : path)
 // Every managed file and block as the generators render it now, `{ path, block, content, append? }`. A role the project's profile file does not have
 // leaves its generator out: `harness check profile` is what asks for it. A block has no line break at either end, so that what the lock
 // hashes is what the file holds between its markers. A generator with `expand({ root, profile })` gives several blocks of its own (`{ path, block,
-// content, append }`); `append` says that the block is added at the end of its file when the file lacks it (the file is made if it is missing).
+// content, append }`); `append` says that the block is added at the end of its file when the file lacks it (the file is made if it is missing). An item without
+// `block` is a whole file, written as it is.
 function renderManaged(root, generators) {
   const profile = loadProfile(root)
   const trimmed = (item) => ({ ...item, content: item.content.replace(/^\n+|\n+$/g, '') })
   return generators.flatMap((generator) => {
     if (generator.expand) {
-      return generator.expand({ root, profile }).map(trimmed)
+      return generator.expand({ root, profile }).map((item) => (item.block ? trimmed(item) : item))
     }
     const path = managedPath(generator, profile)
     if (!path) {
@@ -114,21 +119,54 @@ function generateManaged(root, generators) {
 }
 
 /**
- * `harness sync`: replaces `harness/` with the framework at `from` (or the locked source) and rewrites the lock; with `local`, only
- * regenerates the managed files from the vendored tree and the profile file, without fetching anything, in every mode.
+ * Regenerates every managed file from the vendored tree and the profile file, and rewrites the lock's record of them. It fetches nothing and runs
+ * with the tools that are running now, so after a sync it must be started by the new version's own tools (`harness migrate`, task 3.5).
  * @returns {{ lock: object, messages: string[] }}
  */
-export function sync({ root, from, to, local = false, generators = registered }) {
+export function regenerate({ root, generators = registered }) {
+  const lock = readLock(root)
+  if (!lock) {
+    throw new Error(`there is no ${LOCK_FILE} yet: run \`harness sync --from <source>\` first`)
+  }
+  const next = { ...lock, managed: generateManaged(root, generators), profile: profileHash(root) }
+  writeLock(root, next)
+  const count = Object.keys(next.managed).length
+  return { lock: next, messages: [`Regenerated ${count} managed file(s) from ${VENDOR_DIR}/ and the profile file.`] }
+}
+
+/**
+ * Starts `harness migrate` of the tree that was just vendored, in a new process, so that it runs with the new version's tools and not the ones
+ * `sync` is running with. A tree without a command line (a fixture) has nothing to start.
+ * @returns {string[]} the lines it printed
+ */
+export function startVendoredMigrate({ root }) {
+  const command = join(root, VENDOR_DIR, 'tools', 'harness.mjs')
+  if (!existsSync(command)) {
+    return []
+  }
+  const result = spawnSync(process.execPath, [command, 'migrate', '--root', root], { encoding: 'utf8' })
+  const lines = result.stdout.split('\n').filter(Boolean)
+  if (result.status !== 0) {
+    const reason = [...lines, ...result.stderr.split('\n').filter(Boolean)].join('\n')
+    throw new Error(
+      `the files are in place, but \`harness migrate\` of the new version failed (exit ${result.status}):\n${reason}\n` +
+        `fix the cause and run \`node ${VENDOR_DIR}/tools/harness.mjs migrate\``
+    )
+  }
+  return lines
+}
+
+/**
+ * `harness sync`: replaces `harness/` with the framework at `from` (or the locked source), rewrites the lock, and starts `harness migrate` of the
+ * new version in a new process, which regenerates the managed files with the new version's tools (`startMigrate` is the seam of the tests). With
+ * `local`, only regenerates the managed files from the vendored tree and the profile file, without fetching anything, in every mode.
+ * @returns {{ lock: object, messages: string[] }}
+ */
+export function sync({ root, from, to, local = false, generators = registered, startMigrate = startVendoredMigrate }) {
   const lock = readLock(root)
 
   if (local) {
-    if (!lock) {
-      throw new Error(`there is no ${LOCK_FILE} yet: run \`harness sync --from <source>\` first`)
-    }
-    const next = { ...lock, managed: generateManaged(root, generators), profile: profileHash(root) }
-    writeLock(root, next)
-    const count = Object.keys(next.managed).length
-    return { lock: next, messages: [`Regenerated ${count} managed file(s) from ${VENDOR_DIR}/ and the profile file.`] }
+    return regenerate({ root, generators })
   }
   if (lock?.mode === MODES.detached) {
     throw new Error(
@@ -146,7 +184,9 @@ export function sync({ root, from, to, local = false, generators = registered })
   const adapters = profile.adapters || !lock ? selectedAdapters(profile) : lock.adapters
   const fetched = resolveSource({ root, from, to, lock })
   try {
-    return vendor({ root, fetched, adapters, lock, generators })
+    const start = startOfSync({ root, profile, lock })
+    const result = vendor({ root, fetched, adapters, lock, generators, generate: false, start })
+    return { lock: result.lock, messages: [...result.messages, ...startMigrate({ root })] }
   } finally {
     fetched.cleanup()
   }
@@ -154,10 +194,19 @@ export function sync({ root, from, to, local = false, generators = registered })
 
 /**
  * Replaces `harness/` with the selected files of a resolved framework tree (`resolveSource`), generates the managed files and writes a pinned
- * lock. `sync` and the bootstrap share it; `lock` is the previous lock, whose overrides the new version drops.
+ * lock. `sync` and the bootstrap share it; `lock` is the previous lock, whose overrides the new version drops. With `generate` off (`sync`) the managed
+ * files stay as they are, and the lock keeps their previous record until `harness migrate` regenerates them with the new version's tools.
  * @returns {{ lock: object, messages: string[] }}
  */
-export function vendor({ root, fetched, adapters, lock = null, generators = registered }) {
+export function vendor({
+  root,
+  fetched,
+  adapters,
+  lock = null,
+  generators = registered,
+  generate = true,
+  start = null
+}) {
   const paths = selectFiles(fetched.dir, fetched.manifest, adapters)
   const vendorDir = join(root, VENDOR_DIR)
   rmSync(vendorDir, { recursive: true, force: true })
@@ -169,11 +218,12 @@ export function vendor({ root, fetched, adapters, lock = null, generators = regi
     framework: fetched.manifest.name,
     mode: MODES.pinned,
     version,
+    migrations: generate ? { version, applied: [] } : start ? { ...lock?.migrations, start } : lock?.migrations,
     source,
     adapters,
     files: hashTree(vendorDir, paths),
-    managed: generateManaged(root, generators),
-    profile: profileHash(root),
+    managed: generate ? generateManaged(root, generators) : (lock?.managed ?? {}),
+    profile: generate ? profileHash(root) : (lock?.profile ?? profileHash(root)),
     overrides: [],
     seen: source.type === 'git' ? { ...(sameRepository ? lock.seen : {}), [version]: source.commit } : undefined
   }
@@ -250,8 +300,14 @@ export function checkVendored({ root, generators = registered }) {
     if (lock.source.type === 'path') {
       const dir = resolve(root, lock.source.location)
       if (existsSync(dir)) {
-        const sourceHashes = hashTree(dir, selectFiles(dir, readManifest(dir), lock.adapters))
-        if (JSON.stringify(sourceHashes) !== JSON.stringify(lock.files)) {
+        const manifest = readManifest(dir)
+        const sourceHashes = hashTree(dir, selectFiles(dir, manifest, lock.adapters))
+        // A sync by tools that do not know `excluded` copied the files it names (the framework's tests); they stay until the next sync and are not a change
+        const excluded = manifest.excluded ?? []
+        const locked = Object.fromEntries(
+          Object.entries(lock.files).filter(([path]) => !excluded.some((ending) => path.endsWith(ending)))
+        )
+        if (JSON.stringify(sourceHashes) !== JSON.stringify(locked)) {
           problems.push(
             `the framework source ${lock.source.location} changed since the last sync: run \`harness sync\``
           )

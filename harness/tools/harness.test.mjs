@@ -1,7 +1,7 @@
 // The `harness` command line as a project runs it: a real process, its output and its exit codes (0 done, 1 refused or failed, 2 usage).
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
@@ -47,6 +47,23 @@ test('sync, then check vendored passes; an edit fails it with exit code 1 and na
   assert.match(harness('diff').out, /^\+Edited\.$/m)
   assert.equal(harness('sync').code, 0)
   assert.equal(harness('check', 'vendored').code, 0)
+})
+
+test('the command line works when started through a link to the file or to a folder above it, and not only by its real path', () => {
+  const links = realpathSync(mkdtempSync(join(tmpdir(), 'harness-links-')))
+  after(() => rmSync(links, { recursive: true, force: true }))
+  const tools = import.meta.dirname
+  symlinkSync(join(tools, 'harness.mjs'), join(links, 'harness-link.mjs'))
+  symlinkSync(tools, join(links, 'tools-link'))
+  const started = (script) =>
+    spawnSync(process.execPath, [script, 'profile', 'get', 'adapters.stacks', '--root', root], { encoding: 'utf8' })
+
+  const direct = started(join(tools, 'harness.mjs'))
+  assert.deepEqual([direct.status, direct.stdout.trim()], [0, 'node-ts'])
+  for (const script of [join(links, 'harness-link.mjs'), join(links, 'tools-link', 'harness.mjs')]) {
+    const result = started(script)
+    assert.deepEqual([result.status, result.stdout.trim(), result.stderr], [0, 'node-ts', ''], script)
+  }
 })
 
 test('a refused command exits with 1, a usage error with 2', () => {

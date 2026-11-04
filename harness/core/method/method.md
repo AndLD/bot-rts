@@ -84,9 +84,9 @@ the stack file.
 - [ ] The lint, typecheck and import-boundary commands of the profile pass in every package.
 - [ ] The stack items of the stack file hold.
 - [ ] No dead code, no commented-out blocks, no debug output.
-- [ ] The task is marked ✅ in its phase file and the work log has an entry for it (section 6).
+- [ ] The task is marked ✅ in its task file (its row in the phase file of the older layout) and its log has an entry for it (section 6).
 - [ ] The plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit criteria are met, in the
-      summary table and in the phase file), and the branch and pull request of the task are added to the phase's
+      summary table and in the phase index), and the branch and pull request of the task are added to the phase's
       implementation log.
 - [ ] Docs are updated if the change alters public behavior or configuration; if it changes a design decision, the matching
       product-knowledge or plan document is updated in the same pull request.
@@ -120,16 +120,24 @@ Sessions can end at any time, so the repository, not the chat, carries the state
 - **Pacing:** the phases named in the owner's request are worked straight through in the plan's order, across phase
   boundaries; the pause points are a blocker, a decision that only the owner can make, and the end of the last named phase. A
   finished phase is recorded (status, work log) and the next named phase starts.
-- **At the start of a session** that continues a phase: read the phase file (task statuses), its work log and the log fragments of
-  the tasks in progress (paths in the profile), then check `git status`, `git branch -a` and the open pull requests, and continue
-  from the latest "next step". The implementation log is printed from the merged pull requests, not read from the phase file
+- **At the start of a session** that continues a phase: read the phase index and the file of the task you work on (not the other
+  tasks), the newest "next step" of the phase's logs (the session-start hook prints it, with the open tasks) and the log of that
+  task (paths in the profile; a phase kept as one file has its phase file, its work log and the fragments of the tasks in progress),
+  then check `git status`, `git branch -a` and the open pull requests, and continue
+  from the latest "next step" (a claimed task is continued only as the claim rule below says). The implementation log is printed from the merged pull requests, not read from the phase file
   (profile, section 4).
-- **Claim before work:** a task is claimed by a draft pull request opened before any other work on it (profile, section 4); a task
-  that has an open pull request belongs to the session that opened it, and nobody else starts it.
-- **While working:** set a task to 🟡 in the phase file when you start it and to ✅ when its definition of done holds. Commit
+- **Claim before work:** a task is claimed by a draft pull request opened before any other work on it (profile, section 4). A claim
+  belongs to its session while that session works, and no other agent starts the task. A session that resumes a phase **continues a
+  claimed task** when the log of the task or the work log of the phase records a pause, or a "next step" that names it, or when the
+  owner says so; otherwise it asks, and starts nothing. The same state is therefore read one way: a claim that the log of a paused
+  session names is continued, any other open claim is another agent's.
+- **Which task is next:** the order the plan says, not the order of the table: the phase's execution order (the line of its file),
+  and the plan index's order of development when the phase points there; the table's order only when neither exists.
+- **While working:** set a task to 🟡 in its task file (the phase file of the older layout) when you start it and to ✅ when its definition of done holds; `harness plan summary` regenerates the task table of the phase index. Commit
   often and push the task branch, so unfinished work is in git and not only in a working tree.
-- **When a session ends or pauses, and when a task finishes:** write an entry in the log of the task (its own fragment file, so
-  that two tasks never edit the same file) or, for a phase-wide matter, in the phase's work log (template inside the file): tasks,
+- **When a session ends or pauses, and when a task finishes:** write an entry in the log of the task (its own file beside the task
+  file, so that two tasks never edit the same file; a finished task writes only that log, and its "next step" names what follows)
+  or, for a phase-wide matter, in the phase's work log (template inside the file): tasks,
   branch and its state, decisions and deviations from the plan, problems and findings, the exact next step, and the commands
   that verify the current state. Commit and push it on the task branch, in the same pull request as the work.
 - **Changelog:** a change that a user of the product can see adds a changelog fragment (a file of its own, so that two changes
@@ -153,7 +161,7 @@ from overwriting each other; they cost nothing for a single agent.
 - **Working copy.** Each agent works in its own working copy, started from the integration branch (never from the production branch),
   on its own branch.
 - **Claim.** A task is claimed by a draft pull request opened before any other work on it (section 6). An agent never starts a task
-  that has an open pull request, and never edits another agent's branch.
+  that has an open pull request, unless the claim is its own to continue (section 6), and never edits another agent's branch.
 - **Integration.** The orchestrator or the owner merges the pull requests, one at a time, in the order of the dependency list; an
   agent does not merge its own pull request while others work. After each merge the next branch is rebased on the integration
   branch, and its checks run again.
@@ -162,6 +170,6 @@ from overwriting each other; they cost nothing for a single agent.
 - **Hotspots.** A file that several tasks of a wave write (the database migrations, the shared configuration, the registry of components)
   has one owner per wave, named in the phase file; the others rebase on that owner's change. Generated files, the vendored copy of the
   framework and its lock among them, are regenerated after a rebase (a sync) and never merged by hand.
-- **Records.** Each task writes its own log fragment and its own changelog fragment. The task table of the phase file and the plan
-  index are updated by whoever merges, and the implementation log is printed from the merged pull requests (profile, section 4).
+- **Records.** Each task writes its own log and its own changelog fragment, and sets its own status in its task file. The task table of the phase index and the plan
+  index are regenerated by whoever merges (`harness plan summary`), and the implementation log is printed from the merged pull requests (profile, section 4).
 - **Environment.** Two working copies must not share ports, databases or running servers; the testing guide says how to separate them.

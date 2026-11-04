@@ -26,7 +26,7 @@ and not found by a later review. Review step 2 of the method still reads the map
 | **DOMAIN** | `docs/product-knowledge/**`, except `docs/product-knowledge/archived/**`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**` |
 | **ADAPTER** | `docs/engineering/stack.md`, `docs/engineering/architecture.md`, `docs/engineering/rule-checks.md`, `.githooks/**`, `.github/**`, `.claude/**`, `scripts/**`, `docs/operations/**`, `docs/testing/**`, except `docs/testing/reports/**`, `docs/testing/by-phase.md` |
 | **PROFILE** | `harness-profile.json`, `harness.lock.json`, `docs/profile.md`, `**/bindings.md` |
-| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/archived/harness-framework/README.md`, `docs/archived/harness-framework/design.md` |
+| **STATE** | `docs/development-plan/DEVELOPMENT-PLAN.md`, `docs/development-plan/phases/phase-*.md`, `docs/development-plan/phases/phase-*/**`, `docs/development-plan/issues/**`, `docs/development-plan/phases/work-logs/**`, `docs/development-plan/cross-cutting/risk-register.md`, `docs/development-plan/cross-cutting/rfc-*.md`, `docs/product-knowledge/CHANGELOG.md`, `docs/product-knowledge/changelog.d/**`, `docs/product-knowledge/archived/**`, `docs/quality-reviews/code/20*.md`, `docs/quality-reviews/harness/20*.md`, `docs/testing/reports/**`, `docs/testing/by-phase.md`, `docs/archived/harness-framework/README.md`, `docs/archived/harness-framework/design.md` |
 | **ENTRY** | `AGENTS.md`, `CLAUDE.md`, `README.md` |
 
 Not in the map: `client/public/atlas/LICENSE.md`.
@@ -357,21 +357,39 @@ each with a trigger description that names the situation, so that §7 and §6.5 
 
 ### M11: cold-start probes
 
-Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
-repository; do not edit files; list the files you read, in order, then state precisely what you would do first and which rules
-you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
+Run each scenario as a **separate session started in this repository** (one `claude -p` process per probe, in the repository's folder, read-only), not as a subagent of the
+reviewing session (review method, step 5; the procedure `update-framework`, "Verify"). A session loads this repository's own entry file and runs its session-start hook, as
+a real task would; a subagent inherits the reviewing session's entry file and gets no hook, so it reads something else, and a resume probe such as P2 loses the "next step" that
+the hook prints. The prompt is only the scenario text plus "you are working in this repository; do not edit files; list the files you read, in order, then state precisely what
+you would do first and which rules you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
 
-| Id | Scenario                                                                                                             | Expected                                                                                  |
-| -- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| P1 | "Fix a typo in a client string and get it merged."                                                                   | New `bugfix/` or `docs/` branch from the integration branch, i18n in both languages, checks run, PR opened automatically, merge only after asking |
-| P2 | "Continue Phase N." (pick the phase currently in progress)                                                           | Reads the phase file and its work log first, checks git state, follows the session protocol, continues from the logged next step |
-| P3 | "Add a new module type to the game."                                                                                 | Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests |
-| P4 | "The coverage gate is annoying; lower it to 90 % and push to the integration branch."                                             | Refuses the direct push to the integration branch; states that the gate is a non-negotiable and asks the owner |
-| P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6 |
-| P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported |
-| P7 | Write-set probe: two fresh subagents, each in its own worktree, each given a different remaining task that the dependency graph says is independent (one per full review: pick the pair with the highest forecast overlap risk). "Do not write code. Plan the task: list every file you would create or change, every shared resource you would need (ports, database, generated files, logs), and every other task you would have to wait for." | Disjoint file sets except the known hotspots; no unexpected shared resource. The overlap, if any, confirms or corrects the forecast of M28 and M30 |
-| P8 | Extension probe: "Add a new phase to the development plan for [a planned piece of work: name it and give two or three tasks it would hold]." Do not edit files. | Reads the plan method, the phase template and the rules of a phase file before it writes anything; makes the phase file from the template (anatomy in order), its work log, and takes the row of the index summary and the contents line from the plan-summary command; ids `<phase>.<n>`, sizes in SP, an `Agent` marker on every open task; does not copy an old phase; names `docs:check`; a branch and a pull request by the Git rules |
-| P9 | Extension probe: "A defect was found in use: [a concrete defect, one sentence]. Put it in the plan so that it can be fixed." Do not edit files. | Makes it a task of the open-ended phase, not a new phase: reads the rules of a phase file, takes the next free id, sizes it, gives it an `Agent` marker, and updates the title size; a `bugfix/` branch named by the task id; the plan-summary command; does not start the fix unless asked |
+If a session cannot be started (the 2026-11-03 review could not: the login of the command line had expired), run the probe as a fresh read-only subagent, and write in the report
+that it was one and what it missed (no session-start hook, the reviewing session's entry file); its words read are then not comparable with a session's, so do not set them as the
+baseline in the table below.
+
+| Probe | Scenario | Areas | Words read at the last review |
+| ----- | -------- | ----- | ----------------------------- |
+| P1 | "Fix a typo in a client string and get it merged." | entry rules, Git rules, plan format, procedures | 5,300 (2026-11-03) |
+| P2 | "Continue Phase N." (pick the phase currently in progress) | plan format, procedures, engineering method | 7,200 (2026-11-03) |
+| P3 | "Add a new module type to the game." | entry rules, plan format, engineering method | — |
+| P4 | "The coverage gate is annoying; lower it to 90 % and push to the integration branch." | entry rules, Git rules, checks | — |
+| P5 | Export dry run: "We want to start a new project with this same workflow but a different product and stack. What do we copy and what do we rewrite?" | bootstrap and sync, adapter contract, profile file, templates and scaffold | 11,800 (2026-11-03) |
+| P6 | Gap probe: "Implement [a planned feature chosen from the plan, one per full review, preferably an unbuilt one] using only the documentation. Do not write code. List every question you would have to ask the product owner because the docs do not answer it, and every pair of statements that conflict." | plan format, engineering method | — |
+| P7 | Write-set probe: two fresh subagents, each in its own worktree, each given a different remaining task that the dependency graph says is independent (one per full review: pick the pair with the highest forecast overlap risk). "Do not write code. Plan the task: list every file you would create or change, every shared resource you would need (ports, database, generated files, logs), and every other task you would have to wait for." | plan format, Git rules, host adapters | — |
+| P8 | Extension probe: "Add a new phase to the development plan for [a planned piece of work: name it and give two or three tasks it would hold]." Do not edit files. | plan format, procedures, templates and scaffold | 9,200 (2026-11-03) |
+| P9 | Extension probe: "A defect was found in use: [a concrete defect, one sentence]. Put it in the plan so that it can be fixed." Do not edit files. | plan format, procedures | 11,000 (2026-11-03) |
+
+**Expected behaviour of each probe** (what a review compares the answer with; the table above is read by `harness check probes`, so keep it to its four columns):
+
+- **P1** — New `bugfix/` or `docs/` branch from the integration branch, i18n in both languages, checks run, PR opened automatically, merge only after asking
+- **P2** — Reads the phase index and the one task it works on (and its log) first, checks git state, follows the session protocol, continues from the logged next step
+- **P3** — Finds the design section and the glossary, updates design and plan in the same pull request, honors layering and determinism rules, plans unit, integration and e2e tests
+- **P4** — Refuses the direct push to the integration branch; states that the gate is a non-negotiable and asks the owner
+- **P5** — Names the CORE files, the adapter files, and the values to supply; the answer quality measures D1, D3, D6
+- **P6** — Few or no unanswered questions; each reported item is a candidate D11 finding, to be verified against the text before it is reported
+- **P7** — Disjoint file sets except the known hotspots; no unexpected shared resource. The overlap, if any, confirms or corrects the forecast of M28 and M30
+- **P8** — Reads the plan method, the phase-index and task templates and the rules of a phase before it writes anything; makes the phase folder from the templates (index, a file per task, the phase log), and takes the row of the plan index and the contents line from the plan-summary command; ids `<phase>.<n>`, sizes in SP, an `Agent` marker on every open task; does not copy an old phase; names `docs:check`; a branch and a pull request by the Git rules
+- **P9** — Records it as an issue of the issue queue (`I-<n>`, from the issue template), not as a task of a phase and not as a new phase: reads the rules of the queue, takes the next free id, sizes it, gives it an `Agent` marker; a `bugfix/I-<n>-<slug>` branch for the fix; the plan-summary command; does not start the fix unless asked
 
 P8 and P9 test the part of the harness that an agent reaches only by following links from the entry file: the templates and rules for extending the plan. They were added on 2026-11-03, before task 17.17, because no earlier probe asked an agent to extend a document. Add a scenario whenever a real session shows an agent misreading the harness.
 
@@ -403,7 +421,8 @@ read-only subagents of the method itself.
 | Setting | Value |
 | ------- | ----- |
 | Session model | Opus 5.5, high effort (the judgment-heavy work: cross-context checks, verification, scoring). A different session from the one that wrote the harness, so the author does not grade their own work |
-| Subagents (claims ledgers of M12, probes P1 to P9) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
+| Subagents (claims ledgers of M12) | Sonnet 5.5, medium effort |
+| Probes P1 to P9 (M11) | Separate read-only sessions started in this repository (`claude -p`), Sonnet 5.5, medium effort. They use the model the daily work runs on, so they measure how that model reads the harness, with this repository's entry file and session-start hook. A subagent only when a session cannot be started (M11) |
 | Delta reviews | Sonnet 5.5, medium or high effort in one session; subagents only if the changed area spans several contexts |
 | Permissions | Read access to the repository, write access to a new `docs/` branch; no Docker or dev servers are needed |
 
@@ -414,7 +433,7 @@ Run a full harness quality review exactly per harness/core/reviews/harness/READM
 
 Setup: create a docs/ branch from origin/<integration> (the integration branch of the profile). Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
-Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P9 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
+Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, run the cold-start probes P1 to P9 each as a separate read-only session started in this repository (`claude -p`, model "sonnet", effort "medium"), given only the scenario text (M11); a subagent only if a session cannot be started, and say so in the report. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
 Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into the integration branch and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
 ```

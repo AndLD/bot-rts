@@ -9,6 +9,12 @@ project adds to them. Keep each section short, and link the documents that hold 
 
 The stack adapters of the profile: {{scaffold.stacks}}.
 
+{{#if scaffold.firstSteps}}
+Done once, by hand, after the bootstrap:
+
+{{scaffold.firstSteps}}
+{{/if}}
+
 ## 2. Architecture and layering
 
 The packages, their layers and the direction of their imports.

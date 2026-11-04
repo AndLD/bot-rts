@@ -20,6 +20,15 @@ test('clean CORE files and one binding line have no problems; generic words and 
   assert.deepEqual(coreLeakProblems(files, PROFILE, BINDINGS), [])
 })
 
+test("a procedure of the project's own folder (paths.procedures) is not a CORE file, so its stack and product words are not scanned", () => {
+  const files = {
+    'AGENTS.md': AGENTS('ok'),
+    'docs/method.md': 'ok',
+    'docs/procedures/add-table.md': 'Run npm, then store the row in Postgres for the bot.'
+  }
+  assert.deepEqual(coreLeakProblems(files, PROFILE, BINDINGS), [])
+})
+
 test('a stack term, a product term and a project value are problems, with their place', () => {
   const files = {
     'AGENTS.md': AGENTS('ok'),

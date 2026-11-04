@@ -136,36 +136,55 @@ export async function ask(answers, given, reader, { catalogue = adapterCatalogue
  * and names the roles.
  * @returns {Promise<{ code: number, messages: string[] }>}
  */
-export async function init({ root, flags = {}, input = process.stdin, out = () => {}, err = () => {} }) {
+export async function init({
+  root,
+  flags = {},
+  input = process.stdin,
+  hostSetup = false,
+  out = () => {},
+  err = () => {}
+}) {
   const path = join(root, PROFILE_FILE)
   const existing = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : {}
   const { answers, given } = answersFromFlags(existing, flags)
 
-  if (!flags.nonInteractive) {
-    const reader = lineReader(input, out)
-    try {
+  // The reader stays open for the one question of the host setup, which only a terminal is asked
+  const reader = flags.nonInteractive ? null : lineReader(input, out)
+  try {
+    if (reader) {
       await ask(answers, given, reader, { out })
-    } finally {
-      reader.close()
     }
+    return await finish()
+  } finally {
+    reader?.close()
   }
-  const missing = missingAnswers(completeProfile(answers))
-  if (missing.length) {
-    const flagOf = (role) => QUESTIONS.find((question) => question.role === role)?.flag
-    throw new Error(
-      `no value for ${missing.map((role) => (flagOf(role) ? `${role} (--${flagOf(role)})` : role)).join(', ')}`
-    )
+
+  async function finish() {
+    const missing = missingAnswers(completeProfile(answers))
+    if (missing.length) {
+      const flagOf = (role) => QUESTIONS.find((question) => question.role === role)?.flag
+      throw new Error(
+        `no value for ${missing.map((role) => (flagOf(role) ? `${role} (--${flagOf(role)})` : role)).join(', ')}`
+      )
+    }
+    writeFileSync(path, `${JSON.stringify(answers, null, 2)}\n`)
+    return bootstrap({
+      root,
+      from: flags.from,
+      to: flags.to,
+      force: flags.force,
+      detached: flags.detached,
+      self: flags.self,
+      reason: flags.reason,
+      hostSetup:
+        hostSetup && !flags.noHostSetup
+          ? {
+              ...hostSetup,
+              confirm: reader?.interactive ? async (question) => !/^n/i.test(await reader.ask(question)) : undefined
+            }
+          : false,
+      out,
+      err
+    })
   }
-  writeFileSync(path, `${JSON.stringify(answers, null, 2)}\n`)
-  return bootstrap({
-    root,
-    from: flags.from,
-    to: flags.to,
-    force: flags.force,
-    detached: flags.detached,
-    self: flags.self,
-    reason: flags.reason,
-    out,
-    err
-  })
 }

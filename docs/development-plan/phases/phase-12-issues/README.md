@@ -36,3 +36,4 @@ AGENTS.md §7.1).
 | `bugfix/12.1-runaway-script-tick` | 12.1 | [#207](https://github.com/AndLD/bot-rts/pull/207) | merged |
 | `bugfix/12.3-starter-resources` | 12.3 | [#258](https://github.com/AndLD/bot-rts/pull/258) | merged |
 | `bugfix/12.4-prepush-database` | 12.4 | [#273](https://github.com/AndLD/bot-rts/pull/273) | open |
+| `bugfix/12.7-framework-0.2.0` | 12.7 | [#296](https://github.com/AndLD/bot-rts/pull/296) | open |

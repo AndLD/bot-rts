@@ -85,8 +85,10 @@ The second stack preset (a language whose test tool writes no coverage summary o
   check and the suite use them in place of the line `harness/`. Keep the setting on one line, as the pattern reads lines.
 - **The version is not in a JSON file.** The release tool reads and writes the `version` of the `[project]` table of a TOML file; a stack whose lock file records the version names `release.lockCommand` in its
   `defaults`.
-- **A lock file cannot be written by hand.** If the tools of the development group need a resolver, the scaffold writes no lock and the stack file says to create it once; the CI install command is the locked
-  one, so the first pull request of a new project must commit it.
+- **A lock file cannot be written by hand.** If the tools of the development group need a resolver, the scaffold writes no lock and says to create it once: the manifest's `firstSteps` (a list of sentences)
+  are printed in the next steps of the bootstrap and written into the stack file; the CI install command is the locked one, so the first pull request of a new project must commit it.
+- **A new project must be green, apart from what `firstSteps` names.** The scaffold writes a first typed module and its test in each package (at the root when the project has none), because a type checker that
+  finds no source file fails, and the lock needs the project file of every workspace member.
 - **The commands of the defaults must exist on the machine.** The suite runs `<program> --version` for every command of `defaults.commands`, so the framework's own CI sets up the programs of every preset.
 
 ## `conformance.json`

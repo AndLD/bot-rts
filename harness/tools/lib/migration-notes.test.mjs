@@ -1,7 +1,19 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { areasOf, AREAS_BEGIN, AREAS_END, noteProblems, NOTE_HEADINGS, WATCHED, withAreas } from './migration-notes.mjs'
+import {
+  areasOf,
+  AREAS_BEGIN,
+  AREAS_END,
+  noteProblems,
+  noteStub,
+  NOTE_HEADINGS,
+  placeholderProblems,
+  previousTag,
+  selectNotes,
+  WATCHED,
+  withAreas
+} from './migration-notes.mjs'
 import { claims } from './layers.mjs'
 import { walk } from './tree.mjs'
 
@@ -69,4 +81,53 @@ test('the note of 0.1.1 has the shape, and so does every note of the framework',
   for (const version of versions) {
     assert.deepEqual(noteProblems(readFileSync(`${ROOT}migrations/${version}.md`, 'utf8'), version), [], version)
   }
+})
+
+const ENTRIES = ['0.1.1', '0.2.0-dev.1', '0.2.0-dev.2', '0.2.0', '0.3.0-dev.1'].map((version) => ({
+  version,
+  note: `${version}.md`
+}))
+const versionsOf = (entries) => entries.map(({ version }) => version)
+
+test('the notes a project reads are those after its own version up to the target, without the development notes the final note covers', () => {
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.1.0', '0.2.0-dev.1')), ['0.1.1', '0.2.0-dev.1'])
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.2.0-dev.1', '0.2.0-dev.2')), ['0.2.0-dev.2'])
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.1.2', '0.2.0')), ['0.2.0'])
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.2.0-dev.1', '0.2.0')), ['0.2.0'])
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.2.0', '0.3.0-dev.1')), ['0.3.0-dev.1'])
+  assert.deepEqual(versionsOf(selectNotes(ENTRIES, '0.2.0', '0.2.0')), [])
+  assert.deepEqual(
+    versionsOf(selectNotes([...ENTRIES.slice(0, 3), { version: '0.2.0' }], '0.1.0', '0.2.0')),
+    ['0.1.1', '0.2.0-dev.1', '0.2.0-dev.2'],
+    'a final version with a script but no note covers nothing'
+  )
+})
+
+test('a note is written against the previous development version of the same x.y.z, else the previous final version', () => {
+  const tags = ['v0.1.0', 'v0.1.2', '0.1.2-dev.1', '0.2.0-dev.1', 'v0.1.1', 'not-a-version']
+  assert.deepEqual(previousTag('0.2.0-dev.1', tags), { version: '0.1.2', tag: 'v0.1.2' })
+  assert.deepEqual(previousTag('0.2.0-dev.2', tags), { version: '0.2.0-dev.1', tag: '0.2.0-dev.1' })
+  assert.deepEqual(previousTag('0.2.0', [...tags, '0.2.0-dev.2']), { version: '0.1.2', tag: 'v0.1.2' })
+  assert.equal(previousTag('0.1.0', []), null)
+})
+
+test('the stub of a note has the shape of a note, lists the fragments and the areas, and holds the placeholder until the author writes the actions', () => {
+  const stub = noteStub({
+    version: '0.2.0-dev.1',
+    previous: '0.1.2',
+    fragments: [{ kind: 'Added', entry: 'a thing.\n  More.' }],
+    areas: ['procedures']
+  })
+  assert.deepEqual(noteProblems(stub, '0.2.0-dev.1'), [])
+  assert.match(stub, /^# Migration to 0\.2\.0-dev\.1 from 0\.1\.2\n/)
+  assert.match(stub, /- Added: a thing\.\n {2}More\./)
+  assert.match(stub, /<!-- areas:begin -->\n- procedures\n<!-- areas:end -->/)
+  assert.equal(placeholderProblems(stub).length, 1)
+  assert.deepEqual(placeholderProblems(stub.replace(/TODO: what the project[^\n]*/, 'None.')), [])
+  assert.deepEqual(
+    placeholderProblems('## Required actions\n\nDo it. The TODO list is in your tracker.\n\n## Optional actions\n'),
+    [placeholderProblems(stub)[0]],
+    'the word counts wherever it stands in the required actions'
+  )
+  assert.deepEqual(placeholderProblems('## What changed for a project\n\nTODO\n\n## Required actions\n\nNone.\n'), [])
 })

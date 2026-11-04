@@ -51,7 +51,8 @@ const git = (root, ...args) =>
 // Runs the command line on `root`; the exit code and what it printed
 async function harness(root, argv, input = '') {
   const lines = []
-  const code = await run([...argv, '--root', root], {
+  // The tests never ask the real host
+  const code = await run([...argv, '--no-host-setup', '--root', root], {
     out: (line) => lines.push(line),
     err: (line) => lines.push(line),
     input

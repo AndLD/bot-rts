@@ -22,12 +22,12 @@
       "path": "{{paths.planIndex}}"
     },
     {
-      "template": "open-ended-phase.md",
-      "path": "{{paths.phases}}/phase-{{plan.openEndedPhaseNumber}}-issues.md"
+      "template": "issue-queue.md",
+      "path": "{{paths.issues}}/README.md"
     },
     {
-      "template": "phase-log.md",
-      "path": "{{paths.phases}}/work-logs/phase-{{plan.openEndedPhaseNumber}}-log.md"
+      "template": "issue-archive.md",
+      "path": "{{paths.issues}}/archived/README.md"
     },
     {
       "template": "changelog.md",

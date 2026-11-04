@@ -7,7 +7,7 @@ import { layerMap } from './layers.mjs'
 import { profileDocument } from './profile-document.mjs'
 import { ruleMap } from './rule-map.mjs'
 import { runtimeBlockGenerators } from './runtime-blocks.mjs'
-import { proceduresBlock, skillGenerators } from './skills.mjs'
+import { proceduresBlock, projectSkillGenerator, skillGenerators } from './skills.mjs'
 
 export const generators = [
   profileDocument,
@@ -16,5 +16,6 @@ export const generators = [
   proceduresBlock,
   ...entryBlocks,
   ...skillGenerators(),
+  projectSkillGenerator(),
   ...runtimeBlockGenerators()
 ]

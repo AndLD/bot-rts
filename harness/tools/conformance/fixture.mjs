@@ -10,8 +10,8 @@ export const FRAMEWORK_DIR = resolve(import.meta.dirname, '..', '..')
 const dirs = []
 
 /**
- * A new empty folder; `disposeFixtures` removes every one. Its real path: the command line starts only when `argv[1]` is the real path of the
- * script, and the temporary folder of macOS is behind a link.
+ * A new empty folder; `disposeFixtures` removes every one. Its real path, so that it equals the paths Git and Node report (the temporary folder of
+ * macOS is behind a link).
  */
 export function tempDir(prefix) {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)))
@@ -60,6 +60,7 @@ export function bootstrapProject({ framework, stacks, runtimes, host }) {
     join(framework, 'tools', 'harness.mjs'),
     'init',
     '--non-interactive',
+    '--no-host-setup',
     '--name',
     'conformance',
     '--repository',

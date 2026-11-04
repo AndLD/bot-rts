@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict'
 import { execFileSync, spawnSync } from 'node:child_process'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { after, test } from 'node:test'
@@ -45,8 +54,8 @@ function project(branch, { files = {}, env = {} } = {}) {
   return { root, env }
 }
 
-function hook(script, event, { env = {}, path } = {}) {
-  const result = spawnSync(process.execPath, [join(HERE, `${script}.mjs`)], {
+function hook(script, event, { env = {}, path, from = HERE } = {}) {
+  const result = spawnSync(process.execPath, [join(from, `${script}.mjs`)], {
     input: typeof event === 'string' ? event : JSON.stringify(event),
     encoding: 'utf8',
     env: { ...process.env, PATH: path ?? process.env.PATH, ...env }
@@ -77,6 +86,87 @@ test('guard-shell lets other commands through, and refuses a commit on a protect
   assert.match(hook('guard-shell', commit).err, /You are on develop/)
   const bypass = { ...sample('claude-code', 'bash-ls.json', root), tool_input: { command: 'git push --no-verify' } }
   assert.match(hook('guard-shell', { ...bypass, cwd: project('feature/x').root }).err, /--no-verify.*owner/)
+})
+
+test('guard-shell judges a Git command by the repository it acts on: a `cd` before it, `-C` and `--git-dir`, both ways', () => {
+  const onFeature = project('feature/x').root
+  const onDevelop = project('develop').root
+  const run = (cwd, command) =>
+    hook('guard-shell', { ...sample('claude-code', 'bash-ls.json', cwd), tool_input: { command } })
+
+  // the project is on its integration branch, the other clone on a task branch: allowed
+  for (const command of [
+    `cd ${onFeature} && git commit -m x`,
+    `git -C ${onFeature} commit -m x`,
+    `git --git-dir=${onFeature}/.git --work-tree=${onFeature} commit -m x`,
+    `git --git-dir ${onFeature}/.git commit -m x`,
+    `GIT_DIR=${onFeature}/.git git commit -m x`,
+    `cd ${onFeature} && cd .. && cd ${onFeature} && git push origin HEAD`
+  ]) {
+    assert.equal(run(onDevelop, command).code, 0, command)
+  }
+  // the project is on a task branch, the other clone on its integration branch: refused
+  for (const command of [
+    `cd ${onDevelop} && git commit -m x`,
+    `git -C ${onDevelop} commit -m x`,
+    `git --git-dir=${onDevelop}/.git commit -m x`,
+    `GIT_DIR=${onDevelop}/.git git push`,
+    `(cd ${onDevelop} && git status); cd ${onDevelop} && git commit -m x`
+  ]) {
+    assert.match(run(onFeature, command).err, /You are on develop in /, command)
+  }
+  // a subshell does not move the shell, and what cannot be resolved is judged as protected
+  assert.match(run(onDevelop, `(cd ${onFeature} && git status); git commit -m x`).err, /You are on develop/)
+  for (const command of [
+    'cd /nonexistent/clone && git commit -m x',
+    'cd "$OTHER" && git commit -m x',
+    `git --work-tree ${onFeature} commit -m x`,
+    'git -C /nonexistent commit -m x'
+  ]) {
+    assert.match(run(onFeature, command).err, /cannot be told/, command)
+  }
+  assert.equal(run(onFeature, `cd ${onDevelop} && git checkout -b feature/y && git commit -m x`).code, 0)
+})
+
+test('each hook works when started through a link to its file or to a folder above it, as it does by its real path', () => {
+  const links = realpathSync(mkdtempSync(join(tmpdir(), 'hook-links-')))
+  dirs.push(links)
+  symlinkSync(HERE, join(links, 'hooks-link'))
+  mkdirSync(join(links, 'files'))
+  for (const script of ['guard-shell', 'guard-edit', 'session-start', 'format-edited']) {
+    symlinkSync(join(HERE, `${script}.mjs`), join(links, 'files', `${script}.mjs`))
+  }
+  const { root } = project('feature/x')
+  const develop = project('develop').root
+  const cases = [
+    ['guard-shell', sample('claude-code', 'bash-push-main.json', root), 2],
+    [
+      'guard-shell',
+      { ...sample('claude-code', 'bash-ls.json', develop), tool_input: { command: 'git commit -m x' } },
+      2
+    ],
+    ['guard-edit', sample('claude-code', 'write-env.json', root), 2],
+    ['session-start', sample('claude-code', 'session-start.json', root), 0]
+  ]
+  for (const [script, event, code] of cases) {
+    const direct = hook(script, event)
+    assert.equal(direct.code, code, `${script} by its real path`)
+    for (const from of [join(links, 'hooks-link'), join(links, 'files')]) {
+      const linked = hook(script, event, { from })
+      assert.deepEqual(linked, direct, `${script} through ${from}`)
+    }
+  }
+  assert.notEqual(
+    hook('session-start', sample('claude-code', 'session-start.json', root), {
+      from: join(links, 'files'),
+      env: { CLAUDE_PROJECT_DIR: root }
+    }).out,
+    ''
+  )
+  assert.equal(
+    hook('format-edited', sample('claude-code', 'write-env.json', root), { from: join(links, 'files') }).code,
+    0
+  )
 })
 
 test('guard-shell on a host without protection refuses a merge while a required check is not green, through the gh of the path', () => {
@@ -113,6 +203,44 @@ test('guard-shell on a host without protection refuses a merge while a required 
     0,
     'a host that protects its branches refuses the merge itself'
   )
+})
+
+test('guard-shell refuses `gh pr merge --auto` into the production branch and on a release branch, and lets it through on a task pull request', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'gh-auto-'))
+  dirs.push(dir)
+  writeFileSync(
+    join(dir, 'gh'),
+    `#!/bin/sh\necho "{\\"baseRefName\\":\\"$PR_BASE\\",\\"headRefName\\":\\"$PR_HEAD\\"}"\n`
+  )
+  chmodSync(join(dir, 'gh'), 0o755)
+  const path = `${dir}:${process.env.PATH}`
+  const { root } = project('feature/x')
+  const event = (command, cwd = root) => ({
+    ...sample('claude-code', 'bash-ls.json', cwd),
+    tool_input: { command }
+  })
+  const run = (command, base, head, cwd) =>
+    hook('guard-shell', event(command, cwd), { env: { PR_BASE: base, PR_HEAD: head }, path })
+
+  assert.equal(run('gh pr merge 5 --auto --squash', 'develop', 'feature/3.1-x').code, 0)
+  assert.match(run('gh pr merge 5 --auto --squash', 'main', 'release/0.1.2').err, /production branch/)
+  assert.match(run('gh pr merge 5 --auto --merge', 'develop', 'release/0.1.2').err, /never on a release or hotfix/i)
+  assert.equal(
+    run('gh pr merge 5 --squash', 'main', 'release/0.1.2').code,
+    0,
+    'a merge without --auto is not this guard'
+  )
+
+  const off = project('feature/x')
+  writeFileSync(
+    join(off.root, 'harness-profile.json'),
+    JSON.stringify({
+      branches: { production: 'main', integration: 'develop' },
+      adapters: { stacks: ['node-ts'], host: 'github' },
+      host: { protection: true, autoMerge: false }
+    })
+  )
+  assert.match(run('gh pr merge 5 --auto --squash', 'develop', 'feature/x', off.root).err, /Auto-merge is off/)
 })
 
 test('guard-edit refuses an environment file in each runtime, the vendored framework in pinned mode only, and nothing else', () => {
@@ -227,6 +355,45 @@ test('session-start prints the branch, the phase in progress and its next step, 
     env: { CURSOR_PROJECT_DIR: root }
   })
   assert.match(JSON.parse(cursor.out).additional_context, /Phase in progress: Phase 3 — X/)
+})
+
+test('session-start with no phase in progress prints the next task by the order of development, and by the execution order of a phase, not by its table', () => {
+  const row = (id, mark) => `| ${id} | **Task ${id}**: text | C1 | 1 | ${mark} |\n`
+  const header = '| # | Task | Agent | SP | Status |\n| --- | --- | --- | --- | --- |\n'
+  const profile = JSON.stringify({
+    branches: { production: 'main', integration: 'develop' },
+    adapters: { stacks: ['node-ts'], host: 'github' },
+    paths: { phases: 'plan/phases', planIndex: 'plan/README.md' }
+  })
+  const run = (files) =>
+    hook(
+      'session-start',
+      sample(
+        'claude-code',
+        'session-start.json',
+        project('develop', { files: { 'harness-profile.json': profile, ...files } }).root
+      )
+    )
+
+  const indexed = run({
+    'plan/README.md':
+      '# Plan\n\n**Order of development** (a date)\n\n| Release | Tasks, in order |\n| --- | --- |\n| `0.1.1` | 1.3, 1.1 |\n',
+    'plan/phases/phase-1-x.md': `# Phase 1 — X\n\n**Status:** ⬜ Not started\n\n**Execution order:** the plan index says.\n\n${header}${row('1.1', '⬜')}${row('1.2', '⬜')}${row('1.3', '⬜')}`
+  })
+  assert.match(
+    indexed.out,
+    /No phase is in progress\.\nNext task: 1\.3 Task 1\.3 \(plan\/phases\/phase-1-x\.md\), by the order of development/
+  )
+
+  const ordered = run({
+    'plan/phases/phase-1-x.md': `# Phase 1 — X\n\n**Status:** ⬜ Not started\n\n**Execution order:** 1.2 first, because 1.1 needs it; then 1.1.\n\n${header}${row('1.1', '⬜')}${row('1.2', '⬜')}`
+  })
+  assert.match(ordered.out, /Next task: 1\.2 Task 1\.2 .*by the execution order/)
+
+  const finished = run({
+    'plan/phases/phase-1-x.md': `# Phase 1 — X\n\n**Status:** ✅ Done\n\n${header}${row('1.1', '✅')}`
+  })
+  assert.match(finished.out, /No phase is in progress\.\nRead the method/)
 })
 
 test('the session start message says what it knows and what it does not', () => {

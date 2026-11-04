@@ -1,6 +1,6 @@
 // The GitHub host adapter's branch protection (design §4.3 and §7.4), `harness host protect`: one repository ruleset over the production and the
 // integration branch (no deletion, no force-push, a pull request for every change, the required checks; administrators may bypass only when
-// merging a pull request), and the repository setting that keeps merged branches. It needs repository admin rights and a repository on which
+// merging a pull request), and the repository settings: merged branches are kept, and auto-merge is allowed (`host.autoMerge`). It needs repository admin rights and a repository on which
 // GitHub offers rulesets (a public one, or a paid plan); `detectProtection` asks the host, and the profile's `host.protection` must agree.
 import { spawnSync } from 'node:child_process'
 
@@ -53,13 +53,17 @@ export function buildRuleset(profile) {
 
 /**
  * Whether the host can protect the repository, asked of the host: the rulesets of the repository are readable, or the host answers that
- * they need a public repository or a paid plan.
- * @returns {{ available: boolean, reason: string }}; an answer that is neither (no network, no rights) is an error, not a guess
+ * they need a public repository or a paid plan. Where it can, `admin` says whether the user of the command line administers the repository
+ * (`protect` needs that); undefined when the host does not say.
+ * @returns {{ available: boolean, reason: string, admin?: boolean }}; an answer that is neither (no network, no rights) is an error, not a guess
  */
 export function detectProtection({ slug, cli = runGh }) {
   const answer = cli(['api', `repos/${slug}/rulesets`])
   if (answer.status === 0) {
-    return { available: true, reason: 'the host offers rulesets for this repository' }
+    const rights = cli(['api', `repos/${slug}`, '--jq', '.permissions.admin'])
+    const admin =
+      rights.status === 0 && /^(true|false)$/.test(rights.stdout.trim()) ? rights.stdout.trim() === 'true' : undefined
+    return { available: true, reason: 'the host offers rulesets for this repository', admin }
   }
   if (/upgrade to github pro|make this repository public/i.test(`${answer.stderr}${answer.stdout}`)) {
     return { available: false, reason: 'the host offers rulesets only for a public repository or a paid plan' }
@@ -101,7 +105,17 @@ export function protect({ profile, slug = profile.repository.slug, cli = runGh }
     return answer.stdout
   }
 
-  call(['api', '-X', 'PATCH', `repos/${slug}`, '-F', 'delete_branch_on_merge=false'])
+  const autoMerge = profile.host?.autoMerge ?? true
+  call([
+    'api',
+    '-X',
+    'PATCH',
+    `repos/${slug}`,
+    '-F',
+    'delete_branch_on_merge=false',
+    '-F',
+    `allow_auto_merge=${autoMerge}`
+  ])
   const ruleset = JSON.stringify(buildRuleset(profile))
   const existing = JSON.parse(call(['api', `repos/${slug}/rulesets`]) || '[]').find(
     (item) => item.name === RULESET_NAME
@@ -111,7 +125,10 @@ export function protect({ profile, slug = profile.repository.slug, cli = runGh }
   } else {
     call(['api', '-X', 'POST', `repos/${slug}/rulesets`, '--input', '-'], ruleset)
   }
-  const messages = [`Ruleset ${RULESET_NAME} applied to ${production} and ${integration} in ${slug}`]
+  const messages = [
+    `Ruleset ${RULESET_NAME} applied to ${production} and ${integration} in ${slug}`,
+    `Merged branches are kept; auto-merge is ${autoMerge ? 'allowed' : 'not allowed'} (host.autoMerge)`
+  ]
 
   // The ruleset replaces the classic branch protection, which cannot exempt administrators from the checks without also letting them push
   for (const branch of [production, integration]) {

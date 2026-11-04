@@ -5,6 +5,8 @@ on:
     branches: [<%= branches.integration %>, <%= branches.production %>]
   push:
     branches: [<%= branches.integration %>, <%= branches.production %>]
+  # Started by the workflow that updates the pull requests waiting on auto-merge, when it has no token of its own
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}

@@ -3,7 +3,13 @@
 // follow harness/core/procedures/<name>.md". Both are generated, so `harness check generated` fails on a stale one and a sync restores it.
 import { entryFile } from './entry.mjs'
 import { inFramework } from './lock.mjs'
-import { listProcedures, renderProcedure } from './procedures.mjs'
+import {
+  listAllProcedures,
+  listProcedures,
+  listProjectProcedures,
+  procedureApplies,
+  renderProcedure
+} from './procedures.mjs'
 import { ADAPTER_RUNTIMES } from './runtimes.mjs'
 import { relativeTo } from './render.mjs'
 
@@ -28,7 +34,7 @@ export function skillGenerators(runtimes = ADAPTER_RUNTIMES, procedures = listPr
       ? procedures.map((procedure) => ({
           id: `skill-${runtime}-${procedure.name}`,
           path: (profile) =>
-            selectedRuntimes(profile).includes(runtime) && profile.documents
+            selectedRuntimes(profile).includes(runtime) && profile.documents && procedureApplies(procedure, profile)
               ? packaging.skillPath(procedure, profile)
               : undefined,
           render: ({ profile }) =>
@@ -41,13 +47,64 @@ export function skillGenerators(runtimes = ADAPTER_RUNTIMES, procedures = listPr
   })
 }
 
+/**
+ * The skills of the project's own procedures (`paths.procedures`, task 4.1): a procedure is known only from the project's files, so one generator gives all
+ * the files of the selected runtimes, whole files and not blocks.
+ * @param {object} runtimes the loaded runtime adapters (`loadAdapterModules('runtime')`)
+ */
+export function projectSkillGenerator(runtimes = ADAPTER_RUNTIMES) {
+  return {
+    id: 'skills-project',
+    expand: ({ root, profile }) => {
+      if (!profile.documents) {
+        return []
+      }
+      return Object.entries(runtimes).flatMap(([runtime, adapter]) => {
+        const entry = adapter.manifest.roles['procedure-packaging']
+        const packaging = entry?.module ? adapter.modules[entry.module] : null
+        if (!packaging || !selectedRuntimes(profile).includes(runtime)) {
+          return []
+        }
+        return listProjectProcedures(root, profile)
+          .filter((procedure) => procedureApplies(procedure, profile))
+          .flatMap((procedure) => {
+            const path = packaging.skillPath(procedure, profile)
+            return path
+              ? [{ path, content: packaging.packageProcedure(procedure, renderProcedure(procedure, profile, path)) }]
+              : []
+          })
+      })
+    }
+  }
+}
+
+/**
+ * The skill files of the procedures that do not apply to the profile (their `when` switch is off) in the runtimes the project selected. A sync run by the
+ * tools of an older version writes a skill for every procedure of the tree, so the migration removes these.
+ */
+export function inapplicableSkillPaths(profile, runtimes = ADAPTER_RUNTIMES, procedures = listProcedures()) {
+  return Object.entries(runtimes).flatMap(([runtime, adapter]) => {
+    const entry = adapter.manifest.roles['procedure-packaging']
+    const packaging = entry?.module ? adapter.modules[entry.module] : null
+    if (!packaging || !selectedRuntimes(profile).includes(runtime)) {
+      return []
+    }
+    return procedures
+      .filter((procedure) => !procedureApplies(procedure, profile))
+      .map((procedure) => packaging.skillPath(procedure, profile))
+      .filter(Boolean)
+  })
+}
+
 /** The rows of the procedures block, written relative to the entry file. */
 export function renderProceduresBlock(profile, procedures = listProcedures()) {
   const entry = entryFile(profile)
-  const rows = procedures.map(({ name, description }) => {
-    const path = inFramework(profile, `core/procedures/${name}.md`)
-    return `| ${phrase(description)} | [\`${path}\`](${relativeTo(entry, path)}) |`
-  })
+  const rows = procedures
+    .filter((procedure) => procedureApplies(procedure, profile))
+    .map(({ name, description, source }) => {
+      const path = source ?? inFramework(profile, `core/procedures/${name}.md`)
+      return `| ${phrase(description)} | [\`${path}\`](${relativeTo(entry, path)}) |`
+    })
   return ['| When | Follow the procedure |', '| ---- | -------------------- |', ...rows].join('\n')
 }
 
@@ -56,5 +113,5 @@ export const proceduresBlock = {
   id: 'procedures',
   block: PROCEDURES_BLOCK,
   path: (profile) => (profile.documents ? entryFile(profile) : undefined),
-  render: ({ profile }) => renderProceduresBlock(profile)
+  render: ({ root, profile }) => renderProceduresBlock(profile, listAllProcedures(root, profile))
 }

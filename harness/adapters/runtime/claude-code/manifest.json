@@ -35,7 +35,7 @@
       "export": "packageProcedure"
     },
     "pull-request-tools": {
-      "fills": "the pull-request tools of the Claude desktop app: bind the pull request, and monitor its CI with automatic fixes"
+      "fills": "the pull-request tools of the Claude desktop app: bind the pull request, and monitor its CI with automatic fixes. How a session waits for a pull request: in the desktop app its monitor wakes the session on a failure and the host's auto-merge merges, so the session goes on; on the command line, one background wait per pull request (a single command that returns when the checks end), never checks that the model repeats"
     },
     "model-map": {
       "fills": "C1 Sonnet 5.5 at medium effort, C2 Sonnet 5.5 at high, C3 Opus 5.5 at high"
@@ -72,6 +72,16 @@
       "rule": "git.retention",
       "when": "early",
       "by": "`guard-shell` refuses `push --delete`, `push :branch` and the API call that deletes a ref"
+    },
+    {
+      "rule": "agent.auto-merge",
+      "when": "early",
+      "by": "`guard-shell` refuses `gh pr merge --auto` into the production branch, on a release or hotfix branch and on a pull request not into the integration branch"
+    },
+    {
+      "rule": "agent.no-auto-merge",
+      "when": "early",
+      "by": "`guard-shell` refuses `gh pr merge --auto` where `host.autoMerge` is off"
     },
     {
       "rule": "nn.secrets",

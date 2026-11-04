@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { simpleCommands } from '../../../tools/lib/guard.mjs'
-import { checkMerge, isMerge, mergeTarget } from './merge-guard.mjs'
+import { checkAutoMerge, checkMerge, isAutoMerge, isMerge, mergeTarget } from './merge-guard.mjs'
 
 const words = (line) => simpleCommands(line)[0]
 const checks =
@@ -71,5 +71,42 @@ test('checks that cannot be read refuse the merge: the guard does not guess', ()
       cli: () => ({ status: 0, stdout: 'garbage', stderr: '' })
     }),
     /Cannot read the checks of this pull request/
+  )
+})
+
+const BRANCHES = { production: 'main', integration: 'develop' }
+const pull =
+  (baseRefName, headRefName, status = 0) =>
+  () => ({
+    status,
+    stdout: JSON.stringify({ baseRefName, headRefName }),
+    stderr: ''
+  })
+const autoMerge = (line, cli, enabled = true) =>
+  checkAutoMerge({ words: words(line), branches: BRANCHES, enabled, cli })
+
+test('only a gh pr merge with --auto turns on auto-merge', () => {
+  assert.ok(isAutoMerge(words('gh pr merge 12 --auto --squash')))
+  assert.ok(isAutoMerge(words('GH_TOKEN=x gh pr merge --auto')))
+  assert.ok(!isAutoMerge(words('gh pr merge 12 --squash')))
+  assert.ok(!isAutoMerge(words('gh pr view 12 --auto')))
+})
+
+test('auto-merge is allowed on a task pull request into the integration branch, and nowhere else', () => {
+  assert.equal(autoMerge('gh pr merge 12 --auto --squash', pull('develop', 'feature/3.1-x')), null)
+  assert.equal(autoMerge('gh pr merge --auto --squash', pull('develop', 'docs/plan')), null)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('main', 'release/0.1.2')), /production branch/)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('main', 'feature/x')), /only on a pull request into develop/i)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('develop', 'release/0.1.2')), /never on a release or hotfix/i)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('develop', 'hotfix/1.0.1')), /never on a release or hotfix/i)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('feature/3.17-x', 'feature/3.18-y')), /retargeted to develop/)
+})
+
+test('auto-merge is refused where the profile turns it off, and where the pull request cannot be read', () => {
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('develop', 'feature/x'), false), /`host.autoMerge` is false/)
+  assert.match(autoMerge('gh pr merge 12 --auto', pull('develop', 'feature/x', 1)), /Cannot read the base of 12/)
+  assert.match(
+    autoMerge('gh pr merge --auto', () => ({ status: 0, stdout: 'nope', stderr: '' })),
+    /Cannot read the base/
   )
 })

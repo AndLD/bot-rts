@@ -220,6 +220,10 @@ hold: for example rules in the always-loaded set, hops to an answer, rules per e
 budgets are written into `bindings.md` after approval. Later reviews measure against them; exceeding a budget needs a recorded
 reason.
 
+The **procedures block** of the always-loaded entry file is budgeted like the rest: every procedure of the framework or of the project (`paths.procedures`) adds a row
+to a text that is read in every session, so the rows and the words of the block are counted apart in M6 and the rows are part of the rule load of M20, and the bindings
+set a ceiling for both. A row that a skill already carries for an agent (`invocation: auto`) still costs its words in the block; a new procedure is weighed against the ceiling.
+
 Evidence: M20 to M26. Judge each hotspot: can it be simplified without losing a capability (split, merge, delete, move to a
 tool, replace several special cases with one rule)? If yes, it is accidental.
 `1` complexity unmeasured and visibly beyond a reader's reach · `3` measured, some accidental hotspots, no budget or a budget partly exceeded · `5` budgets exist and are met, hotspots are essential, growth is tracked and justified.
@@ -347,9 +351,17 @@ report is approved.
    - **4f. Automation-fit pass (D15).** After 4d, using the M5 mapping and M20/M22 (rule load, automatable steps). Build the carrier
      inventory (M32), classify each rule and workflow (M33), and write the proposals with their estimated gain. Do not create skills or
      hooks during the review.
-5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only subagents that receive only the task text
-   and the repository (no conversation context). Record the files each read, the first action it took, and any wrong or
-   uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe.
+5. **Cold-start probes.** Run the scenarios of `bindings.md` with fresh, read-only sessions that receive only the task text
+   and the repository (no conversation context). **How a probe runs matters:** a subagent of the reviewing session inherits the entry file of the
+   reviewing session and gets no session-start hook, so what it reads is not what a new session in that repository reads. A probe of another repository
+   (a scratch project, a newly bootstrapped one), and any probe that depends on the session start, runs as a **separate session started in that repository**,
+   so that it loads that repository's own entry file and session-start hook. The probes of a project include the **extension of a document**, not only
+   routine work: add a phase to the plan, and put a defect found in use into the plan (an issue of the queue). They measure whether the agent reads the template and the
+   rules before it writes, or copies an existing document and its drift (the starting probes list them). Record the files each read, the first action it took, and any wrong or
+   uncertain step. A probe is evidence for D6, D9 and D10. Never fix a document during a probe. Every probe in `bindings.md` names the **areas**
+   it exercises (the list of areas of the framework's migration notes, `migrations/areas.json`), and records the words it read at this review, so that a version
+   taken later is compared with them: the probes whose areas meet the areas of the versions taken are run again, and an area that no probe covers is run
+   from its starting probe in [`starting-probes.md`](./starting-probes.md) (`harness probes <from> <to>` lists both).
 6. **Export dry run.** Perform the blueprint exercise of section 3 on paper: classify, list the parameters a new project
    would have to supply, and name the blockers.
 7. **Report.** Fill [`report-template.md`](./report-template.md) as `YYYY-MM-DD.md` in the project's folder of this review; if two reviews happen
@@ -430,7 +442,7 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M3  | References that break the dependency rule (list)                                             |
 | M4  | Facts and values that appear in more than one file (list, owner chosen)                      |
 | M5  | Normative statements with a mechanical check, with a judgment-only mark, with neither (sample) |
-| M6  | Words and sections per file; words in always-loaded files                                    |
+| M6  | Words and sections per file; words in always-loaded files, with the rows and words of the `procedures` block counted apart |
 | M7  | Link check result; files not reachable from any index                                       |
 | M8  | Share of instances (plan stages, logs, sections) that match their template                       |
 | M9  | Statements contradicted by the repository or by another document (list)                      |
@@ -444,7 +456,7 @@ A delta report states which dimensions it did not re-score and carries their pre
 | M17 | **Documented %**: decided share of the product scope (formula in `bindings.md`)               |
 | M18 | **Delivered %**: built-and-verified share of the product scope and of the plan                |
 | M19 | **Ready to build next %**: items of the next milestone whose specification has no blocking open item |
-| M20 | Harness rule load: normative rules in the always-loaded set and per task type; share with exceptions |
+| M20 | Harness rule load: normative rules in the always-loaded set (the rows of the `procedures` block among them) and per task type; share with exceptions |
 | M21 | Harness reference structure: fan-in and fan-out per document, longest chain, cycles, hubs     |
 | M22 | Harness process: steps, decision points and manual steps per workflow; automatable steps       |
 | M23 | Product concept load: entities, terms, attributes and mechanics per context; mechanics per onboarding step |

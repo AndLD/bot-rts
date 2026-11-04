@@ -4,7 +4,17 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
-import { areasOf, noteProblems, notePath, readAreas, WATCHED, withAreas } from './migration-notes.mjs'
+import {
+  areasOf,
+  noteProblems,
+  notePath,
+  noteStub,
+  placeholderProblems,
+  previousTag,
+  readAreas,
+  WATCHED,
+  withAreas
+} from './migration-notes.mjs'
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/
 // The version a development line is at, before the release it leads to: 0.1.0-dev.1 comes before 0.1.0
@@ -181,46 +191,70 @@ export function readVersion(file, text) {
   return version
 }
 
-/** The text of a version file with its version set; the rest of a TOML file is kept as it is. */
+/** The text of a version file with its version set; the rest of the file is kept as it is, so that a formatter finds nothing to change. */
 export function writeVersion(file, text, version) {
-  readVersion(file, text)
+  const current = readVersion(file, text)
   return isToml(file)
     ? text.replace(PROJECT_VERSION, `$1$2${version}$2`)
-    : `${JSON.stringify({ ...JSON.parse(text), version }, null, 2)}\n`
+    : text.replace(
+        new RegExp(`("version"\\s*:\\s*)"${current.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`),
+        `$1"${version}"`
+      )
 }
 
 // The release version before `version`, as the changelog's comparison links have it
 const previousRelease = (changelogText) => /^\[(\d+\.\d+\.\d+)\]:/m.exec(changelogText)?.[1]
 
 /**
- * The migration note of a release (`release.migrations` of the profile file): it must exist and have its shape, and its areas are derived from the
- * files that changed in the watched folders since the tag of the previous release. Returns the note with the areas written, and the areas.
+ * The migration note of a release, a development version included (`release.migrations` of the profile file): it must exist and have its shape, its required
+ * actions must hold no placeholder, and its areas are derived from the files that changed in the watched folders since the previous release (for a
+ * development version: the previous development version of the same `x.y.z`, else the previous final one). When the note is missing, a stub with the
+ * changelog fragments and the areas is written (unless `dryRun`) and the release stops. Returns the note with the areas written, and the areas.
  */
-function migrationNote({ root, profile, git, version, changelogText }) {
+function migrationNote({ root, profile, git, version, changelogText, dev, dryRun, fragments }) {
   const folder = profile.release.migrations
   const path = notePath(folder, version)
-  if (!existsSync(join(root, path))) {
-    throw new Error(
-      `the migration note ${path} is missing: write it before the release (a version that needs nothing from a project says so)`
-    )
+  const tags = git('tag', '--list').split('\n').filter(Boolean)
+  const lastFinal = previousRelease(changelogText)
+  if (lastFinal && !tags.includes(`v${lastFinal}`)) {
+    throw new Error(`the tag v${lastFinal} of the previous release is not in this clone: git fetch --tags`)
   }
-  const text = readFileSync(join(root, path), 'utf8')
-  const problems = noteProblems(text, version)
-  if (problems.length) {
-    throw new Error(`${path}: ${problems.join('; ')}`)
-  }
-  const previous = previousRelease(changelogText)
-  if (previous && !git('tag', '--list', `v${previous}`)) {
-    throw new Error(`the tag v${previous} of the previous release is not in this clone: git fetch --tags`)
-  }
+  const previous = dev ? previousTag(version, tags) : lastFinal && { version: lastFinal, tag: `v${lastFinal}` }
   const changed = previous
-    ? git('diff', '--name-only', `v${previous}`, '--', ...WATCHED)
+    ? git('diff', '--name-only', previous.tag, '--', ...WATCHED)
         .split('\n')
         .filter(Boolean)
     : []
   const { areas, unmatched } = areasOf(changed, readAreas(root, folder))
   if (unmatched.length) {
     throw new Error(`${folder}/areas.json has no area for: ${unmatched.join(', ')}`)
+  }
+
+  if (!existsSync(join(root, path))) {
+    const missing = `the migration note ${path} is missing: write it before the release (a version that needs nothing from a project says so)`
+    if (dryRun) {
+      throw new Error(missing)
+    }
+    // The fragments of the version: for a development version those added since the previous release, since the earlier ones are in the earlier notes
+    const added = previous
+      ? git('diff', '--name-only', '--diff-filter=A', previous.tag, '--', profile.paths.changelogFragments)
+          .split('\n')
+          .filter(Boolean)
+          .map((file) => file.split('/').at(-1))
+      : null
+    const listed = dev && added ? fragments.filter(({ name }) => added.includes(name)) : fragments
+    writeFileSync(
+      join(root, path),
+      noteStub({ version, previous: previous?.version ?? null, fragments: listed, areas })
+    )
+    throw new Error(
+      `${missing}. A stub with the changelog fragments and the areas is written to ${path}: complete it, commit it, and run the release again`
+    )
+  }
+  const text = readFileSync(join(root, path), 'utf8')
+  const problems = [...noteProblems(text, version), ...placeholderProblems(text)]
+  if (problems.length) {
+    throw new Error(`${path}: ${problems.join('; ')}`)
   }
   return { path, areas, text: withAreas(text, areas) }
 }
@@ -252,11 +286,15 @@ export function release({ root, profile, dryRun = false, dev = false, date = new
   const version = dev ? nextDevelopmentVersion(target, git('tag', '--list').split('\n')) : target
   const fragmentsDir = join(root, profile.paths.changelogFragments)
   const names = fragmentFiles(fragmentsDir)
-  const fragments = names.map((name) => parseFragment(name, readFileSync(join(fragmentsDir, name), 'utf8')))
+  const fragments = names.map((name) => ({
+    name,
+    ...parseFragment(name, readFileSync(join(fragmentsDir, name), 'utf8'))
+  }))
   const changelogPath = join(root, profile.paths.changelog)
   const changelogText = readFileSync(changelogPath, 'utf8')
-  const note =
-    dev || !profile.release?.migrations ? null : migrationNote({ root, profile, git, version, changelogText })
+  const note = profile.release?.migrations
+    ? migrationNote({ root, profile, git, version, changelogText, dev, dryRun, fragments })
+    : null
   const noteLink =
     note && `[${note.path}](${relative(dirname(changelogPath), join(root, note.path)).replace(/\\/g, '/')})`
   const changelog = dev
@@ -294,7 +332,7 @@ export function release({ root, profile, dryRun = false, dev = false, date = new
   if (dev) {
     return [
       ...lines,
-      `Done. Commit it (chore(release): ${version}) and tag the commit ${version} (no "v": a tag with it is a release); the final release is made with \`harness release\`.`
+      `Done. Commit it with its migration note (chore(release): ${version}) and tag the commit ${version} (no "v": a tag with it is a release); the final release is made with \`harness release\`.`
     ]
   }
   return [

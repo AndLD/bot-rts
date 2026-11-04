@@ -1,0 +1,31 @@
+name: Update pull requests
+
+# The ruleset requires a pull request to be up to date with its base, so when the integration branch moves, the pull requests that wait on
+# auto-merge are updated (a push to the production branch only finds nothing new to do) and their checks run again; without it a pull request behind the base would wait for someone to update it.
+# A push made with the default token starts no workflow, so the checks are started here; a token of your own (the secret AUTO_MERGE_TOKEN)
+# makes the host start them itself.
+on:
+  push:
+    branches: [<%= branches.integration %>, <%= branches.production %>]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bring <%= branches.integration %> into the pull requests that wait on auto-merge
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN || secrets.GITHUB_TOKEN }}
+          OWN_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN != '' && 'yes' || '' }}
+        run: |
+          gh pr list --base <%= branches.integration %> --state open --json number,headRefName,autoMergeRequest \
+            --jq '.[] | select(.autoMergeRequest != null) | "\(.number) \(.headRefName)"' |
+          while read -r number branch; do
+            gh pr update-branch "$number" || { echo "::warning::pull request $number could not be updated"; continue; }
+            [ -n "$OWN_TOKEN" ] || gh workflow run ci.yml --ref "$branch"
+          done

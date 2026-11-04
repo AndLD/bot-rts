@@ -37,7 +37,25 @@ export function renderEntryBlock(block, profile, dir = RULES_DIR) {
   if (missing.length > 0) {
     throw new Error(`the block "${block}" of the entry file needs the profile roles ${missing.join(', ')}`)
   }
-  return render(template, profile, { document: entryFile(profile) })
+  const rules = render(template, profile, { document: entryFile(profile) })
+  const extra = block === 'git-rules' ? reportRules(profile, join(dir, 'reports')) : []
+  return extra.length ? `${rules.replace(/\n+$/, '')}\n${extra.join('\n')}` : rules
+}
+
+/**
+ * The rules of the report switches that are on (task 3.16), as the lines to add at the end of the Git rules: one line for each of `reports.intake` (`auto` or
+ * `notify`) and `reports.upstream` that is not `off`, pointing to its procedure; a switch that is off adds nothing. They are not in the template of the block
+ * on purpose: the template is rendered by the tools of the version a project has, and a sync runs those until `harness migrate` runs the new ones.
+ */
+export function reportRules(profile, dir = join(RULES_DIR, 'reports')) {
+  const intake = profile.reports?.intake ?? 'off'
+  const files = [
+    intake === 'auto' ? 'intake-auto.md' : intake === 'notify' ? 'intake-notify.md' : null,
+    (profile.reports?.upstream ?? 'off') !== 'off' ? 'upstream.md' : null
+  ].filter(Boolean)
+  return files.map((file) =>
+    render(readFileSync(join(dir, file), 'utf8').replace(/\n+$/, ''), profile, { document: entryFile(profile) })
+  )
 }
 
 /** The generators of the registry (generators.mjs): one per block, for a project with a document map, which the rules link. */

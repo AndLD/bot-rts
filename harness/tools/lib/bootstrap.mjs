@@ -31,6 +31,7 @@ import {
   writeLock
 } from './lock.mjs'
 import { planSummary } from './plan.mjs'
+import { decideHostSetup, hostAdapterOf, withRepositoryUrl } from './host-setup.mjs'
 import { PROFILE_FILE, folderOf, loadProfile, readSchema, validate, withDefaults } from './profile.mjs'
 import { render, valueAt } from './render.mjs'
 import { readManifest, resolveSource } from './source.mjs'
@@ -270,6 +271,16 @@ export function unknownAdapters(profile, catalogue) {
     )
 }
 
+// What the selected adapters ask a project to do once, by hand, after the bootstrap (`firstSteps` of their manifests), each as one sentence
+export function firstStepsOf(profile, catalogue) {
+  const { stacks, runtimes, host } = selectedAdapters(profile)
+  return [
+    ...stacks.flatMap((name) => catalogue.stack[name]?.firstSteps ?? []),
+    ...runtimes.flatMap((name) => catalogue.runtime[name]?.firstSteps ?? []),
+    ...(host ? (catalogue.host[host]?.firstSteps ?? []) : [])
+  ]
+}
+
 // A phrase per axis for the scaffolded stack file: each adapter with its description
 function adapterPhrase(names, manifests, none) {
   const phrases = names.map((name) => `${name} (${(manifests[name]?.description ?? '').replace(/\.$/, '')})`)
@@ -330,7 +341,10 @@ export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules })
         catalogue.runtime,
         'none (the agent-neutral minimum: the entry file, its procedures, the Git hooks and CI)'
       ),
-      host: adapterPhrase(host ? [host] : [], catalogue.host, 'none')
+      host: adapterPhrase(host ? [host] : [], catalogue.host, 'none'),
+      firstSteps: firstStepsOf(profile, catalogue)
+        .map((step) => `- ${step}`)
+        .join('\n')
     }
   }
 
@@ -482,16 +496,29 @@ export function adoptionSteps(profile) {
   ]
 }
 
-/** The owner's steps after a bootstrap, which the tools cannot do. */
-export function nextSteps(profile) {
+/**
+ * The owner's steps after a bootstrap, which the tools cannot do. The step that protects the branches is left out where the bootstrap did it
+ * (`protected`), and where the host cannot (`host.protection` is false).
+ */
+export function nextSteps(profile, { protected: done = false, firstSteps = [] } = {}) {
   const { production, integration } = profile.branches
+  const steps = [
+    [
+      `Push both branches once, to the repository ${profile.repository.slug} on its host: git push --no-verify -u origin ${integration} ${production}`,
+      '   The Git hooks refuse every push to the protected branches, so this first push is the only one that skips them.'
+    ],
+    ...(done || profile.host?.protection === false
+      ? []
+      : [[`Protect both branches: node ${inFramework(profile, 'tools/harness.mjs')} host protect`]]),
+    ...firstSteps.map((step) => [step]),
+    [
+      `Read the scaffolded files (${profile.paths.entryFile}, the stack file, the plan) and fill in what is the project's.`
+    ],
+    ['Do all further work on work branches, through pull requests (the Git rules of the entry file).']
+  ]
   return [
     'Next steps (yours):',
-    `  1. Push both branches once, to the repository ${profile.repository.slug} on its host: git push --no-verify -u origin ${integration} ${production}`,
-    '     The Git hooks refuse every push to the protected branches, so this first push is the only one that skips them.',
-    `  2. Protect both branches: node ${inFramework(profile, 'tools/harness.mjs')} host protect`,
-    `  3. Read the scaffolded files (${profile.paths.entryFile}, the stack file, the plan) and fill in what is the project's.`,
-    '  4. Do all further work on work branches, through pull requests (the Git rules of the entry file).'
+    ...steps.flatMap(([first, ...rest], index) => [`  ${index + 1}. ${first}`, ...rest.map((line) => `  ${line}`)])
   ]
 }
 
@@ -510,6 +537,7 @@ export async function bootstrap({
   self = false,
   adopt = false,
   reason = DEFAULT_DETACH_REASON,
+  hostSetup = false,
   out = () => {},
   err = () => {}
 }) {
@@ -534,7 +562,7 @@ export async function bootstrap({
   try {
     const schema = readSchema()
     const catalogue = adapterCatalogue(fetched.dir)
-    const profile = completeProfile(JSON.parse(readFileSync(profilePath, 'utf8')), {
+    let profile = completeProfile(JSON.parse(readFileSync(profilePath, 'utf8')), {
       catalogue,
       schema,
       starter: readStarter(fetched.dir)
@@ -546,6 +574,21 @@ export async function bootstrap({
     const problems = [...unknownAdapters(profile, catalogue), ...validate(schema, withDefaults(schema, profile))]
     if (problems.length) {
       throw new Error(`the profile file is not valid:\n  ${problems.join('\n  ')}`)
+    }
+    // The host gives the address of the repository, and says what it offers for it, before the files are written: a workflow is scaffolded only
+    // where the host protects
+    const hostAdapter = hostAdapterOf(profile, await loadModules(fetched.dir))
+    profile = withRepositoryUrl(profile, hostAdapter)
+    let hostPlan = { apply: false, messages: [] }
+    if (hostSetup && !self && !adopt) {
+      hostPlan = await decideHostSetup({
+        profile,
+        adapter: hostAdapter,
+        harness: inFramework(withDefaults(schema, profile), 'tools/harness.mjs'),
+        cli: hostSetup.cli,
+        confirm: hostSetup.confirm
+      })
+      profile = hostPlan.profile
     }
 
     const planned = scaffoldPlan({
@@ -632,10 +675,28 @@ export async function bootstrap({
         })
       )
     }
+    messages.push(...hostPlan.messages)
+    let protectedByBootstrap = false
+    if (hostPlan.apply) {
+      const adapter = hostAdapterOf(profile, await loadModules(fetched.dir))
+      const protect = roleFunction(adapter, 'branch-protection')
+      try {
+        const result = protect({ profile: effective, ...(hostSetup.cli ? { cli: hostSetup.cli } : {}) })
+        messages.push(...result.messages, ...result.problems.map((problem) => `Host setup problem: ${problem}`))
+        protectedByBootstrap = result.problems.length === 0
+      } catch (error) {
+        messages.push(
+          `Host setup failed: ${error.message}. Run: node ${inFramework(effective, 'tools/harness.mjs')} host protect`
+        )
+      }
+    }
     messages.forEach((line) => out(line))
 
     const code = checkAll({ root, out, err, stdio: 'pipe' })
-    ;(adopt ? adoptionSteps(effective) : nextSteps(effective)).forEach((line) => out(line))
+    ;(adopt
+      ? adoptionSteps(effective)
+      : nextSteps(effective, { protected: protectedByBootstrap, firstSteps: firstStepsOf(effective, catalogue) })
+    ).forEach((line) => out(line))
     return { code, messages }
   } finally {
     fetched.cleanup()

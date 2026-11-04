@@ -3,10 +3,10 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { loadProfile } from '../lib/profile.mjs'
 import { owns, selectedStacks, stackModule } from '../lib/stacks.mjs'
 import { runHook } from './io.mjs'
+import { isMain } from '../lib/main-module.mjs'
 
 /** The command that formats `path`, or null: the owning stack's formatter, if it handles the file. */
 export function formatCommand(path, { root, profile }) {
@@ -29,6 +29,6 @@ export function decide(event) {
   return {}
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isMain(import.meta.url)) {
   await runHook((event) => decide(event), { kind: 'edit-after' })
 }

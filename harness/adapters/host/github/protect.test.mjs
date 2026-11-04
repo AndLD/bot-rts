@@ -43,6 +43,29 @@ test('the ruleset protects the two branches and requires the checks of the profi
   )
 })
 
+test('protect allows auto-merge by default and when host.autoMerge is on, and turns it off with host.autoMerge: false, keeping merged branches either way', () => {
+  const patch = (host) => {
+    const { gh, calls } = standIn()
+    protect({ profile: profile({ host }), cli: gh })
+    return calls.find((call) => call.args.includes('PATCH')).args.join(' ')
+  }
+  assert.match(patch({ protection: true }), /-F delete_branch_on_merge=false -F allow_auto_merge=true$/)
+  assert.match(patch({ protection: true, autoMerge: true }), /allow_auto_merge=true$/)
+  assert.match(patch({ protection: true, autoMerge: false }), /delete_branch_on_merge=false -F allow_auto_merge=false$/)
+  const { gh } = standIn()
+  assert.match(protect({ profile: profile(), cli: gh }).messages[1], /Merged branches are kept; auto-merge is allowed/)
+})
+
+test('detectProtection says whether the user administers the repository, and nothing when the host does not say', () => {
+  const answer = (admin) => (args) =>
+    args.includes('.permissions.admin') ? admin : { status: 0, stdout: '[]', stderr: '' }
+  const detect = (admin) => detectProtection({ slug: 'owner/name', cli: answer(admin) })
+  assert.equal(detect({ status: 0, stdout: 'true\n', stderr: '' }).admin, true)
+  assert.equal(detect({ status: 0, stdout: 'false\n', stderr: '' }).admin, false)
+  assert.equal(detect({ status: 1, stdout: '', stderr: 'nope' }).admin, undefined)
+  assert.equal(detect({ status: 0, stdout: 'maybe', stderr: '' }).admin, undefined)
+})
+
 test('protect keeps merged branches, creates the ruleset and removes the classic protection', () => {
   const { gh, calls } = standIn()
   const { messages, problems } = protect({ profile: profile(), cli: gh })
@@ -50,7 +73,10 @@ test('protect keeps merged branches, creates the ruleset and removes the classic
   const post = calls.find((call) => call.args.includes('POST'))
   assert.deepEqual(JSON.parse(post.input), buildRuleset(profile()))
   assert.ok(
-    calls.some((call) => call.args.join(' ') === 'api -X PATCH repos/owner/name -F delete_branch_on_merge=false')
+    calls.some(
+      (call) =>
+        call.args.join(' ') === 'api -X PATCH repos/owner/name -F delete_branch_on_merge=false -F allow_auto_merge=true'
+    )
   )
   assert.deepEqual(
     calls.filter((call) => call.args.includes('DELETE')).map((call) => call.args[3]),

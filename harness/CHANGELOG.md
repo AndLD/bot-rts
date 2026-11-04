@@ -5,6 +5,27 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-03
+
+Migration note: [migrations/0.1.2.md](migrations/0.1.2.md)
+
+### Added
+
+- auto-merge for the pull requests an agent may merge without asking. The profile switch `host.autoMerge` is on where `host.protection` is `true` and off where it is `false`; on, the core rule has the agent enable the host's auto-merge (squash) as the last step of a task, the shell guard refuses `gh pr merge --auto` into the production branch, on a release or hotfix branch, on a pull request not into the integration branch and where the switch is off, and the rule `agent.no-auto-merge` (ask first) applies where it is off. `harness host protect` allows auto-merge on the repository, the GitHub adapter scaffolds `update-branches.yml` (it brings the integration branch into the pull requests waiting on auto-merge) and the trigger `workflow_dispatch` of the CI template, `harness branch update [--previous <branch>]` merges the integration branch into a stacked task after the squash merge and resolves the conflicts only that squash causes, and the bootstrap asks the host what it offers and sets `host.protection` and the host (`--no-host-setup` skips it). The runtime adapter says how a session waits for a pull request, and the final message lists the pull requests that wait for the owner. See the migration note of the version for what an existing project does.
+
+### Changed
+
+- a claim belongs to its session while that session works, and a session that resumes a phase continues a claimed task when the task's log or the phase's work log records a pause or a "next step" that names it, or when the owner says so; otherwise it asks (method §6 and §7, the claim rule of the entry file, the resume step of the procedure `start-task`). `start-task` chooses the next task by the order the plan says (the phase's `Execution order`, the plan index's order of development when the phase points there), the order of the table only when neither exists. Added: when no phase is in progress, the session-start hook prints the next task by that rule (`tools/lib/next-task.mjs`).
+
+### Fixed
+
+- `harness release` writes the version into a JSON version file without reformatting the file, so that the project's formatter check does not fail on a release commit; the profile role `host.autoMerge` has a plain default as well as `x-sameAs`, so that a sync run by the tools of the earlier version (which do not know `x-sameAs`) no longer stops half way on the entry-file rules of this version.
+- the bootstrap fills `repository.url` of a new project's profile file from the repository's slug, through the new optional role `repository-address` of the host adapter (`repositoryUrl({ slug })`; GitHub: `https://github.com/<slug>`), so that `harness release` no longer writes `undefined` into the compare and tag links of the changelog. An address already in the profile file is kept.
+- the Git guard of the agent runtime (`guard-shell`) judges each Git command by the branch of the repository the command acts on, not by the branch of the project directory. It follows a `cd` before the command (a `cd` inside parentheses ends with them), `-C`, `--git-dir` and the variables `GIT_DIR`, and a repository it cannot resolve (an unknown directory, a variable, `--work-tree` alone) is judged as a protected branch. A commit in another clone's task branch is no longer refused while the project is on its integration branch, and a commit or push in another clone's integration branch is no longer allowed while the project is on a task branch.
+- `harness branch update --previous <branch>` took this branch's side of a conflict even when the branch was made from an older commit of the previous one, and so dropped what the previous branch had gained since. It now takes the previous branch's tip into this branch first, and stops with the merge in progress when that conflicts.
+- a new Python project is green in its static checks, and says what it still needs. The python stack scaffolds a `pyproject.toml`, a typed first module and a test in each package (at the root when the project has none), so that `uv lock` finds every workspace member and `mypy .` finds a source file. The lock file cannot be written by the scaffold, so the new manifest field `firstSteps` of an adapter lists what a project does once by hand (the python stack: run `uv lock` and commit `uv.lock`, without which CI, which installs with `uv sync --locked`, is red): the bootstrap prints those steps and the scaffolded stack file lists them.
+- the command line and the runtime hooks (`guard-shell`, `guard-edit`, `format-edited`, `session-start`) did nothing, with exit code 0, when started through a symbolic link, because `process.argv[1]` is the link and `import.meta` the real path. A project under a linked folder had its hooks switched off without a message. They now compare real paths (`tools/lib/main-module.mjs`).
+
 ## [0.1.1] - 2026-11-03
 
 Migration note: [migrations/0.1.1.md](migrations/0.1.1.md)
@@ -129,6 +150,7 @@ Migration note: [migrations/0.1.1.md](migrations/0.1.1.md)
 - three defects the proof found. (1) A project with two stacks got a CI workflow with the same job ids twice (`static`, and each coverage package): each stack now names its static job after itself, runs its own commands, runs the documentation check only in the first, and keeps the coverage jobs of its own packages (`ciJobs(profile, context)` in the stack contract). (2) The document map of the profile document dropped a row when any role in it had no value, which hid the releases guide, the changelog and the plan method from every new project: each document has a row of its own now, and the starter profile names the changelog. (3) An orphan: the documents the map dropped were not reachable from the entry file; with the map fixed, a new project has none.
 - `harness release` could not release from a development version such as `0.1.0-dev.1` (it did not parse it); a development version is now below its own release, so `0.1.0` and `patch` both give `0.1.0`. Found cutting `0.1.0`.
 
-[Unreleased]: https://github.com/AndLD/harness-framework/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/AndLD/harness-framework/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/AndLD/harness-framework/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/AndLD/harness-framework/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AndLD/harness-framework/releases/tag/v0.1.0

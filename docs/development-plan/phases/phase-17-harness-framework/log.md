@@ -1,4 +1,4 @@
-[← Phase 17 — Harness framework extraction](../phase-17-harness-framework.md)
+[← Phase 17 — Harness framework extraction](./README.md)
 
 # Phase 17 — Harness framework extraction — work log
 
@@ -73,7 +73,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
 
 ### 2026-10-30 — 17.2 done: the baseline review, its triage waits for the owner
-- **Tasks:** 17.2 ✅ (its log: [`phase-17/17.2.md`](./phase-17/17.2.md))
+- **Tasks:** 17.2 ✅ (its log: [`phase-17/17.2.md`](./17.2.log.md))
 - **Branch:** `docs/17.2-targeted-harness-review` — done, PR #260
 - **Decisions / deviations from the plan:** none. The report [`2026-10-30.md`](../../../quality-reviews/harness/2026-10-30.md) is the build's
   baseline: D3 and D7 are at 4, D8 and D14 at 4, D15 at 3, and the gate passes.
@@ -112,7 +112,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
 
 ### 2026-10-30 — 17.3 done: the skeleton, and the staging folder inside the code checks
-- **Tasks:** 17.3 ✅ (its log: [`phase-17/17.3.md`](./phase-17/17.3.md))
+- **Tasks:** 17.3 ✅ (its log: [`phase-17/17.3.md`](./17.3.log.md))
 - **Branch:** `chore/17.3-framework-skeleton` — done, PR #265
 - **Decisions / deviations from the plan:** none. H-20261030-01 is closed: the staging folder's tests run in CI and in the push gate,
   Prettier checks its code, and `docs:check` scans `framework/core/`.
@@ -121,7 +121,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
 
 ### 2026-10-30 — 17.4 done: the vendored framework in `harness/`
-- **Tasks:** 17.4 ✅ (its log: [`phase-17/17.4.md`](./phase-17/17.4.md))
+- **Tasks:** 17.4 ✅ (its log: [`phase-17/17.4.md`](./17.4.log.md))
 - **Branch:** `chore/17.4-vendoring` — done, PR #266
 - **Decisions / deviations from the plan:** one addition, `harness override`, so that an override needs no hash computed by hand. H-20261030-04
   is closed: the local gate treats `harness/` and the lock as tooling, and method §7 names them among the files regenerated after a rebase.
@@ -130,7 +130,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-10-30 — 17.5 done: the profile file holds every value
-- **Tasks:** 17.5 ✅ (its log: [`phase-17/17.5.md`](./phase-17/17.5.md))
+- **Tasks:** 17.5 ✅ (its log: [`phase-17/17.5.md`](./17.5.log.md))
 - **Branch:** `chore/17.5-profile-file` — done, PR #267
 - **Decisions / deviations from the plan:** the coverage gate is the top-level `coverageGate` of the profile file, not `quality.coverageGate`
   (design §8.3 and the classification table are corrected). `docs/profile.md` is generated from `profile/roles.md`.
@@ -139,7 +139,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
 
 ### 2026-10-30 — 17.6 done: the layer map from one source
-- **Tasks:** 17.6 ✅ (its log: [`phase-17/17.6.md`](./phase-17/17.6.md))
+- **Tasks:** 17.6 ✅ (its log: [`phase-17/17.6.md`](./17.6.log.md))
 - **Branch:** `chore/17.6-layer-map` — done, PR #268
 - **Decisions / deviations from the plan:** the `core-files` block is gone, but the project's CORE documents stay a list (`layers.core` in the
   profile file) until 17.8 moves them into the framework; design §8.2 says so. The map is a managed block inside the harness bindings.
@@ -148,7 +148,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
 
 ### 2026-10-31 — 17.7 done: the generic tools are `harness` commands
-- **Tasks:** 17.7 ✅ (its log: [`phase-17/17.7.md`](./phase-17/17.7.md))
+- **Tasks:** 17.7 ✅ (its log: [`phase-17/17.7.md`](./17.7.log.md))
 - **Branch:** `chore/17.7-generic-tools` — done, PR #269
 - **Decisions / deviations from the plan:** `npm run docs:check` is `harness check all`. The product-knowledge file names, the release
   version files and the documentation patterns are profile roles. H-20261030-05 is closed for the "documentation only" rule; the package
@@ -158,7 +158,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-10-31 — 17.7a done: the index rule and the complexity markers
-- **Tasks:** 17.7a ✅ (its log: [`phase-17/17.7a.md`](./phase-17/17.7a.md))
+- **Tasks:** 17.7a ✅ (its log: [`phase-17/17.7a.md`](./17.7a.log.md))
 - **Branch:** `chore/17.7a-second-source-features` — done, PR #270
 - **Decisions / deviations from the plan:** the markers are the profile role `plan.complexity` (scale and models); without it a plan has none. The
   check fails on an open task without a marker. This repository rated the open tasks of Phase 10 and also of Phase 12 (two), which the
@@ -168,7 +168,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff); `npm run test:framework`
 
 ### 2026-11-02 — 17.9 done: the contracts, the GitHub host adapter and `check values`
-- **Tasks:** 17.9 ✅ (its log: [`phase-17/17.9.md`](./phase-17/17.9.md))
+- **Tasks:** 17.9 ✅ (its log: [`phase-17/17.9.md`](./17.9.log.md))
 - **Branch:** `chore/17.9-contracts-github-host` — done, PR #274
 - **Decisions / deviations from the plan:** the role `repository.protectionScript` is gone (the protection is the command `harness host
   protect`), and the protection rule has a text for `host.protection: false`. The merge guard is an optional host role. The CORE scan joins
@@ -179,7 +179,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-11-02 — 17.10 done: the gate driver, the node-ts preset and the neutral coverage
-- **Tasks:** 17.10 ✅ (its log: [`phase-17/17.10.md`](./phase-17/17.10.md))
+- **Tasks:** 17.10 ✅ (its log: [`phase-17/17.10.md`](./17.10.log.md))
 - **Branch:** `chore/17.10-stack-node-ts` — done, PR #275
 - **Decisions / deviations from the plan:** a new profile role `gate` holds what stayed project-specific in the old local gate. The coverage
   summary is computed without a dependency, so CI's `verify` installs nothing. H-20261030-03 and -09 are closed.
@@ -189,7 +189,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 
 
 ### 2026-11-02 — 17.11 done: runtime hooks, Git guards and the Claude Code preset
-- **Tasks:** 17.11 ✅ (its log: [`phase-17/17.11.md`](./phase-17/17.11.md))
+- **Tasks:** 17.11 ✅ (its log: [`phase-17/17.11.md`](./17.11.log.md))
 - **Branch:** `chore/17.11-runtime-hooks` — done, PR #276
 - **Decisions / deviations from the plan:** `io.mjs` holds both runtimes' forms (`hook-io` is an optional role). The `Read(...)` deny rules and the
   Cursor event samples are not verified in a live session (task log). H-20261019-19 and -20261030-02, -03 (rows 32, 93) are closed.
@@ -198,7 +198,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-11-02 — 17.12 done: the procedures and their packaging
-- **Tasks:** 17.12 ✅ (its log: [`phase-17/17.12.md`](./phase-17/17.12.md))
+- **Tasks:** 17.12 ✅ (its log: [`phase-17/17.12.md`](./17.12.log.md))
 - **Branch:** `chore/17.12-procedures` — done, PR #277
 - **Decisions / deviations from the plan:** seven procedures; `new-adapter` comes with 17.14. The skills are generated per selected runtime, and the
   entry file's `procedures` block is the fallback for every agent.
@@ -208,7 +208,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-11-02 — 17.13 done: the bootstrap engine and its three front ends
-- **Tasks:** 17.13 ✅ (its log: [`phase-17/17.13.md`](./phase-17/17.13.md))
+- **Tasks:** 17.13 ✅ (its log: [`phase-17/17.13.md`](./17.13.log.md))
 - **Branch:** `chore/17.13-bootstrap` — done, PR #278
 - **Decisions / deviations from the plan:** the defaults of a new project are in `profile/starter.json` and the adapters' new `defaults`, not in
   the schema, which keeps its required roles strict. Each axis has an optional `scaffold-files` role. The managed files come from the sync engine.
@@ -219,7 +219,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-11-02 — 17.14 done: the conformance suite and the new-adapter guide
-- **Tasks:** 17.14 ✅ (its log: [`phase-17/17.14.md`](./phase-17/17.14.md))
+- **Tasks:** 17.14 ✅ (its log: [`phase-17/17.14.md`](./17.14.log.md))
 - **Branch:** `chore/17.14-conformance` — done, PR #279
 - **Decisions / deviations from the plan:** the suite is `tools/conformance/` (vendored, so `harness adapter test` runs in a project), its tests are in
   `tests/conformance/`. The checks run the adapter's logic through the framework's gate driver, coverage gate and hooks and a bootstrapped fixture project; they never
@@ -230,7 +230,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run test:framework`; `npm run plan:summary` (no diff)
 
 ### 2026-11-02 — 17.15 done: the framework is published, self-hosted and consumed from its tag
-- **Tasks:** 17.15 ✅ (its log: [`phase-17/17.15.md`](./phase-17/17.15.md))
+- **Tasks:** 17.15 ✅ (its log: [`phase-17/17.15.md`](./17.15.log.md))
 - **Branch:** `chore/17.15-publish-framework` — done, PR #280; in `AndLD/harness-framework`: the bootstrap commit on `develop` (pushed by the owner) and PR 1, tag `0.1.0-dev.1`
 - **Decisions / deviations from the plan:** lock mode `self` was only a name, so 17.15 built it (`paths.frameworkDir`, `--self`); the first tag is `0.1.0-dev.1`; this repository's lock source is that tag and
   the staging folder is removed. The sync differed from the staging copy only by the version.
@@ -239,7 +239,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 - **Verify with:** `npm run docs:check`; `npm run plan:summary` (no diff)
 
 ### 2026-11-03 — 17.16 done: synced to the framework's `0.1.0`
-- **Tasks:** 17.16 ✅ (its log: [`phase-17/17.16.md`](./phase-17/17.16.md))
+- **Tasks:** 17.16 ✅ (its log: [`phase-17/17.16.md`](./17.16.log.md))
 - **Branch:** `chore/17.16-sync-0.1.0` — done, PR #281
 - **Decisions / deviations from the plan:** none; the framework's Phase 1 (PRs 1 to 10 of its repository) is linked from the task log. The lock is at `v0.1.0`. Nothing in this repository had to change except generated files.
 - **Problems / blockers / findings:** the Cursor exit criterion of the phase stays open (the preset is unverified in a live session; the owner's decision of 2026-11-02).
@@ -248,7 +248,7 @@ writes its own log fragment in `work-logs/phase-17/<task id>.md` (template: [`ta
 
 
 ### 2026-11-03 — 17.17 done: the closing review; the phase stays open on two criteria
-- **Tasks:** 17.17 ✅ (its log: [`phase-17/17.17.md`](./phase-17/17.17.md); the report: [`2026-11-03.md`](../../../quality-reviews/harness/2026-11-03.md))
+- **Tasks:** 17.17 ✅ (its log: [`phase-17/17.17.md`](./17.17.log.md); the report: [`2026-11-03.md`](../../../quality-reviews/harness/2026-11-03.md))
 - **Branch:** `docs/17.17-closing-harness-review` — done, PR #283
 - **Decisions / deviations from the plan:** the probes ran as read-only subagents (the command line's login had expired); the report says what that changes.
 - **Problems / blockers / findings:** the review's gate passes, and a project bootstraps from `v0.1.0` in one command. The phase's exit criteria hold except two:

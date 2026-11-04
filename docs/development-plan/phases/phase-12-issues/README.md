@@ -18,7 +18,7 @@ is recorded there, not here.
 | [12.2](./12.2.md) | Buttons across the client have inconsistent padding and unreadable disabled states. | — | 3 | ✅ |
 | [12.3](./12.3.md) | A new base cannot craft anything: its storage starts with oil only. | — | 3 | ✅ |
 | [12.4](./12.4.md) | The pre-push gate cannot start its database in a worktree, so sessions bypass it. | C2 | 3 | ✅ |
-| [12.7](./12.7.md) | An agent that resumes a phase reads the whole phase file, and a finished task is logged twice. | C1 | 2 | 🟡 |
+| [12.7](./12.7.md) | An agent that resumes a phase reads the whole phase file, and a finished task is logged twice. | C1 | 2 | ✅ |
 <!-- phase-tasks:end -->
 
 Task status: ⬜ not started · 🟡 in progress (branch noted in the task's log) · ✅ done. Agent: the task's agent-complexity marker (plan method, section 7); a plan without markers leaves the column out.

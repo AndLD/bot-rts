@@ -287,11 +287,11 @@
   },
   "managed": {
     "docs/profile.md": "cef3a3fdb4e7b61ad625ad8fa14687ef5257362afcc7656040d5b1a66897739e",
-    "docs/quality-reviews/harness/bindings.md#layers": "0f561e4c87dff0a3d2c74f267b4651f5efea7004c58bb5b1551d00a56178995f",
+    "docs/quality-reviews/harness/bindings.md#layers": "f28af68b388be3b9ec87cfe1237dd5f18b3aff2e0dc5fc48e00c000755222e23",
     "docs/engineering/rule-checks.md#rule-map": "720941c4c878d65a6eb695af0ee2e2627901bdd5c6e9f58cf62cfd7ca4bf3b9a",
-    "AGENTS.md#procedures": "7e30ecf2bcd9545ecc87652f23c083e133f7c822b1feae048888248263573662",
+    "AGENTS.md#procedures": "2440a8dee9b9275dce6af56a7733189a796321d158a189b1bd94f8632392d6a6",
     "AGENTS.md#non-negotiables": "29ac105e9a01c3980220dfadf5c9e453eeafd3e6b08330e842bb3e5d0fd73479",
-    "AGENTS.md#git-rules": "611cb3792c171d50aef0179e31264d708b0c236c3b2b40b7ae3319b5a0517fbc",
+    "AGENTS.md#git-rules": "d070bf275507c173d3e6a771d9cc71e6778b043b56415e521d6a92a1a92a813a",
     ".claude/skills/change-plan/SKILL.md": "5efd7176099733714a79506da327b1f7966568c6f921339e1da63123696a372a",
     ".claude/skills/code-review/SKILL.md": "c4349b680ad16183496373306f552b50dcadaf3a76f7a5177165dc511988c2a9",
     ".claude/skills/end-session/SKILL.md": "91646ead97051967ca1a8076ad66bb40d45a6a543ad1d60f7f6b9e8c1d5888f2",
@@ -300,10 +300,11 @@
     ".claude/skills/new-adapter/SKILL.md": "abf372f55fe41b78c86db30776c4425156f4832c5aef56ae85dd79d6d88f7d1d",
     ".claude/skills/open-pull-request/SKILL.md": "fee36ad6b22af9805762a67ca570d5781511c2da9e132642647da0fc1e165ddd",
     ".claude/skills/release/SKILL.md": "9f0f8631951fb2a10165ce7a0bdb390a0fb63acfe81b7af312b47acaf4be966b",
+    ".claude/skills/report-upstream/SKILL.md": "9426468b1f644319b6a64576da4594294dae32d2dd535a57981b7f1faabf945e",
     ".claude/skills/start-task/SKILL.md": "6b07e9802cec3f6eb1b30c6d6c69318765bb0ac2fd37b3ac322c7d95705c568a",
     ".claude/skills/update-framework/SKILL.md": "1bb48e61b92ac8003444ef828ea394e17125d2fba50d15f793ce55b685d16933"
   },
-  "profile": "4b7a9b7b833e7d3ff52a11b4d215b203eada26a38a50ea07ce428c5dd0520e3f",
+  "profile": "ef4f91b2fc6a01f2714f201cdc144a5645a3449ea5cad904014eb7e9b8598727",
   "overrides": [],
   "seen": {
     "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79",

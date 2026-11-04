@@ -42,6 +42,7 @@ reading map. The rest is read on demand:
 | a project needs an adapter the framework has no preset for (a language and its tools, a coding agent, or a repository host) | [`harness/core/procedures/new-adapter.md`](./harness/core/procedures/new-adapter.md) |
 | a branch is ready and a pull request has to be opened, or a claim pull request marked ready | [`harness/core/procedures/open-pull-request.md`](./harness/core/procedures/open-pull-request.md) |
 | cutting a release or a hotfix | [`harness/core/procedures/release.md`](./harness/core/procedures/release.md) |
+| a defect of the harness framework is suspected while working, to report it upstream | [`harness/core/procedures/report-upstream.md`](./harness/core/procedures/report-upstream.md) |
 | starting or resuming a phase or a task of the development plan, before any other work on it | [`harness/core/procedures/start-task.md`](./harness/core/procedures/start-task.md) |
 | the project takes a new version of the framework, adopts it from the copy of a first harness, or has found a defect in the framework | [`harness/core/procedures/update-framework.md`](./harness/core/procedures/update-framework.md) |
 <!-- harness:end procedures -->
@@ -156,6 +157,8 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
   asking; it wakes the session on CI failures, merge conflicts and review comments. Never wait by checking the pull request again and
   again; the runtime adapter says how a session waits (stack §6).
   When CI is green, the host merges the pull request (auto-merge); go on to the next task, so work flows across phases.
+- A defect of the framework that you suspect while working is reported upstream by the procedure `report-upstream` of the reading map (`reports.upstream` of the
+  [profile](./docs/profile.md)), after looking for the same problem among the framework's reports. Nothing is posted that the profile does not allow.
 <!-- harness:end git-rules -->
 
 ### 7.6 Session protocol

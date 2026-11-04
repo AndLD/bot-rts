@@ -4,15 +4,12 @@
 
 **Status:** 🟡 In progress · **Branches:** `bugfix/12.2-button-styling` (see the [implementation log](#implementation-log)) · **Work log:** [log](./log.md), and a log beside each task (`<id>.log.md`)
 
-A running collection of **issues found while using and testing the finished phases**: defects, performance problems and
-rough edges that are not part of any earlier phase's scope. It is open-ended: new issues are added as tasks (`12.N`) when
-they are found, each with a reproduction, and the phase is closed when the user says so. It needs nothing from Phases 9 and 10
-and can be developed at any time; its points count in the total of the plan index and grow as issues are added.
+The issues found while using and testing the finished phases (12.1 to 12.4), and the task 12.7 that moves the plan to the framework's `0.2.0` layout. Phase 12 was
+open-ended until the framework's `0.2.0`; it is a normal phase now and ends with 12.7. Its two defects that had not started, 12.5 and 12.6, moved to the
+[issue queue](../../issues/README.md) as I-1 and I-2 (their old ids stay in their files as `Formerly`), and a defect or improvement found in use from now on
+is recorded there, not here.
 
-**How an issue becomes a task.** Add a row to the table with the symptom and how to reproduce it, the expected result, and a
-story-point estimate; fix it on its own branch (`bugfix/12.N-slug`) with a test that reproduces it first (method §4, `harness/core/method/method.md`), and
-update this file, the work log and the plan index in the same PR. If the cause turns out to be a design problem, record the
-decision in the matching `docs/product-knowledge/game-design/` file.
+**Execution order:** 12.1 → 12.2 → 12.3 → 12.4 → 12.7 (the ids; 12.5 and 12.6 are in the queue).
 
 <!-- phase-tasks:start -->
 | # | Task | Agent | SP | Status |
@@ -24,10 +21,9 @@ decision in the matching `docs/product-knowledge/game-design/` file.
 | [12.7](./12.7.md) | An agent that resumes a phase reads the whole phase file, and a finished task is logged twice. | C1 | 2 | 🟡 |
 <!-- phase-tasks:end -->
 
-## Exit criteria
+Task status: ⬜ not started · 🟡 in progress (branch noted in the task's log) · ✅ done. Agent: the task's agent-complexity marker (plan method, section 7); a plan without markers leaves the column out.
 
-Every issue listed above is fixed with a test that failed before the fix, or is closed with a recorded reason; the coverage
-gate stays green. The phase is closed by the user, not by the list running out.
+**Exit criteria:** every task listed above is done with a test that failed before the fix, or is closed with a recorded reason; the coverage gate stays green; the project follows the framework's migration notes up to `0.2.0` (12.7).
 
 ## Implementation log
 

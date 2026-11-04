@@ -23,6 +23,7 @@
 //   harness check all                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
 //   harness plan split <phase>                                    split a phase kept as one file into a folder: the phase index, a file per task and the logs beside them
+//   harness plan promote <B-n> --phase <n> [--agent <m>] [--size <n>] --approved   the owner's decision: a backlog item becomes a task of a phase
 //   harness plan log <phase> [ref]                                the implementation log of a phase from the merged pull requests
 //   harness release [--dev] [--dry-run]                           prepare a release on its branch: versions and changelog; --dev only sets a development version
 //   harness release notes <version>                               the changelog section of a version, for the host's release
@@ -57,6 +58,8 @@ import { splitPhases } from './lib/phase-split.mjs'
 import { isMain } from './lib/main-module.mjs'
 import { migrate } from './lib/migrate.mjs'
 import { probesReport } from './lib/probe-areas.mjs'
+import { promoteItem } from './lib/backlog-promote.mjs'
+import { probeAdvice, probeMode } from './lib/probe-mode.mjs'
 import { reportsCommand } from './lib/reports-command.mjs'
 import { rollback } from './lib/rollback.mjs'
 import { loadProfile, lookup } from './lib/profile.mjs'
@@ -82,6 +85,7 @@ const USAGE = `usage: harness <command>
   check <${Object.keys(CHECKS).join('|')}|all>
   plan summary [--check]
   plan split <phase>
+  plan promote <B-n> --phase <n> [--agent <marker>] [--size <n>] --approved
   plan log <phase> [ref]
   release [--dev] [--dry-run]
   release notes <version>
@@ -114,7 +118,10 @@ const FLAGS_WITH_VALUE = new Set([
   '--title',
   '--relation',
   '--candidate',
-  '--version'
+  '--version',
+  '--phase',
+  '--agent',
+  '--size'
 ])
 // Flags that may be given several times; their values are collected in a list
 const REPEATED_FLAGS = new Set(['--set'])
@@ -219,7 +226,9 @@ export async function run(argv, { out = console.log, err = console.error, input 
       return 0
     }
     if (words[0] === 'probes' && words.length === 3) {
-      probesReport({ root, profile: loadProfile(root), from: words[1], to: words[2] }).forEach((line) => out(line))
+      const profile = loadProfile(root)
+      probesReport({ root, profile, from: words[1], to: words[2] }).forEach((line) => out(line))
+      probeAdvice({ ...probeMode({ profile, root }), from: words[1], to: words[2] }).forEach((line) => out(line))
       return 0
     }
     if (words[0] === 'reports') {
@@ -257,6 +266,18 @@ export async function run(argv, { out = console.log, err = console.error, input 
     if (words[0] === 'plan' && words[1] === 'summary' && words.length === 2) {
       const { problems, message } = planSummary({ root, profile: loadProfile(root), check: flags.check })
       return report('plan', { problems, messages: [message] }, { out, err })
+    }
+    if (words[0] === 'plan' && words[1] === 'promote' && words.length === 3 && flags.phase) {
+      promoteItem({
+        root,
+        profile: loadProfile(root),
+        id: words[2],
+        phase: Number(flags.phase),
+        agent: flags.agent,
+        size: flags.size,
+        approved: flags.approved
+      }).forEach((line) => out(line))
+      return 0
     }
     if (words[0] === 'plan' && words[1] === 'split' && words.length === 3 && /^\d+$/.test(words[2])) {
       splitPhases({ root, profile: loadProfile(root), numbers: [Number(words[2])] }).messages.forEach((line) =>

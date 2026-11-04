@@ -16,6 +16,11 @@ is updated in the change that starts or finishes it.
 
 <!-- plan-issues:start -->
 <!-- plan-issues:end -->
+{{#if paths.backlog}}
+
+<!-- plan-backlog:start -->
+<!-- plan-backlog:end -->
+{{/if}}
 
 ---
 

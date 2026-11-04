@@ -13,7 +13,7 @@ disable-model-invocation: true
 ## Take the version
 
 1. Know the two versions: the one in `harness.lock.json` (`version`) and the target (a final version, or a development version `<x.y.z>-dev.<n>` to try it before the final tag). Several versions in a row are taken in one jump.
-2. Branch from the integration branch as it is on the remote, on a chore branch of its own (the branch types are in the profile). `sync` refuses on a protected branch and with uncommitted changes, so that the whole migration is one commit that `harness rollback` can undo.
+2. Branch from the integration branch as it is on the remote, on a chore branch of its own (the branch types are in the profile). `sync` refuses on a protected branch and with uncommitted changes, so that the whole migration is one commit that `harness rollback` can undo. Set the task you have in hand (claimed by a draft pull request) to 🟡 in its task file first: a migration that converts the plan reads a task that is still ⬜ as not started.
 3. `npm run harness -- sync --from <source> --to <target>`. It places the new files, updates the lock and starts `harness migrate` of the new version in a new process. A `sync` of a version before `0.2.0` does not start it: run `harness migrate` yourself, with the new tools, when the output does not say it ran. `migrate` runs the scripts of every version between (the mechanical changes), regenerates the managed files, commits the migration as one commit, and prints the migration notes of those versions in order.
 4. A project that copied the first harness (its scripts and hooks in its own folders, no `harness.lock.json`) is not synced: adopt it (`harness adopt`, which keeps its files and adds the managed blocks), then take versions as above.
 
@@ -24,7 +24,7 @@ For each version between the two, in order (`migrate` prints them; a development
 ## Verify
 
 1. `npm run docs:check` (every check of the framework and the project's own), then the project's gate: `npm run lint` and `npm run test:coverage`.
-2. `harness probes <from> <to>` lists the probes of the project whose areas the versions touched, with the words each read at the last review, and the starting probe of an area no probe covers. Run each as a separate session started in this repository (it then loads this entry file and its session-start hook, as a real task would) and compare what it reads with the last review: a probe that reads more, or reads a document that changed, is a finding of the version.
+2. `harness probes <from> <to>` lists the probes of the project whose areas the versions touched, with the words each read at the last review, and the starting probe of an area no probe covers. Whether to run them is the project's choice, `probes.run` of the profile file (the ignored local file overrides it on one machine), and the end of the output of `migrate` and of `harness probes` says which: `auto` runs them; `ask` (the default) asks the owner first and runs them only on a yes; `disabled` does not run them. Run each as a separate session started in this repository (it then loads this entry file and its session-start hook, as a real task would) and compare what it reads with the last review: a probe that reads more, or reads a document that changed, is a finding of the version.
 3. Write in the pull request what the notes missed: a step you had to take that no note named, a check that did not prove its action, a probe that read more. Report each to the framework so that the note is corrected (an issue in its repository with the template; the procedure `report-upstream` does it where the project has it).
 
 ## When it fails
@@ -35,7 +35,7 @@ For each version between the two, in order (`migrate` prints them; a development
 
 ## The pull request
 
-Open it by the procedure `open-pull-request`, titled `chore(framework): take <target>`; list the versions taken, the required actions done and their checks, the probes run, and what the notes missed.
+Open it by the procedure `open-pull-request`, titled `chore(framework): take <target>`; list the versions taken, the required actions done and their checks, the probes run (or that `probes.run` left them out), and what the notes missed.
 
 ## A defect found in the framework
 

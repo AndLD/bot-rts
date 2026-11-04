@@ -422,3 +422,26 @@ test('after the sync of an older version, migrate takes the sync\u2019s changes 
   assert.equal(projectCommand(root, 'rollback').code, 0)
   assert.equal(git(root, 'diff', start, '--stat'), '')
 })
+
+test('after the sync of an older version, which keeps no record of where the project was, migrate starts from the version the last commit holds', async () => {
+  const { first, second } = versions()
+  for (const version of ['1.0.0', '1.1.0']) {
+    writeFileSync(join(second, `migrations/${version}.md`), `# Migration to ${version}\n`)
+  }
+  const root = await projectAt(first)
+  const start = git(root, 'rev-parse', 'HEAD')
+
+  // What the sync of 1.0.0 leaves: the new version in the lock and nothing else of the lock changed
+  sync({ root, from: second, generators: [], startMigrate: () => [] })
+  const { migrations: _recorded, ...lock } = readLock(root)
+  writeLock(root, lock)
+
+  const { lock: migrated, messages } = await migrate({ root, generators: [] })
+  assert.deepEqual(migrated.migrations.start, { commit: start, version: '1.0.0' })
+  assert.deepEqual(noteVersions(messages), ['1.1.0'], 'the project had taken 1.0.0 and the notes before it')
+  assert.match(
+    messages.at(-2),
+    /^Probes \(probes\.run is ask\): do not run them yet\./,
+    'the end of the output says what the probes ask'
+  )
+})

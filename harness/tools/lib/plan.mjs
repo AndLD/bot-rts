@@ -5,8 +5,10 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import {
+  BACKLOG,
   archiveDone,
   archiveTable,
+  finished,
   openTable,
   queueProblems,
   queueSummary,
@@ -14,6 +16,7 @@ import {
   withQueueBlock,
   ARCHIVE_FOLDER
 } from './issue-queue.mjs'
+import { ensureBacklog } from './backlog-setup.mjs'
 import { inFramework } from './lock.mjs'
 import { orderOfDevelopment, readPhases } from './next-task.mjs'
 import { loadPhaseEntries, parsePhaseFolder, parseTaskFile } from './phase-files.mjs'
@@ -25,6 +28,8 @@ export const CONTENTS_START = '<!-- plan-contents:start -->'
 export const CONTENTS_END = '<!-- plan-contents:end -->'
 export const ISSUES_START = '<!-- plan-issues:start -->'
 export const ISSUES_END = '<!-- plan-issues:end -->'
+export const BACKLOG_START = '<!-- plan-backlog:start -->'
+export const BACKLOG_END = '<!-- plan-backlog:end -->'
 
 const TITLE = /^# Phase (\d+) — (.+?) \((\d+) SP(?:, ([^)]*))?\)\s*$/m
 const STATUS = /\*\*Status:\*\*\s*((?:⬜|🟡|✅)\s*[A-Za-z ]+?)\s*(?:·|$)/m
@@ -147,13 +152,17 @@ function replaceBetween(text, start, end, body) {
 }
 
 // The index text with both generated blocks rewritten
-export function renderIndex(indexText, phases, { phasesLink, complexity, queueLine } = {}) {
+export function renderIndex(indexText, phases, { phasesLink, complexity, queueLine, backlogLine } = {}) {
   const withSummary = replaceBetween(indexText, SUMMARY_START, SUMMARY_END, summaryTable(phases, { complexity }))
   const withContents = replaceBetween(withSummary, CONTENTS_START, CONTENTS_END, contentsList(phases, phasesLink))
   // The issue queue's line is written where the index has its block (a plan with no queue has none)
-  return queueLine && withContents.includes(ISSUES_START)
-    ? replaceBetween(withContents, ISSUES_START, ISSUES_END, queueLine)
-    : withContents
+  const withQueue =
+    queueLine && withContents.includes(ISSUES_START)
+      ? replaceBetween(withContents, ISSUES_START, ISSUES_END, queueLine)
+      : withContents
+  return backlogLine && withQueue.includes(BACKLOG_START)
+    ? replaceBetween(withQueue, BACKLOG_START, BACKLOG_END, backlogLine)
+    : withQueue
 }
 
 const PLAN_LINE = /^Plan:\s*(.+)$/gm
@@ -233,6 +242,41 @@ export function readQueueOf(root, profile) {
     : null
 }
 
+/** The backlog of the project (`paths.backlog`), the queue of the feature requests, or null when it has none. */
+export function readBacklogOf(root, profile) {
+  return profile.paths.backlog
+    ? readQueue({
+        dir: profile.paths.backlog,
+        list: listIn(root),
+        readText: (path) => readFileSync(join(root, path), 'utf8'),
+        kind: BACKLOG
+      })
+    : null
+}
+
+// The ids an entry of a queue took over from another place: a task (`3.19`) or an issue that moved to the backlog (`I-6`)
+const FORMERLY = /\d+\.\d+[a-z]?|I-\d+/g
+
+// The ids that the plan may name apart from the tasks of the phases: the entries of both queues, open and archived, and what they took over
+function queueIds(...queues) {
+  const known = new Set()
+  for (const queue of queues) {
+    for (const item of queue ? [...queue.open, ...queue.archived] : []) {
+      known.add(item.id)
+      for (const old of item.formerly?.match(FORMERLY) ?? []) known.add(old)
+    }
+  }
+  return known
+}
+
+// The ids of the backlog items that wait for the owner's decision: no order, no execution order and no `Needs` may name one (task 3.21)
+const proposedIds = (backlog) =>
+  new Set(
+    (backlog?.open ?? [])
+      .filter((item) => !finished(item, BACKLOG))
+      .flatMap((item) => [item.id, ...(item.formerly?.match(/I-\d+/g) ?? [])])
+  )
+
 // The areas of the migration notes (the names of `areas.json` of the framework tree); null where the project has no such list
 function areasOf(root, profile) {
   const path = join(root, inFramework(profile, 'migrations'), 'areas.json')
@@ -270,25 +314,30 @@ export function orderProblems({ root, profile, indexText }) {
     tasks: entry.taskFiles?.map(({ file, text }) => parseTaskFile(file, text)).filter((task) => task.id)
   }))
   const phases = readPhases(entries)
-  const queue = readQueueOf(root, profile)
-  const known = new Set(phases.flatMap((phase) => phase.tasks.map((task) => task.id)))
-  for (const issue of queue ? [...queue.open, ...queue.archived] : []) {
-    known.add(issue.id)
-    for (const old of issue.formerly?.match(/\d+\.\d+[a-z]?/g) ?? []) known.add(old)
-  }
+  const known = new Set([
+    ...phases.flatMap((phase) => phase.tasks.map((task) => task.id)),
+    ...queueIds(readQueueOf(root, profile), readBacklogOf(root, profile))
+  ])
+  const proposed = proposedIds(readBacklogOf(root, profile))
+  const notApproved = (where, id) =>
+    `${where} names the backlog item ${id}, which is not approved work: the owner promotes it into a task of a phase first (\`harness plan promote ${id} --phase <n>\`), and the plan names that task`
   const problems = []
   for (const token of orderOfDevelopment(indexText)) {
-    if (typeof token === 'string' ? !known.has(token) : !phases.some((phase) => phase.number === token.phase)) {
+    if (typeof token === 'string' && proposed.has(token)) {
+      problems.push(notApproved(`${planIndex}: the order of development`, token))
+    } else if (typeof token === 'string' ? !known.has(token) : !phases.some((phase) => phase.number === token.phase)) {
       problems.push(
-        `${planIndex}: the order of development names ${typeof token === 'string' ? `task ${token}` : `Phase ${token.phase}`}, which exists in no phase and not in the issue queue (nor its archive, under its old id)`
+        `${planIndex}: the order of development names ${typeof token === 'string' ? `task ${token}` : `Phase ${token.phase}`}, which exists in no phase and not in the issue queue or the backlog (nor their archives, under its old id)`
       )
     }
   }
   for (const phase of phases.filter((item) => item.order !== null && !item.points)) {
     for (const id of new Set(phaseSequenceIds(phase.order))) {
-      if (!known.has(id)) {
+      if (proposed.has(id)) {
+        problems.push(notApproved(`${phase.file}: the execution order`, id))
+      } else if (!known.has(id)) {
         problems.push(
-          `${phase.file}: the execution order names task ${id}, which exists in no phase and not in the issue queue (nor its archive, under its old id)`
+          `${phase.file}: the execution order names task ${id}, which exists in no phase and not in the issue queue or the backlog (nor their archives, under its old id)`
         )
       }
     }
@@ -297,23 +346,49 @@ export function orderProblems({ root, profile, indexText }) {
 }
 
 // The tasks that the task files of the folder phases need (`Needs`) exist, and none is in a later phase
-function needProblems(phases, queue) {
-  const known = new Set(phases.flatMap((phase) => phase.tasks?.map((task) => task.id) ?? phase.ids ?? []))
-  for (const issue of queue ? [...queue.open, ...queue.archived] : []) {
-    known.add(issue.id)
-    for (const old of issue.formerly?.match(/\d+\.\d+[a-z]?/g) ?? []) known.add(old)
-  }
-  return phases.flatMap((phase) => needsProblems({ tasks: phase.tasks ?? [], known, phase: phase.number }))
+function needProblems(phases, queue, backlog) {
+  const known = new Set([
+    ...phases.flatMap((phase) => phase.tasks?.map((task) => task.id) ?? phase.ids ?? []),
+    ...queueIds(queue, backlog)
+  ])
+  const proposed = proposedIds(backlog)
+  const notApproved = phases.flatMap((phase) =>
+    (phase.tasks ?? []).flatMap((task) =>
+      (task.needs?.match(/[IB]-\d+/g) ?? [])
+        .filter((id) => proposed.has(id))
+        .map(
+          (id) =>
+            `${phase.file}: task ${task.id} needs the backlog item ${id}, which is not approved work: promote it into a task of a phase first`
+        )
+    )
+  )
+  return [
+    ...phases.flatMap((phase) => needsProblems({ tasks: phase.tasks ?? [], known, phase: phase.number })),
+    ...notApproved
+  ]
+}
+
+// An issue that moved to the backlog keeps its number (`B-1, formerly I-6`): the issue queue must not give that number to another issue
+function movedIdProblems(queue, backlog) {
+  const moved = new Set(
+    (backlog ? [...backlog.open, ...backlog.archived] : []).flatMap((item) => item.formerly?.match(/I-\d+/g) ?? [])
+  )
+  return (queue ? [...queue.open, ...queue.archived] : [])
+    .filter((issue) => moved.has(issue.id))
+    .map(
+      (issue) =>
+        `${queue.dir}/${issue.file}: the id ${issue.id} moved to the backlog (a backlog item says "Formerly: ${issue.id}") and is never reused`
+    )
 }
 
 const phaseSequenceIds = (order) =>
-  [...order.replace(/`?\b\d+\.\d+\.\d+(?:-[\w.]+)?\b`?/g, ' ').matchAll(/\b(?:\d+\.\d+[a-z]?|I-\d+)\b/g)].map(
+  [...order.replace(/`?\b\d+\.\d+\.\d+(?:-[\w.]+)?\b`?/g, ' ').matchAll(/\b(?:\d+\.\d+[a-z]?|[IB]-\d+)\b/g)].map(
     (match) => match[0]
   )
 
 /**
  * `harness plan summary`: rewrites the generated blocks of the plan index, of the phase index of each phase kept as a folder, and of the two indexes of the
- * issue queue (archiving the issues that are done), from the phase, task and issue files, or with `check` only compares them. Also holds the layout of a
+ * issue queue and of the backlog (archiving the entries that are done), from the phase, task, issue and backlog files, or with `check` only compares them. Also holds the layout of a
  * phase folder (the size in its title is the sum of its task files, each task file has a status, a size and, for an open task, a marker, and every log link
  * resolves), the layout of the queue, and that an order of development or an execution order names only ids that exist.
  * @returns {{ problems: string[], message: string }}
@@ -322,8 +397,10 @@ export function planSummary({ root, profile, check = false }) {
   const { phases: phasesDir, planIndex } = profile.paths
   const complexity = profile.plan?.complexity
   const scale = Object.keys(complexity?.scale ?? {})
+  const setup = check ? [] : ensureBacklog({ root, profile })
   let phases = readPhaseFiles({ root, phasesDir, complexity, planIndex })
   let queue = readQueueOf(root, profile)
+  let backlog = readBacklogOf(root, profile)
 
   if (!check) {
     for (const phase of phases.filter((item) => item.layout === 'folder' && item.expectedReadme)) {
@@ -333,50 +410,59 @@ export function planSummary({ root, profile, check = false }) {
       }
     }
     phases = readPhaseFiles({ root, phasesDir, complexity, planIndex })
-    if (queue) {
-      archiveDone({ root, queue })
-      queue = readQueueOf(root, profile)
+    for (const read of [readQueueOf, readBacklogOf]) {
+      const before = read(root, profile)
+      if (!before) continue
+      archiveDone({ root, queue: before })
+      const { dir, kind, open, archived, archiveReadme } = read(root, profile)
       const write = (path, body) => {
         const text = readFileSync(join(root, path), 'utf8')
-        const next = withQueueBlock(text, body)
+        const next = withQueueBlock(text, body, kind)
         if (next !== null && next !== text) writeFileSync(join(root, path), next)
       }
-      write(`${queue.dir}/README.md`, openTable(queue.open, { marked: scale.length > 0 }))
-      if (queue.archiveReadme !== null) write(`${queue.dir}/${ARCHIVE_FOLDER}/README.md`, archiveTable(queue.archived))
-      queue = readQueueOf(root, profile)
+      write(`${dir}/README.md`, openTable(open, { marked: scale.length > 0, kind }))
+      if (archiveReadme !== null) write(`${dir}/${ARCHIVE_FOLDER}/README.md`, archiveTable(archived, kind))
     }
+    queue = readQueueOf(root, profile)
+    backlog = readBacklogOf(root, profile)
   }
   const problems = phases.flatMap((phase) => [...phaseProblems(phase, complexity), ...(phase.problems ?? [])])
-  if (queue) {
+  for (const each of [queue, backlog].filter(Boolean)) {
     problems.push(
-      ...queueProblems(queue, {
+      ...queueProblems(each, {
         areas: areasOf(root, profile),
         scale,
-        exists: (path) => existsSync(join(root, queue.dir, path))
+        exists: (path) => existsSync(join(root, each.dir, path))
       })
     )
   }
+  problems.push(...movedIdProblems(queue, backlog))
   const current = readFileSync(join(root, planIndex), 'utf8')
   problems.push(...orderProblems({ root, profile, indexText: current }))
-  problems.push(...needProblems(phases, queue))
+  problems.push(...needProblems(phases, queue, backlog))
   const link = relative(dirname(planIndex), phasesDir).split('\\').join('/')
-  const queueLink = queue ? relative(dirname(planIndex), `${queue.dir}/README.md`).split('\\').join('/') : null
+  const lineOf = (each) => {
+    if (!each) return null
+    const to = relative(dirname(planIndex), `${each.dir}/README.md`).split('\\').join('/')
+    return queueSummary(each, to.startsWith('.') ? to : `./${to}`)
+  }
   const expected = renderIndex(current, phases, {
     phasesLink: link.startsWith('.') ? link : `./${link}`,
     complexity,
-    queueLine: queue ? queueSummary(queue, queueLink.startsWith('.') ? queueLink : `./${queueLink}`) : null
+    queueLine: lineOf(queue),
+    backlogLine: lineOf(backlog)
   })
 
   if (check) {
     if (expected !== current) {
       problems.push(
-        `${planIndex}: the summary or the contents disagree with the phase files${queue ? ' and the issue queue' : ''}; run \`harness plan summary\``
+        `${planIndex}: the summary or the contents disagree with the phase files${queue ? ' and the issue queue' : ''}${backlog ? ' and the backlog' : ''}; run \`harness plan summary\``
       )
     }
     return { problems, message: `Checked the plan summary against ${phases.length} phase files.` }
   }
   writeFileSync(join(root, planIndex), expected)
-  return { problems, message: `Wrote the plan summary of ${phases.length} phases.` }
+  return { problems, message: [...setup, `Wrote the plan summary of ${phases.length} phases.`].join('\n') }
 }
 
 /** `harness plan log <phase> [ref]`: the implementation log of a phase from the commits of `ref` (default: the integration branch on the remote). */

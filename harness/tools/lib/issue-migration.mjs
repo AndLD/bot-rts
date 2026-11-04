@@ -3,6 +3,7 @@
 // criteria made of the tasks that remain, and turns only its tasks that have not started and that no order names (the defects) into issues of the queue,
 // each naming its old id (`I-1, formerly 12.5`). A task in progress or done never moves, so an order written by id survives. Idempotent: a profile
 // file without `plan.openEndedPhaseNumber` has nothing to convert.
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, posix } from 'node:path'
 import { UNCLASSIFIED, nextIssueNumber, readQueue } from './issue-queue.mjs'
@@ -70,9 +71,32 @@ const withoutParagraph = (text, start) => {
 }
 
 /**
+ * The ids of the tasks that a branch of the repository claims: a branch (local or remote-tracking) named `<type>/<task id>-<slug>`, which is how a task is
+ * claimed before it is set to 🟡. Empty where `root` is no Git repository.
+ */
+export function claimedTaskIds(root) {
+  try {
+    const refs = execFileSync('git', ['for-each-ref', '--format=%(refname:short)', 'refs/heads', 'refs/remotes'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    })
+    return new Set(
+      refs
+        .split('\n')
+        .map((ref) => /(?:^|\/)[a-z]+\/(\d+\.\d+[a-z]?)-/.exec(ref)?.[1])
+        .filter(Boolean)
+    )
+  } catch {
+    return new Set()
+  }
+}
+
+/**
+ * @param {{ claimed?: Set<string> }} options the ids of the tasks a branch claims; they stay in the phase though they are not started
  * @returns {string[]} what was done, for the migration's output
  */
-export function convertOpenEndedPhase({ root, profile }) {
+export function convertOpenEndedPhase({ root, profile, claimed = claimedTaskIds(root) }) {
   const number = profile.plan?.openEndedPhaseNumber
   if (number === undefined) {
     return []
@@ -125,7 +149,8 @@ export function convertOpenEndedPhase({ root, profile }) {
     .map((name) => parseTaskFile(`${phaseDir}/${name}`, readFileSync(join(root, phaseDir, name), 'utf8')))
   let next = nextIssueNumber(queue)
   const moved = []
-  for (const task of tasks.filter((item) => item.status === '⬜' && !named.has(item.id))) {
+  const kept = tasks.filter((item) => item.status === '⬜' && !named.has(item.id) && claimed.has(item.id))
+  for (const task of tasks.filter((item) => item.status === '⬜' && !named.has(item.id) && !claimed.has(item.id))) {
     const old = `${phaseDir}/${task.id}.md`
     const path = `${issuesDir}/I-${next}.md`
     const logFrom = `${phaseDir}/${task.id}.log.md`
@@ -196,7 +221,12 @@ export function convertOpenEndedPhase({ root, profile }) {
     `Phase ${number}, the open-ended phase, is a normal phase now (${remaining.length} task(s), ${points} SP, ${status}).`,
     moved.length
       ? `Moved to the issue queue ${issuesDir}: ${moved.join(', ')}.`
-      : 'No task of the phase was a defect that had not started, so the queue is empty.'
+      : 'No task of the phase was a defect that had not started, so the queue is empty.',
+    ...(kept.length
+      ? [
+          `Kept in the phase, because a branch claims ${kept.length === 1 ? 'it' : 'them'}: ${kept.map((task) => task.id).join(', ')}. Set ${kept.length === 1 ? 'it' : 'each'} to 🟡 in its task file.`
+        ]
+      : [])
   )
   return messages
 }

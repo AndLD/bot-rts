@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, test } from 'node:test'
 import { readLock } from './lock.mjs'
 import { checkGenerated, checkVendored, detach, diff, override, selectFiles, sync } from './vendor.mjs'
-import { walk } from './tree.mjs'
+import { hashTree, walk } from './tree.mjs'
 
 const made = []
 afterEach(() => made.splice(0).forEach((dir) => rmSync(dir, { recursive: true, force: true })))
@@ -125,6 +125,32 @@ test('a change of the source folder without a sync fails the check, so the sourc
   )
 
   sync({ root, generators: [] })
+  assert.deepEqual(checkVendored({ root }).problems, [])
+})
+
+test('a copy made by tools that knew no `excluded` still passes the check with the tests it holds, and the next sync drops them', () => {
+  const root = synced()
+  const manifest = JSON.parse(read(root, 'framework/framework.json'))
+  write(root, {
+    'framework/framework.json': `${JSON.stringify({ ...manifest, excluded: ['.test.mjs'] }, null, 2)}\n`,
+    'framework/tools/lib/thing.test.mjs': '// test\n'
+  })
+  sync({ root, generators: [] })
+  assert.ok(!existsSync(join(root, 'harness/tools/lib/thing.test.mjs')), 'a sync leaves the tests out')
+  assert.deepEqual(checkVendored({ root }).problems, [])
+
+  // What the sync of an older version leaves: the test file copied, and the lock hashing it
+  write(root, { 'harness/tools/lib/thing.test.mjs': '// test\n' })
+  const lock = readLock(root)
+  const hashes = hashTree(join(root, 'harness'))
+  writeFileSync(
+    join(root, 'harness.lock.json'),
+    `${JSON.stringify({ ...lock, files: { ...lock.files, 'tools/lib/thing.test.mjs': hashes['tools/lib/thing.test.mjs'] } }, null, 2)}\n`
+  )
+  assert.deepEqual(checkVendored({ root }).problems, [])
+
+  sync({ root, generators: [] })
+  assert.ok(!existsSync(join(root, 'harness/tools/lib/thing.test.mjs')))
   assert.deepEqual(checkVendored({ root }).problems, [])
 })
 
@@ -262,6 +288,28 @@ test('the selection keeps the distributable paths of the manifest only', () => {
   assert.ok(selected.includes('adapters/stack/python/manifest.json'))
   assert.ok(!selected.some((path) => path.startsWith('adapters/stack/node-ts') || path.startsWith('adapters/host')))
   assert.ok(!selected.some((path) => path.startsWith('examples') || path.startsWith('tests')))
+})
+
+test('the selection leaves out the files the manifest excludes: the framework’s tests are not copied into a project', () => {
+  const dir = tempDir('harness-source-')
+  write(dir, {
+    ...frameworkFiles(),
+    'tools/lib/thing.mjs': '// code\n',
+    'tools/lib/thing.test.mjs': '// test\n',
+    'adapters/stack/python/gate.test.mjs': '// test\n'
+  })
+  const manifest = JSON.parse(read(dir, 'framework.json'))
+  const adapters = { stacks: ['python'], runtimes: [], host: null }
+
+  const kept = selectFiles(dir, { ...manifest, excluded: ['.test.mjs'] }, adapters)
+  assert.ok(kept.includes('tools/lib/thing.mjs') && kept.includes('adapters/stack/python/manifest.json'))
+  assert.ok(!kept.some((path) => path.endsWith('.test.mjs')))
+  const all = selectFiles(dir, { ...manifest, excluded: undefined }, adapters)
+  assert.ok(all.includes('tools/lib/thing.test.mjs') && all.includes('adapters/stack/python/gate.test.mjs'))
+  assert.ok(
+    JSON.parse(readFileSync(new URL('../../framework.json', import.meta.url), 'utf8')).excluded.includes('.test.mjs'),
+    'the framework itself excludes its tests'
+  )
 })
 
 /** A framework repository with one tagged release, given as a file:// URL (no network). */

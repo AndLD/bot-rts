@@ -44,11 +44,16 @@ export function reportSettings({ profile, root, capable = true }) {
 
 const NUMBER = /(?:issues\/|#)(\d+)\b/g
 
-/** The numbers of the reports that the plan records: in the `Reported:` lines of the issues (open and archived), and in the text of the given tasks. */
-export function recordedReports({ queue, taskTexts = [] }) {
+/**
+ * The numbers of the reports that the plan records: in the `Reported:` lines of the issues and the `Source:` lines of the backlog items (open and
+ * archived), and in the text of the given tasks.
+ */
+export function recordedReports({ queue, backlog, taskTexts = [] }) {
   const numbers = new Set()
   const texts = [
-    ...(queue ? [...queue.open, ...queue.archived].map((issue) => issue.reported ?? '') : []),
+    ...[queue, backlog].flatMap((each) =>
+      each ? [...each.open, ...each.archived].map((issue) => issue.reported ?? '') : []
+    ),
     ...taskTexts
   ]
   for (const text of texts) {
@@ -127,12 +132,12 @@ const words = (text) =>
   )
 
 /**
- * The things in the plan that a report may be about, best first: the open and archived issues (by title and area, the indexes) and the open tasks of the
- * phases (by title). Files are opened only for these candidates, afterwards.
+ * The things in the plan that a report may be about, best first: the open and archived issues and the open and archived items of the backlog (by title and
+ * area, the indexes) and the open tasks of the phases (by title). Files are opened only for these candidates, afterwards.
  * @param {{ title: string, body?: string }} report
  * @returns {{ id: string, title: string, area?: string, where: 'open' | 'archive' | 'task', score: number }[]}
  */
-export function candidates({ report, queue, tasks = [] }) {
+export function candidates({ report, queue, backlog, tasks = [] }) {
   const mine = words(`${report.title} ${(report.body ?? '').slice(0, 400)}`)
   const rank = (title, area) => {
     const theirs = words(`${title} ${area ?? ''}`)
@@ -141,21 +146,23 @@ export function candidates({ report, queue, tasks = [] }) {
     return shared + areaHit
   }
   const found = [
-    ...(queue?.open ?? []).map((issue) => ({
-      id: issue.id,
-      title: issue.title,
-      area: issue.area,
-      where: 'open',
-      score: rank(issue.title, issue.area)
-    })),
-    ...(queue?.archived ?? []).map((issue) => ({
-      id: issue.id,
-      title: issue.title,
-      area: issue.area,
-      where: 'archive',
-      score: rank(issue.title, issue.area),
-      fixedIn: issue.fixedIn
-    })),
+    ...[queue, backlog].flatMap((each) => [
+      ...(each?.open ?? []).map((issue) => ({
+        id: issue.id,
+        title: issue.title,
+        area: issue.area,
+        where: 'open',
+        score: rank(issue.title, issue.area)
+      })),
+      ...(each?.archived ?? []).map((issue) => ({
+        id: issue.id,
+        title: issue.title,
+        area: issue.area,
+        where: 'archive',
+        score: rank(issue.title, issue.area),
+        fixedIn: issue.fixedIn
+      }))
+    ]),
     ...tasks.map((task) => ({ id: task.id, title: task.title, where: 'task', score: rank(task.title) }))
   ]
   return found
@@ -168,11 +175,12 @@ export function candidates({ report, queue, tasks = [] }) {
 export const reporterVersion = (report) =>
   /\bversion\b\D{0,16}(\d+\.\d+\.\d+(?:-[\w.]+)?)/i.exec(`${report.title}\n${report.body ?? ''}`)?.[1] ?? null
 
-export const RELATIONS = Object.freeze(['same', 'close', 'different', 'not-a-defect'])
+export const RELATIONS = Object.freeze(['same', 'close', 'different', 'not-a-defect', 'feature'])
 
 /**
  * What the verdict on a report does. `relation` is the judgment of the agent: the report is `same` problem as the `candidate`, `close` to it but different,
- * `different` from every candidate (a new defect), or `not-a-defect`. Answers and closings on the host need the owner's approval; the plan's own files do not.
+ * `different` from every candidate (a new defect), `not-a-defect`, or a `feature` (a request for something new, which is a backlog item and not an issue; the
+ * candidate, when there is one, is the backlog item that already holds it). Answers and closings on the host need the owner's approval; the plan's own files do not.
  * @returns {{ steps: string[], approval: boolean }}
  */
 export function triagePlan({ relation, candidate, version = null }) {
@@ -185,6 +193,20 @@ export function triagePlan({ relation, candidate, version = null }) {
         'answer the report with the reason (for an ordinary word: `terms.productGeneric` and the vocabulary of the framework)',
         'close it'
       ],
+      approval: true
+    }
+  }
+  if (relation === 'feature') {
+    return {
+      steps: candidate
+        ? [
+            `add the report to the \`Source:\` of the backlog item ${candidate.id}`,
+            `answer the report: it is recorded as ${candidate.id} in the backlog and waits for the owner’s decision; nothing is started until the owner promotes it into a task of a phase`
+          ]
+        : [
+            'add a new item to the backlog, as proposed (from the backlog template), with `Source: report` and the link of the report',
+            'answer the report with the item: it waits for the owner’s decision, and nothing is started until the owner promotes it into a task of a phase'
+          ],
       approval: true
     }
   }

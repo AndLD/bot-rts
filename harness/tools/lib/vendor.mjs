@@ -27,7 +27,9 @@ const describeSource = (source) =>
 /**
  * The files of a framework tree that a project receives: the distributable paths of `framework.json`, and of `adapters/` only the
  * selected adapters and the skeletons of the three axes, which the new-adapter guide copies (`hosts`, a list, in place of `host` for a template
- * repository, which holds every adapter). Fails on a selected adapter the framework does not have.
+ * repository, which holds every adapter), without the files whose names end as `excluded` says: the framework's tests prove the framework against its own
+ * repository (its profile file, every preset, its documents), so in a project they fail for what the project does not have (I-1). Fails on a selected
+ * adapter the framework does not have.
  */
 export function selectFiles(dir, manifest, adapters) {
   const files = walk(dir)
@@ -52,7 +54,8 @@ export function selectFiles(dir, manifest, adapters) {
         : files.filter((file) => file === path || inside(path)(file))
     matches.forEach((file) => selected.add(file))
   }
-  return [...selected].sort()
+  const excluded = manifest.excluded ?? []
+  return [...selected].filter((file) => !excluded.some((ending) => file.endsWith(ending))).sort()
 }
 
 const managedPath = (generator, profile) =>
@@ -297,8 +300,14 @@ export function checkVendored({ root, generators = registered }) {
     if (lock.source.type === 'path') {
       const dir = resolve(root, lock.source.location)
       if (existsSync(dir)) {
-        const sourceHashes = hashTree(dir, selectFiles(dir, readManifest(dir), lock.adapters))
-        if (JSON.stringify(sourceHashes) !== JSON.stringify(lock.files)) {
+        const manifest = readManifest(dir)
+        const sourceHashes = hashTree(dir, selectFiles(dir, manifest, lock.adapters))
+        // A sync by tools that do not know `excluded` copied the files it names (the framework's tests); they stay until the next sync and are not a change
+        const excluded = manifest.excluded ?? []
+        const locked = Object.fromEntries(
+          Object.entries(lock.files).filter(([path]) => !excluded.some((ending) => path.endsWith(ending)))
+        )
+        if (JSON.stringify(sourceHashes) !== JSON.stringify(locked)) {
           problems.push(
             `the framework source ${lock.source.location} changed since the last sync: run \`harness sync\``
           )

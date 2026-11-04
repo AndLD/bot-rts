@@ -8,7 +8,7 @@ import { compareIds, loadPhaseEntries, parseTaskFile, TASK_LOG_FILE } from '../l
 import { loadProfile } from '../lib/profile.mjs'
 import { runHook } from './io.mjs'
 import { isMain } from '../lib/main-module.mjs'
-import { readQueue } from '../lib/issue-queue.mjs'
+import { BACKLOG, readQueue } from '../lib/issue-queue.mjs'
 import { intakeLines, recordedReports, reportSettings } from '../lib/reports.mjs'
 
 const IN_PROGRESS = /\*\*Status:\*\*\s*🟡/
@@ -104,6 +104,15 @@ export function issueQueueLine(readText, list, issuesDir) {
   return `Issue queue: ${open.length} open issue(s)${started ? `, ${started} in progress` : ''} (${issuesDir}/README.md); read the index, never the archive, when asked to work the queue.`
 }
 
+// The line about the backlog of feature requests: how many items are open and where the index is; null where the project has no backlog
+export function backlogLine(readText, list, backlogDir) {
+  if (!backlogDir || !list(backlogDir).includes('README.md')) {
+    return null
+  }
+  const open = list(backlogDir).filter((name) => /^B-\d+\.md$/.test(name))
+  return `Backlog: ${open.length} proposed item(s) (${backlogDir}/README.md); none is started as it is: the owner promotes an item into a task of a phase first.`
+}
+
 export function sessionStartMessage(
   branch,
   readText,
@@ -112,7 +121,8 @@ export function sessionStartMessage(
   methodPath = 'the method',
   planIndex = null,
   issuesDir = null,
-  reportLines = []
+  reportLines = [],
+  backlogDir = null
 ) {
   const lines = [`Branch: ${branch || 'unknown'}`]
   const phases = phasesInProgress(readText, list, phasesDir)
@@ -163,6 +173,10 @@ export function sessionStartMessage(
   if (queue) {
     lines.push(queue)
   }
+  const backlog = backlogLine(readText, list, backlogDir)
+  if (backlog) {
+    lines.push(backlog)
+  }
   lines.push(...reportLines)
   lines.push(`Read the method, section "Session protocol" (${methodPath}), before you start or resume a phase.`)
   return lines.join('\n')
@@ -181,7 +195,10 @@ export async function reportLinesOf({ root, profile, readText, list, host: given
   try {
     const reports = host.listReports({ slug: profile.repository.slug })
     const queue = profile.paths?.issues ? readQueue({ dir: profile.paths.issues, list, readText }) : null
-    return intakeLines({ settings, reports, recorded: recordedReports({ queue }) })
+    const backlog = profile.paths?.backlog
+      ? readQueue({ dir: profile.paths.backlog, list, readText, kind: BACKLOG })
+      : null
+    return intakeLines({ settings, reports, recorded: recordedReports({ queue, backlog }) })
   } catch (error) {
     return intakeLines({ settings, reports: [], recorded: new Set(), error: error.message.split('\n')[0] })
   }
@@ -215,7 +232,8 @@ export async function decide(event) {
       profile.documents?.method,
       profile.paths?.planIndex,
       profile.paths?.issues,
-      reportLines
+      reportLines,
+      profile.paths?.backlog
     )
   }
 }

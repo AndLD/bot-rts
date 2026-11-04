@@ -50,3 +50,6 @@ A migration changes files across the project (the vendored copy, the entry file,
 - [0.1.1](./0.1.1.md)
 - [0.1.2](./0.1.2.md)
 - [0.2.0-dev.1](./0.2.0-dev.1.md)
+- [0.2.0-dev.2](./0.2.0-dev.2.md)
+- [0.2.0-dev.3](./0.2.0-dev.3.md)
+- [0.2.0](./0.2.0.md)

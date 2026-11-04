@@ -6,7 +6,7 @@ import { posix } from 'node:path'
 
 const TASK_LOG_FIRST = /^\[←[^\]]*\]\(([^)]+)\)/
 const VERSION = /`?\b\d+\.\d+\.\d+(?:-[\w.]+)?\b`?/g
-const TASK_OR_ISSUE = /\b(?:\d+\.\d+[a-z]?|I-\d+)\b/g
+const TASK_OR_ISSUE = /\b(?:\d+\.\d+[a-z]?|[IB]-\d+)\b/g
 
 // The parts of a phase index, in the order of the template; a part marked `optional` may be missing, and is checked for its place when it is there
 export const INDEX_PARTS = Object.freeze([

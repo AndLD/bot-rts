@@ -2,7 +2,7 @@
 // adapter's `reports` role, so that the procedures stay neutral and the host is a seam. Reading is free; answering, closing and creating on the host need the
 // owner's approval, which the agent states with `--approved` after it asked (the upstream `post` switch needs none for a new report).
 import { hostModule } from './host.mjs'
-import { openTasks, readQueueOf } from './plan.mjs'
+import { openTasks, readBacklogOf, readQueueOf } from './plan.mjs'
 import { readLock } from './lock.mjs'
 import {
   RELATIONS,
@@ -77,8 +77,11 @@ export function reportsCommand({ words, flags, root, profile, hosts, cli }) {
 
   if (action === 'list') {
     const reports = host.listReports(options)
-    const queue = readQueueOf(root, profile)
-    const recorded = recordedReports({ queue, taskTexts: [] })
+    const recorded = recordedReports({
+      queue: readQueueOf(root, profile),
+      backlog: readBacklogOf(root, profile),
+      taskTexts: []
+    })
     const shown = flags.untriaged ? untriaged(reports, recorded) : reports
     return {
       code: 0,
@@ -102,7 +105,12 @@ export function reportsCommand({ words, flags, root, profile, hosts, cli }) {
   }
   if (action === 'candidates' && rest.length === 1) {
     const report = host.showReport({ ...options, number: rest[0] })
-    const found = candidates({ report, queue: readQueueOf(root, profile), tasks: openTasks({ root, profile }) })
+    const found = candidates({
+      report,
+      queue: readQueueOf(root, profile),
+      backlog: readBacklogOf(root, profile),
+      tasks: openTasks({ root, profile })
+    })
     const version = reporterVersion(report)
     return {
       code: 0,
@@ -113,7 +121,9 @@ export function reportsCommand({ words, flags, root, profile, hosts, cli }) {
               (item) =>
                 `${item.id} [${item.where}] ${item.title}${item.area ? ` (${item.area})` : ''}${item.fixedIn ? `; fixed in ${item.fixedIn}` : ''}`
             )
-          : ['no candidate in the indexes: a new issue, unless it is not a defect'])
+          : [
+              'no candidate in the indexes: a new issue, unless it is not a defect (a feature request is a backlog item)'
+            ])
       ]
     }
   }
@@ -121,9 +131,11 @@ export function reportsCommand({ words, flags, root, profile, hosts, cli }) {
     if (!RELATIONS.includes(flags.relation)) {
       return refuse(`--relation is one of ${RELATIONS.join(', ')}`)
     }
-    const queue = readQueueOf(root, profile)
-    const issue =
-      flags.candidate && queue ? [...queue.open, ...queue.archived].find((item) => item.id === flags.candidate) : null
+    const queues = [readQueueOf(root, profile), readBacklogOf(root, profile)].filter(Boolean)
+    const queue = flags.candidate
+      ? queues.find((each) => [...each.open, ...each.archived].some((item) => item.id === flags.candidate))
+      : null
+    const issue = queue ? [...queue.open, ...queue.archived].find((item) => item.id === flags.candidate) : null
     const candidate = issue
       ? { id: issue.id, where: queue.archived.includes(issue) ? 'archive' : 'open', fixedIn: issue.fixedIn }
       : null
@@ -145,6 +157,6 @@ export function reportsCommand({ words, flags, root, profile, hosts, cli }) {
     return { code: 0, lines: [`Created ${host.createReport({ ...options, title: flags.title, body: flags.body })}`] }
   }
   return refuse(
-    "usage: harness reports status | list [--untriaged] | show <n> | search <text> | candidates <n> | plan --relation <same|close|different|not-a-defect> [--candidate <id>] [--version <v>] | comment <n> --body <text> --approved | close <n> --approved | create --title <t> --body <b> --approved   (add --upstream for the framework's repository)"
+    "usage: harness reports status | list [--untriaged] | show <n> | search <text> | candidates <n> | plan --relation <same|close|different|not-a-defect|feature> [--candidate <id>] [--version <v>] | comment <n> --body <text> --approved | close <n> --approved | create --title <t> --body <b> --approved   (add --upstream for the framework's repository)"
   )
 }

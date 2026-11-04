@@ -9,6 +9,9 @@ when `harness plan summary` runs, so an agent that works the queue reads this fi
 
 Before adding an issue, look for the same or a close problem in this index and the archive (title and area first, then the files); the same problem is added to
 the `Reported:` line of the issue that holds it.
+{{#if paths.backlog}}
+A request for something new, which is not a defect, is an item of the [backlog]({{rel:paths.backlog}}/README.md), not an issue.
+{{/if}}
 
 <!-- issue-queue:start -->
 {{#if plan.complexity.scale}}

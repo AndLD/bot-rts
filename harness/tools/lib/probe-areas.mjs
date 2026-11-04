@@ -33,6 +33,28 @@ export function parseProbes(text) {
     })
 }
 
+export const PROBE_COLUMNS = 'Probe | Scenario | Areas | Words read at the last review'
+
+/**
+ * The problem of the probe table's columns, or null: the table that holds the probe rows must name its third column "Areas" (the cell the areas are read from).
+ * A table of the older shape (`Id | Scenario | Expected`) is reported once, instead of its every probe as naming an area that does not exist.
+ */
+export function probeTableProblem(text, file) {
+  const lines = text.split('\n')
+  const first = lines.findIndex((line) => /^\|\s*P\d+\s*\|/.test(line))
+  if (first < 0) {
+    return null
+  }
+  let at = first - 1
+  while (at >= 0 && /^\|[\s:|-]*$/.test(lines[at])) {
+    at -= 1
+  }
+  const header = at >= 0 && lines[at].startsWith('|') ? cells(lines[at]) : []
+  return /^areas$/i.test(header[2] ?? '')
+    ? null
+    : `${file}: the table of the probes has the columns "${header.join(' | ') || 'none'}"; it must have "${PROBE_COLUMNS}" (the third cell of a probe names its areas of the migration notes, separated by commas; move other columns out of the table)`
+}
+
 /** The problems of the probes against the areas of the migration notes: each names at least one area, and only areas that exist. */
 export function probeProblems(probes, known, file) {
   return probes.flatMap((probe) => {
@@ -102,7 +124,12 @@ export function checkProbes({ root, profile }) {
   if (!file || !existsSync(`${root}/${file}`)) {
     return { problems: [], message: 'The project has no harness-review bindings, so there are no probes to check.' }
   }
-  const probes = parseProbes(readFileSync(`${root}/${file}`, 'utf8'))
+  const text = readFileSync(`${root}/${file}`, 'utf8')
+  const shape = probeTableProblem(text, file)
+  if (shape) {
+    return { problems: [shape], message: 'The probe table has other columns than the probes need.' }
+  }
+  const probes = parseProbes(text)
   const areasFile = `${root}/${inFramework(profile, 'migrations')}/areas.json`
   if (!probes.length || !existsSync(areasFile)) {
     return { problems: [], message: 'The bindings hold no probe table, so there are no probe areas to check.' }

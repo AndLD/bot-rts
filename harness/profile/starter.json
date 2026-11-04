@@ -30,6 +30,8 @@
       "stack": "docs/engineering/stack.md",
       "ruleChecks": "docs/engineering/rule-checks.md",
       "planMethod": "harness/core/plan/README.md",
+      "riskRegister": "docs/development-plan/cross-cutting/risk-register.md",
+      "rfcs": "docs/development-plan/cross-cutting/decisions/README.md",
       "changelogFragments": "harness/core/templates/changelog-fragments.md",
       "releasing": "docs/operations/releasing.md",
       "codeReviews": "harness/core/reviews/code/README.md",

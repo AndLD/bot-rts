@@ -25,6 +25,19 @@ export const currentBranch = (root) => {
   }
 }
 
+/** The text of `path` (relative to `root`) as `commit` holds it; null when the commit does not have it. */
+export function fileAt(root, commit, path) {
+  try {
+    return execFileSync('git', ['show', `${commit}:./${path}`], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
+  } catch {
+    return null
+  }
+}
+
 /** The paths with uncommitted changes (modified, added, deleted, untracked), relative to the repository's top. */
 export function changedPaths(root) {
   const entries = execFileSync('git', ['status', '--porcelain=v1', '-z', '--untracked-files=all'], {

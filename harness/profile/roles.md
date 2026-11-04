@@ -83,6 +83,9 @@ Branch types:
 | Estimation scale | {{plan.estimationScale}} |
 | Resume phrases | {{plan.resumePhrases}} |
 | Issue queue | {{link:paths.issues}}: the defects and improvements found in use, not a phase; a file `I-<n>.md` per issue with its log beside it, branch `bugfix/I-<n>-<slug>`, the open ones in the folder's `README.md`, the finished ones in `archived/` |
+{{#if paths.backlog}}
+| Backlog | {{link:paths.backlog}}: the feature requests, not a phase and not defects; a file `B-<n>.md` per item with its `Source:` (`report` with the link of each report, `owner` or `agent`), branch `feature/B-<n>-<slug>`, built only when the owner puts it into a release or asks for it by name, the open ones in the folder's `README.md`, the finished ones in `archived/` |
+{{/if}}
 | Specification citation | {{plan.specificationCitation}} |
 | Agent complexity | every open task carries a marker in the `Agent` column of its phase file: {{derived.complexityScale}} |
 | Agent models | {{derived.complexityModels}} |
@@ -215,6 +218,8 @@ Bounded contexts (files of the product specification):
 | Plan index | {{link:paths.planIndex}} |
 | Plan method | {{link:documents.planMethod}} |
 | Plan bindings (the values of the plan method) | {{link:documents.planBindings}} |
+| Risk register | {{link:documents.riskRegister}} |
+| Design records (RFCs) | {{link:documents.rfcs}} |
 | Definition of done | {{link:documents.definitionOfDone}} |
 | Guiding principles | {{link:documents.guidingPrinciples}} |
 | Testing guide | {{link:documents.testing}} |

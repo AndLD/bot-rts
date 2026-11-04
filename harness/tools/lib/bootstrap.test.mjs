@@ -107,6 +107,25 @@ test('the scaffold joins the ignore lines of every part and renders the core fil
   assert.ok(files['.github/workflows/ci.yml'] && files['CLAUDE.md'] && files['package.json'])
 })
 
+test('the scaffold writes a backlog only for a project that names the role, with its block in the plan index', () => {
+  const plain = withDefaults(readSchema(), completeProfile(ANSWERS))
+  const without = Object.fromEntries(
+    scaffoldPlan({ profile: plain, modules }).map(({ path, content }) => [path, content])
+  )
+  assert.ok(!Object.keys(without).some((path) => path.includes('backlog/')), 'the backlog is optional')
+  assert.doesNotMatch(without['docs/development-plan/README.md'], /plan-backlog/)
+
+  const profile = withDefaults(
+    readSchema(),
+    completeProfile({ ...ANSWERS, paths: { backlog: 'docs/development-plan/backlog' } })
+  )
+  const files = Object.fromEntries(scaffoldPlan({ profile, modules }).map(({ path, content }) => [path, content]))
+  assert.ok(files['docs/development-plan/backlog/README.md'].startsWith('[← Development plan](../README.md)'))
+  assert.match(files['docs/development-plan/backlog/README.md'], /<!-- backlog:start -->[\s\S]*<!-- backlog:end -->/)
+  assert.ok(files['docs/development-plan/backlog/archived/README.md'].startsWith('[← Backlog](../README.md)'))
+  assert.match(files['docs/development-plan/README.md'], /<!-- plan-backlog:start -->\n<!-- plan-backlog:end -->/)
+})
+
 test('the scaffold writes the product-knowledge skeleton, which the entry file points to and the product-knowledge check accepts', () => {
   const profile = withDefaults(readSchema(), completeProfile(ANSWERS))
   const files = Object.fromEntries(scaffoldPlan({ profile, modules }).map(({ path, content }) => [path, content]))
@@ -124,6 +143,26 @@ test('the scaffold writes the product-knowledge skeleton, which the entry file p
     files['AGENTS.md'],
     /\| understand what the product is or does \| the \[product specification\]\(\.\/docs\/product\/README\.md\)/
   )
+})
+
+test('the scaffold writes a risk register and a template of design records once, linked to each other and to the plan, and a project that leaves the roles empty gets neither', () => {
+  const profile = withDefaults(readSchema(), completeProfile(ANSWERS))
+  const files = Object.fromEntries(scaffoldPlan({ profile, modules }).map(({ path, content }) => [path, content]))
+  const risks = files['docs/development-plan/cross-cutting/risk-register.md']
+  const rfcs = files['docs/development-plan/cross-cutting/decisions/README.md']
+  assert.ok(risks.startsWith('[← Development plan](../README.md)\n\n# Risk register'))
+  assert.match(risks, /\| ID \| Risk \| Likelihood \| Impact \| Mitigation \| Owner \| Status \| Reviewed \|/)
+  assert.match(risks, /\[the decision records\]\(\.\/decisions\/README\.md\)/)
+  assert.ok(rfcs.startsWith('[← Development plan](../../README.md)\n\n# Design records (RFCs)'))
+  assert.match(rfcs, /\[risk register\]\(\.\.\/risk-register\.md\)/)
+  assert.match(rfcs, /\*\*Status:\*\* proposed \| accepted \| rejected \| superseded by <number>/)
+  assert.match(rfcs, /^## (Context|Options|Decision|Consequences)$/gm)
+
+  const without = structuredClone(profile)
+  without.documents.riskRegister = ''
+  without.documents.rfcs = ''
+  const none = scaffoldPlan({ profile: without, modules }).map(({ path }) => path)
+  assert.ok(!none.some((path) => /cross-cutting/.test(path)))
 })
 
 test('a project with two stacks gets one CI workflow whose job ids are unique, each stack with its own static job and its own coverage jobs', () => {

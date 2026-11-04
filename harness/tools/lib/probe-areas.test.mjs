@@ -12,6 +12,7 @@ import {
   parseProbes,
   probePlan,
   probeProblems,
+  probeTableProblem,
   probesReport,
   startingProbes,
   touchedAreas
@@ -188,4 +189,31 @@ test('the check holds the names of the areas in the project’s bindings, and th
   })
   assert.equal(code, 0, lines.join('\n'))
   assert.match(lines.join('\n'), /Areas touched by the versions after 0\.1\.2 up to 0\.2\.0/)
+})
+
+const OLD_TABLE = `# Bindings
+
+| Id | Scenario | Expected |
+| -- | -------- | -------- |
+| P1 | Start the next task | Names the CORE files |
+| P2 | Open the pull request | Reads the procedure |
+`
+
+test('a probe table of the older shape is one problem that names the columns it has and the ones it needs, not a problem for each probe', () => {
+  assert.equal(probeTableProblem(BINDINGS, 'b.md'), null)
+  assert.equal(probeTableProblem('no table', 'b.md'), null)
+  for (const file of ['core/templates/scaffold/harness-bindings.md', 'docs/quality-reviews/harness/bindings.md']) {
+    assert.equal(probeTableProblem(readFileSync(join(FRAMEWORK, file), 'utf8'), file), null, file)
+  }
+  const problem = probeTableProblem(OLD_TABLE, 'b.md')
+  assert.match(
+    problem,
+    /^b\.md: the table of the probes has the columns "Id \| Scenario \| Expected"; it must have "Probe \| Scenario \| Areas \| Words read at the last review"/
+  )
+
+  const { root, profile } = project()
+  writeFileSync(join(root, 'docs/bindings.md'), OLD_TABLE)
+  const { problems } = checkProbes({ root, profile })
+  assert.equal(problems.length, 1)
+  assert.match(problems[0], /the columns "Id \| Scenario \| Expected"/)
 })

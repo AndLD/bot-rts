@@ -1,7 +1,7 @@
 // What must hold before a version is taken (task 3.14), so that the migration is one commit that `harness rollback` can undo: a branch of its own, no
 // other uncommitted change, and the commit and version it starts from recorded in the lock. A folder that is no Git repository has no history to undo
 // through, so nothing is checked there.
-import { changedPaths, currentBranch, headCommit, isRepository } from './migration-git.mjs'
+import { changedPaths, currentBranch, fileAt, headCommit, isRepository } from './migration-git.mjs'
 import { LOCK_FILE, VENDOR_DIR } from './lock.mjs'
 import { FIRST_VERSION } from './versions.mjs'
 
@@ -39,6 +39,24 @@ export function startOfSync({ root, profile, lock }) {
 }
 
 /**
+ * The version a project was at before an older `sync` replaced the version of its lock: the lock as the last commit holds it. Null when that lock is not
+ * there or does not name a version other than the one now in the lock.
+ */
+function versionBeforeSync(root, commit, lock) {
+  try {
+    const before = JSON.parse(fileAt(root, commit, LOCK_FILE) ?? 'null')?.version
+    return typeof before === 'string' && before !== lock.version ? before : null
+  } catch {
+    return null
+  }
+}
+
+/** Where a project's files are, by the lock: its record of a migration, else the lock of the last commit, else the first version. */
+function startVersion(root, commit, lock) {
+  return lock.migrations?.version ?? versionBeforeSync(root, commit, lock) ?? FIRST_VERSION
+}
+
+/**
  * The start of a `migrate`. The tree may hold what the `sync` before it wrote (the vendored copy, the lock, the managed files) and nothing else.
  * Where the sync recorded its start (the commit has not moved), that start stands; after the `sync` of an older version it is recorded here.
  * @returns {{ commit: string, version: string } | null}
@@ -60,5 +78,5 @@ export function startOfMigrate({ root, profile, lock }) {
   }
   const commit = headCommit(root)
   const recorded = lock.migrations?.start
-  return recorded?.commit === commit ? recorded : { commit, version: lock.migrations?.version ?? FIRST_VERSION }
+  return recorded?.commit === commit ? recorded : { commit, version: startVersion(root, commit, lock) }
 }

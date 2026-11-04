@@ -357,9 +357,15 @@ each with a trigger description that names the situation, so that §7 and §6.5 
 
 ### M11: cold-start probes
 
-Run each scenario in a fresh read-only subagent whose prompt is only the scenario text plus "you are working in this
-repository; do not edit files; list the files you read, in order, then state precisely what you would do first and which rules
-you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
+Run each scenario as a **separate session started in this repository** (one `claude -p` process per probe, in the repository's folder, read-only), not as a subagent of the
+reviewing session (review method, step 5; the procedure `update-framework`, "Verify"). A session loads this repository's own entry file and runs its session-start hook, as
+a real task would; a subagent inherits the reviewing session's entry file and gets no hook, so it reads something else, and a resume probe such as P2 loses the "next step" that
+the hook prints. The prompt is only the scenario text plus "you are working in this repository; do not edit files; list the files you read, in order, then state precisely what
+you would do first and which rules you would follow". Record: files read (count and which), first action, rules it cited, wrong or uncertain steps.
+
+If a session cannot be started (the 2026-11-03 review could not: the login of the command line had expired), run the probe as a fresh read-only subagent, and write in the report
+that it was one and what it missed (no session-start hook, the reviewing session's entry file); its words read are then not comparable with a session's, so do not set them as the
+baseline in the table below.
 
 | Probe | Scenario | Areas | Words read at the last review |
 | ----- | -------- | ----- | ----------------------------- |
@@ -415,7 +421,8 @@ read-only subagents of the method itself.
 | Setting | Value |
 | ------- | ----- |
 | Session model | Opus 5.5, high effort (the judgment-heavy work: cross-context checks, verification, scoring). A different session from the one that wrote the harness, so the author does not grade their own work |
-| Subagents (claims ledgers of M12, probes P1 to P9) | Sonnet 5.5, medium effort. The probes use the model the daily work runs on, so they measure how that model reads the harness |
+| Subagents (claims ledgers of M12) | Sonnet 5.5, medium effort |
+| Probes P1 to P9 (M11) | Separate read-only sessions started in this repository (`claude -p`), Sonnet 5.5, medium effort. They use the model the daily work runs on, so they measure how that model reads the harness, with this repository's entry file and session-start hook. A subagent only when a session cannot be started (M11) |
 | Delta reviews | Sonnet 5.5, medium or high effort in one session; subagents only if the changed area spans several contexts |
 | Permissions | Read access to the repository, write access to a new `docs/` branch; no Docker or dev servers are needed |
 
@@ -426,7 +433,7 @@ Run a full harness quality review exactly per harness/core/reviews/harness/READM
 
 Setup: create a docs/ branch from origin/<integration> (the integration branch of the profile). Read the method, bindings and template first. You are the orchestrator and the reviewer of record; do not edit anything except the new report (docs/quality-reviews/harness/YYYY-MM-DD.md) and the review log in docs/quality-reviews/harness/bindings.md. Do not fix findings.
 
-Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, spawn the cold-start probes P1 to P9 as fresh read-only subagents with model "sonnet" and effort "medium", given only the scenario text. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
+Delegation: for step 4b, spawn one read-only subagent per bounded context listed in bindings.md, all in parallel, with model "sonnet" and effort "medium", each returning a claims ledger and its own intra-context findings. For step 5, run the cold-start probes P1 to P9 each as a separate read-only session started in this repository (`claude -p`, model "sonnet", effort "medium"), given only the scenario text (M11); a subagent only if a session cannot be started, and say so in the report. Do the cross-context checks, the open-item inventory (D12), the complexity pass (D13), the verification of every finding, the scoring and the report yourself. Re-open every cited location before a finding goes into the report; drop anything you cannot reproduce.
 
 Do the whole procedure through step 8 without stopping. On the first review, propose the complexity budgets in the report. Open the pull request into the integration branch and bind it, but do not merge it. Finish with a summary: scorecard, the documented / delivered / ready-to-build-next percentages, the top five findings, and the link.
 ```

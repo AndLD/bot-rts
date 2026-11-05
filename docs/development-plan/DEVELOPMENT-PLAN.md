@@ -48,7 +48,7 @@ the required tests (unit + integration + e2e per the DoD in `AGENTS.md`).
 **Releases** (the order of the releases and of their tasks is the file [releases](./releases.md), not a section of this index; the line below is written by `harness plan summary`)
 
 <!-- plan-releases:start -->
-No release is being developed. Next: `0.3.0` (⬜ planned). The order of the releases and of their tasks: [releases](./releases.md).
+Current release: `0.3.0` (🏷 a development version cut). Next: the release of the framework's Phase 2 (security) (⬜ planned). The order of the releases and of their tasks: [releases](./releases.md).
 <!-- plan-releases:end -->
 
 ---

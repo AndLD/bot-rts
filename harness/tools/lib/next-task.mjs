@@ -1,7 +1,9 @@
-// The next task of a development plan, by the order the plan says (method, session protocol; the procedure `start-task`): the order of development of
-// the plan index when it has one, in which a phase's tasks come in the order of the phase's own `Execution order` line, or of its task table when it
+// The next task of a development plan, by the order the plan says (method, session protocol; the procedure `start-task`): the release order (the releases
+// file of the plan, else the "Order of development" section of its index) when it has one, in which a phase's tasks come in the order of the phase's own `Execution order` line, or of its task table when it
 // has none; otherwise, phase by phase in number order, each in its execution order or its table's. The task table's order is the last resort, since
 // the numbers of tasks are identities and not an order (the plan method). Pure functions on the texts of the files, so a test passes them as strings.
+
+import { releaseOrder, tokensOf } from './releases.mjs'
 
 const TASK_ID = /\b\d+\.\d+[a-z]?\b/g
 // A version (`0.1.2`, `1.0.0-dev.1`) holds what looks like a task id, so it is taken out first
@@ -41,7 +43,7 @@ export function readPhases(files) {
         file,
         status: text.match(STATUS_SECTION)?.[1] ?? '⬜',
         order,
-        points: order !== null && /plan index|order of development/i.test(order),
+        points: order !== null && /plan index|order of development|release order|releases\.md/i.test(order),
         tasks
       }
     })
@@ -74,27 +76,24 @@ export function orderOfDevelopment(indexText) {
   const cells = lines.flatMap((line) =>
     line.startsWith('|') ? (/^\|\s*[-: |]+\|?\s*$/.test(line) ? [] : [line.split('|').slice(1, -1)[1] ?? '']) : [line]
   )
-  return cells.flatMap((cell) =>
-    [...cell.replace(VERSION, ' ').matchAll(/\b(?:Phase (\d+)|(\d+\.\d+[a-z]?)|([IB]-\d+))\b/g)].map((match) =>
-      match[1] ? { phase: Number(match[1]) } : (match[2] ?? match[3])
-    )
-  )
+  return cells.flatMap((cell) => tokensOf(cell))
 }
 
 /**
  * The next task: the first one not started (⬜) in the order of the plan.
- * @param {{ phases: ReturnType<typeof readPhases>, indexText?: string }} plan
- * @returns {{ id: string, title: string, file: string, source: 'order of development' | 'execution order' | 'table' } | null}
+ * The order is the releases file when the plan has one (`releasesText`, the profile role `paths.releases`), else the section of the plan index.
+ * @param {{ phases: ReturnType<typeof readPhases>, indexText?: string, releasesText?: string | null }} plan
+ * @returns {{ id: string, title: string, file: string, source: 'release order' | 'order of development' | 'execution order' | 'table' } | null}
  */
-export function nextTask({ phases, indexText = '' }) {
+export function nextTask({ phases, indexText = '', releasesText = null }) {
   const own = (phase) => phaseSequence(phase).map((id) => ({ id, phase }))
-  const index = orderOfDevelopment(indexText)
+  const index = releasesText === null ? orderOfDevelopment(indexText) : releaseOrder(releasesText)
   const byId = new Map(phases.flatMap((phase) => phase.tasks.map((task) => [task.id, { phase, task }])))
 
   const sequence = []
   let source = 'table'
   if (index.length) {
-    source = 'order of development'
+    source = releasesText === null ? 'order of development' : 'release order'
     for (const token of index) {
       if (typeof token === 'string') {
         const found = byId.get(token)

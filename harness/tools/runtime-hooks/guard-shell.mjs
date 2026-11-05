@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process'
 import { hostModule } from '../lib/host.mjs'
 import { refusal } from '../lib/guard.mjs'
 import { loadProfile } from '../lib/profile.mjs'
+import { registerLocalAdapters } from '../lib/local-adapters.mjs'
 import { runHook } from './io.mjs'
 import { isMain } from '../lib/main-module.mjs'
 
@@ -95,5 +96,11 @@ export function decide(
 }
 
 if (isMain(import.meta.url)) {
-  await runHook((event) => decide(event), { kind: 'shell' })
+  await runHook(
+    async (event) => {
+      await registerLocalAdapters(event.cwd)
+      return decide(event)
+    },
+    { kind: 'shell' }
+  )
 }

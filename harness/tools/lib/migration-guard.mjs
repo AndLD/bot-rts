@@ -2,6 +2,7 @@
 // other uncommitted change, and the commit and version it starts from recorded in the lock. A folder that is no Git repository has no history to undo
 // through, so nothing is checked there.
 import { changedPaths, currentBranch, fileAt, headCommit, isRepository } from './migration-git.mjs'
+import { LOCAL_DIR } from './adapters.mjs'
 import { LOCK_FILE, VENDOR_DIR } from './lock.mjs'
 import { FIRST_VERSION } from './versions.mjs'
 
@@ -57,7 +58,8 @@ function startVersion(root, commit, lock) {
 }
 
 /**
- * The start of a `migrate`. The tree may hold what the `sync` before it wrote (the vendored copy, the lock, the managed files) and nothing else.
+ * The start of a `migrate`. The tree may hold what the `sync` before it wrote (the vendored copy, the lock, the managed files), and the fix of an adapter of
+ * the project's own repository (`harness-adapters/`) that a version stopped on (task 3.4); nothing else.
  * Where the sync recorded its start (the commit has not moved), that start stands; after the `sync` of an older version it is recorded here.
  * @returns {{ commit: string, version: string } | null}
  */
@@ -68,7 +70,13 @@ export function startOfMigrate({ root, profile, lock }) {
   assertBranch(root, profile, 'harness migrate')
   const written = new Set(Object.keys(lock.managed ?? {}).map((key) => key.split('#')[0]))
   const foreign = changedPaths(root).filter(
-    (path) => !(path.startsWith(`${VENDOR_DIR}/`) || path === LOCK_FILE || written.has(path))
+    (path) =>
+      !(
+        path.startsWith(`${VENDOR_DIR}/`) ||
+        path.startsWith(`${LOCAL_DIR}/`) ||
+        path === LOCK_FILE ||
+        written.has(path)
+      )
   )
   if (foreign.length) {
     throw new Error(

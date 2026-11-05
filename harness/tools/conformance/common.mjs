@@ -15,15 +15,13 @@ export const commonChecks = [
     name: 'the manifest matches the contract of its axis and the folder carries its name',
     run: (context) => {
       assert.equal(context.folderName, context.manifest.name, 'the folder is named as the adapter')
-      assert.deepEqual(
-        manifestProblems({
-          axis: context.axis,
-          name: context.manifest.name,
-          dir: context.dir,
-          manifest: context.manifest
-        }),
-        []
-      )
+      const problems = manifestProblems({
+        axis: context.axis,
+        name: context.manifest.name,
+        dir: context.dir,
+        manifest: context.manifest
+      })
+      assert.equal(problems.length, 0, problems.join('\n'))
     }
   },
   {

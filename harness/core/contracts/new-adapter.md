@@ -2,11 +2,11 @@
 
 An adapter fills one contract ([stack](./stack.md), [runtime](./runtime.md) or [host](./host.md)) for a tool the framework has no preset for: a language and its tools, a
 coding agent, a repository host. Any agent can follow these steps; they are the same for the three axes. The conformance suite is the judge: an adapter is done
-when `harness adapter test` passes on it, which is the same suite the presets pass in the framework's tests.
+when `harness adapter test` passes on it, which is the same suite the presets pass in the framework's tests. The adapter can live in the framework or in the project's own repository ("Where the adapter lives").
 
 ## Steps
 
-1. **Copy the skeleton** `adapters/<axis>/_skeleton/` to `adapters/<axis>/<name>/`, where `<name>` is lower case words joined by hyphens, and set `name` in the
+1. **Copy the skeleton** `adapters/<axis>/_skeleton/` to `adapters/<axis>/<name>/` (or `harness-adapters/<axis>/<name>/` for a local adapter, below), where `<name>` is lower case words joined by hyphens, and set `name` in the
    manifest to it (the folder and the manifest must agree). Every file carries `TODO` markers; the suite fails until each one is replaced.
 2. **Fill the manifest**, one role at a time, from the contract of the axis. A role of kind *required* or *logic* must be filled; an *optional* one may be left out
    only with the fallback its row names; a *logic-optional* one is a module that is needed only in some projects. A logic role names a `module` of the adapter and an
@@ -14,6 +14,8 @@ when `harness adapter test` passes on it, which is the same suite the presets pa
    core rows of the rule-to-check map are generated from them.
 3. **Write the logic modules** as pure functions with `node --test` tests next to them, like the presets. A module that talks to a tool takes the tool as a seam
    (`cli` for a host's command line) so that a test, and the suite, can pass a stand-in.
+   For a runtime, the `executors` module says how an orchestrator of a flow starts, continues, reports and measures a worker; when the runtime offers no
+   verified way for one agent to drive another, return the manual executor only (the runtime contract, "Executors"). The optional `usage` module says how the runtime reports the account's usage windows and carries the table of coefficients that estimates a step ("Usage"); leave the role out and the framework asks the owner. A host adapter may fill `remote-state` (read a file and the pull requests of another repository without a clone) so that `harness flow status` can check a step in an external repository.
 4. **Write the samples** in `conformance.json` (below) and, for a runtime, record the event samples.
 5. **Write the adapter's documents** from the skeleton's README: the section of the stack file, the commands and the terms. `terms` are the adapter's own words
    (tool and language names, a pattern of regular expression); the CORE scan joins them with the term lists of the profile file, so core text never names them.
@@ -27,8 +29,26 @@ when `harness adapter test` passes on it, which is the same suite the presets pa
 7. **Record it.** List the adapter in `framework.json` (`adapters`), add a changelog line, add the preset to the framework README, and add the suite run on it to
    `tests/conformance/`. A preset must pass the suite in the framework's tests.
 
-The tools load the adapters that the framework tree holds. A project that cannot wait for a release can develop the adapter in a checkout of the framework and
-offer it upstream; selecting an adapter that lives in the project's own repository is not built yet.
+## Where the adapter lives
+
+There are two ways, and the steps are the same:
+
+- **Into the framework**: the folder is `adapters/<axis>/<name>/` of a checkout of the framework, and the adapter reaches every project with a release. Choose it when
+  the stack, agent runtime or host is common enough to be a preset, or when you will offer it upstream at once.
+- **Local**: the folder is `harness-adapters/<axis>/<name>/` in the project's own repository, and the profile file selects it as `local:<name>` (in `adapters.stacks`,
+  `adapters.runtimes` or `adapters.host`, on the axis of the folder). Choose it when the project cannot wait for a release. Then:
+  - the adapter imports nothing from the framework's tools by a relative path: the suite runs it from a copy of the framework, where such a path leads elsewhere
+    (the skeleton imports nothing; the presets import the framework because they live in its tree);
+  - run the suite on the folder, `node harness/tools/harness.mjs adapter test harness-adapters/<axis>/<name>`; `harness check all` and `harness migrate` run it on every
+    local adapter, so a version that changes a contract stops the migration with the adapter named, and the migration note of that version says what changed;
+  - a sync, `harness migrate` and `harness check vendored` leave the folder alone, and a rollback restores it with the rest of the migration;
+  - the bootstrap selects presets: a project bootstraps with the nearest preset, adds the folder, and switches the profile file to `local:<name>` with
+    `harness sync --local`.
+
+**Sending a local adapter upstream later.** The folder is already shaped as a preset, so: copy it to `adapters/<axis>/<name>/` of the framework checkout and do the
+"Record it" step above (the manifest, the changelog, the framework README, the conformance test), open the pull request or issue in the framework's repository (never
+push to it without the owner's authorisation), and when a release holds the adapter, change the profile file from `local:<name>` to `<name>`, run `harness sync --local`
+and delete the folder in the same pull request that takes that version.
 
 ## What the suite checks
 

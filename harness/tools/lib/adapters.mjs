@@ -9,6 +9,12 @@ export const AXES = Object.freeze(['stack', 'runtime', 'host'])
 export const ADAPTERS_DIR = join(import.meta.dirname, '..', '..', 'adapters')
 export const MANIFEST_SCHEMA_PATH = join(import.meta.dirname, '..', '..', 'profile', 'manifest.schema.json')
 
+export const LOCAL_PREFIX = 'local:'
+export const LOCAL_DIR = 'harness-adapters'
+
+/** Whether a name in the profile file selects an adapter of the project's own repository (`local:<name>`, folder `harness-adapters/<axis>/<name>/`). */
+export const isLocal = (name) => typeof name === 'string' && name.startsWith(LOCAL_PREFIX)
+
 export const readManifestSchema = (path = MANIFEST_SCHEMA_PATH) => JSON.parse(readFileSync(path, 'utf8'))
 
 /** The adapters of a framework tree: `{ axis, name, dir, manifest }` for every folder with a `manifest.json` (the `_skeleton` folders are templates). */
@@ -34,8 +40,8 @@ export function listAdapters(adaptersDir = ADAPTERS_DIR) {
  * The problems of one adapter against the contract of its axis; each is prefixed with the adapter. The structure, the folder name, the roles
  * (required ones filled, no unknown ones), and that the files and modules a role names exist and export what it says.
  */
-export function manifestProblems({ axis, name, dir, manifest }, schema = readManifestSchema()) {
-  const where = `adapters/${axis}/${name}/manifest.json`
+export function manifestProblems({ axis, name, dir, manifest, base = 'adapters' }, schema = readManifestSchema()) {
+  const where = `${base}/${axis}/${name}/manifest.json`
   const problems = validate(schema, manifest).map((problem) => `${where}: ${problem}`)
   if (problems.length) {
     return problems
@@ -92,11 +98,13 @@ export function adapterTerms(adaptersDir = ADAPTERS_DIR) {
 
 /**
  * The Node modules of the adapters of one axis, by adapter name, loaded once: `{ github: { manifest, dir, modules: { 'protect.mjs': … } } }`.
- * A module is loaded when a role of the manifest names it (`module`).
+ * A module is loaded when a role of the manifest names it (`module`). `only` narrows them to the adapter of that name.
  */
-export async function loadAdapterModules(axis, adaptersDir = ADAPTERS_DIR) {
+export async function loadAdapterModules(axis, adaptersDir = ADAPTERS_DIR, only = undefined) {
   const loaded = {}
-  for (const adapter of listAdapters(adaptersDir).filter((item) => item.axis === axis)) {
+  for (const adapter of listAdapters(adaptersDir).filter(
+    (item) => item.axis === axis && (!only || item.name === only)
+  )) {
     const modules = {}
     for (const entry of Object.values(adapter.manifest.roles)) {
       if (entry.module && !modules[entry.module]) {

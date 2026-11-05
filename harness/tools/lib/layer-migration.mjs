@@ -84,3 +84,29 @@ export function layersForPlan(text, profile) {
   }
   return { text: next, added, manual }
 }
+
+/**
+ * The releases file (`paths.releases`, migration 0.3.0, issue I-13) joins the layer that claims the plan index, only where no layer claims it already and the
+ * file is in the scope of the layer map. Same shape as `layersForPlan`.
+ * @returns {{ text: string, added: string[], manual: string[] }}
+ */
+export function layersForReleases(text, profile) {
+  const configured = profile.layers
+  const { planIndex, releases } = profile.paths ?? {}
+  const unchanged = { text, added: [], manual: [] }
+  if (!configured || !planIndex || !releases) {
+    return unchanged
+  }
+  const patterns = (layer) => configured[layer] ?? []
+  const inScope = claims(configured.scope ?? [], releases) && !claims(configured.excluded ?? [], releases)
+  if (!inScope || LAYER_NAMES.some((layer) => claims(patterns(layer), releases))) {
+    return unchanged
+  }
+  const owner = LAYER_NAMES.find((layer) => claims(patterns(layer), planIndex))
+  const anchor = owner && patterns(owner).find((pattern) => !pattern.startsWith('!') && claims([pattern], planIndex))
+  if (!anchor) {
+    return { text, added: [], manual: [releases] }
+  }
+  const edited = insertAfter(text, owner, anchor, releases)
+  return edited ? { text: edited, added: [releases], manual: [] } : { text, added: [], manual: [releases] }
+}

@@ -4,7 +4,7 @@
 // them from the reading map of its entry file. The body is rendered with the profile file, and a role it needs that the profile lacks is an error.
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { render, valueAt } from './render.mjs'
+import { render, requiredPaths, valueAt } from './render.mjs'
 
 export const PROCEDURES_DIR = join(import.meta.dirname, '..', '..', 'core', 'procedures')
 export const INVOCATIONS = Object.freeze(['auto', 'explicit'])
@@ -100,23 +100,9 @@ export function listAllProcedures(root, profile, framework = listProcedures()) {
   return [...framework, ...own]
 }
 
-// The roles a body needs outside its if and unless blocks (a role inside one is optional: the block is left out without it)
-function neededRoles(body) {
-  const roles = new Set()
-  let depth = 0
-  for (const line of body.split('\n')) {
-    if (/^\s*\{\{#(?:if|unless)\s/.test(line)) depth += 1
-    else if (/^\s*\{\{\/(?:if|unless)\}\}/.test(line)) depth -= 1
-    else if (depth === 0) {
-      for (const [, , path] of line.matchAll(/\{\{\s*(?:(link|rel):)?([\w.-]+)\s*\}\}/g)) roles.add(path)
-    }
-  }
-  return [...roles]
-}
-
 /** The body of a procedure rendered for `profile`; `document` is the path of the file it is written into (its links are relative to it). */
 export function renderProcedure(procedure, profile, document) {
-  const missing = neededRoles(procedure.body).filter((path) => [undefined, null, ''].includes(valueAt(profile, path)))
+  const missing = requiredPaths(procedure.body).filter((path) => [undefined, null, ''].includes(valueAt(profile, path)))
   if (missing.length) {
     throw new Error(`the procedure "${procedure.name}" needs the profile roles ${missing.join(', ')}`)
   }

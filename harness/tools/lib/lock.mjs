@@ -1,6 +1,7 @@
 // The lock (`harness.lock.json`) and the project's profile file as the vendoring reads them (design §1.1, §1.5).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, posix } from 'node:path'
+import { isLocal } from './adapters.mjs'
 import { PROFILE_FILE } from './profile.mjs'
 import { hashFile } from './tree.mjs'
 
@@ -70,5 +71,18 @@ export function selectedAdapters(profile) {
     stacks: (adapters.stacks ?? []).map(name),
     runtimes: (adapters.runtimes ?? []).map(name),
     host: adapters.host ?? null
+  }
+}
+
+/**
+ * The adapters of the framework the project selected: `selectedAdapters` without the ones of its own repository (`local:<name>`), which no framework version
+ * ships, so a sync neither fetches them nor records them in the lock.
+ */
+export function frameworkAdapters(profile) {
+  const { stacks, runtimes, host } = selectedAdapters(profile)
+  return {
+    stacks: stacks.filter((name) => !isLocal(name)),
+    runtimes: runtimes.filter((name) => !isLocal(name)),
+    host: isLocal(host) ? null : host
   }
 }

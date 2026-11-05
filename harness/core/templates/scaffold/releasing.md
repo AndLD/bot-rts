@@ -3,7 +3,7 @@
 # Releasing
 
 How a version of {{project.title}} is cut. The rules are the Git rules of the [entry file]({{rel:paths.entryFile}}) (release and hotfix
-branches, merge commits, the owner's approval of each merge); this guide is the order of the steps.
+branches, merge commits, the owner's approval of each merge, or that of a flow the owner started at the level its settings give the cut); this guide is the order of the steps.
 
 1. Branch `release/<x.y.z>` from the integration branch (a hotfix: `hotfix/<x.y.z>` from the production branch).
 2. Run `harness release --dry-run`, then `harness release`: it sets the version of the version files and moves the changelog fragments into

@@ -21,6 +21,13 @@ is updated in the change that starts or finishes it.
 <!-- plan-backlog:start -->
 <!-- plan-backlog:end -->
 {{/if}}
+{{#if paths.releases}}
+
+**Releases** (the order of the releases and of their tasks is the file [releases]({{rel:paths.releases}}), not a section of this index; the line below is written by `harness plan summary`)
+
+<!-- plan-releases:start -->
+<!-- plan-releases:end -->
+{{/if}}
 
 ---
 

@@ -13,6 +13,34 @@ import { owns, selectedStacks, stackModule, STACKS } from './stacks.mjs'
 export const UNREADABLE = 'unknown.ts'
 const HARNESS = join(import.meta.dirname, '..', 'harness.mjs')
 
+// The variables that point Git at a repository (`git rev-parse --local-env-vars`). Git runs the hooks of a linked worktree with
+// GIT_DIR=<repo>/.git/worktrees/<name>: a step that kept it and ran Git in a folder of its own would act on the pushing repository (I-8).
+export const REPOSITORY_ENV = Object.freeze([
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_CONFIG',
+  'GIT_CONFIG_PARAMETERS',
+  'GIT_CONFIG_COUNT',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_IMPLICIT_WORK_TREE',
+  'GIT_GRAFT_FILE',
+  'GIT_INDEX_FILE',
+  'GIT_NO_REPLACE_OBJECTS',
+  'GIT_REPLACE_REF_BASE',
+  'GIT_PREFIX',
+  'GIT_INTERNAL_SUPER_PREFIX',
+  'GIT_SHALLOW_FILE',
+  'GIT_COMMON_DIR'
+])
+
+/** The environment without the variables that point Git at a repository; `GIT_CONFIG_KEY_<n>` and `GIT_CONFIG_VALUE_<n>` go with their count. */
+export function withoutRepositoryEnv(env) {
+  return Object.fromEntries(
+    Object.entries(env).filter(([name]) => !REPOSITORY_ENV.includes(name) && !/^GIT_CONFIG_(KEY|VALUE)_\d+$/.test(name))
+  )
+}
+
 /** The ranges of a push: the hook gets "<local ref> <local sha> <remote ref> <remote sha>" lines; a new branch is compared with the integration branch. */
 export function rangesOfPush(stdin, integration) {
   const zero = /^0+$/
@@ -128,17 +156,18 @@ export function planPush(files, { profile, stacks = STACKS, exists }) {
   return { skip: null, steps }
 }
 
-/** Runs a step with the process; `harness` is the framework's own command line. */
-function defaultRun(step, root) {
+/** Runs a step with the process in `env`; `harness` is the framework's own command line. */
+function defaultRun(step, root, env) {
   const [command, args] =
     step.command === 'harness' ? [process.execPath, [HARNESS, ...step.args]] : [step.command, step.args]
-  return spawnSync(command, args, { cwd: join(root, step.cwd ?? '.'), stdio: 'inherit' }).status ?? 1
+  return spawnSync(command, args, { cwd: join(root, step.cwd ?? '.'), stdio: 'inherit', env }).status ?? 1
 }
 
 /**
  * `harness gate [--dry-run]`: plans the push on standard input and runs the plan; returns the exit code.
- * @param {{ root: string, profile: object, stdin: string, dryRun?: boolean, out: Function, err: Function, run?: Function, prepare?: Function, stacks?: object }} options
- *   `run(step, root) → exit code` and `prepare(need, root, run)` are the seams of the tests
+ * @param {{ root: string, profile: object, stdin: string, dryRun?: boolean, out: Function, err: Function, run?: Function, prepare?: Function, stacks?: object, env?: object }} options
+ *   `run(step, root, env) → exit code` and `prepare(need, root, run)` are the seams of the tests; every step runs in `env` (the process's by
+ *   default) without the variables that point Git at a repository
  */
 export async function runGate({
   root,
@@ -149,8 +178,11 @@ export async function runGate({
   err,
   run = defaultRun,
   prepare,
-  stacks = STACKS
+  stacks = STACKS,
+  env = process.env
 }) {
+  const stepEnv = withoutRepositoryEnv(env)
+  const runStep = (step, at) => run(step, at, stepEnv)
   const files = changedFiles(root, rangesOfPush(stdin, profile.branches.integration))
   const plan = planPush(files, { profile, stacks, exists: (file) => existsSync(join(root, file)) })
 
@@ -178,7 +210,7 @@ export async function runGate({
     if (step.need && !prepared.has(step.need)) {
       prepared.add(step.need)
       try {
-        const done = await (prepare ?? defaultPrepare)(step.need, { root, profile, run })
+        const done = await (prepare ?? defaultPrepare)(step.need, { root, profile, run: runStep })
         if (done?.message) {
           out(done.message)
         }
@@ -190,7 +222,7 @@ export async function runGate({
     for (const path of step.clears ?? []) {
       rmSync(join(root, path), { force: true })
     }
-    const status = run(step, root)
+    const status = runStep(step, root)
     if (status !== 0) {
       err(`pre-push: "${step.label}" failed`)
       if (step.hint) {

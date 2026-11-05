@@ -83,6 +83,12 @@ Branch types:
 | Estimation scale | {{plan.estimationScale}} |
 | Resume phrases | {{plan.resumePhrases}} |
 | Issue queue | {{link:paths.issues}}: the defects and improvements found in use, not a phase; a file `I-<n>.md` per issue with its log beside it, branch `bugfix/I-<n>-<slug>`, the open ones in the folder's `README.md`, the finished ones in `archived/` |
+{{#if paths.releases}}
+| Release order | {{link:paths.releases}}: the table of the releases and of the tasks in each, in order; the plan index links to it and shows the current release |
+{{/if}}
+{{#if paths.flows}}
+| Flows | {{link:paths.flows}}: the flows, each an ordered chain of steps that delivers releases of the release order, run by an orchestrator with the procedure `run-flow`; a file `flow-<n>-<slug>.md` per flow with its log beside it, and an index `README.md` |
+{{/if}}
 {{#if paths.backlog}}
 | Backlog | {{link:paths.backlog}}: the feature requests, not a phase and not defects; a file `B-<n>.md` per item with its `Source:` (`report` with the link of each report, `owner` or `agent`), branch `feature/B-<n>-<slug>`, built only when the owner puts it into a release or asks for it by name, the open ones in the folder's `README.md`, the finished ones in `archived/` |
 {{/if}}

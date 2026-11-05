@@ -237,6 +237,14 @@
           "type": "string",
           "description": "The folder of the backlog: the feature requests, which are not defects and are built only when the owner puts them into a release; one file per item (`B-<n>.md`) with its `Source:` (`report` with the link of each report, `owner` or `agent`), an index of the open ones, and `archived/` for the finished ones. Optional: a project without the role has no backlog."
         },
+        "releases": {
+          "type": "string",
+          "description": "The file of the release order: one table `Release | Status | Tasks, in order | Consumers | Notes` (status ⬜ planned · 🟡 developing · 🏷 a development version cut · ✅ released · ⏭ skipped on purpose) and a list \"Not scheduled\", beside the plan index, which links to it and shows the current release in a generated block. The tools read the order of the tasks from its column of the tasks. Optional: a project that ships no versions has no such file, and a project without the role keeps its order as the section \"Order of development\" of the plan index."
+        },
+        "flows": {
+          "type": "string",
+          "description": "The folder of the flows: one file per flow (`flow-<n>-<slug>.md`, an ordered chain of steps that delivers one or more releases of the releases file, with a settings block that an orchestrator reads) and its append-only log beside it (`flow-<n>-<slug>.log.md`), and an index (`README.md`) that `harness plan summary` writes and the releases block of the plan index links. The procedure `run-flow` runs a flow. Optional, and only with `paths.releases`: a project without the role has no flows."
+        },
         "procedures": {
           "type": "string",
           "description": "The folder of the project's own procedures, files of the format of `core/procedures/` (`<name>.md` with the frontmatter `name`, `description`, `invocation`). The skill generators and the procedures block of the entry file list them with the framework's; a name that the framework's procedures have too is an error. Optional: a project without the role has none."

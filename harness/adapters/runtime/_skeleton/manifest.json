@@ -1,7 +1,7 @@
 {
   "axis": "runtime",
   "name": "my-runtime",
-  "contract": 1,
+  "contract": 2,
   "description": "TODO: one sentence on the coding agent this adapter is for.",
   "terms": "TODO-the-words-of-this-runtime",
   "roles": {
@@ -18,6 +18,11 @@
       "fills": "TODO: where the neutral procedures are written for the runtime, and in what form",
       "module": "packaging.mjs",
       "export": "packageProcedure"
+    },
+    "executors": {
+      "fills": "TODO: how the runtime starts a worker with a model and an effort, continues it, fetches its full report and reads its context; manual only when it cannot",
+      "module": "executors.mjs",
+      "export": "executorsFor"
     }
   },
   "enforces": []

@@ -1,9 +1,9 @@
 {
   "axis": "runtime",
   "name": "claude-code",
-  "contract": 1,
+  "contract": 2,
   "description": "Claude Code: CLAUDE.md that imports the entry file, hooks in .claude/settings.json, Read deny rules, skills in .claude/skills.",
-  "terms": "claude code|claude\\.md|\\.claude/|bind_pr|set_monitor|claude_project_dir",
+  "terms": "claude code|claude\\.md|\\.claude/|bind_pr|set_monitor|claude_project_dir|start_session|list_events|get_usage|claude -p\\b",
   "roles": {
     "entry-file": {
       "fills": "CLAUDE.md with `@AGENTS.md`: the import works in every session",
@@ -39,6 +39,16 @@
     },
     "model-map": {
       "fills": "C1 Sonnet 5.5 at medium effort, C2 Sonnet 5.5 at high, C3 Opus 5.5 at high"
+    },
+    "executors": {
+      "fills": "session: a session of the Claude desktop app (`start_session`, continued by `SendMessage`, its full report by `list_events`, its context by `get_usage`) or of the command line (`claude -p --model --effort --output-format json`, continued with `--resume`; the JSON answer carries the report and the context); subagent: the agent tool, its full result returned, no CI wake-ups, no context reading. The prompt cache is counted as an hour (a subscription); a flow on an API key sets `reuseLimits.cacheMinutes` to 5",
+      "module": "executors.mjs",
+      "export": "executorsFor"
+    },
+    "usage": {
+      "fills": "the desktop app's `get_usage` (the 5-hour and the weekly window in whole percent with their reset times, and the plan's name) or the owner on the command line; a table of provisional coefficients per subscription (Pro, Max 5x, Max 20x, and the API, where a cost replaces the windows), model family and step kind",
+      "module": "usage.mjs",
+      "export": "usageFor"
     },
     "scaffold-files": {
       "fills": "`CLAUDE.md` importing the entry file, `.claude/settings.json` from `settingsFor`, and the ignore line of the local settings",
@@ -77,6 +87,12 @@
       "rule": "agent.auto-merge",
       "when": "early",
       "by": "`guard-shell` refuses `gh pr merge --auto` into the production branch, on a release or hotfix branch and on a pull request not into the integration branch"
+    },
+    {
+      "rule": "agent.ask-merge",
+      "when": "early",
+      "by": "`guard-shell` refuses `gh pr merge --auto` on a release or hotfix pull request, so a flow's cut is merged by merge commit, by hand; whether the flow's level lets it cut is judgment",
+      "partial": true
     },
     {
       "rule": "agent.no-auto-merge",

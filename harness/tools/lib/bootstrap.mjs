@@ -27,6 +27,7 @@ import {
   inFramework,
   profileHash,
   readLock,
+  frameworkAdapters,
   selectedAdapters,
   writeLock
 } from './lock.mjs'
@@ -636,8 +637,8 @@ export async function bootstrap({
     }
     messages.push(
       ...(self
-        ? recordSelf({ root, manifest: fetched.manifest, adapters: selectedAdapters(profile) })
-        : vendor({ root, fetched, adapters: selectedAdapters(profile) })
+        ? recordSelf({ root, manifest: fetched.manifest, adapters: frameworkAdapters(profile) })
+        : vendor({ root, fetched, adapters: frameworkAdapters(profile) })
       ).messages
     )
     try {

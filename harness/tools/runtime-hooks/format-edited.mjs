@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { loadProfile } from '../lib/profile.mjs'
 import { owns, selectedStacks, stackModule } from '../lib/stacks.mjs'
+import { registerLocalAdapters } from '../lib/local-adapters.mjs'
 import { runHook } from './io.mjs'
 import { isMain } from '../lib/main-module.mjs'
 
@@ -30,5 +31,11 @@ export function decide(event) {
 }
 
 if (isMain(import.meta.url)) {
-  await runHook((event) => decide(event), { kind: 'edit-after' })
+  await runHook(
+    async (event) => {
+      await registerLocalAdapters(event.cwd)
+      return decide(event)
+    },
+    { kind: 'edit-after' }
+  )
 }

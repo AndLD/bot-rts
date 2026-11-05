@@ -5,7 +5,10 @@ import { spawnSync } from 'node:child_process'
 import { checkAdapters } from './adapters.mjs'
 import { checkChangelog } from './changelog.mjs'
 import { checkCore } from './core-scan.mjs'
+import { checkFlowsWithUsage } from './flow-usage-check.mjs'
+import { ADAPTER_RUNTIMES } from './runtimes.mjs'
 import { checkLayers } from './layers.mjs'
+import { listLocalAdapters, localAdapterProblems, localLoadErrors, localSuiteProblems } from './local-adapters.mjs'
 import { checkLinks } from './links.mjs'
 import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
@@ -30,9 +33,26 @@ export const CHECKS = {
   }),
   profile: ({ root }) => ({ problems: checkProfile(root), messages: ['Checked the profile file against the schema.'] }),
   scaffold: (context) => single(checkScaffold(context)),
-  adapters: () => {
+  adapters: ({ root, profile }) => {
     const { adapters, problems } = checkAdapters()
-    return { problems, messages: [`Checked the manifests of ${adapters.length} adapters against their contracts.`] }
+    const local = listLocalAdapters(root)
+    return {
+      problems: [...problems, ...localAdapterProblems(root, profile), ...localLoadErrors()],
+      messages: [
+        `Checked the manifests of ${adapters.length + local.length} adapters against their contracts${local.length ? ` (${local.length} of the project's own repository)` : ''}.`
+      ]
+    }
+  },
+  'local-adapters': ({ root }) => {
+    const { problems, count } = localSuiteProblems(root)
+    return {
+      problems,
+      messages: [
+        count
+          ? `Ran the conformance suite on ${count} adapters of the project's own repository.`
+          : 'The project has no adapters of its own repository (`harness-adapters/`), so there is no conformance suite to run.'
+      ]
+    }
   },
   values: (context) => single(checkValues(context)),
   layers: ({ root, profile }) =>
@@ -49,6 +69,7 @@ export const CHECKS = {
   paths: (context) => single(checkPaths(context)),
   core: (context) => single(checkCore(context)),
   plan: (context) => single(planSummary({ ...context, check: true })),
+  flows: (context) => single(checkFlowsWithUsage({ runtimes: ADAPTER_RUNTIMES, ...context })),
   changelog: (context) => single(checkChangelog(context)),
   probes: (context) => single(checkProbes(context)),
   'product-knowledge': (context) => checkProductKnowledge(context)

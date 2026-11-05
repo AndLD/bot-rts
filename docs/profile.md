@@ -157,7 +157,7 @@ PRODUCT='bot-rts|\bbots?\b|\bmodules?\b|scanner|botos|\bterminal\b|\btick\b|cred
 Generic words of the product list, judged in context and not scanned in CORE text:
 
 ```bash
-PRODUCT_GENERIC='\bmodules?\b|\bscripts?\b'
+PRODUCT_GENERIC='\bmodules?\b|\bscripts?\b|\bbase\b'
 ```
 
 Project values, which must not appear in CORE text except on the **Role binding** line of `AGENTS.md` (the CORE scan of

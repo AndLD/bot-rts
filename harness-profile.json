@@ -40,7 +40,7 @@
   },
   "requiredChecks": ["verify", "pr-title", "e2e", "lighthouse"],
   "requiredCheckNotes": {
-    "verify": "the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests, framework tests and build",
+    "verify": "the job that needs the parallel jobs static checks, api tests, client tests in shards and mcp tests, merges their coverage, and applies the coverage gate and the changed-file coverage to the merged data; the static checks are generated files, the migration diff, lint, import boundaries, typecheck, message catalogues, Markdown links, script tests and build",
     "pr-title": "Conventional Commit title",
     "e2e": "the job that needs the four shards of the end-to-end suite",
     "lighthouse": "public pages"

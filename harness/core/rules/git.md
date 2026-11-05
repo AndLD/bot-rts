@@ -46,14 +46,15 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
 - Committing and pushing to a feature/bugfix/docs/chore branch is routine and **needs no confirmation**. Never commit or <!-- rule:agent.routine-push -->
   push directly to the production or the integration branch.
 - **Plan work (approval given by the request):** when the user asks to start or continue one or more phases, to work the issue queue or to fix issues (the resume phrases <!-- rule:agent.plan-approval -->
-  of the [profile]({{rel:paths.profileDocument}}#4-plan), for example "Start Phase N", "Work the issue queue" or "Fix I-<n>"), that request is the approval for **every task PR of the named phases and every PR of the named issues**. Create each
+  of the [profile]({{rel:paths.profileDocument}}#4-plan), for example "Start Phase N", "Work the issue queue" or "Fix I-<n>"), that request is the approval for **every task PR of the named phases and every PR of the named issues**.
+  A request to run or continue a flow of the plan ("Run flow N") names the phases and issues of its steps, and approves only what the flow's settings let its orchestrator decide (the procedure `run-flow`); it never approves a merge or an answer that this section keeps for the owner. Create each
   task's pull request into the integration branch and squash-merge it **without asking**, once the required checks pass (before CI
   exists: once lint, typecheck and tests pass locally). Do not pause between tasks, and when a named phase's exit criteria are
-  met, record it and start the next named phase. Stop after the last named phase with a summary, and earlier only when
+  met, record it and start the next named phase. Stop after the last named phase (or flow) with a summary, and earlier only when
   blocked or when a decision is needed that only the user can make. The approval does not extend to phases that were not named.
-- **Plan-related PRs merge the same way.** Every PR that belongs to a named phase or issue is covered by the same approval: its task <!-- rule:agent.plan-related -->
+- **Plan-related PRs merge the same way.** Every PR that belongs to a named phase, issue or flow is covered by the same approval: its task <!-- rule:agent.plan-related -->
   PRs, and also the documentation and chore PRs that exist because of the plan (the phase's implementation log, task and
-  status updates in the phase file and the development plan, the work log, the matching specification updates, and
+  status updates in the phase file and the development plan, the work log, a flow's state and log, the matching specification updates, and
   the fixes of tooling or tests that block a task). Merge them without asking once the required checks pass. A PR counts as
   plan-related only when it serves a named phase; anything else follows the next rule.
 - **Claim a task before working on it.** Push its branch and open a **draft** pull request for it first (title and body as in the claim row of the <!-- rule:agent.claim -->
@@ -65,6 +66,10 @@ Squash merge into the integration branch; a merge commit for release and hotfix 
   release and hotfix branches into the production branch) without asking.
 - **Ask the user before merging any other pull request:** documentation or chore PRs that are not related to the development plan of a named phase, anything <!-- rule:agent.ask-merge -->
   targeting the production branch, and release and hotfix branches. Approval for one merge does not carry over to another.
+  The one exception is a **flow the owner started** (the procedure `run-flow`): its orchestrator approves the merges of a release or a hotfix itself when the
+  flow's settings let it decide that cut: its level (by default a development version D1, a final release or a hotfix D3) is below the flow's `askAt`, or the flow is seamless. It merges them by merge commit once the
+  required checks are green, never by the host's auto-merge and never by an administrator's bypass, tags the version, and logs the cut as a decision with its level
+  (the procedure `release`). Otherwise, and for every other merge this rule names, it asks the owner like any agent.
 - Never delete a remote branch, never force-push to the production or the integration branch, never rewrite published history. <!-- rule:agent.no-rewrite -->
 {{#if host.autoMerge}}
 - **Auto-merge merges a task's pull request; nothing waits for you to come back.** As the last step of a task, once its definition of done holds, <!-- rule:agent.auto-merge -->

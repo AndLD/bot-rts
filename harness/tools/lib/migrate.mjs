@@ -2,7 +2,8 @@
 // command runs in a new process, with the new version's tools, and brings the project's own files to the version:
 //   1. runs the migration scripts (`migrations/<version>.mjs` of the vendored tree) of every version after the project's own up to the target that
 //      are not recorded as applied, in version order, and records each in the lock (`migrations.applied`), so that a stopped run resumes;
-//   2. regenerates the managed files;
+//   2. regenerates the managed files, then runs the conformance suite of the new version on every adapter of the project's own repository (task 3.4),
+//      and stops with the adapters named when one no longer meets its contract (nothing is committed; the adapter is fixed and the command run again);
 //   3. prints the migration notes of the versions after the project's own up to the target, in order, for the agent or the person to follow (task 4.8): a
 //      development version has a note of its own, and the notes of the development versions of an `x.y.z` are left out when its final note is among them.
 // A lock without the record counts as `0.1.0` with nothing applied, unless the last commit holds the lock the project had before an older `sync`
@@ -14,6 +15,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { inFramework, MODES, readLock, writeLock } from './lock.mjs'
 import { selectNotes } from './migration-notes.mjs'
+import { localSuiteProblems } from './local-adapters.mjs'
 import { loadProfile } from './profile.mjs'
 import { regenerate } from './vendor.mjs'
 import { commitEverything, isRepository } from './migration-git.mjs'
@@ -46,7 +48,7 @@ export function listMigrations(folder) {
 /**
  * @returns {Promise<{ lock: object, messages: string[] }>}
  */
-export async function migrate({ root, generators, profile = loadProfile(root) }) {
+export async function migrate({ root, generators, profile = loadProfile(root), localSuite = localSuiteProblems }) {
   const lock = readLock(root)
   if (!lock) {
     throw new Error(
@@ -90,6 +92,19 @@ export async function migrate({ root, generators, profile = loadProfile(root) })
   }
 
   messages.push(...regenerate({ root, generators }).messages)
+  const rejected = localSuite(root).problems
+  if (rejected.length) {
+    const notes = selectNotes(listed, from, target).map(
+      ({ version, note }) => `${version} (${note.slice(root.length + 1)})`
+    )
+    throw new Error(
+      [
+        `${target} does not accept the adapters of this repository (harness-adapters/); the contract they were written for changed:`,
+        ...rejected.map((problem) => `  ${problem}`),
+        `The migration note${notes.length === 1 ? '' : 's'} of ${notes.join(', ') || target} say${notes.length === 1 ? 's' : ''} what changed in the contract. Fix the adapter, then run \`harness migrate\` again.`
+      ].join('\n')
+    )
+  }
   const next = { ...readLock(root), migrations: record(target) }
   writeLock(root, next)
 

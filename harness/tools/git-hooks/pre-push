@@ -2,6 +2,8 @@
 # The Git hook of every push (harness-framework): the vendored framework is checked (before anything else, documentation only or not), a protected
 # or a deleted remote ref is refused, the project's setup script (`hooks.prePushSetup` of the profile file) is sourced, and the local gate runs.
 # Git gives the refs of the push on standard input, and the name and address of the remote as arguments, which the gate does not need.
+# The hook of a linked worktree gets GIT_DIR=<repo>/.git/worktrees/<name>: the setup script and the gate run without the variables that point Git at
+# a repository, so a test that runs Git in a folder of its own does not act on this one (from the top folder, Git finds the repository by itself).
 here=$(cd "$(dirname "$0")" && pwd)
 harness="$here/../harness.mjs"
 cd "$(git rev-parse --show-toplevel)" || exit 1
@@ -9,6 +11,7 @@ input=$(cat)
 
 if [ -f harness.lock.json ]; then node "$harness" check vendored || exit 1; fi
 printf '%s\n' "$input" | node "$harness" guard pre-push || exit 1
+unset $(git rev-parse --local-env-vars)
 
 setup=$(node "$harness" profile get hooks.prePushSetup 2>/dev/null || true)
 if [ -n "$setup" ] && [ -f "$setup" ]; then . "./$setup"; fi

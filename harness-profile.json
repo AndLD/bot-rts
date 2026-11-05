@@ -60,6 +60,7 @@
     "profileFile": "harness-profile.json",
     "profileDocument": "docs/profile.md",
     "planIndex": "docs/development-plan/DEVELOPMENT-PLAN.md",
+    "releases": "docs/development-plan/releases.md",
     "issues": "docs/development-plan/issues"
   },
   "plan": {

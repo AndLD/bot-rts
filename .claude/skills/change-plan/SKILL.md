@@ -7,7 +7,7 @@ description: Use when adding a task or a phase to the development plan, recordin
 
 # Change the development plan
 
-**Read first, write after.** Read the rules and the template of what you add before you create a file{{#if documents.planMethod}}: the [plan method](../../../harness/core/plan/README.md) (structure, maintaining the plan, the issue queue), the rules of a phase file (`phases.md`) and the templates (`phase-index-template.md`, `task-template.md`, `task-log-template.md`, `issue-template.md`), all in the folder of the plan method{{/if}}. **Never copy an old phase, task or issue as the start of a new one**: it carries what has drifted since the template. A generated block (the task table of a phase index, the summary and contents of the plan index, the index of the issue queue) is written by the plan-summary command (`harness plan summary`), never by hand.
+**Read first, write after.** Read the rules and the template of what you add before you create a file: the [plan method](../../../harness/core/plan/README.md) (structure, maintaining the plan, the issue queue), the rules of a phase file (`phases.md`) and the templates (`phase-index-template.md`, `task-template.md`, `task-log-template.md`, `issue-template.md`), all in the folder of the plan method. **Never copy an old phase, task or issue as the start of a new one**: it carries what has drifted since the template. A generated block (the task table of a phase index, the summary and contents of the plan index, the index of the issue queue) is written by the plan-summary command (`harness plan summary`), never by hand.
 
 Ids are permanent: never renumber, never reuse. A task keeps its id wherever the plan moves it.
 
@@ -22,7 +22,7 @@ Ids are permanent: never renumber, never reuse. A task keeps its id wherever the
 
 1. The number is the next free number of `docs/development-plan/phases` (never reuse one).
 2. Create the folder `docs/development-plan/phases/phase-<n>-<slug>/` with `README.md` from the phase-index template (every part of it, in its order: the exit criteria as the line `**Exit criteria:**`), and `log.md` for what concerns the whole phase (a link back to the index on the first line, the entry template inside). Add its tasks as above.
-3. Run the plan-summary command: the row of the summary and the line of the contents are written for you. Record in the order of development of the plan index which release the phase belongs to, when the plan keeps one.
+3. Run the plan-summary command: the row of the summary and the line of the contents are written for you. Record in the release order (the releases file, else the order of development of the plan index) which release the phase belongs to, when the plan keeps one.
 
 ## Record a defect or an improvement found in use
 
@@ -34,7 +34,7 @@ It is an issue of the queue, not a task and not a phase.
 
 ## Split or merge phases
 
-Split a phase when its theme has two exit criteria that can be reached independently: the new phase takes the next free number and its tasks keep their ids, or the old ids are recorded in its notes. Never merge phases: finished history is not rewritten. A phase kept as one file (the older layout) is split into a folder by `harness plan split <n>`, which rewrites every link into it. A changed order of development is recorded in the plan index, not by renumbering.
+Split a phase when its theme has two exit criteria that can be reached independently: the new phase takes the next free number and its tasks keep their ids, or the old ids are recorded in its notes. Never merge phases: finished history is not rewritten. A phase kept as one file (the older layout) is split into a folder by `harness plan split <n>`, which rewrites every link into it. A changed order of development is recorded in the release order (the releases file, else the plan index), not by renumbering.
 
 ## Check
 

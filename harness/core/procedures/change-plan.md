@@ -21,7 +21,7 @@ Ids are permanent: never renumber, never reuse. A task keeps its id wherever the
 
 1. The number is the next free number of `{{paths.phases}}` (never reuse one).
 2. Create the folder `{{paths.phases}}/phase-<n>-<slug>/` with `README.md` from the phase-index template (every part of it, in its order: the exit criteria as the line `**Exit criteria:**`), and `log.md` for what concerns the whole phase (a link back to the index on the first line, the entry template inside). Add its tasks as above.
-3. Run the plan-summary command: the row of the summary and the line of the contents are written for you. Record in the order of development of the plan index which release the phase belongs to, when the plan keeps one.
+3. Run the plan-summary command: the row of the summary and the line of the contents are written for you. Record in the release order (the releases file, else the order of development of the plan index) which release the phase belongs to, when the plan keeps one.
 
 ## Record a defect or an improvement found in use
 
@@ -39,7 +39,7 @@ A request for something that is not there is an item of the backlog, not an issu
 
 ## Split or merge phases
 
-Split a phase when its theme has two exit criteria that can be reached independently: the new phase takes the next free number and its tasks keep their ids, or the old ids are recorded in its notes. Never merge phases: finished history is not rewritten. A phase kept as one file (the older layout) is split into a folder by `harness plan split <n>`, which rewrites every link into it. A changed order of development is recorded in the plan index, not by renumbering.
+Split a phase when its theme has two exit criteria that can be reached independently: the new phase takes the next free number and its tasks keep their ids, or the old ids are recorded in its notes. Never merge phases: finished history is not rewritten. A phase kept as one file (the older layout) is split into a folder by `harness plan split <n>`, which rewrites every link into it. A changed order of development is recorded in the release order (the releases file, else the plan index), not by renumbering.
 
 ## Check
 

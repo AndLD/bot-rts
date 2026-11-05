@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join, resolve } from 'node:path'
 import { generators as registered } from './generators.mjs'
 import { appendBlock, extractBlock, hashBlock, replaceBlock } from './managed.mjs'
-import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, selectedAdapters, writeLock } from './lock.mjs'
+import { LOCK_FILE, MODES, VENDOR_DIR, profileHash, readLock, frameworkAdapters, writeLock } from './lock.mjs'
 import { loadProfile } from './profile.mjs'
 import { startOfSync } from './migration-guard.mjs'
 import { readManifest, referenceTree, resolveSource } from './source.mjs'
@@ -181,7 +181,7 @@ export function sync({ root, from, to, local = false, generators = registered, s
   }
 
   const profile = loadProfile(root)
-  const adapters = profile.adapters || !lock ? selectedAdapters(profile) : lock.adapters
+  const adapters = profile.adapters || !lock ? frameworkAdapters(profile) : lock.adapters
   const fetched = resolveSource({ root, from, to, lock })
   try {
     const start = startOfSync({ root, profile, lock })

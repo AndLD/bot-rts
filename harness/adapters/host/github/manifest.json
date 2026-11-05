@@ -61,6 +61,11 @@
       "module": "reports.mjs",
       "export": "listReports"
     },
+    "remote-state": {
+      "fills": "a file of another repository's default branch (`gh api repos/<slug>/contents/<path>`) and its pull requests (`gh pr list --repo <slug> --search`), read without a clone; a failure is returned, not thrown",
+      "module": "remote.mjs",
+      "export": "remoteFile"
+    },
     "scaffold-files": {
       "fills": "`.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks), `.github/workflows/release.yml` and, with `host.protection` and `host.autoMerge`, `.github/workflows/update-branches.yml`",
       "module": "scaffold.mjs",
@@ -97,6 +102,13 @@
       "rule": "git.green-checks",
       "when": "remote",
       "by": "the ruleset requires the checks of `requiredChecks`",
+      "condition": "host-protected"
+    },
+    {
+      "rule": "agent.ask-merge",
+      "when": "remote",
+      "by": "the ruleset requires the checks of `requiredChecks` before a release or hotfix pull request merges, so a flow cannot cut on a red check",
+      "partial": true,
       "condition": "host-protected"
     },
     {

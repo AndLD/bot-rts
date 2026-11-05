@@ -8,7 +8,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, isAbsolute, join } from 'node:path'
 import { DEFAULT_ENTRY_FILE } from './entry.mjs'
-import { adapterTerms } from './adapters.mjs'
+import { adapterTerms, LOCAL_DIR } from './adapters.mjs'
 import { coreEntries } from './layers.mjs'
 import { MODES, readLock, VENDOR_DIR } from './lock.mjs'
 import { walk } from './tree.mjs'
@@ -227,7 +227,7 @@ export function checkCore({ root, profile }) {
         frameworkFiles,
         profile.terms,
         folder,
-        adapterTerms(join(root, dirname(folder), 'adapters')),
+        [...adapterTerms(join(root, dirname(folder), 'adapters')), ...adapterTerms(join(root, LOCAL_DIR))],
         { vocabulary, vendored, exceptions: profile.terms.exceptions, version: readLock(root)?.version }
       )
     )

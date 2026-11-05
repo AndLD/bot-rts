@@ -2,7 +2,8 @@
 // rule of the entry file is caught: early (the agent runtime, before the action), local (a Git hook) or remote (the host and CI). A rule that nothing
 // declares is judgment, and one that is held only in part (`partial`) is "partly". The map follows the project: a host that cannot protect its branches (`host.protection: false`) has no remote holder for the
 // protection rules, and the merge guard of the runtime turns on. The block is written into the rule-map document of the project (`documents.ruleChecks`).
-import { listAdapters } from './adapters.mjs'
+import { join } from 'node:path'
+import { listAdapters, LOCAL_DIR, LOCAL_PREFIX } from './adapters.mjs'
 import { ENTRY_BLOCKS, RULES_DIR, rulesTemplate } from './entry.mjs'
 import { selectedAdapters } from './lock.mjs'
 
@@ -65,11 +66,17 @@ export function coreRules(dir = RULES_DIR) {
   return rules
 }
 
-/** The declarations that apply to a profile: the Git hooks, and the `enforces` of the selected adapters, filtered by the protection of the host. */
-export function declarations(profile, adaptersDir) {
+/** The declarations that apply to a profile: the Git hooks, and the `enforces` of the selected adapters (those of the project's own repository too, found under `localRoot`), filtered by the protection of the host. */
+export function declarations(profile, adaptersDir, localRoot) {
   const selected = selectedAdapters(profile)
   const protectedHost = profile.host?.protection !== false
-  const fromAdapters = listAdapters(adaptersDir)
+  const own = localRoot
+    ? listAdapters(join(localRoot, LOCAL_DIR)).map((adapter) => ({
+        ...adapter,
+        name: `${LOCAL_PREFIX}${adapter.name}`
+      }))
+    : []
+  const fromAdapters = [...listAdapters(adaptersDir), ...own]
     .filter(({ axis, name }) => (axis === 'host' ? selected.host === name : selected[`${axis}s`].includes(name)))
     .flatMap(({ manifest }) => manifest.enforces ?? [])
   return [...GIT_HOOK_RULES, ...fromAdapters].filter(
@@ -78,8 +85,8 @@ export function declarations(profile, adaptersDir) {
 }
 
 /** The Markdown of the core rows. */
-export function renderRuleMap(profile, { adaptersDir, rulesDir } = {}) {
-  const found = declarations(profile, adaptersDir)
+export function renderRuleMap(profile, { adaptersDir, rulesDir, localRoot } = {}) {
+  const found = declarations(profile, adaptersDir, localRoot)
   const cell = (id, when) =>
     found
       .filter(({ rule, when: at }) => rule === id && at === when)
@@ -110,5 +117,5 @@ export const ruleMap = {
   block: BLOCK_ID,
   path: (profile) =>
     profile.documents?.ruleChecks && profile.documents?.method ? profile.documents.ruleChecks : undefined,
-  render: ({ profile }) => renderRuleMap(profile)
+  render: ({ root, profile }) => renderRuleMap(profile, { localRoot: root })
 }

@@ -83,6 +83,7 @@ Branch types:
 | Estimation scale | story points (SP), Fibonacci; 1 SP is about half a developer-day or one focused agent session; estimates include the tests the definition of done requires |
 | Resume phrases | "Start Phase N", "Start Phases N-M", "Continue Phase N"; the phrase approves the pull requests of the named phases |
 | Issue queue | [`development-plan/issues`](./development-plan/issues): the defects and improvements found in use, not a phase; a file `I-<n>.md` per issue with its log beside it, branch `bugfix/I-<n>-<slug>`, the open ones in the folder's `README.md`, the finished ones in `archived/` |
+| Release order | [`development-plan/releases.md`](./development-plan/releases.md): the table of the releases and of the tasks in each, in order; the plan index links to it and shows the current release |
 | Specification citation | `design §<section>` for the game design (for example `design §12.4`) |
 | Agent complexity | every open task carries a marker in the `Agent` column of its phase file: `C1` routine: mechanical, fully specified, obvious to verify; `C2` standard engineering: a component to a clear specification with tests, tools to work out; `C3` judgment: research, correctness-critical design, synthesis |
 | Agent models | `C1` Sonnet 5.5 at medium effort; `C2` Sonnet 5.5 at high effort; `C3` Opus 5.5 at high effort |

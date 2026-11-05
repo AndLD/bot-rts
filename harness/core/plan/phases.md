@@ -110,6 +110,6 @@ phase log and the task logs, by the date of the entry, and the open tasks of the
 - **The work log.** A link in the status line resolves, and a phase that has a `log.md` links it. A task log starts with its `**Status:**` line.
 - **Tasks.** A task has an id, a size and a status in its file (in a folder), the title size equals the sum of the task sizes, and every open task carries an agent-complexity marker where the plan uses them. The task table and the summary agree with the files.
 - **Records.** A done task has the log of its own (`<id>.log.md`), or, in a phase that keeps a table in its implementation log, a row there (section 5).
-- **Tasks cited elsewhere exist.** The tasks that an order of development or an execution order names, and those that a task `Needs`, exist in a phase or in the issue queue (under its old id as well), and a task never needs one of a later phase.
+- **Tasks cited elsewhere exist.** The tasks that a release order (the releases file, or the order of development of the index) or an execution order names, and those that a task `Needs`, exist in a phase or in the issue queue (under its old id as well), and a task never needs one of a later phase.
 
 **Judgment**, which no tool reads: that the goal is clear, that a task is atomic and says how it is verified, that the exit criteria are observable (section 4), and that a decision is in the document that owns it (section 6).

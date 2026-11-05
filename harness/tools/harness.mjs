@@ -18,10 +18,16 @@
 //   harness detach --reason <why>                                 the project takes the copy over; no more versions
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness layers                                                print the layer map
-//   harness check <name>                                          one check: vendored, generated, profile, adapters, values, layers, links, paths, core,
-//                                                                 plan, changelog, probes, product-knowledge
+//   harness check <name>                                          one check: vendored, generated, profile, scaffold, adapters, local-adapters, values,
+//                                                                 layers, links, paths, core, plan, flows, changelog, probes, product-knowledge
 //   harness check all                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
+//   harness flow check | status <n> | next <n> | prompt <n> <step>   the flows of the plan (the procedure run-flow): check them (`check flows`), recompute the state of
+//     | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <time>]     a flow's steps from the repository, print its next step with its prompt, the prompt of a step, or
+//                                                                 how to hand a step to a worker: its executor, a fresh or the previous worker (reuse), the means
+//     | calibrate [--min <n>] [--subscription <id>]   propose new usage coefficients from the flows' usage.jsonl (it writes nothing)
+//     | estimate <n> | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly …] [--cost <usd>]   the usage of a flow: the estimate of each step, whether the next step may start
+//     | sample <n> <event> [<step>] [same flags] [--tokens <n>] [--start cold|warm]    now, and a sample appended to the flows' usage.jsonl
 //   harness plan split <phase>                                    split a phase kept as one file into a folder: the phase index, a file per task and the logs beside them
 //   harness plan promote <B-n> --phase <n> [--agent <m>] [--size <n>] --approved   the owner's decision: a backlog item becomes a task of a phase
 //   harness plan log <phase> [ref]                                the implementation log of a phase from the merged pull requests
@@ -47,6 +53,8 @@ import { updateBranch } from './lib/branch-update.mjs'
 import { bootstrap, buildTemplate } from './lib/bootstrap.mjs'
 import { CHECKS, checkAll, report, runCheck } from './lib/checks.mjs'
 import { checkChanged, mergeShards, summarizePackages } from './lib/coverage.mjs'
+import { flowCommand } from './lib/flow-command.mjs'
+import { ADAPTER_RUNTIMES } from './lib/runtimes.mjs'
 import { guardCommit, guardPush } from './lib/git-guards.mjs'
 import { adopt } from './lib/adopt.mjs'
 import { init } from './lib/init.mjs'
@@ -56,6 +64,7 @@ import { layerConfig, renderLayerMap } from './lib/layers.mjs'
 import { planLog, planSummary } from './lib/plan.mjs'
 import { splitPhases } from './lib/phase-split.mjs'
 import { isMain } from './lib/main-module.mjs'
+import { registerLocalAdapters } from './lib/local-adapters.mjs'
 import { migrate } from './lib/migrate.mjs'
 import { probesReport } from './lib/probe-areas.mjs'
 import { promoteItem } from './lib/backlog-promote.mjs'
@@ -84,6 +93,10 @@ const USAGE = `usage: harness <command>
   layers
   check <${Object.keys(CHECKS).join('|')}|all>
   plan summary [--check]
+  flow check | status <n> | next <n> | prompt <n> <step> | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <time>]
+  flow calibrate [--min <n>] [--subscription <id>]
+  flow estimate <n> | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly <pct>[@<reset>]] [--cost <usd>] [--plan <name>] [--at <time>]
+  flow sample <n> <flow-start|step-start|step-end|flow-end> [<step>] [the reading flags] [--tokens <n>] [--model <name>] [--start cold|warm]
   plan split <phase>
   plan promote <B-n> --phase <n> [--agent <marker>] [--size <n>] --approved
   plan log <phase> [ref]
@@ -121,7 +134,19 @@ const FLAGS_WITH_VALUE = new Set([
   '--version',
   '--phase',
   '--agent',
-  '--size'
+  '--size',
+  '--context',
+  '--account',
+  '--at',
+  '--five-hour',
+  '--weekly',
+  '--cost',
+  '--plan',
+  '--tokens',
+  '--model',
+  '--start',
+  '--min',
+  '--subscription'
 ])
 // Flags that may be given several times; their values are collected in a list
 const REPEATED_FLAGS = new Set(['--set'])
@@ -190,6 +215,8 @@ export async function run(argv, { out = console.log, err = console.error, input 
   const { words, flags } = parsed
   const root = projectRoot(flags.root)
   const command = words.join(' ')
+  // The adapters of the project's own repository (`harness-adapters/`), which the profile file selects as `local:<name>`
+  await registerLocalAdapters(root)
 
   try {
     if (command === 'init' || command === 'bootstrap' || command === 'adopt') {
@@ -262,6 +289,20 @@ export async function run(argv, { out = console.log, err = console.error, input 
       }
       out(renderLayerMap(config))
       return 0
+    }
+    if (command === 'flow check') {
+      return report('flow check', runCheck('flows', { root, profile: loadProfile(root) }), { out, err })
+    }
+    if (words[0] === 'flow') {
+      const { lines, code } = flowCommand({
+        words: words.slice(1),
+        flags,
+        root,
+        profile: loadProfile(root),
+        runtimes: ADAPTER_RUNTIMES
+      })
+      lines.forEach((line) => (code === 0 ? out(line) : err(line)))
+      return code
     }
     if (words[0] === 'plan' && words[1] === 'summary' && words.length === 2) {
       const { problems, message } = planSummary({ root, profile: loadProfile(root), check: flags.check })

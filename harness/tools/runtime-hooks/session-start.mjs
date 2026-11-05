@@ -6,10 +6,13 @@ import { join } from 'node:path'
 import { nextTask, readPhases } from '../lib/next-task.mjs'
 import { compareIds, loadPhaseEntries, parseTaskFile, TASK_LOG_FILE } from '../lib/phase-files.mjs'
 import { loadProfile } from '../lib/profile.mjs'
+import { registerLocalAdapters } from '../lib/local-adapters.mjs'
 import { runHook } from './io.mjs'
 import { isMain } from '../lib/main-module.mjs'
 import { BACKLOG, readQueue } from '../lib/issue-queue.mjs'
 import { intakeLines, recordedReports, reportSettings } from '../lib/reports.mjs'
+import { flowSessionLines } from '../lib/flow-session.mjs'
+import { readFlowsOf } from '../lib/flows.mjs'
 
 const IN_PROGRESS = /\*\*Status:\*\*\s*🟡/
 
@@ -74,7 +77,7 @@ export function lastNextStep(logText) {
 }
 
 // The next task of the plan, by its order (`lib/next-task.mjs`), or null when the plan cannot be read or has no task left
-function nextTaskOf(readText, list, phasesDir, planIndex) {
+function nextTaskOf(readText, list, phasesDir, planIndex, releasesPath = null) {
   try {
     const files = loadPhaseEntries({ list, readText, phasesDir }).map((entry) => ({
       file: `${phasesDir}/${entry.file}`,
@@ -87,7 +90,14 @@ function nextTaskOf(readText, list, phasesDir, planIndex) {
     } catch {
       // a plan without an index has only the orders of its phases
     }
-    return nextTask({ phases: readPhases(files), indexText })
+    // A plan with a releases file takes its order from there; a missing file leaves the section of the index in charge
+    let releasesText = null
+    try {
+      releasesText = releasesPath ? readText(releasesPath) : null
+    } catch {
+      // the check of the plan names a releases file that is missing
+    }
+    return nextTask({ phases: readPhases(files), indexText, releasesText })
   } catch {
     return null
   }
@@ -122,14 +132,16 @@ export function sessionStartMessage(
   planIndex = null,
   issuesDir = null,
   reportLines = [],
-  backlogDir = null
+  backlogDir = null,
+  releasesPath = null,
+  flowLines = []
 ) {
   const lines = [`Branch: ${branch || 'unknown'}`]
   const phases = phasesInProgress(readText, list, phasesDir)
 
   if (!phases.length) {
     lines.push('No phase is in progress.')
-    const next = nextTaskOf(readText, list, phasesDir, planIndex)
+    const next = nextTaskOf(readText, list, phasesDir, planIndex, releasesPath)
     if (next) {
       lines.push(
         `Next task: ${next.id} ${next.title} (${next.file}), by the ${next.source}; check that it has no open pull request first.`
@@ -177,6 +189,7 @@ export function sessionStartMessage(
   if (backlog) {
     lines.push(backlog)
   }
+  lines.push(...flowLines)
   lines.push(...reportLines)
   lines.push(`Read the method, section "Session protocol" (${methodPath}), before you start or resume a phase.`)
   return lines.join('\n')
@@ -223,6 +236,12 @@ export async function decide(event) {
     // not a git checkout
   }
   const reportLines = await reportLinesOf({ root, profile, readText, list })
+  let flowLines = []
+  try {
+    flowLines = flowSessionLines(readFlowsOf(root, profile))
+  } catch {
+    // a flow that cannot be read is a problem of `harness flow check`, not of the session start
+  }
   return {
     context: sessionStartMessage(
       branch,
@@ -233,11 +252,19 @@ export async function decide(event) {
       profile.paths?.planIndex,
       profile.paths?.issues,
       reportLines,
-      profile.paths?.backlog
+      profile.paths?.backlog,
+      profile.paths?.releases,
+      flowLines
     )
   }
 }
 
 if (isMain(import.meta.url)) {
-  await runHook((event) => decide(event), { kind: 'session-start' })
+  await runHook(
+    async (event) => {
+      await registerLocalAdapters(process.env.CLAUDE_PROJECT_DIR ?? process.env.CURSOR_PROJECT_DIR ?? event.cwd)
+      return decide(event)
+    },
+    { kind: 'session-start' }
+  )
 }

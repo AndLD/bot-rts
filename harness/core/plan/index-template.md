@@ -20,7 +20,7 @@ updated in the change that starts or finishes it.
 
 The agent-complexity column is the range of each phase's markers (plan method, section 7); a plan without markers has no such column.
 
-**Order of development.** <Only if different from the numbering: the actual order and the reason, with the date.>
+**Order of development.** <Only if different from the numbering: the actual order and the reason, with the date. A project that ships versions keeps the order in the releases file ([`releases-template.md`](./releases-template.md)) instead, and this section holds the generated block between `<!-- plan-releases:start -->` and `<!-- plan-releases:end -->` with a link to the file.>
 
 ---
 

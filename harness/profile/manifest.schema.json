@@ -134,6 +134,8 @@
       "pull-request-tools": "optional",
       "waiting-advice": "optional",
       "model-map": "optional",
+      "executors": "logic",
+      "usage": "logic-optional",
       "hook-adoption": "logic-optional",
       "managed-blocks": "logic-optional",
       "scaffold-files": "logic-optional"
@@ -152,6 +154,7 @@
       "release": "required",
       "ci-timings": "optional",
       "reports": "logic-optional",
+      "remote-state": "logic-optional",
       "values-in-host-files": "logic",
       "scaffold-files": "logic-optional"
     }

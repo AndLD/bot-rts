@@ -92,6 +92,7 @@ the stack file.
       product-knowledge or plan document is updated in the same pull request.
 - [ ] New or changed endpoints are under the API prefix and appear in the API description; user-facing strings exist in every
       user-facing language.
+- [ ] The pull request body, the commit message and the final message are short (section 8): what changed, what was verified and what was not; long text is in a file of the plan, linked.
 - [ ] A task branch (named per section 5), a descriptive pull request, reviewed, merged by the merge strategy; the branch is
       kept.
 
@@ -178,3 +179,16 @@ from overwriting each other; they cost nothing for a single agent.
 - **Environment.** Two working copies must not share ports, databases or running servers; the testing guide says how to separate them.
 - **Flows.** Where the plan has flows (plan method, section 10), the orchestrator of a flow is one session that runs its steps one after another with the procedure
   `run-flow`, hands each to a worker, and logs every decision with its level; it claims the flow by a "running" entry in the flow's log.
+
+## 8. Output budgets and short reports
+
+Everything an agent puts into its context is read again on every later turn, so the output of its commands and its own words are a budget, not a habit. The commands and
+hooks print little by default (the quiet variants of the profile); these rules say what an agent adds.
+
+- **Read with a filter.** Use the fields or the filter of a command (the host's command line has them), `--stat` and a path for a diff, the tail of a log, an offset and a limit for a file;
+  read a whole file only where a procedure says so (the migration note before a cut is the one such place). Run a command that may print a lot in its quiet variant, or cap its output.
+- **Short closing text.** A pull request body, a commit message, a log entry and the final message of a session say what changed, what was verified and what was not, in a few lines.
+  Long text goes into a file of the plan (the task's log), and the message links it.
+- **The step report of a flow's worker** has a schema and a hard cap on its length (lines and characters), so that the orchestrator reads it whole: a status, the pull requests merged and the ids done, the
+  open decisions with their options and level, the deviations and reports filed, the next step, and the recommendations last. What does not fit goes into the task's log, and the report links it. The wording
+  is in the [step prompts](../plan/flow-step-prompts.md), the cap in the tool, and `harness flow report-check <file>` checks a report against both.

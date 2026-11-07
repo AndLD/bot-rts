@@ -7,6 +7,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { documentationPaths, isDocumentation } from './changes.mjs'
 import { claims } from './layers.mjs'
+import { failureReport, maxLinesOf, outputFolder, stdioToFile } from './output.mjs'
 import { owns, selectedStacks, stackModule, STACKS } from './stacks.mjs'
 
 // The name of a change that cannot be listed: not documentation, in no package, so every stack runs its full plan
@@ -157,16 +158,24 @@ export function planPush(files, { profile, stacks = STACKS, exists }) {
 }
 
 /** Runs a step with the process in `env`; `harness` is the framework's own command line. */
-function defaultRun(step, root, env) {
+function defaultRun(step, root, env, { file } = {}) {
   const [command, args] =
     step.command === 'harness' ? [process.execPath, [HARNESS, ...step.args]] : [step.command, step.args]
-  return spawnSync(command, args, { cwd: join(root, step.cwd ?? '.'), stdio: 'inherit', env }).status ?? 1
+  const target = file ? stdioToFile(file) : null
+  try {
+    return (
+      spawnSync(command, args, { cwd: join(root, step.cwd ?? '.'), stdio: target?.stdio ?? 'inherit', env }).status ?? 1
+    )
+  } finally {
+    target?.close()
+  }
 }
 
 /**
- * `harness gate [--dry-run]`: plans the push on standard input and runs the plan; returns the exit code.
- * @param {{ root: string, profile: object, stdin: string, dryRun?: boolean, out: Function, err: Function, run?: Function, prepare?: Function, stacks?: object, env?: object }} options
- *   `run(step, root, env) → exit code` and `prepare(need, root, run)` are the seams of the tests; every step runs in `env` (the process's by
+ * `harness gate [--dry-run] [--verbose]`: plans the push on standard input and runs the plan; returns the exit code. A step runs with its output in a file and prints
+ * nothing when it passes; a step that fails prints the file's path and its failing lines, at most `output.maxLines` (`verbose` lets the steps print as they run).
+ * @param {{ root: string, profile: object, stdin: string, dryRun?: boolean, verbose?: boolean, out: Function, err: Function, run?: Function, prepare?: Function, stacks?: object, env?: object }} options
+ *   `run(step, root, env, { file }) → exit code` (`file` is where a quiet step's output goes) and `prepare(need, root, run)` are the seams of the tests; every step runs in `env` (the process's by
  *   default) without the variables that point Git at a repository
  */
 export async function runGate({
@@ -174,6 +183,7 @@ export async function runGate({
   profile,
   stdin,
   dryRun = false,
+  verbose = false,
   out,
   err,
   run = defaultRun,
@@ -182,7 +192,14 @@ export async function runGate({
   env = process.env
 }) {
   const stepEnv = withoutRepositoryEnv(env)
-  const runStep = (step, at) => run(step, at, stepEnv)
+  const folder = verbose ? null : outputFolder('gate')
+  let counter = 0
+  const outputOf = (step) => (folder ? join(folder, `${(counter += 1)}-${step.label.replace(/\W+/g, '-')}.log`) : null)
+  let current = null
+  const runStep = (step, at) =>
+    run(!verbose && step.quiet ? { ...step, ...step.quiet } : step, at, stepEnv, {
+      file: (current = outputOf(step)) ?? undefined
+    })
   const files = changedFiles(root, rangesOfPush(stdin, profile.branches.integration))
   const plan = planPush(files, { profile, stacks, exists: (file) => existsSync(join(root, file)) })
 
@@ -203,7 +220,7 @@ export async function runGate({
   const prepared = new Set()
   let announced = null
   for (const step of plan.steps) {
-    if (step.label !== announced) {
+    if (verbose && step.label !== announced) {
       out(`pre-push: ${step.label}`)
       announced = step.label
     }
@@ -225,12 +242,14 @@ export async function runGate({
     const status = runStep(step, root)
     if (status !== 0) {
       err(`pre-push: "${step.label}" failed`)
+      if (current) failureReport(current, maxLinesOf(profile)).forEach((line) => err(line))
       if (step.hint) {
         err(step.hint)
       }
       return status
     }
   }
+  if (!verbose) out(`pre-push: passed (${plan.steps.length} step(s))`)
   return 0
 }
 

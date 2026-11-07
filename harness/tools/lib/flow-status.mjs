@@ -7,6 +7,7 @@ import { ENTRY_HEADING, logHeadings } from './flow-check.mjs'
 import { phaseSequence } from './next-task.mjs'
 import { tokensOf } from './releases.mjs'
 import { readLock } from './lock.mjs'
+import { compareVersions } from './versions.mjs'
 import { HOME_REPO } from './flow-steps.mjs'
 
 const DONE = '✅'
@@ -130,9 +131,13 @@ function takeTruth(step, facts) {
   if (lock === null) return { state: NOT_STARTED, evidence: `the repository "${step.repo}" has no lock` }
   if (lock.version === version) return { state: DONE, evidence: `the lock of "${step.repo}" names ${version}` }
   const base = `the lock of "${step.repo}" names ${lock.version}, not ${version}`
+  // A later take supersedes this one: the lock names a later version, so this take is done when its pull request is merged (or cannot be asked about)
+  const later = compareVersions(lock.version, version) > 0
+  const superseded = `the lock of "${step.repo}" names ${lock.version}, a later version than ${version}`
   // An external repository is read through the host, so its pull requests that mention the version say whether the step has begun
   const found = step.repo === HOME_REPO ? undefined : facts.pullRequestsOf?.(step.repo, version)
-  if (!found) return { state: NOT_STARTED, evidence: base }
+  if (!found) return later ? { state: DONE, evidence: superseded } : { state: NOT_STARTED, evidence: base }
+  if (found.error && later) return { state: DONE, evidence: superseded }
   if (found.error)
     return { state: NOT_STARTED, evidence: `${base}; its pull requests could not be read (${found.error})` }
   // A search matches the body too, and a plan document may mention a version: only a pull request whose title names it is the one that takes it
@@ -144,6 +149,8 @@ function takeTruth(step, facts) {
       evidence: `${base}; ${open.map((pr) => `pull request #${pr.number} (${pr.title}) is open`).join(', ')}`
     }
   const merged = named.filter((pr) => pr.state === 'merged')
+  if (later && merged.length)
+    return { state: DONE, evidence: `${superseded}; pull request #${merged[0].number} (${merged[0].title}) is merged` }
   return {
     state: NOT_STARTED,
     evidence: merged.length

@@ -3,7 +3,7 @@
 // (the globs of `areas.json` next to the notes), and written between two markers, so a note holds only what needs judgment.
 // Every version has a note, a development version (`<x.y.z>-dev.<n>`) included (task 4.8): a development note says what a project does when it takes that
 // version from the previous one, and is frozen once the version ships; the final note is the complete story from the previous final version.
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { globToRegExp } from './layers.mjs'
 import { baseVersion, compareVersions, isDevelopment, parseVersion } from './versions.mjs'
@@ -181,4 +181,39 @@ export function noteStub({ version, previous, fragments, areas }) {
     ].join('\n'),
     areas
   )
+}
+
+const NOTE_FILE = /^(\d+\.\d+\.\d+(?:-dev\.\d+)?)\.md$/
+const LISTED_NOTE = /^- \[([^\]]+)\]\(\.\/[^)]+\.md\)/
+
+/** `harness check notes`: every note of the migrations folder has its line in the section "The notes" of the folder's README, and every line has its note. */
+export function checkNotesList({ root, profile }) {
+  const folder = profile.release?.migrations
+  const readme = folder && join(root, folder, 'README.md')
+  if (!readme || !existsSync(readme)) {
+    return { problems: [], message: 'The project has no list of migration notes, so there is none to check.' }
+  }
+  const text = readFileSync(readme, 'utf8')
+  const start = text.indexOf('\n## The notes')
+  if (start < 0) {
+    return { problems: [], message: `${folder}/README.md has no section "The notes", so there is no list to check.` }
+  }
+  const listed = text
+    .slice(start + 1)
+    .split('\n')
+    .slice(1)
+    .map((line) => LISTED_NOTE.exec(line)?.[1])
+    .filter(Boolean)
+  const present = readdirSync(join(root, folder))
+    .map((file) => NOTE_FILE.exec(file)?.[1])
+    .filter(Boolean)
+  const problems = [
+    ...present
+      .filter((version) => !listed.includes(version))
+      .map((version) => `${folder}/README.md: the section "The notes" has no line for the note of ${version}`),
+    ...listed
+      .filter((version) => !present.includes(version))
+      .map((version) => `${folder}/README.md: the section "The notes" lists ${version}, which has no note`)
+  ]
+  return { problems, message: `Checked ${present.length} migration notes against the list of ${folder}/README.md.` }
 }

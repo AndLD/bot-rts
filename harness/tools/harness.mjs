@@ -19,13 +19,15 @@
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness layers                                                print the layer map
 //   harness review measure                                        the measurements of a harness review that a script can decide, against the budgets of the bindings
-//   harness check <name>                                          one check: vendored, generated, profile, scaffold, adapters, local-adapters, values,
+//   harness check <name> [--verbose]                                          one check: vendored, generated, profile, scaffold, adapters, local-adapters, values,
 //                                                                 layers, links, paths, core, plan, flows, changelog, probes, product-knowledge
-//   harness check all                                             every check, then the project's own (`checks.project`)
+//   harness check all [--verbose]                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
 //   harness flow check | status <n> | next <n> | prompt <n> <step>   the flows of the plan (the procedure run-flow): check them (`check flows`), recompute the state of
 //     | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <time>]     a flow's steps from the repository, print its next step with its prompt, the prompt of a step, or
 //                                                                 how to hand a step to a worker: its executor, a fresh or the previous worker (reuse), the means
+//     | audit <n> [--orchestrator <id>[,<id>]] [--top <n>] [--json]   where the tokens of a flow went, by tool, command, step and session, from the runtime's transcripts
+//     | report-check <file>   check a worker's step report against its schema and its cap
 //     | calibrate [--min <n>] [--subscription <id>]   propose new usage coefficients from the flows' usage.jsonl (it writes nothing)
 //     | estimate <n> | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly …] [--cost <usd>]   the usage of a flow: the estimate of each step, whether the next step may start
 //     | sample <n> <event> [<step>] [same flags] [--tokens <n>] [--start cold|warm]    now, and a sample appended to the flows' usage.jsonl
@@ -98,11 +100,13 @@ const USAGE = `usage: harness <command>
   profile get <role>
   layers
   review measure
-  check <${Object.keys(CHECKS).join('|')}|all>
+  check <${Object.keys(CHECKS).join('|')}|all> [--verbose]
   plan summary [--check]
-  flow check | status <n> | next <n> | prompt <n> <step> | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <time>]
+  flow check | status <n> | next <n> | prompt <n> <step> | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <time>] [--brief]
+  flow audit <n> [--orchestrator <id>[,<id>]] [--top <n>] [--json]
+  flow report-check <file>
   flow calibrate [--min <n>] [--subscription <id>]
-  flow estimate <n> | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly <pct>[@<reset>]] [--cost <usd>] [--plan <name>] [--at <time>]
+  flow estimate <n> [--plan <name>] | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly <pct>[@<reset>]] [--cost <usd>] [--plan <name>] [--at <time>]
   flow sample <n> <flow-start|step-start|step-end|flow-end> [<step>] [the reading flags] [--tokens <n>] [--model <name>] [--start cold|warm]
   plan-write on|off|state [--folders <a,b>] [--scope project|local|user]
   plan split <phase>
@@ -112,7 +116,7 @@ const USAGE = `usage: harness <command>
   release [--dev] [--dry-run]
   release notes <version>
   ci changes <base> <head>
-  gate [--dry-run]
+  gate [--dry-run] [--verbose]
   guard pre-commit|pre-push
   coverage check-changed [--skip-missing] <base> [<package>...]
   coverage merge <artifacts> [--out <dir>] [<package>...]
@@ -155,6 +159,8 @@ const FLAGS_WITH_VALUE = new Set([
   '--model',
   '--start',
   '--min',
+  '--orchestrator',
+  '--top',
   '--subscription',
   '--folders',
   '--scope'
@@ -176,7 +182,10 @@ const BOOLEAN_FLAGS = new Set([
   '--upstream',
   '--approved',
   '--no-plan-write',
-  '--off-plan'
+  '--off-plan',
+  '--json',
+  '--verbose',
+  '--brief'
 ])
 
 export function parseArgs(argv) {
@@ -287,10 +296,14 @@ export async function run(argv, { out = console.log, err = console.error, input 
       return 0
     }
     if (command === 'check all') {
-      return checkAll({ root, out, err })
+      return checkAll({ root, out, err, verbose: flags.verbose })
     }
     if (words[0] === 'check' && words.length === 2 && CHECKS[words[1]]) {
-      return report(words[1], runCheck(words[1], { root, profile: loadProfile(root) }), { out, err })
+      return report(words[1], runCheck(words[1], { root, profile: loadProfile(root) }), {
+        out,
+        err,
+        verbose: flags.verbose
+      })
     }
     if (words[0] === 'profile' && words[1] === 'get' && words.length === 3) {
       const value = lookup(loadProfile(root), words[2])
@@ -387,7 +400,15 @@ export async function run(argv, { out = console.log, err = console.error, input 
       return code
     }
     if (command === 'gate') {
-      return await runGate({ root, profile: loadProfile(root), stdin: readStdin(), dryRun: flags.dryRun, out, err })
+      return await runGate({
+        root,
+        profile: loadProfile(root),
+        stdin: readStdin(),
+        dryRun: flags.dryRun,
+        verbose: flags.verbose,
+        out,
+        err
+      })
     }
     if (words[0] === 'coverage' && words[1] === 'check-changed' && words.length >= 3) {
       const [base, ...packages] = words.slice(2)

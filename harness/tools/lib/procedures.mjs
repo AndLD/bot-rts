@@ -2,6 +2,7 @@
 // `description` — the trigger: when to use it —, `invocation`: `auto`, or `explicit` only for a procedure that an agent must not start on its own judgment (design §8.1), and optional `paths` and `when`) and a body that names roles of the profile file and
 // commands as `{{commands.lint}}`. An agent-runtime adapter packages them for its runtime (a skill, for Claude Code); a project without such a runtime reads
 // them from the reading map of its entry file. The body is rendered with the profile file, and a role it needs that the profile lacks is an error.
+import { withQuietDefaults } from './quiet-commands.mjs'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { render, requiredPaths, valueAt } from './render.mjs'
@@ -102,9 +103,10 @@ export function listAllProcedures(root, profile, framework = listProcedures()) {
 
 /** The body of a procedure rendered for `profile`; `document` is the path of the file it is written into (its links are relative to it). */
 export function renderProcedure(procedure, profile, document) {
-  const missing = requiredPaths(procedure.body).filter((path) => [undefined, null, ''].includes(valueAt(profile, path)))
+  const filled = withQuietDefaults(profile)
+  const missing = requiredPaths(procedure.body).filter((path) => [undefined, null, ''].includes(valueAt(filled, path)))
   if (missing.length) {
     throw new Error(`the procedure "${procedure.name}" needs the profile roles ${missing.join(', ')}`)
   }
-  return render(procedure.body, profile, { document })
+  return render(procedure.body, filled, { document })
 }

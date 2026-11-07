@@ -74,6 +74,9 @@
       "fills": "`.nvmrc`, `.prettierignore` (excluding the vendored framework), a `package.json` whose `prepare` script installs the Git hooks, an empty `package-lock.json`, and the ignore lines of its tools",
       "module": "scaffold.mjs",
       "export": "scaffoldFiles"
+    },
+    "quiet-commands": {
+      "fills": "npm's `--silent` for lint, and the `summary` reporter of the test runner with its console output silenced (the coverage reporters narrowed to the neutral summary and a one-line total); the gate's test steps use the same options. A project that sets `typecheck` or `format` sets their quiet variants too"
     }
   },
   "enforces": [
@@ -111,7 +114,10 @@
       "docsCheck": "npm run docs:check",
       "harnessSync": "npm run harness -- sync",
       "harnessSyncLocal": "npm run harness -- sync --local",
-      "harnessDiff": "npm run harness -- diff"
+      "harnessDiff": "npm run harness -- diff",
+      "lintQuiet": "npm run --silent lint",
+      "testQuiet": "npm test --silent -- --reporters=summary --silent",
+      "testCoverageQuiet": "npm run --silent test:coverage -- --reporters=summary --silent --coverageReporters=json-summary --coverageReporters=text-summary"
     },
     "versions": {
       "runtime": "Node.js 22 LTS"

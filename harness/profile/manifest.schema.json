@@ -118,6 +118,7 @@
       "local-gate-plan": "logic",
       "ci-job-layout": "required",
       "commands": "required",
+      "quiet-commands": "optional",
       "ignored-directories": "required",
       "ignore-files": "required",
       "scaffold-files": "logic-optional"
@@ -136,6 +137,7 @@
       "model-map": "optional",
       "executors": "logic",
       "usage": "logic-optional",
+      "transcripts": "logic-optional",
       "hook-adoption": "logic-optional",
       "plan-write": "logic-optional",
       "managed-blocks": "logic-optional",

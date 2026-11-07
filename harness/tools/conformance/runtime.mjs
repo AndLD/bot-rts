@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 import { OPERATIONS, OPTIONAL_OPERATIONS, PERMISSIONS_OPERATION, PROMPT_SLOT } from '../lib/flow-executors.mjs'
 import { EXECUTORS } from '../lib/flow-steps.mjs'
+import { transcriptsProblems } from '../lib/flow-audit.mjs'
 import { usageProblems } from '../lib/flow-usage.mjs'
 import { Skip } from './skip.mjs'
 
@@ -229,6 +230,17 @@ export const runtimeChecks = [
       }
       const { modules } = await context.adapter()
       assert.deepEqual(usageProblems(modules[entry.module][entry.export](context.profile())), [])
+    }
+  },
+  {
+    name: 'transcripts: where the sessions of a flow are, and how to read one into the neutral records',
+    run: async (context) => {
+      const entry = context.manifest.roles.transcripts
+      if (!entry) {
+        throw new Skip('the transcripts role is empty: the audit of a flow cannot run on this runtime')
+      }
+      const { modules } = await context.adapter()
+      assert.deepEqual(transcriptsProblems(modules[entry.module][entry.export](context.profile())), [])
     }
   },
   {

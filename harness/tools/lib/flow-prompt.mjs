@@ -5,11 +5,16 @@ import { join } from 'node:path'
 import { inFramework } from './lock.mjs'
 import { repoWords } from './flow-repos.mjs'
 import { stepIds } from './flow-status.mjs'
+import { REPORT_CAP } from './step-report.mjs'
 
 export const PROMPT_TEMPLATE = 'core/plan/flow-step-prompts.md'
 const WORD = /\{(\w+)\}/g
 // The sections every kind gets after its own text; the Git wording is for the kinds that open pull requests of tasks
 const GIT_KINDS = ['tasks', 'triage-fix']
+/** The kinds whose worker reads a lot, and so gets the paragraph on delegating verbose reading to a subagent (task 6.6). */
+const DELEGATE_KINDS = ['tasks', 'consumer-take', 'triage-fix']
+/** The most lines of the summary a subagent returns. */
+export const SUMMARY_LINES = 10
 
 /** The sections of the template by the name of their `##` heading, without their comments: `{ header: '…', tasks: '…' }`. */
 export function promptSections(template) {
@@ -81,6 +86,8 @@ export function renderPrompt({ flow, step: id, facts, template, values, repoPath
     step.kind === 'custom' ? null : step.kind,
     ...(flow.settings.commands === 'plain' ? ['commands'] : []),
     ...(GIT_KINDS.includes(step.kind) ? ['git'] : []),
+    'budget',
+    ...(DELEGATE_KINDS.includes(step.kind) ? ['delegate'] : []),
     'stop',
     'report'
   ].filter(Boolean)
@@ -111,6 +118,9 @@ export function renderPrompt({ flow, step: id, facts, template, values, repoPath
     model: step.model,
     scope: step.scope.replace(/\s*\(executor:[^)]*\)/i, '').trim(),
     version: step.versions[0],
+    reportLines: REPORT_CAP.lines,
+    reportCharacters: REPORT_CAP.characters,
+    summaryLines: SUMMARY_LINES,
     idList: step.kind === 'tasks' || step.kind === 'triage-fix' ? idList(step, facts) : ''
   }
   const parts = wanted.map((name) => fillWords(sections[name], words))

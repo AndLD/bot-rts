@@ -6,18 +6,20 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { planFacts } from './flow-check.mjs'
 import { checkFlowsWithUsage } from './flow-usage-check.mjs'
-import { dispatchStep } from './flow-executors.mjs'
+import { dispatchStep, orchestratorContext, runtimeExecutors } from './flow-executors.mjs'
 import { readPromptTemplate, renderPrompt } from './flow-prompt.mjs'
 import { flowTruth, gatherFacts, logEntries } from './flow-status.mjs'
 import { HOME_REPO, stepById } from './flow-steps.mjs'
 import { readFlowsOf } from './flows.mjs'
+import { auditCommand } from './flow-audit.mjs'
+import { reportCheckCommand } from './step-report.mjs'
 import { calibrateCommand, dispatchUsageLines, usageCommand } from './flow-usage-command.mjs'
 import { repoRows, localRepoPaths } from './flow-repos.mjs'
 import { hostModule } from './host.mjs'
 import { inFramework, LOCK_FILE, readLock } from './lock.mjs'
 
 const USAGE =
-  'usage: harness flow check | status <n> | next <n> | prompt <n> <step> | dispatch <n> <step> [--context <percent>] [--account <id>] [--at <YYYY-MM-DD HH:MM>] | calibrate [--min <n>] [--subscription <id>] | estimate <n> | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly <pct>[@<reset>]] [--cost <usd>] [--plan <name>] | sample <n> <flow-start|step-start|step-end|flow-end> [<step>] [the reading flags] [--tokens <n>] [--model <name>] [--start cold|warm]'
+  'usage: harness flow check | status <n> [--orchestrator <percent>] | next <n> | prompt <n> <step> | dispatch <n> <step> [--context <percent>] [--orchestrator <percent>] [--account <id>] [--at <YYYY-MM-DD HH:MM>] | audit <n> [--orchestrator <id>[,<id>]] [--top <n>] [--json] | report-check <file> | calibrate [--min <n>] [--subscription <id>] | estimate <n> [--plan <name>] | gate <n> <step> [--five-hour <pct>[@<reset>]] [--weekly <pct>[@<reset>]] [--cost <usd>] [--plan <name>] | sample <n> <flow-start|step-start|step-end|flow-end> [<step>] [--plan <name>] [the reading flags] [--tokens <n>] [--model <name>] [--start cold|warm]'
 
 const pad = (number) => String(number).padStart(2, '0')
 /** The time now as the log writes it, `YYYY-MM-DD HH:MM`, local. */
@@ -106,6 +108,30 @@ function statusLines(flow, truth, blocked) {
   return lines
 }
 
+// The groups of a dispatch that the orchestrator needs only when it follows the whole procedure, not to start the worker (`--brief`): reading the report and the
+// context after the step, the usage reading and its measures, and the explanations that follow the means of starting
+const BRIEF_DROPS = [
+  /^Fetch its full step report/,
+  /^Read its context/,
+  /^Usage:/,
+  /^Then `/,
+  /^Measure it:/,
+  /^  - (its permissions|fetch its report|read the account)/
+]
+
+/** The dispatch without the groups of `BRIEF_DROPS` (a group is a line and the indented lines under it): the step, its worker and model, how to start it, and the line to log. */
+export function briefDispatch(lines) {
+  const kept = []
+  let dropping = false
+  for (const line of lines) {
+    const indented = /^\s/.test(line)
+    if (!indented || BRIEF_DROPS.some((pattern) => pattern.test(line)))
+      dropping = BRIEF_DROPS.some((pattern) => pattern.test(line))
+    if (!dropping) kept.push(line)
+  }
+  return kept
+}
+
 /**
  * Runs one `harness flow` command.
  * @param {{ words: string[], flags?: object, root: string, profile: object, git?: Function, lockOf?: Function, template?: string, runtimes?: object, now?: string, remote?: object }} options
@@ -120,7 +146,10 @@ export function flowCommand({ words, flags = {}, root, profile, git, lockOf, tem
     const { problems, message } = checkFlowsWithUsage({ root, profile, runtimes })
     return { lines: [message, ...problems], code: problems.length ? 1 : 0 }
   }
+  if (action === 'report-check') return reportCheckCommand({ words: words.slice(1) })
   if (action === 'calibrate' && words.length === 1) return calibrateCommand({ flags, root, profile, runtimes })
+  if (action === 'audit' && words.length === 2 && /^\d+$/.test(number ?? ''))
+    return auditCommand({ number, flags, root, profile, runtimes })
   const lengths = { status: [2], next: [2], estimate: [2], prompt: [3], dispatch: [3], gate: [3], sample: [3, 4] }
   if (!lengths[action]?.includes(words.length) || !/^\d+$/.test(number ?? '')) {
     return { lines: [USAGE], code: 2 }
@@ -150,7 +179,14 @@ export function flowCommand({ words, flags = {}, root, profile, git, lockOf, tem
 
   if (['estimate', 'gate', 'sample'].includes(action))
     return usageCommand({ action, words: words.slice(2), flow, dir: read.dir, flags, root, profile, runtimes, now })
-  if (action === 'status') return { lines: statusLines(flow, truth, blocked), code: 0 }
+  const orchestrator = flags.orchestrator === undefined ? null : Number(String(flags.orchestrator).replace(/%$/, ''))
+  if (orchestrator !== null && !(orchestrator >= 0 && orchestrator <= 100))
+    return fail('--orchestrator is a percent from 0 to 100.')
+  if (action === 'status') {
+    const { executors } = runtimeExecutors(profile, runtimes)
+    const own = orchestratorContext({ flow, context: orchestrator, executor: executors.session })
+    return { lines: [...statusLines(flow, truth, blocked), ...own.lines], code: 0 }
+  }
   if (action === 'dispatch') {
     const target = stepById(flow.steps, step)
     if (!target)
@@ -170,11 +206,13 @@ export function flowCommand({ words, flags = {}, root, profile, git, lockOf, tem
       now: flags.at ?? now ?? logTime(),
       facts,
       harness: `node ${inFramework(profile, 'tools/harness.mjs')}`,
-      repoPaths
+      repoPaths,
+      orchestrator
     })
     const harness = `node ${inFramework(profile, 'tools/harness.mjs')}`
     const usage = dispatchUsageLines({ flow, step: target, profile, root, runtimes, harness, warm: plan.reuse })
-    return { lines: [...lines, ...usage], code: 0 }
+    const all = [...lines, ...usage]
+    return { lines: flags.brief ? briefDispatch(all) : all, code: 0 }
   }
   if (action === 'next') {
     if (blocked.length)

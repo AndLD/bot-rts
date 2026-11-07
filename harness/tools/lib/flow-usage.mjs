@@ -84,6 +84,15 @@ export function modelFamily(text) {
   return words ? words.split(/[\s-]+/)[0] : null
 }
 
+const sameWords = (a, b) => a.trim().toLowerCase() === b.trim().toLowerCase()
+
+/** The subscription id that a plan names, as the account reports it (`Pro`, `Max 5x`) or as the table calls it (`pro`), without regard to case. */
+function planSubscription(plan, usage) {
+  const named = Object.keys(usage?.plans ?? {}).find((name) => sameWords(name, plan))
+  if (named) return usage.plans[named]
+  return Object.keys(usage?.subscriptions ?? {}).find((id) => sameWords(id, plan)) ?? null
+}
+
 /**
  * The subscription that applies: the flow's `usage.subscription` unless it is `local`, else `usage.subscription` of the ignored local profile file, else the
  * plan the account reports (`plan`, as the runtime names it, mapped by the adapter's `plans`). Null when none says; `from` says where it came from.
@@ -92,7 +101,7 @@ export function resolveSubscription({ flow, local, plan, usage }) {
   const set = flow?.settings?.usage?.subscription
   if (set && set !== 'local') return { id: set, from: "the flow's setting" }
   if (local?.usage?.subscription) return { id: local.usage.subscription, from: 'the local profile file' }
-  const mapped = plan ? (usage?.plans?.[plan] ?? usage?.plans?.[String(plan).toLowerCase()]) : null
+  const mapped = plan ? planSubscription(String(plan), usage) : null
   return mapped ? { id: mapped, from: `the plan the account reports (${plan})` } : { id: null, from: null }
 }
 

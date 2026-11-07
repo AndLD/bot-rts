@@ -1,23 +1,23 @@
 {
   "framework": "harness-framework",
   "mode": "pinned",
-  "version": "0.4.0-dev.1",
+  "version": "0.4.0",
   "migrations": {
-    "version": "0.4.0-dev.1",
+    "version": "0.4.0",
     "applied": [
       "0.2.0",
       "0.3.0"
     ],
     "start": {
-      "commit": "2380f09b1d54a307c883037129838f417d1cf73a",
-      "version": "0.3.0"
+      "commit": "a271fe79aeb050a4f157a3993a332baa39d99be2",
+      "version": "0.4.0-dev.1"
     }
   },
   "source": {
     "type": "git",
     "url": "https://github.com/AndLD/harness-framework.git",
-    "tag": "0.4.0-dev.1",
-    "commit": "84322481d502f507543ccacaeba47cc05c946223"
+    "tag": "v0.4.0",
+    "commit": "9c976f0294ec7f0c2b57010ab7395fe57070168e"
   },
   "adapters": {
     "stacks": [
@@ -30,7 +30,7 @@
   },
   "files": {
     "BOOTSTRAP.md": "c81d65863a4e247dfc12e5ec1b69836fe2892bd3a98eb220608eaf72b02cb864",
-    "CHANGELOG.md": "e3adf3e2f8de9c701bfc4783db1c4611887ae2c4c7184ead43cd1301f7e7a032",
+    "CHANGELOG.md": "8adff1412fb7dcb0df0d4ba7cfc25d2e32ecff034afc65f8acec0bb8ce67df37",
     "LICENSE": "05abb11a226621a02a46cbabdc913212f8327b9ab419ce1fe6cc14651fca1bed",
     "README.md": "686ffc1eeb8a0f0538de1f68e38daaf0cc9e41da04f28e53e01fd4ba2f1bdaa7",
     "adapters/host/_skeleton/README.md": "6ec6c5bf9b35fe9c6cb4dd569b7f5f84146611d15a971e46b045bfbaa97c785e",
@@ -161,7 +161,7 @@
     "core/templates/scaffold/stack.md": "7731ef78d3e80edd58ecabe37e757aadbe62bc95cc628821a205ac23fa96921d",
     "core/templates/scaffold/template-readme.md": "73f37b24b4558936e71416e4bd93b04a0f8c98f3bca96332cf27d41a84cb9a4d",
     "core/vocabulary.json": "8e74b9a58230a2778b159fbe89f1c66cc26f3d217c5bccf39ff92381c4e73390",
-    "framework.json": "d477a91e1b88c806ff7fda66e2f88231896a6ede85b906b9997333ef1cd30758",
+    "framework.json": "972819e688198af9d894d90809a78b0f1f84a897ba4cfb65d8b5f2209671ad6a",
     "migrations/0.1.1.md": "bdb159767f3151db389e5eedc2613c5c0b695c4903637e8c7bb92c0ddf22752b",
     "migrations/0.1.2.md": "7d4a05107beac6d44a9180562ce6a36278eccceabc81ca1c48c662127fa72df0",
     "migrations/0.2.0-dev.1.md": "055ab73e30562617c028af681b28093c4b738974337011fecea8745fe7245f9f",
@@ -175,6 +175,7 @@
     "migrations/0.3.0.md": "4256fa39f21f520316c9e444be3b6fd4baf68da747847ee112ad58b6bbba7ad4",
     "migrations/0.3.0.mjs": "d48c8d8504adfa8f14a94965c62d05efb78b59d9fb0639d39f9bfe3837f7f3a7",
     "migrations/0.4.0-dev.1.md": "87a8b4634c0bb4b583fed7ab003d9866afbe6ebf62ce97cd8ee095449b323fe8",
+    "migrations/0.4.0.md": "7675e0da9d1d7111845c4a36ed8aee44d2bc5366017cdab2a3587ce0f9ba2e23",
     "migrations/README.md": "56ab913e1cd0346d4878b3339a444837676d272c64c55765cf5c180ba6671948",
     "migrations/areas.json": "abb82c881d8975627a593eeaeb1bd496bed40d60d1657caa6d01f80e6a3ee622",
     "profile/harness-profile.schema.json": "80ddbab24caffdcbc908972b754fbeefc9390e26f3c9c67ce41ea251cd7a7a60",
@@ -309,6 +310,7 @@
     "0.2.0-dev.1": "45cdaf5a52733b0c1d0c4b6b0932e7ea49d20268",
     "0.2.0": "b7cff7b36ed926b78adda4beaeeac3c15738b984",
     "0.3.0": "0de995fc01844425284a2e5fdbd2165d63afcb0c",
-    "0.4.0-dev.1": "84322481d502f507543ccacaeba47cc05c946223"
+    "0.4.0-dev.1": "84322481d502f507543ccacaeba47cc05c946223",
+    "0.4.0": "9c976f0294ec7f0c2b57010ab7395fe57070168e"
   }
 }

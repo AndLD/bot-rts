@@ -43,6 +43,7 @@
     ]
   },
   "permissions": {
-    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(!**/.env.example)", "Read(**/*.pem)", "Read(**/*.key)"]
+    "deny": ["Read(**/.env)", "Read(**/.env.*)", "Read(!**/.env.example)", "Read(**/*.pem)", "Read(**/*.key)"],
+    "allow": ["Edit(docs/development-plan/**)"]
   }
 }

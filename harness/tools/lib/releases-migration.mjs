@@ -177,12 +177,32 @@ export function moveReleaseOrder({ root, profile }) {
   ]
   writeFileSync(indexPath, [...lines.slice(0, section.from), ...replacement, '', ...lines.slice(section.to)].join('\n'))
   const written = planSummary({ root, profile: loadProfile(root) })
-  const arrows = /\d+\s*(?:→|->)\s*\d+/.test(rest.join('\n'))
+  const arrowText = rest.join('\n')
+  const arrows = /\d+\s*(?:→|->)\s*\d+/.test(arrowText)
+  const arrowPhases = new Set(
+    (arrowText.match(/\d+(?:\s*(?:→|->)\s*\d+)+/g) ?? []).flatMap((chain) => chain.match(/\d+/g).map(Number))
+  )
+  const held = rows.some((row) =>
+    tokensOf(row.tasks).some((token) =>
+      arrowPhases.has(typeof token === 'object' ? token.phase : Number(token.split('.')[0]))
+    )
+  )
+  // A row whose cell held words and no id the tools can read gets neither ids nor a status worked out from them (the rule of reading a cell, I-15)
+  const unread = rows.filter((row) => !row.tasks && row.notes && row.status !== '⏭').map((row) => row.release)
   return [
-    `Moved the order of development of ${planIndex} (${rows.length} release(s)) into ${releases} and set \`paths.releases\`. The status of each release was worked out from its tasks (⬜ planned, 🟡 developing, ✅ released); a development version that was cut is 🏷, which only you know: review the column "Status".`,
-    ...(arrows
+    `Moved the order of development of ${planIndex} (${rows.length} release(s)) into ${releases} and set \`paths.releases\`. The status of each release was worked out from its tasks (⬜ planned, 🟡 developing, ✅ released); a development version that was cut is 🏷, which the tools never set, so set it by hand: review the column "Status".`,
+    ...(arrows && held
       ? [
           `Required action: ${planIndex} also wrote the order of the phases as arrows; it was kept as text in the "Notes" of ${releases}, which the tools do not read. To keep that order, name the phases as "Phase N" in the column "Tasks, in order" of the release that holds them, in that order, and run \`harness plan summary\`.`
+        ]
+      : arrows
+        ? [
+            `${planIndex} also wrote the order of the phases as arrows; no release of the table holds those phases, so it was kept as text in the "Notes" of ${releases} and nothing more is needed.`
+          ]
+        : []),
+    ...(unread.length
+      ? [
+          `Required action: the cell of the old table for ${unread.map((name) => `"${name}"`).join(', ')} held words and no task id the tools can read, so the release has no ids and the status ⬜ (the plan index reads a ⬜ release as the next one). Give each its ids and its status by hand in ${releases}, and run \`harness plan summary\`.`
         ]
       : []),
     ...(rows.some((row) => row.notes)

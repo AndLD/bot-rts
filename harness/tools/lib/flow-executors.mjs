@@ -3,8 +3,15 @@
 // this module picks the executor of a step, decides the reuse from the flow's log, the steps and the worker's context, and renders the adapter's means as
 // the lines `harness flow dispatch` prints. Pure functions; the runtime adapters, the clock and the context reading are parameters.
 import { repoRow } from './flow-repos.mjs'
-import { EXECUTORS, stepById } from './flow-steps.mjs'
-import { ENTRY_HEADING, logHeadings } from './flow-check.mjs'
+import {
+  EXECUTORS,
+  EXECUTOR_ORDER,
+  executorField,
+  plannedExecutor,
+  readExecutorField,
+  stepById
+} from './flow-steps.mjs'
+import { ENTRY_HEADING, entryBody, entryField, logHeadings } from './flow-check.mjs'
 import { releaseIds } from './flow-status.mjs'
 
 /** The slot an adapter's means carry where the prompt goes; `renderMeans` replaces it with the command that prints the prompt. */
@@ -87,41 +94,51 @@ export function runtimeExecutors(profile, runtimes) {
   return { runtime: null, executors: { manual: MANUAL_EXECUTOR } }
 }
 
+/** The executor after `kind` in the order of the executors that the runtime offers (`cli` after `session`, `manual` last), or null. */
+export function nextInOrder(kind, executors) {
+  const at = EXECUTOR_ORDER.indexOf(kind)
+  if (at < 0) return null
+  return EXECUTOR_ORDER.slice(at + 1).find((each) => executors[each]) ?? null
+}
+
 /**
- * The executor of a step: its own override, else the flow's setting; `manual` with a note when the runtime does not offer the one named.
- * @returns {{ kind: string, executor: object, source: string, note: string | null }}
+ * The reason a step in another repository goes to the command line (task 2.7, decided by the owner on 2026-11-05): a session started there cannot be
+ * counted on without the owner's message, and a flow in seamless mode would wait for one.
+ */
+export const EXTERNAL_REASON =
+  "a step in another repository runs on the command line, since a session cannot be counted on to start there without the owner's message"
+
+/**
+ * The executor of a step: its own override, else the flow's setting, else `session`. One the runtime does not offer goes to the next in the order that it
+ * offers (`session`, `cli`, `manual`), a subagent to the manual one; `reason` then says why, for the log line of the fallback.
+ * @returns {{ kind: string, executor: object, source: string, planned: string, note: string | null, reason: string | null }}
  */
 export function pickExecutor(flow, step, executors) {
-  const named = step.executor ?? flow.settings.executor ?? 'session'
+  const named = plannedExecutor(flow, step)
   const source = step.executor ? "the step's own" : "the flow's setting"
-  if (executors[named]) return { kind: named, executor: executors[named], source, note: null }
+  if (executors[named])
+    return { kind: named, executor: executors[named], source, planned: named, note: null, reason: null }
+  const kind = nextInOrder(named, executors) ?? 'manual'
+  const reason = EXECUTORS.includes(named)
+    ? `the runtime offers no ${named} executor`
+    : `"${named}" is no executor (${EXECUTORS.join(', ')})`
   return {
-    kind: 'manual',
-    executor: executors.manual,
+    kind,
+    executor: executors[kind],
     source,
-    note: EXECUTORS.includes(named)
-      ? `the runtime offers no ${named} executor, so the step goes to the manual one (a D0 decision to log)`
-      : `"${named}" is no executor (${EXECUTORS.join(', ')}); the step goes to the manual one`
+    planned: named,
+    note: `${reason}, so the step goes to the ${kind} one (a D0 decision to log)`,
+    reason
   }
 }
-
-// The bullet lines of a log entry, from its heading to the next heading
-function entryBody(logText, heading) {
-  const lines = logText.split('\n')
-  const start = lines.indexOf(heading)
-  if (start < 0) return ''
-  const end = lines.findIndex((line, index) => index > start && line.startsWith('### '))
-  return lines.slice(start + 1, end < 0 ? undefined : end).join('\n')
-}
-
-const field = (body, name) => body.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*([^·\\n]+)`))?.[1]?.trim() ?? null
 // A field that names something, or null for a dash or a placeholder of the template
 const named = (value) => (value && !/^[<—–-]/.test(value) ? value : null)
 
 /**
- * The entries of a log with what a "step started" entry says of its worker: `{ kind, step, at, executor, reusedFrom, worker, account, model }`.
- * The executor line reads `- **Executor:** session, reused from step 3 · **Worker:** <id> · **Account:** <account> · **Model:** <model> · **Estimate:** …`
- * (the flow-log template); a log written before the account was recorded has no `Account` field, and its account is null.
+ * The entries of a log with what a "step started" entry says of its worker: `{ kind, step, at, executor, reusedFrom, fallbackOf, reason, worker, account,
+ * model }`. The executor line reads `- **Executor:** session, reused from step 3 · **Worker:** <id> · **Account:** <account> · **Model:** <model> ·
+ * **Estimate:** …`, or `cli, the fallback of session: <reason> · …` for a worker on the next executor of the order (the flow-log template); a log written
+ * before the account was recorded has no `Account` field, and its account is null.
  */
 export function workerEntries(logText) {
   const text = logText ?? ''
@@ -133,15 +150,13 @@ export function workerEntries(logText) {
     const entry = { kind, step: found[4] ?? found[5] ?? null, at: `${found[1]} ${found[2]}` }
     if (kind !== 'started') return [entry]
     const body = entryBody(text, heading)
-    const executor = field(body, 'Executor')
     return [
       {
         ...entry,
-        executor: executor?.match(/^(session|subagent|manual)\b/)?.[1] ?? null,
-        reusedFrom: executor?.match(/reused from step (\d+[a-z]?)/)?.[1] ?? null,
-        worker: named(field(body, 'Worker')),
-        account: named(field(body, 'Account')),
-        model: field(body, 'Model')
+        ...readExecutorField(entryField(body, 'Executor')),
+        worker: named(entryField(body, 'Worker')),
+        account: named(entryField(body, 'Account')),
+        model: entryField(body, 'Model')
       }
     ]
   })
@@ -299,6 +314,39 @@ export function renderMeans(means, promptCommand) {
 }
 
 /**
+ * The executor of a step with its repository: in the home repository `pickExecutor`. In an external one the worker starts in that repository's folder on
+ * this machine, so without the folder only the owner can start it (the manual executor); with it, a step planned for a session goes to the command line
+ * (`cli`) when the runtime offers it, logged as the fallback of the session with `EXTERNAL_REASON`, and a step's own override is kept.
+ */
+export function pickStepExecutor({ flow, step, executors, repoPaths = {} }) {
+  const row = repoRow(flow.settings, step.repo)
+  if (!row || row.home) return pickExecutor(flow, step, executors)
+  const planned = plannedExecutor(flow, step)
+  if (repoPaths[step.repo] === undefined) {
+    const reason = `the folder of the repository "${step.repo}" on this machine is not set (\`repos.${step.repo}\` in harness-profile.local.json)`
+    return {
+      kind: 'manual',
+      executor: executors.manual,
+      source: 'the missing folder',
+      planned,
+      reason,
+      note: `${reason}, so no worker can be started there, and the step goes to the manual one (a D0 decision to log)`
+    }
+  }
+  if (!step.executor && planned === 'session' && executors.cli) {
+    return {
+      kind: 'cli',
+      executor: executors.cli,
+      source: 'the order of the executors for another repository',
+      planned,
+      reason: EXTERNAL_REASON,
+      note: `${EXTERNAL_REASON} (the owner's decision of 2026-11-05); the log names it the fallback of session with this reason`
+    }
+  }
+  return pickExecutor(flow, step, executors)
+}
+
+/**
  * The dispatch of a step: which executor, a fresh or the previous worker and why, the means to start or continue it (and, when it continues one, the fresh
  * start to fall back on if the continue fails), fetch its full report and read its context, and the line its "step started" log entry carries.
  * @returns {{ lines: string[], plan: { kind: string, reuse: boolean, worker: string | null, model: string | null } }}
@@ -317,17 +365,7 @@ export function dispatchStep({
   repoPaths = {}
 }) {
   const { runtime, executors } = runtimeExecutors(profile, runtimes)
-  const row = repoRow(flow.settings, step.repo)
-  // An external repository's worker starts in that repository's folder on this machine; without the folder only the owner can start it there
-  const missingPath = row && !row.home && repoPaths[step.repo] === undefined
-  const picked = missingPath
-    ? {
-        kind: 'manual',
-        executor: executors.manual,
-        source: 'the missing folder',
-        note: `the folder of the repository "${step.repo}" on this machine is not set (\`repos.${step.repo}\` in harness-profile.local.json), so no worker can be started there, and the step goes to the manual one (a D0 decision to log)`
-      }
-    : pickExecutor(flow, step, executors)
+  const picked = pickStepExecutor({ flow, step, executors, repoPaths })
   const worker = previousWorker(logText, step.id)
   const decision = decideReuse({
     flow,
@@ -348,9 +386,9 @@ export function dispatchStep({
   const repo = repoPaths[step.repo] ?? '.'
   const name = `flow-${flow.number}-step-${step.id}`
   const permissions = flow.settings.permissions
-  const startFresh = (text) => {
+  const startFresh = (text, executor = picked.executor) => {
     const split = splitModel(text)
-    return picked.executor.start({
+    return executor.start({
       prompt: PROMPT_SLOT,
       model: split?.model ?? null,
       effort: split?.effort ?? null,
@@ -374,8 +412,40 @@ export function dispatchStep({
   const reading = picked.executor.context({ worker: id })
   const accountMeans = picked.executor.account?.() ?? []
   const render = (list) => list.map((means) => `  - ${renderMeans(means, promptCommand)}`)
-  const logLine = (executorText, workerText, modelText) =>
-    `- **Executor:** ${executorText} · **Worker:** ${workerText} · **Account:** ${account ?? '—'} · **Model:** ${modelText ?? '—'} · **Estimate:** ${step.sp || '—'} SP, ${step.usage || '—'}`
+  // The permission mode the worker starts in is the flow's setting (task 2.11), logged beside the model when the flow sets one
+  const modeField = permissions?.mode ? ` · **Permissions:** ${permissions.mode}` : ''
+  const logLine = (executorText, workerText, modelText, accountText = account ?? '—') =>
+    `- **Executor:** ${executorText} · **Worker:** ${workerText} · **Account:** ${accountText} · **Model:** ${modelText ?? '—'}${modeField} · **Estimate:** ${step.sp || '—'} SP, ${step.usage || '—'}`
+  const field = (reusedFrom = null) =>
+    executorField({ kind: picked.kind, planned: picked.planned, reason: picked.reason, reusedFrom })
+  // The next executor of the order, for this step only, when the start of this one is refused or fails
+  const next = nextInOrder(picked.kind, executors)
+  const failed = `<why the ${picked.kind} start failed>`
+  const nextPermissions = next && executors[next].permissions?.({ permissions })
+  // A worker of the next executor may run on another account than the orchestrator's (a command line signs in by its own folder), so its line reads its own
+  const nextAccount = (next && executors[next].account?.()) ?? []
+  const fallback = next
+    ? [
+        `If the ${picked.kind} start is refused or fails, do not retry it and do not wait: the fallback for this step only is the ${next} executor (the order of the executors; the next step is dispatched again and goes back to ${picked.planned}). Log a decision D0 "step ${step.id}: ${failed}, so the ${next} executor runs it", and start it:`,
+        ...render(startFresh(fallbackModel, executors[next])),
+        ...(nextPermissions ? [`  - its permissions: ${nextPermissions}`] : []),
+        `  - fetch its report: ${executors[next]
+          .report({ worker: '<its id>' })
+          .map((means) => renderMeans(means, promptCommand))
+          .join('; ')}`,
+        ...(nextAccount.length
+          ? [
+              `  - read the account it runs on: ${nextAccount.map((means) => renderMeans(means, promptCommand)).join('; ')}`
+            ]
+          : []),
+        `  - then log: ${logLine(
+          executorField({ kind: next, planned: picked.planned, reason: failed }),
+          '<the id the start returns>',
+          fallbackModel,
+          nextAccount.length ? '<the account it runs on>' : (account ?? '—')
+        )}`
+      ]
+    : []
   const lines = [
     `Step ${step.id} of flow ${flow.number} [${step.kind}]: the ${picked.kind} executor (${picked.source}) of ${runtime ? `the runtime ${runtime}` : 'the framework (no runtime adapter offers executors)'}: ${picked.executor.means}.`,
     ...(picked.note ? [`Note: ${picked.note}.`] : []),
@@ -403,14 +473,25 @@ export function dispatchStep({
       ? [
           `If the continue fails for any reason (the runtime cannot find ${worker.id}, as from another account, or the call errs), do not retry it: start a fresh worker instead, log the step with the line below for a fresh worker, and log a decision D0 "step ${step.id}: ${worker.id} could not be continued, a fresh worker runs it":`,
           ...render(startFresh(fallbackModel)),
-          `  - then log: ${logLine(picked.kind, '<the id the start returns>', fallbackModel)}`
+          `  - then log: ${logLine(field(), '<the id the start returns>', fallbackModel)}`
         ]
       : []),
+    ...fallback,
     'Fetch its full step report when it ends (a notice may be cut short):',
     ...render(picked.executor.report({ worker: id })),
     "Read its context after the step, for the next step's reuse (`--context <percent>`):",
     ...(reading.length ? render(reading) : ['  - not readable: the next step starts a fresh worker']),
-    `Log "step ${step.id} started" with: ${logLine(`${picked.kind}${decision.reuse ? `, reused from step ${worker.step}` : ''}`, id, model)}`
+    `Log "step ${step.id} started" with: ${logLine(field(decision.reuse ? worker.step : null), id, model)}`
   ]
-  return { lines, plan: { kind: picked.kind, reuse: decision.reuse, worker: decision.reuse ? worker.id : null, model } }
+  return {
+    lines,
+    plan: {
+      kind: picked.kind,
+      planned: picked.planned,
+      fallback: next,
+      reuse: decision.reuse,
+      worker: decision.reuse ? worker.id : null,
+      model
+    }
+  }
 }

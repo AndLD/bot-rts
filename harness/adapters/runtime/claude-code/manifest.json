@@ -55,6 +55,11 @@
       "module": "scaffold.mjs",
       "export": "scaffoldFiles"
     },
+    "plan-write": {
+      "fills": "`Edit(<folder>/**)` rules in permissions.allow of `.claude/settings.json` (tracked) for the plan's folders, or of `.claude/settings.local.json` or the user-wide file when asked by name; never the settings, the hooks or the Git directory. They let the edit and write tools and a shell append into the folder without a prompt; a path outside it and `sed -i` still prompt",
+      "module": "plan-write.mjs",
+      "export": "planWrite"
+    },
     "hook-adoption": {
       "fills": "adds the framework's hook entries and the `Read(...)` deny rules to the project's own `.claude/settings.json`, and names the hook commands that are not the framework's",
       "module": "adoption.mjs",

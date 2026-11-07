@@ -7,7 +7,8 @@
 //             editRefused (a write of an environment file), editAllowed (an edit of a source file), editAfter (the event after a file edit)
 import assert from 'node:assert/strict'
 import { execFileSync, spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 import { OPERATIONS, OPTIONAL_OPERATIONS, PERMISSIONS_OPERATION, PROMPT_SLOT } from '../lib/flow-executors.mjs'
 import { EXECUTORS } from '../lib/flow-steps.mjs'
@@ -228,6 +229,43 @@ export const runtimeChecks = [
       }
       const { modules } = await context.adapter()
       assert.deepEqual(usageProblems(modules[entry.module][entry.export](context.profile())), [])
+    }
+  },
+  {
+    name: 'plan write: on, off and state of the permission to write the plan, by the file it returns',
+    run: async (context) => {
+      const entry = context.manifest.roles['plan-write']
+      if (!entry) {
+        throw new Skip(
+          "the plan-write role is empty: the owner allows the plan's folders in the runtime's own permissions"
+        )
+      }
+      const { modules } = await context.adapter()
+      const planWrite = modules[entry.module][entry.export]
+      const root = mkdtempSync(join(tmpdir(), 'plan-write-'))
+      try {
+        const profile = { ...context.profile(), paths: { ...context.profile().paths, plan: 'docs/plan' } }
+        const request = { root, profile, home: join(root, 'home') }
+        assert.equal(planWrite({ ...request, action: 'state' }).on, false, 'a project with no setting reports off')
+        const on = planWrite({ ...request, action: 'on' })
+        assert.equal(on.on, true)
+        assert.ok(on.files.length > 0, 'on returns the file to write')
+        for (const file of on.files) {
+          assert.ok(
+            typeof file.path === 'string' && !file.path.split('/').includes('..') && typeof file.content === 'string',
+            `${file.path} is not a file with content`
+          )
+        }
+        assert.deepEqual(
+          planWrite({ ...request, action: 'off' }).files,
+          [],
+          'off on a project that is off changes nothing'
+        )
+        assert.throws(() => planWrite({ ...request, action: 'on', folders: ['.git'] }), 'the Git directory is refused')
+        assert.equal(planWrite({ ...request, action: 'state', scope: 'user' }).on, false)
+      } finally {
+        rmSync(root, { recursive: true, force: true })
+      }
     }
   },
   {

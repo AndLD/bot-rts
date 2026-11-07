@@ -313,8 +313,17 @@ report is approved.
 2. **Inventory and classify.** List every harness file, and for large entry points each top-level section; assign a layer
    (section 2.1) and a document type. Compare with the table in `bindings.md` and update it in the report. A file or section
    that fits no layer, or fits two, is a D1/D4 finding.
-3. **Measure.** Run the measurements of `bindings.md` and record the numbers in the report (M1 to M10, M12 to M33). Quote the command and
-   the date so the run can be repeated. Measurements are evidence, not verdicts: a hit is judged in context.
+3. **Measure.** Run `harness review measure`, which prints the measurements that a script can decide against the budgets of `bindings.md`:
+   M3 (references that break the dependency rule, listed), M5 (the rows of the rule map by status), M6 (words always loaded, with the `procedures` block apart),
+   M7 (Markdown files that no link reaches), M20 (normative and exception words) and M21 (highest fan-out and fan-in). Run the other measurements of
+   `bindings.md` and record all the numbers in the report (M1 to M10, M12 to M33). Quote the command and the date so the run can be repeated.
+   Measurements are evidence, not verdicts: a hit is judged in context.
+   - The command counts as the earlier reviews did, so that a number compares with the previous report: the always-loaded set is the entry file, the files it
+     imports with a line `@path` and the root files that import it; normative words are *must, never, do not, don't, always, only*, exception words are
+     *unless, except, only when, only if, but not, apart from, if … then*; the fan-out of a document is the number of distinct tracked files its relative links
+     reach (a link to a folder reaches the folder's README, and one to a folder without a README reaches nothing); a file is unreachable when no chain of links from the
+     always-loaded set, the readme or the files of the entry layer reaches it (a file in a hidden folder, which the agent runtime or the host reads, and the vendored copy are not counted).
+   - It exits with 1 when a number is over a ceiling of the bindings, and names the numbers. A number with no ceiling is printed without a verdict.
 4. **Review by dimension.** Go through D1 to D15, collect evidence, write findings (section 5), then score.
    - **4b. Product integrity pass (D11).** Treat the product knowledge as a system to be checked, not text to be skimmed:
      1. *Partition* the corpus into bounded contexts (`bindings.md` lists them). A full review reads **every** section; record
@@ -432,6 +441,7 @@ A delta report states which dimensions it did not re-score and carries their pre
 | 2026-10-16 | Complexity (D13, M20–M26) added for the harness and the product knowledge: essential versus accidental, hotspots, budgets set from the first baseline. |
 | 2026-10-16 | Parallel execution (D14, M27–M31, probe P7) added: dependency graph and critical path, hotspots, delegation readiness, environment isolation, coordination, schedule and recommended number of agents. |
 | 2026-10-16 | Automation fit (D15, M32–M33) added: skills and hooks inventory, rule-to-carrier classification, proposals to promote rules to hooks or skills. |
+| 2026-11-07 | Step 3 runs `harness review measure` for M3, M5, M6, M7, M20 and M21 (the definitions of the earlier hand-run counts), against the budgets of the bindings. |
 
 ### Measurements (M1 to M33) in one line each
 

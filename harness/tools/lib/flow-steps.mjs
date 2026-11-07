@@ -6,7 +6,39 @@ import { tokensOf } from './releases.mjs'
 /** The kinds of step, as the flow template says them; `custom` is the only one with a prompt of its own. */
 export const STEP_KINDS = Object.freeze(['tasks', 'cut', 'consumer-take', 'triage-fix', 'decision', 'custom'])
 /** The executors a flow or a step may name (the flow template). */
-export const EXECUTORS = Object.freeze(['session', 'subagent', 'manual'])
+export const EXECUTORS = Object.freeze(['session', 'cli', 'subagent', 'manual'])
+/**
+ * The order of the executors (the runtime contract, task 2.7): each is the fallback of the one before it, for one step at a time and logged with its reason;
+ * a subagent stands outside the order, for a short step of analysis only.
+ */
+export const EXECUTOR_ORDER = Object.freeze(['session', 'cli', 'manual'])
+/** The executor a step is planned for: its own override, else the flow's setting, else the default `session`. */
+export const plannedExecutor = (flow, step) => step.executor ?? flow.settings?.executor ?? 'session'
+
+/**
+ * The value of the `Executor:` field of a "step started" entry (the flow-log template): `cli, reused from step 3, the fallback of session: <reason>`, each
+ * part after the executor optional. Returns `{ executor, reusedFrom, fallbackOf, reason }`; `executor` is null when the value names none of `EXECUTORS`.
+ */
+export function readExecutorField(value) {
+  const text = (value ?? '').trim()
+  const fallback = text.match(/the fallback of (\w+):\s*(.*)$/)
+  return {
+    executor: EXECUTORS.find((kind) => new RegExp(`^${kind}\\b`).test(text)) ?? null,
+    reusedFrom: text.match(/reused from step (\d+[a-z]?)/)?.[1] ?? null,
+    fallbackOf: fallback?.[1] ?? null,
+    reason: fallback?.[2]?.trim() || null
+  }
+}
+
+/** The `Executor:` field of a worker that runs a step on `kind`, planned for `planned`: the fallback and its reason when the two differ. */
+export const executorField = ({ kind, planned, reason, reusedFrom = null }) =>
+  [
+    kind,
+    reusedFrom ? `reused from step ${reusedFrom}` : null,
+    kind !== planned ? `the fallback of ${planned}: ${reason}` : null
+  ]
+    .filter(Boolean)
+    .join(', ')
 /** The decision levels (the procedure `run-flow`). */
 export const LEVELS = Object.freeze(['D0', 'D1', 'D2', 'D3', 'D4'])
 export const HOME_REPO = 'home'

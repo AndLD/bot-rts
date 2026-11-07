@@ -14,7 +14,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { inFramework, MODES, readLock, writeLock } from './lock.mjs'
-import { selectNotes } from './migration-notes.mjs'
+import { finalNoteAhead, selectNotes } from './migration-notes.mjs'
 import { localSuiteProblems } from './local-adapters.mjs'
 import { loadProfile } from './profile.mjs'
 import { regenerate } from './vendor.mjs'
@@ -122,6 +122,13 @@ export async function migrate({ root, generators, profile = loadProfile(root), l
 
   for (const { version, note } of selectNotes(listed, from, target)) {
     messages.push(`Migration note of ${version} (follow its required actions):`, readFileSync(note, 'utf8').trimEnd())
+  }
+  const ahead = finalNoteAhead(listed, from, target)
+  if (ahead) {
+    messages.push(
+      `Migration note of ${ahead.version} (the final version of this line, which you have not taken: read it now, it is the complete story, and do its required actions when you take ${ahead.version}):`,
+      readFileSync(ahead.note, 'utf8').trimEnd()
+    )
   }
   messages.push(...probeAdvice({ ...probeMode({ profile, root }), from, to: target }))
   messages.push(`Migrated to ${next.framework} ${target}.`)

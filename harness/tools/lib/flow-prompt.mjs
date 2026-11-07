@@ -79,6 +79,7 @@ export function renderPrompt({ flow, step: id, facts, template, values, repoPath
     'header',
     ...(where.external ? ['external'] : []),
     step.kind === 'custom' ? null : step.kind,
+    ...(flow.settings.commands === 'plain' ? ['commands'] : []),
     ...(GIT_KINDS.includes(step.kind) ? ['git'] : []),
     'stop',
     'report'

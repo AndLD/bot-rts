@@ -5,6 +5,9 @@
 // resolves exactly those conflicts in favour of this branch (which has all of the previous work and its own on top), and leaves the others, which someone
 // else changed, for a person.
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { markerLines } from './conflict-markers.mjs'
 
 const run = (root, args, { allowFailure = false } = {}) => {
   try {
@@ -87,10 +90,27 @@ export function updateBranch({ root, integration, production, previous, fetch = 
       run(root, ['add', '--', path])
     }
   }
+  // A file taken from this branch must not hold the markers of an earlier conflict that was committed unresolved: it is not committed as resolved
+  const marked = squashOnly.filter((path) => {
+    try {
+      return markerLines(readFileSync(join(root, path), 'utf8')).length > 0
+    } catch {
+      return false // removed by the resolution
+    }
+  })
   const others = conflicted.filter((path) => !squashOnly.includes(path))
   const resolved = squashOnly.length
     ? [`Resolved to ${branch}'s side, the squash of ${previous} only: ${squashOnly.join(', ')}.`]
     : []
+  if (marked.length) {
+    return {
+      code: 1,
+      messages: resolved,
+      problems: [
+        `${marked.join(', ')} still hold(s) merge conflict markers from ${branch}'s side, so it is not resolved: remove the markers, add the file, and commit the merge${others.length ? ` (also in conflict: ${others.join(', ')})` : ''}. The merge is left in progress.`
+      ]
+    }
+  }
   if (others.length) {
     return {
       code: 1,

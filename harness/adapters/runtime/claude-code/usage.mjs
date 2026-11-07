@@ -28,9 +28,17 @@ const scaled = (base, divisor) =>
       row(Math.round((cell.fiveHour / divisor) * 100) / 100, Math.round((cell.weekly / divisor) * 1000) / 1000)
     ])
   )
+// The rows of Sonnet on Pro that carry a kind of their own are CALIBRATED: the medians per SP that `harness flow calibrate` read from the measured steps of
+// flows 1 and 2 (2026-11-05 to 2026-11-07): 4 `consumer-take` steps, 6 `cut` steps and 6 `tasks` steps. The account's window also counts the orchestrator and
+// the owner's parallel work, so a measured step is an upper bound. A kind with fewer than 3 steps (custom, triage-fix, decision) keeps the default row times its factor.
 const PRO = {
   haiku: row(4, 0.5),
-  sonnet: row(12, 1.6),
+  sonnet: {
+    default: { fiveHour: 12, weekly: 1.6 },
+    tasks: { fiveHour: 1.8, weekly: 0.25 },
+    'consumer-take': { fiveHour: 2.61, weekly: 0.23 },
+    cut: { fiveHour: 3.42, weekly: 0.69 }
+  },
   opus: row(20, 2.7),
   fable: row(30, 4)
 }

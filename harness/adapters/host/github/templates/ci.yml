@@ -18,13 +18,24 @@ permissions:
 jobs:
   pr-title:
     # A squash merge uses the pull request title as the commit message, so it must follow the commit format of the profile
-    if: github.event_name == 'pull_request'
+    # A run that the update workflow dispatches has no pull request event, and a skipped job left the pull request without the required check,
+    # so that run reads the title of the open pull request of the branch.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     steps:
       - name: Check the pull request title
         env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
           TITLE: ${{ github.event.pull_request.title }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            TITLE=$(gh pr list --head "$BRANCH" --state open --json title --jq '.[0].title // empty')
+            [ -n "$TITLE" ] || { echo "No open pull request for $BRANCH: no title to check"; exit 0; }
+          fi
           pattern='^(<%= commitTypes %>)(\([a-z0-9-]+\))?!?: .+'
           if ! printf '%s' "$TITLE" | grep -Eq "$pattern"; then
             echo "The pull request title must be a Conventional Commit, for example 'feat(scope): add the thing'. Got: $TITLE"

@@ -8,7 +8,7 @@ One note for every version of the framework from `0.1.1` on, **a development ver
 
 A development version (`<x.y.z>-dev.<n>`, tagged before the final version) has a note of its own, written against the **previous development version of the same `x.y.z`**, or against the previous final version for the first, so a project that follows the development versions does each step once. A development note is **frozen once the version ships**: a project that followed it never finds it changed; what the next development version adds goes into the next development note. The **final note** `<x.y.z>.md` stays the complete story from the previous final version, so it restates what the development notes said. The scripts stay named for the final version (below).
 
-`harness migrate` prints the notes of the versions after the project's own up to the target, except that the development notes of an `x.y.z` are left out when its final note is among them (the final one covers them). So `0.1.2` to `0.2.0-dev.1` reads `0.2.0-dev.1`; then `dev.1` to `dev.2` reads `dev.2`; then `dev.2` to `0.2.0` reads `0.2.0`; and a jump from `0.1.2` to `0.2.0` reads `0.2.0` only. `harness probes` selects the areas the same way.
+`harness migrate` prints the notes of the versions after the project's own up to the target, except that the development notes of an `x.y.z` are left out when its final note is among them (the final one covers them). So `0.1.2` to `0.2.0-dev.1` reads `0.2.0-dev.1`; then `dev.1` to `dev.2` reads `dev.2`; then `dev.2` to `0.2.0` reads `0.2.0`; and a jump from `0.1.2` to `0.2.0` reads `0.2.0` only. When the target is a development version and the tree holds the final note of its `x.y.z`, `migrate` prints that note last as well, marked as not yet taken. `harness probes` selects the areas the same way.
 
 **Who writes it, and when.** The agent that prepares a release writes the note of the version before the owner cuts it, from the changelog fragments and the diff since the previous release; the owner reviews it with the cut. `harness release` (with or without `--dev`) refuses a version without its note. When it is missing, the command writes a **stub** (the changelog fragments added since the previous release as the raw material of "What changed for a project", the areas, and a `TODO` in the required actions) and stops; the author completes it and commits it. A `TODO` left in the required actions stops the release.
 
@@ -28,6 +28,13 @@ Every note has the same title and sections, in this order (`harness release` che
 | How to verify | the commands that show the project is healthy on the new version |
 
 A version that needs nothing from a project says so in its required actions.
+
+**What a note says about checks and about the release table** (the gaps found in use, I-16):
+
+- A check of a development note names the lock of the version the note is the target of (`migrations.version` is `<x.y.z>-dev.<n>`) and says it is a check of that take only: after the next development version, or the final one, the same jump leaves a different value.
+- A development note that sends its reader to the final note says so by name; `harness migrate` prints the final note too when the target is a development version and the tree holds it, so a project reads it before it takes the final version.
+- A note that moves the order of the releases says: a status `🏷` (a development version tagged upstream) and `⏭` are set by hand, never by a script; a release whose old cell held words and no id the tools can read gets its ids and its status by hand (the migration names it); an order of phases written as arrows that no release of the table holds stays as text in "Notes" and needs nothing more; and when a take settles the table in the same pull request as the take of a release, that release is 🟡 until the pull request merges, and ✅ once its tag is published and the pull request is merged.
+- A note that deletes or moves files a project may cite says that the project's own documents that list them (the framework's copied tests among its checks, for one) must follow.
 
 ## Scripts
 

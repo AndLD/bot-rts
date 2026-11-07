@@ -4,7 +4,16 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { repoSettingsProblems, stepRepoProblems } from './flow-repos.mjs'
-import { EXECUTORS, LEVELS, STEP_ID, STEP_KINDS, isInserted } from './flow-steps.mjs'
+import {
+  EXECUTORS,
+  LEVELS,
+  STEP_ID,
+  STEP_KINDS,
+  isInserted,
+  plannedExecutor,
+  readExecutorField,
+  stepById
+} from './flow-steps.mjs'
 import { readFlowsOf, withFlowsTable } from './flows.mjs'
 import { readReleases } from './releases.mjs'
 import { planPhases, readBacklogOf, readQueueOf } from './plan.mjs'
@@ -16,7 +25,8 @@ export const ENTRY_HEADING =
 const SETTING_VALUES = {
   executor: EXECUTORS,
   reuse: ['auto', 'never'],
-  commits: ['per-step', 'per-cut']
+  commits: ['per-step', 'per-cut'],
+  commands: ['any', 'plain']
 }
 
 /** The part of a log text under "## Entries", outside fenced blocks, split into its `###` headings: `[{ heading, line }]`. */
@@ -30,6 +40,30 @@ export function logHeadings(logText) {
     else if (!fenced && line.startsWith('### ')) found.push(line)
   }
   return found
+}
+
+/** The bullet lines of a log entry, from its heading to the next heading ('' when the heading is not in the log). */
+export function entryBody(logText, heading) {
+  const lines = logText.split('\n')
+  const start = lines.indexOf(heading)
+  if (start < 0) return ''
+  const end = lines.findIndex((line, index) => index > start && line.startsWith('### '))
+  return lines.slice(start + 1, end < 0 ? undefined : end).join('\n')
+}
+
+/** The value of the field `**<name>:**` of an entry's body, up to the next `·` or the end of its line; null when it has none. */
+export const entryField = (body, name) =>
+  body.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*([^·\\n]+)`))?.[1]?.trim() ?? null
+
+// A "step started" entry whose worker ran on another executor than the step is planned for (the order of the executors: a fallback for one step at a
+// time) must say whose fallback it is and why, so that a switch to the command line shows in the log (task 2.7)
+function fallbackProblem(expected, flow, heading, body, stepId) {
+  const step = stepById(flow.steps, stepId)
+  const said = readExecutorField(entryField(body, 'Executor'))
+  if (!step || !said.executor) return null
+  const planned = plannedExecutor(flow, step)
+  if (said.executor === planned || (said.fallbackOf && said.reason)) return null
+  return `${expected}: the entry "${heading.slice(4, 60)}" names the executor ${said.executor}, but step ${stepId} is planned for ${planned}; write "**Executor:** ${said.executor}, the fallback of ${planned}: <the reason>" (\`harness flow dispatch\` prints the line)`
 }
 
 function settingsProblems(settings) {
@@ -211,6 +245,9 @@ function logProblems(flow, logText) {
       problems.push(
         `${expected}: the entry "${heading.slice(4, 60)}" names step ${entry[4] ?? entry[5]}, which the flow does not have`
       )
+    } else if (entry[4]) {
+      const problem = fallbackProblem(expected, flow, heading, entryBody(logText, heading), entry[4])
+      if (problem) problems.push(problem)
     }
   }
   return problems

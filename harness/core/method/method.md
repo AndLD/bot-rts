@@ -84,7 +84,7 @@ the stack file.
 - [ ] The lint, typecheck and import-boundary commands of the profile pass in every package.
 - [ ] The stack items of the stack file hold.
 - [ ] No dead code, no commented-out blocks, no debug output.
-- [ ] The task is marked ✅ in its task file (its row in the phase file of the older layout) and its log has an entry for it (section 6).
+- [ ] The task is marked ✅ in its task file (its row in the phase file of the older layout) and its log has an entry for it (section 6). Work that no task covers has its off-plan fragment instead (section 6).
 - [ ] The plan's status is updated (a phase becomes 🟡 when its first task starts and ✅ when its exit criteria are met, in the
       summary table and in the phase index), and the branch and pull request of the task are added to the phase's
       implementation log.
@@ -140,6 +140,9 @@ Sessions can end at any time, so the repository, not the chat, carries the state
   or, for a phase-wide matter, in the phase's work log (template inside the file): tasks,
   branch and its state, decisions and deviations from the plan, problems and findings, the exact next step, and the commands
   that verify the current state. Commit and push it on the task branch, in the same pull request as the work.
+- **Nothing merges without a record:** the work of a task is recorded in the log of the task, a phase-wide matter in the log of the phase, and work that no task covers
+  (documentation, tooling, CI, a change of the plan) in an off-plan fragment, a file of its own for the pull request (the off-plan record of the profile, section 4, where the
+  project has the role); the commit of a pull request that has a task has its `Plan: <task id>` line instead. `harness check off-plan` lists the merged pull requests with neither.
 - **Changelog:** a change that a user of the product can see adds a changelog fragment (a file of its own, so that two changes
   never edit the same lines); the release collects the fragments (profile, section 7).
 - **Local database after a phase** (only where the profile has the database commands, an optional role group; a project without

@@ -176,6 +176,7 @@ export async function init({
       detached: flags.detached,
       self: flags.self,
       reason: flags.reason,
+      planWrite: !flags.noPlanWrite,
       hostSetup:
         hostSetup && !flags.noHostSetup
           ? {

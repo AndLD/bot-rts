@@ -89,6 +89,9 @@ Branch types:
 {{#if paths.flows}}
 | Flows | {{link:paths.flows}}: the flows, each an ordered chain of steps that delivers releases of the release order, run by an orchestrator with the procedure `run-flow`; a file `flow-<n>-<slug>.md` per flow with its log beside it, and an index `README.md` |
 {{/if}}
+{{#if paths.offPlan}}
+| Off-plan record | {{link:paths.offPlan}}: the record of work that no task covers (documentation, tooling, CI, a change of the plan), one fragment per pull request named `<pull request number>-<slug>.md` (what changed, why and who asked, what it leaves to do), printed by `harness plan log --off-plan`; a merged pull request has a `Plan: <task id>` line or a fragment (`harness check off-plan`) |
+{{/if}}
 {{#if paths.backlog}}
 | Backlog | {{link:paths.backlog}}: the feature requests, not a phase and not defects; a file `B-<n>.md` per item with its `Source:` (`report` with the link of each report, `owner` or `agent`), branch `feature/B-<n>-<slug>`, built only when the owner puts it into a release or asks for it by name, the open ones in the folder's `README.md`, the finished ones in `archived/` |
 {{/if}}

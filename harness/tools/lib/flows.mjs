@@ -22,12 +22,14 @@ export const FLOW_DEFAULTS = Object.freeze({
     'cut.final': 'D3',
     'cut.hotfix': 'D3',
     'reports.answer': 'D4',
-    'reports.close': 'D4'
+    'reports.close': 'D4',
+    'contract.change': 'D3'
   },
   executor: 'session',
   reuse: 'auto',
   reuseLimits: { context: 40, steps: 3 },
   commits: 'per-step',
+  commands: 'any',
   usage: { subscription: 'local', stopAt: { fiveHour: 85, weekly: 90 }, safetyFactor: 1.2, maxWaitMinutes: 300 },
   repos: { home: '.' }
 })

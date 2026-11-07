@@ -21,6 +21,7 @@
       "phases": "docs/development-plan/phases",
       "planIndex": "docs/development-plan/README.md",
       "issues": "docs/development-plan/issues",
+      "offPlan": "docs/development-plan/off-plan",
       "changelog": "CHANGELOG.md",
       "changelogFragments": "changelog.d"
     },

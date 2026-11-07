@@ -330,7 +330,7 @@ function jobsContext(profile, name, index, count, adapter) {
  * are joined in order without repeats; any other path named twice is an error.
  * @returns {{ path: string, content: string }[]} sorted by path
  */
-export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules }) {
+export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules, planWrite = true }) {
   const catalogue = adapterCatalogue(frameworkDir)
   const { stacks, runtimes, host } = selectedAdapters(profile)
   const context = {
@@ -372,7 +372,7 @@ export function scaffoldPlan({ profile, frameworkDir = FRAMEWORK_DIR, modules })
     }
   })
   for (const name of runtimes) {
-    contributions.push(...(roleFunction(modules.runtime[name], 'scaffold-files')?.(profile) ?? []))
+    contributions.push(...(roleFunction(modules.runtime[name], 'scaffold-files')?.(profile, { planWrite }) ?? []))
   }
   if (host) {
     contributions.push(...(roleFunction(modules.host[host], 'scaffold-files')?.(profile, { jobs }) ?? []))
@@ -538,6 +538,7 @@ export async function bootstrap({
   self = false,
   adopt = false,
   reason = DEFAULT_DETACH_REASON,
+  planWrite = true,
   hostSetup = false,
   out = () => {},
   err = () => {}
@@ -595,7 +596,8 @@ export async function bootstrap({
     const planned = scaffoldPlan({
       profile: withDefaults(schema, profile),
       frameworkDir: fetched.dir,
-      modules: await loadModules(fetched.dir)
+      modules: await loadModules(fetched.dir),
+      planWrite
     })
     // The framework's own repository, and a project that is adopted, have files of their own where the scaffold has them too: they stay
     const kept = self || adopt ? planned.filter(({ path }) => existsSync(join(root, path))) : []
@@ -620,6 +622,15 @@ export async function bootstrap({
       }
     }
     const messages = [`Wrote ${PROFILE_FILE} and ${files.length} scaffolded files.`]
+    const runtimeModules = (await loadModules(fetched.dir)).runtime
+    if (
+      planWrite &&
+      selectedAdapters(profile).runtimes.some((name) => runtimeModules[name]?.manifest.roles['plan-write'])
+    ) {
+      messages.push(
+        "An agent writes the plan's folders without a prompt (the agent runtime's tracked project settings); turn it off with `harness plan-write off`, or bootstrap with --no-plan-write."
+      )
+    }
     if (kept.length) {
       messages.push(
         adopt

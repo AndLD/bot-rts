@@ -40,3 +40,9 @@ Run a probe as a separate session started in this repository (method, step 5): a
 | ------ | -------- | ------- |
 | Rows of the `procedures` block of the entry file (M6, M20) | — | — |
 | Words of the `procedures` block of the entry file (M6) | — | — |
+| Words in the always-loaded set (M6) | — | — |
+| Normative words in the always-loaded set (M20) | — | — |
+| Exception words in the always-loaded set (M20) | — | — |
+| Highest fan-out of one document (M21) | — | — |
+| Unreachable Markdown files (M7) | — | — |
+| References that break the dependency rule (M3) | — | — |

@@ -137,6 +137,7 @@
       "executors": "logic",
       "usage": "logic-optional",
       "hook-adoption": "logic-optional",
+      "plan-write": "logic-optional",
       "managed-blocks": "logic-optional",
       "scaffold-files": "logic-optional"
     },

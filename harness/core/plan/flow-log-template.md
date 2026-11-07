@@ -13,7 +13,7 @@ session that continues the flow reads the flow file, the tail of this log and th
 - **Usage:** <5-hour and weekly window, in %, with their reset times, or "not read"; `harness flow sample <n> flow-start` prints the line>
 
 ### YYYY-MM-DD HH:MM — step <#> started
-- **Executor:** <session | subagent | manual> <, reused from step <#>> · **Worker:** <the worker's id, which continues it> · **Account:** <the account it runs on, or —> · **Model:** <model and effort> · **Estimate:** <SP, % of the weekly window>
+- **Executor:** <session | cli | subagent | manual> <, reused from step <#>> <, the fallback of <the planned executor>: <why>, when it is not the step's own> · **Worker:** <the worker's id, which continues it> · **Account:** <the account it runs on, or —> · **Model:** <model and effort> · **Permissions:** <the permission mode it starts in, the mode of the flow's `permissions` setting; left out when the flow sets none> · **Estimate:** <SP, % of the weekly window>
 - **Usage before:** <the line `harness flow sample <n> step-start <#>` prints: each window's percent and reset time>
 
 ### YYYY-MM-DD HH:MM — step <#> ended: <done | partial | blocked>

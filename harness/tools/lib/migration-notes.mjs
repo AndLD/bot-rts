@@ -42,6 +42,19 @@ export function selectNotes(entries, from, target) {
 }
 
 /**
+ * The final note that a development target is the road to, when the tree holds it and it is not among the selected notes (only development versions lie
+ * between the project's version and the target): a development note may send its reader to it, so `migrate` prints it too, for reading before the final take.
+ * @returns {{ version: string, note: string } | null}
+ */
+export function finalNoteAhead(entries, from, target) {
+  if (!isDevelopment(target) || compareVersions(baseVersion(target), from) <= 0) {
+    return null
+  }
+  const final = entries.find(({ version, note }) => note && version === baseVersion(target))
+  return final ? { version: final.version, note: final.note } : null
+}
+
+/**
  * The release a note of `version` is written against, from the tags of the repository (with the `v` of a final version, without it for a development one):
  * the previous development version of the same `x.y.z` when there is one, else the previous final version. Null when there is none.
  * @returns {{ version: string, tag: string } | null}

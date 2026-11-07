@@ -15,6 +15,12 @@ const NOT_STARTED = '⬜'
 const WAITING = ['⏸', '⛔']
 const PLAN_LINE = /^Plan:[ \t]*(.+)$/gm
 
+/** Whether `text` names `version` as a whole token: not as part of a longer version (`1.0.0-dev.1`, `1.0.01`, `1.0.0.1`) or of a longer number before it. */
+export function namesVersion(text, version) {
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![\\d.])${escaped}(?!\\d|\\.\\d|-\\w)`).test(text)
+}
+
 /** The ids of the `Plan:` lines of the bodies of the squash commits on `ref`, or null when Git cannot say. */
 export function mergedPlanIds(git, ref) {
   try {
@@ -130,7 +136,7 @@ function takeTruth(step, facts) {
   if (found.error)
     return { state: NOT_STARTED, evidence: `${base}; its pull requests could not be read (${found.error})` }
   // A search matches the body too, and a plan document may mention a version: only a pull request whose title names it is the one that takes it
-  const named = found.pullRequests.filter((pr) => (pr.title ?? '').includes(version))
+  const named = found.pullRequests.filter((pr) => namesVersion(pr.title ?? '', version))
   const open = named.filter((pr) => pr.state === 'open')
   if (open.length)
     return {

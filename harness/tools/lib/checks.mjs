@@ -4,12 +4,14 @@
 import { spawnSync } from 'node:child_process'
 import { checkAdapters } from './adapters.mjs'
 import { checkChangelog } from './changelog.mjs'
+import { checkMarkers } from './conflict-markers.mjs'
 import { checkCore } from './core-scan.mjs'
 import { checkFlowsWithUsage } from './flow-usage-check.mjs'
 import { ADAPTER_RUNTIMES } from './runtimes.mjs'
 import { checkLayers } from './layers.mjs'
 import { listLocalAdapters, localAdapterProblems, localLoadErrors, localSuiteProblems } from './local-adapters.mjs'
 import { checkLinks } from './links.mjs'
+import { checkOffPlan } from './off-plan.mjs'
 import { checkPaths } from './paths.mjs'
 import { planSummary } from './plan.mjs'
 import { checkProbes } from './probe-areas.mjs'
@@ -66,11 +68,13 @@ export const CHECKS = {
     const { problems, count } = checkLinks({ root, indexedFolders: profile.checks?.indexedFolders })
     return { problems, messages: [`Checked links in ${count} Markdown files.`] }
   },
+  markers: (context) => single(checkMarkers(context)),
   paths: (context) => single(checkPaths(context)),
   core: (context) => single(checkCore(context)),
   plan: (context) => single(planSummary({ ...context, check: true })),
   flows: (context) => single(checkFlowsWithUsage({ runtimes: ADAPTER_RUNTIMES, ...context })),
   changelog: (context) => single(checkChangelog(context)),
+  'off-plan': (context) => single(checkOffPlan(context)),
   probes: (context) => single(checkProbes(context)),
   'product-knowledge': (context) => checkProductKnowledge(context)
 }

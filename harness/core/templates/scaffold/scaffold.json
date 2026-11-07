@@ -38,6 +38,10 @@
       "path": "{{paths.backlog}}/archived/README.md"
     },
     {
+      "template": "off-plan-readme.md",
+      "path": "{{paths.offPlan}}/README.md"
+    },
+    {
       "template": "releases.md",
       "path": "{{paths.releases}}"
     },

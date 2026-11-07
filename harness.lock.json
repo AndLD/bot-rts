@@ -296,18 +296,18 @@
     "AGENTS.md#git-rules": "722e96ce702f7dae26d1360e449d0621ec6dd0601b2b8a28746c55b01392ce8e",
     ".claude/skills/change-plan/SKILL.md": "3d768f6e1abeb357416fb3d4d26152ae4920acd17679e34df333f6a9b8c5729b",
     ".claude/skills/code-review/SKILL.md": "c4349b680ad16183496373306f552b50dcadaf3a76f7a5177165dc511988c2a9",
-    ".claude/skills/end-session/SKILL.md": "f54b06e84479edda673263569225a854685401e3499a7cce5624298270fcbee2",
+    ".claude/skills/end-session/SKILL.md": "4e454f5af443ae806f9f332148b0643c1d696e3d4babe3259bcd4dc69f20e0a2",
     ".claude/skills/finish-phase/SKILL.md": "bcb0835414fb3b0207f019810b7c0e119fb83c05e62de6f7074028de8f740d64",
     ".claude/skills/harness-review/SKILL.md": "10bdc29a6cb4b18a6c804bf40eb38056f57ad32ffd40284c2020ceb1fca2f4c4",
     ".claude/skills/new-adapter/SKILL.md": "59c45440c88897a90b3dcc5cdd59b6cd4143dd3b1d2853b64e80b655994ef81b",
-    ".claude/skills/open-pull-request/SKILL.md": "84b9405ab1eaee09766d8742304d2236d9208e0a9288ffa38514b2831225918d",
-    ".claude/skills/release/SKILL.md": "66f7cce28a4d4fbb1351318ecf1929330e4d0445697de00288d627055762d372",
+    ".claude/skills/open-pull-request/SKILL.md": "26a8103a864acf84a7106fa5ada50bb0446dd9e766d08f921ed2fd2c1eabaa67",
+    ".claude/skills/release/SKILL.md": "b403b91fc1180d49fc545288b7d20dd60b8362d291fd1f7a4887c14dc0d427b0",
     ".claude/skills/report-upstream/SKILL.md": "9426468b1f644319b6a64576da4594294dae32d2dd535a57981b7f1faabf945e",
     ".claude/skills/run-flow/SKILL.md": "ae61f6fa154b2660c9e813a2a67cdf37a47cc85422074f87e9cd3d7f53c6fb69",
     ".claude/skills/start-task/SKILL.md": "d9f2384cffcad786bd8b54ae36b814bf9b513da13c0a80e089f4dc23d83e83bc",
-    ".claude/skills/update-framework/SKILL.md": "de66de949c6c1c8298dafd83c92925038498d3ea02bfd902fcdfd0671d3ac29e"
+    ".claude/skills/update-framework/SKILL.md": "fb53eb122855eed4a70ca21aafb315c8c28c9aa034b1becdaf1374720c714797"
   },
-  "profile": "7c51990ded43da7577c488bf6594a153aba645658e0c8a06c6ce4b5fb4b72489",
+  "profile": "d47342e6681c62cf161b1a72e431ee06b18207e9fbd6da9333c837b576face96",
   "overrides": [],
   "seen": {
     "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79",

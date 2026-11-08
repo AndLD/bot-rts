@@ -9,6 +9,8 @@ import { PROFILE_FILE } from './profile.mjs'
 
 export const LAYERS = Object.freeze(['core', 'domain', 'adapter', 'profile', 'state', 'entry'])
 export const BLOCK_ID = 'layers'
+// The security policy of the scaffold is the project's own statement, so it is PROFILE unless the project's map already places it
+export const SECURITY_POLICY = 'SECURITY.md'
 
 const escape = (text) => text.replace(/[.+^${}()|[\]\\]/g, '\\$&')
 
@@ -63,7 +65,16 @@ export function layerConfig(root, profile) {
     return null
   }
   const lock = readLock(root)
-  const known = [PROFILE_FILE, LOCK_FILE, profile.paths?.profileDocument, '**/bindings.md'].filter(Boolean)
+  const claimed =
+    coreEntries(configured.core).some(({ path }) => path === SECURITY_POLICY) ||
+    LAYERS.filter((layer) => layer !== 'core').some((layer) => claims(configured[layer] ?? [], SECURITY_POLICY))
+  const known = [
+    PROFILE_FILE,
+    LOCK_FILE,
+    profile.paths?.profileDocument,
+    '**/bindings.md',
+    claimed ? null : SECURITY_POLICY
+  ].filter(Boolean)
   const sourceFolder = lock?.source?.type === 'path' ? [`${lock.source.location}/**`] : []
   const blocks = lock
     ? entryBlocks

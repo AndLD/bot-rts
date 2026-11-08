@@ -15,11 +15,23 @@ export function openRange(spec) {
   return text.split('||').some((part) => /^[>]=?\s*[\w.-]+$/.test(part.trim())) ? 'a range with no upper bound' : null
 }
 
-/** @returns {{ command: string, manifests: { glob: string, locks: string[] }[], versionProblems: (file: string, text: string) => string[] }} */
+/** The member folders (globs, `!` for an exclusion) that a root manifest lists as npm workspaces, an array or `{ packages }`; none for any other text. */
+export function workspaceMembers(text) {
+  let manifest
+  try {
+    manifest = JSON.parse(text)
+  } catch {
+    return []
+  }
+  const listed = Array.isArray(manifest?.workspaces) ? manifest.workspaces : manifest?.workspaces?.packages
+  return Array.isArray(listed) ? listed.filter((member) => typeof member === 'string') : []
+}
+
+/** @returns {{ command: string, manifests: { glob: string, locks: string[], members: (text: string) => string[] }[], versionProblems: (file: string, text: string) => string[] }} */
 export function dependencyAudit() {
   return {
     command: 'npm audit --audit-level=high',
-    manifests: [{ glob: 'package.json', locks: LOCKS }],
+    manifests: [{ glob: 'package.json', locks: LOCKS, members: workspaceMembers }],
     versionProblems(file, text) {
       let manifest
       try {

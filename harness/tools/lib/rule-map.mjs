@@ -21,6 +21,23 @@ export const GIT_HOOK_RULES = Object.freeze([
   { rule: 'git.retention', when: 'local', by: '`pre-push` refuses the deletion of a remote branch' }
 ])
 
+// The security rules of core rest on the probes of the security review (core/reviews/security/probes/), which a review runs in every project; each entry names them
+export const SECURITY_RULES = Object.freeze([
+  {
+    rule: 'sec.outside-text',
+    when: 'review',
+    by: 'probes S4-007 and S4-021 of the security review',
+    probes: ['S4-007', 'S4-021']
+  },
+  {
+    rule: 'sec.own-authority',
+    when: 'review',
+    by: 'probes S4-016 and S4-020 of the security review',
+    probes: ['S4-016', 'S4-020']
+  },
+  { rule: 'sec.pinned-actions', when: 'review', by: 'probe S2-004 of the security review', probes: ['S2-004'] }
+])
+
 const ITEM_START = /^\s*(?:[-*] |\d+\. |#{1,6} |\*\*)/
 const ID_COMMENT = /<!-- rule:[a-z0-9.-]+ -->/
 
@@ -79,7 +96,7 @@ export function declarations(profile, adaptersDir, localRoot) {
   const fromAdapters = [...listAdapters(adaptersDir), ...own]
     .filter(({ axis, name }) => (axis === 'host' ? selected.host === name : selected[`${axis}s`].includes(name)))
     .flatMap(({ manifest }) => manifest.enforces ?? [])
-  return [...GIT_HOOK_RULES, ...fromAdapters].filter(
+  return [...GIT_HOOK_RULES, ...SECURITY_RULES, ...fromAdapters].filter(
     ({ condition }) => !condition || (condition === 'host-protected') === protectedHost
   )
 }
@@ -93,8 +110,9 @@ export function renderRuleMap(profile, { adaptersDir, rulesDir, localRoot } = {}
       .map(({ by }) => by)
       .join('; ') || '–'
   const rows = coreRules(rulesDir).map(({ id, text }) => {
-    const cells = ['early', 'local', 'remote'].map((when) => cell(id, when))
-    const holders = found.filter(({ rule }) => rule === id)
+    const cells = ['early', 'local', 'remote', 'review'].map((when) => cell(id, when))
+    // A review finds a broken rule afterwards and holds nothing at the moment of the action, so a probe alone leaves the rule judgment
+    const holders = found.filter(({ rule, when }) => rule === id && when !== 'review')
     const status = holders.length === 0 ? 'judgment' : holders.every(({ partial }) => partial) ? 'partly' : 'enforced'
     return `| \`${id}\` | ${text} | ${cells.join(' | ')} | ${status} |`
   })
@@ -103,8 +121,8 @@ export function renderRuleMap(profile, { adaptersDir, rulesDir, localRoot } = {}
       ? 'The host cannot protect its branches here (`host.protection` is off), so the protection rules have no remote holder; the Git hooks and the merge guard of the runtime hold them.'
       : 'The host enforces the protection rules with the ruleset that `harness host protect` sets.'
   return [
-    '| Rule | Text | Early (agent runtime) | Local (Git hooks, gate) | Remote (host, CI) | Status |',
-    '| ---- | ---- | --------------------- | ----------------------- | ----------------- | ------ |',
+    '| Rule | Text | Early (agent runtime) | Local (Git hooks, gate) | Remote (host, CI) | Review (probe) | Status |',
+    '| ---- | ---- | --------------------- | ----------------------- | ----------------- | -------------- | ------ |',
     ...rows,
     '',
     note

@@ -62,6 +62,10 @@
       "path": "{{documents.harnessBindings}}"
     },
     {
+      "template": "security-bindings.md",
+      "path": "{{documents.securityBindings}}"
+    },
+    {
       "template": "changelog-fragments-index.md",
       "path": "{{paths.changelogFragments}}/README.md"
     },

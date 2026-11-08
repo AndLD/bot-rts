@@ -40,6 +40,8 @@ Run a probe as a separate session started in this repository (method, step 5): a
 | ------ | -------- | ------- |
 | Rows of the `procedures` block of the entry file (M6, M20) | — | — |
 | Words of the `procedures` block of the entry file (M6) | — | — |
+| Lines of the security rules of the entry file (M6) | — | — |
+| Words of the security rules of the entry file (M6) | — | — |
 | Words in the always-loaded set (M6) | — | — |
 | Normative words in the always-loaded set (M20) | — | — |
 | Exception words in the always-loaded set (M20) | — | — |

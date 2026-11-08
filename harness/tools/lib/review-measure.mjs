@@ -34,6 +34,8 @@ const PROCEDURES_BLOCK = /<!-- harness:begin procedures -->\n([\s\S]*?)\n<!-- ha
 export const BUDGETS = Object.freeze({
   procedureRows: /rows of the `procedures` block/i,
   procedureWords: /words of the `procedures` block/i,
+  securityLines: /lines of the security rules/i,
+  securityWords: /words of the security rules/i,
   words: /words in the always-loaded set/i,
   normative: /normative words/i,
   exception: /exception words/i,
@@ -271,6 +273,16 @@ export function measureReview({
     const rows = block.split('\n').filter((line) => line.startsWith('|')).length - 2
     lines.push(
       `M6  procedures block of ${loaded[0]}: ${rows} rows${check('procedureRows', rows)}, ${format(countWords(block))} words${check('procedureWords', countWords(block))}`
+    )
+  }
+  const securityRules = entryText
+    .split('\n')
+    .filter((line) => /<!-- rule:sec\./.test(line))
+    .map((line) => line.replace(/<!--.*?-->/g, ''))
+  if (securityRules.length > 0) {
+    const securityWords = countWords(securityRules.join(' '))
+    lines.push(
+      `M6  security rules of ${loaded[0]}: ${securityRules.length} lines${check('securityLines', securityRules.length)}, ${format(securityWords)} words${check('securityWords', securityWords)}`
     )
   }
   const joined = texts.join('\n')

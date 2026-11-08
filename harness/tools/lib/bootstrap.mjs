@@ -64,8 +64,30 @@ export const QUESTIONS = Object.freeze([
   { role: 'adapters.host', flag: 'host', axis: 'host', label: 'Repository host adapter' },
   { role: 'coverageGate', number: true, label: 'Coverage gate, in percent of every measure' },
   { role: 'branches.production', label: 'Production branch' },
-  { role: 'branches.integration', label: 'Integration branch' }
+  { role: 'branches.integration', label: 'Integration branch' },
+  // Asked only when a selected runtime lists its permission modes (the manifest's `permissionModes`); no default, an empty reply sets no role
+  { role: 'flows.permissions.mode', modes: true, label: 'Default permission mode of the workers of the flows' },
+  {
+    role: 'flows.permissions.allow',
+    list: true,
+    after: 'flows.permissions.mode',
+    label: 'Tools those workers may use without asking'
+  }
 ])
+
+/** The permission modes the runtimes that `answers` select offer, each once. */
+export function permissionModes(answers, catalogue) {
+  const names = selectedAdapters(answers).runtimes
+  return [...new Set(names.flatMap((name) => catalogue.runtime[name]?.permissionModes ?? []))]
+}
+
+/** Whether `init` asks a question of `answers`: a question of modes needs a runtime that lists some, and one that follows another needs its answer. */
+export function isAsked(question, answers, catalogue) {
+  if (question.modes) {
+    return permissionModes(answers, catalogue).length > 0
+  }
+  return !question.after || valueAt(answers, question.after) !== undefined
+}
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
 const escapeRegExp = (text) => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -622,6 +644,10 @@ export async function bootstrap({
       }
     }
     const messages = [`Wrote ${PROFILE_FILE} and ${files.length} scaffolded files.`]
+    const jsonFiles = [PROFILE_FILE, ...files.map((file) => file.path).filter((path) => path.endsWith('.json'))]
+    messages.push(
+      `The JSON files are written with two-space indents and one array entry a line: if the project's lint checks formatting, run the project's formatter on ${jsonFiles.join(', ')}.`
+    )
     const runtimeModules = (await loadModules(fetched.dir)).runtime
     if (
       planWrite &&
@@ -715,10 +741,14 @@ export async function bootstrap({
   }
 }
 
-/** The profile file of a template repository: the questions with their defaults, and the required ones empty, for the user or an agent to fill. */
+/**
+ * The profile file of a template repository: the questions with their defaults, and the required ones empty, for the user or an agent to fill.
+ * The conditional questions (the ones `isAsked` decides) are left out: they depend on the adapters the template's user selects, and an empty value would
+ * make the template's tree differ from the same answers given by flags.
+ */
 export function templateProfile(options) {
   const profile = {}
-  for (const question of QUESTIONS) {
+  for (const question of QUESTIONS.filter((item) => !item.modes && !item.after)) {
     const fallback = questionDefault(question, options)
     setAnswer(profile, question, fallback !== undefined ? structuredClone(fallback) : question.list ? [] : '')
   }

@@ -90,10 +90,8 @@ grep -rnE ':\s*any\b|<any>|as any\b|@ts-(ignore|expect-error|nocheck)|eslint-dis
 # K9 hidden dependencies
 grep -rnE 'Date\.now\(\)|new Date\(\)|Math\.random\(\)' api/src lib --include=*.ts | grep -v '\.test\.'
 grep -rnE 'process\.env' api/src --include=*.ts | grep -v '\.test\.\|config/'
-# K11 security: routes without guards, secrets
-grep -rnE '@(Get|Post|Put|Patch|Delete)\(' api/src --include=*.controller.ts | wc -l
-git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.example$'
-grep -rniE '(secret|password|api[_-]?key|token)\s*[:=]\s*["'"'"'][^"'"'"']{8,}' $SRC --include=*.ts | grep -v '\.test\.' | head
+# K11 security: the security review's last report (open findings, date against the cadence); the probes a script decides
+node harness/tools/harness.mjs check security
 # K12 errors
 grep -rnE 'catch\s*\(\w*\)\s*\{\s*\}|catch\s*\{\s*\}' $SRC --include=*.ts --include=*.tsx | grep -v '\.test\.'
 grep -rnE 'throw new Error\(' api/src --include=*.ts | grep -v '\.test\.' | wc -l

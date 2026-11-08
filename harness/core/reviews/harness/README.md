@@ -222,7 +222,7 @@ reason.
 
 The **procedures block** of the always-loaded entry file is budgeted like the rest: every procedure of the framework or of the project (`paths.procedures`) adds a row
 to a text that is read in every session, so the rows and the words of the block are counted apart in M6 and the rows are part of the rule load of M20, and the bindings
-set a ceiling for both. A row that a skill already carries for an agent (`invocation: auto`) still costs its words in the block; a new procedure is weighed against the ceiling.
+set a ceiling for both. A row that a skill already carries for an agent (`invocation: auto`) still costs its words in the block; a new procedure is weighed against the ceiling. The **security rules** of the entry file (ids `sec.*`) are counted the same way, in lines and words, so that the rules each review distils stay few.
 
 Evidence: M20 to M26. Judge each hotspot: can it be simplified without losing a capability (split, merge, delete, move to a
 tool, replace several special cases with one rule)? If yes, it is accidental.

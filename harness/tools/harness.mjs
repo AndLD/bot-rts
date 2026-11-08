@@ -19,7 +19,7 @@
 //   harness profile get <role>                                    print a value of the profile file (a list one item per line)
 //   harness layers                                                print the layer map
 //   harness review measure                                        the measurements of a harness review that a script can decide, against the budgets of the bindings
-//   harness check <name> [--verbose]                                          one check: vendored, generated, profile, scaffold, adapters, local-adapters, values,
+//   harness check <name> [--verbose] [--range <a>..<b>] [--audit]                                          one check: vendored, generated, profile, scaffold, adapters, local-adapters, values,
 //                                                                 layers, links, paths, core, plan, flows, changelog, probes, product-knowledge
 //   harness check all [--verbose]                                             every check, then the project's own (`checks.project`)
 //   harness plan summary [--check]                                write (or compare) the summary of the plan index
@@ -126,6 +126,7 @@ const USAGE = `usage: harness <command>
   adapter test <path> [--only <pattern>]`
 
 const FLAGS_WITH_VALUE = new Set([
+  '--range',
   '--from',
   '--to',
   '--reason',
@@ -168,6 +169,7 @@ const FLAGS_WITH_VALUE = new Set([
 // Flags that may be given several times; their values are collected in a list
 const REPEATED_FLAGS = new Set(['--set'])
 const BOOLEAN_FLAGS = new Set([
+  '--audit',
   '--local',
   '--check',
   '--dry-run',
@@ -299,11 +301,15 @@ export async function run(argv, { out = console.log, err = console.error, input 
       return checkAll({ root, out, err, verbose: flags.verbose })
     }
     if (words[0] === 'check' && words.length === 2 && CHECKS[words[1]]) {
-      return report(words[1], runCheck(words[1], { root, profile: loadProfile(root) }), {
-        out,
-        err,
-        verbose: flags.verbose
-      })
+      return report(
+        words[1],
+        runCheck(words[1], { root, profile: loadProfile(root), range: flags.range, audit: flags.audit }),
+        {
+          out,
+          err,
+          verbose: flags.verbose
+        }
+      )
     }
     if (words[0] === 'profile' && words[1] === 'get' && words.length === 3) {
       const value = lookup(loadProfile(root), words[2])

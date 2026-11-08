@@ -7,10 +7,10 @@ const NAME = 'node-ts'
 
 const setup = (indent) =>
   [
-    '- uses: actions/checkout@v4',
+    '- uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0',
     '  with:',
     '    fetch-depth: 0',
-    '- uses: actions/setup-node@v4',
+    '- uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0',
     '  with:',
     '    node-version-file: .nvmrc',
     '    cache: npm',
@@ -57,7 +57,7 @@ export function ciJobs(profile, { stacks = 1, first = true, name = NAME, package
           `      - name: Run the tests with coverage (the gate is applied to the merged coverage by the aggregator)`,
           `        run: npm run test:coverage -w ${pkg} -- --coverageThreshold='{}'`,
           '      - name: Keep the coverage for the gate',
-          '        uses: actions/upload-artifact@v4',
+          '        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2',
           '        with:',
           `          name: coverage-${pkg}-1-of-1`,
           `          path: ${pkg}/coverage/coverage-final.json`

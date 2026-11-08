@@ -41,7 +41,7 @@ from the bar. A score needs evidence (file and line, or a measured number); a sc
 | C4  | Testability                  | Can a unit be tested in isolation, deterministically?                                                      | global mutable state, hidden I/O, environment read at import, direct clock and randomness, framework objects in business code |
 | C5  | Scalability and performance  | Will it hold under the intended load and scale out?                                                        | statelessness, indexes and query shapes, algorithmic complexity of hot paths, in-process state, limits and pagination, back-pressure |
 | C6  | Maintainability              | Can a newcomer change it safely?                                                                           | dead code, duplication, size and complexity outliers, naming, config drift, type-safety escapes, mixed conventions |
-| C7  | Security and robustness      | Are inputs validated, access controlled, secrets handled, failures contained?                              | authentication and authorization paths, validation at boundaries, secret handling, abuse limits, unhandled-failure paths |
+| C7  | Security and robustness      | Does the code hold what the [security review](../security/README.md) asks of it, and are failures contained? | the open findings of its last report that are in the code (that review owns the probes), unhandled-failure paths, resource exhaustion |
 | C8  | Errors and observability     | Are failures typed, preserved and visible?                                                                 | swallowed errors, generic status mapping, logging discipline, metrics, traceability |
 | C9  | Dependencies and build       | Is the build reproducible and the dependency set healthy?                                                  | lockfile, workspace setup, deprecated or unused packages, build and typecheck cleanliness |
 | C10 | Delivery gates               | Do automated gates enforce the bar before code merges and ships?                                           | CI jobs, hooks, branch protection, release process, what a failing gate blocks |
@@ -129,7 +129,7 @@ Generic measurements. `bindings.md` gives the command for each.
 | K8  | Duplication: repeated blocks and repeated constants across packages                           | C6        |
 | K9  | Hidden dependencies: module-level mutable state, environment read at import, direct clock and randomness in logic | C4 |
 | K10 | Hot-path review: data-access shapes, loops over collections, unbounded queries, in-process state | C5       |
-| K11 | Security checks: unauthenticated or unauthorized routes, unvalidated inputs, secrets in the repository, abuse limits | C7 |
+| K11 | The security review's last report: its findings in the code that are still open, and its date against the [cadence](../security/README.md#10-cadence) | C7 |
 | K12 | Error handling: swallowed or generalized errors, typed-error usage, logging discipline         | C8        |
 | K13 | Dependency health: outdated, deprecated, unused or duplicated packages; lockfile state        | C9        |
 | K14 | Churn: files changed most often in a period, crossed with size                                | hotspots  |
@@ -169,4 +169,5 @@ A delta report names the dimensions it did not re-score and carries their previo
 
 | Date       | Change                                                                                            |
 | ---------- | ------------------------------------------------------------------------------------------------- |
+| 2026-11-08 | C7 and K11 link to the security review, which owns the subject, instead of repeating it. |
 | 2026-10-16 | First written method, derived from the structure of the 2026-10-10 report: scorecard, SOLID, coupling, scalability, testability, maintainability, prioritized findings, verdict. Added security, errors, dependencies and gates as dimensions, hotspot analysis, finding verification and carry-over. |

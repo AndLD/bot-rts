@@ -10,13 +10,15 @@ on:
     branches: [<%= branches.integration %>, <%= branches.production %>]
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     steps:
       - name: Bring <%= branches.integration %> into the pull requests that wait on auto-merge
         env:

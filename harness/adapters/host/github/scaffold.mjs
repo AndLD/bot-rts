@@ -1,10 +1,14 @@
-// The GitHub host's files of a new project (design §6.3, role "scaffold-files"): the CI workflow, whose frame is this adapter's template and whose
+// The GitHub host's files of a new project (design §6.3, role "scaffold-files"): the security policy, the CI workflow, whose frame is this adapter's template and whose
 // jobs come from the selected stacks (their role "CI job layout"), the release workflow, and, where the host protects its branches and auto-merge is on,
 // the workflow that keeps the pull requests waiting on auto-merge up to date. Written once by the bootstrap; `harness check values`
 // then holds the triggers and the required checks.
-import { renderWorkflow } from './templates.mjs'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { renderTemplate, renderWorkflow, TEMPLATES_DIR, templateContext } from './templates.mjs'
 
 export const WORKFLOWS = '.github/workflows'
+// The security policy of the project, where the host looks for it and shows it in the Security tab
+export const SECURITY_POLICY = 'SECURITY.md'
 
 /** Whether the project gets the workflow that updates the pull requests waiting on auto-merge: the ruleset requires them up to date, and the agents use auto-merge. */
 export const keepsPullRequestsUpToDate = (profile) =>
@@ -26,6 +30,10 @@ export function scaffoldFiles(profile, { jobs = [] } = {}) {
   return [
     { path: `${WORKFLOWS}/ci.yml`, content: ci },
     { path: `${WORKFLOWS}/release.yml`, content: renderWorkflow('release.yml', profile) },
+    {
+      path: SECURITY_POLICY,
+      content: renderTemplate(readFileSync(join(TEMPLATES_DIR, 'SECURITY.md'), 'utf8'), templateContext(profile))
+    },
     ...(keepsPullRequestsUpToDate(profile)
       ? [{ path: `${WORKFLOWS}/update-branches.yml`, content: renderWorkflow('update-branches.yml', profile) }]
       : [])

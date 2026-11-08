@@ -1,23 +1,23 @@
 {
   "framework": "harness-framework",
   "mode": "pinned",
-  "version": "0.6.0-dev.1",
+  "version": "0.6.0-dev.2",
   "migrations": {
-    "version": "0.6.0-dev.1",
+    "version": "0.6.0-dev.2",
     "applied": [
       "0.2.0",
       "0.3.0"
     ],
     "start": {
-      "commit": "8d6bf0a228b18eef5c87e99922b8cd8caad54e17",
-      "version": "0.5.0"
+      "commit": "b59671ceed7ed4b666c77805034c02614f42cb0d",
+      "version": "0.6.0-dev.1"
     }
   },
   "source": {
     "type": "git",
     "url": "https://github.com/AndLD/harness-framework.git",
-    "tag": "0.6.0-dev.1",
-    "commit": "a253a8f20b9bf2da8fa9c4efe8865afb3a192032"
+    "tag": "0.6.0-dev.2",
+    "commit": "c8dd389003f38fb04c2c62be9531816a649a11d7"
   },
   "adapters": {
     "stacks": [
@@ -91,7 +91,7 @@
     "adapters/stack/node-ts/conformance/shard-1.json": "288662c2d01d7f2435256eb407e9d12dd9cf84e93ace1c3dfb60dc9e0162f478",
     "adapters/stack/node-ts/conformance/shard-2.json": "7584f99214dbb4eb3508b025affa377fa65fca61b34c6c90a67e4d12b40fc210",
     "adapters/stack/node-ts/coverage.mjs": "510ee1fd0399a6945710a1f11e733813642fd89376a7e9abc7b1396695bd1904",
-    "adapters/stack/node-ts/dependency-audit.mjs": "a40d8f0f2ffb8521f66b24a3d0be50122841ffa5ee7b2967aefc4ea406dce542",
+    "adapters/stack/node-ts/dependency-audit.mjs": "9d42aa42c836c36b3ee1b7117e2ddf5c2939979fc5ea567019daf9d8d31193d4",
     "adapters/stack/node-ts/format.mjs": "c298fe9bb2ea0eab772088274e41f27cd252781a8cd23790db1e36f2e5e1ff47",
     "adapters/stack/node-ts/gate.mjs": "68e03d8268c02b3bdecee4a2d43e20d2c98b699a17e2857f78e76aa518a00aea",
     "adapters/stack/node-ts/manifest.json": "7e51e6a3000884cd0679a0177a1c68241d1678de4292f31c3a45889cf99b02c2",
@@ -99,7 +99,7 @@
     "core/contracts/host.md": "85d5d01bc265214e68a7b984337b0149559413f1d2c3a1445076c582472095c8",
     "core/contracts/new-adapter.md": "e99fde6dd79fbadae8097fb2f979fc9ccfaa3a9f5f168e9f6376f5d7a883249e",
     "core/contracts/runtime.md": "495a4400e9e5e421468ff753725546abd5eb123451c6d1f04f55882335c8be9f",
-    "core/contracts/stack.md": "f1a98d2fb65d139166304a9dbff567ca7085b9b6f5dbeda4befc4bd11b472d85",
+    "core/contracts/stack.md": "0be7e540e2f0d334f5cf978783096392f8aaa3961ab5ae8f4d0d898a229a8fa8",
     "core/method/method.md": "81e5af2ef0d274f9439fc87399fe6b2550533494fd5c220029b231cacafc08bc",
     "core/plan/README.md": "29d11c71927b6fb9558c02f7c58680b0fba091781e2d439f94a9e4ecf584f258",
     "core/plan/backlog-template.md": "8e9352d0f424d8a6cee5e6d8a3e5376f85db046178575e379454251120cdb0e3",
@@ -185,7 +185,7 @@
     "core/templates/scaffold/stack.md": "7731ef78d3e80edd58ecabe37e757aadbe62bc95cc628821a205ac23fa96921d",
     "core/templates/scaffold/template-readme.md": "73f37b24b4558936e71416e4bd93b04a0f8c98f3bca96332cf27d41a84cb9a4d",
     "core/vocabulary.json": "8e74b9a58230a2778b159fbe89f1c66cc26f3d217c5bccf39ff92381c4e73390",
-    "framework.json": "8082533ec3960a6a3275fe1263311e35505f5cba9a7310c85384502737d38e93",
+    "framework.json": "cab54332f415300258dac2581acc8ef4f979fa4abbf5aac1583c1a493b04edb0",
     "migrations/0.1.1.md": "bdb159767f3151db389e5eedc2613c5c0b695c4903637e8c7bb92c0ddf22752b",
     "migrations/0.1.2.md": "7d4a05107beac6d44a9180562ce6a36278eccceabc81ca1c48c662127fa72df0",
     "migrations/0.2.0-dev.1.md": "055ab73e30562617c028af681b28093c4b738974337011fecea8745fe7245f9f",
@@ -203,7 +203,8 @@
     "migrations/0.5.0-dev.1.md": "264a4c5d9af0cc478d09ea170e698de8172a79d488c75b7135c0997ea373af34",
     "migrations/0.5.0.md": "d82070f2d914d75413ba39ed519d6f6ee2b204c321c07d4fccafd1572a0e9923",
     "migrations/0.6.0-dev.1.md": "31ce4e4b554ef3dcf69710e98b510f65fcaeb418db96e54e4beecd8bf6be2268",
-    "migrations/README.md": "d92122bba911fcb90f0a259a73351dd01dc41742874c6a27fc88eb1ef14de631",
+    "migrations/0.6.0-dev.2.md": "d0a18ca381b7fe545b13cd0fd758dca52b420c844adcde6b21f700cd79be6ea0",
+    "migrations/README.md": "d53404ee36e83ccdda02d55a5a042b2ee56f19e6485549bf92e9334452310f0b",
     "migrations/areas.json": "abb82c881d8975627a593eeaeb1bd496bed40d60d1657caa6d01f80e6a3ee622",
     "profile/harness-profile.schema.json": "7daa9e04c75633767d6d13345d14e9e1e6236d91969510392ee2bb406a40bb7d",
     "profile/manifest.schema.json": "f060211621dbdaed6399823e1ae4ce6acd212dfb3a90a959aa5b91174570f1bf",
@@ -258,7 +259,7 @@
     "tools/lib/issue-migration.mjs": "b130977d2ca58c1e4c1deda70ee028f760c495757346ef7f0472d46a8e36db68",
     "tools/lib/issue-queue.mjs": "7069ae8a69a07679db234616611900a8ad19986aaa835172fd0c784528fa47a1",
     "tools/lib/layer-migration.mjs": "77ca5c14da7f21d97a6d9b026076ea789730f03a2188236eee8884ae66f8a28c",
-    "tools/lib/layers.mjs": "648e3d957344c2c9aee887da5f7aef4e854e8662441061f552a705b227bc6c54",
+    "tools/lib/layers.mjs": "56926642ba246d7c779888d40a262d044e76f725157acb7ec92f1a65dd9d8fa7",
     "tools/lib/link-moves.mjs": "cfcdd4ea2cbf7ecce34479b4fb6a3d69eaa23df5eef73233688ff8131b20a153",
     "tools/lib/links.mjs": "0e4ce26232caebc6f5650d189925ff33c9ad87789aa6d693161919ed955f09e7",
     "tools/lib/local-adapters.mjs": "891f29cad350b6aa3db6c48f1e62a71262d09e60d2fa5cee8743eb31f5ff70ff",
@@ -298,7 +299,7 @@
     "tools/lib/runtime-blocks.mjs": "9a1376653561740011b119579883640210b3c8cf4743a34bb6fc284a88e67425",
     "tools/lib/runtimes.mjs": "5a232de4e83003956a1b2b47bf12bbc9ec3353ce6be8ee30674fb2db6a266007",
     "tools/lib/scaffold.mjs": "e264437f6c78ddbfac3b98b93722b550a6acb66ae2d12da439814e3d64b7aa66",
-    "tools/lib/security-deps.mjs": "edcc967bd83b88dba5a5df09abade968f1609ebfb056d8c0e1cdb34687686f7d",
+    "tools/lib/security-deps.mjs": "3e6a2dcf95a2d9cfa15588ebefba7d91bded3965255d96fc3b2ea64b928119f7",
     "tools/lib/security-secrets.mjs": "c607a5bceaffa5db4af5ce7cee9b05b84b37115ecc3dd86758e73592aa32fefd",
     "tools/lib/security.mjs": "ebfb6505721becc6fd62d9fde6bf476bd2a2b9bd49c5586f6a211e51fb25790c",
     "tools/lib/skills.mjs": "4286d954df61fbe7e97fc17c4039fb4b2acf507b58c3a84fc30e4c7abd9f75f6",
@@ -349,6 +350,7 @@
     "0.4.0": "9c976f0294ec7f0c2b57010ab7395fe57070168e",
     "0.5.0-dev.1": "ee9255294fc5999d4c677c62a30fb86ee0133ca9",
     "0.5.0": "c6ac6ac000be38f276ac3f178ebe44707dc6fe90",
-    "0.6.0-dev.1": "a253a8f20b9bf2da8fa9c4efe8865afb3a192032"
+    "0.6.0-dev.1": "a253a8f20b9bf2da8fa9c4efe8865afb3a192032",
+    "0.6.0-dev.2": "c8dd389003f38fb04c2c62be9531816a649a11d7"
   }
 }

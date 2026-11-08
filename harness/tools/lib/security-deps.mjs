@@ -4,6 +4,7 @@
 import { spawnSync } from 'node:child_process'
 import { closeSync, openSync, readSync } from 'node:fs'
 import { basename, dirname, join, posix } from 'node:path'
+import { claims } from './layers.mjs'
 import { matchesAny, readText } from './security-secrets.mjs'
 import { owns, selectedStacks, stackModule } from './stacks.mjs'
 
@@ -26,6 +27,21 @@ export function dependencySpecs(profile) {
   })
 }
 
+/** Whether a lock file at the root of the workspaces covers `file`: an ancestor manifest, with a tracked lock beside it, lists the folder of `file` among its members. */
+function lockedByWorkspaceRoot(file, entry, tracked, root) {
+  for (let folder = dirname(dirname(file)); ; folder = dirname(folder)) {
+    const rootManifest = posix.join(folder, basename(file))
+    const members = tracked.has(rootManifest) ? (entry.members?.(readText(root, rootManifest) ?? '') ?? []) : []
+    const hasLock = entry.locks.some((lock) => tracked.has(posix.join(folder, lock)))
+    if (hasLock && claims(members, posix.relative(folder, dirname(file)))) {
+      return true
+    }
+    if (folder === '.') {
+      return false
+    }
+  }
+}
+
 /** S2-001 and S2-003 over the tracked files. Returns the problems and the number of manifests read. */
 export function checkManifests({ root, profile, files }) {
   const tracked = new Set(files)
@@ -41,7 +57,8 @@ export function checkManifests({ root, profile, files }) {
       )
       for (const file of found) {
         manifests += 1
-        if (entry.locks.length && !entry.locks.some((lock) => tracked.has(posix.join(dirname(file), lock)))) {
+        const locked = entry.locks.some((lock) => tracked.has(posix.join(dirname(file), lock)))
+        if (entry.locks.length && !locked && !lockedByWorkspaceRoot(file, entry, tracked, root)) {
           problems.push({
             probe: 'S2-001',
             text: `${file}: no lock file is tracked beside it (${entry.locks.join(', ')}), so a fresh install resolves new versions`

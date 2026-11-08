@@ -12,6 +12,7 @@ import { isAbsolute, join } from 'node:path'
 import { changedFileFailures } from '../lib/coverage.mjs'
 import { excludesFolder } from '../lib/scaffold.mjs'
 import { planPush } from '../lib/gate.mjs'
+import { QUIET_ROLES, quietRolesOf } from '../lib/quiet-commands.mjs'
 import { Skip } from './skip.mjs'
 
 const PACKAGES = ['api', 'web']
@@ -46,6 +47,31 @@ const isCoverageCheck = (step) =>
   step.command === 'harness' && step.args.slice(0, 2).join(' ') === 'coverage check-changed'
 
 export const stackChecks = [
+  {
+    name: 'quiet commands: every command the stack defaults has a quiet variant that differs from it, and a quiet step of the gate names its arguments',
+    run: async (context) => {
+      if (!context.manifest.roles['quiet-commands']) {
+        throw new Skip('the quiet-commands role is empty: the quiet variant of each command is the plain command')
+      }
+      const commands = context.manifest.defaults?.commands ?? {}
+      const quiet = quietRolesOf(commands)
+      assert.ok(quiet.length, 'the role is filled but the defaults give no command that has a quiet variant')
+      for (const role of quiet) {
+        assert.ok(
+          typeof commands[role] === 'string' && commands[role].trim(),
+          `defaults.commands.${role} is the quiet variant of ${QUIET_ROLES[role]} and must be a command`
+        )
+        assert.notEqual(commands[role], commands[QUIET_ROLES[role]], `${role} is the plain command, not a quiet one`)
+      }
+      const { steps } = await plan(context, ['api/src/a.ts', 'api/src/a.py'])
+      for (const step of steps.filter((each) => each.quiet)) {
+        assert.ok(
+          Array.isArray(step.quiet.args) && step.quiet.args.every((arg) => typeof arg === 'string'),
+          `the quiet variant of the step "${step.label}" must hold its arguments`
+        )
+      }
+    }
+  },
   {
     name: 'gate plan: a push of only Markdown runs no code check',
     run: async (context) => {

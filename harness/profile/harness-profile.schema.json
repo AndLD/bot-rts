@@ -352,6 +352,41 @@
       },
       "additionalProperties": false
     },
+    "output": {
+      "type": "object",
+      "description": "How much the framework's commands and hooks print (task 6.2). They print failures and a one-line summary by default; the whole text is behind `--verbose`, and a step of the push gate or a project check that fails prints the path of the file that holds its output and its failing lines, at most `maxLines`.",
+      "default": {},
+      "properties": {
+        "maxLines": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 40,
+          "description": "The most lines of a failed step's output that are printed (the rest is in the file)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "flows": {
+      "type": "object",
+      "description": "The defaults of the flows of the plan (issue I-27), for a project with `paths.flows`. A flow's own setting of the same name wins; the core names no value, since the words are the runtime's.",
+      "default": {},
+      "properties": {
+        "permissions": {
+          "type": "object",
+          "description": "What the workers of a flow may do, when the flow's settings block has no `permissions` of its own: the same shape (`{ \"mode\": \"<a mode of the runtime>\", \"allow\": [\"<a tool by name>\"] }`, in the runtime's own words). Absent: a flow without the setting starts its workers in the runtime's strictest mode. What a worker may do is the owner's decision, so no adapter sets it.",
+          "properties": {
+            "mode": { "type": "string", "description": "A permission mode of the agent runtime." },
+            "allow": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Tools the workers may use without asking, by name."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "reports": {
       "type": "object",
       "description": "Reports from users on the repository host (task 3.16): whether an agent takes them in, and whether a consuming project sends the defects it finds in the framework upstream. Both need a host adapter with the `reports` role; a host without it keeps both switches `off`. A local, ignored file, `harness-profile.local.json`, may override these three values at once without a pull request (for example `{ \"reports\": { \"intake\": \"off\" } }` pauses the intake when reports flood in).",
@@ -471,6 +506,23 @@
         "testCoverage": {
           "type": "string",
           "description": "Tests with the coverage gate."
+        },
+        "lintQuiet": {
+          "type": "string",
+          "description": "Lint with the output reduced to the findings (task 6.3); an agent runs it instead of `lint`. Absent: the plain command."
+        },
+        "typecheckQuiet": { "type": "string", "description": "Typecheck with the output reduced to the failures." },
+        "formatQuiet": {
+          "type": "string",
+          "description": "The format check with the output reduced to the files that differ."
+        },
+        "testQuiet": {
+          "type": "string",
+          "description": "The tests with the output reduced to the failing tests and a total."
+        },
+        "testCoverageQuiet": {
+          "type": "string",
+          "description": "The tests with the coverage gate, the output reduced to the failures, the total and the figure."
         },
         "changedCoverage": {
           "type": "string",

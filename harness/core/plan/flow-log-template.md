@@ -26,6 +26,11 @@ session that continues the flow reads the flow file, the tail of this log and th
 - **Worker's recommendation:** <the pick and its argument>
 - **Choice:** <the option> · **Decided by:** <orchestrator | owner> <; when the picks differ: why the worker's argument does or does not hold>
 
+### YYYY-MM-DD HH:MM — handoff: <why: the context limit, or a restart between flows>
+- **State:** <the steps done and the one running, as `harness flow status <n>` shows them> · **Decisions:** <those of this session, each with a link to its entry, or none>
+- **Next step:** <the exact next step: its number and the command that starts it> · **Waiting for:** <what the session waited for (a worker, the owner, a usage reset), or nothing>
+- **Context:** <the orchestrator's context in percent of its window, or "not read"> · **Continued by:** <the new orchestrator session, by the executor of the order that started it>
+
 ### YYYY-MM-DD HH:MM — stop: <waits for the owner | finished | usage | escalation>
 - **Digest:** done <…>; decided alone <the D2–D4 decisions, each with a link to its entry>; usage <…>; next <the exact next step>
 ```

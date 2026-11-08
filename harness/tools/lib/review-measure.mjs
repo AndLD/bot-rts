@@ -3,7 +3,7 @@
 // break the dependency rule between layers (M3), the files no index reaches (M7) and the highest fan-out of a document (M21). The numbers are printed
 // against the budgets of the review bindings. A measurement is evidence, not a verdict: the reviewer judges a hit in context (method, section 4, step 3).
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import { entryFile, ruleIds } from './entry.mjs'
 import { LAYERS, classify, layerConfig, trackedFiles } from './layers.mjs'
@@ -238,13 +238,13 @@ const verdict = (value, ceiling) =>
 
 /**
  * The measurements of the project at `root`.
- * @param {{ root: string, profile: object, files?: string[], read?: (path: string) => string }} options `files` are the tracked files (default: those of Git), `read` reads one
+ * @param {{ root: string, profile: object, files?: string[], read?: (path: string) => string }} options `files` are the tracked files that the work tree still has (default: those of Git), `read` reads one
  * @returns {{ lines: string[], exceeded: string[] }}
  */
 export function measureReview({
   root,
   profile,
-  files = trackedFiles(root),
+  files = trackedFiles(root).filter((path) => existsSync(join(root, path))),
   read = (path) => readFileSync(join(root, path), 'utf8')
 }) {
   const bindingsPath = profile.documents?.harnessBindings

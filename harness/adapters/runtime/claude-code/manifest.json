@@ -50,6 +50,11 @@
       "module": "usage.mjs",
       "export": "usageFor"
     },
+    "transcripts": {
+      "fills": "the session files of the Claude desktop app (`claude-code-sessions/<account>/<organization>/local_<id>.json`) name the transcript of a session, a JSONL file under `projects/` of the configuration folder (`~/.claude`, `~/.claude-second-cli`, or `CLAUDE_CONFIG_DIR`); a transcript carries the usage of each answer, and the text of each tool call and result",
+      "module": "transcripts.mjs",
+      "export": "transcriptsFor"
+    },
     "scaffold-files": {
       "fills": "`CLAUDE.md` importing the entry file, `.claude/settings.json` from `settingsFor`, and the ignore line of the local settings",
       "module": "scaffold.mjs",

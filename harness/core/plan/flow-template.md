@@ -25,6 +25,7 @@ The orchestrator reads this block (the procedure `run-flow`); a setting left out
   "executor": "session",
   "reuse": "auto",
   "reuseLimits": { "context": 40, "steps": 3 },
+  "orchestratorLimits": { "context": 50 },
   "commits": "per-step",
   "commands": "any",
   "usage": {
@@ -55,7 +56,7 @@ Rules (the plan method, section 10; delete this comment in a real flow):
 - A step inserted midway takes a suffix id (`6c` after `6b`) and never renumbers the others; inserting one is a logged decision of level D2.
 - "Stops for": a level (`D2`) or a named reason (`owner review`) at which the orchestrator stops at this step whatever the mode, or —.
 - "Executor" and "Model" may be overridden per step in the scope's cell: `(executor: manual)` (`session`, `cli`, `subagent` or `manual`; the order of the executors and its fallbacks are in the runtime contract). `harness flow dispatch <n> <step>` says how the executor hands the step to a worker,
-  and whether the previous step's worker continues it (`reuse: auto` within `reuseLimits`).
+  and whether the previous step's worker continues it (`reuse: auto` within `reuseLimits`). `orchestratorLimits.context` is the orchestrator's own limit, in percent of its window: at it the orchestrator writes a handoff entry and continues in a new session (the procedure `run-flow`, step 9).
 - One repository: this template has no Repo column, and every step runs in the flow's home repository. To drive a step in another repository (a consumer taking a version), add a
   `Repo` column after `Kind` (the alias of the repository, `home` for the flow's own), and add a row for the alias to the settings, next to the others:
   `"repos": { "app": { "remote": "<owner>/<name>", "role": "consumer", "kinds": ["consumer-take"] } }`. The folder of `app` on this machine goes in the ignored `harness-profile.local.json`

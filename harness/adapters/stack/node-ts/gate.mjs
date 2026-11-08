@@ -8,6 +8,13 @@
 //   exists      whether a changed path is still there (a deleted file has no related tests)
 //   isolated    whether a file cannot change a package's code (the project's `gate.isolated`): it never triggers the full run
 // It returns `{ steps, coveragePackages }`; a step is `{ label, command, args, cwd?, package?, clears? }`, and the command `harness` is the framework's own.
+// The options that reduce a Jest run to the failing tests and a total, and the coverage to the summary the gate reads (the role `quiet-commands`)
+const QUIET_JEST = [
+  '--reporters=summary',
+  '--silent',
+  '--coverageReporters=json-summary',
+  '--coverageReporters=text-summary'
+]
 const SOURCE = /\.(ts|tsx)$/
 const IS_DECLARATION_OR_CONFIG =
   /(\.d\.ts$|(^|\/)(jest|next|cypress|eslint|vitest)[.\w-]*\.config\.|(^|\/)tsconfig[^/]*\.json$)/
@@ -64,6 +71,7 @@ export function plan({ files, packages, integration, exists, isolated = () => fa
         label: `tests of ${pkg} (the whole package)`,
         command: 'npm',
         args: ['run', 'test:coverage', '-w', pkg],
+        quiet: { args: ['run', '--silent', 'test:coverage', '-w', pkg, '--', ...QUIET_JEST] },
         package: pkg
       })
     } else if (followable.length) {
@@ -80,6 +88,18 @@ export function plan({ files, packages, integration, exists, isolated = () => fa
           '--findRelatedTests',
           ...followable.map((file) => file.slice(pkg.length + 1))
         ],
+        quiet: {
+          args: [
+            '--no-install',
+            'jest',
+            '--coverage',
+            '--coverageThreshold={}',
+            '--passWithNoTests',
+            ...QUIET_JEST,
+            '--findRelatedTests',
+            ...followable.map((file) => file.slice(pkg.length + 1))
+          ]
+        },
         cwd: pkg,
         package: pkg,
         // A run that finds no related tests must not leave the summary of an earlier run to be judged

@@ -133,7 +133,8 @@ export function planWrite({ root, profile, action, folders, scope = 'project', h
       action === 'on'
         ? `Turned on: an agent writes ${wanted.map((folder) => `${folder}/`).join(', ')} without a prompt (${where}). Turn it off with \`harness plan-write off\`.`
         : `Turned off: an agent asks before it writes ${wanted.map((folder) => `${folder}/`).join(', ')} (${where}).`,
-      ...(scope === 'user' ? ['This is the user-wide setting: it reaches every project of this user.'] : [])
+      ...(scope === 'user' ? ['This is the user-wide setting: it reaches every project of this user.'] : []),
+      `The file is written with two-space indents and one array entry a line: if the project's lint checks formatting, run the project's formatter on ${path}.`
     ]
   }
 }

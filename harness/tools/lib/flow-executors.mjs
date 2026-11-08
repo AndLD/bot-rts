@@ -23,10 +23,15 @@ export const OPERATIONS = Object.freeze(['start', 'continue', 'report', 'context
  * the reuse rule does not compare accounts.
  */
 export const OPTIONAL_OPERATIONS = Object.freeze(['account'])
+/** What the workers of a flow may do (issue I-27): the flow's own `permissions` setting, else the project's default (the profile role `flows.permissions`), else nothing set. */
+export const workerPermissions = (flow, profile) => flow.settings.permissions ?? profile?.flows?.permissions
+
 /** The optional executor operation that says in one line what a worker will be allowed to do under the flow's `permissions` setting (a text, not means). */
 export const PERMISSIONS_OPERATION = 'permissions'
 /** The limits of `reuse: auto` when the flow's `reuseLimits` leaves one out: the worker's context in percent of its window, and the steps it has run. */
 export const REUSE_LIMITS = Object.freeze({ context: 40, steps: 3 })
+/** The limit of the orchestrator's own context when the flow's `orchestratorLimits` leaves it out: percent of its window, at which it hands the flow over (task 6.5). */
+export const ORCHESTRATOR_LIMITS = Object.freeze({ context: 50 })
 
 /**
  * The manual executor of the framework: what a runtime without automation offers, and what a project with no runtime adapter gets. The owner pastes the
@@ -293,6 +298,67 @@ export function decideReuse({ flow, step, executor, kind, worker, context, accou
   return failed.length ? no(...failed) : { reuse: true, reasons: warm, keptModel }
 }
 
+/**
+ * The orchestrator's own context against its limit (`orchestratorLimits.context` of the flow, task 6.5), as the lines `harness flow status` and `dispatch` print.
+ * `state` is `below`, `at` (at or above the limit: hand the flow over), `unread` (the runtime can read it, nobody did) or `unreadable` (the runtime has no means).
+ * @param {{ flow: object, context: number | null, executor: object }} input `context` is the orchestrator's context in percent of its window, or null
+ * @returns {{ state: string, limit: number, lines: string[] }}
+ */
+export function orchestratorContext({ flow, context, executor }) {
+  const limit = { ...ORCHESTRATOR_LIMITS, ...(flow.settings.orchestratorLimits ?? {}) }.context
+  const means = executor?.context?.({ worker: '<your own session id>' }) ?? []
+  if (context === null || context === undefined || Number.isNaN(Number(context))) {
+    if (!means.length)
+      return {
+        state: 'unreadable',
+        limit,
+        lines: [
+          `Orchestrator context: the runtime cannot read it; hand the flow over by your own judgment, as near ${limit}% of your window as you can tell (the procedure run-flow, step 9).`
+        ]
+      }
+    return {
+      state: 'unread',
+      limit,
+      lines: [
+        `Orchestrator context: not read (limit ${limit}% of its window). Read your own and run this again with \`--orchestrator <percent>\`:`,
+        ...means.map((each) => `  - ${renderMeans(each, '')}`)
+      ]
+    }
+  }
+  if (Number(context) < limit)
+    return {
+      state: 'below',
+      limit,
+      lines: [`Orchestrator context: ${context}% of its window, below its limit of ${limit}%.`]
+    }
+  return {
+    state: 'at',
+    limit,
+    lines: [
+      `Orchestrator context: ${context}% of its window, at or above its limit of ${limit}%: write a handoff entry in the log (the log template) and continue in a new orchestrator session (the executor order; the new session reads the flow file, the tail of the log and the current report, nothing older) before you start another step.`
+    ]
+  }
+}
+
+/**
+ * Whether the next step can start inside the prompt cache of the previous worker (task 6.5): one line, from that worker's last turn in the log, the cache
+ * the executor's prompt cache lives (or the flow's `reuseLimits.cacheMinutes`) and the time now; empty when the log names no previous worker.
+ * @returns {string[]}
+ */
+export function cachePacing({ flow, executor, worker, now }) {
+  if (!worker?.lastAt) return []
+  const cacheMinutes = flow.settings.reuseLimits?.cacheMinutes ?? executor.cacheMinutes ?? 0
+  const idle = minutesBetween(worker.lastAt, now)
+  if (!Number.isFinite(idle)) return []
+  if (idle <= cacheMinutes)
+    return [
+      `Cache: the previous worker's last turn was ${idle} minutes ago, so its prompt cache lives ${Math.max(0, cacheMinutes - idle)} more minutes: a continue started inside them is warm; a wait past them makes the start cold (log it with \`--start cold\`).`
+    ]
+  return [
+    `Cache: the previous worker's last turn was ${idle} minutes ago, past the ${cacheMinutes} minutes its prompt cache lives: this start is cold whatever worker runs it; log it with \`--start cold\`.`
+  ]
+}
+
 const shellWord = (word) => (/^[\w@%+=:,./-]+$/.test(word) ? word : `'${word.replace(/'/g, `'\\''`)}'`)
 
 /**
@@ -362,7 +428,8 @@ export function dispatchStep({
   now,
   facts,
   harness,
-  repoPaths = {}
+  repoPaths = {},
+  orchestrator = null
 }) {
   const { runtime, executors } = runtimeExecutors(profile, runtimes)
   const picked = pickStepExecutor({ flow, step, executors, repoPaths })
@@ -385,7 +452,7 @@ export function dispatchStep({
   const promptCommand = `${harness} flow prompt ${flow.number} ${step.id}`
   const repo = repoPaths[step.repo] ?? '.'
   const name = `flow-${flow.number}-step-${step.id}`
-  const permissions = flow.settings.permissions
+  const permissions = workerPermissions(flow, profile)
   const startFresh = (text, executor = picked.executor) => {
     const split = splitModel(text)
     return executor.start({
@@ -453,6 +520,8 @@ export function dispatchStep({
     decision.reuse
       ? `Worker: continue ${worker.id}, the worker of step ${worker.step} (warm: ${decision.reasons.join('; ')}).`
       : `Worker: a fresh one${worker ? ` (not ${worker.id}: ${decision.reasons.join('; ')})` : ` (${decision.reasons.join('; ')})`}.`,
+    ...cachePacing({ flow, executor: picked.executor, worker, now }),
+    ...orchestratorContext({ flow, context: orchestrator, executor: executors.session ?? picked.executor }).lines,
     ...(decision.keptModel
       ? [
           `Decision D0 to log: step ${step.id} keeps the model of step ${worker.step}, ${decision.keptModel}, to stay warm.`

@@ -51,7 +51,7 @@ function situation({ flow, root, profile, runtimes, plan }) {
 const where = (here) =>
   here.subscription.id
     ? `subscription ${here.subscription.id} (${here.subscription.from}), ${here.usage.subscriptions?.[here.subscription.id]?.provisional ? 'provisional coefficients of' : 'coefficients of'} ${here.runtime ?? 'the framework'}`
-    : 'no subscription known (set usage.subscription in harness-profile.local.json, or give --plan)'
+    : 'no subscription known (set usage.subscription in harness-profile.local.json, or give --plan <plan or subscription id>, as the runtime reports it (Pro) or as the table names it (pro), in any case)'
 
 function estimateLines({ flow, profile, here }) {
   const result = flowEstimate({ flow, profile, usage: here.usage, subscription: here.subscription.id })

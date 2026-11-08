@@ -272,6 +272,7 @@
       "docs/engineering/rule-checks.md",
       ".githooks/**",
       ".github/**",
+      "SECURITY.md",
       ".claude/**",
       "scripts/**",
       "docs/operations/**",

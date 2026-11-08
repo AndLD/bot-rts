@@ -318,7 +318,7 @@
   },
   "managed": {
     "docs/profile.md": "0b6c259adcae8ddbcd262542555e7ee3f9141000e80153b7557a925b21a6f12b",
-    "docs/quality-reviews/harness/bindings.md#layers": "d4fa11b9780ac96425d51e02baba7d29e6f5bd60f5c91b76cb1a389dfd266784",
+    "docs/quality-reviews/harness/bindings.md#layers": "c9049ba3f9ea1790c40c4e98bdc0be32521c9e97a8505ce77470a123b4a46b3f",
     "docs/engineering/rule-checks.md#rule-map": "573c9583abbeba12b6a7f820fbb97ae4a4ae93f5fc47f31634741135258daad8",
     "AGENTS.md#procedures": "70fcdf23acd06d560b9b8e22544abb10b9209e66c7e77930eab4f541ae7154a2",
     "AGENTS.md#non-negotiables": "a01f593b8f46d6bd9d2b4bf66e2126d57471507cf00e19e6f7af961b99e0fb9c",
@@ -336,7 +336,7 @@
     ".claude/skills/start-task/SKILL.md": "d9f2384cffcad786bd8b54ae36b814bf9b513da13c0a80e089f4dc23d83e83bc",
     ".claude/skills/update-framework/SKILL.md": "fb53eb122855eed4a70ca21aafb315c8c28c9aa034b1becdaf1374720c714797"
   },
-  "profile": "b880368dd83755b90d9a3f592621c7889cab36f49b89883f487b1339aa687baf",
+  "profile": "275078d6ca00cc1fb15f6dcf9dceceb4eada3268cbb46001065676280bb45ee2",
   "overrides": [],
   "seen": {
     "0.1.0-dev.1": "ae8be5e45c5c2ff9c567e9631c7782dd4990cb79",

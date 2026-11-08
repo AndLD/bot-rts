@@ -15,22 +15,69 @@ export const TOP = 12
 /** The estimate of a count of characters, not rounded, so the sums of many results carry no rounding of their own. */
 export const tokensOf = (chars) => chars / CHARS_PER_TOKEN
 
+/** The id of a session the command line started, as the runtime names a transcript (a UUID). */
+export const CLI_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
 /**
- * The workers a flow's log names: for each `local_…` id of a session of the desktop app, and each name of a worker started on the command line ("`claude -p` named `<name>`"),
- * the first step whose "step <id> started" entry names it as its worker.
- * @returns {Map<string, string>} session id or name → step id
+ * The workers a flow's log names, each with the steps it worked, in the order of the log: the `local_…` id of a session of the desktop app and the name of a worker
+ * started on the command line ("`claude -p` named `<name>`") from the "step started" entries, and the id of a command-line worker from the "step ended" entry
+ * (the line `Worker: cli <id>`), because that id is known only when the worker ends.
+ * @returns {Map<string, string[]>} session id or name → step ids
  */
-export function workersOfLog(text) {
+export function workerStepsOfLog(text) {
   const workers = new Map()
+  const note = (id, step) => {
+    const steps = workers.get(id) ?? []
+    if (!steps.includes(step)) steps.push(step)
+    workers.set(id, steps)
+  }
   for (const block of text.split(/^### /m).slice(1)) {
-    const step = block.match(/^[^\n]*— step (\S+) started/)?.[1]
-    if (!step) continue
-    for (const match of block.matchAll(/\*\*Worker:\*\*\s*(?:(local_[0-9a-f-]+)|`claude -p` named `([^`]+)`)/g)) {
-      const id = match[1] ?? match[2]
-      if (!workers.has(id)) workers.set(id, step)
-    }
+    const started = block.match(/^[^\n]*— step (\S+) started/)?.[1]
+    if (started)
+      for (const match of block.matchAll(/\*\*Worker:\*\*\s*(?:(local_[0-9a-f-]+)|`claude -p` named `?([^`\s,;]+)`?)/g))
+        note(match[1] ?? match[2], started)
+    const ended = block.match(/^[^\n]*— step (\S+) ended/)?.[1]
+    if (ended)
+      for (const match of block.matchAll(/\*\*Worker:\*\*\s*cli ([0-9a-f]{8}-[0-9a-f-]{27})/g)) note(match[1], ended)
   }
   return workers
+}
+
+/**
+ * The first step of each worker the log names.
+ * @returns {Map<string, string>} session id or name → step id
+ */
+export const workersOfLog = (text) => new Map([...workerStepsOfLog(text)].map(([id, steps]) => [id, steps[0]]))
+
+/**
+ * When each step of a flow's log ended, as the log writes it (the time of the machine's own clock): the "step <id> ended" headings.
+ * @returns {Map<string, number>} step id → milliseconds
+ */
+export function stepEndsOf(text) {
+  const ends = new Map()
+  for (const match of text.matchAll(/^### (\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}) — step (\S+) ended/gm)) {
+    const at = new Date(`${match[1]}T${match[2]}:00`).getTime()
+    if (!Number.isNaN(at)) ends.set(match[3], at)
+  }
+  return ends
+}
+
+/**
+ * The records of one session that several steps reused, split by step: a record belongs to the first step (in the order of its end) that had not ended when it was
+ * written, and a record after the last end, or with no time, to the last step (the first, with no time at all).
+ * @returns {Map<string, { turns: object[], results: object[] }>} step id → records
+ */
+export function splitByStep(records, steps, ends) {
+  const ordered = [...steps].sort((a, b) => (ends.get(a) ?? Infinity) - (ends.get(b) ?? Infinity))
+  const split = new Map(ordered.map((step) => [step, { turns: [], results: [] }]))
+  const stepAt = (at) => {
+    const time = at ? Date.parse(at) : NaN
+    if (Number.isNaN(time)) return ordered[0]
+    return ordered.find((step) => time <= (ends.get(step) ?? Infinity)) ?? ordered[ordered.length - 1]
+  }
+  for (const turn of records.turns) split.get(stepAt(turn.at)).turns.push(turn)
+  for (const result of records.results) split.get(stepAt(result.at)).results.push(result)
+  return split
 }
 
 const isWord = (word) => word !== undefined && /^[A-Za-z][\w.:-]*$/.test(word)
@@ -249,33 +296,47 @@ export function auditCommand({
   const top = flags.top === undefined ? TOP : Number(flags.top)
   if (!(Number.isInteger(top) && top >= 1)) return fail('--top is a whole number of rows from 1.')
   const logPath = join(root, read.dir, flow.file.replace(/\.md$/, '.log.md'))
-  const workers = existsSync(logPath) ? workersOfLog(readFileSync(logPath, 'utf8')) : new Map()
+  const logText = existsSync(logPath) ? readFileSync(logPath, 'utf8') : ''
+  const workers = workerStepsOfLog(logText)
+  const ends = stepEndsOf(logText)
   const orchestrators = String(flags.orchestrator ?? '')
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean)
   const wanted = [
-    ...orchestrators.map((id) => ({ id, role: 'orchestrator', step: null })),
-    ...[...workers].map(([id, step]) => ({ id, role: 'worker', step }))
+    ...orchestrators.map((id) => ({ id, role: 'orchestrator', steps: [null] })),
+    ...[...workers].map(([id, steps]) => ({ id, role: 'worker', steps }))
   ]
   if (!wanted.length)
     return fail(
       `Flow ${flow.number}'s log names no worker, and no --orchestrator is given; there is no session to read.`
     )
-  const { found, missing } = runtime.transcripts.locate({ ids: wanted.map((each) => each.id), roots })
+  const located = runtime.transcripts.locate({ ids: wanted.map((each) => each.id), roots })
+  // A worker named in two ways (its name and its id) has the same transcript found twice: it counts once.
+  const seen = new Set()
+  const found = located.found.filter((each) => !seen.has(each.path) && seen.add(each.path))
   const byId = new Map()
   for (const each of found) {
+    const item = wanted.find((candidate) => candidate.id === each.id)
     const records = runtime.transcripts.parse(readText(each.path))
-    const session = byId.get(each.id) ?? {
-      ...wanted.find((item) => item.id === each.id),
-      label: each.id.startsWith('local_') ? each.id.slice(6, 14) : each.id,
-      records: { turns: [], results: [] }
-    }
+    const session = byId.get(each.id) ?? { item, records: { turns: [], results: [] } }
     session.records.turns.push(...records.turns)
     session.records.results.push(...records.results)
     byId.set(each.id, session)
   }
-  const sessions = [...byId.values()]
+  const sessions = []
+  for (const [id, { item, records }] of byId) {
+    const base = id.startsWith('local_') ? id.slice(6, 14) : CLI_ID.test(id) ? id.slice(0, 8) : id
+    if (item.steps.length > 1) {
+      for (const [step, part] of splitByStep(records, item.steps, ends))
+        sessions.push({ id, role: item.role, step, label: `${base} (step ${step})`, records: part })
+    } else sessions.push({ id, role: item.role, step: item.steps[0], label: base, records })
+  }
+  const foundSteps = new Set(sessions.map((session) => session.step))
+  const missing = located.missing.filter((id) => {
+    const item = wanted.find((candidate) => candidate.id === id)
+    return !(item?.role === 'worker' && item.steps.every((step) => foundSteps.has(step)))
+  })
   if (!sessions.length)
     return fail(
       `None of the ${wanted.length} session(s) of flow ${flow.number} has a transcript on this machine (${runtime.runtime}: ${runtime.transcripts.means}).`

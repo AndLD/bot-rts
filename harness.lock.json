@@ -1,23 +1,23 @@
 {
   "framework": "harness-framework",
   "mode": "pinned",
-  "version": "0.5.0-dev.1",
+  "version": "0.5.0",
   "migrations": {
-    "version": "0.5.0-dev.1",
+    "version": "0.5.0",
     "applied": [
       "0.2.0",
       "0.3.0"
     ],
     "start": {
-      "commit": "7a6def1d221d951eed73ecbc08e32ba9f350c639",
-      "version": "0.4.0"
+      "commit": "f877853246e3c323a4fc0148151ba77b9158c683",
+      "version": "0.5.0-dev.1"
     }
   },
   "source": {
     "type": "git",
     "url": "https://github.com/AndLD/harness-framework.git",
-    "tag": "0.5.0-dev.1",
-    "commit": "ee9255294fc5999d4c677c62a30fb86ee0133ca9"
+    "tag": "v0.5.0",
+    "commit": "c6ac6ac000be38f276ac3f178ebe44707dc6fe90"
   },
   "adapters": {
     "stacks": [
@@ -30,7 +30,7 @@
   },
   "files": {
     "BOOTSTRAP.md": "c81d65863a4e247dfc12e5ec1b69836fe2892bd3a98eb220608eaf72b02cb864",
-    "CHANGELOG.md": "8adff1412fb7dcb0df0d4ba7cfc25d2e32ecff034afc65f8acec0bb8ce67df37",
+    "CHANGELOG.md": "0b78ee529ef005c0f124b255a86e96aa92f3ba9799997dc45c6809bec884074a",
     "LICENSE": "05abb11a226621a02a46cbabdc913212f8327b9ab419ce1fe6cc14651fca1bed",
     "README.md": "56ddb33d7a14860fbefe48cc614dfeb368b81bde7b5069de9dc0b711eebc73a8",
     "adapters/host/_skeleton/README.md": "6ec6c5bf9b35fe9c6cb4dd569b7f5f84146611d15a971e46b045bfbaa97c785e",
@@ -73,7 +73,7 @@
     "adapters/runtime/claude-code/scaffold.mjs": "a0c53c93060d8922880ef2cc2b7cb43e236098489692ed6992b0db5ad3b720a1",
     "adapters/runtime/claude-code/settings.mjs": "5a2e3618e58c2a4ce02116df42a5bd0780862178e02451a41f3ced9d6b45fd04",
     "adapters/runtime/claude-code/templates/CLAUDE.md": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
-    "adapters/runtime/claude-code/transcripts.mjs": "17713a1ee36e0bb163ee06bf6f5604c80f82fd08f632aa62d1ce658e5d911550",
+    "adapters/runtime/claude-code/transcripts.mjs": "790b74129e8200d576f145005bd38f7a36338470ff3bcb6502f1c40833556506",
     "adapters/runtime/claude-code/usage.mjs": "a253d82d9a806c39d4b70c78c135bd2818aab1578bd1676246ba5134b4d4306d",
     "adapters/stack/_skeleton/README.md": "92842f700ef5c391eae922acf76a968d3d7d014a6f93d1ea58978f96eb1d1b7b",
     "adapters/stack/_skeleton/ci-jobs.mjs": "7e22fce4d14b3adc54b20d828da4a63d0eae6e140c33373d6df200c66d0e0e23",
@@ -88,11 +88,11 @@
     "adapters/stack/node-ts/coverage.mjs": "510ee1fd0399a6945710a1f11e733813642fd89376a7e9abc7b1396695bd1904",
     "adapters/stack/node-ts/format.mjs": "c298fe9bb2ea0eab772088274e41f27cd252781a8cd23790db1e36f2e5e1ff47",
     "adapters/stack/node-ts/gate.mjs": "68e03d8268c02b3bdecee4a2d43e20d2c98b699a17e2857f78e76aa518a00aea",
-    "adapters/stack/node-ts/manifest.json": "703d13d258bdd81c7f6ac7fb7acdeb884d53764a8a06e205165c35e4460e79be",
+    "adapters/stack/node-ts/manifest.json": "0bf66887d6b70916a6160208ea5db926193fd0bd0abf19db002a930d5dea02aa",
     "adapters/stack/node-ts/scaffold.mjs": "9951be4e754738933cd176e25cf611d119fa41a329a9033f65963f4ef58554de",
     "core/contracts/host.md": "99de8146f63e62e39eba0d4110fe79709f9b77ca35e308fa00f16d5ab9d69929",
     "core/contracts/new-adapter.md": "e99fde6dd79fbadae8097fb2f979fc9ccfaa3a9f5f168e9f6376f5d7a883249e",
-    "core/contracts/runtime.md": "bae8f31cd0a1b07bf7661e5d5ce6ccbc2bc7167e69e3282a77ebf1d2147ca132",
+    "core/contracts/runtime.md": "4d4e4e82ac7529e2407631bb549c3f3cf5046859e15073bd2fb527210e13ce1d",
     "core/contracts/stack.md": "7cac42902d43f3b9c147ee52c8c4102c8f70710a03abb5146cecda089125ff1e",
     "core/method/method.md": "81e5af2ef0d274f9439fc87399fe6b2550533494fd5c220029b231cacafc08bc",
     "core/plan/README.md": "29d11c71927b6fb9558c02f7c58680b0fba091781e2d439f94a9e4ecf584f258",
@@ -162,7 +162,7 @@
     "core/templates/scaffold/stack.md": "7731ef78d3e80edd58ecabe37e757aadbe62bc95cc628821a205ac23fa96921d",
     "core/templates/scaffold/template-readme.md": "73f37b24b4558936e71416e4bd93b04a0f8c98f3bca96332cf27d41a84cb9a4d",
     "core/vocabulary.json": "8e74b9a58230a2778b159fbe89f1c66cc26f3d217c5bccf39ff92381c4e73390",
-    "framework.json": "ac3d935adc1342ca726a243c5de4212b026e3e11327d2e7fde3a928035c6f4e4",
+    "framework.json": "ef491883c96932a5f48bd6e7cd61e6307b4f10291358e2c9f811fd8261d7df5e",
     "migrations/0.1.1.md": "bdb159767f3151db389e5eedc2613c5c0b695c4903637e8c7bb92c0ddf22752b",
     "migrations/0.1.2.md": "7d4a05107beac6d44a9180562ce6a36278eccceabc81ca1c48c662127fa72df0",
     "migrations/0.2.0-dev.1.md": "055ab73e30562617c028af681b28093c4b738974337011fecea8745fe7245f9f",
@@ -178,7 +178,8 @@
     "migrations/0.4.0-dev.1.md": "87a8b4634c0bb4b583fed7ab003d9866afbe6ebf62ce97cd8ee095449b323fe8",
     "migrations/0.4.0.md": "7675e0da9d1d7111845c4a36ed8aee44d2bc5366017cdab2a3587ce0f9ba2e23",
     "migrations/0.5.0-dev.1.md": "264a4c5d9af0cc478d09ea170e698de8172a79d488c75b7135c0997ea373af34",
-    "migrations/README.md": "50d9c213d7d4984fb7b937f413353ff6cccdf0a5f9610c2e4fde99320ccca42d",
+    "migrations/0.5.0.md": "d82070f2d914d75413ba39ed519d6f6ee2b204c321c07d4fccafd1572a0e9923",
+    "migrations/README.md": "65a109a8eb6e57d8b50bd35e1bb7bee673812da9257256bbb4eefbb595a6a670",
     "migrations/areas.json": "abb82c881d8975627a593eeaeb1bd496bed40d60d1657caa6d01f80e6a3ee622",
     "profile/harness-profile.schema.json": "3c650f02c7517a0a024307926c8ea0a32caedb36cf96500fd23fad422f8f7805",
     "profile/manifest.schema.json": "e259839071dc764474515b6398937c5cf902a7d3a193abefd11e99eb3ee85a37",
@@ -208,7 +209,7 @@
     "tools/lib/core-scan.mjs": "3693ede67ca2acc2707d3826cdb36cd5bc485449ddbc9c320bf3d95d92fadbde",
     "tools/lib/coverage.mjs": "592c7348334ff4d1de3a3a2d929a6ecd5c8570ab3669065c579e3f92f0ef3b0f",
     "tools/lib/entry.mjs": "014f8fae51ba035c5b346130516a18209c4b2e9adaf745583bf5726eaa823337",
-    "tools/lib/flow-audit.mjs": "57fbf2cd19f29819b4aa3168db6a3abac0b092602e897201768314c9f22256f9",
+    "tools/lib/flow-audit.mjs": "f876a0dd2ad2e5b537cd2a73e663642393c56f9d5727097c027e9364ccc0c015",
     "tools/lib/flow-calibrate.mjs": "a2ebd4540d16dde4da734df842fd4b4ec599a15b648df071100250d5013ce8c0",
     "tools/lib/flow-check.mjs": "7c71f394dfa704d635ae357a56d9671774d36d9b7f5ad3c6996ebe649c2169b3",
     "tools/lib/flow-command.mjs": "18c06bfc9bfde31c7d5ac7ac2c25aa40a4c4c78d3d8b2eaec2795ca2bab3b16b",
@@ -318,6 +319,7 @@
     "0.3.0": "0de995fc01844425284a2e5fdbd2165d63afcb0c",
     "0.4.0-dev.1": "84322481d502f507543ccacaeba47cc05c946223",
     "0.4.0": "9c976f0294ec7f0c2b57010ab7395fe57070168e",
-    "0.5.0-dev.1": "ee9255294fc5999d4c677c62a30fb86ee0133ca9"
+    "0.5.0-dev.1": "ee9255294fc5999d4c677c62a30fb86ee0133ca9",
+    "0.5.0": "c6ac6ac000be38f276ac3f178ebe44707dc6fe90"
   }
 }

@@ -85,7 +85,7 @@ made by a pull request with the comparison that `harness flow calibrate` prints 
 | Field | Meaning |
 | ----- | ------- |
 | `means` | one line: where the runtime keeps its sessions |
-| `locate({ ids, roots? })` | `{ found: [{ id, path }], missing: [id] }`: the transcript file of each session id the log names (`roots` replaces the folders searched, for a test) |
+| `locate({ ids, roots? })` | `{ found: [{ id, path }], missing: [id] }`: the transcript file of each session id the log names: a desktop-app session, a command-line session by its id, or a worktree by its name (`roots` replaces the folders searched, for a test) |
 | `parse(text)` | the neutral records of one transcript: `{ turns, results }`. A turn is one model answer, `{ at, usage: { input, cacheRead, cacheCreate, output } or null, outputChars, calls: [{ id, tool, command or null }] }`, with the answers written in several lines counted once; a result is `{ at, callId, chars }`, the characters of one tool result |
 
 The tool counts a result as its characters divided by four (no runtime reports the count of one), the agent's output by the usage where a turn has it, and the peak context as the largest `input + cacheRead + cacheCreate` of a turn.

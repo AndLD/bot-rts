@@ -5,6 +5,9 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
+/** The id of a session the command line started: the name of its transcript file. */
+const CLI_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
 const MEANS =
   'the session files of the Claude desktop app (`claude-code-sessions/<account>/<organization>/local_<id>.json`) name the transcript, a JSONL file under `projects/` of the Claude Code configuration folder'
 
@@ -61,7 +64,7 @@ function namedFiles(projects, name) {
 }
 
 /**
- * Where the transcripts of the sessions named by `ids` are: an id `local_<id>` is a session of the desktop app, any other id is the name of a worktree a worker
+ * Where the transcripts of the sessions named by `ids` are: an id `local_<id>` is a session of the desktop app, an id that is a UUID is the transcript of a session the command line started (in any folder of `projects/`), any other id is the name of a worktree a worker
  * was started in on the command line (it may have more than one transcript). `roots` replaces the default folders (a test names its own).
  * @returns {{ found: { id: string, path: string }[], missing: string[] }} (an id may be found in several files)
  */
@@ -69,6 +72,12 @@ export function locate({ ids, roots = defaultRoots() }) {
   const found = []
   const missing = []
   for (const id of ids) {
+    if (CLI_ID.test(id)) {
+      const path = transcriptFile(roots.projects, id)
+      if (path) found.push({ id, path })
+      else missing.push(id)
+      continue
+    }
     if (!id.startsWith('local_')) {
       const paths = namedFiles(roots.projects, id)
       if (paths.length) found.push(...paths.map((path) => ({ id, path })))

@@ -76,7 +76,7 @@
       "export": "scaffoldFiles"
     },
     "quiet-commands": {
-      "fills": "npm's `--silent` for lint, and the `summary` reporter of the test runner with its console output silenced (the coverage reporters narrowed to the neutral summary and a one-line total); the gate's test steps use the same options. A project that sets `typecheck` or `format` sets their quiet variants too"
+      "fills": "npm's `--silent` for lint, and the `summary` reporter of the test runner with its console output silenced (the coverage reporters narrowed to the neutral summary and a one-line total); the gate's test steps use the same options. `typecheckQuiet` and `formatQuiet` are `npm run --silent typecheck` and `npm run --silent format -- --log-level warn`. The test defaults are for a single package: from a workspaces root, where the root script is `npm run test --workspaces`, npm takes the flags after `--` and Jest never sees them, so the project sets `testQuiet` to `npm run --silent test --workspaces --if-present -- --reporters=summary --silent` and `testCoverageQuiet` the same way"
     }
   },
   "enforces": [
@@ -116,6 +116,8 @@
       "harnessSyncLocal": "npm run harness -- sync --local",
       "harnessDiff": "npm run harness -- diff",
       "lintQuiet": "npm run --silent lint",
+      "typecheckQuiet": "npm run --silent typecheck",
+      "formatQuiet": "npm run --silent format -- --log-level warn",
       "testQuiet": "npm test --silent -- --reporters=summary --silent",
       "testCoverageQuiet": "npm run --silent test:coverage -- --reporters=summary --silent --coverageReporters=json-summary --coverageReporters=text-summary"
     },

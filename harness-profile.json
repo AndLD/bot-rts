@@ -128,7 +128,7 @@
   "terms": {
     "stack": "nestjs|prisma|postgres|\\bjest\\b|cypress|quickjs|socket\\.io|next\\.js|vercel|docker|redis|expressjs|express\\.js|reactjs|react\\.js|redux|ant design|codemirror|\\bnpm\\b|node\\.js|nodejs|github actions|husky|playwright|lighthouse|\\btypescript\\b",
     "product": "bot-rts|\\bbots?\\b|\\bmodules?\\b|scanner|botos|\\bterminal\\b|\\btick\\b|credits|\\bbase\\b|\\bscripts?\\b|\\bplayers?\\b",
-    "productGeneric": "\\bmodules?\\b|\\bscripts?\\b",
+    "productGeneric": "\\bmodules?\\b|\\bscripts?\\b|\\bbots?\\b|scanner|\\bbase\\b",
     "projectValues": "`main`|`develop`|\\b97 ?%|\\bPhase [0-9]+|/api/v1|andld|bind_pr|set_monitor|auto-fix|\\bgithub\\b|design §|npm run [a-z:]+|scripts/[a-z-]+\\.(mjs|sh)|\\benglish\\b|\\brussian\\b|\\.claude/|\\.githooks|(feature|bugfix|docs|chore)/[0-9]|[0-9]{4}-[0-9]{2}-[0-9]{2}(-[0-9]+)?\\.md"
   },
   "productKnowledge": {

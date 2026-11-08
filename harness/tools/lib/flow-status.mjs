@@ -131,7 +131,7 @@ function takeTruth(step, facts) {
   if (lock === null) return { state: NOT_STARTED, evidence: `the repository "${step.repo}" has no lock` }
   if (lock.version === version) return { state: DONE, evidence: `the lock of "${step.repo}" names ${version}` }
   const base = `the lock of "${step.repo}" names ${lock.version}, not ${version}`
-  // A later take supersedes this one: the lock names a later version, so this take is done when its pull request is merged (or cannot be asked about)
+  // A later take supersedes this one: the lock names a later version, so this take is done when its pull request is merged or closed (or cannot be asked about)
   const later = compareVersions(lock.version, version) > 0
   const superseded = `the lock of "${step.repo}" names ${lock.version}, a later version than ${version}`
   // An external repository is read through the host, so its pull requests that mention the version say whether the step has begun
@@ -151,6 +151,10 @@ function takeTruth(step, facts) {
   const merged = named.filter((pr) => pr.state === 'merged')
   if (later && merged.length)
     return { state: DONE, evidence: `${superseded}; pull request #${merged[0].number} (${merged[0].title}) is merged` }
+  // A closed draft is the way a development take ends when a later take supersedes it
+  const closed = named.filter((pr) => pr.state === 'closed')
+  if (later && closed.length)
+    return { state: DONE, evidence: `${superseded}; pull request #${closed[0].number} (${closed[0].title}) is closed` }
   return {
     state: NOT_STARTED,
     evidence: merged.length

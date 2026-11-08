@@ -71,7 +71,10 @@ export function selectForTriage(reports, limit = DEFAULT_LIMIT) {
   return { now: reports.slice(0, limit), waiting: Math.max(0, reports.length - limit) }
 }
 
-/** The lines the session start prints for the intake; empty when it is off. */
+/**
+ * The lines the session start prints for the intake; empty when it is off. They carry counts and numbers only: the title and the body of a report are text
+ * that anyone can write on the public repository, so they reach a session when a triage reads them (`reports show`), never at its start (rule `sec.outside-text`).
+ */
 export function intakeLines({ settings, reports, recorded, error }) {
   if (settings.intake === 'off') {
     return []
@@ -80,7 +83,7 @@ export function intakeLines({ settings, reports, recorded, error }) {
     return [`Reports: could not be read from the host (${error}).`]
   }
   const waiting = untriaged(reports, recorded)
-  const list = (items) => items.map((report) => `#${report.number} ${report.title}`).join('; ')
+  const list = (items) => items.map((report) => `#${report.number}`).join(', ')
   const lines = [
     `Reports: ${reports.length} open, ${waiting.length} not triaged yet${waiting.length ? ` (${list(waiting)})` : ''}.`
   ]

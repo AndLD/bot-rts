@@ -38,6 +38,8 @@
       "codeReviews": "harness/core/reviews/code/README.md",
       "harnessReviews": "harness/core/reviews/harness/README.md",
       "harnessBindings": "docs/quality-reviews/harness/bindings.md",
+      "securityReviews": "harness/core/reviews/security/README.md",
+      "securityBindings": "docs/quality-reviews/security/bindings.md",
       "specification": "docs/product/README.md",
       "glossary": "docs/product/glossary.md",
       "changelog": "CHANGELOG.md"

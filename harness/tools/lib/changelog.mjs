@@ -3,7 +3,7 @@
 // the project's (`release.versionFiles` of the profile file), so the tool works for any stack whose version sits in a JSON file.
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, join, relative } from 'node:path'
 import {
   areasOf,
   noteProblems,
@@ -175,6 +175,7 @@ export function checkChangelog({ root, profile }) {
       problems.push(error.message)
     }
   }
+  problems.push(...lockProblems(root, profile))
   return { problems, message: `Checked ${names.length} changelog fragments.` }
 }
 
@@ -200,6 +201,42 @@ export function writeVersion(file, text, version) {
         new RegExp(`("version"\\s*:\\s*)"${current.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`),
         `$1"${version}"`
       )
+}
+
+const LOCK_FILE = 'package-lock.json'
+// The two versions of an npm lock file: its own, and that of its root package (`packages[""]`)
+const LOCK_VERSIONS = [
+  /^(\{\s*"name"\s*:\s*"[^"]*",\s*"version"\s*:\s*)"[^"]*"/,
+  /("packages"\s*:\s*\{\s*""\s*:\s*\{[^}]*?"version"\s*:\s*)"[^"]*"/
+]
+
+/** The text of an npm lock file with the version of the project set in both places it is kept; the rest is kept as it is. */
+export function writeLockVersion(text, version) {
+  return LOCK_VERSIONS.reduce((each, pattern) => each.replace(pattern, `$1"${version}"`), text)
+}
+
+// The npm lock files that sit beside the `package.json` files among the version files
+const lockFilesOf = (root, profile) =>
+  (profile.release?.versionFiles ?? ['package.json'])
+    .filter((file) => basename(file) === 'package.json')
+    .map((file) => join(dirname(file), LOCK_FILE))
+    .filter((lock) => existsSync(join(root, lock)))
+
+/** The version problems of the npm lock files of a project: both their versions name that of the `package.json` beside them. */
+function lockProblems(root, profile) {
+  return lockFilesOf(root, profile).flatMap((path) => {
+    const version = JSON.parse(readFileSync(join(root, dirname(path), 'package.json'), 'utf8')).version
+    const lock = JSON.parse(readFileSync(join(root, path), 'utf8'))
+    return [
+      [lock.version, 'version'],
+      [lock.packages?.['']?.version, 'packages[""].version']
+    ]
+      .filter(([found]) => found !== undefined && found !== version)
+      .map(
+        ([found, field]) =>
+          `${path}: ${field} is ${found}, not ${version} of package.json (\`harness release\` sets both)`
+      )
+  })
 }
 
 // The release version before `version`, as the changelog's comparison links have it
@@ -314,6 +351,9 @@ export function release({ root, profile, dryRun = false, dev = false, date = new
   }
   for (const file of versionFiles) {
     writeFileSync(join(root, file), writeVersion(file, readFileSync(join(root, file), 'utf8'), version))
+  }
+  for (const lock of lockFilesOf(root, profile)) {
+    writeFileSync(join(root, lock), writeLockVersion(readFileSync(join(root, lock), 'utf8'), version))
   }
   if (note) {
     writeFileSync(join(root, note.path), note.text)

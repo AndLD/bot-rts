@@ -11,7 +11,9 @@ import {
   adapterCatalogue,
   bootstrap,
   completeProfile,
+  isAsked,
   missingAnswers,
+  permissionModes,
   questionDefault,
   questionValue,
   setAnswer,
@@ -108,12 +110,20 @@ export function lineReader(input, out) {
 /** Asks every question that no flag answered, in order; an empty answer takes the value offered (the file's, or the default). */
 export async function ask(answers, given, reader, { catalogue = adapterCatalogue(), out = () => {} } = {}) {
   for (const question of QUESTIONS.filter((item) => !given.has(item.role))) {
+    if (!isAsked(question, answers, catalogue)) {
+      continue
+    }
     const current = questionValue(answers, question)
     const offered =
       current !== undefined && current !== '' && !(Array.isArray(current) && current.length === 0)
         ? current
         : questionDefault(question)
-    const choices = question.axis ? ` (available: ${Object.keys(catalogue[question.axis]).join(', ') || 'none'})` : ''
+    const modes = question.modes ? permissionModes(answers, catalogue) : []
+    const choices = question.axis
+      ? ` (available: ${Object.keys(catalogue[question.axis]).join(', ') || 'none'})`
+      : modes.length
+        ? ` (available: ${modes.join(', ')}; empty for none)`
+        : ''
     const hint =
       offered !== undefined && !(question.required && Array.isArray(offered) && offered.length === 0)
         ? ` [${display(offered)}]`
@@ -121,6 +131,9 @@ export async function ask(answers, given, reader, { catalogue = adapterCatalogue
     let reply = await reader.ask(`${question.label}${choices}${hint}: `)
     while (!reply && question.required && hint === '' && reader.interactive) {
       reply = await reader.ask(`${question.label} is required: `)
+    }
+    if (reply && modes.length && !modes.includes(reply)) {
+      throw new Error(`${question.label}: "${reply}" is not one of ${modes.join(', ')}`)
     }
     if (reply) {
       setAnswer(answers, question, parseAnswer(question, reply))

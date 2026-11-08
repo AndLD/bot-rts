@@ -67,13 +67,24 @@
       "export": "remoteFile"
     },
     "scaffold-files": {
-      "fills": "`.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks), `.github/workflows/release.yml` and, with `host.protection` and `host.autoMerge`, `.github/workflows/update-branches.yml`",
+      "fills": "`SECURITY.md` (the security policy: the supported versions, how to report in private, what happens to a report), `.github/workflows/ci.yml` (the frame of the template with the jobs of the stacks), `.github/workflows/release.yml` and, with `host.protection` and `host.autoMerge`, `.github/workflows/update-branches.yml`",
       "module": "scaffold.mjs",
       "export": "scaffoldFiles"
+    },
+    "ci-audit": {
+      "fills": "the checks of the security review that read the workflow files: the token's `permissions:` declared (S3-001), actions pinned to a full commit (S2-004), no event text spliced into a `run:` script (S3-005), no `pull_request_target` that checks out the proposed code (S4-018)",
+      "module": "ci-audit.mjs",
+      "export": "auditCi"
     }
   },
-  "templates": ["templates/ci.yml", "templates/release.yml", "templates/update-branches.yml"],
+  "templates": ["templates/ci.yml", "templates/release.yml", "templates/update-branches.yml", "templates/SECURITY.md"],
   "enforces": [
+    {
+      "rule": "sec.pinned-actions",
+      "when": "remote",
+      "by": "`harness check security` finds an action that is not pinned to a full commit (in `harness check all`, so in CI, once `checks.security` is on)",
+      "partial": true
+    },
     {
       "rule": "git.protection",
       "when": "remote",

@@ -17,6 +17,11 @@
       "items": { "type": "string" },
       "description": "What a project does once, by hand, after the bootstrap, that the adapter cannot do for it (a lock file that no tool writes without the network, for example). The bootstrap lists the steps of the selected adapters in its next steps, and the scaffolded stack file lists them."
     },
+    "permissionModes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "For a runtime: the permission modes it offers, in its own words. `harness init` asks for the project's default mode of a flow's workers (the profile role `flows.permissions`) only when a selected runtime lists modes here; a runtime without the list is not asked about."
+    },
     "terms": {
       "type": "string",
       "description": "A regular expression (case-insensitive) of the words that belong to this adapter and must not appear in core; the CORE scan joins it with the term lists of the profile file."
@@ -119,6 +124,7 @@
       "ci-job-layout": "required",
       "commands": "required",
       "quiet-commands": "optional",
+      "dependency-audit": "logic-optional",
       "ignored-directories": "required",
       "ignore-files": "required",
       "scaffold-files": "logic-optional"
@@ -140,6 +146,7 @@
       "transcripts": "logic-optional",
       "hook-adoption": "logic-optional",
       "plan-write": "logic-optional",
+      "settings-audit": "logic-optional",
       "managed-blocks": "logic-optional",
       "scaffold-files": "logic-optional"
     },
@@ -159,6 +166,7 @@
       "reports": "logic-optional",
       "remote-state": "logic-optional",
       "values-in-host-files": "logic",
+      "ci-audit": "logic-optional",
       "scaffold-files": "logic-optional"
     }
   }

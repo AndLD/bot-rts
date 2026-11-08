@@ -43,5 +43,8 @@ export function adoptConfiguration({ root, profile }) {
       (command) =>
         `${SETTINGS_PATH}: the hook \`${command}\` is the project's own; remove it if the framework's hook does its job.`
     )
+  notes.push(
+    `${SETTINGS_PATH} is written with two-space indents and one array entry a line: if the project's lint checks formatting, run the project's formatter on it.`
+  )
   return { files: [{ path: SETTINGS_PATH, content: `${JSON.stringify(settings, null, 2)}\n` }], notes }
 }

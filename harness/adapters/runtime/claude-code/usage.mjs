@@ -31,6 +31,8 @@ const scaled = (base, divisor) =>
 // The rows of Sonnet on Pro that carry a kind of their own are CALIBRATED: the medians per SP that `harness flow calibrate` read from the measured steps of
 // flows 1 and 2 (2026-11-05 to 2026-11-07): 4 `consumer-take` steps, 6 `cut` steps and 6 `tasks` steps. The account's window also counts the orchestrator and
 // the owner's parallel work, so a measured step is an upper bound. A kind with fewer than 3 steps (custom, triage-fix, decision) keeps the default row times its factor.
+// The `tasks` row of Opus on Pro is set by the owner's choice of 2026-11-08 after flow 3: step 7 measured about 3% of the 5-hour and 0.5% of the weekly window a SP
+// (the default row gave 20% and 2.7%), and `calibrate` read 0.53% from its tokens (n=3); 4% and 0.6% keep a margin over the one measured reading.
 const PRO = {
   haiku: row(4, 0.5),
   sonnet: {
@@ -39,7 +41,7 @@ const PRO = {
     'consumer-take': { fiveHour: 2.61, weekly: 0.23 },
     cut: { fiveHour: 3.42, weekly: 0.69 }
   },
-  opus: row(20, 2.7),
+  opus: { ...row(20, 2.7), tasks: { fiveHour: 4, weekly: 0.6 } },
   fable: row(30, 4)
 }
 

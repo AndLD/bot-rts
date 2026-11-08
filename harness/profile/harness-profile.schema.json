@@ -532,6 +532,10 @@
           "type": "string",
           "description": "The import-boundary check."
         },
+        "audit": {
+          "type": "string",
+          "description": "The audit of the dependencies against an advisory database (the stack's `dependency-audit` role). It needs the network, so `harness check security` runs it only with `--audit`."
+        },
         "i18n": {
           "type": "string",
           "description": "The message-catalogue check."
@@ -746,6 +750,14 @@
           "type": "string",
           "description": "The harness review bindings."
         },
+        "securityReviews": {
+          "type": "string",
+          "description": "The security review method. Optional: a project that leaves it empty has no security-review procedure."
+        },
+        "securityBindings": {
+          "type": "string",
+          "description": "The security review bindings; required when documents.securityReviews is set, since the procedure links them. The bootstrap writes the framework's template there once; a project that leaves it empty has no such file."
+        },
         "frameworkPlan": {
           "type": "string",
           "description": "The harness-to-framework plan."
@@ -837,6 +849,81 @@
           "items": { "type": "string" },
           "default": [".env", ".env.*", "!.env.example", "*.pem", "*.key"],
           "description": "Gitignore-style patterns of the paths an agent must not read (secrets only; files that merely cost context are not listed). A pattern with ! is a carve-out. The agent-runtime adapter turns them into its read exclusions, and `harness check scaffold` holds that they are there."
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "default": {},
+      "description": "What `harness check security` looks for and where it does not look (the automated probes of the security review, `core/reviews/security/`).",
+      "properties": {
+        "secretPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "pattern"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The name the finding carries (the value that matched is never printed)."
+              },
+              "pattern": { "type": "string", "description": "A JavaScript regular expression, tried on one line." },
+              "flags": {
+                "type": "string",
+                "description": "The flags of the expression (`i` for a case-insensitive one)."
+              },
+              "files": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Globs: the pattern is tried only on these files (the pattern for assignments is, because prose has the same words). Not set: every scanned file."
+              }
+            }
+          },
+          "default": [
+            { "id": "private-key", "pattern": "-----BEGIN (?:[A-Z]+ )?PRIVATE KEY(?: BLOCK)?-----" },
+            { "id": "aws-access-key-id", "pattern": "\\b(?:AKIA|ASIA)[0-9A-Z]{16}\\b" },
+            { "id": "github-token", "pattern": "\\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{22,})\\b" },
+            { "id": "slack-token", "pattern": "\\bxox[abprs]-[A-Za-z0-9-]{10,}" },
+            { "id": "api-key-sk", "pattern": "\\bsk-[A-Za-z0-9_-]{32,}" },
+            { "id": "google-api-key", "pattern": "\\bAIza[0-9A-Za-z_-]{35}\\b" },
+            { "id": "payment-live-key", "pattern": "\\b[sr]k_live_[0-9A-Za-z]{16,}\\b" },
+            {
+              "id": "url-with-password",
+              "pattern": "\\b[a-z][a-z0-9+.-]*://[^\\s/:@'\"<>$]+:[^\\s/:@'\"<>$]{6,}@[^\\s/'\"]+",
+              "flags": "i"
+            },
+            {
+              "id": "literal-assignment",
+              "pattern": "^\\s*[\"']?[\\w.-]*(?:password|passwd|secret|token|api[_-]?key|private[_-]?key)[\\w.-]*[\"']?\\s*[:=]\\s*[\"']?(?!your|example|change|placeholder|dummy|test|x{4}|\\*{4})[^\\s\"'$<{(\\[]{8,}",
+              "flags": "i",
+              "files": [
+                "**/*.json",
+                "**/*.yml",
+                "**/*.yaml",
+                "**/*.toml",
+                "**/*.ini",
+                "**/*.cfg",
+                "**/*.sh",
+                "**/.npmrc",
+                "**/*.env"
+              ]
+            }
+          ],
+          "description": "The patterns of the secret scan (probes S1-001, S1-010 and S1-017), each a name and a regular expression. A project adds its own, or sets the whole list. A line with the words `harness:allow-secret` is not reported."
+        },
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Globs of the files that the content checks of `harness check security` skip: the secret scan, the scan for binaries and the manifest checks. For test fixtures with a planted defect, and for nothing else."
+        },
+        "allowedRules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Allow rules of the agent runtime's settings that the project accepts although the settings check calls them broad (for example a rule for an interpreter that the shell guard limits). Each is spelled as in the settings."
         }
       }
     },
@@ -939,6 +1026,11 @@
           },
           "description": "Globs of the files that count as documentation: a change of nothing else skips the code checks in CI and in the push gate (`harness ci changes`).",
           "default": ["**/*.md"]
+        },
+        "security": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether `harness check all` (and so the CI) runs `harness check security`. Off until the project passes it; `harness check security` always runs on request."
         },
         "project": {
           "type": "array",
